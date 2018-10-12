@@ -22,13 +22,13 @@ class iota2():
     class use to describe steps sequence and variable to use at each step (config)
     """
     def __init__(self, cfg, config_ressources):
-        #Config object
+        # config object
         self.cfg = cfg
         
-        #working directory, HPC
+        # working directory, HPC
         self.HPC_working_directory = "TMPDIR"
         
-        #steps definitions
+        # steps definitions
         self.steps_group = OrderedDict()
 
         self.steps_group["init"] = OrderedDict()
@@ -38,8 +38,34 @@ class iota2():
         self.steps_group["classification"] = OrderedDict()
         self.steps_group["mosaic"] = OrderedDict()
         self.steps_group["validation"] = OrderedDict()
-        #build steps
+
+        # build steps
         self.steps = self.build_steps(self.cfg, config_ressources)
+        self.sort_step()
+
+    def sort_step(self):
+        """
+        use to establish which step is going to which step group
+        """
+        
+        for step_place, step in enumerate(self.steps):
+            self.steps_group[step.step_group][step_place] = step.step_description()
+
+    def print_step_summarize(self, start, end):
+        """
+        print iota2 steps that will be run
+        """
+        summarize = "Full processing include the following steps (checked steps will be run): "
+        for group in self.steps_group.keys():
+            summarize += "Group {}:\n".format(group)
+            for key in self.steps_group[group]:
+                highlight = "[ ]"
+                if key >= start and key<=end:
+                    highlight="[x]"
+                summarize += "\t {} Step {}: {}\n".format(highlight, key + 1 ,
+                                                          self.steps_group[group][key])
+        summarize += "\n"
+        return summarize
 
     def get_dir(self):
         """
@@ -61,13 +87,11 @@ class iota2():
         end = self.cfg.getParam('chain', 'lastStep')
         start_ind = self.steps_group.keys().index(start)
         end_ind = self.steps_group.keys().index(end)
-        
         steps = []
         for key in self.steps_group.keys()[start_ind:end_ind+1]:
+            print self.steps_group[key]
             steps.append(self.steps_group[key])
-
         step_to_compute = [step for step_group in steps for step in step_group]
-        
         return step_to_compute
 
 
@@ -75,93 +99,21 @@ class iota2():
         """
         build steps
         """
-        from Cluster import get_RAM
-        from Validation import OutStats as OutS
-        from Validation import MergeOutStats as MOutS
-        from Sampling import TileEnvelope as env
-        from Sampling import TileArea as area
-        from Learning import TrainingCmd as TC
-        from Classification import ClassificationCmd as CC
-        from Validation import ClassificationShaping as CS
-        from Validation import GenConfusionMatrix as GCM
-        from Sampling import DataAugmentation
-        from Learning import ModelStat as MS
-        from Validation import GenResults as GR
         import os
-        from Classification import Fusion as FUS
-        from Classification import NoData as ND
-        from Validation import ConfusionFusion as confFus
-        from Sampling import VectorSampler as vs
-        from Sampling import VectorSamplesMerge as VSM
-        from Common import IOTA2Directory as IOTA2_dir
-        from Common import FileUtils as fu
-        from Sampling import DimensionalityReduction as DR
-        from Sensors import NbView
-        from Sensors.SAR import S1Processor as SAR
-        from Classification import ImageClassifier as imageClassifier
-        from Sampling import VectorFormatting as VF
-        from Sampling import SplitSamples as splitS
-        from Sampling import SamplesMerge as samplesMerge
-        from Sampling import SamplesStat
-        from Sampling import SamplesSelection
-        from Classification import MergeFinalClassifications as mergeCl
-
         # get variable from configuration file
         PathTEST = cfg.getParam('chain', 'outputPath')
-        TmpTiles = cfg.getParam('chain', 'listTile')
-        tiles = TmpTiles.split(" ")
-        Sentinel1 = cfg.getParam('chain', 'S1Path')
-        pathTilesFeat = os.path.join(PathTEST, "features")
-        shapeRegion = cfg.getParam('chain', 'regionPath')
-        field_Region = cfg.getParam('chain', 'regionField')
-        model = cfg.getParam('chain', 'model')
-        shapeData = cfg.getParam('chain', 'groundTruth')
-        dataField = cfg.getParam('chain', 'dataField')
-        N = cfg.getParam('chain', 'runs')
-        CLASSIFMODE = cfg.getParam('argClassification', 'classifMode')
-        NOMENCLATURE = cfg.getParam('chain', 'nomenclaturePath')
-        COLORTABLE = cfg.getParam('chain', 'colorTable')
-        RATIO = cfg.getParam('chain', 'ratio')
-        outStat = cfg.getParam('chain', 'outputStatistics')
-        classifier = cfg.getParam('argTrain', 'classifier')
-        ds_sar_opt = cfg.getParam('argTrain', 'dempster_shafer_SAR_Opt_fusion')
-        cloud_threshold = cfg.getParam('chain', 'cloud_threshold')
-        enableCrossValidation = cfg.getParam('chain', 'enableCrossValidation')
-        fusionClaAllSamplesVal = cfg.getParam('chain', 'fusionOfClassificationAllSamplesValidation')
-        sampleManagement = cfg.getParam('argTrain', 'sampleManagement')
-        pixType = fu.getOutputPixType(NOMENCLATURE)
-
-        merge_final_classifications = cfg.getParam('chain', 'merge_final_classifications')
-        merge_final_classifications_method = cfg.getParam('chain',
-                                                          'merge_final_classifications_method')
-        undecidedlabel = cfg.getParam("chain", "merge_final_classifications_undecidedlabel")
-        dempstershafer_mob = cfg.getParam("chain", "dempstershafer_mob")
-        keep_runs_results = cfg.getParam('chain', 'keep_runs_results')
-
-        dimred = cfg.getParam('dimRed', 'dimRed')
-        targetDimension = cfg.getParam('dimRed', 'targetDimension')
-        reductionMode = cfg.getParam('dimRed', 'reductionMode')
-        sample_augmentation = dict(cfg.getParam('argTrain', 'sampleAugmentation'))
-        sample_augmentation_flag = sample_augmentation["activate"]
-
-        #do not change
-        fieldEnv = "FID"
-
-        pathModels = PathTEST + "/model"
-        pathEnvelope = PathTEST + "/envelope"
-        pathClassif = PathTEST + "/classif"
-        pathTileRegion = PathTEST + "/shapeRegion"
-        classifFinal = PathTEST + "/final"
-        dataRegion = PathTEST + "/dataRegion"
-        pathAppVal = PathTEST + "/dataAppVal"
-        pathSamples = PathTEST + "/learningSamples"
-        pathStats = PathTEST + "/stats"
-        cmdPath = PathTEST + "/cmd"
-
-        from Steps import IOTA2Step
+ 
+        from Steps.IOTA2Step import StepContainer
         from Steps import FirstStep
+        from Steps import SecondStep
 
-        monEtape = FirstStep.FirstStep()
-        pause = raw_input("W8")
+        s_container = StepContainer()
+        
+        step_container = []
+        log_dir = os.path.join(PathTEST, "logs")
 
-        return step_container
+        myStep = FirstStep.FirstStep(log_dir)
+        otherStep = SecondStep.SecondStep(log_dir)
+        s_container.append(myStep, "init")
+        s_container.append(otherStep, "init")
+        return s_container
