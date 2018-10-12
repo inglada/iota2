@@ -49,20 +49,21 @@ class iota2():
         """
         
         for step_place, step in enumerate(self.steps):
-            self.steps_group[step.step_group][step_place] = step.step_description()
+            self.steps_group[step.step_group][step_place + 1] = step.step_description()
 
     def print_step_summarize(self, start, end):
         """
         print iota2 steps that will be run
         """
-        summarize = "Full processing include the following steps (checked steps will be run): "
+        summarize = "Full processing include the following steps (checked steps will be run):\n"
         for group in self.steps_group.keys():
-            summarize += "Group {}:\n".format(group)
+            if len(self.steps_group[group]) > 0:
+                summarize += "Group {}:\n".format(group)
             for key in self.steps_group[group]:
                 highlight = "[ ]"
                 if key >= start and key<=end:
                     highlight="[x]"
-                summarize += "\t {} Step {}: {}\n".format(highlight, key + 1 ,
+                summarize += "\t {} Step {}: {}\n".format(highlight, key ,
                                                           self.steps_group[group][key])
         summarize += "\n"
         return summarize
@@ -89,7 +90,6 @@ class iota2():
         end_ind = self.steps_group.keys().index(end)
         steps = []
         for key in self.steps_group.keys()[start_ind:end_ind+1]:
-            print self.steps_group[key]
             steps.append(self.steps_group[key])
         step_to_compute = [step for step_group in steps for step in step_group]
         return step_to_compute
@@ -106,6 +106,7 @@ class iota2():
         from Steps.IOTA2Step import StepContainer
         from Steps import FirstStep
         from Steps import SecondStep
+        from Steps import ThirdStep
 
         s_container = StepContainer()
         
@@ -114,6 +115,8 @@ class iota2():
 
         myStep = FirstStep.FirstStep(log_dir)
         otherStep = SecondStep.SecondStep(log_dir)
+        stepStepStep = ThirdStep.ThirdStep(log_dir)
         s_container.append(myStep, "init")
         s_container.append(otherStep, "init")
+        s_container.append(stepStepStep, "init")
         return s_container

@@ -25,7 +25,7 @@ class FirstStep(IOTA2Step.Step):
     def __init__(self, log_path, name="FirstStep", cpu=1, ram="4gb", walltime="00:30:00"):
         # heritage init
         super(FirstStep, self).__init__()
-        
+
         # init
         self.step_name = name
         self.cpu = cpu
@@ -48,7 +48,7 @@ class FirstStep(IOTA2Step.Step):
         """
         return range(1, 20)
 
-    def step_execute(self):
+    def step_execute(self, workingDirectory=None):
         """
         Return
         ------

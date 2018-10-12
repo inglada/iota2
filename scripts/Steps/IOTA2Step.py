@@ -39,8 +39,6 @@ class StepContainer(object):
         self.container[index] = val
     def __getitem__(self, index):
         return self.container[index]
-    #~ def __iter__():
-        #~ pass
 
     def __str__(self):
         return "[{}]".format(", ".join(step.step_name for step in self.container))

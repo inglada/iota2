@@ -218,24 +218,6 @@ def start_workers(mpi_service):
             print("Worker process with rank {}/{} started".format(rank,mpi_service.size-1))
             nb_started_workers+=1
 
-#~ def print_step_summarize(iota2_chain):
-    #~ """
-    #~ usage : print iota2 steps that will be run
-    #~ """
-    
-    #~ if MPIService().rank != 0:
-        #~ return None
-    
-    #~ print("Full processing include the following steps (checked steps will be run): ")
-    #~ for group in iota2_chain.steps_group.keys():
-        #~ print("Group {}:".format(group))
-        #~ for key in iota2_chain.steps_group[group]:
-            #~ highlight = "[ ]"
-            #~ if key >= args.start and key<=args.end:
-                #~ highlight="[x]"
-            #~ print("\t {} Step {}: {}".format(highlight, key, iota2_chain.steps_group[group][key]))
-    #~ print("\n")
-
 
 def remove_tmp_files(cfg, current_step, chain):
     """
@@ -311,9 +293,8 @@ if __name__ == "__main__":
     if args.end == -1:
         args.end = len(steps)
 
-    #~ print_step_summarize(chain_to_process)
     print chain_to_process.print_step_summarize(args.start, args.end)
-    pause = raw_input("verif")
+
     if args.launchChain is False:
         sys.exit()
 
