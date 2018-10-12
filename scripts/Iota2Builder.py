@@ -169,7 +169,7 @@ class iota2():
         if enableCrossValidation:
             nbRuns = N - 1
 
-        t_container = []
+        step_container = []
         t_counter = 0
         
         pathConf = cfg.pathConf
@@ -180,7 +180,7 @@ class iota2():
 
         # STEP : directories.
         t_counter += 1
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: IOTA2_dir.GenerateDirectories(x), [pathConf]),
+        step_container.append(tLauncher.Tasks(tasks=(lambda x: IOTA2_dir.GenerateDirectories(x), [pathConf]),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["iota2_dir"]))
         self.steps_group["init"][t_counter] = "create directories"
@@ -188,28 +188,28 @@ class iota2():
         # STEP : preprocess SAR data
         if not "None" in Sentinel1:
             t_counter += 1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: SAR.S1PreProcess(Sentinel1, x, workingDirectory), tiles),
+            step_container.append(tLauncher.Tasks(tasks=(lambda x: SAR.S1PreProcess(Sentinel1, x, workingDirectory), tiles),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["SAR_pre_process"]))
             self.steps_group["init"][t_counter] = "Sentinel-1 pre-processing"
 
         # STEP : Common masks generation
         t_counter += 1
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: fu.getCommonMasks(x, pathConf, workingDirectory), tiles),
+        step_container.append(tLauncher.Tasks(tasks=(lambda x: fu.getCommonMasks(x, pathConf, workingDirectory), tiles),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["get_common_mask"]))
         self.steps_group["init"][t_counter] = "generate common masks"
         
         # STEP : pix Validity by tiles generation
         t_counter += 1
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: NbView.genNbView(x, "CloudThreshold_" + str(cloud_threshold) + ".shp", cloud_threshold, pathConf, workingDirectory), [os.path.join(pathTilesFeat, tile) for tile in tiles]),
+        step_container.append(tLauncher.Tasks(tasks=(lambda x: NbView.genNbView(x, "CloudThreshold_" + str(cloud_threshold) + ".shp", cloud_threshold, pathConf, workingDirectory), [os.path.join(pathTilesFeat, tile) for tile in tiles]),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["get_pixValidity"]))
         self.steps_group["init"][t_counter] = "compute validity mask by tile" 
 
         # STEP : Envelope generation
         t_counter += 1
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: env.GenerateShapeTile(tiles, pathTilesFeat,
+        step_container.append(tLauncher.Tasks(tasks=(lambda x: env.GenerateShapeTile(tiles, pathTilesFeat,
                                                                                   x, workingDirectory,
                                                                                   pathConf), [pathEnvelope]),
                                            iota2_config=cfg,
@@ -219,7 +219,7 @@ class iota2():
         if not shapeRegion:
             # STEP : Region shape generation
             t_counter += 1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: area.generateRegionShape(pathEnvelope,
+            step_container.append(tLauncher.Tasks(tasks=(lambda x: area.generateRegionShape(pathEnvelope,
                                                                                          model, x,
                                                                                          field_Region, pathConf,
                                                                                          workingDirectory), [shapeRegion]),
@@ -229,7 +229,7 @@ class iota2():
 
         # STEP : Samples formatting
         t_counter += 1
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: VF.VectorFormatting(pathConf, x, workingDirectory),
+        step_container.append(tLauncher.Tasks(tasks=(lambda x: VF.VectorFormatting(pathConf, x, workingDirectory),
                                                   tiles),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["samplesFormatting"]))
@@ -239,7 +239,7 @@ class iota2():
             # STEP : Split learning polygons and Validation polygons in sub-sample if necessary
             # (too many samples to learn a model)
             t_counter += 1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: splitS.splitSamples(x, workingDirectory),
+            step_container.append(tLauncher.Tasks(tasks=(lambda x: splitS.splitSamples(x, workingDirectory),
                                                       [pathConf]),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["split_samples"]))
@@ -247,7 +247,7 @@ class iota2():
 
         # STEP : Samples models merge
         t_counter += 1
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: samplesMerge.samples_merge(x, pathConf, workingDirectory),
+        step_container.append(tLauncher.Tasks(tasks=(lambda x: samplesMerge.samples_merge(x, pathConf, workingDirectory),
                                                   lambda: samplesMerge.get_models(os.path.join(PathTEST, "formattingVectors"), field_Region, nbRuns)),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["samplesMerge"]))
@@ -255,7 +255,7 @@ class iota2():
 
         # STEP : Samples statistics
         t_counter += 1
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: SamplesStat.samples_stats(x, pathConf, workingDirectory),
+        step_container.append(tLauncher.Tasks(tasks=(lambda x: SamplesStat.samples_stats(x, pathConf, workingDirectory),
                                                   lambda: SamplesStat.region_tile(os.path.join(PathTEST, "samplesSelection"))),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["samplesStatistics"]))
@@ -263,7 +263,7 @@ class iota2():
 
         # STEP : compute selection by models
         t_counter += 1
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: SamplesSelection.samples_selection(x, pathConf, workingDirectory),
+        step_container.append(tLauncher.Tasks(tasks=(lambda x: SamplesSelection.samples_selection(x, pathConf, workingDirectory),
                                                   lambda: fu.FileSearch_AND(os.path.join(PathTEST, "samplesSelection"), True, ".shp")),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["samplesSelection"]))
@@ -271,7 +271,7 @@ class iota2():
 
         # STEP : merge selection by tiles
         t_counter += 1
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: SamplesSelection.prepareSelection(os.path.join(PathTEST, "samplesSelection"), x, workingDirectory),
+        step_container.append(tLauncher.Tasks(tasks=(lambda x: SamplesSelection.prepareSelection(os.path.join(PathTEST, "samplesSelection"), x, workingDirectory),
                                                   tiles),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["samplesSelection_tiles"]))
@@ -280,7 +280,7 @@ class iota2():
         # STEP : Samples Extraction
         t_counter += 1
         RAM_extraction = 1024.0 * get_RAM(ressourcesByStep["vectorSampler"].ram)
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: vs.generateSamples(x, workingDirectory, pathConf, RAM_extraction),
+        step_container.append(tLauncher.Tasks(tasks=(lambda x: vs.generateSamples(x, workingDirectory, pathConf, RAM_extraction),
                                                   lambda: vs.get_vectors_to_sample(os.path.join(PathTEST, "formattingVectors"), ds_sar_opt)),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["vectorSampler"]))
@@ -288,7 +288,7 @@ class iota2():
 
         # STEP : MergeSamples
         t_counter += 1
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: VSM.vectorSamplesMerge(pathConf, x),
+        step_container.append(tLauncher.Tasks(tasks=(lambda x: VSM.vectorSamplesMerge(pathConf, x),
                                                   lambda: VSM.tile_vectors_to_models(os.path.join(PathTEST, "learningSamples"), ds_sar_opt)),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["mergeSample"]))
@@ -297,7 +297,7 @@ class iota2():
         if sampleManagement and sampleManagement.lower() != 'none':
             # STEP : sampleManagement
             t_counter+=1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: DataAugmentation.DataAugmentationByCopy(dataField.lower(),
+            step_container.append(tLauncher.Tasks(tasks=(lambda x: DataAugmentation.DataAugmentationByCopy(dataField.lower(),
                                                                                                         sampleManagement,
                                                                                                         x, workingDirectory),
                                                       lambda: DataAugmentation.GetDataAugmentationByCopyParameters(PathTEST + "/learningSamples")),
@@ -308,7 +308,7 @@ class iota2():
         if sample_augmentation_flag:
             # STEP : sampleAugmentation
             t_counter+=1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: DataAugmentation.DataAugmentationSynthetic(x,
+            step_container.append(tLauncher.Tasks(tasks=(lambda x: DataAugmentation.DataAugmentationSynthetic(x,
                                                                                                            shapeData,
                                                                                                            dataField.lower(),
                                                                                                            sample_augmentation,
@@ -320,7 +320,7 @@ class iota2():
         # STEP : Dimensionality Reduction
         if dimred:
             t_counter+=1
-            t_container.append(
+            step_container.append(
                 tLauncher.Tasks(tasks=(lambda x: 
                                        DR.SampleDimensionalityReduction(x, PathTEST,
                                                                         targetDimension,
@@ -333,7 +333,7 @@ class iota2():
         if classifier == "svm":
             # STEP : Compute statistics by models
             t_counter += 1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: bashLauncherFunction(x),
+            step_container.append(tLauncher.Tasks(tasks=(lambda x: bashLauncherFunction(x),
                                                       lambda: MS.generateStatModel(pathAppVal,
                                                                                    pathTilesFeat,
                                                                                    pathStats,
@@ -345,7 +345,7 @@ class iota2():
 
         # STEP : Learning
         t_counter += 1
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: bashLauncherFunction(x),
+        step_container.append(tLauncher.Tasks(tasks=(lambda x: bashLauncherFunction(x),
                                                   lambda: TC.launchTraining(cfg,
                                                                             dataField,
                                                                             pathStats,
@@ -358,7 +358,7 @@ class iota2():
         # STEP : generate Classifications commands and masks
         RAM_classification = 1024.0 * get_RAM(ressourcesByStep["classifications"].ram)
         t_counter += 1
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: CC.launchClassification(pathModels, pathConf, pathStats,
+        step_container.append(tLauncher.Tasks(tasks=(lambda x: CC.launchClassification(pathModels, pathConf, pathStats,
                                                                                     pathTileRegion, pathTilesFeat,
                                                                                     shapeRegion, x,
                                                                                     nbRuns, cmdPath + "/cla", pathClassif,
@@ -369,7 +369,7 @@ class iota2():
 
         # STEP : generate Classifications
         t_counter += 1
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: launchPythonCmd(imageClassifier.launchClassification, *x),
+        step_container.append(tLauncher.Tasks(tasks=(lambda x: launchPythonCmd(imageClassifier.launchClassification, *x),
                                                   lambda: fu.parseClassifCmd(cmdPath + "/cla/class.txt")),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["classifications"]))
@@ -379,7 +379,7 @@ class iota2():
             # STEP : confusion matrix by tiles by models
             t_counter += 1
             sar_opt_conf_ram = 1024.0 * get_RAM(ressourcesByStep["SAROptConfusionMatrix"].ram)
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: GCM.confusion_sar_optical(x, dataField, sar_opt_conf_ram),
+            step_container.append(tLauncher.Tasks(tasks=(lambda x: GCM.confusion_sar_optical(x, dataField, sar_opt_conf_ram),
                                                       lambda: GCM.confusion_sar_optical_parameter(PathTEST)),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["SAROptConfusionMatrix"]))
@@ -387,7 +387,7 @@ class iota2():
 
             # STEP : confusion matrix fusion
             t_counter += 1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: confFus.confusion_models_merge(x, dataField),
+            step_container.append(tLauncher.Tasks(tasks=(lambda x: confFus.confusion_models_merge(x, dataField),
                                                       lambda: confFus.confusion_models_merge_parameters(PathTEST)),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["SAROptConfusionMatrixFusion"]))
@@ -395,7 +395,7 @@ class iota2():
 
             # STEP : Dempster-Shafer fusion of classifications
             t_counter += 1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: FUS.dempster_shafer_fusion(PathTEST, x, workingDirectory=workingDirectory),
+            step_container.append(tLauncher.Tasks(tasks=(lambda x: FUS.dempster_shafer_fusion(PathTEST, x, workingDirectory=workingDirectory),
                                                       lambda: FUS.dempster_shafer_fusion_parameters(PathTEST)),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["SAROptFusion"]))
@@ -404,7 +404,7 @@ class iota2():
         if CLASSIFMODE == "fusion" and shapeRegion:
             # STEP : Classifications fusion
             t_counter += 1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: bashLauncherFunction(x),
+            step_container.append(tLauncher.Tasks(tasks=(lambda x: bashLauncherFunction(x),
                                                       lambda: FUS.fusion(pathClassif, cfg, None)),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["fusion"]))
@@ -412,7 +412,7 @@ class iota2():
 
             # STEP : Managing fusion's indecisions
             t_counter += 1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: ND.noData(PathTEST, x, field_Region,
+            step_container.append(tLauncher.Tasks(tasks=(lambda x: ND.noData(PathTEST, x, field_Region,
                                                                           pathTilesFeat, shapeRegion,
                                                                           nbRuns, pathConf, workingDirectory),
                                                       lambda: fu.FileSearch_AND(pathClassif, True, "_FUSION_")),
@@ -422,7 +422,7 @@ class iota2():
 
         # STEP : Classification's shaping
         t_counter += 1
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: CS.ClassificationShaping(x,
+        step_container.append(tLauncher.Tasks(tasks=(lambda x: CS.ClassificationShaping(x,
                                                                                      pathEnvelope,
                                                                                      pathTilesFeat,
                                                                                      fieldEnv, nbRuns,
@@ -434,7 +434,7 @@ class iota2():
 
         # STEP : confusion matrix commands generation
         t_counter += 1
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: GCM.genConfMatrix(x, pathAppVal,
+        step_container.append(tLauncher.Tasks(tasks=(lambda x: GCM.genConfMatrix(x, pathAppVal,
                                                                               nbRuns, dataField,
                                                                               cmdPath + "/confusion",
                                                                               pathConf, workingDirectory), [classifFinal]),
@@ -445,7 +445,7 @@ class iota2():
         if keep_runs_results:
             # STEP : confusion matrix generation
             t_counter += 1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: bashLauncherFunction(x),
+            step_container.append(tLauncher.Tasks(tasks=(lambda x: bashLauncherFunction(x),
                                                       lambda: fu.getCmd(cmdPath + "/confusion/confusion.txt")),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["confusionMatrix"]))
@@ -453,7 +453,7 @@ class iota2():
 
             # STEP : confusion matrix fusion
             t_counter += 1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: confFus.confFusion(x, dataField,
+            step_container.append(tLauncher.Tasks(tasks=(lambda x: confFus.confFusion(x, dataField,
                                                                                    classifFinal + "/TMP",
                                                                                    classifFinal + "/TMP",
                                                                                    classifFinal + "/TMP",
@@ -464,7 +464,7 @@ class iota2():
 
             # STEP : results report generation
             t_counter += 1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: GR.genResults(x,
+            step_container.append(tLauncher.Tasks(tasks=(lambda x: GR.genResults(x,
                                                                               NOMENCLATURE), [classifFinal]),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["reportGen"]))
@@ -476,7 +476,7 @@ class iota2():
             if fusionClaAllSamplesVal is True:
                 validationShape = shapeData
 
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: mergeCl.mergeFinalClassifications(x,
+            step_container.append(tLauncher.Tasks(tasks=(lambda x: mergeCl.mergeFinalClassifications(x,
                                                                                                   dataField,
                                                                                                   NOMENCLATURE,
                                                                                                   COLORTABLE,
@@ -496,7 +496,7 @@ class iota2():
         if outStat:
             # STEP : compute output statistics tiles
             t_counter += 1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: OutS.outStats(pathConf, x,
+            step_container.append(tLauncher.Tasks(tasks=(lambda x: OutS.outStats(pathConf, x,
                                                                               nbRuns, workingDirectory), tiles),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["statsReport"]))
@@ -504,9 +504,9 @@ class iota2():
 
             # STEP : merge statistics
             t_counter += 1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: MOutS.mergeOutStats(x), [pathConf]),
+            step_container.append(tLauncher.Tasks(tasks=(lambda x: MOutS.mergeOutStats(x), [pathConf]),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["mergeOutStats"]))
             self.steps_group["validation"][t_counter] = "merge statistics"
 
-        return t_container
+        return step_container
