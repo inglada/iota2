@@ -111,9 +111,9 @@ class iota2():
         myStep = FirstStep.FirstStep(cfg)
         otherStep = SecondStep.SecondStep(cfg)
         stepStepStep = ThirdStep.ThirdStep(cfg)
-        
+
         stepStepStep.step_connect(otherStep)
-        
+
         s_container.append(myStep, "init")
         s_container.append(otherStep, "init")
         s_container.append(stepStepStep, "init")

@@ -20,7 +20,7 @@ class StepContainer(object):
     this class is dedicated to contains Step
     """
     def __init__(self):
-        self.container = [] # une list, namedtuple()..., un truc ordonné
+        self.container = [] 
 
     def append(self, step, step_group=""):
         if not step in self.container:
