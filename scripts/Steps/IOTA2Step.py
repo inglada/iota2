@@ -43,7 +43,7 @@ class StepContainer(object):
     def __str__(self):
         return "[{}]".format(", ".join(step.step_name for step in self.container))
 
-    
+
 class Step(object):
     """
     This class is the definition of a IOTA² step. New steps must herit from Step
@@ -94,6 +94,15 @@ class Step(object):
                                                            self.walltime)
     def step_description():
         return "quick step description"
+
+    def step_connect(self, other_step):
+        """
+        the objective of this method is to connect two steps : inputs definition 
+        of the current step is the output definition of an other step (usually
+        the previous one)
+        """
+        self.step_inputs = other_step.step_outputs
+
     @classmethod
     def step_inputs():
         print "Step.step_inputs method"

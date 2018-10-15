@@ -99,9 +99,7 @@ class iota2():
         """
         build steps
         """
-        import os
-        # get variable from configuration file
-        PathTEST = cfg.getParam('chain', 'outputPath')
+        import os     
  
         from Steps.IOTA2Step import StepContainer
         from Steps import FirstStep
@@ -109,14 +107,15 @@ class iota2():
         from Steps import ThirdStep
 
         s_container = StepContainer()
-        
-        step_container = []
-        log_dir = os.path.join(PathTEST, "logs")
 
-        myStep = FirstStep.FirstStep(log_dir)
-        otherStep = SecondStep.SecondStep(log_dir)
-        stepStepStep = ThirdStep.ThirdStep(log_dir)
+        myStep = FirstStep.FirstStep(cfg)
+        otherStep = SecondStep.SecondStep(cfg)
+        stepStepStep = ThirdStep.ThirdStep(cfg)
+        
+        stepStepStep.step_connect(otherStep)
+        
         s_container.append(myStep, "init")
         s_container.append(otherStep, "init")
         s_container.append(stepStepStep, "init")
+        
         return s_container
