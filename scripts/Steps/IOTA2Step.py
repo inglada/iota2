@@ -13,6 +13,8 @@
 #   PURPOSE.  See the above copyright notices for more information.
 #
 # =========================================================================
+import os
+
 from Cluster import get_RAM
 
 class StepContainer(object):
@@ -48,7 +50,7 @@ class Step(object):
     """
     This class is the definition of a IOTA² step. New steps must herit from Step
     """
-    def __init__(self, name="IOTA2_step", cpu=1, ram="4gb", walltime="00:10:00"):
+    def __init__(self, cfg, name="IOTA2_step", cpu=1, ram="4gb", walltime="00:10:00"):
         self.check_mandatory_methods()
         
         self.step_name = name
@@ -58,6 +60,9 @@ class Step(object):
         self.ram = get_RAM(ram)
         self.walltime = walltime
         
+        outputPath = cfg.getParam('chain', 'outputPath')
+        log_dir = os.path.join(outputPath, "logs")
+        self.logFile = os.path.join(log_dir, "{}_log.log".format(self.step_name))
 
     def check_mandatory_methods(self):
         """

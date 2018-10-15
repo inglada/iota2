@@ -21,10 +21,10 @@ from Cluster import get_RAM
 def awesome_function(arg1, arg2):
     print "arg1 : {} et arg2 : {}".format(arg1, arg2)
 
-class FirstStep(IOTA2Step.Step):
-    def __init__(self, cfg, name="FirstStep", cpu=1, ram="4gb", walltime="00:30:00"):
+class ThirdStep(IOTA2Step.Step):
+    def __init__(self, cfg, name="ThirdStep", cpu=1, ram="4gb", walltime="00:30:00"):
         # heritage init
-        super(FirstStep, self).__init__(cfg)
+        super(ThirdStep, self).__init__(cfg)
 
         # init
         self.step_name = name
@@ -37,17 +37,14 @@ class FirstStep(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        return "This step will do something cool"
+        return "This step will do something..."
 
     def step_inputs(self):
         """
-        Return
-        ------
-            the return could be and iterable or a callable
         """
-        return range(1, 20)
+        return range(1, 3)
 
-    def step_execute(self, workingDirectory=None):
+    def step_execute(self):
         """
         Return
         ------
