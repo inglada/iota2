@@ -102,18 +102,21 @@ class iota2():
         import os     
  
         from Steps.IOTA2Step import StepContainer
+        from Steps.IOTA2Step import Step
         from Steps import FirstStep
         from Steps import SecondStep
         from Steps import ThirdStep
 
         s_container = StepContainer()
 
+        baseStep=Step(cfg)
         myStep = FirstStep.FirstStep(cfg)
         otherStep = SecondStep.SecondStep(cfg)
         stepStepStep = ThirdStep.ThirdStep(cfg)
 
         stepStepStep.step_connect(otherStep)
 
+        s_container.append(baseStep, "init")
         s_container.append(myStep, "init")
         s_container.append(otherStep, "init")
         s_container.append(stepStepStep, "init")

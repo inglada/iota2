@@ -66,23 +66,24 @@ class Step(object):
 
     def check_mandatory_methods(self):
         """
-        This methdo check if sub-class redefine mandatory methods
-        
+        This method check if sub-class redefine mandatory methods
         """
-        # step_execute
-        if self.step_execute.__code__ is Step.step_execute.__code__:
-            err_mess = "'step_execute' method as to be define in : {} class ".format(self.__class__)
-            raise Exception(err_mess)
+        
+        if not self.__class__.__name__ == "Step":
+            # step_execute
+            if self.step_execute.__code__ is Step.step_execute.__code__:
+                err_mess = "'step_execute' method as to be define in : {} class ".format(self.__class__)
+                raise Exception(err_mess)
 
-        # step_outputs
-        if self.step_outputs.__code__ is Step.step_outputs.__code__:
-            err_mess = "'step_outputs' method as to be define in : {} class ".format(self.__class__)
-            raise Exception(err_mess)
+            # step_outputs
+            if self.step_outputs.__code__ is Step.step_outputs.__code__:
+                err_mess = "'step_outputs' method as to be define in : {} class ".format(self.__class__)
+                raise Exception(err_mess)
 
-        # step_inputs
-        if self.step_inputs.__code__ is Step.step_inputs.__code__:
-            err_mess = "'step_inputs' method as to be define in : {} class ".format(self.__class__)
-            raise Exception(err_mess)
+            # step_inputs
+            if self.step_inputs.__code__ is Step.step_inputs.__code__:
+                err_mess = "'step_inputs' method as to be define in : {} class ".format(self.__class__)
+                raise Exception(err_mess)
 
     def __str__(self):
         return "{}".format(self.step_name)
@@ -97,7 +98,7 @@ class Step(object):
                                                            self.cpu,
                                                            self.ram,
                                                            self.walltime)
-    def step_description():
+    def step_description(self):
         return "quick step description"
 
     def step_connect(self, other_step):
@@ -109,17 +110,14 @@ class Step(object):
         self.step_inputs = other_step.step_outputs
 
     @classmethod
-    def step_inputs():
-        print "Step.step_inputs method"
-        return [0]
+    def step_inputs(self):
+        return [1, 2]
     @classmethod
-    def step_outputs():
-        print "Step.step_inputs method"
-        pass
+    def step_outputs(self):
+        return [1, 2]
     @classmethod
     def step_execute(cls):
         """
         method called to execute a step
         """
-        print "Step.step_execute method"
-        pass
+        return lambda x: x
