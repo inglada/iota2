@@ -109,10 +109,11 @@ class iota2():
 
         s_container = StepContainer()
 
-        baseStep=Step(cfg)
-        myStep = FirstStep.FirstStep(cfg)
-        otherStep = SecondStep.SecondStep(cfg)
-        stepStepStep = ThirdStep.ThirdStep(cfg)
+        # passer aussi config_ressources à l'initialisation d'une étape.
+        baseStep=Step(cfg, config_ressources)
+        myStep = FirstStep.FirstStep(cfg, config_ressources)
+        otherStep = SecondStep.SecondStep(cfg, config_ressources)
+        stepStepStep = ThirdStep.ThirdStep(cfg, config_ressources)
 
         stepStepStep.step_connect(otherStep)
 

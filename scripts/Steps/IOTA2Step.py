@@ -50,15 +50,25 @@ class Step(object):
     """
     This class is the definition of a IOTA² step. New steps must herit from Step
     """
-    def __init__(self, cfg, name="IOTA2_step", cpu=1, ram="4gb", walltime="00:10:00"):
+    def __init__(self, cfg, cfg_resources_file, name="IOTA2_step", cpu=1, ram="4gb", walltime="00:10:00"):
+        """
+        """
+        from config import Config
+        
         self.check_mandatory_methods()
         
         self.step_name = name
         self.step_group = ""
-        # resources
-        self.cpu = cpu
-        self.ram = get_RAM(ram)
-        self.walltime = walltime
+        # manage resources
+        default_cpu = 1
+        default_ram = "5bg"
+        default_walltime = "00:10:00"
+
+        cfg_resources = Config(cfg_resources_file)
+        self.cpu = getattr(cfg_resources, self.nb_cpu, default_cpu)
+        self.ram = getattr(cfg_resources, self.ram, default_ram)
+        self.walltime = getattr(cfg_resources, self.walltime, default_walltime)
+
         
         outputPath = cfg.getParam('chain', 'outputPath')
         log_dir = os.path.join(outputPath, "logs")
