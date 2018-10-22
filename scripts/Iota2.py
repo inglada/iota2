@@ -121,8 +121,8 @@ def launchTask(function, parameter, logger, mpi_services=None):
     return worker_complete_log, start_date, end_date, returned_data, parameter_success
 
 
-def mpi_schedule_job_array(job, param_array_origin, mpi_service=MPIService(),logPath=None,
-                           logger_lvl="INFO", enable_console=False):
+def mpi_schedule(job, param_array_origin, mpi_service=MPIService(),logPath=None,
+                 logger_lvl="INFO", enable_console=False):
     """
     A simple MPI scheduler to execute jobs in parallel.
     """
@@ -321,9 +321,9 @@ if __name__ == "__main__":
         if args.parameters:
             params = args.parameters
 
-        _, step_completed = mpi_schedule_job_array(steps[step-1].step_execute(), params,
-                                                   mpi_service, steps[step-1].logFile,
-                                                   logger_lvl)
+        _, step_completed = mpi_schedule(steps[step-1].step_execute(), params,
+                                         mpi_service, steps[step-1].logFile,
+                                         logger_lvl)
         if not step_completed:
             break
         if rm_tmp:
