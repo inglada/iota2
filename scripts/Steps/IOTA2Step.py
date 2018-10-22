@@ -173,6 +173,11 @@ class Step(object):
         """
         self.step_inputs = other_step.step_outputs
 
+    def step_clean(self):
+        """
+        function call to clean files after the success of the step
+        """
+        print("{} Not define".format(self.__class__.__name__))
     @classmethod
     def step_inputs(self):
         return [1, 2]

@@ -52,6 +52,8 @@ class SecondStep(IOTA2Step.Step):
     def step_outputs(self):
         return range(1, 10)
 
+    def step_clean(self):
+        print "Second STEP CLEAN"
     
 
 
