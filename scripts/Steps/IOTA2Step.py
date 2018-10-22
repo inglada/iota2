@@ -48,6 +48,31 @@ class StepContainer(object):
     def __len__(self):
         return len(self.container)
 
+def return_decorator(validate_function, type_string="<type 'function'>"):
+    """
+    This function is use as decorator to check output functions type
+
+    Parameters
+    ----------
+    validate_function : function
+        function to check
+    type_string : string
+        python's type as string
+    """
+    import functools
+    @functools.wraps(validate_function)
+    def decorator_wrapper(*function_args):
+        accepted_return_type = accepted_return_type_tuple = (type_string)
+        return_value = validate_function(*function_args)
+        return_value_type = type(return_value)
+        if not str(return_value_type) == str(accepted_return_type):
+            raise Exception("function '{}' must return {} type instead of {}".format(validate_function.__name__,
+                                                                                     accepted_return_type,
+                                                                                     return_value_type))
+        return return_value
+    return decorator_wrapper
+
+
 class Step(object):
     """
     This class is the definition of a IOTA² step. New steps must herit from
@@ -101,6 +126,9 @@ class Step(object):
             if self.step_execute.__code__ is Step.step_execute.__code__:
                 err_mess = "'step_execute' method as to be define in : {} class ".format(self.__class__)
                 raise Exception(err_mess)
+            else:
+                # check step_execute output type
+                self.step_execute = return_decorator(self.step_execute)
 
             # step_outputs
             if self.step_outputs.__code__ is Step.step_outputs.__code__:
