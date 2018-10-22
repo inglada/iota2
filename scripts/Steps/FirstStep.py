@@ -22,16 +22,12 @@ def awesome_function(arg1, arg2):
     print "arg1 : {} et arg2 : {}".format(arg1, arg2)
 
 class FirstStep(IOTA2Step.Step):
-    def __init__(self, cfg, name="FirstStep", cpu=1, ram="4gb", walltime="00:30:00"):
+    def __init__(self, cfg, cfg_resources_file, name="FirstStep"):
         # heritage init
-        super(FirstStep, self).__init__(cfg)
+        super(FirstStep, self).__init__(cfg, cfg_resources_file)
 
         # init
         self.step_name = name
-        self.cpu = cpu
-        self.ram = get_RAM(ram)
-        self.walltime = walltime
-
 
     def step_description(self):
         """

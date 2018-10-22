@@ -65,9 +65,9 @@ class Step(object):
         default_walltime = "00:10:00"
 
         cfg_resources = Config(cfg_resources_file)
-        self.cpu = getattr(cfg_resources, self.nb_cpu, default_cpu)
-        self.ram = getattr(cfg_resources, self.ram, default_ram)
-        self.walltime = getattr(cfg_resources, self.walltime, default_walltime)
+        self.cpu = getattr(cfg_resources, "nb_cpu", default_cpu)
+        self.ram = getattr(cfg_resources, "ram", default_ram)
+        self.walltime = getattr(cfg_resources, "walltime", default_walltime)
 
         
         outputPath = cfg.getParam('chain', 'outputPath')
