@@ -132,7 +132,7 @@ def get_HPC_disponibility(nb_cpu, ram, process_min, process_max, nb_parameters):
 
 def write_PBS(job_directory, log_directory, task_name, step_to_compute,
               nb_parameters, request, iota2_mod_p, iota2_mod_n, OTB_super, script_path,
-              config_path):
+              config_path, config_ressources_req=None):
     """write PBS file, according to ressource requested
     
     Parameters:
@@ -284,7 +284,8 @@ def launchChain(cfg, config_ressources=None):
                                  task_name=steps[step_num].step_name, step_to_compute=step_num+1,
                                  nb_parameters=nbParameter, request=ressources,
                                  iota2_mod_p=iota2_mod_path, iota2_mod_n=iota2_mod_name,
-                                 OTB_super=OTB_super, script_path=scripts, config_path=config_path)
+                                 OTB_super=OTB_super, script_path=scripts, config_path=config_path,
+                                 config_ressources_req=config_ressources)
 
         if current_step == 1:
             qsub = ("qsub -W block=true {0}").format(pbs)
