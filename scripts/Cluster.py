@@ -132,7 +132,7 @@ def get_HPC_disponibility(nb_cpu, ram, process_min, process_max, nb_parameters):
 
 def write_PBS(job_directory, log_directory, task_name, step_to_compute,
               nb_parameters, request, iota2_mod_p, iota2_mod_n, OTB_super, script_path,
-              config_path, config_ressources_req=None):
+              config_path):
     """write PBS file, according to ressource requested
     
     Parameters:
@@ -141,9 +141,9 @@ def write_PBS(job_directory, log_directory, task_name, step_to_compute,
     """
     log_err= os.path.join(log_directory, task_name + "_err.log")
     log_out = os.path.join(log_directory, task_name + "_out.log")
-    MPI_process, nb_chunk, ram, nb_cpu = get_HPC_disponibility(request.nb_cpu, request.ram,
-                                                               request.process_min, 
-                                                               request.process_max,
+    MPI_process, nb_chunk, ram, nb_cpu = get_HPC_disponibility(request["cpu"], request["ram"],
+                                                               request["process_min"], 
+                                                               request["process_max"],
                                                                nb_parameters)
 
     ressources = ("#!/bin/bash\n"
@@ -155,8 +155,8 @@ def write_PBS(job_directory, log_directory, task_name, step_to_compute,
                   "#PBS -l walltime={5}\n"
                   "#PBS -o {6}\n"
                   "#PBS -e {7}\n"
-                  "\n").format(request.name, nb_chunk, nb_cpu,
-                               str(ram) + "gb", MPI_process, request.walltime,
+                  "\n").format(task_name, nb_chunk, nb_cpu,
+                               str(ram) + "gb", MPI_process, request["walltime"],
                                log_out, log_err)
 
     if OTB_super:
@@ -181,7 +181,7 @@ def write_PBS(job_directory, log_directory, task_name, step_to_compute,
     
     exe = ("\nmpirun -x ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS={0} -np {1} "
            "python {2}/Iota2.py -config {3} "
-           "-starting_step {4} -ending_step {5} {6}").format(request.nb_cpu, nprocs,
+           "-starting_step {4} -ending_step {5} {6}").format(request["cpu"], nprocs,
                                                              script_path, config_path,
                                                              step_to_compute, step_to_compute,
                                                              ressources_HPC)
@@ -275,19 +275,16 @@ def launchChain(cfg, config_ressources=None):
     stepToCompute = np.arange(start_step, end_step)
     current_step = 1
     for step_num in np.arange(start_step, end_step):
-        try:
-            nbParameter = len(steps[step_num].parameters)
-        except TypeError:
-            nbParameter = len(steps[step_num].parameters())
 
-        ressources = steps[step_num].ressources
+        nbParameter = len(steps[step_num].step_inputs())
+
+        ressources = steps[step_num].resources
 
         pbs, log_err = write_PBS(job_directory=job_dir, log_directory=log_dir,
-                                 task_name=steps[step_num].TaskName, step_to_compute=step_num+1,
+                                 task_name=steps[step_num].step_name, step_to_compute=step_num+1,
                                  nb_parameters=nbParameter, request=ressources,
                                  iota2_mod_p=iota2_mod_path, iota2_mod_n=iota2_mod_name,
-                                 OTB_super=OTB_super, script_path=scripts, config_path=config_path,
-                                 config_ressources_req=config_ressources)
+                                 OTB_super=OTB_super, script_path=scripts, config_path=config_path)
 
         if current_step == 1:
             qsub = ("qsub -W block=true {0}").format(pbs)
@@ -302,7 +299,7 @@ def launchChain(cfg, config_ressources=None):
         job_id = stdout.strip('\n')
 
         #waiting 30sec for log copy
-        time.sleep(30)
+        time.sleep(10)
 
         errors = check_errors(log_err)
         if errors:

@@ -18,6 +18,7 @@ import os
 import IOTA2Step
 from Cluster import get_RAM
 
+
 def awesome_function(arg1, arg2):
     print "arg1 : {} et arg2 : {}".format(arg1, arg2)
 
@@ -51,6 +52,7 @@ class FirstStep(IOTA2Step.Step):
             the function to execute as a lambda function. The returned object
             must be a lambda function.
         """
+
         step_function = lambda x: awesome_function(x, "TUILE")
         return step_function
 

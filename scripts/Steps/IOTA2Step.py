@@ -45,34 +45,51 @@ class StepContainer(object):
     def __str__(self):
         return "[{}]".format(", ".join(step.step_name for step in self.container))
 
+    def __len__(self):
+        return len(self.container)
 
 class Step(object):
     """
-    This class is the definition of a IOTA² step. New steps must herit from Step
+    This class is the definition of a IOTA² step. New steps must herit from
     """
     def __init__(self, cfg, cfg_resources_file, name="IOTA2_step", cpu=1, ram="4gb", walltime="00:10:00"):
         """
         """
-        from config import Config
-        
         self.check_mandatory_methods()
         
         self.step_name = name
         self.step_group = ""
-        # manage resources
-        default_cpu = 1
-        default_ram = "5bg"
-        default_walltime = "00:10:00"
 
-        cfg_resources = Config(cfg_resources_file)
-        self.cpu = getattr(cfg_resources, "nb_cpu", default_cpu)
-        self.ram = getattr(cfg_resources, "ram", default_ram)
-        self.walltime = getattr(cfg_resources, "walltime", default_walltime)
+        # get resources needed
+        self.resources = self.parse_resource_file(self.step_name, cfg_resources_file)
 
-        
+        # define log path
         outputPath = cfg.getParam('chain', 'outputPath')
         log_dir = os.path.join(outputPath, "logs")
         self.logFile = os.path.join(log_dir, "{}_log.log".format(self.step_name))
+
+    def parse_resource_file(self, step_name, cfg_resources_file):
+        """
+        parse a configuration file dedicated to reserve resources to HPC
+        """
+        from config import Config
+
+        default_cpu = 1
+        default_ram = "5gb"
+        default_walltime = "00:10:00"
+        default_process_min = 1
+        default_process_max = -1
+
+        cfg_resources = Config(cfg_resources_file)
+        resource = {}
+        cfg_step_resources = getattr(cfg_resources, step_name, {})
+        resource["cpu"] = getattr(cfg_step_resources, "nb_cpu", default_cpu)
+        resource["ram"] = getattr(cfg_step_resources, "ram", default_ram)
+        resource["walltime"] = getattr(cfg_step_resources, "walltime", default_walltime)
+        resource["process_min"] = getattr(cfg_step_resources, "process_min", default_process_min)
+        resource["process_max"] = getattr(cfg_step_resources, "process_max", default_process_max)
+
+        return resource
 
     def check_mandatory_methods(self):
         """
