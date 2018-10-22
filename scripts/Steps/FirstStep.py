@@ -43,7 +43,7 @@ class FirstStep(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
-        return range(1, 20)
+        return range(1, 10)
 
     def step_execute(self, workingDirectory=None):
         """

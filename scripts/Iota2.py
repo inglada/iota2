@@ -121,7 +121,7 @@ def launchTask(function, parameter, logger, mpi_services=None):
     return worker_complete_log, start_date, end_date, returned_data, parameter_success
 
 
-def mpi_schedule(job, param_array_origin, mpi_service=MPIService(),logPath=None,
+def mpi_schedule(iota2_step, param_array_origin, mpi_service=MPIService(),logPath=None,
                  logger_lvl="INFO", enable_console=False):
     """
     A simple MPI scheduler to execute jobs in parallel.
@@ -130,10 +130,10 @@ def mpi_schedule(job, param_array_origin, mpi_service=MPIService(),logPath=None,
     if mpi_service.rank != 0:
         return None
 
+    job = iota2_step.step_execute()
+    
     returned_data_list = []
     parameters_success = []
-    #~ job = job_array.job
-    #~ param_array_origin = job_array.param_array
     
     if not param_array_origin:
         raise Exception("JobArray must contain a list of parameter as argument")
@@ -186,7 +186,8 @@ def mpi_schedule(job, param_array_origin, mpi_service=MPIService(),logPath=None,
             sys.exit(1)
 
     step_completed = all(parameters_success)
-
+    if step_completed:
+        iota2_step.step_clean()
     return returned_data_list, step_completed
 
 
@@ -321,7 +322,7 @@ if __name__ == "__main__":
         if args.parameters:
             params = args.parameters
 
-        _, step_completed = mpi_schedule(steps[step-1].step_execute(), params,
+        _, step_completed = mpi_schedule(steps[step-1], params,
                                          mpi_service, steps[step-1].logFile,
                                          logger_lvl)
         if not step_completed:

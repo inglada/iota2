@@ -19,7 +19,7 @@ import IOTA2Step
 from Cluster import get_RAM
 
 def awesome_function(arg1, arg2):
-    print "arg1 : {} et arg2 : {}".format(arg1, arg2)
+    print "My variable parameter : {} const parameter : {}".format(arg1, arg2)
 
 class ThirdStep(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file):
@@ -52,9 +52,14 @@ class ThirdStep(IOTA2Step.Step):
         return step_function
 
     def step_outputs(self):
-        print "RIEN"
+        print "no outputs"
 
-    
+    def step_clean(self):
+        """
+        """
+        import os
+        step_in = self.step_inputs()
 
-
-        
+        for in_file in step_in:
+            if os.path.exists(in_file):
+                os.remove(in_file)
