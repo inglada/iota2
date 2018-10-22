@@ -22,12 +22,12 @@ def awesome_function(arg1, arg2):
     print "arg1 : {} et arg2 : {}".format(arg1, arg2)
 
 class ThirdStep(IOTA2Step.Step):
-    def __init__(self, cfg, cfg_resources_file, name="ThirdStep"):
+    def __init__(self, cfg, cfg_resources_file):
         # heritage init
         super(ThirdStep, self).__init__(cfg, cfg_resources_file)
 
         # init
-        self.step_name = name
+
 
     def step_description(self):
         """

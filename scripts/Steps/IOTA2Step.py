@@ -77,12 +77,13 @@ class Step(object):
     """
     This class is the definition of a IOTA² step. New steps must herit from
     """
-    def __init__(self, cfg, cfg_resources_file, name="IOTA2_step", cpu=1, ram="4gb", walltime="00:10:00"):
+    def __init__(self, cfg, cfg_resources_file):
         """
         """
         self.check_mandatory_methods()
-        
-        self.step_name = name
+
+        # attributes
+        self.step_name = self.build_step_name()
         self.step_group = ""
 
         # get resources needed
@@ -92,6 +93,7 @@ class Step(object):
         outputPath = cfg.getParam('chain', 'outputPath')
         log_dir = os.path.join(outputPath, "logs")
         self.logFile = os.path.join(log_dir, "{}_log.log".format(self.step_name))
+
 
     def parse_resource_file(self, step_name, cfg_resources_file):
         """
@@ -116,6 +118,13 @@ class Step(object):
 
         return resource
 
+    def build_step_name(self):
+        """
+        strategy to build step name
+        the name define logging ouput files and resources access
+        """
+        return self.__class__.__name__
+    
     def check_mandatory_methods(self):
         """
         This method check if sub-class redefine mandatory methods
