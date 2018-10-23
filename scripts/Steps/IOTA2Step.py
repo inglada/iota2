@@ -30,6 +30,10 @@ class StepContainer(object):
             step.step_group = step_group
         else:
             raise Exception("step '{}' already present in container".format(step.step_name))
+        #~ # link steps
+        if len(self.container) > 1:
+            self.container[len(self.container) - 2].next_step = step
+            step.previous_step = self.container[len(self.container) - 2]
 
     def __contains__(self, step_ask):
         """
@@ -153,7 +157,6 @@ class Step(object):
             if self.step_inputs.__code__ is Step.step_inputs.__code__:
                 err_mess = "'step_inputs' method as to be define in : {} class ".format(self.__class__)
                 raise Exception(err_mess)
-
     def __str__(self):
         return "{}".format(self.step_name)
     def __repr__(self):
@@ -162,11 +165,18 @@ class Step(object):
                 "\tgroup : {}\n"
                 "\tcpu per tasks : {}\n"
                 "\tram per tasks : {}\n"
-                "\ttotal time to run tasks : {}\n").format(self.step_name,
-                                                           self.step_group,
-                                                           self.cpu,
-                                                           self.ram,
-                                                           self.walltime)
+                "\ttotal time to run tasks : {}\n"
+                "\tstatus : {}\n"
+                "\tprevious step's name : {}\n"
+                "\tnext step's name : {}\n").format(self.step_name,
+                                                    self.step_group,
+                                                    self.resources["cpu"],
+                                                    self.resources["ram"],
+                                                    self.resources["walltime"],
+                                                    self.step_status,
+                                                    self.previous_step,
+                                                    self.next_step)
+                                                           
     def step_description(self):
         return "quick step description"
 

@@ -105,9 +105,7 @@ def launchTask(function, parameter, logger, mpi_services=None):
         traceback.print_exc()
         parameter_success = False
         logger.root.log(51, "parameter : '" + str(parameter) + "' : failed")
-        #~ if mpi_services:
-            #~ stop_workers(mpi_services)
-        
+
     end_job = time.time()
     end_date = datetime.datetime.now()
 
@@ -322,11 +320,17 @@ if __name__ == "__main__":
         if args.parameters:
             params = args.parameters
 
+        if steps[step-1].previous_step:
+            print "Etape précédente : {}".format(steps[step-1].previous_step.step_status)
+        steps[step-1].step_status = "running"
         _, step_completed = mpi_schedule(steps[step-1], params,
                                          mpi_service, steps[step-1].logFile,
                                          logger_lvl)
         if not step_completed:
+            steps[step-1].step_status = "fail"
             break
+        else :
+            steps[step-1].step_status = "success"
         if rm_tmp:
             remove_tmp_files(cfg, current_step=step, chain=chain_to_process)
 

@@ -99,7 +99,7 @@ class iota2():
         """
         build steps
         """
-        import os     
+        import os
  
         from Steps.IOTA2Step import StepContainer
         from Steps.IOTA2Step import Step
@@ -120,5 +120,5 @@ class iota2():
         s_container.append(myStep, "init")
         s_container.append(otherStep, "init")
         s_container.append(stepStepStep, "init")
-        
+
         return s_container
