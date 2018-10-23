@@ -94,6 +94,11 @@ class Step(object):
         log_dir = os.path.join(outputPath, "logs")
         self.logFile = os.path.join(log_dir, "{}_log.log".format(self.step_name))
 
+        self.previous_step = None
+        self.next_step = None
+
+        # "waiting", "running", "success", "fail"
+        self.step_status = "waiting"
 
     def parse_resource_file(self, step_name, cfg_resources_file):
         """
