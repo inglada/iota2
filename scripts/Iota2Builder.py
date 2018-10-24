@@ -13,7 +13,7 @@
 #   PURPOSE.  See the above copyright notices for more information.
 #
 # =========================================================================
-
+import os
 from collections import OrderedDict
 
 
@@ -43,6 +43,31 @@ class iota2():
         self.steps = self.build_steps(self.cfg, config_ressources)
         self.sort_step()
 
+        # pickle's path
+        self.iota2_pickle = os.path.join(self.cfg.getParam("chain", "outputPath"),
+                                         "logs", "iota2.txt")
+
+
+    def save_chain(self):
+        """
+        use dill to save chain instance
+        """
+        import dill
+        if os.path.exists(self.iota2_pickle):
+            os.remove(self.iota2_pickle)
+        #~ dill.dump_session(self.iota2_pickle)
+        with open(self.iota2_pickle, 'wb') as fp:
+            dill.dump(self, fp)
+            
+
+    def load_chain(self):
+        import dill
+        if os.path.exists(self.iota2_pickle):
+            with open(self.iota2_pickle, 'rb') as fp:
+                iota2_chain = dill.load(fp)
+        else :
+            iota2_chain = None
+        return iota2_chain
     def sort_step(self):
         """
         use to establish which step is going to which step group

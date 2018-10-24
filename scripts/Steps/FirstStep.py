@@ -19,16 +19,14 @@ import IOTA2Step
 from Cluster import get_RAM
 
 
-def awesome_function(arg1, arg2):
-    print "arg1 : {} et arg2 : {}".format(arg1, arg2)
+def awesome_function(arg1, arg2, config):
+    print "arg1 : {} et arg2 : {} ett {}".format(arg1, arg2, config.getParam("chain", "outputPath"))
 
 
 class FirstStep(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file):
         # heritage init
         super(FirstStep, self).__init__(cfg, cfg_resources_file)
-
-        # init
 
 
     def step_description(self):
@@ -54,7 +52,7 @@ class FirstStep(IOTA2Step.Step):
             must be a lambda function.
         """
 
-        step_function = lambda x: awesome_function(x, "TUILE")
+        step_function = lambda x: awesome_function(x, "TUILE", self.cfg)
         return step_function
 
     def step_outputs(self):

@@ -59,7 +59,6 @@ class ThirdStep(IOTA2Step.Step):
         """
         import os
         step_in = self.step_inputs()
-
         for in_file in step_in:
             if os.path.exists(in_file):
                 os.remove(in_file)

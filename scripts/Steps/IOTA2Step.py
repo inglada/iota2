@@ -25,12 +25,13 @@ class StepContainer(object):
         self.container = [] 
 
     def append(self, step, step_group=""):
+
         if not step in self.container:
             self.container.append(step)
             step.step_group = step_group
         else:
             raise Exception("step '{}' already present in container".format(step.step_name))
-        #~ # link steps
+        # link steps
         if len(self.container) > 1:
             self.container[len(self.container) - 2].next_step = step
             step.previous_step = self.container[len(self.container) - 2]
@@ -84,9 +85,11 @@ class Step(object):
     def __init__(self, cfg, cfg_resources_file):
         """
         """
+        from Common import ServiceConfigFile as SCF
         self.check_mandatory_methods()
 
         # attributes
+        self.cfg = cfg
         self.step_name = self.build_step_name()
         self.step_group = ""
 

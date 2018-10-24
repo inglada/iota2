@@ -274,6 +274,9 @@ if __name__ == "__main__":
     cfg = SCF.serviceConfigFile(args.configPath)
     cfg.checkConfigParameters()
     chain_to_process = chain.iota2(cfg, args.config_ressources)
+    if os.path.exists(chain_to_process.iota2_pickle):
+        chain_to_process = chain_to_process.load_chain()
+
     logger_lvl = cfg.getParam('chain', 'logFileLevel')
     enable_console = cfg.getParam('chain', 'enableConsole')
 
@@ -297,7 +300,7 @@ if __name__ == "__main__":
 
     if args.launchChain is False:
         sys.exit()
-
+    
     # Initialize MPI service
     mpi_service = MPIService()
 
@@ -333,8 +336,8 @@ if __name__ == "__main__":
             steps[step-1].step_status = "success"
         if rm_tmp:
             remove_tmp_files(cfg, current_step=step, chain=chain_to_process)
-
+    chain_to_process.save_chain()
     stop_workers(mpi_service)
-
+    
     if not step_completed:
         sys.exit(-1)
