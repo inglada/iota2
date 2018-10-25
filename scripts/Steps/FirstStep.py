@@ -21,7 +21,7 @@ from Cluster import get_RAM
 
 def awesome_function(arg1, arg2, config):
     print "arg1 : {} et arg2 : {} ett {}".format(arg1, arg2, config.getParam("chain", "outputPath"))
-
+    print "section par defaut : {}".format(config.getParam("NouvelleSection", "NouveauChamp"))
 
 class FirstStep(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file):

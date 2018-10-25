@@ -49,9 +49,22 @@ class serviceConfigFile:
         self.iota_config = iota_config
         if iota_config:
             import ConfigParser
+            import ast
             self.pathConf = pathConf
             self.cfg = ConfigParser.ConfigParser()
             self.cfg.read(self.pathConf)
+            print dir(self.cfg)
+            # all available section
+            print self.cfg.sections()
+            self.cfg.add_section("NouvelleSection")
+            self.cfg.set("NouvelleSection", "NouveauChamp", "2")
+            print self.cfg.sections()
+            #~ print dict(self.cfg.items('chain'))
+            #~ print dict(self.cfg.items('NouvelleSection'))
+            #~ monChampList = ast.literal_eval(self.cfg.get("chain", "uneliste"))
+            #~ monChampDico = ast.literal_eval(self.cfg.get("chain", "unDico"))
+
+            pause = raw_input("ServiceConfigFile")
         else:
             from config import Config
             self.cfg = Config(file(pathConf))
@@ -571,6 +584,8 @@ class serviceConfigFile:
             :param variable: string name of the variable
             :return: the value of variable
         """
+        print "SECTIONS !!!"
+        print self.cfg.sections()
         if not self.iota_config:
             if not hasattr(self.cfg, section):
                 # not an osoError class because it should NEVER happened
