@@ -15,14 +15,13 @@
 # =========================================================================
 import os
 
-from Cluster import get_RAM
 
 class StepContainer(object):
     """
     this class is dedicated to contains Step
     """
     def __init__(self):
-        self.container = [] 
+        self.container = []
 
     def append(self, step, step_group=""):
 
@@ -70,7 +69,7 @@ def return_decorator(validate_function, type_string="<type 'function'>"):
         accepted_return_type = accepted_return_type_tuple = (type_string)
         return_value = validate_function(*function_args)
         return_value_type = type(return_value)
-        if not str(return_value_type) == str(accepted_return_type):
+        if str(return_value_type) != str(accepted_return_type):
             raise Exception("function '{}' must return {} type instead of {}".format(validate_function.__name__,
                                                                                      accepted_return_type,
                                                                                      return_value_type))
@@ -89,7 +88,6 @@ class Step(object):
         self.check_mandatory_methods()
 
         # attributes
-        #~ self.cfg = SCF.serviceConfigFile(cfg)
         self.cfg = cfg
         self.step_name = self.build_step_name()
         self.step_group = ""
@@ -102,13 +100,11 @@ class Step(object):
         log_dir = os.path.join(outputPath, "logs")
         self.logFile = os.path.join(log_dir, "{}_log.log".format(self.step_name))
 
-        
         self.previous_step = None
         self.next_step = None
 
         # "waiting", "running", "success", "fail"
         self.step_status = "waiting"
-        
 
     def parse_resource_file(self, step_name, cfg_resources_file):
         """
@@ -139,12 +135,12 @@ class Step(object):
         the name define logging ouput files and resources access
         """
         return self.__class__.__name__
-    
+
     def check_mandatory_methods(self):
         """
         This method check if sub-class redefine mandatory methods
         """
-        
+
         if not self.__class__.__name__ == "Step":
             # step_execute
             if self.step_execute.__code__ is Step.step_execute.__code__:
@@ -182,13 +178,13 @@ class Step(object):
                                                     self.step_status,
                                                     self.previous_step,
                                                     self.next_step)
-                                                           
+
     def step_description(self):
         return "quick step description"
 
     def step_connect(self, other_step):
         """
-        the objective of this method is to connect two steps : inputs definition 
+        the objective of this method is to connect two steps : inputs definition
         of the current step is the output definition of an other step (usually
         the previous one)
         """
