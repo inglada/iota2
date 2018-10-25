@@ -23,6 +23,7 @@ def awesome_function(arg1, arg2, config):
    
     my_internal_config = SCF.serviceConfigFile(config)
     print "arg1 : {} et arg2 : {} ett {}".format(arg1, arg2, my_internal_config.getParam("chain", "outputPath"))
+    print "Une valeur par defaut : {}".format(my_internal_config.getParam("chain", "logConsoleLevel"))
 
 class FirstStep(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file):
@@ -53,7 +54,7 @@ class FirstStep(IOTA2Step.Step):
             must be a lambda function.
         """
 
-        step_function = lambda x: awesome_function(x, "TUILE", self.cfg.pathConf)
+        step_function = lambda x: awesome_function(x, "TUILE", self.cfg)
         return step_function
 
     def step_outputs(self):

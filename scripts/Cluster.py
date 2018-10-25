@@ -259,7 +259,7 @@ def launchChain(cfg, config_ressources=None):
     except:
         OTB_super = None
         
-    chain_to_process = chain.iota2(cfg, config_ressources)
+    chain_to_process = chain.iota2(cfg.pathConf, config_ressources)
     steps = chain_to_process.steps
     nb_steps = len(steps)
     all_steps = chain_to_process.get_steps_number()
@@ -304,7 +304,7 @@ def launchChain(cfg, config_ressources=None):
 
         errors = check_errors(log_err)
         if errors:
-            print "ERROR in step '" + steps[step_num].TaskName + "'"
+            print "ERROR in step '" + steps[step_num].step_name + "'"
             print errors
             return errors
 

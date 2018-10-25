@@ -15,16 +15,18 @@
 # =========================================================================
 import os
 from collections import OrderedDict
-
+from Common import ServiceConfigFile as SCF
 
 class iota2():
     """
     class use to describe steps sequence and variable to use at each step (config)
     """
     def __init__(self, cfg, config_ressources):
-        # config object
-        self.cfg = cfg
         
+        # config object
+        #~ self.cfg = cfg
+        self.cfg = cfg
+
         # working directory, HPC
         self.HPC_working_directory = "TMPDIR"
         
@@ -44,7 +46,7 @@ class iota2():
         self.sort_step()
 
         # pickle's path
-        self.iota2_pickle = os.path.join(self.cfg.getParam("chain", "outputPath"),
+        self.iota2_pickle = os.path.join(SCF.serviceConfigFile(self.cfg).getParam("chain", "outputPath"),
                                          "logs", "iota2.txt")
 
 
@@ -55,10 +57,8 @@ class iota2():
         import dill
         if os.path.exists(self.iota2_pickle):
             os.remove(self.iota2_pickle)
-        #~ dill.dump_session(self.iota2_pickle)
         with open(self.iota2_pickle, 'wb') as fp:
             dill.dump(self, fp)
-            
 
     def load_chain(self):
         import dill
@@ -66,8 +66,9 @@ class iota2():
             with open(self.iota2_pickle, 'rb') as fp:
                 iota2_chain = dill.load(fp)
         else :
-            iota2_chain = None
+            iota2_chain = self
         return iota2_chain
+
     def sort_step(self):
         """
         use to establish which step is going to which step group
@@ -103,14 +104,13 @@ class iota2():
                        'stats', 'cmd', 'dataAppVal', 'dimRed', 'final',
                        'learningSamples', 'model', 'shapeRegion', "features"]
 
-        iota2_outputs_dir = self.cfg.getParam('chain', 'outputPath')
+        iota2_outputs_dir = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
         
         return [os.path.join(iota2_outputs_dir, d) for d in directories]
 
     def get_steps_number(self):
-        
-        start = self.cfg.getParam('chain', 'firstStep')
-        end = self.cfg.getParam('chain', 'lastStep')
+        start = SCF.serviceConfigFile(self.cfg).getParam('chain', 'firstStep')
+        end = SCF.serviceConfigFile(self.cfg).getParam('chain', 'lastStep')
         start_ind = self.steps_group.keys().index(start)
         end_ind = self.steps_group.keys().index(end)
         steps = []

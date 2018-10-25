@@ -273,7 +273,7 @@ if __name__ == "__main__":
 
     cfg = SCF.serviceConfigFile(args.configPath)
     cfg.checkConfigParameters()
-    chain_to_process = chain.iota2(cfg, args.config_ressources)
+    chain_to_process = chain.iota2(cfg.pathConf, args.config_ressources)
     if os.path.exists(chain_to_process.iota2_pickle):
         chain_to_process = chain_to_process.load_chain()
 

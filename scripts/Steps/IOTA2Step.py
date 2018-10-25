@@ -89,6 +89,7 @@ class Step(object):
         self.check_mandatory_methods()
 
         # attributes
+        #~ self.cfg = SCF.serviceConfigFile(cfg)
         self.cfg = cfg
         self.step_name = self.build_step_name()
         self.step_group = ""
@@ -97,7 +98,7 @@ class Step(object):
         self.resources = self.parse_resource_file(self.step_name, cfg_resources_file)
 
         # define log path
-        outputPath = cfg.getParam('chain', 'outputPath')
+        outputPath = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
         log_dir = os.path.join(outputPath, "logs")
         self.logFile = os.path.join(log_dir, "{}_log.log".format(self.step_name))
 
