@@ -64,7 +64,6 @@ class serviceConfigFile:
             #~ monChampList = ast.literal_eval(self.cfg.get("chain", "uneliste"))
             #~ monChampDico = ast.literal_eval(self.cfg.get("chain", "unDico"))
 
-            pause = raw_input("ServiceConfigFile")
         else:
             from config import Config
             self.cfg = Config(file(pathConf))

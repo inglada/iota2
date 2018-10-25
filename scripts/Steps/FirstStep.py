@@ -17,11 +17,12 @@ import os
 
 import IOTA2Step
 from Cluster import get_RAM
-
+from Common import ServiceConfigFile as SCF 
 
 def awesome_function(arg1, arg2, config):
-    print "arg1 : {} et arg2 : {} ett {}".format(arg1, arg2, config.getParam("chain", "outputPath"))
-    print "section par defaut : {}".format(config.getParam("NouvelleSection", "NouveauChamp"))
+   
+    my_internal_config = SCF.serviceConfigFile(config)
+    print "arg1 : {} et arg2 : {} ett {}".format(arg1, arg2, my_internal_config.getParam("chain", "outputPath"))
 
 class FirstStep(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file):
@@ -52,7 +53,7 @@ class FirstStep(IOTA2Step.Step):
             must be a lambda function.
         """
 
-        step_function = lambda x: awesome_function(x, "TUILE", self.cfg)
+        step_function = lambda x: awesome_function(x, "TUILE", self.cfg.pathConf)
         return step_function
 
     def step_outputs(self):
