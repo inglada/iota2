@@ -85,7 +85,7 @@ class Step(object):
         """
         """
         from Common import ServiceConfigFile as SCF
-        self.check_mandatory_methods()
+        self.check_mandatory_methods()       
 
         # attributes
         self.cfg = cfg
@@ -105,6 +105,7 @@ class Step(object):
 
         # "waiting", "running", "success", "fail"
         self.step_status = "waiting"
+
 
     def parse_resource_file(self, step_name, cfg_resources_file):
         """
@@ -135,6 +136,18 @@ class Step(object):
         the name define logging ouput files and resources access
         """
         return self.__class__.__name__
+
+    def check_attributes_type(self):
+        """
+        """
+        mandatory_type = {"cfg" : "str"}
+        for attribute, value in self.__dict__.items():
+            if attribute in mandatory_type:
+                if value.__class__.__name__ != str(mandatory_type[attribute]):
+                    raise Exception("in {} class, attribute '{}' must be of type : {} not {}".format(self.__class__.__name__,
+                                                                                                     attribute,
+                                                                                                     mandatory_type[attribute],
+                                                                                                     value.__class__.__name__))
 
     def check_mandatory_methods(self):
         """

@@ -30,7 +30,6 @@ class FirstStep(IOTA2Step.Step):
         # heritage init
         super(FirstStep, self).__init__(cfg, cfg_resources_file)
 
-
     def step_description(self):
         """
         function use to print a short description of the step's purpose
