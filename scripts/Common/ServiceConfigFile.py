@@ -95,6 +95,7 @@ class serviceConfigFile:
             argTrain_default = {"sampleSelection": sampleSel_default,
                                 "sampleAugmentation": sampleAugmentationg_default,
                                 "sampleManagement": None,
+                                "dempster_shafer_SAR_Opt_fusion": False,
                                 "cropMix": False,
                                 "prevFeatures":"None",
                                 "outputPrevFeatures":"None",
