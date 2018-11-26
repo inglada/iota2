@@ -135,10 +135,7 @@ class iota2():
 
         from Steps.IOTA2Step import StepContainer
 
-        from Steps import IOTA2DirTree
-        from Steps import Sentinel1PreProcess
-        from Steps import CommonMasks
-        from Steps import PixelValidity
+        from Steps import IOTA2DirTree, Sentinel1PreProcess, CommonMasks, PixelValidity, Envelope
 
         s_container = StepContainer()
 
@@ -153,10 +150,12 @@ class iota2():
         step_CommonMasks = CommonMasks.CommonMasks(cfg,
                                                    config_ressources,
                                                    self.workingDirectory)
-
         step_pixVal = PixelValidity.PixelValidity(cfg,
                                                   config_ressources,
                                                   self.workingDirectory)
+        step_env = Envelope.Envelope(cfg,
+                                     config_ressources,
+                                     self.workingDirectory)
 
         #~ stepStepStep.step_connect(otherStep)
 
@@ -171,4 +170,5 @@ class iota2():
             s_container.append(step_S1_preproc, "init")
         s_container.append(step_CommonMasks, "init")
         s_container.append(step_pixVal, "init")
+        s_container.append(step_env, "sampling")
         return s_container
