@@ -138,6 +138,7 @@ class iota2():
         from Steps import IOTA2DirTree
         from Steps import Sentinel1PreProcess
         from Steps import CommonMasks
+        from Steps import PixelValidity
 
         s_container = StepContainer()
 
@@ -153,6 +154,10 @@ class iota2():
                                                    config_ressources,
                                                    self.workingDirectory)
 
+        step_pixVal = PixelValidity.PixelValidity(cfg,
+                                                  config_ressources,
+                                                  self.workingDirectory)
+
         #~ stepStepStep.step_connect(otherStep)
 
         #~ s_container.append(baseStep, "init")
@@ -165,4 +170,5 @@ class iota2():
         if not "None" in Sentinel1:
             s_container.append(step_S1_preproc, "init")
         s_container.append(step_CommonMasks, "init")
+        s_container.append(step_pixVal, "init")
         return s_container
