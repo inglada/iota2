@@ -28,8 +28,9 @@ class iota2():
         self.cfg = cfg
 
         # working directory, HPC
-        self.HPC_working_directory = "TMPDIR"
-        
+        HPC_working_directory = "TMPDIR"
+        self.workingDirectory = os.getenv(HPC_working_directory)
+
         # steps definitions
         self.steps_group = OrderedDict()
 
@@ -119,13 +120,13 @@ class iota2():
         step_to_compute = [step for step_group in steps for step in step_group]
         return step_to_compute
 
-
     def build_steps(self, cfg, config_ressources=None):
         """
         build steps
         """
         import os
         from MPI import ressourcesByStep as iota2Ressources
+        from Common import ServiceConfigFile as SCF
 
         if config_ressources:
             ressourcesByStep = iota2Ressources.iota2_ressources(config_ressources)
@@ -133,24 +134,24 @@ class iota2():
             ressourcesByStep = iota2Ressources.iota2_ressources()
 
         from Steps.IOTA2Step import StepContainer
-        from Steps.IOTA2Step import Step
+
         from Steps import IOTA2DirTree
-        from Steps import FirstStep
-        from Steps import SecondStep
-        from Steps import ThirdStep
+        from Steps import Sentinel1PreProcess
+        #~ from Steps import CommonMasks
 
         s_container = StepContainer()
 
         # control variable
-        #~ Sentinel1 = cfg.getParam('chain', 'S1Path')
+        Sentinel1 = SCF.serviceConfigFile(cfg).getParam('chain', 'S1Path')
 
         # class instance
-        #~ baseStep=Step(cfg, config_ressources)
-        #~ myStep = FirstStep.FirstStep(cfg, config_ressources)
-        #~ otherStep = SecondStep.SecondStep(cfg, config_ressources)
-        #~ stepStepStep = ThirdStep.ThirdStep(cfg, config_ressources)
-        build_tree = IOTA2DirTree.IOTA2DirTree(cfg, config_ressources)
-        #~ S1_preproc = Sentinel1PreProcess.Sentinel1PreProcess(cfg, config_ressources)
+        step_build_tree = IOTA2DirTree.IOTA2DirTree(cfg, config_ressources)
+        step_S1_preproc = Sentinel1PreProcess.Sentinel1PreProcess(cfg,
+                                                                  config_ressources,
+                                                                  self.workingDirectory)
+        #~ step_CommonMasks = CommonMasks.CommonMasks(cfg,
+                                                   #~ config_ressources,
+                                                   #~ self.workingDirectory)
 
         #~ stepStepStep.step_connect(otherStep)
 
@@ -160,7 +161,7 @@ class iota2():
         #~ s_container.append(stepStepStep, "init")
 
         # build chain
-        s_container.append(build_tree, "init")
-        #~ if not "None" in Sentinel1:
-            
+        s_container.append(step_build_tree, "init")
+        if not "None" in Sentinel1:
+            s_container.append(step_S1_preproc, "init")
         return s_container
