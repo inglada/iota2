@@ -125,25 +125,42 @@ class iota2():
         build steps
         """
         import os
- 
+        from MPI import ressourcesByStep as iota2Ressources
+
+        if config_ressources:
+            ressourcesByStep = iota2Ressources.iota2_ressources(config_ressources)
+        else:
+            ressourcesByStep = iota2Ressources.iota2_ressources()
+
         from Steps.IOTA2Step import StepContainer
         from Steps.IOTA2Step import Step
+        from Steps import IOTA2DirTree
         from Steps import FirstStep
         from Steps import SecondStep
         from Steps import ThirdStep
 
         s_container = StepContainer()
 
-        baseStep=Step(cfg, config_ressources)
-        myStep = FirstStep.FirstStep(cfg, config_ressources)
-        otherStep = SecondStep.SecondStep(cfg, config_ressources)
-        stepStepStep = ThirdStep.ThirdStep(cfg, config_ressources)
+        # control variable
+        #~ Sentinel1 = cfg.getParam('chain', 'S1Path')
 
-        stepStepStep.step_connect(otherStep)
+        # class instance
+        #~ baseStep=Step(cfg, config_ressources)
+        #~ myStep = FirstStep.FirstStep(cfg, config_ressources)
+        #~ otherStep = SecondStep.SecondStep(cfg, config_ressources)
+        #~ stepStepStep = ThirdStep.ThirdStep(cfg, config_ressources)
+        build_tree = IOTA2DirTree.IOTA2DirTree(cfg, config_ressources)
+        #~ S1_preproc = Sentinel1PreProcess.Sentinel1PreProcess(cfg, config_ressources)
 
-        s_container.append(baseStep, "init")
-        s_container.append(myStep, "init")
-        s_container.append(otherStep, "init")
-        s_container.append(stepStepStep, "init")
+        #~ stepStepStep.step_connect(otherStep)
 
+        #~ s_container.append(baseStep, "init")
+        #~ s_container.append(myStep, "init")
+        #~ s_container.append(otherStep, "init")
+        #~ s_container.append(stepStepStep, "init")
+
+        # build chain
+        s_container.append(build_tree, "init")
+        #~ if not "None" in Sentinel1:
+            
         return s_container

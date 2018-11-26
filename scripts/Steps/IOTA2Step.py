@@ -207,7 +207,8 @@ class Step(object):
         """
         function call to clean files after the success of the step
         """
-        print("{}.step_clean Not define".format(self.__class__.__name__))
+        #~ print("{}.step_clean Not define".format(self.__class__.__name__))
+        pass
     @classmethod
     def step_inputs(self):
         return [1, 2]
