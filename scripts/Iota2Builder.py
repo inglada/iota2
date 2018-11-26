@@ -137,7 +137,7 @@ class iota2():
 
         from Steps import IOTA2DirTree
         from Steps import Sentinel1PreProcess
-        #~ from Steps import CommonMasks
+        from Steps import CommonMasks
 
         s_container = StepContainer()
 
@@ -149,9 +149,9 @@ class iota2():
         step_S1_preproc = Sentinel1PreProcess.Sentinel1PreProcess(cfg,
                                                                   config_ressources,
                                                                   self.workingDirectory)
-        #~ step_CommonMasks = CommonMasks.CommonMasks(cfg,
-                                                   #~ config_ressources,
-                                                   #~ self.workingDirectory)
+        step_CommonMasks = CommonMasks.CommonMasks(cfg,
+                                                   config_ressources,
+                                                   self.workingDirectory)
 
         #~ stepStepStep.step_connect(otherStep)
 
@@ -164,4 +164,5 @@ class iota2():
         s_container.append(step_build_tree, "init")
         if not "None" in Sentinel1:
             s_container.append(step_S1_preproc, "init")
+        s_container.append(step_CommonMasks, "init")
         return s_container
