@@ -16,9 +16,7 @@
 import os
 
 import IOTA2Step
-from Cluster import get_RAM
-from Common import ServiceConfigFile as SCF 
-from Common import IOTA2Directory as IOTA2_dir
+from Common import ServiceConfigFile as SCF
 
 class PixelValidity(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
@@ -41,7 +39,6 @@ class PixelValidity(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
-        from Common import ServiceConfigFile as SCF
         tiles = SCF.serviceConfigFile(self.cfg).getParam('chain', 'listTile').split(" ")
         outputPath = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
         pathTilesFeat = os.path.join(outputPath, "features")

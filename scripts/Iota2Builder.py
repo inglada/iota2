@@ -137,7 +137,8 @@ class iota2():
 
         from Steps import (IOTA2DirTree, Sentinel1PreProcess,
                            CommonMasks, PixelValidity,
-                           Envelope, genRegionVector)
+                           Envelope, genRegionVector,
+                           VectorFormatting, splitSamples)
 
         s_container = StepContainer()
 
@@ -155,13 +156,19 @@ class iota2():
         step_env = Envelope.Envelope(cfg,
                                      config_ressources,
                                      self.workingDirectory)
-
         step_reg_vector = genRegionVector.genRegionVector(cfg,
                                                           config_ressources,
                                                           self.workingDirectory)
+        step_vector_form = VectorFormatting.VectorFormatting(cfg,
+                                                             config_ressources,
+                                                             self.workingDirectory)
+        step_split_huge_vec = splitSamples.splitSamples(cfg,
+                                                        config_ressources,
+                                                        self.workingDirectory)
         # control variable
         Sentinel1 = SCF.serviceConfigFile(cfg).getParam('chain', 'S1Path')
         shapeRegion = SCF.serviceConfigFile(cfg).getParam('chain', 'regionPath')
+        classif_mode = SCF.serviceConfigFile(cfg).getParam('argClassification', 'classifMode')
 
         # build chain
         s_container.append(step_build_tree, "init")
@@ -173,4 +180,7 @@ class iota2():
         s_container.append(step_env, "sampling")
         if not shapeRegion:
             s_container.append(step_reg_vector, "sampling")
+        s_container.append(step_vector_form, "sampling")
+        if shapeRegion and classif_mode == "fusion":
+            s_container.append(step_split_huge_vec, "sampling")
         return s_container
