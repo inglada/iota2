@@ -17,24 +17,21 @@ import os
 
 import IOTA2Step
 from Common import ServiceConfigFile as SCF
-from Sampling import SamplesMerge as samples_merge
 
-class samplesMerge(IOTA2Step.Step):
+class samplingLearningPolygons(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
-        super(samplesMerge, self).__init__(cfg, cfg_resources_file)
+        super(samplingLearningPolygons, self).__init__(cfg, cfg_resources_file)
 
         # step variables
         self.workingDirectory = workingDirectory
         self.output_path = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
-        self.field_region = SCF.serviceConfigFile(self.cfg).getParam('chain', 'regionField')
-        self.nb_runs = SCF.serviceConfigFile(self.cfg).getParam('chain', 'runs')
 
     def step_description(self):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("merge samples by models")
+        description = ("Select pixels in learning polygons by models")
         return description
 
     def step_inputs(self):
@@ -43,7 +40,8 @@ class samplesMerge(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
-        return samples_merge.get_models(os.path.join(self.output_path, "formattingVectors"), self.field_region, self.nb_runs)
+        from Common import FileUtils as fut
+        return fut.FileSearch_AND(os.path.join(self.output_path, "samplesSelection"), True, ".shp")
 
     def step_execute(self):
         """
@@ -53,9 +51,8 @@ class samplesMerge(IOTA2Step.Step):
             the function to execute as a lambda function. The returned object
             must be a lambda function.
         """
-        from Sampling import SplitSamples as splitS
-
-        step_function = lambda x: samples_merge.samples_merge(x, self.cfg, self.workingDirectory)
+        from Sampling import SamplesSelection
+        step_function = lambda x: SamplesSelection.samples_selection(x, self.cfg, self.workingDirectory)
         return step_function
 
     def step_outputs(self):

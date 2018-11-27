@@ -319,10 +319,11 @@ if __name__ == "__main__":
                 print "Running step {}: {} ({} tasks)".format(step, chain_to_process.steps_group[group][step],
                                                               len(param_array))
                 break
-
+        
         if args.parameters:
             params = args.parameters
-
+        else:
+            params = param_array
         if steps[step-1].previous_step:
             print "Etape précédente : {}".format(steps[step-1].previous_step.step_status)
         steps[step-1].step_status = "running"

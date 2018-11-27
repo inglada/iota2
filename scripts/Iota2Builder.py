@@ -139,7 +139,8 @@ class iota2():
                            CommonMasks, PixelValidity,
                            Envelope, genRegionVector,
                            VectorFormatting, splitSamples,
-                           samplesMerge)
+                           samplesMerge, statsSamplesModel,
+                           samplingLearningPolygons, samplesByTiles)
 
         s_container = StepContainer()
 
@@ -169,6 +170,15 @@ class iota2():
         step_merge_samples = samplesMerge.samplesMerge(cfg,
                                                        config_ressources,
                                                        self.workingDirectory)
+        step_models_samples_stats = statsSamplesModel.statsSamplesModel(cfg,
+                                                                        config_ressources,
+                                                                        self.workingDirectory)
+        step_samples_selection = samplingLearningPolygons.samplingLearningPolygons(cfg,
+                                                                                   config_ressources,
+                                                                                   self.workingDirectory)
+        step_prepare_selection = samplesByTiles.samplesByTiles(cfg,
+                                                               config_ressources,
+                                                               self.workingDirectory)
         # control variable
         Sentinel1 = SCF.serviceConfigFile(cfg).getParam('chain', 'S1Path')
         shapeRegion = SCF.serviceConfigFile(cfg).getParam('chain', 'regionPath')
@@ -188,4 +198,7 @@ class iota2():
         if shapeRegion and classif_mode == "fusion":
             s_container.append(step_split_huge_vec, "sampling")
         s_container.append(step_merge_samples, "sampling")
+        s_container.append(step_models_samples_stats, "sampling")
+        s_container.append(step_samples_selection, "sampling")
+        s_container.append(step_prepare_selection, "sampling")
         return s_container
