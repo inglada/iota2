@@ -135,12 +135,11 @@ class iota2():
 
         from Steps.IOTA2Step import StepContainer
 
-        from Steps import IOTA2DirTree, Sentinel1PreProcess, CommonMasks, PixelValidity, Envelope
+        from Steps import (IOTA2DirTree, Sentinel1PreProcess,
+                           CommonMasks, PixelValidity,
+                           Envelope, genRegionVector)
 
         s_container = StepContainer()
-
-        # control variable
-        Sentinel1 = SCF.serviceConfigFile(cfg).getParam('chain', 'S1Path')
 
         # class instance
         step_build_tree = IOTA2DirTree.IOTA2DirTree(cfg, config_ressources)
@@ -157,12 +156,12 @@ class iota2():
                                      config_ressources,
                                      self.workingDirectory)
 
-        #~ stepStepStep.step_connect(otherStep)
-
-        #~ s_container.append(baseStep, "init")
-        #~ s_container.append(myStep, "init")
-        #~ s_container.append(otherStep, "init")
-        #~ s_container.append(stepStepStep, "init")
+        step_reg_vector = genRegionVector.genRegionVector(cfg,
+                                                          config_ressources,
+                                                          self.workingDirectory)
+        # control variable
+        Sentinel1 = SCF.serviceConfigFile(cfg).getParam('chain', 'S1Path')
+        shapeRegion = SCF.serviceConfigFile(cfg).getParam('chain', 'regionPath')
 
         # build chain
         s_container.append(step_build_tree, "init")
@@ -170,5 +169,8 @@ class iota2():
             s_container.append(step_S1_preproc, "init")
         s_container.append(step_CommonMasks, "init")
         s_container.append(step_pixVal, "init")
+
         s_container.append(step_env, "sampling")
+        if not shapeRegion:
+            s_container.append(step_reg_vector, "sampling")
         return s_container
