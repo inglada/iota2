@@ -16,20 +16,25 @@
 import os
 
 import IOTA2Step
+from Common import ServiceConfigFile as SCF
+from Sampling import SamplesMerge as samples_merge
 
-class splitSamples(IOTA2Step.Step):
+class samplesMerge(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
-        super(splitSamples, self).__init__(cfg, cfg_resources_file)
+        super(samplesMerge, self).__init__(cfg, cfg_resources_file)
 
         # step variables
         self.workingDirectory = workingDirectory
+        self.output_path = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
+        self.field_region = SCF.serviceConfigFile(self.cfg).getParam('chain', 'regionField')
+        self.nb_runs = SCF.serviceConfigFile(self.cfg).getParam('chain', 'runs')
 
     def step_description(self):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("split learning polygons and Validation polygons in sub-sample if necessary")
+        description = ("merge samples by models")
         return description
 
     def step_inputs(self):
@@ -38,7 +43,7 @@ class splitSamples(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
-        return [self.cfg]
+        return lambda: samples_merge.get_models(os.path.join(self.output_path, "formattingVectors"), self.field_region, self.nb_runs)
 
     def step_execute(self):
         """
@@ -50,11 +55,10 @@ class splitSamples(IOTA2Step.Step):
         """
         from Sampling import SplitSamples as splitS
 
-        step_function = lambda x: splitS.splitSamples(x, self.workingDirectory)
+        step_function = lambda x: samples_merge.samples_merge(x, self.cfg, self.workingDirectory)
         return step_function
 
     def step_outputs(self):
         """
         """
         pass
-        
