@@ -142,7 +142,7 @@ class iota2():
                            samplesMerge, statsSamplesModel,
                            samplingLearningPolygons, samplesByTiles,
                            samplesExtraction, samplesByModels,
-                           copySamples)
+                           copySamples, genSyntheticSamples)
 
         s_container = StepContainer()
 
@@ -189,11 +189,16 @@ class iota2():
         step_copy_sample_between_models = copySamples.copySamples(cfg,
                                                                   config_ressources,
                                                                   self.workingDirectory)
+        step_generate_samples = genSyntheticSamples.genSyntheticSamples(cfg,
+                                                                        config_ressources,
+                                                                        self.workingDirectory)
         # control variable
         Sentinel1 = SCF.serviceConfigFile(cfg).getParam('chain', 'S1Path')
         shapeRegion = SCF.serviceConfigFile(cfg).getParam('chain', 'regionPath')
         classif_mode = SCF.serviceConfigFile(cfg).getParam('argClassification', 'classifMode')
         sampleManagement = SCF.serviceConfigFile(cfg).getParam('argTrain', 'sampleManagement')
+        sample_augmentation = dict(SCF.serviceConfigFile(cfg).getParam('argTrain', 'sampleAugmentation'))
+        sample_augmentation_flag = sample_augmentation["activate"]
 
         # build chain
         s_container.append(step_build_tree, "init")
@@ -215,4 +220,6 @@ class iota2():
         s_container.append(step_merge_learning_samples, "sampling")
         if sampleManagement and sampleManagement.lower() != 'none':
             s_container.append(step_copy_sample_between_models, "sampling")
+        if sample_augmentation_flag:
+            s_container.append(step_generate_samples, "sampling")
         return s_container
