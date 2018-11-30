@@ -19,22 +19,21 @@ import IOTA2Step
 from Common import ServiceConfigFile as SCF
 from Cluster import get_RAM
 
-class confusionSAROpt(IOTA2Step.Step):
+class confusionSAROptMerge(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
-        super(confusionSAROpt, self).__init__(cfg, cfg_resources_file)
+        super(confusionSAROptMerge, self).__init__(cfg, cfg_resources_file)
 
         # step variables
         self.workingDirectory = workingDirectory
         self.output_path = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
         self.data_field = SCF.serviceConfigFile(self.cfg).getParam('chain', 'dataField')
-        self.sar_opt_conf_ram = 1024.0 * get_RAM(self.resources["ram"])
         
     def step_description(self):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Evaluate SAR vs optical classification's performance by tiles and models")
+        description = ("Fusion of confusion matrix")
         return description
 
     def step_inputs(self):
@@ -43,8 +42,8 @@ class confusionSAROpt(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
-        from Validation import GenConfusionMatrix as GCM
-        return GCM.confusion_sar_optical_parameter(self.output_path)
+        from Validation import ConfusionFusion as confFus
+        return confFus.confusion_models_merge_parameters(self.output_path)
 
     def step_execute(self):
         """
@@ -54,10 +53,8 @@ class confusionSAROpt(IOTA2Step.Step):
             the function to execute as a lambda function. The returned object
             must be a lambda function.
         """
-        from Validation import GenConfusionMatrix as GCM
-        step_function = lambda x: GCM.confusion_sar_optical(x,
-                                                            self.data_field,
-                                                            self.sar_opt_conf_ram)
+        from Validation import ConfusionFusion as confFus
+        step_function = lambda x: confFus.confusion_models_merge(x, self.data_field)
         return step_function
 
     def step_outputs(self):

@@ -145,7 +145,8 @@ class iota2():
                            copySamples, genSyntheticSamples,
                            samplesDimReduction, samplesNormalization,
                            learnModel, classiCmd,
-                           classification, confusionSAROpt)
+                           classification, confusionSAROpt,
+                           confusionSAROptMerge)
 
         # will contains all IOTA² steps
         s_container = StepContainer()
@@ -213,6 +214,9 @@ class iota2():
         step_confusion_sar_opt = confusionSAROpt.confusionSAROpt(cfg,
                                                                  config_ressources,
                                                                  self.workingDirectory)
+        step_confusion_sar_opt_fusion = confusionSAROptMerge.confusionSAROptMerge(cfg,
+                                                                                  config_ressources,
+                                                                                  self.workingDirectory)
         # control variable
         Sentinel1 = SCF.serviceConfigFile(cfg).getParam('chain', 'S1Path')
         shapeRegion = SCF.serviceConfigFile(cfg).getParam('chain', 'regionPath')
@@ -262,5 +266,6 @@ class iota2():
         s_container.append(step_classification, "classification")
         if ds_sar_opt:
             s_container.append(step_confusion_sar_opt, "classification")
+            s_container.append(step_confusion_sar_opt_fusion, "classification")
             
         return s_container
