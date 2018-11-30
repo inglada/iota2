@@ -145,7 +145,7 @@ class iota2():
                            copySamples, genSyntheticSamples,
                            samplesDimReduction, samplesNormalization,
                            learnModel, classiCmd,
-                           classification)
+                           classification, confusionSAROpt)
 
         # will contains all IOTA² steps
         s_container = StepContainer()
@@ -210,6 +210,9 @@ class iota2():
         step_classification = classification.classification(cfg,
                                                             config_ressources,
                                                             self.workingDirectory)
+        step_confusion_sar_opt = confusionSAROpt.confusionSAROpt(cfg,
+                                                                 config_ressources,
+                                                                 self.workingDirectory)
         # control variable
         Sentinel1 = SCF.serviceConfigFile(cfg).getParam('chain', 'S1Path')
         shapeRegion = SCF.serviceConfigFile(cfg).getParam('chain', 'regionPath')
@@ -219,6 +222,8 @@ class iota2():
         sample_augmentation_flag = sample_augmentation["activate"]
         dimred = SCF.serviceConfigFile(cfg).getParam('dimRed', 'dimRed')
         classifier = SCF.serviceConfigFile(cfg).getParam('argTrain', 'classifier')
+        ds_sar_opt = SCF.serviceConfigFile(cfg).getParam('argTrain', 'dempster_shafer_SAR_Opt_fusion')
+
 
         # build chain
         # init steps
@@ -255,5 +260,7 @@ class iota2():
         # classifications steps
         s_container.append(step_classiCmd, "classification")
         s_container.append(step_classification, "classification")
-        
+        if ds_sar_opt:
+            s_container.append(step_confusion_sar_opt, "classification")
+            
         return s_container
