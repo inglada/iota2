@@ -143,7 +143,7 @@ class iota2():
                            samplingLearningPolygons, samplesByTiles,
                            samplesExtraction, samplesByModels,
                            copySamples, genSyntheticSamples,
-                           samplesDimReduction)
+                           samplesDimReduction, samplesNormalization)
 
         s_container = StepContainer()
 
@@ -196,6 +196,8 @@ class iota2():
         step_dimRed = samplesDimReduction.samplesDimReduction(cfg,
                                                               config_ressources,
                                                               self.workingDirectory)
+        step_normalize_samples = samplesNormalization.samplesNormalization(cfg,
+                                                                           config_ressources)
         # control variable
         Sentinel1 = SCF.serviceConfigFile(cfg).getParam('chain', 'S1Path')
         shapeRegion = SCF.serviceConfigFile(cfg).getParam('chain', 'regionPath')
@@ -204,6 +206,7 @@ class iota2():
         sample_augmentation = dict(SCF.serviceConfigFile(cfg).getParam('argTrain', 'sampleAugmentation'))
         sample_augmentation_flag = sample_augmentation["activate"]
         dimred = SCF.serviceConfigFile(cfg).getParam('dimRed', 'dimRed')
+        classifier = SCF.serviceConfigFile(cfg).getParam('argTrain', 'classifier')
 
         # build chain
         s_container.append(step_build_tree, "init")
@@ -229,4 +232,6 @@ class iota2():
             s_container.append(step_generate_samples, "sampling")
         if dimred:
             s_container.append(step_dimRed, "sampling")
+        if "svm" in classifier.lower():
+            s_container.append(step_normalize_samples, "sampling")
         return s_container
