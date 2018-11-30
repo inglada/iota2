@@ -144,7 +144,8 @@ class iota2():
                            samplesExtraction, samplesByModels,
                            copySamples, genSyntheticSamples,
                            samplesDimReduction, samplesNormalization,
-                           learnModel, classiCmd)
+                           learnModel, classiCmd,
+                           classification)
 
         # will contains all IOTA² steps
         s_container = StepContainer()
@@ -206,6 +207,9 @@ class iota2():
         step_classiCmd = classiCmd.classiCmd(cfg,
                                              config_ressources,
                                              self.workingDirectory)
+        step_classification = classification.classification(cfg,
+                                                            config_ressources,
+                                                            self.workingDirectory)
         # control variable
         Sentinel1 = SCF.serviceConfigFile(cfg).getParam('chain', 'S1Path')
         shapeRegion = SCF.serviceConfigFile(cfg).getParam('chain', 'regionPath')
@@ -248,7 +252,8 @@ class iota2():
             s_container.append(step_normalize_samples, "learning")
         s_container.append(step_learning, "learning")
 
-        # classification steps
+        # classifications steps
         s_container.append(step_classiCmd, "classification")
+        s_container.append(step_classification, "classification")
         
         return s_container

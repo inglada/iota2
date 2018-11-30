@@ -16,6 +16,7 @@
 import os
 
 import IOTA2Step
+from Cluster import get_RAM
 from Common import ServiceConfigFile as SCF
 
 class classiCmd(IOTA2Step.Step):
@@ -29,7 +30,7 @@ class classiCmd(IOTA2Step.Step):
         self.field_region = SCF.serviceConfigFile(self.cfg).getParam('chain', 'regionField')
         self.runs = SCF.serviceConfigFile(self.cfg).getParam('chain', 'runs')
         self.region_path = SCF.serviceConfigFile(self.cfg).getParam('chain', 'regionPath')
-        self.ram_classification = self.resources["ram"]
+        self.ram_classification = 1024.0 * get_RAM(self.resources["ram"])
 
     def step_description(self):
         """
