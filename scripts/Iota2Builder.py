@@ -143,8 +143,10 @@ class iota2():
                            samplingLearningPolygons, samplesByTiles,
                            samplesExtraction, samplesByModels,
                            copySamples, genSyntheticSamples,
-                           samplesDimReduction, samplesNormalization)
+                           samplesDimReduction, samplesNormalization,
+                           learnModel)
 
+        # will contains all IOTA² steps
         s_container = StepContainer()
 
         # class instance
@@ -198,6 +200,9 @@ class iota2():
                                                               self.workingDirectory)
         step_normalize_samples = samplesNormalization.samplesNormalization(cfg,
                                                                            config_ressources)
+        step_learning = learnModel.learnModel(cfg,
+                                              config_ressources,
+                                              self.workingDirectory)
         # control variable
         Sentinel1 = SCF.serviceConfigFile(cfg).getParam('chain', 'S1Path')
         shapeRegion = SCF.serviceConfigFile(cfg).getParam('chain', 'regionPath')
@@ -209,12 +214,14 @@ class iota2():
         classifier = SCF.serviceConfigFile(cfg).getParam('argTrain', 'classifier')
 
         # build chain
+        # init steps
         s_container.append(step_build_tree, "init")
         if not "None" in Sentinel1:
             s_container.append(step_S1_preproc, "init")
         s_container.append(step_CommonMasks, "init")
         s_container.append(step_pixVal, "init")
 
+        # sampling steps
         s_container.append(step_env, "sampling")
         if not shapeRegion:
             s_container.append(step_reg_vector, "sampling")
@@ -232,6 +239,10 @@ class iota2():
             s_container.append(step_generate_samples, "sampling")
         if dimred:
             s_container.append(step_dimRed, "sampling")
+
+        # learning steps
         if "svm" in classifier.lower():
-            s_container.append(step_normalize_samples, "sampling")
+            s_container.append(step_normalize_samples, "learning")
+        s_container.append(step_learning, "learning")
+        
         return s_container
