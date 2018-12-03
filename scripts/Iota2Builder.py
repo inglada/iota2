@@ -148,7 +148,7 @@ class iota2():
                            classification, confusionSAROpt,
                            confusionSAROptMerge, SAROptFusion,
                            classificationsFusion, fusionsIndecisions,
-                           mosaic)
+                           mosaic, confusionCmd)
 
         # will contains all IOTA² steps
         s_container = StepContainer()
@@ -231,6 +231,9 @@ class iota2():
         step_mosaic = mosaic.mosaic(cfg,
                                     config_ressources,
                                     self.workingDirectory)
+        step_confusions_cmd = confusionCmd.confusionCmd(cfg,
+                                                        config_ressources,
+                                                        self.workingDirectory)
         # control variable
         Sentinel1 = SCF.serviceConfigFile(cfg).getParam('chain', 'S1Path')
         shapeRegion = SCF.serviceConfigFile(cfg).getParam('chain', 'regionPath')
@@ -288,4 +291,7 @@ class iota2():
 
         # mosaic step
         s_container.append(step_mosaic, "mosaic")
+
+        # validation steps
+        s_container.append(step_confusions_cmd, "validation")
         return s_container
