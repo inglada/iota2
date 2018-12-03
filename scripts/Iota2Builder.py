@@ -150,7 +150,7 @@ class iota2():
                            classificationsFusion, fusionsIndecisions,
                            mosaic, confusionCmd,
                            confusionGeneration, confusionsMerge,
-                           reportGeneration)
+                           reportGeneration, mergeSeedClassifications)
 
         # will contains all IOTA² steps
         s_container = StepContainer()
@@ -245,6 +245,9 @@ class iota2():
         step_report = reportGeneration.reportGeneration(cfg,
                                                         config_ressources,
                                                         self.workingDirectory)
+        step_merge_iota_classif = mergeSeedClassifications.mergeSeedClassifications(cfg,
+                                                                                    config_ressources,
+                                                                                    self.workingDirectory)
                                                                 
         # control variable
         Sentinel1 = SCF.serviceConfigFile(cfg).getParam('chain', 'S1Path')
@@ -257,6 +260,9 @@ class iota2():
         classifier = SCF.serviceConfigFile(cfg).getParam('argTrain', 'classifier')
         ds_sar_opt = SCF.serviceConfigFile(cfg).getParam('argTrain', 'dempster_shafer_SAR_Opt_fusion')
         keep_runs_results = SCF.serviceConfigFile(cfg).getParam('chain', 'keep_runs_results')
+        merge_final_classifications = SCF.serviceConfigFile(cfg).getParam('chain', 'merge_final_classifications')
+        ground_truth = SCF.serviceConfigFile(cfg).getParam('chain', 'groundTruth')
+        runs = SCF.serviceConfigFile(cfg).getParam('chain', 'runs')
 
 
         # build chain
@@ -311,4 +317,6 @@ class iota2():
             s_container.append(step_confusions, "validation")
             s_container.append(step_confusions_merge, "validation")
         s_container.append(step_report, "validation")
+        if merge_final_classifications and runs > 1:
+            s_container.append(step_merge_iota_classif, "validation")
         return s_container
