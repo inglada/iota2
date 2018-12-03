@@ -385,6 +385,9 @@ def dempster_shafer_fusion(iota2_dir, fusion_dic, mob="precision",
 
 def fusion(pathClassif, cfg, pathWd):
 
+    if not isinstance(cfg, SCF.serviceConfigFile):
+        cfg = SCF.serviceConfigFile(cfg)
+
     pathWd = None
     classifMode = cfg.getParam('argClassification', 'classifMode')
     N = cfg.getParam('chain', 'runs')
