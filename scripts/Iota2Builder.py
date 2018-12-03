@@ -150,7 +150,8 @@ class iota2():
                            classificationsFusion, fusionsIndecisions,
                            mosaic, confusionCmd,
                            confusionGeneration, confusionsMerge,
-                           reportGeneration, mergeSeedClassifications)
+                           reportGeneration, mergeSeedClassifications,
+                           additionalStatistics)
 
         # will contains all IOTA² steps
         s_container = StepContainer()
@@ -248,6 +249,9 @@ class iota2():
         step_merge_iota_classif = mergeSeedClassifications.mergeSeedClassifications(cfg,
                                                                                     config_ressources,
                                                                                     self.workingDirectory)
+        step_additional_statistics = additionalStatistics.additionalStatistics(cfg,
+                                                                               config_ressources,
+                                                                               self.workingDirectory)
                                                                 
         # control variable
         Sentinel1 = SCF.serviceConfigFile(cfg).getParam('chain', 'S1Path')
@@ -263,7 +267,7 @@ class iota2():
         merge_final_classifications = SCF.serviceConfigFile(cfg).getParam('chain', 'merge_final_classifications')
         ground_truth = SCF.serviceConfigFile(cfg).getParam('chain', 'groundTruth')
         runs = SCF.serviceConfigFile(cfg).getParam('chain', 'runs')
-
+        outStat = SCF.serviceConfigFile(cfg).getParam('chain', 'outputStatistics')
 
         # build chain
         # init steps
@@ -319,4 +323,6 @@ class iota2():
         s_container.append(step_report, "validation")
         if merge_final_classifications and runs > 1:
             s_container.append(step_merge_iota_classif, "validation")
+        if outStat:
+            s_container.append(step_additional_statistics, "validation")
         return s_container
