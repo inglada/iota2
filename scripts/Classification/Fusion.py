@@ -450,18 +450,3 @@ if __name__ == "__main__":
     # load configuration file
     cfg = SCF.serviceConfigFile(args.pathConf)
     fusion(args.pathClassif, cfg, args.pathWd)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
