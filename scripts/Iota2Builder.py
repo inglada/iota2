@@ -151,7 +151,7 @@ class iota2():
                            mosaic, confusionCmd,
                            confusionGeneration, confusionsMerge,
                            reportGeneration, mergeSeedClassifications,
-                           additionalStatistics)
+                           additionalStatistics, additionalStatisticsMerge)
 
         # will contains all IOTA² steps
         s_container = StepContainer()
@@ -252,6 +252,9 @@ class iota2():
         step_additional_statistics = additionalStatistics.additionalStatistics(cfg,
                                                                                config_ressources,
                                                                                self.workingDirectory)
+        step_additional_statistics_merge = additionalStatisticsMerge.additionalStatisticsMerge(cfg,
+                                                                                               config_ressources,
+                                                                                               self.workingDirectory)
                                                                 
         # control variable
         Sentinel1 = SCF.serviceConfigFile(cfg).getParam('chain', 'S1Path')
@@ -325,4 +328,5 @@ class iota2():
             s_container.append(step_merge_iota_classif, "validation")
         if outStat:
             s_container.append(step_additional_statistics, "validation")
+            s_container.append(step_additional_statistics_merge, "validation")
         return s_container
