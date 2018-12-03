@@ -148,7 +148,8 @@ class iota2():
                            classification, confusionSAROpt,
                            confusionSAROptMerge, SAROptFusion,
                            classificationsFusion, fusionsIndecisions,
-                           mosaic, confusionCmd)
+                           mosaic, confusionCmd,
+                           confusionGeneration)
 
         # will contains all IOTA² steps
         s_container = StepContainer()
@@ -234,6 +235,9 @@ class iota2():
         step_confusions_cmd = confusionCmd.confusionCmd(cfg,
                                                         config_ressources,
                                                         self.workingDirectory)
+        step_confusions = confusionGeneration.confusionGeneration(cfg,
+                                                                  config_ressources,
+                                                                  self.workingDirectory)
         # control variable
         Sentinel1 = SCF.serviceConfigFile(cfg).getParam('chain', 'S1Path')
         shapeRegion = SCF.serviceConfigFile(cfg).getParam('chain', 'regionPath')
@@ -244,6 +248,7 @@ class iota2():
         dimred = SCF.serviceConfigFile(cfg).getParam('dimRed', 'dimRed')
         classifier = SCF.serviceConfigFile(cfg).getParam('argTrain', 'classifier')
         ds_sar_opt = SCF.serviceConfigFile(cfg).getParam('argTrain', 'dempster_shafer_SAR_Opt_fusion')
+        keep_runs_results = SCF.serviceConfigFile(cfg).getParam('chain', 'keep_runs_results')
 
 
         # build chain
@@ -294,4 +299,6 @@ class iota2():
 
         # validation steps
         s_container.append(step_confusions_cmd, "validation")
+        if keep_runs_results:
+            s_container.append(step_confusions, "validation")
         return s_container
