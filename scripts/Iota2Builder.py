@@ -149,7 +149,8 @@ class iota2():
                            confusionSAROptMerge, SAROptFusion,
                            classificationsFusion, fusionsIndecisions,
                            mosaic, confusionCmd,
-                           confusionGeneration, confusionsMerge)
+                           confusionGeneration, confusionsMerge,
+                           reportGeneration)
 
         # will contains all IOTA² steps
         s_container = StepContainer()
@@ -241,6 +242,10 @@ class iota2():
         step_confusions_merge = confusionsMerge.confusionsMerge(cfg,
                                                                 config_ressources,
                                                                 self.workingDirectory)
+        step_report = reportGeneration.reportGeneration(cfg,
+                                                        config_ressources,
+                                                        self.workingDirectory)
+                                                                
         # control variable
         Sentinel1 = SCF.serviceConfigFile(cfg).getParam('chain', 'S1Path')
         shapeRegion = SCF.serviceConfigFile(cfg).getParam('chain', 'regionPath')
@@ -305,4 +310,5 @@ class iota2():
         if keep_runs_results:
             s_container.append(step_confusions, "validation")
             s_container.append(step_confusions_merge, "validation")
+        s_container.append(step_report, "validation")
         return s_container
