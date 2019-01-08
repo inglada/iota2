@@ -269,6 +269,11 @@ if __name__ == "__main__":
                         default=None,
                         action='store_false',
                         required=False)
+    parser.add_argument("-param_index", dest="param_index",
+                        help="index of parameter to consider",
+                        required=False,
+                        type=int,
+                        default=None)
     args = parser.parse_args()
 
     cfg = SCF.serviceConfigFile(args.configPath)
@@ -279,7 +284,7 @@ if __name__ == "__main__":
 
     logger_lvl = cfg.getParam('chain', 'logFileLevel')
     enable_console = cfg.getParam('chain', 'enableConsole')
-
+    param_index = args.param_index
     try:
         rm_tmp = cfg.getParam('chain', 'remove_tmp_files')
     except:
@@ -327,15 +332,19 @@ if __name__ == "__main__":
         if steps[step-1].previous_step:
             print "Etape précédente : {}".format(steps[step-1].previous_step.step_status)
         steps[step-1].step_status = "running"
+        logFile = steps[step-1].logFile
+        if param_index is not None:
+            params = [params[param_index]]
+            logFile = (steps[step-1].logFile).replace(".log", "_{}.log".format(param_index))
         _, step_completed = mpi_schedule(steps[step-1], params,
-                                         mpi_service, steps[step-1].logFile,
+                                         mpi_service, logFile,
                                          logger_lvl)
         if not step_completed:
             steps[step-1].step_status = "fail"
             break
         else :
             steps[step-1].step_status = "success"
-        if rm_tmp:
+        if rm_tmp and param_index is None:
             remove_tmp_files(cfg, current_step=step, chain=chain_to_process)
     chain_to_process.save_chain()
     stop_workers(mpi_service)
