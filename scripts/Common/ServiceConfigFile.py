@@ -409,7 +409,6 @@ class serviceConfigFile:
         try:
             # test of variable
             self.testVarConfigFile('chain', 'outputPath', str)
-            self.testVarConfigFile('chain', 'pyAppPath', str)
             self.testVarConfigFile('chain', 'nomenclaturePath', str)
             self.testVarConfigFile('chain', 'listTile', str)
             self.testVarConfigFile('chain', 'L5Path', str)
@@ -505,7 +504,7 @@ class serviceConfigFile:
             if self.getParam("chain", "jobsPath"):
                 self.testDirectory(self.getParam("chain", "jobsPath"))
 
-            self.testDirectory(self.cfg.chain.pyAppPath)
+            self.testDirectory(os.path.join(os.environ.get('IOTA2DIR'), "scripts"))
             self.testDirectory(self.cfg.chain.nomenclaturePath)
             self.testDirectory(self.cfg.chain.groundTruth)
             self.testDirectory(self.cfg.chain.colorTable)
