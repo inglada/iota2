@@ -101,6 +101,7 @@ class iota2():
         from Sensors.SAR import S1Processor as SAR
         from Classification import ImageClassifier as imageClassifier
         from Sampling import VectorFormatting as VF
+        from Sampling import SplitTrainSamplesForOBIA as SG
         from Sampling import SplitSamples as splitS
         from Sampling import SamplesMerge as samplesMerge
         from Sampling import SamplesStat
@@ -112,7 +113,8 @@ class iota2():
         TmpTiles = cfg.getParam('chain', 'listTile')
         tiles = TmpTiles.split(" ")
         Sentinel1 = cfg.getParam('chain', 'S1Path')
-	VHR = cfg.getParam('coregistration','VHRPath')
+    	VHR = cfg.getParam('coregistration','VHRPath')
+        obia_mode = cfg.getParam('objectbase','obia_mode')
         pathTilesFeat = os.path.join(PathTEST, "features")
         shapeRegion = cfg.getParam('chain', 'regionPath')
         field_Region = cfg.getParam('chain', 'regionField')
@@ -244,6 +246,26 @@ class iota2():
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["samplesFormatting"]))
         self.steps_group["sampling"][t_counter] = "Prepare samples"
+
+        if obia_mode == "True":
+            # if segmentation_vector == 'None' :
+            #     t_counter += 1
+            #     t_container.append(tLauncher.Tasks(tasks=(lambda x:),tiles),iota2_config=cfg,ressources=ressourcesByStep[""])
+            #     self.steps_group["sampling"][t_counter] = "Segmentation"
+
+            t_counter += 1
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: SG.split_segmentation_by_tiles(pathConf, x, workingDirectory),
+                                                      tiles),
+                                               iota2_config=cfg,
+                                               ressources=ressourcesByStep["samplesFormatting"]))
+            self.steps_group["sampling"][t_counter] = "split segmentation with tiles"
+
+            t_counter += 1
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: SG.format_sample_to_segmentation(pathConf, x, workingDirectory),
+                                                      tiles),
+                                               iota2_config=cfg,
+                                               ressources=ressourcesByStep["samplesFormatting"]))
+            self.steps_group["sampling"][t_counter] = "samples intersection with segmentation"
 
         if shapeRegion and CLASSIFMODE == "fusion":
             # STEP : Split learning polygons and Validation polygons in sub-sample if necessary
