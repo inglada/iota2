@@ -276,9 +276,10 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
     and
     `SuperImpose <https://www.orfeo-toolbox.org/Applications/Superimpose.html>`_
     """
+    from Common.FileUtils import ensure_dir
     pathWd = os.path.dirname(insrc) if not workingDirectory else workingDirectory
     if os.path.exists(pathWd) == False :
-        os.path.mkdir(pathWd)
+        ensure_dir(pathWd)
 
     srcClip = os.path.join(pathWd,'tempSrcClip.tif')
     extractROIApp = OtbAppBank.CreateExtractROIApplication({"in": insrc,
