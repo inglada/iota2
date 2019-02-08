@@ -1557,6 +1557,73 @@ def CreatePixelValueApplication(OtbParameters):
 
     return PixelValueApp
 
+def CreateLSGRMApplication(OtbParameters):
+    """
+    IN:
+    parameter consistency are not tested here (done in otb's applications)
+    every value could be string
+
+    in parameters should be string
+    OtbParameters [dic] dictionnary with otb's parameter keys
+                        Example :
+                        OtbParameters = {"in":"/image.tif",
+                                        pixType:"uint8","out":"/out.tif"}
+    OUT :
+    rasterApp [otb object ready to Execute]
+    """
+    LSGRMApp = otb.Registry.CreateApplication("LSGRM")
+    if LSGRMApp is None:
+        raise Exception("Not possible to create 'PixelValue' application, \
+                         check if OTB is well configured / installed")
+    #Mandatory
+    if "in" not in OtbParameters:
+        raise Exception("'in' parameter not found")
+    if "out" not in OtbParameters:
+        raise Exception("'out' parameter not found")
+    if "threshold" not in OtbParameters:
+        raise Exception("'threshold' parameter not found")
+
+    if isinstance(OtbParameters["in"], str):
+        LSGRMApp.SetParameterString("in", str(OtbParameters["in"]))
+    elif isinstance(OtbParameters["in"], otb.Application):
+        inOutParam = getInputParameterOutput(OtbParameters["in"])
+        LSGRMApp.SetParameterInputImage("in", OtbParameters["in"].GetParameterOutputImage(inOutParam))
+    if "criterion" in OtbParameters:
+        if str(OtbParameters["criterion"]) in ['bs', 'ed', 'fls']:
+            LSGRMApp.SetParameterString("criterion", str(OtbParameters["criterion"]))
+            if str(OtbParameters["criterion"] == 'bs'):
+                if "criterion.bs.cw" in OtbParameters:
+                    LSGRMApp.SetParameterString("criterion.bs.cw", str(OtbParameters["criterion.bs.cw"]))
+                if "criterion.bs.sw" in OtbParameters:
+                    LSGRMApp.SetParameterString("criterion.bs.sw", str(OtbParameters["criterion.bs.sw"]))
+        else :
+            raise Exception("'criterion' parameter must be one of these value : ['bs', 'ed', 'fls']")
+    if "threshold" in OtbParameters:
+        LSGRMApp.SetParameterString("threshold", str(OtbParameters["threshold"]))
+    if "niter" in OtbParameters:
+        LSGRMApp.SetParameterString("threshold", str(OtbParameters["niter"]))
+    if "tmpdir" in OtbParameters:
+        LSGRMApp.SetParameterString("tmpdir", str(OtbParameters["tmpdir"]))
+    if "tiling" in OtbParameters:
+        if str(OtbParameters["tiling"]) in ['auto','user','none']:
+            LSGRMApp.SetParameterString("tiling", str(OtbParameters["tiling"]))
+            if str(OtbParameters["tiling"]) == 'user':
+                if "tiling.user.sizex" in OtbParameters:
+                    LSGRMApp.SetParameterString("tiling.user.sizex", str(OtbParameters["tiling.user.sizex"]))
+                if "tiling.user.sizey" in OtbParameters:
+                    LSGRMApp.SetParameterString("tiling.user.sizey", str(OtbParameters["tiling.user.sizey"]))
+                if "tiling.user.nfirstiter" in OtbParameters:
+                    LSGRMApp.SetParameterString("tiling.user.nfirstiter", str(OtbParameters["tiling.user.nfirstiter"]))
+        else :
+            raise Exception("'tiling' parameter must be one of these value : ['auto', 'user', 'none']")
+    if "memory" in OtbParameters:
+        LSGRMApp.SetParameterString('memory', str(OtbParameters["memory"]))
+    if "out" in OtbParameters:
+        LSGRMApp.SetParameterString("out", str(OtbParameters["out"]))
+    if "pixType" in OtbParameters:
+        rasterApp.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
+    return LSGRMApp
+
 def computeUserFeatures(stack, Dates, nbComponent, expressions):
     """
     usage : from a multibands/multitemporal stack of image, compute features
