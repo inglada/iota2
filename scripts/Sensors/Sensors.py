@@ -44,8 +44,7 @@ class Landsat5(Sensor):
             tmpPath = opath.opathT
 
         cfg_IOTA2 = SCF.serviceConfigFile(fconf)
-        sensorConfig = (cfg_IOTA2.getParam("chain", "pyAppPath")).split(os.path.sep)
-        sensorConfig = (os.path.sep).join(sensorConfig[0:-1] + ["config", "sensors.cfg"])
+        sensorConfig = os.path.join(os.environ.get('IOTA2DIR'), "config", "sensors.cfg")
         cfg_sensors = SCF.serviceConfigFile(sensorConfig, iota_config=False)
 
         self.name = 'Landsat5'
@@ -172,8 +171,7 @@ class Landsat8(Sensor):
         sensorEnable = (self.path is not None and len(self.path) > 0 and 'None' not in self.path)
 
         cfg_IOTA2 = SCF.serviceConfigFile(fconf)
-        sensorConfig = (cfg_IOTA2.getParam("chain", "pyAppPath")).split(os.path.sep)
-        sensorConfig = (os.path.sep).join(sensorConfig[0:-1] + ["config", "sensors.cfg"])
+        sensorConfig = os.path.join(os.environ.get('IOTA2DIR'), "config", "sensors.cfg")
         cfg_sensors = SCF.serviceConfigFile(sensorConfig, iota_config=False)
         
         #MASK
@@ -282,8 +280,7 @@ class Sentinel_2(Sensor):
 
             self.path = path_image
             sensorEnable = (self.path is not None and len(self.path) > 0 and 'None' not in self.path)
-            sensorConfig = (cfg_IOTA2.getParam("chain", "pyAppPath")).split(os.path.sep)
-            sensorConfig = (os.path.sep).join(sensorConfig[0:-1] + ["config", "sensors.cfg"])
+            sensorConfig = os.path.join(os.environ.get('IOTA2DIR'), "config", "sensors.cfg")
             cfg_sensors = SCF.serviceConfigFile(sensorConfig, iota_config=False)
 
             #consts
@@ -329,7 +326,7 @@ class Sentinel_2(Sensor):
             self.keepBands = None
             if sensorEnable and cfg_IOTA2.getParam("iota2FeatureExtraction", "extractBands") == True:
                 self.keepBands = OrderedDict([(k, v) for k, v in self.bands["BANDS"].items() if k in cfg_IOTA2.getParam("Sentinel_2", "keepBands")])
-                if cfg.GlobChain.features:
+                if cfg_IOTA2.getParam("GlobChain", "features"):
                     try:
                         self.red = self.keepBands.keys().index('B4')
                     except:
@@ -413,9 +410,7 @@ class Sentinel_2_S2C(Sensor):
             self.fdates = os.path.join(tmpPath, self.name + "imagesDateList.txt")
             self.imRef = None
             sensorEnable = (self.path is not None and len(self.path) > 0 and 'None' not in self.path)
-            
-            sensorConfig = (cfg_IOTA2.getParam("chain", "pyAppPath")).split(os.path.sep)
-            sensorConfig = (os.path.sep).join(sensorConfig[0:-1] + ["config", "sensors.cfg"])
+            sensorConfig = os.path.join(os.environ.get('IOTA2DIR'), "config", "sensors.cfg")
             cfg_sensors = SCF.serviceConfigFile(sensorConfig, iota_config=False)
 
             self.struct_path = cfg_sensors.getParam("Sentinel_2_S2C", "arbo")
