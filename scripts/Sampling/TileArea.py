@@ -121,6 +121,7 @@ def CreateModelShapeFromTiles(tilesModel, pathTiles, proj, pathOut, OutSHPname, 
         for rm in to_remove:
             fu.removeShape(rm.replace(".shp",""), [".prj",".shp",".dbf",".shx"])
 
+
 def generateRegionShape(pathTiles, pathToModel, pathOut, fieldOut, cfg,
                         pathWd, logger=logger):
     """

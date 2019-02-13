@@ -40,7 +40,6 @@ def get_RAM(ram):
             ram = float(ram.split("mb")[0])/1024
         return ram
 
-
 def get_HPC_disponibility(nb_cpu, ram, process_min, process_max, nb_parameters):
     
     """
@@ -173,6 +172,9 @@ def write_PBS_MPI(job_directory, log_directory, task_name, step_to_compute,
                    "module load {}\n"
                    "export GDAL_CACHEMAX=128\n").format(iota2_mod_p,
                                                         iota2_mod_n)
+    elif OTB_super == None and iota2_mod_p == None:
+        modules = ("module load {}\n"
+                   "export GDAL_CACHEMAX=128\n").format(iota2_mod_n)
 
     ressources_HPC = ""
     if config_ressources_req:
@@ -248,6 +250,9 @@ def write_PBS_JA(job_directory, log_directory, task_name, step_to_compute,
                    "module load {}\n"
                    "export GDAL_CACHEMAX=128\n").format(iota2_mod_p,
                                                         iota2_mod_n)
+    elif OTB_super == None and iota2_mod_p == None:
+        modules = ("module load {}\n"
+                   "export GDAL_CACHEMAX=128\n").format(iota2_mod_n)
 
     ressources_HPC = ""
     if config_ressources_req:
@@ -300,7 +305,7 @@ def check_errors(log_path):
             if error_find:
                 errors.append([error for error in error_find])
     """
-    err_pattern = ["Traceback", "PBS: job killed:", ": fail"]
+    err_pattern = ["Traceback", "PBS: job killed:", ": fail", "Segmentation fault"]
     with open(log_path, "r") as log_err:
         for line in log_err:
             for err_patt in err_pattern:
@@ -341,19 +346,13 @@ def launchChain(cfg, config_ressources=None, parallel_mode="MPI"):
     PathTEST = cfg.getParam('chain', 'outputPath')
     start_step = cfg.getParam("chain", "firstStep")
     end_step = cfg.getParam("chain", "lastStep")
-    scripts = cfg.getParam("chain", "pyAppPath")
+    scripts = os.path.join(os.environ.get('IOTA2DIR'), "scripts")
     job_dir = cfg.getParam("chain", "jobsPath")
     log_dir = os.path.join(PathTEST, "logs")
 
-    try:
-        iota2_mod_path = cfg.getParam("chain", "iota2_module_path")
-    except:
-        iota2_mod_path = None
-        
-    try:
-        iota2_mod_name = cfg.getParam("chain", "iota2_module_name")
-    except:
-        iota2_mod_name = "iota2_dev"
+    iota2_mod_name = os.environ.get('MODULE_NAME')
+    iota2_mod_path = os.environ.get('MODULE_PATH')
+
     try:
         OTB_super = cfg.getParam("chain", "OTB_HOME")
     except:
