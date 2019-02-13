@@ -63,6 +63,37 @@ Theses simple rules will avoid duplicate work between developers.
     
     Board view
 
+CODE 
+****
+
+doc-string
+==========
+
+Every usefull functions must constains a doc-string.
+
+It's format must be in NumPy style:
+
+.. code-block:: python
+
+    def func(arg1, arg2):
+        """Summary line.
+
+        Extended description of function.
+
+        Parameters
+        ----------
+        arg1 : int
+            Description of arg1
+        arg2 : str
+            Description of arg2
+
+        Returns
+        -------
+        bool
+            Description of return value
+
+        """
+        return True
 
 TESTS
 *****
