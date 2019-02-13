@@ -138,7 +138,7 @@ if [[ "$ok" == "1" ]]; then
       else
       # symbolic link to iota2 main repository already cloned
       # this to avoid misunderstanding after, when running iota2.
-#        git clone https://framagit.org/inglada/iota2.git
+#        git clone https://framagit.org/iota2-project/iota2
         ln -s $prefix_dir/../../. iota2
       fi
       cd $prefix_dir/OTB/OTB/Modules/Remote/
