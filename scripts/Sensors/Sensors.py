@@ -387,19 +387,6 @@ class Sentinel_2(Sensor):
             except MonException, mess:
                 logger.error('[Spot4] Exception caught: {}'.format(mess))
 
-class Sentinel_1(Sensor):
-
-    name = 'Sentinel1'
-
-    def __init__(self):
-        pass
-
-class User_stack(Sensor):
-
-    name = 'userStack'
-
-    def __init__(self):
-        pass
 
 class Sentinel_2_S2C(Sensor):
 

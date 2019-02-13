@@ -19,19 +19,21 @@ This class manage sensor's data by tile, providing services needed in whole IOTA
 library
 """
 import os
-from Sensors import (Landsat5,
-                     User_stack)
+from Sensors import (Landsat5)
 
 from Sentinel_1 import Sentinel_1
 from Sentinel_2 import Sentinel_2
 from Sentinel_2_S2C import Sentinel_2_S2C
 from Sentinel_2_L3A import Sentinel_2_L3A
 from Landsat_8 import Landsat_8
+from User_features import User_features
 
 
 class Sensors_container(object):
     def __init__(self, config_path, tile_name, working_dir):
         """
+        TODO : remove config_path and replace it by a list of dictionnaries
+               containing data's paths and data's structure by sensors
         """
         from Common import ServiceConfigFile as SCF
 
@@ -67,7 +69,7 @@ class Sensors_container(object):
                                   Sentinel_2.name,
                                   Sentinel_2_S2C.name,
                                   Sentinel_2_L3A.name,
-                                  User_stack.name]
+                                  User_features.name]
         return available_sensors_name
 
     def get_enabled_sensors_name(self):
@@ -80,7 +82,7 @@ class Sensors_container(object):
         s2 = self.cfg.getParam("chain", "S2Path")
         s2_s2c = self.cfg.getParam("chain", "S2_S2C_Path")
         s2_l3a = self.cfg.getParam("chain", "S2_L3A_Path")
-        user_stack = self.cfg.getParam("chain", "userFeatPath")
+        user_feat = self.cfg.getParam("chain", "userFeatPath")
 
         enabled_sensors = []
         if not "none" in l5.lower():
@@ -95,8 +97,8 @@ class Sensors_container(object):
             enabled_sensors.append(Sentinel_2_S2C.name)
         if not "none" in s2_l3a.lower():
             enabled_sensors.append(Sentinel_2_L3A.name)
-        if not "none" in user_stack.lower():
-            enabled_sensors.append(User_stack.name)
+        if not "none" in user_feat.lower():
+            enabled_sensors.append(User_features.name)
         return enabled_sensors
 
     def get_enabled_sensors(self):
@@ -108,7 +110,7 @@ class Sensors_container(object):
         s2 = self.cfg.getParam("chain", "S2Path")
         s2_s2c = self.cfg.getParam("chain", "S2_S2C_Path")
         s2_l3a = self.cfg.getParam("chain", "S2_L3A_Path")
-        user_stack = self.cfg.getParam("chain", "userFeatPath")
+        user_feat = self.cfg.getParam("chain", "userFeatPath")
 
         enabled_sensors = []
         if not "none" in l5.lower():
@@ -124,9 +126,9 @@ class Sensors_container(object):
             enabled_sensors.append(Sentinel_2_S2C(self.cfg.pathConf, tile_name=self.tile_name))
         if not "none" in s2_l3a.lower():
             enabled_sensors.append(Sentinel_2_L3A(self.cfg.pathConf, tile_name=self.tile_name))
-        if not "none" in user_stack.lower():
+        if not "none" in user_feat.lower():
             # not available
-            enabled_sensors.append(User_stack)
+            enabled_sensors.append(User_features(self.cfg.pathConf, tile_name=self.tile_name))
         return enabled_sensors
 
     def sensors_preprocess(self, available_ram=128):
