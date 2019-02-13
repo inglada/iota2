@@ -143,7 +143,7 @@ class iota2():
         fusionClaAllSamplesVal = cfg.getParam('chain', 'fusionOfClassificationAllSamplesValidation')
         sampleManagement = cfg.getParam('argTrain', 'sampleManagement')
         pixType = fu.getOutputPixType(NOMENCLATURE)
-        pypath = cfg.getParam('chain', 'pyAppPath')
+
         jobsPath = os.path.dirname(cfg.getParam('chain', 'outputPath')) + "/Jobs_" + cfg.getParam('chain', 'outputPath').split('/')[len(cfg.getParam('chain', 'outputPath').split('/')) - 1]
         
         merge_final_classifications = cfg.getParam('chain', 'merge_final_classifications')
