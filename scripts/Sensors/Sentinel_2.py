@@ -183,10 +183,11 @@ class Sentinel_2(Sensor):
         logger.info("reference image generation {} from {}".format(self.ref_image, base_ref))
         ensure_dir(os.path.dirname(self.ref_image), raise_exe=False)
         base_ref_projection = getRasterProjectionEPSG(base_ref)
-        ds = Warp(self.ref_image, base_ref, multithread=True,
-                  format="GTiff", xRes=10, yRes=10,
-                  outputType=GDT_Byte, srcSRS="EPSG:{}".format(base_ref_projection),
-                  dstSRS="EPSG:{}".format(self.target_proj))
+        if not os.path.exists(self.ref_image):
+            ds = Warp(self.ref_image, base_ref, multithread=True,
+                      format="GTiff", xRes=10, yRes=10,
+                      outputType=GDT_Byte, srcSRS="EPSG:{}".format(base_ref_projection),
+                      dstSRS="EPSG:{}".format(self.target_proj))
 
         # reproject / resample
         bands_proj = OrderedDict()
