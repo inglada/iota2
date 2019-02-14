@@ -141,8 +141,10 @@ class User_features(Sensor):
         """
         """
         from Common.OtbAppBank import CreateConcatenateImagesApplication
+        from Common.OtbAppBank import CreateSuperimposeApplication
         from Common.FileUtils import FileSearch_AND
         from Common.FileUtils import ensure_dir
+        from Common.FileUtils import getRasterProjectionEPSG
 
         features_dir = os.path.join(self.features_dir, "tmp")
         ensure_dir(features_dir, raise_exe=False)
@@ -161,5 +163,20 @@ class User_features(Sensor):
         user_feat_stack = CreateConcatenateImagesApplication({"il": user_features,
                                                               "ram": str(ram),
                                                               "out": features_out})
+        base_ref = user_features[0]
+        base_ref_projection = getRasterProjectionEPSG(base_ref)
+        if not os.path.exists(self.ref_image):
+            ds = Warp(self.ref_image, base_ref, multithread=True,
+                      format="GTiff", xRes=base_ref_res_x, yRes=base_ref_res_x,
+                      outputType=GDT_Byte, srcSRS="EPSG:{}".format(base_ref_projection),
+                      dstSRS="EPSG:{}".format(self.target_proj))
+        app_dep = []
+        if int(base_ref_projection) != (self.target_proj):
+            user_feat_stack.Execute()
+            app_dep.append(user_feat_stack)
+            user_feat_stack, _ = CreateSuperimposeApplication({"inr": self.ref_image,
+                                                               "inm": user_feat_stack,
+                                                               "out": features_out,
+                                                               "ram": str(ram)})
         features_labels = [pattern for pattern in self.data_type]
-        return (user_feat_stack, []), features_labels
+        return (user_feat_stack, app_dep), features_labels
