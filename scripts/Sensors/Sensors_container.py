@@ -197,7 +197,8 @@ class Sensors_container(object):
         """
         sensors_time_series = []
         for sensor in self.enabled_sensors:
-            sensors_time_series.append((sensor.__class__.name, sensor.get_time_series(available_ram)))
+            if "get_time_series" in dir(sensor):
+                sensors_time_series.append((sensor.__class__.name, sensor.get_time_series(available_ram)))
         return sensors_time_series
 
     def get_sensors_time_series_masks(self, available_ram=128):
@@ -206,7 +207,8 @@ class Sensors_container(object):
         """
         sensors_time_series_masks = []
         for sensor in self.enabled_sensors:
-            sensors_time_series_masks.append((sensor.__class__.name, sensor.get_time_series_masks(available_ram)))
+            if "get_time_series_masks" in dir(sensor):
+                sensors_time_series_masks.append((sensor.__class__.name, sensor.get_time_series_masks(available_ram)))
         return sensors_time_series_masks
 
     def get_sensors_time_series_gapfilling(self, available_ram=128):
@@ -215,7 +217,8 @@ class Sensors_container(object):
         """
         sensors_time_series = []
         for sensor in self.enabled_sensors:
-            sensors_time_series.append((sensor.__class__.name, sensor.get_time_series_gapFilling(available_ram)))
+            if "get_time_series_gapFilling" in dir(sensor):
+                sensors_time_series.append((sensor.__class__.name, sensor.get_time_series_gapFilling(available_ram)))
         return sensors_time_series
 
     def get_sensors_features(self, available_ram=128):
