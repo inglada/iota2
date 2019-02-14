@@ -384,7 +384,8 @@ def GenerateShapeTile(tiles, pathTiles, pathOut, pathWd, cfg):
     featuresPath = os.path.join(cfg.getParam('chain', 'outputPath'),
                                 "features")
 
-    cMaskName = fu.getCommonMaskName(cfg)
+    #~ cMaskName = fu.getCommonMaskName(cfg)
+    cMaskName = "MaskCommunSL"
     for tile in tiles:
         if not os.path.exists(featuresPath + "/" + tile):
             os.mkdir(featuresPath + "/" + tile)
