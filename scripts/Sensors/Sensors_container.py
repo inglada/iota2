@@ -19,13 +19,14 @@ This class manage sensor's data by tile, providing services needed in whole IOTA
 library
 """
 import os
-from Sensors import (Landsat5)
+#~ from Sensors import (Landsat5)
 
 from Sentinel_1 import Sentinel_1
 from Sentinel_2 import Sentinel_2
 from Sentinel_2_S2C import Sentinel_2_S2C
 from Sentinel_2_L3A import Sentinel_2_L3A
 from Landsat_8 import Landsat_8
+from Landsat_8_old import Landsat_8_old
 from User_features import User_features
 
 
@@ -65,6 +66,7 @@ class Sensors_container(object):
         """
         available_sensors_name = [Landsat5.name,
                                   Landsat8.name,
+                                  Landsat_8_old.name,
                                   Sentinel_1.name,
                                   Sentinel_2.name,
                                   Sentinel_2_S2C.name,
@@ -78,6 +80,7 @@ class Sensors_container(object):
         """
         l5 = self.cfg.getParam("chain", "L5Path")
         l8 = self.cfg.getParam("chain", "L8Path")
+        l8_old = self.cfg.getParam("chain", "L8Path_old")
         s1 = self.cfg.getParam("chain", "S1Path")
         s2 = self.cfg.getParam("chain", "S2Path")
         s2_s2c = self.cfg.getParam("chain", "S2_S2C_Path")
@@ -89,6 +92,8 @@ class Sensors_container(object):
             enabled_sensors.append(Landsat5.name)
         if not "none" in l8.lower():
             enabled_sensors.append(Landsat_8.name)
+        if not "none" in l8_old.lower():
+            enabled_sensors.append(Landsat_8_old.name)
         if not "none" in s1.lower():
             enabled_sensors.append(Sentinel_1.name)
         if not "none" in s2.lower():
@@ -106,6 +111,7 @@ class Sensors_container(object):
         """
         l5 = self.cfg.getParam("chain", "L5Path")
         l8 = self.cfg.getParam("chain", "L8Path")
+        l8_old = self.cfg.getParam("chain", "L8Path_old")
         s1 = self.cfg.getParam("chain", "S1Path")
         s2 = self.cfg.getParam("chain", "S2Path")
         s2_s2c = self.cfg.getParam("chain", "S2_S2C_Path")
@@ -118,6 +124,8 @@ class Sensors_container(object):
             enabled_sensors.append(Landsat5)
         if not "none" in l8.lower():
             enabled_sensors.append(Landsat_8(self.cfg.pathConf, tile_name=self.tile_name))
+        if not "none" in l8_old.lower():
+            enabled_sensors.append(Landsat_8_old(self.cfg.pathConf, tile_name=self.tile_name))
         if not "none" in s1.lower():
             enabled_sensors.append(Sentinel_1(self.cfg.pathConf, tile_name=self.tile_name))
         if not "none" in s2.lower():
@@ -127,7 +135,6 @@ class Sensors_container(object):
         if not "none" in s2_l3a.lower():
             enabled_sensors.append(Sentinel_2_L3A(self.cfg.pathConf, tile_name=self.tile_name))
         if not "none" in user_feat.lower():
-            # not available
             enabled_sensors.append(User_features(self.cfg.pathConf, tile_name=self.tile_name))
         return enabled_sensors
 
