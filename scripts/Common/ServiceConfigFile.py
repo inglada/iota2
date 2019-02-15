@@ -55,6 +55,8 @@ class serviceConfigFile:
                              "L5Path": "None",
                              "L8Path": "None",
                              "L8_output_path": None,
+                             "L8Path_old": "None",
+                             "L8_old_output_path": None,
                              "S2Path": "None",
                              "S2_output_path" : None,
                              "S2_S2C_Path": "None",
@@ -137,6 +139,11 @@ class serviceConfigFile:
                                 "startDate": "",
                                 "endDate": "",
                                 "keepBands": self.init_listSequence(["B1", "B2", "B3", "B4", "B5", "B6", "B7"])}
+            Landsat8_old_default = {"additionalFeatures": "",
+                                    "temporalResolution": 16,
+                                    "startDate": "",
+                                    "endDate": "",
+                                    "keepBands": self.init_listSequence(["B1", "B2", "B3", "B4", "B5", "B6", "B7"])}
             Landsat5_default = {"additionalFeatures": "",
                                 "temporalResolution": 16,
                                 "startDate": "",
@@ -163,6 +170,7 @@ class serviceConfigFile:
 
             self.init_section("Landsat5", Landsat5_default)
             self.init_section("Landsat8", Landsat8_default)
+            self.init_section("Landsat8_old", Landsat8_old_default)
             self.init_section("Sentinel_2", Sentinel_2_default)
             self.init_section("Sentinel_2_S2C", Sentinel_2_S2C_default)
             self.init_section("Sentinel_2_L3A", Sentinel_2_L3A_default)
