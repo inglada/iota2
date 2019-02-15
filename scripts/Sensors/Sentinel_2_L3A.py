@@ -38,8 +38,7 @@ class Sentinel_2_L3A(Sensor):
             return
 
         self.cfg_IOTA2 = SCF.serviceConfigFile(config_path)
-        cfg_sensors = (self.cfg_IOTA2.getParam("chain", "pyAppPath")).split(os.path.sep)
-        cfg_sensors = (os.path.sep).join(cfg_sensors[0:-1] + ["config", "sensors.cfg"])
+        cfg_sensors = os.path.join(os.environ.get('IOTA2DIR'), "config", "sensors.cfg")
         cfg_sensors = SCF.serviceConfigFile(cfg_sensors, iota_config=False)
         
         # attributes
