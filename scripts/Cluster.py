@@ -176,6 +176,8 @@ def write_PBS_MPI(job_directory, log_directory, task_name, step_to_compute,
         modules = ("module load {}\n"
                    "export GDAL_CACHEMAX=128\n").format(iota2_mod_n)
 
+    modules = modules + ("export IOTA2DIR={}\n".format(os.environ.get('IOTA2DIR')))
+    
     ressources_HPC = ""
     if config_ressources_req:
         ressources_HPC = "-config_ressources " + config_ressources_req

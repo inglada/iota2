@@ -76,11 +76,15 @@ def get_qsub_cmd(cfg, config_ressources=None, parallel_mode="MPI"):
                    "source {}/config_otb.sh\n").format(OTB_super)
     elif OTB_super == None and iota2_module_path:
         modules = ("module use {}\n"
-                   "module load {}\n").format(iota2_module_path, iota2_module_name)
+                   "module load {}\n"
+                   "export MODULE_NAME={}\n"
+                   "export MODULE_PATH={}\n").format(iota2_module_path, iota2_module_name,
+                                                     iota2_module_name, iota2_module_path)
     elif OTB_super == None and iota2_module_path == None:
         modules = ("module load {}\n"
                    "export GDAL_CACHEMAX=128\n").format(iota2_module_name)
 
+    modules = modules + ("export IOTA2DIR={}\n".format(os.environ.get('IOTA2DIR')))
     exe = ("python {0}/Cluster.py -config {1} -mode {2}").format(scripts,
                                                                  config_path,
                                                                  parallel_mode)
