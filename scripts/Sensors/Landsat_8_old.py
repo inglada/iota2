@@ -278,6 +278,7 @@ class Landsat_8_old(Sensor):
         from Common.OtbAppBank import CreateSuperimposeApplication
         from Common.OtbAppBank import CreateBandMathApplication
         from Common.FileUtils import ensure_dir
+        from Common.FileUtils import getRasterProjectionEPSG
         
         time_series_dir = os.path.join(self.features_dir, "tmp")
         ensure_dir(time_series_dir, raise_exe=False)
@@ -310,6 +311,17 @@ class Landsat_8_old(Sensor):
         dates_time_series_mask = CreateConcatenateImagesApplication({"il": date_data,
                                                                      "ram": str(ram),
                                                                      "out": times_series_mask})
+
+        origin_proj = getRasterProjectionEPSG(sat_mask)
+        if int(origin_proj) != int(self.target_proj):
+            dates_time_series_mask.Execute()
+            app_dep.append(dates_time_series_mask)
+            self.generate_raster_ref(sat_mask)
+            dates_time_series_mask, _ = CreateSuperimposeApplication({"inr": self.ref_image,
+                                                                      "inm": dates_time_series_mask,
+                                                                      "out": times_series_mask,
+                                                                      "ram": str(ram)})
+
         return dates_time_series_mask, app_dep, len(date_data)
 
     def get_time_series_gapFilling(self, ram=128):
