@@ -39,19 +39,6 @@ chain.remove_outputPath
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-chain.pyAppPath
-===============
-*Description*
-    absolute path to the IOTA² python scripts folder
-*Type*
-    string
-*Default value*
-    ``mandatory``
-*Example*
-    pyAppPath : '/absolute/path/to/iota2/scripts'
-
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
 chain.nomenclaturePath
 ======================
 *Description*
@@ -105,10 +92,25 @@ chain.L8Path
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-chain.L5Path
+chain.L8Path_old
 ============
 *Description*
-    absolute path to Landsat-5 images comming from THEIA
+    absolute path to Landsat-8 images comming from old THEIA format (D*H*)
+*Type*
+    string
+*Default value*
+    'None'
+*Example*
+    L8Path_old : '/to/L8_old/Path/'
+*Notes*
+    see the note about tiled sensors data storage : :ref:`tiled data storage`
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+chain.L5Path_old
+============
+*Description*
+    absolute path to Landsat-5 images comming from old THEIA format (D*H*)
 *Type*
     string
 *Default value*
@@ -390,8 +392,8 @@ chain.ratio
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-chain.cloud_treshold
-====================
+chain.cloud_threshold
+=====================
 *Description*
     To train models, IOTA² will use **only**, polygons (or part of them)
     which are "seen" at least 'cloud_treshold' times. A valid area is a
@@ -405,19 +407,6 @@ chain.cloud_treshold
     cloud_threshold:1
 *Notes*
     must be an integer >= 0
-
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-chain.spatialResolution
-=======================
-*Description*
-    output pixel's spatial resolution
-*Type*
-    int
-*Default value*
-    ``mandatory``
-*Example*
-    spatialResolution:30
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -435,7 +424,7 @@ chain.firstStep
     Must be chosen into the list of available steps.
 
     Available choices are 'init', 'sampling', 'learning', 'classification',
-    'mosaic' or 'validation'
+    'mosaic', 'validation', 'regularisation', 'vectorisation' or 'lcstatistics'
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -453,7 +442,7 @@ chain.lastStep
     Must be chosen into the list of available steps.
 
     Available choices are 'init', 'sampling', 'learning', 'classification',
-    'mosaic' or 'validation'
+    'mosaic', 'validation', 'regularisation', 'vectorisation' or 'lcstatistics'
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -812,4 +801,7 @@ argTrain.sampleAugmentation
 
     In the above example, classes of models "1" and "2" will be augmented to the
     the most represented class in the corresponding model using the jitter method.
+
+Sensors available parameters
+****************************
 
