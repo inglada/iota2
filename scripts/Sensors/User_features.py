@@ -140,11 +140,14 @@ class User_features(Sensor):
     def get_features(self, ram=128, logger=logger):
         """
         """
+        from gdal import Warp
+        from osgeo.gdalconst import  GDT_Byte
         from Common.OtbAppBank import CreateConcatenateImagesApplication
         from Common.OtbAppBank import CreateSuperimposeApplication
         from Common.FileUtils import FileSearch_AND
         from Common.FileUtils import ensure_dir
         from Common.FileUtils import getRasterProjectionEPSG
+        from Common.FileUtils import getRasterResolution
 
         features_dir = os.path.join(self.features_dir, "tmp")
         ensure_dir(features_dir, raise_exe=False)
@@ -166,6 +169,7 @@ class User_features(Sensor):
         base_ref = user_features[0]
         base_ref_projection = getRasterProjectionEPSG(base_ref)
         if not os.path.exists(self.ref_image):
+            base_ref_res_x, _ = getRasterResolution(base_ref)
             ds = Warp(self.ref_image, base_ref, multithread=True,
                       format="GTiff", xRes=base_ref_res_x, yRes=base_ref_res_x,
                       outputType=GDT_Byte, srcSRS="EPSG:{}".format(base_ref_projection),
