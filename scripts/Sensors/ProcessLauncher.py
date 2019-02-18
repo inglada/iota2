@@ -52,11 +52,15 @@ def commonMasks(tile_name, config_path, working_directory=None, RAM=128):
     import os
     from Sensors_container import Sensors_container
     from Common.Utils import run
+    from Common.FileUtils import ensure_dir
+    
     remoteSensor_container = Sensors_container(config_path, tile_name,
                                                working_dir=working_directory)
     common_mask, _ = remoteSensor_container.get_common_sensors_footprint(available_ram=RAM)
     common_mask_raster = common_mask.GetParameterValue("out")
+
     if not os.path.exists(common_mask_raster):
+        ensure_dir(os.path.split(common_mask_raster)[0], raise_exe=False)
         common_mask.ExecuteAndWriteOutput()
 
     common_mask_vector = common_mask_raster.replace(".tif", ".shp")
