@@ -48,7 +48,6 @@ class Landsat_8_old(Sensor):
         self.struct_path_masks = cfg_sensors.getParam("Landsat8_old", "arbomask")
         self.l8_old_data = self.cfg_IOTA2.getParam("chain", "L8Path_old")
         self.tile_directory = os.path.join(self.l8_old_data, tile_name)
-        self.full_pipeline = self.cfg_IOTA2.getParam("Landsat8_old", "full_pipline")
         self.features_dir = os.path.join(self.cfg_IOTA2.getParam("chain", "outputPath"),
                                          "features", tile_name)
         extract_bands = self.cfg_IOTA2.getParam("Landsat8_old", "keepBands")
