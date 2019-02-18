@@ -169,6 +169,7 @@ def gapFillingToSample(trainShape, workingDirectory, samples,
     seed_position = -1
 
     from Common import GenerateFeatures as genFeatures
+    from Sensors.ProcessLauncher import commonMasks
 
     if not isinstance(cfg, SCF.serviceConfigFile) and isinstance(cfg, str):
         cfg = SCF.serviceConfigFile(cfg)
@@ -180,9 +181,7 @@ def gapFillingToSample(trainShape, workingDirectory, samples,
     cMaskDirectory = os.path.join(iota2_directory, "features", tile, "tmp")
 
     sample_sel_directory = os.path.join(iota2_directory, "samplesSelection")
-    
-    if "S1" in fu.sensorUserList(cfg):
-        cMaskDirectory = os.path.join(iota2_directory, "features", tile)
+
     if not os.path.exists(workingDirectoryFeatures):
         try:
             os.mkdir(workingDirectoryFeatures)
@@ -206,12 +205,11 @@ def gapFillingToSample(trainShape, workingDirectory, samples,
 
     AllFeatures.Execute()
 
-    try:
-        ref = fu.FileSearch_AND(cMaskDirectory, True,
-                                fu.getCommonMaskName(cfg) + ".tif")[0]
-    except:
-        raise Exception("can't find Mask " + fu.getCommonMaskName(cfg) + ".tif \
-                        in " + cMaskDirectory)
+    ref = fu.FileSearch_AND(cMaskDirectory, True, "MaskCommunSL.tif")
+    if not ref:
+        commonMasks(tile, cfg.pathConf)
+
+    ref = fu.FileSearch_AND(cMaskDirectory, True, "MaskCommunSL.tif")[0]
 
     if onlyMaskComm:
         return ref
