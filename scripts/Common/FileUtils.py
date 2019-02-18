@@ -395,33 +395,6 @@ def getCommonMaskName(cfg):
         :param cfg: class serviceConfigFile
         :return retour: string name of the mask
     """
-    from Common import ServiceConfigFile as SCF
-
-    if not isinstance(cfg, SCF.serviceConfigFile):
-        cfg = SCF.serviceConfigFile(cfg)
-    L5Path = cfg.getParam('chain', 'L5Path')
-    L8Path = cfg.getParam('chain', 'L8Path')
-    S2Path = cfg.getParam('chain', 'S2Path')
-    S1Path = cfg.getParam('chain', 'S1Path')
-    userFeatPath = cfg.getParam('chain', 'userFeatPath')
-
-    if "None" in L5Path:
-        L5Path = None
-    if "None" in L8Path:
-        L8Path = None
-    if "None" in S2Path:
-        S2Path = None
-    if "None" in S1Path:
-        S1Path = None
-    if "None" in userFeatPath:
-        userFeatPath = None
-
-    #~ if onlySAR(cfg):
-        #~ mask_name = "SARMask"
-    #~ elif not L5Path and not L8Path and not S2Path and not S1Path and userFeatPath:
-        #~ mask_name = "UserFeatmask"
-    #~ else:
-        #~ mask_name = "MaskCommunSL"
     mask_name = "MaskCommunSL"
     return mask_name
 
