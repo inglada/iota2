@@ -511,15 +511,18 @@ class serviceConfigFile:
 
             self.testVarConfigFile('chain', 'remove_tmp_files', bool)
 
-            if self.cfg.chain.L5Path != "None":
+            if self.cfg.chain.L5Path_old != "None":
                 #L5 variable check
-                self.testVarConfigFile('Landsat5', 'temporalResolution', int)
-                self.testVarConfigFile('Landsat5', 'keepBands', Sequence)
-
+                self.testVarConfigFile('Landsat5_old', 'temporalResolution', int)
+                self.testVarConfigFile('Landsat5_old', 'keepBands', Sequence)
             if self.cfg.chain.L8Path != "None":
                 #L8 variable check
                 self.testVarConfigFile('Landsat8', 'temporalResolution', int)
                 self.testVarConfigFile('Landsat8', 'keepBands', Sequence)
+            if self.cfg.chain.L8Path_old != "None":
+                #L8 variable check
+                self.testVarConfigFile('Landsat8_old', 'temporalResolution', int)
+                self.testVarConfigFile('Landsat8_old', 'keepBands', Sequence)
 
             if self.cfg.chain.S2Path != "None":
                 #S2 variable check
