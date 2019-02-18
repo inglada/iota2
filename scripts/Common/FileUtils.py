@@ -409,7 +409,7 @@ def dateInterval(dateMin, dataMax, tr):
     end = datetime.date(int(dataMax[0:4]), int(dataMax[4:6]), int(dataMax[6:8]))
     delta = timedelta(days=int(tr))
     curr = start
-    while curr < end:
+    while curr <= end:
         yield curr
         curr += delta
 
