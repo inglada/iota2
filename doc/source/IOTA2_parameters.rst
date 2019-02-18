@@ -802,6 +802,141 @@ argTrain.sampleAugmentation
     In the above example, classes of models "1" and "2" will be augmented to the
     the most represented class in the corresponding model using the jitter method.
 
+argTrain.sampleManagement
+=========================
+*Description*
+    absolute path to a CSV file containing samples transfert strategies
+*Type*
+    string
+*Default value*
+    None
+*Example*
+    .. code-block:: python
+
+        sampleManagement : '/absolute/path/myRules.csv'
+
+        >>> cat /absolute/path/myRules.csv
+                1,2,4,2
+
+        Mean:
+
+        +--------+-------------+------------+----------+
+        | source | destination | class name | quantity |
+        +========+=============+============+==========+
+        |   1    |      2      |      4     |     2    |
+        +--------+-------------+------------+----------+
+
+argTrain.classifier
+===================
+*Description*
+    OTB's classifier name
+*Type*
+    string
+*Default value*
+    ``mandatory``
+*Example*
+    .. code-block:: python
+
+        classifier : 'rf'
+
+argTrain.options
+================
+*Description*
+    OTB's classifier's options
+*Type*
+    string
+*Default value*
+    ``mandatory``
+*Example*
+    .. code-block:: python
+
+        options : ' -classifier.rf.min 5 -classifier.rf.max 25 '
+
 Sensors available parameters
 ****************************
 
+Sensors available list : Landsat5_old / Landsat8 / Landsat8_old / Sentinel_2 / Sentinel_2_S2C / Sentinel_2_L3A
+
+Sensor.full_pipline
+===================
+*Description*
+    Only available to Sentinel_2 / Sentinel_2_S2C / Sentinel_2_L3A sensors.
+    If set to False, then IOTA² will write date's stack on disk to improve computations.
+    Else, every computation will be done in RAM, saving disk space.
+*Type*
+    bool
+*Default value*
+    False
+*Example*
+    .. code-block:: python
+
+        full_pipline : True
+
+Sensor.startDate
+================
+*Description*
+    first insterpolation date
+*Type*
+    string
+*Default value*
+    None
+*Example*
+    .. code-block:: python
+
+        startDate : '20170131'
+
+Sensor.endDate
+==============
+*Description*
+    last insterpolation date
+*Type*
+    string
+*Default value*
+    None
+*Example*
+    .. code-block:: python
+
+        endDate : '20170131'
+
+Sensor.temporalResolution
+=========================
+*Description*
+    Temporal resolution, time between two interpolations
+*Type*
+    int
+*Default value*
+    None
+*Example*
+    .. code-block:: python
+
+        temporalResolution : 10
+
+Sensor.additionalFeatures
+=========================
+*Description*
+    IOTA² allow adding features by dates. Format is the one provided by OTB's BandMath 
+    application.
+
+*Type*
+    string
+*Default value*
+    None
+*Example*
+    .. code-block:: python
+
+        additionalFeatures : 'b1+b2,(b1-b2)/(b1+b2)'
+*Notes*
+    Custom features must be coma separated.
+
+Sensor.keepBands
+================
+*Description*
+    List of bands to use in the IOTA² run.
+*Type*
+    list
+*Default value*
+    all available bands
+*Example*
+    .. code-block:: python
+
+        keepBands:["B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11", "B12"] # Sentinel-2 case
