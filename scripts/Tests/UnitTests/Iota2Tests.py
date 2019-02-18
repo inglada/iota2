@@ -587,7 +587,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         self.iota2_directory = os.environ.get('IOTA2DIR')
 
         self.selection_test = os.path.join(self.test_vector, "D0005H0002.sqlite")
-        raster_ref = fu.FileSearch_AND(os.path.join(self.SensData,"Landsat8_D0005H0002"), True, ".TIF")[0]
+        raster_ref = fu.FileSearch_AND(os.path.join(self.SensData,"D0005H0002"), True, ".TIF")[0]
         prepare_test_selection(self.referenceShape_test, raster_ref, self.selection_test, self.test_vector, "code")
 
     def test_samplerSimple_bindings(self):
@@ -616,27 +616,34 @@ class iota_testSamplerApplications(unittest.TestCase):
         SensData = iota2_dataTest+"/L8_50x50"
 
         from Common import ServiceConfigFile as SCF
+        from config import Config
+
         # load configuration file
         SCF.clearConfig()
 
+        testPath, featuresOutputs, wD = prepareTestsFolder(True)
         config_path = os.path.join(self.iota2_directory, "config",
                                    "Config_4Tuiles_Multi_FUS_Confidence.cfg")
-        self.config = SCF.serviceConfigFile(config_path)
-        testPath, featuresOutputs, wD = prepareTestsFolder(True)
+
+        config_path_test = os.path.join(wD, "Config_TEST.cfg")
+        shutil.copy(config_path, config_path_test)
+        L8_rasters = os.path.join(self.iota2_directory, "data", "L8_50x50")
+        cfg_test = Config(file(config_path_test))
+        cfg_test.chain.outputPath = testPath
+        cfg_test.chain.listTile = "D0005H0002"
+        cfg_test.chain.L8Path_old = L8_rasters
+        cfg_test.chain.L8Path = "None"
+        cfg_test.chain.userFeatPath = "None"
+        cfg_test.chain.regionField = 'region'
+        cfg_test.argTrain.cropMix = False
+        cfg_test.argTrain.samplesClassifMix = False
+        cfg_test.GlobChain.useAdditionalFeatures = False
+        cfg_test.save(file(config_path_test, 'w'))
 
         os.mkdir(featuresOutputs+"/D0005H0002")
         os.mkdir(featuresOutputs+"/D0005H0002/tmp")
 
-        #fill up configuration file
-        L8_rasters = os.path.join(self.iota2_directory, "data", "L8_50x50")
-        self.config.setParam('chain', 'outputPath', testPath)
-        self.config.setParam('chain', 'listTile', "D0005H0002")
-        self.config.setParam('chain', 'L8Path', L8_rasters)
-        self.config.setParam('chain', 'userFeatPath', 'None')
-        self.config.setParam('chain', 'regionField', 'region')
-        self.config.setParam('argTrain', 'cropMix', False)
-        self.config.setParam('argTrain', 'samplesClassifMix', False)
-        self.config.setParam('GlobChain', 'useAdditionalFeatures', False)
+        self.config = SCF.serviceConfigFile(config_path_test)
 
         """
         TEST :
@@ -644,10 +651,10 @@ class iota_testSamplerApplications(unittest.TestCase):
         with otb's applications connected in memory
         and compare resulting samples extraction with reference.
         """
-        #Launch sampling
-        
+        # launch test case
         VectorSampler.generateSamples({"usually":self.referenceShape_test}, None, self.config, sampleSelection=self.selection_test)
-        #Compare
+        
+        # assert
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
         delete_uselessFields(test_vector)
         compare = compareSQLite(test_vector, reference, CmpMode='coordinates')
@@ -659,14 +666,31 @@ class iota_testSamplerApplications(unittest.TestCase):
         with otb's applications connected in memory and writing tmp files
         and compare resulting samples extraction with reference.
         """
-
         testPath, featuresOutputs, wD = prepareTestsFolder()
-        os.mkdir(featuresOutputs+"/D0005H0002")
-        os.mkdir(featuresOutputs+"/D0005H0002/tmp")
-        self.config.setParam('GlobChain', 'writeOutputs', True)
-        VectorSampler.generateSamples({"usually":self.referenceShape_test}, None, self.config, sampleSelection=self.selection_test)
-        self.config.setParam('GlobChain', 'writeOutputs', False)
+        config_path_test = os.path.join(testPath, "Config_TEST.cfg")
+        shutil.copy(config_path, config_path_test)
+        L8_rasters = os.path.join(self.iota2_directory, "data", "L8_50x50")
+        cfg_test = Config(file(config_path_test))
+        cfg_test.chain.outputPath = testPath
+        cfg_test.chain.listTile = "D0005H0002"
+        cfg_test.chain.L8Path_old = L8_rasters
+        cfg_test.chain.L8Path = "None"
+        cfg_test.chain.userFeatPath = "None"
+        cfg_test.chain.regionField = 'region'
+        cfg_test.argTrain.cropMix = False
+        cfg_test.argTrain.samplesClassifMix = False
+        cfg_test.GlobChain.useAdditionalFeatures = False
+        cfg_test.GlobChain.writeOutputs = True
+        cfg_test.save(file(config_path_test, 'w'))
 
+        os.mkdir(os.path.join(featuresOutputs, "D0005H0002"))
+        os.mkdir(os.path.join(featuresOutputs, "D0005H0002", "tmp"))
+
+        # launch test case
+        config_test = SCF.serviceConfigFile(config_path_test)
+        VectorSampler.generateSamples({"usually":self.referenceShape_test}, None, config_test, sampleSelection=self.selection_test)
+
+        # assert
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
         delete_uselessFields(test_vector)
         compare = compareSQLite(test_vector, reference, CmpMode='coordinates')
@@ -680,11 +704,27 @@ class iota_testSamplerApplications(unittest.TestCase):
         extraction with reference.
         """
         testPath, featuresOutputs, wD = prepareTestsFolder()
-        os.mkdir(featuresOutputs+"/D0005H0002")
-        os.mkdir(featuresOutputs+"/D0005H0002/tmp")
-        self.config.setParam('GlobChain', 'writeOutputs', True)
-        VectorSampler.generateSamples({"usually":self.referenceShape_test}, wD, self.config, sampleSelection=self.selection_test)
-        self.config.setParam('GlobChain', 'writeOutputs', False)
+        config_path_test = os.path.join(testPath, "Config_TEST.cfg")
+        shutil.copy(config_path, config_path_test)
+        L8_rasters = os.path.join(self.iota2_directory, "data", "L8_50x50")
+        cfg_test = Config(file(config_path_test))
+        cfg_test.chain.outputPath = testPath
+        cfg_test.chain.listTile = "D0005H0002"
+        cfg_test.chain.L8Path_old = L8_rasters
+        cfg_test.chain.L8Path = "None"
+        cfg_test.chain.userFeatPath = "None"
+        cfg_test.chain.regionField = 'region'
+        cfg_test.argTrain.cropMix = False
+        cfg_test.argTrain.samplesClassifMix = False
+        cfg_test.GlobChain.useAdditionalFeatures = False
+        cfg_test.GlobChain.writeOutputs = True
+        cfg_test.save(file(config_path_test, 'w'))
+
+        os.mkdir(os.path.join(featuresOutputs, "D0005H0002"))
+        os.mkdir(os.path.join(featuresOutputs, "D0005H0002", "tmp"))
+        config_test = SCF.serviceConfigFile(config_path_test)
+        VectorSampler.generateSamples({"usually":self.referenceShape_test}, wD, config_test, sampleSelection=self.selection_test)
+        #~ self.config.setParam('GlobChain', 'writeOutputs', False)
 
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
         delete_uselessFields(test_vector)
@@ -698,17 +738,31 @@ class iota_testSamplerApplications(unittest.TestCase):
         prepare data to gapFilling -> gapFilling -> features generation (userFeatures + userDayFeatures) -> samples extraction
         with otb's applications connected in memory, compare resulting sample to extraction with reference.
         """
-        self.config.setParam('GlobChain', 'writeOutputs', True)
-        self.config.setParam('chain', 'userFeatPath', os.path.join(self.iota2_directory,"data/references/MNT/"))
-        self.config.setParam('userFeat', 'arbo', '/*')
-        self.config.setParam('userFeat', 'patterns', 'MNT')
-        self.config.setParam('Landsat8', 'additionalFeatures', 'b1+b2,(b1-b2)/(b1+b2)')
-        self.config.setParam('GlobChain', 'useAdditionalFeatures', True)
-
         testPath, featuresOutputs, wD = prepareTestsFolder(workingDirectory=False)
-        os.mkdir(featuresOutputs+"/D0005H0002")
-        os.mkdir(featuresOutputs+"/D0005H0002/tmp")
-        VectorSampler.generateSamples({"usually":self.referenceShape_test}, wD, self.config, sampleSelection=self.selection_test)
+        config_path_test = os.path.join(testPath, "Config_TEST.cfg")
+        shutil.copy(config_path, config_path_test)
+        L8_rasters = os.path.join(self.iota2_directory, "data", "L8_50x50")
+        cfg_test = Config(file(config_path_test))
+        cfg_test.chain.outputPath = testPath
+        cfg_test.chain.listTile = "D0005H0002"
+        cfg_test.chain.L8Path_old = L8_rasters
+        cfg_test.chain.L8Path = "None"
+        cfg_test.chain.userFeatPath = os.path.join(self.iota2_directory,"data/references/MNT/")
+        cfg_test.userFeat.arbo = "/*"
+        cfg_test.userFeat.patterns = "MNT"
+        cfg_test.chain.regionField = 'region'
+        cfg_test.argTrain.cropMix = False
+        cfg_test.argTrain.samplesClassifMix = False
+        cfg_test.GlobChain.useAdditionalFeatures = False
+        cfg_test.GlobChain.writeOutputs = True
+        cfg_test.GlobChain.useAdditionalFeatures = True
+        cfg_test.Landsat8_old.additionalFeatures = 'b1+b2,(b1-b2)/(b1+b2)'
+        cfg_test.save(file(config_path_test, 'w'))
+        os.mkdir(os.path.join(featuresOutputs, "D0005H0002"))
+        os.mkdir(os.path.join(featuresOutputs, "D0005H0002", "tmp"))
+        config_test = SCF.serviceConfigFile(config_path_test)
+        
+        VectorSampler.generateSamples({"usually":self.referenceShape_test}, wD, config_test, sampleSelection=self.selection_test)
 
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
         delete_uselessFields(test_vector)
@@ -723,9 +777,30 @@ class iota_testSamplerApplications(unittest.TestCase):
         and compare resulting sample extraction with reference.
         """
         testPath, featuresOutputs, wD = prepareTestsFolder(workingDirectory=True)
-        os.mkdir(featuresOutputs+"/D0005H0002")
-        os.mkdir(featuresOutputs+"/D0005H0002/tmp")
-        VectorSampler.generateSamples({"usually":self.referenceShape_test}, wD, self.config, sampleSelection=self.selection_test)
+        config_path_test = os.path.join(testPath, "Config_TEST.cfg")
+        shutil.copy(config_path, config_path_test)
+        L8_rasters = os.path.join(self.iota2_directory, "data", "L8_50x50")
+        cfg_test = Config(file(config_path_test))
+        cfg_test.chain.outputPath = testPath
+        cfg_test.chain.listTile = "D0005H0002"
+        cfg_test.chain.L8Path_old = L8_rasters
+        cfg_test.chain.L8Path = "None"
+        cfg_test.chain.userFeatPath = os.path.join(self.iota2_directory,"data/references/MNT/")
+        cfg_test.userFeat.arbo = "/*"
+        cfg_test.userFeat.patterns = "MNT"
+        cfg_test.chain.regionField = 'region'
+        cfg_test.argTrain.cropMix = False
+        cfg_test.argTrain.samplesClassifMix = False
+        cfg_test.GlobChain.useAdditionalFeatures = False
+        cfg_test.GlobChain.writeOutputs = True
+        cfg_test.GlobChain.useAdditionalFeatures = True
+        cfg_test.Landsat8_old.additionalFeatures = 'b1+b2,(b1-b2)/(b1+b2)'
+        cfg_test.save(file(config_path_test, 'w'))
+
+        os.mkdir(os.path.join(featuresOutputs, "D0005H0002"))
+        os.mkdir(os.path.join(featuresOutputs, "D0005H0002", "tmp"))
+        config_test = SCF.serviceConfigFile(config_path_test)
+        VectorSampler.generateSamples({"usually":self.referenceShape_test}, wD, config_test, sampleSelection=self.selection_test)
 
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
         delete_uselessFields(test_vector)
