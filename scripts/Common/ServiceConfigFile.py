@@ -52,7 +52,8 @@ class serviceConfigFile:
         if iota_config:
             #init chain section
             chain_default = {"outputStatistics": False,
-                             "L5Path": "None",
+                             "L5Path_old": "None",
+                             "L5_old_output_path": None,
                              "L8Path": "None",
                              "L8_output_path": None,
                              "L8Path_old": "None",
@@ -144,11 +145,11 @@ class serviceConfigFile:
                                     "startDate": "",
                                     "endDate": "",
                                     "keepBands": self.init_listSequence(["B1", "B2", "B3", "B4", "B5", "B6", "B7"])}
-            Landsat5_default = {"additionalFeatures": "",
+            Landsat5_old_default = {"additionalFeatures": "",
                                 "temporalResolution": 16,
                                 "startDate": "",
                                 "endDate": "",
-                                "keepBands": self.init_listSequence(["B1", "B2", "B3", "B4", "B5", "B6", "B7"])}
+                                "keepBands": self.init_listSequence(["B1", "B2", "B3", "B4", "B5", "B6"])}
             Sentinel_2_default = {"additionalFeatures": "",
                                   "temporalResolution": 10,
                                   "startDate": "",
@@ -168,7 +169,7 @@ class serviceConfigFile:
             userFeat =  {"arbo": "/*",
                          "patterns":"ALT,ASP,SLP"}
 
-            self.init_section("Landsat5", Landsat5_default)
+            self.init_section("Landsat5_old", Landsat5_old_default)
             self.init_section("Landsat8", Landsat8_default)
             self.init_section("Landsat8_old", Landsat8_old_default)
             self.init_section("Sentinel_2", Sentinel_2_default)

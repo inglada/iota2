@@ -19,12 +19,13 @@ This class manage sensor's data by tile, providing services needed in whole IOTA
 library
 """
 import os
-#~ from Sensors import (Landsat5)
+
 
 from Sentinel_1 import Sentinel_1
 from Sentinel_2 import Sentinel_2
 from Sentinel_2_S2C import Sentinel_2_S2C
 from Sentinel_2_L3A import Sentinel_2_L3A
+from Landsat_5_old import Landsat_5_old
 from Landsat_8 import Landsat_8
 from Landsat_8_old import Landsat_8_old
 from User_features import User_features
@@ -78,7 +79,7 @@ class Sensors_container(object):
         """
         define which sensors will be used, also sensors's order
         """
-        l5 = self.cfg.getParam("chain", "L5Path")
+        l5_old = self.cfg.getParam("chain", "L5Path_old")
         l8 = self.cfg.getParam("chain", "L8Path")
         l8_old = self.cfg.getParam("chain", "L8Path_old")
         s1 = self.cfg.getParam("chain", "S1Path")
@@ -88,8 +89,8 @@ class Sensors_container(object):
         user_feat = self.cfg.getParam("chain", "userFeatPath")
 
         enabled_sensors = []
-        if not "none" in l5.lower():
-            enabled_sensors.append(Landsat5.name)
+        if not "none" in l5_old.lower():
+            enabled_sensors.append(Landsat_5_old.name)
         if not "none" in l8.lower():
             enabled_sensors.append(Landsat_8.name)
         if not "none" in l8_old.lower():
@@ -109,7 +110,7 @@ class Sensors_container(object):
     def get_enabled_sensors(self):
         """
         """
-        l5 = self.cfg.getParam("chain", "L5Path")
+        l5_old = self.cfg.getParam("chain", "L5Path_old")
         l8 = self.cfg.getParam("chain", "L8Path")
         l8_old = self.cfg.getParam("chain", "L8Path_old")
         s1 = self.cfg.getParam("chain", "S1Path")
@@ -119,9 +120,8 @@ class Sensors_container(object):
         user_feat = self.cfg.getParam("chain", "userFeatPath")
 
         enabled_sensors = []
-        if not "none" in l5.lower():
-            # not available
-            enabled_sensors.append(Landsat5)
+        if not "none" in l5_old.lower():
+            enabled_sensors.append(Landsat_5_old(self.cfg.pathConf, tile_name=self.tile_name))
         if not "none" in l8.lower():
             enabled_sensors.append(Landsat_8(self.cfg.pathConf, tile_name=self.tile_name))
         if not "none" in l8_old.lower():
