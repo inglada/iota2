@@ -497,8 +497,10 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
             except OSError:
                 logger.warning(targetDirectory + "/tmp allready exists")
 
-        fu.updateDirectory(workingDirectory + "/" + currentTile + "_nonAnnual/" + currentTile + "/tmp",
-                           targetDirectory + "/tmp")
+        from_dir = workingDirectory + "/" + currentTile + "_nonAnnual/" + currentTile + "/tmp"
+        to_dir = targetDirectory + "/tmp"
+        if os.path.exists(from_dir):
+            fu.updateDirectory(from_dir, to_dir)
 
         targetDirectory = folderFeaturesAnnual + "/" + currentTile
         if not os.path.exists(targetDirectory):
@@ -510,8 +512,11 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
                 os.mkdir(targetDirectory + "/tmp")
             except OSError:
                 logger.warning(targetDirectory + "/tmp allready exists")
-        fu.updateDirectory(workingDirectory + "/" + currentTile + "_annual/" + currentTile + "/tmp",
-                           targetDirectory + "/tmp")
+
+        from_dir = workingDirectory + "/" + currentTile + "_annual/" + currentTile + "/tmp"
+        to_dir = targetDirectory + "/tmp"
+        if os.path.exists(from_dir):
+            fu.updateDirectory(from_dir, to_dir)
 
     #split vectors by there regions
     proj = cfg.getParam('GlobChain', 'proj')
