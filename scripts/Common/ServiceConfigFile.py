@@ -439,7 +439,7 @@ class serviceConfigFile:
             self.testVarConfigFile('chain', 'outputPath', str)
             self.testVarConfigFile('chain', 'nomenclaturePath', str)
             self.testVarConfigFile('chain', 'listTile', str)
-            self.testVarConfigFile('chain', 'L5Path', str)
+            self.testVarConfigFile('chain', 'L5Path_old', str)
             self.testVarConfigFile('chain', 'L8Path', str)
             self.testVarConfigFile('chain', 'S2Path', str)
             self.testVarConfigFile('chain', 'S1Path', str)
