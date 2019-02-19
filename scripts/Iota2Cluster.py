@@ -35,12 +35,6 @@ def get_qsub_cmd(cfg, config_ressources=None, parallel_mode="MPI"):
     if job_dir is None:
         raise Exception("the parameter 'chain.jobsPath' is needed to launch IOTA2 on clusters")
 
-    iota2_module_path = os.environ.get('MODULE_PATH')
-    iota2_module_name = os.environ.get('MODULE_NAME')
-    try:
-        OTB_super = cfg.getParam("chain", "OTB_HOME")
-    except:
-        OTB_super = None
     config_path = cfg.pathConf
     iota2_main = os.path.join(job_dir, "iota2.pbs")
 
@@ -70,16 +64,22 @@ def get_qsub_cmd(cfg, config_ressources=None, parallel_mode="MPI"):
                   "#PBS -o {}\n"
                   "#PBS -e {}\n").format(chainName, cpu, ram, walltime, log_out, log_err)
 
-    if OTB_super:
-        modules = ("module load gcc/6.3.0\n"
-                   "module load mpi4py/2.0.0-py2.7\n"
-                   "source {}/config_otb.sh\n").format(OTB_super)
-    elif OTB_super == None and iota2_module_path:
-        modules = ("module use {}\n"
-                   "module load {}\n").format(iota2_module_path, iota2_module_name)
-    elif OTB_super == None and iota2_module_path == None:
-        modules = ("module load {}\n"
-                   "export GDAL_CACHEMAX=128\n").format(iota2_module_name)
+    py_path = os.environ.get('PYTHONPATH')
+    path = os.environ.get('PATH')
+    ld_lib_path = os.environ.get('LD_LIBRARY_PATH')
+    otb_app_path = os.environ.get('OTB_APPLICATION_PATH')
+    gdal_data = os.environ.get('GDAL_DATA')
+    geotiff_csv = os.environ.get('GEOTIFF_CSV')
+
+    modules = ("\nexport PYTHONPATH={}\n"
+               "export PATH={}\n"
+               "export LD_LIBRARY_PATH={}\n"
+               "export OTB_APPLICATION_PATH={}\n"
+               "export GDAL_DATA={}\n"
+               "export GEOTIFF_CSV={}\n"
+               "export IOTA2DIR={}\n\n").format(py_path, path, ld_lib_path,
+                                                otb_app_path, gdal_data, geotiff_csv,
+                                                os.environ.get('IOTA2DIR'))
 
     exe = ("python {0}/Cluster.py -config {1} -mode {2}").format(scripts,
                                                                  config_path,
@@ -106,10 +106,6 @@ def launchChain(cfg, config_ressources=None, parallel_mode="MPI"):
 
     if not "IOTA2DIR" in os.environ:
         raise Exception ("environment variable 'IOTA2DIR' not found, please load a IOTA2's module")
-    if not "MODULE_NAME" in os.environ:
-        raise Exception ("environment variable 'MODULE_NAME' not found, please load a IOTA2's module")
-    if not "MODULE_PATH" in os.environ:
-        raise Exception ("environment variable 'MODULE_PATH' not found, please load a IOTA2's module")
 
     # Check configuration file
     cfg.checkConfigParameters()
@@ -138,6 +134,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
     cfg = SCF.serviceConfigFile(args.config)
 
+    iota2dir = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                            os.pardir))
+    os.environ["IOTA2DIR"] = iota2dir
     try:
         launchChain(cfg, args.config_ressources, args.parallel_mode)
     # Exception manage by the chain
