@@ -126,4 +126,4 @@ class symbol:
         self.fillc.set("blue",self.donnees['B'])
         self.fillp.text = "SolidPattern"
 
-getClassesFromQML("/home/qt/thierionv/testvector.qml")
+#getClassesFromQML("/home/qt/thierionv/testvector.qml")

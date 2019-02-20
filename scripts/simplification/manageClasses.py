@@ -40,6 +40,26 @@ def get_unique(seq):
     seen_add = seen.add
     return [x for x in seq if not (x in seen or seen_add(x))]
 
+def convertDictToList(dictnomenc):
+
+    levels = dictnomenc.keys()
+    lastlevel = levels[len(levels) - 1]
+    tabclasses = []
+    for idx, cls in enumerate(dictnomenc[lastlevel]):
+        tabclasses.append([cls, str(dictnomenc[lastlevel][cls]['code']), dictnomenc[lastlevel][cls]['color'], dictnomenc[lastlevel][cls]['alias']])
+        for level in reversed(levels):
+            if level != lastlevel:
+                for classe in dictnomenc[level]:
+                    if dictnomenc[level][classe]['code'] ==  dictnomenc[lastlevel][cls]['parent']:
+                        tabclasses[idx].insert(0, dictnomenc[level][classe]['alias'])
+                        tabclasses[idx].insert(0, dictnomenc[level][classe]['color'])
+                        tabclasses[idx].insert(0, dictnomenc[level][classe]['code'])
+                        tabclasses[idx].insert(0, classe)
+        tabclasses[idx] = tuple(tabclasses[idx])
+        
+    return tabclasses
+    
+
 def getNomenclature(qml, outpath):
     
     classes = csq.getClassesFromQML(qml)
@@ -81,16 +101,22 @@ class iota_nomenclature(object):
         nomenclature object
     """
 
-    def __init__(self, nomenclature):
+    def __init__(self, nomenclature, typefile = 'csv'):
         
-        self.nomenclature = nomenclature
+        self.nomenclature = self.readNomenclatureFile(nomenclature, typefile)        
         self.level = self.getLevelNumber()
         self.getMaxLevelClassNb = self.getMaxLevelClassNb()
         self.HierarchicalNomenclature = self.setHierarchicalNomenclature(self.nomenclature)
 
     def __repr__(self):
+
+        return "yo"
+        
+    def __str__(self):
         
         return 'Nomenclature : %s level(s) with %s classes for the last level'%(self.getLevelNumber(), self.getMaxLevelClassNb)
+
+
     
     def getLevelNumber(self):
         """Get the number of levels of a nomenclature
@@ -99,11 +125,9 @@ class iota_nomenclature(object):
         ------
         int
             number of levels.
-        """       
-        classeslist = self.readNomenclatureFile(self.nomenclature)
-        levels = len(classeslist[0]) / 4
+        """
         
-        return levels
+        return len(self.nomenclature[0]) / 4
 
     def getMaxLevelClassNb(self):
         """Get number of classes corresponding to lower level (more detailed) : level for classification purpose 
@@ -114,8 +138,7 @@ class iota_nomenclature(object):
             list of classes corresponding to lower level.
         """     
         
-        classeslist = self.readNomenclatureFile(self.nomenclature)
-        return len(classeslist)
+        return len(self.nomenclature)
 
     def getColor(self, level, typec = "RGB"):
         """Get colors list of given level
@@ -222,9 +245,8 @@ class iota_nomenclature(object):
         
         classeslist = []
         levelname = []
-        rawclasses = self.readNomenclatureFile(nomen)
         
-        for ind, line in enumerate(rawclasses):
+        for ind, line in enumerate(nomen):
             classeslist.append([])
             for lev in range(self.level):
                 if len(levelname) < self.level:
@@ -236,7 +258,7 @@ class iota_nomenclature(object):
 
         return index
     
-    def readNomenclatureFile(self, nomen):
+    def readNomenclatureFile(self, nomen, typefile = 'csv'):
         """Read a csv nomenclature file
            Example of csv structure for 2 nested levels (l1 = level 1, l2 = level 2) :
            classname_l1, code_l1, colour_l1, alias_l1, classname_l2, code_l2, colour_l2, alias_l2
@@ -251,11 +273,32 @@ class iota_nomenclature(object):
         list of tuples
             raw nomenclature
         """
-        
-        fileclasses = codecs.open(nomen, "r", "utf-8")
-        rawclasses = [tuple(line.rstrip('\n').split(',')) for line in fileclasses.readlines()]
-        
-        return rawclasses
+        if isinstance(nomen, dict):
+            tabnomenc = convertDictToList(nomen)
+            
+        elif typefile == 'cfg':
+            # Config Mode
+
+            from Common import ServiceConfigFile as SCF        
+            cfg = SCF.serviceConfigFile(nomen, False).cfg
+
+            dictnomenc = {}
+            for level in cfg.Classes:
+                cls = {}
+                for classe in cfg.Classes[level]:
+                    cls[classe] = cfg.Classes[level][classe]
+                dictnomenc[level] = cls
+    
+            tabnomenc = convertDictToList(dictnomenc)
+
+        elif typefile == 'csv':
+            fileclasses = codecs.open(nomen, "r", "utf-8")
+            tabnomenc = [tuple(line.rstrip('\n').split(',')) for line in fileclasses.readlines()]
+            
+        else:
+            raise Exception("The type of nomenclature file is not handled")
+
+        return tabnomenc
 
     def createNomenclatureQML(self, level, outpath, codefield, filetype = "raster", outlinestyle = "", nodata = ""):
         """Create a QGIS QML layer style (raster or vector)
@@ -324,8 +367,8 @@ class iota_nomenclature(object):
         
 #openClasses("/home/qt/thierionv/iota2/iota2/data/references/classes_iota23")
 
-iota=iota_nomenclature("/home/qt/thierionv/iota2/iota2/data/references/classes_iota23")
-print iota
+#iota=iota_nomenclature("/home/vthierion/Documents/OSO/Dev/iota2/scripts/simplification/classes_iota23")
+iota=iota_nomenclature("/home/vthierion/Documents/OSO/Dev/iota2/scripts/simplification/nomenclature.cfg", 'cfg')
 #print(iota.createConfusionMatrix(["/work/OT/theia/oso/production/cnes/test/FRANCE_2016/final/TMP/Classif_Seed_0.csv"]))
 #print iota.HierarchicalNomenclature
 #print iota.getMaxLevelClassNb()
