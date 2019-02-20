@@ -581,7 +581,7 @@ class serviceConfigFile:
                 raise sErr.configError("these parameters are incompatible merge_final_classifications:True and splitGroundTruth:False")
             if self.cfg.argTrain.dempster_shafer_SAR_Opt_fusion and 'None' in self.cfg.chain.S1Path:
                 raise sErr.configError("these parameters are incompatible dempster_shafer_SAR_Opt_fusion : True and S1Path : 'None'")
-            if self.cfg.argTrain.dempster_shafer_SAR_Opt_fusion and 'None' in self.cfg.chain.userFeatPath and 'None' in self.cfg.chain.L5Path and 'None' in self.cfg.chain.L8Path and 'None' in self.cfg.chain.S2Path and 'None' in self.cfg.chain.S2_S2C_Path:
+            if self.cfg.argTrain.dempster_shafer_SAR_Opt_fusion and 'None' in self.cfg.chain.userFeatPath and 'None' in self.cfg.chain.L5Path_old and 'None' in self.cfg.chain.L8Path and 'None' in self.cfg.chain.L8Path_old and 'None' in self.cfg.chain.S2Path and 'None' in self.cfg.chain.S2_S2C_Path:
                 raise sErr.configError("to perform post-classification fusion, optical data must be used")
         # Error managed
         except sErr.configFileError:
