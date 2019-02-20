@@ -194,9 +194,9 @@ def gapFillingToSample(trainShape, workingDirectory, samples,
 
     (AllFeatures,
      feat_labels,
-     dep_features) = genFeatures.generateFeatures(workingDirectoryFeatures, tile,
-                                                  cfg, useGapFilling=useGapFilling,
-                                                  enable_Copy=False,
+     dep_features) = genFeatures.generateFeatures(workingDirectoryFeatures,
+                                                  tile,
+                                                  cfg,
                                                   mode=mode)
 
     if onlySensorsMasks:
