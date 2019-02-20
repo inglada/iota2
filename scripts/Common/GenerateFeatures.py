@@ -42,7 +42,6 @@ def str2bool(v):
 
 
 def generateFeatures(pathWd, tile, cfg, writeFeatures=False,
-                     useGapFilling=True, enable_Copy=False,
                      mode="usually"):
     """
     usage : Function use to compute features according to a configuration file.
@@ -90,8 +89,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Computes a time series of features")
     parser.add_argument("-wd", dest="pathWd", help="path to the working directory", default=None, required=False)
     parser.add_argument("-tile", dest="tile", help="tile to be processed", required=True)
-    parser.add_argument("-gapFilling", type=str2bool, dest="useGapFilling",
-                        help="flag to set if you want to use gapFilling (default = True)", default=True, required=False)
     parser.add_argument("-conf", dest="pathConf", help="path to the configuration file (mandatory)", required=True)
     parser.add_argument("-writeFeatures", type=str2bool, dest="writeFeatures",
                         Shelp="path to the working directory", default=False, required=False)
@@ -100,4 +97,4 @@ if __name__ == "__main__":
     # load configuration file
     cfg = SCF.serviceConfigFile(args.pathConf)
 
-    generateFeatures(args.pathWd, args.tile, cfg, args.writeFeatures, args.useGapFilling)
+    generateFeatures(args.pathWd, args.tile, cfg, args.writeFeatures)
