@@ -816,7 +816,10 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
                 os.mkdir(targetDirectory + "/tmp")
             except OSError:
                 logger.warning(targetDirectory + "/tmp allready exists")
-        fu.updateDirectory(workingDirectory + "/" + currentTile + "/tmp", targetDirectory + "/tmp")
+        from_dir = workingDirectory + "/" + currentTile + "/tmp"
+        to_dir = targetDirectory + "/tmp"
+        if os.path.exists(from_dir):
+            fu.updateDirectory(from_dir, to_dir)
 
     os.remove(samples)
     os.remove(classificationRaster)
