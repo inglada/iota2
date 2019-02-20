@@ -110,13 +110,11 @@ class iota_nomenclature(object):
 
     def __repr__(self):
 
-        return "yo"
+        return str(self.nomenclature)
         
     def __str__(self):
         
         return 'Nomenclature : %s level(s) with %s classes for the last level'%(self.getLevelNumber(), self.getMaxLevelClassNb)
-
-
     
     def getLevelNumber(self):
         """Get the number of levels of a nomenclature
@@ -260,13 +258,47 @@ class iota_nomenclature(object):
     
     def readNomenclatureFile(self, nomen, typefile = 'csv'):
         """Read a csv nomenclature file
-           Example of csv structure for 2 nested levels (l1 = level 1, l2 = level 2) :
-           classname_l1, code_l1, colour_l1, alias_l1, classname_l2, code_l2, colour_l2, alias_l2
 
+        Example of csv structure for 2 nested levels (l1 = level 1, l2 = level 2) :
+          
+           classname_l1, code_l1, colour_l1, alias_l1, classname_l2, code_l2, colour_l2, alias_l2
+           Urbain, 100, #b106b1, Urbain, Urbain dense, 1, #b186c1, Urbaindens
+
+        Example of config structure for 2 nested levels (l1 = level 1, l2 = level 2) :
+           Classes:
+           {
+	      Level1:
+	      {
+	          "Urbain":
+		  {
+		     code:100
+		     alias:'Urbain'
+		     color:'#b106b1'
+		  }
+                  ...
+              }
+	      Level2:
+	      {
+	          "Urbain dense":
+		  {
+                  code:1
+                  ...
+                  parent:100
+                  }
+                  ...
+              }
+           }
+
+        Example of config structure for 2 nested levels (l1 = level 1, l2 = level 2) :
+           {'Level1': {'Urbain': {'color': '#b106b1', 'alias': 'Urbain', 'code': 100}, ...}, 'Level2': {'Zones indus. et comm.': {'color': ..., 'parent' : 100}, ...}}
+
+        alias : maximum 10 caracters
+        color : HEX or RGB
+          
         Parameters
         ----------
-        nomen: csv file
-            nomenclature file
+        nomen: csv or config file or dict object
+            nomenclature description
         
         Return
         ------
@@ -274,30 +306,39 @@ class iota_nomenclature(object):
             raw nomenclature
         """
         if isinstance(nomen, dict):
-            tabnomenc = convertDictToList(nomen)
+            try:
+                tabnomenc = convertDictToList(nomen)
+            except IOError:
+                raise Exception("Nomenclature reading failed, nomenclature is not properly built")
+        
             
         elif typefile == 'cfg':
-            # Config Mode
-
             from Common import ServiceConfigFile as SCF        
-            cfg = SCF.serviceConfigFile(nomen, False).cfg
+            try:
+                cfg = SCF.serviceConfigFile(nomen, False).cfg
 
-            dictnomenc = {}
-            for level in cfg.Classes:
-                cls = {}
-                for classe in cfg.Classes[level]:
-                    cls[classe] = cfg.Classes[level][classe]
-                dictnomenc[level] = cls
-    
-            tabnomenc = convertDictToList(dictnomenc)
+                dictnomenc = {}
+                for level in cfg.Classes:
+                    cls = {}
+                    for classe in cfg.Classes[level]:
+                        cls[classe] = cfg.Classes[level][classe]
+                    dictnomenc[level] = cls
 
+                tabnomenc = convertDictToList(dictnomenc)
+            
+            except IOError:
+                raise Exception("Nomenclature reading failed, nomenclature is not properly built")
+            
         elif typefile == 'csv':
-            fileclasses = codecs.open(nomen, "r", "utf-8")
-            tabnomenc = [tuple(line.rstrip('\n').split(',')) for line in fileclasses.readlines()]
+            try:
+                fileclasses = codecs.open(nomen, "r", "utf-8")
+                tabnomenc = [tuple(line.rstrip('\n').split(',')) for line in fileclasses.readlines()]
+            except IOError:
+                raise Exception("Nomenclature reading failed, nomenclature is not properly built")
             
         else:
             raise Exception("The type of nomenclature file is not handled")
-
+            
         return tabnomenc
 
     def createNomenclatureQML(self, level, outpath, codefield, filetype = "raster", outlinestyle = "", nodata = ""):
@@ -369,6 +410,7 @@ class iota_nomenclature(object):
 
 #iota=iota_nomenclature("/home/vthierion/Documents/OSO/Dev/iota2/scripts/simplification/classes_iota23")
 iota=iota_nomenclature("/home/vthierion/Documents/OSO/Dev/iota2/scripts/simplification/nomenclature.cfg", 'cfg')
+print iota
 #print(iota.createConfusionMatrix(["/work/OT/theia/oso/production/cnes/test/FRANCE_2016/final/TMP/Classif_Seed_0.csv"]))
 #print iota.HierarchicalNomenclature
 #print iota.getMaxLevelClassNb()
