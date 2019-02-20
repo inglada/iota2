@@ -114,7 +114,7 @@ def launchClassification(tempFolderSerie, Classifmask, model, stats,
     if "SAR.tif" in outputClassif:
         mode = "SAR"
     
-    AllFeatures, feat_labels, dep_features = genFeatures.generateFeatures(wd, tile, cfg, useGapFilling=useGapFilling, mode=mode)
+    AllFeatures, feat_labels, dep_features = genFeatures.generateFeatures(wd, tile, cfg, mode=mode)
 
     if wMode:
         AllFeatures.ExecuteAndWriteOutput()
