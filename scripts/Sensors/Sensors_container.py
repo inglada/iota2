@@ -54,7 +54,7 @@ class Sensors_container(object):
         return enabled sensors and the current tile
         """
         return "tile's name : {}, available sensors : {}".format(self.tile_name,
-                                                                 ", ".join(self.get_enabled_sensors_name()))
+                                                                 ", ".join(self.print_enabled_sensors_name()))
 
     def __repr__(self):
         """
@@ -75,7 +75,7 @@ class Sensors_container(object):
                                   User_features.name]
         return available_sensors_name
 
-    def get_enabled_sensors_name(self):
+    def print_enabled_sensors_name(self):
         """
         define which sensors will be used, also sensors's order
         """
@@ -107,6 +107,26 @@ class Sensors_container(object):
             enabled_sensors.append(User_features.name)
         return enabled_sensors
 
+    def get_sensor(self, sensor_name):
+        """
+        return sensor object, found by name
+        """
+        sensor_found = []
+        for sensor in self.enabled_sensors:
+            if sensor_name == sensor.__class__.name:
+                sensor_found.append(sensor)
+        if len(sensor_found) > 1:
+            raise Exception("Too many sensors found with the name {}".format(sensor_name))
+        return sensor_found[0]
+
+    def remove_sensor(self, sensor_name):
+        """
+        return sensor object, found by name
+        """
+        for index, sensor in enumerate(self.enabled_sensors):
+            if sensor_name == sensor.__class__.name:
+                self.enabled_sensors.pop(index)
+        
     def get_enabled_sensors(self):
         """
         """
