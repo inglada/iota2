@@ -56,9 +56,12 @@ def generateFeatures(pathWd, tile, cfg, writeFeatures=False,
     """
     from Sensors.Sensors_container import Sensors_container
     from Common.OtbAppBank import CreateConcatenateImagesApplication
+    from Common.OtbAppBank import getInputParameterOutput
 
     logger.info("prepare features for tile : " + tile)
     wMode = cfg.getParam('GlobChain', 'writeOutputs')
+    sar_optical_post_fusion = cfg.getParam('argTrain', 'dempster_shafer_SAR_Opt_fusion')
+    
     config_path = cfg.pathConf
     sensor_tile_container = Sensors_container(config_path,
                                               tile,
@@ -66,12 +69,27 @@ def generateFeatures(pathWd, tile, cfg, writeFeatures=False,
     feat_labels = []
     dep = []
     feat_app = []
-    sensors_features = sensor_tile_container.get_sensors_features(available_ram=1000)
-    for sensor_name, ((sensor_features, sensor_features_dep), features_labels) in sensors_features:
+    if mode == "usually" and sar_optical_post_fusion is False:
+        sensors_features = sensor_tile_container.get_sensors_features(available_ram=1000)
+        for sensor_name, ((sensor_features, sensor_features_dep), features_labels) in sensors_features:
+            sensor_features.Execute()
+            feat_app.append(sensor_features)
+            dep.append(sensor_features_dep)
+            feat_labels = feat_labels + features_labels
+    elif mode == "usually" and sar_optical_post_fusion is True:
+        sensor_tile_container.remove_sensor("Sentinel1")
+        sensors_features = sensor_tile_container.get_sensors_features(available_ram=1000)
+        for sensor_name, ((sensor_features, sensor_features_dep), features_labels) in sensors_features:
+            sensor_features.Execute()
+            feat_app.append(sensor_features)
+            dep.append(sensor_features_dep)
+            feat_labels = feat_labels + features_labels
+    elif mode == "SAR":
+        sensor = sensor_tile_container.get_sensor("Sentinel1")
+        (sensor_features, sensor_features_dep), feat_labels = sensor.get_features(ram=1000)
         sensor_features.Execute()
         feat_app.append(sensor_features)
         dep.append(sensor_features_dep)
-        feat_labels = feat_labels + features_labels
 
     dep.append(feat_app)
     
@@ -79,8 +97,14 @@ def generateFeatures(pathWd, tile, cfg, writeFeatures=False,
     features_dir = os.path.join(cfg.getParam("chain", "outputPath"),
                                 "features", tile, "tmp")
     features_raster = os.path.join(features_dir, features_name)
-    AllFeatures = CreateConcatenateImagesApplication({"il": feat_app,
-                                                      "out": features_raster})
+
+    if len(feat_app) > 1:
+        AllFeatures = CreateConcatenateImagesApplication({"il": feat_app,
+                                                          "out": features_raster})
+    else:
+        AllFeatures = sensor_features
+        output_param_name = getInputParameterOutput(sensor_features)
+        AllFeatures.SetParameterString(output_param_name, features_raster)
     return AllFeatures, feat_labels, dep
 
 
