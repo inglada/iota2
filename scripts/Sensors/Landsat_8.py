@@ -540,6 +540,8 @@ class Landsat_8(Sensor):
     def get_features(self, ram=128, logger=logger):
         """
         """
+        from Common.OtbAppBank import CreateConcatenateImagesApplication
+        from Common.OtbAppBank import computeUserFeatures
         from Common.OtbAppBank import CreateIota2FeatureExtractionApplication
         from Common.FileUtils import ensure_dir
 
@@ -549,6 +551,7 @@ class Landsat_8(Sensor):
 
         features = self.cfg_IOTA2.getParam("GlobChain", "features")
         enable_gapFilling = self.cfg_IOTA2.getParam("GlobChain", "useGapFilling")
+        hand_features_flag = self.cfg_IOTA2.getParam('GlobChain', 'useAdditionalFeatures')
 
         (in_stack, in_stack_dep), in_stack_features_labels = self.get_time_series_gapFilling()
         _, dates_enabled = self.write_interpolation_dates_file()
@@ -558,6 +561,16 @@ class Landsat_8(Sensor):
             _, dates_enabled = self.write_dates_file()
 
         in_stack.Execute()
+        app_dep = []
+        if hand_features_flag:
+            hand_features = self.cfg_IOTA2.getParam("Landsat8_old", "additionalFeatures")
+            comp = len(self.stack_band_position) if not self.extracted_bands else len(self.extracted_bands)
+            userDateFeatures, fields_userFeat, a, b = computeUserFeatures(in_stack,
+                                                                          dates_enabled,
+                                                                          comp,
+                                                                          hand_features.split(","))
+            userDateFeatures.Execute()
+            app_dep.append([userDateFeatures, a, b])
 
         if features:
             bands_avail = self.stack_band_position
@@ -601,5 +614,13 @@ class Landsat_8(Sensor):
             features_app = in_stack
             features_labels = in_stack_features_labels
 
-        app_dep = [in_stack, in_stack_dep]
+        app_dep.append([in_stack, in_stack_dep])
+        
+        if hand_features_flag:
+            features_app.Execute()
+            app_dep.append(features_app)
+            features_app = CreateConcatenateImagesApplication({"il": [features_app, userDateFeatures],
+                                                               "out": features_out,
+                                                               "ram": str(ram)})
+            features_labels += fields_userFeat
         return (features_app, app_dep), features_labels
