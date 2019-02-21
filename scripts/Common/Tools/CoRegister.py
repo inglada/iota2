@@ -162,7 +162,7 @@ def launch_coregister(tile, cfg, workingDirectory, launch_mask=True):
     and
     `SuperImpose <https://www.orfeo-toolbox.org/Applications/Superimpose.html>`_
     """
-
+    from Sensors.ProcessLauncher import commonMasks
     from Common import ServiceConfigFile as SCF
 
     logger.info("Source Raster Registration")
@@ -229,7 +229,7 @@ def launch_coregister(tile, cfg, workingDirectory, launch_mask=True):
                False, workingDirectory)
 
     if launch_mask:
-        fu.getCommonMasks(tile, cfg)
+        commonMasks(tile, cfg.pathConf)
 
 def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, minsiftpoints=40, iterate=1, prec=3, mode=2, datadir=None, pattern='*STACK.tif', datatype='S2', writeFeatures=False, workingDirectory=None):
     """ register an image / a time series on a reference image
