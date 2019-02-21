@@ -111,7 +111,7 @@ class iota_nomenclature(object):
     def __repr__(self):
 
         return str(self.nomenclature)
-        
+
     def __str__(self):
         
         return 'Nomenclature : %s level(s) with %s classes for the last level'%(self.getLevelNumber(), self.getMaxLevelClassNb)
@@ -183,7 +183,7 @@ class iota_nomenclature(object):
         
         if level <= self.getLevelNumber() and level > 0:
             index = self.setHierarchicalNomenclature(self.nomenclature)
-            return get_unique([x[0] for x in list(index.get_level_values(level - 1))])
+            return get_unique([x[1] for x in list(index.get_level_values(level - 1))])
         else:
             raise Exception("Level %s does not exists"%(level))
 
@@ -223,7 +223,7 @@ class iota_nomenclature(object):
         
         if level <= self.getLevelNumber() and level > 0:
             index = self.setHierarchicalNomenclature(self.nomenclature)
-            return get_unique([int(x[1]) for x in list(index.get_level_values(level - 1))])
+            return get_unique([int(x[0]) for x in list(index.get_level_values(level - 1))])
         else:
             raise Exception("Level %s does not exists"%(level))
             
@@ -250,10 +250,10 @@ class iota_nomenclature(object):
                 if len(levelname) < self.level:
                     levelname.append("level%s"%(lev + 1))
                 
-                classeslist[ind].append((line[4 * lev], line[(4 * lev) + 1], line[(4 * lev) + 2], line[(4 * lev) + 3]))
+                classeslist[ind].append((int(line[(4 * lev) + 1]), line[4 * lev], line[(4 * lev) + 2], line[(4 * lev) + 3]))
 
         index = MultiIndex.from_tuples([tuple(x) for x in classeslist], names=levelname)
-
+        
         return index
     
     def readNomenclatureFile(self, nomen, typefile = 'csv'):
@@ -398,20 +398,39 @@ class iota_nomenclature(object):
         csv_f = list(d.items())
         
         # get matrix from csv
-        matrix = fu.gen_confusionMatrix(otbmatrix, self.getCode(self.level))        
-
+        matrix = fu.gen_confusionMatrix(csv_f, self.getCode(self.level))
+        
         # MultiIndex Pandas dataframe
         cmdf = DataFrame(matrix, index = self.HierarchicalNomenclature, columns = self.HierarchicalNomenclature)
-
+        cmdf.sort_index(level = self.level - 1, inplace = True, axis = 1)
+        cmdf.sort_index(level = self.level - 1, inplace = True, axis = 0)
+        
         return cmdf
-        
-        
-#openClasses("/home/qt/thierionv/iota2/iota2/data/references/classes_iota23")
 
-#iota=iota_nomenclature("/home/vthierion/Documents/OSO/Dev/iota2/scripts/simplification/classes_iota23")
-iota=iota_nomenclature("/home/vthierion/Documents/OSO/Dev/iota2/scripts/simplification/nomenclature.cfg", 'cfg')
-print iota
-#print(iota.createConfusionMatrix(["/work/OT/theia/oso/production/cnes/test/FRANCE_2016/final/TMP/Classif_Seed_0.csv"]))
+    def createColorFileTheia(self, filecolor = ""):
+        
+        tabcolors = [[x, y[0], y[1], y[2]] for x, y in zip(self.getCode(self.getLevelNumber()), self.getColor(self.getLevelNumber()))]
+        tabcolors.insert(0, [0, 255, 255, 255])
+        tabcolors.append([255, 0, 0, 0])        
+        with open(filecolor, 'w') as ofile:
+            writer = csv.writer(ofile, delimiter = " ")
+            writer.writerows(tabcolors)
+
+    def createNomenclatureFileTheia(self, filenom = ""):
+        
+        tabclasses = [[x.encode('utf8'), y] for x, y in zip( self.getClass(self.getLevelNumber()), self.getCode(self.getLevelNumber()))]
+        tabclasses.append([255, "autres"])        
+        with open(filenom, 'w') as ofile:
+            writer = csv.writer(ofile, delimiter = ":")
+            writer.writerows(tabclasses)
+
+            
+iota=iota_nomenclature("/home/vthierion/Documents/OSO/Dev/iota2/scripts/simplification/classes_iota23")
+#iota=iota_nomenclature("/home/vthierion/Documents/OSO/Dev/iota2/scripts/simplification/nomenclature.cfg", 'cfg')
+#print iota
+#iota.createColorFileTheia("/home/vthierion/tmp/colorFile.txt")
+iota.createNomenclatureFileTheia("/home/vthierion/tmp/nomenclature.txt")
+#print(iota.createConfusionMatrix(["/home/vthierion/tmp/Classif_Seed_0.csv"]))
 #print iota.HierarchicalNomenclature
 #print iota.getMaxLevelClassNb()
 #print iota.HierarchicalNomenclature
