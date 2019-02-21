@@ -407,8 +407,12 @@ class iota_nomenclature(object):
         
         return cmdf
 
-    def createColorFileTheia(self, filecolor = ""):
-        
+    def createColorFileTheia(self, filecolor):
+        """Create Color file for THEIA distribution 
+
+        filecolor :  colors file path
+            text/csv file (csv structure : code R G B)
+        """
         tabcolors = [[x, y[0], y[1], y[2]] for x, y in zip(self.getCode(self.getLevelNumber()), self.getColor(self.getLevelNumber()))]
         tabcolors.insert(0, [0, 255, 255, 255])
         tabcolors.append([255, 0, 0, 0])        
@@ -416,8 +420,12 @@ class iota_nomenclature(object):
             writer = csv.writer(ofile, delimiter = " ")
             writer.writerows(tabcolors)
 
-    def createNomenclatureFileTheia(self, filenom = ""):
-        
+    def createNomenclatureFileTheia(self, filenom):
+        """Create Nomencature file for THEIA distribution 
+
+        filecolor :  nomenclature file path
+            text/csv file (csv structure : classname:code)
+        """        
         tabclasses = [[x.encode('utf8'), y] for x, y in zip( self.getClass(self.getLevelNumber()), self.getCode(self.getLevelNumber()))]
         tabclasses.append([255, "autres"])        
         with open(filenom, 'w') as ofile:
