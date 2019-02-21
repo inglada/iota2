@@ -98,6 +98,7 @@ class iota2():
         from Sampling import VectorSamplesMerge as VSM
         from Common import IOTA2Directory as IOTA2_dir
         from Common import FileUtils as fu
+        from Common.Tools import CoRegister
         from Sampling import DimensionalityReduction as DR
         from Sensors import NbView
         from Sensors.SAR import S1Processor as SAR
@@ -124,6 +125,7 @@ class iota2():
         TmpTiles = cfg.getParam('chain', 'listTile')
         tiles = TmpTiles.split(" ")
         Sentinel1 = cfg.getParam('chain', 'S1Path')
+	VHR = cfg.getParam('coregistration','VHRPath')
         pathTilesFeat = os.path.join(PathTEST, "features")
         shapeRegion = cfg.getParam('chain', 'regionPath')
         field_Region = cfg.getParam('chain', 'regionField')
@@ -143,7 +145,7 @@ class iota2():
         fusionClaAllSamplesVal = cfg.getParam('chain', 'fusionOfClassificationAllSamplesValidation')
         sampleManagement = cfg.getParam('argTrain', 'sampleManagement')
         pixType = fu.getOutputPixType(NOMENCLATURE)
-        pypath = cfg.getParam('chain', 'pyAppPath')
+
         jobsPath = os.path.dirname(cfg.getParam('chain', 'outputPath')) + "/Jobs_" + cfg.getParam('chain', 'outputPath').split('/')[len(cfg.getParam('chain', 'outputPath').split('/')) - 1]
         
         merge_final_classifications = cfg.getParam('chain', 'merge_final_classifications')
@@ -260,6 +262,14 @@ class iota2():
                                            ressources=ressourcesByStep["get_common_mask"]))
         self.steps_group["init"][t_counter] = "generate common masks"
         
+        # STEP : Time series coregistration
+        if not "None" in VHR:
+            t_counter += 1
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: CoRegister.launch_coregister(x,pathConf, workingDirectory),tiles),
+                                           iota2_config=cfg,
+                                           ressources=ressourcesByStep["coregistration"]))
+            self.steps_group["init"][t_counter] = "Time series coregistration on a VHR reference"
+
         # STEP : pix Validity by tiles generation
         t_counter += 1
         t_container.append(tLauncher.Tasks(tasks=(lambda x: NbView.genNbView(x, "CloudThreshold_" + str(cloud_threshold) + ".shp", cloud_threshold, pathConf, workingDirectory), [os.path.join(pathTilesFeat, tile) for tile in tiles]),

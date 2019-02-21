@@ -138,11 +138,24 @@ if [[ "$ok" == "1" ]]; then
       else
       # symbolic link to iota2 main repository already cloned
       # this to avoid misunderstanding after, when running iota2.
-#        git clone https://framagit.org/inglada/iota2.git
+#        git clone https://framagit.org/iota2-project/iota2
         ln -s $prefix_dir/../../. iota2
       fi
       cd $prefix_dir/OTB/OTB/Modules/Remote/
       ln -sf ../../../../CESBIO/iota2 
+
+      # Add PointMatchCoregistrationModel module
+      echo "Adding PointMatchCoregistrationModel module ..."
+      mkdir -p $prefix_dir/TETIS
+      cd $prefix_dir/TETIS
+      if [ -d "./otbPointMatchCoregistrationModel" ]; then
+        echo "otbPointMatchCoregistrationModel repository already cloned. skipping."
+      else
+        echo "get otbPointMatchCoregistrationModel"
+        git clone https://framagit.org/SPeillet/otbPointMatchCoregistrationModel.git
+      fi
+      cd $prefix_dir/OTB/OTB/Modules/Remote/
+      ln -sf ../../../../TETIS/otbPointMatchCoregistrationModel OTBPointMatchCoregistrationModel
     fi
   fi
   #----------------------------------------
@@ -162,7 +175,7 @@ if [[ "$ok" == "1" ]]; then
       # Building iota2
       echo "Building iota2 ..."
       cd $prefix_dir/OTB/build/OTB/build
-      cmake -DCMAKE_CXX_COMPILER=${CXX} -DCMAKE_CXX_FLAGS:STRING=-std=c++14 -DModule_IOTA2:BOOL=ON -DModule_IOTA2:BOOL=ON -DModule_OTBTemporalGapFilling:BOOL=ON -DModule_MultitempFiltering:BOOL=ON $prefix_dir/OTB/OTB 
+      cmake -DCMAKE_CXX_COMPILER=${CXX} -DCMAKE_CXX_FLAGS:STRING=-std=c++14 -DModule_IOTA2:BOOL=ON -DModule_IOTA2:BOOL=ON -DModule_OTBTemporalGapFilling:BOOL=ON -DModule_MultitempFiltering:BOOL=ON -DModule_OTBAppPointMatchCoregistration:BOOL=ON $prefix_dir/OTB/OTB 
       make
       make install
     fi
