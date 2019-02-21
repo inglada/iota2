@@ -130,7 +130,7 @@ def get_HPC_disponibility(nb_cpu, ram, process_min, process_max, nb_parameters):
 
 
 def write_PBS_MPI(job_directory, log_directory, task_name, step_to_compute,
-                  nb_parameters, request, iota2_mod_p, iota2_mod_n, OTB_super, script_path,
+                  nb_parameters, request, script_path,
                   config_path, config_ressources_req=None):
     """write PBS file, according to ressource requested
     
@@ -159,22 +159,22 @@ def write_PBS_MPI(job_directory, log_directory, task_name, step_to_compute,
                                str(ram) + "gb", MPI_process, request.walltime,
                                log_out, log_err)
 
-    if OTB_super:
-        modules = ("module load gcc/6.3.0\n" 
-                   "module load mpi4py/2.0.0-py2.7\n"
-                   "source {}/config_otb.sh\n"
-                   "export PYTHONPATH=$PYTHONPATH:/work/OT/theia/oso/iota2_dep/pyspatialite-3.0.1-alpha-0/lib/\n"
-                   "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/work/OT/theia/oso/iota2_dep/libspatialite/lib/\n"
-                   "export GDAL_CACHEMAX=128\n").format(OTB_super)
+    py_path = os.environ.get('PYTHONPATH')
+    path = os.environ.get('PATH')
+    ld_lib_path = os.environ.get('LD_LIBRARY_PATH')
+    otb_app_path = os.environ.get('OTB_APPLICATION_PATH')
+    gdal_data = os.environ.get('GDAL_DATA')
+    geotiff_csv = os.environ.get('GEOTIFF_CSV')
 
-    elif OTB_super == None and iota2_mod_p:
-        modules = ("module use {}\n"
-                   "module load {}\n"
-                   "export GDAL_CACHEMAX=128\n").format(iota2_mod_p,
-                                                        iota2_mod_n)
-    elif OTB_super == None and iota2_mod_p == None:
-        modules = ("module load {}\n"
-                   "export GDAL_CACHEMAX=128\n").format(iota2_mod_n)
+    modules = ("\nexport PYTHONPATH={}\n"
+               "export PATH={}\n"
+               "export LD_LIBRARY_PATH={}\n"
+               "export OTB_APPLICATION_PATH={}\n"
+               "export GDAL_DATA={}\n"
+               "export GEOTIFF_CSV={}\n"
+               "export IOTA2DIR={}\n\n").format(py_path, path, ld_lib_path,
+                                                otb_app_path, gdal_data, geotiff_csv,
+                                                os.environ.get('IOTA2DIR'))
 
     ressources_HPC = ""
     if config_ressources_req:
@@ -199,7 +199,7 @@ def write_PBS_MPI(job_directory, log_directory, task_name, step_to_compute,
     return pbs_path, log_err
 
 def write_PBS_JA(job_directory, log_directory, task_name, step_to_compute,
-                 nb_parameters, request, iota2_mod_p, iota2_mod_n, OTB_super, script_path,
+                 nb_parameters, request, script_path,
                  config_path, config_ressources_req=None):
     """write PBS file, according to ressource requested
     
@@ -238,21 +238,23 @@ def write_PBS_JA(job_directory, log_directory, task_name, step_to_compute,
                       "\n").format(request.name, request.nb_cpu,
                                    request.ram, request.walltime,
                                    log_out, log_err)
-    if OTB_super:
-        modules = ("module load gcc/6.3.0\n" 
-                   "source {}/config_otb.sh\n"
-                   "export PYTHONPATH=$PYTHONPATH:/work/OT/theia/oso/iota2_dep/pyspatialite-3.0.1-alpha-0/lib/\n"
-                   "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/work/OT/theia/oso/iota2_dep/libspatialite/lib/\n"
-                   "export GDAL_CACHEMAX=128\n").format(OTB_super)
 
-    elif OTB_super == None and iota2_mod_p:
-        modules = ("module use {}\n"
-                   "module load {}\n"
-                   "export GDAL_CACHEMAX=128\n").format(iota2_mod_p,
-                                                        iota2_mod_n)
-    elif OTB_super == None and iota2_mod_p == None:
-        modules = ("module load {}\n"
-                   "export GDAL_CACHEMAX=128\n").format(iota2_mod_n)
+    py_path = os.environ.get('PYTHONPATH')
+    path = os.environ.get('PATH')
+    ld_lib_path = os.environ.get('LD_LIBRARY_PATH')
+    otb_app_path = os.environ.get('OTB_APPLICATION_PATH')
+    gdal_data = os.environ.get('GDAL_DATA')
+    geotiff_csv = os.environ.get('GEOTIFF_CSV')
+
+    modules = ("\nexport PYTHONPATH={}\n"
+               "export PATH={}\n"
+               "export LD_LIBRARY_PATH={}\n"
+               "export OTB_APPLICATION_PATH={}\n"
+               "export GDAL_DATA={}\n"
+               "export GEOTIFF_CSV={}\n"
+               "export IOTA2DIR={}\n\n").format(py_path, path, ld_lib_path,
+                                                otb_app_path, gdal_data, geotiff_csv,
+                                                os.environ.get('IOTA2DIR'))
 
     ressources_HPC = ""
     if config_ressources_req:
@@ -350,14 +352,6 @@ def launchChain(cfg, config_ressources=None, parallel_mode="MPI"):
     job_dir = cfg.getParam("chain", "jobsPath")
     log_dir = os.path.join(PathTEST, "logs")
 
-    iota2_mod_name = os.environ.get('MODULE_NAME')
-    iota2_mod_path = os.environ.get('MODULE_PATH')
-
-    try:
-        OTB_super = cfg.getParam("chain", "OTB_HOME")
-    except:
-        OTB_super = None
-        
     chain_to_process = chain.iota2(cfg, config_ressources)
     steps = chain_to_process.steps
     nb_steps = len(steps)
@@ -385,15 +379,13 @@ def launchChain(cfg, config_ressources=None, parallel_mode="MPI"):
             pbs, log_err = write_PBS_MPI(job_directory=job_dir, log_directory=log_dir,
                                          task_name=steps[step_num].TaskName, step_to_compute=step_num+1,
                                          nb_parameters=nbParameter, request=ressources,
-                                         iota2_mod_p=iota2_mod_path, iota2_mod_n=iota2_mod_name,
-                                         OTB_super=OTB_super, script_path=scripts, config_path=config_path,
+                                         script_path=scripts, config_path=config_path,
                                          config_ressources_req=config_ressources)
         elif parallel_mode == "JobArray":
              pbs, log_err = write_PBS_JA(job_directory=job_dir, log_directory=log_dir,
                                          task_name=steps[step_num].TaskName, step_to_compute=step_num+1,
                                          nb_parameters=nbParameter, request=ressources,
-                                         iota2_mod_p=iota2_mod_path, iota2_mod_n=iota2_mod_name,
-                                         OTB_super=OTB_super, script_path=scripts, config_path=config_path,
+                                         script_path=scripts, config_path=config_path,
                                          config_ressources_req=config_ressources)
         if current_step == 1:
             qsub = ("qsub -W block=true {0}").format(pbs)
