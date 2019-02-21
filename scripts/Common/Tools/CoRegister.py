@@ -169,12 +169,12 @@ def launch_coregister(tile, cfg, workingDirectory, launch_mask=True):
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
 
-    ipathL5 = cfg.getParam('chain', 'L5Path')
+    ipathL5 = cfg.getParam('chain', 'L5Path_old')
     if ipathL5 != "None" and os.path.exists(os.path.join(ipathL5,tile)):
         datadir = os.path.join(ipathL5,tile)
         datatype = 'L5'
         pattern = "ORTHO_SURF_CORR_PENTE*.TIF"
-    ipathL8 = cfg.getParam('chain', 'L8Path')
+    ipathL8 = cfg.getParam('chain', 'L8Path_old')
     if ipathL8 != "None" and os.path.exists(os.path.join(ipathL8,tile)):
         datadir = os.path.join(ipathL8,tile)
         datatype = 'L8'
