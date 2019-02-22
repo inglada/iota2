@@ -121,7 +121,11 @@ class Sentinel_2(Sensor):
         """
         from Common.FileUtils import FileSearch_AND
 
-        stacks = sorted(FileSearch_AND(self.output_preprocess_directory, True, "{}.tif".format(self.suffix)),
+        pattern = "{}.tif".format(self.suffix)
+        if not "none" in self.cfg_IOTA2.getParam('coregistration','VHRPath').lower():
+            pattern = "{}_COREG.tif".format(self.suffix)
+
+        stacks = sorted(FileSearch_AND(self.output_preprocess_directory, True, "{}".format(pattern)),
                         key=lambda x : os.path.basename(x).split("_")[self.date_position].split("-")[0])
         return stacks
 
@@ -130,7 +134,10 @@ class Sentinel_2(Sensor):
         return sorted available masks
         """
         from Common.FileUtils import FileSearch_AND
-        masks = sorted(FileSearch_AND(self.output_preprocess_directory, True, "{}.tif".format(self.masks_date_suffix)),
+        pattern = "{}.tif".format(self.masks_date_suffix)
+        if not "none" in self.cfg_IOTA2.getParam('coregistration','VHRPath').lower():
+            pattern = "{}_COREG.tif".format(self.suffix)
+        masks = sorted(FileSearch_AND(self.output_preprocess_directory, True, "{}".format(pattern)),
                        key=lambda x : os.path.basename(x).split("_")[self.date_position].split("-")[0])
         return masks
 
@@ -228,7 +235,7 @@ class Sentinel_2(Sensor):
         date_mask = []
         for mask_name, rule in self.masks_rules.items():
             date_mask.append(glob.glob(os.path.join(date_dir, "{}{}".format(self.struct_path_masks, mask_name)))[0])
-        
+
         # manage directories
         mask_dir = os.path.dirname(date_mask[0])
         logger.debug("preprocessing {} masks".format(mask_dir))
@@ -397,6 +404,7 @@ class Sentinel_2(Sensor):
         time_series_dir = os.path.join(self.features_dir, "tmp")
         ensure_dir(time_series_dir, raise_exe=False)
         times_series_raster = os.path.join(time_series_dir, self.time_series_name)
+
         dates_time_series = CreateConcatenateImagesApplication({"il": dates_concatenation,
                                                                 "out": times_series_raster,
                                                                 "pixType": "int16",
