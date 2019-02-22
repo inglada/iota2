@@ -441,8 +441,8 @@ class serviceConfigFile:
             self.testVarConfigFile('chain', 'S2Path', str)
             self.testVarConfigFile('chain', 'S1Path', str)
 
-            self.testVarConfigFile('chain', 'firstStep', str, ["init", "sampling", "dimred", "learning", "classification", "mosaic", "validation", "regularisation", "vectorisation", "lcstatistics"])
-            self.testVarConfigFile('chain', 'lastStep', str, ["init", "sampling", "dimred", "learning", "classification", "mosaic", "validation", "regularisation", "vectorisation", "lcstatistics"])
+            self.testVarConfigFile('chain', 'firstStep', str, ["init", "sampling", "dimred", "learning", "classification", "mosaic", "validation", "regularisation", "crown", "vectorisation", "lcstatistics"])
+            self.testVarConfigFile('chain', 'lastStep', str, ["init", "sampling", "dimred", "learning", "classification", "mosaic", "validation", "regularisation", "crown", "vectorisation", "lcstatistics"])
 
             if self.getParam("chain", "regionPath"):
                 check_region_vector(self.cfg)
@@ -528,7 +528,7 @@ class serviceConfigFile:
             # directory tests
             if self.getParam("chain", "jobsPath"):
                 self.testDirectory(self.getParam("chain", "jobsPath"))
-
+            print os.path.join(os.environ.get('IOTA2DIR'), "scripts")
             self.testDirectory(os.path.join(os.environ.get('IOTA2DIR'), "scripts"))
             self.testDirectory(self.cfg.chain.nomenclaturePath)
             self.testDirectory(self.cfg.chain.groundTruth)
