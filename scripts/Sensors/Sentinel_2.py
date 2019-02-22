@@ -324,8 +324,13 @@ class Sentinel_2(Sensor):
                                                "exp":expr,
                                                "ram": str(ram)})
         s2_border.Execute()
+
+        reference_raster = self.ref_image
+        if not "none" in self.cfg_IOTA2.getParam('coregistration','VHRPath').lower():
+            reference_raster = self.get_available_dates()[0]
+
         # superimpose footprint
-        superimp, _ = CreateSuperimposeApplication({"inr": self.ref_image,
+        superimp, _ = CreateSuperimposeApplication({"inr": reference_raster,
                                                     "inm": s2_border,
                                                     "out": footprint_out,
                                                     "pixType":"uint8",

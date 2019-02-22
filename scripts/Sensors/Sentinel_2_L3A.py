@@ -113,7 +113,11 @@ class Sentinel_2_L3A(Sensor):
         """
         from Common.FileUtils import FileSearch_AND
 
-        stacks = sorted(FileSearch_AND(self.output_preprocess_directory, True, "{}.tif".format(self.suffix)),
+        pattern = "{}.tif".format(self.suffix)
+        if not "none" in self.cfg_IOTA2.getParam('coregistration','VHRPath').lower():
+            pattern = "{}_COREG.tif".format(self.suffix)
+
+        stacks = sorted(FileSearch_AND(self.output_preprocess_directory, True, pattern),
                         key=lambda x : os.path.basename(x).split("_")[self.date_position].split("-")[0])
         return stacks
 
@@ -129,7 +133,11 @@ class Sentinel_2_L3A(Sensor):
         """
         from Common.FileUtils import FileSearch_AND
 
-        masks = sorted(FileSearch_AND(self.output_preprocess_directory, True, "{}.tif".format(self.suffix_mask)),
+        pattern = "{}.tif".format(self.suffix_mask)
+        if not "none" in self.cfg_IOTA2.getParam('coregistration','VHRPath').lower():
+            pattern = "{}_COREG.tif".format(self.suffix_mask)
+
+        masks = sorted(FileSearch_AND(self.output_preprocess_directory, True, pattern),
                        key=lambda x : os.path.basename(x).split("_")[self.date_position].split("-")[0])
         return masks
 
@@ -303,8 +311,12 @@ class Sentinel_2_L3A(Sensor):
         footprint_dir = os.path.join(self.features_dir, "tmp")
         ensure_dir(footprint_dir,raise_exe=False)
         footprint_out = os.path.join(footprint_dir, self.footprint_name)
-        
-        s2_l3a_border = CreateBandMathApplication({"il": self.ref_image,
+
+        reference_raster = self.ref_image
+        if not "none" in self.cfg_IOTA2.getParam('coregistration','VHRPath').lower():
+            reference_raster = self.get_available_dates()[0]
+            
+        s2_l3a_border = CreateBandMathApplication({"il": reference_raster,
                                                    "out": footprint_out,
                                                    "exp":"1",
                                                    "pixType":"uint8",

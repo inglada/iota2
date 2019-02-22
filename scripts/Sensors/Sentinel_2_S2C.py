@@ -303,7 +303,10 @@ class Sentinel_2_S2C(Sensor):
         app_dep = [edge]
 
         # superimpose footprint
-        superimp, _ = CreateSuperimposeApplication({"inr": self.ref_image,
+        reference_raster = self.ref_image
+        if not "none" in self.cfg_IOTA2.getParam('coregistration','VHRPath').lower():
+            reference_raster = self.get_available_dates()[0]
+        superimp, _ = CreateSuperimposeApplication({"inr": reference_raster,
                                                     "inm": edge,
                                                     "out": footprint_out,
                                                     "pixType":"uint8",
@@ -341,7 +344,7 @@ class Sentinel_2_S2C(Sensor):
 
         pattern = "{}.tif".format(self.masks_date_suffix)
         if not "none" in self.cfg_IOTA2.getParam('coregistration','VHRPath').lower():
-            pattern = "{}_COREG.tif".format(self.suffix)
+            pattern = "{}_COREG.tif".format(self.masks_date_suffix)
 
         masks = sorted(FileSearch_AND(target_folder, True, pattern),
                        key=lambda x : os.path.basename(x).split("_")[self.date_position].split("T")[0])

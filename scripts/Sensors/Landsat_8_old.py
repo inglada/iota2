@@ -140,6 +140,7 @@ class Landsat_8_old(Sensor):
         from Common.OtbAppBank import CreateSuperimposeApplication
         from Common.OtbAppBank import CreateBandMathApplication
         from Common.FileUtils import ensure_dir
+        from Common.FileUtils import FileSearch_AND
 
         footprint_dir = os.path.join(self.features_dir, "tmp")
         ensure_dir(footprint_dir,raise_exe=False)
@@ -152,7 +153,7 @@ class Landsat_8_old(Sensor):
         date_edge = []
         for date_dir in input_dates:
             date_edge.append(glob.glob(os.path.join(date_dir, "{}{}".format(self.struct_path_masks, self.masks_rules.keys()[self.border_pos])))[0])
-
+        
         self.generate_raster_ref(date_edge[0])
 
         # seek odd values, then sum it
@@ -163,7 +164,12 @@ class Landsat_8_old(Sensor):
                                                  "exp": expr})
         masks_rules.Execute()
         app_dep= [masks_rules]
-        superimp, _ = CreateSuperimposeApplication({"inr": self.ref_image,
+
+        reference_raster = self.ref_image
+        if not "none" in self.cfg_IOTA2.getParam('coregistration','VHRPath').lower():
+            reference_raster = FileSearch_AND(input_dates[0], True, self.data_type, "COREG", ".TIF")[0]
+
+        superimp, _ = CreateSuperimposeApplication({"inr": reference_raster,
                                                     "inm": masks_rules,
                                                     "out": footprint_out,
                                                     "pixType":"uint8",
@@ -232,7 +238,10 @@ class Landsat_8_old(Sensor):
         # get date's data
         date_data = []
         for date_dir in input_dates:
-            date_data.append(FileSearch_AND(date_dir, True, self.data_type, ".TIF")[0])
+            l8_old_date = FileSearch_AND(date_dir, True, self.data_type, ".TIF")[0]
+            if not "none" in self.cfg_IOTA2.getParam('coregistration','VHRPath').lower():
+                l8_old_date = FileSearch_AND(date_dir, True, self.data_type, "COREG", ".TIF")[0]
+            date_data.append(l8_old_date)
 
         time_series_dir = os.path.join(self.features_dir, "tmp")
         ensure_dir(time_series_dir, raise_exe=False)
@@ -316,10 +325,19 @@ class Landsat_8_old(Sensor):
         # get date's data
         date_data = []
         dates_masks = []
+        pattern = ""
+        div_mask_patter = self.masks_rules.keys()[self.border_pos]
+        cloud_mask_patter = self.masks_rules.keys()[self.cloud_pos]
+        sat_mask_patter = self.masks_rules.keys()[self.sat_pos]
+        if not "none" in self.cfg_IOTA2.getParam('coregistration','VHRPath').lower():
+            div_mask_patter = div_mask_patter.replace(".TIF", "_COREG.TIF")
+            cloud_mask_patter = div_mask_patter.replace(".TIF", "_COREG.TIF")
+            sat_mask_patter = div_mask_patter.replace(".TIF", "_COREG.TIF")
+                
         for date_dir in input_dates:
-            div_mask = glob.glob(os.path.join(date_dir, "{}{}".format(self.struct_path_masks, self.masks_rules.keys()[self.border_pos])))[0]
-            cloud_mask = glob.glob(os.path.join(date_dir, "{}{}".format(self.struct_path_masks, self.masks_rules.keys()[self.cloud_pos])))[0]
-            sat_mask = glob.glob(os.path.join(date_dir, "{}{}".format(self.struct_path_masks, self.masks_rules.keys()[self.sat_pos])))[0]
+            div_mask = glob.glob(os.path.join(date_dir, "{}{}".format(self.struct_path_masks, div_mask_patter)))[0]
+            cloud_mask = glob.glob(os.path.join(date_dir, "{}{}".format(self.struct_path_masks, cloud_mask_patter)))[0]
+            sat_mask = glob.glob(os.path.join(date_dir, "{}{}".format(self.struct_path_masks, sat_mask_patter)))[0]
             # im1 = div, im2 = cloud, im3 = sat
             div_expr = "(1-(im1b1/2==rint(im1b1/2)))"
             cloud_expr = "im2b1"

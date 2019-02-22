@@ -319,7 +319,7 @@ class Landsat_8(Sensor):
                                                "ram": str(ram)})
         s2_border.Execute()
         # superimpose footprint
-        superimp, _ = CreateSuperimposeApplication({"inr": self.ref_image,
+        superimp, _ = CreateSuperimposeApplication({"inr": reference_raster,
                                                     "inm": s2_border,
                                                     "out": footprint_out,
                                                     "pixType":"uint8",
