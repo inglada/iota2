@@ -910,6 +910,9 @@ Sensor.temporalResolution
     .. code-block:: python
 
         temporalResolution : 10
+*Notes*
+    There is no temporal sampling period available with the Sentinel_2_L3A sensor,
+    only clouds are interpolated
 
 Sensor.additionalFeatures
 =========================
