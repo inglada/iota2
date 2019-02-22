@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 # =========================================================================
 #   Program:   iota2
 #
@@ -27,6 +29,8 @@ logger.addHandler(logging.NullHandler())
 
 
 class Landsat5(Sensor):
+
+    name = 'Landsat5'
 
     def __init__(self, path_image, opath, fconf, workRes, createFolder="Create",
                  dicoBands={"B1":1, "B2":2, "B3":3, "B4":4, "B5":5, "B6":6},
@@ -150,7 +154,7 @@ class Landsat5(Sensor):
 
 
 class Landsat8(Sensor):
-
+    name = 'Landsat8'
     def __init__(self, path_image, opath, fconf, workRes, createFolder="Create",
                  dicoBands={"B1":1, "B2":2, "B3":3, "B4":4, "B5":5, "B6":6, "B7":7},
                  logger=logger):
@@ -272,6 +276,7 @@ class Landsat8(Sensor):
 
 
 class Sentinel_2(Sensor):
+    name = 'Sentinel2'
     def __init__(self, path_image, opath, fconf, workRes, createFolder="Create",
                  dicoBands={"B2":1, "B3":2, "B4":3, "B5":4, "B6":5, "B7":6, "B8":7, "B8A":8, "B11":9, "B12":10},
                  logger=logger):
@@ -414,6 +419,8 @@ class Sentinel_2(Sensor):
 
 
 class Sentinel_2_S2C(Sensor):
+
+    name = 'Sentinel2S2C'
 
     def __init__(self, path_image, opath, fconf, workRes, createFolder="Create",
                  dicoBands={"B2":1 ,"B3":2 ,"B4":3 ,"B5":4 ,"B6":5 ,"B7":6 ,"B8":7,"B8A":8,"B11":9,"B12":10},

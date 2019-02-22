@@ -110,6 +110,8 @@ class iota2():
         from Sampling import SamplesStat
         from Sampling import SamplesSelection
         from Classification import MergeFinalClassifications as mergeCl
+        from Sensors import ProcessLauncher
+
         from simplification import Regularization as regul
         from simplification import ClumpClassif as clump
         from simplification import GridGenerator as gridg
@@ -126,7 +128,7 @@ class iota2():
         TmpTiles = cfg.getParam('chain', 'listTile')
         tiles = TmpTiles.split(" ")
         Sentinel1 = cfg.getParam('chain', 'S1Path')
-	VHR = cfg.getParam('coregistration','VHRPath')
+        VHR = cfg.getParam('coregistration','VHRPath')
         pathTilesFeat = os.path.join(PathTEST, "features")
         shapeRegion = cfg.getParam('chain', 'regionPath')
         field_Region = cfg.getParam('chain', 'regionField')
@@ -247,22 +249,18 @@ class iota2():
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["iota2_dir"]))
         self.steps_group["init"][t_counter] = "create directories"
-
-        # STEP : preprocess SAR data
-        if not "None" in Sentinel1:
-            t_counter += 1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: SAR.S1PreProcess(Sentinel1, x, workingDirectory), tiles),
-                                               iota2_config=cfg,
-                                               ressources=ressourcesByStep["SAR_pre_process"]))
-            self.steps_group["init"][t_counter] = "Sentinel-1 pre-processing"
-
-        # STEP : Common masks generation
-        t_counter += 1
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: fu.getCommonMasks(x, pathConf, workingDirectory), tiles),
-                                           iota2_config=cfg,
-                                           ressources=ressourcesByStep["get_common_mask"]))
-        self.steps_group["init"][t_counter] = "generate common masks"
         
+        # STEP : preprocess data
+        t_counter += 1
+        RAM_preprocess = 1024.0 * get_RAM(ressourcesByStep["preprocess_data"].ram)
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: ProcessLauncher.preprocess(x,
+                                                                                       pathConf,
+                                                                                       workingDirectory,
+                                                                                       RAM_preprocess), tiles),
+                                           iota2_config=cfg,
+                                           ressources=ressourcesByStep["preprocess_data"]))
+        self.steps_group["init"][t_counter] = "preprocess data"
+
         # STEP : Time series coregistration
         if not "None" in VHR:
             t_counter += 1
@@ -271,9 +269,26 @@ class iota2():
                                            ressources=ressourcesByStep["coregistration"]))
             self.steps_group["init"][t_counter] = "Time series coregistration on a VHR reference"
 
+        # STEP : Common masks generation
+        t_counter += 1
+        RAM_common_mask = 1024.0 * get_RAM(ressourcesByStep["preprocess_data"].ram)
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: ProcessLauncher.commonMasks(x,
+                                                                                        pathConf,
+                                                                                        workingDirectory,
+                                                                                        RAM_common_mask), tiles),
+                                           iota2_config=cfg,
+                                           ressources=ressourcesByStep["get_common_mask"]))
+        self.steps_group["init"][t_counter] = "generate common masks"
+
         # STEP : pix Validity by tiles generation
         t_counter += 1
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: NbView.genNbView(x, "CloudThreshold_" + str(cloud_threshold) + ".shp", cloud_threshold, pathConf, workingDirectory), [os.path.join(pathTilesFeat, tile) for tile in tiles]),
+        RAM_validity = 1024.0 * get_RAM(ressourcesByStep["get_pixValidity"].ram)
+        t_container.append(tLauncher.Tasks(tasks=(lambda x: ProcessLauncher.validity(x,
+                                                                                     pathConf,
+                                                                                     "CloudThreshold_{}.shp".format(cloud_threshold),
+                                                                                     cloud_threshold,
+                                                                                     workingDirectory,
+                                                                                     RAM_validity), tiles),
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["get_pixValidity"]))
         self.steps_group["init"][t_counter] = "compute validity mask by tile" 

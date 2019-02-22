@@ -52,12 +52,18 @@ class serviceConfigFile:
         if iota_config:
             #init chain section
             chain_default = {"outputStatistics": False,
-                             "L5Path": "None",
+                             "L5Path_old": "None",
+                             "L5_old_output_path": None,
                              "L8Path": "None",
+                             "L8_output_path": None,
+                             "L8Path_old": "None",
+                             "L8_old_output_path": None,
                              "S2Path": "None",
                              "S2_output_path" : None,
                              "S2_S2C_Path": "None",
                              "S2_S2C_output_path": None,
+                             "S2_L3A_Path": "None",
+                             "S2_L3A_output_path": None,
                              "S1Path": "None",
                              "userFeatPath": "None",
                              "jobsPath" : None,
@@ -147,31 +153,48 @@ class serviceConfigFile:
             #init sensors parameters
             Landsat8_default = {"additionalFeatures": "",
                                 "temporalResolution": 16,
+                                "full_pipline": False,
                                 "startDate": "",
                                 "endDate": "",
                                 "keepBands": self.init_listSequence(["B1", "B2", "B3", "B4", "B5", "B6", "B7"])}
-            Landsat5_default = {"additionalFeatures": "",
+            Landsat8_old_default = {"additionalFeatures": "",
+                                    "temporalResolution": 16,
+                                    "startDate": "",
+                                    "endDate": "",
+                                    "keepBands": self.init_listSequence(["B1", "B2", "B3", "B4", "B5", "B6", "B7"])}
+            Landsat5_old_default = {"additionalFeatures": "",
                                 "temporalResolution": 16,
                                 "startDate": "",
                                 "endDate": "",
-                                "keepBands": self.init_listSequence(["B1", "B2", "B3", "B4", "B5", "B6", "B7"])}
+                                "keepBands": self.init_listSequence(["B1", "B2", "B3", "B4", "B5", "B6"])}
             Sentinel_2_default = {"additionalFeatures": "",
                                   "temporalResolution": 10,
+                                  "full_pipline": False,
                                   "startDate": "",
                                   "endDate": "",
-                                  "keepBands": self.init_listSequence(["B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11"])}
+                                  "keepBands": self.init_listSequence(["B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11", "B12"])}
             Sentinel_2_S2C_default = {"additionalFeatures": "",
                                       "temporalResolution": 10,
+                                      "full_pipline": False,
                                       "startDate": "",
                                       "endDate": "",
-                                      "keepBands": self.init_listSequence(["B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11"])}
+                                      "keepBands": self.init_listSequence(["B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11", "B12"])}
+            Sentinel_2_L3A_default = {"additionalFeatures": "",
+                                      "temporalResolution": 10,
+                                      "full_pipline": False,
+                                      "startDate": "",
+                                      "endDate": "",
+                                      "keepBands": self.init_listSequence(["B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11", "B12"])}
+                                      
             userFeat =  {"arbo": "/*",
                          "patterns":"ALT,ASP,SLP"}
 
-            self.init_section("Landsat5", Landsat5_default)
+            self.init_section("Landsat5_old", Landsat5_old_default)
             self.init_section("Landsat8", Landsat8_default)
+            self.init_section("Landsat8_old", Landsat8_old_default)
             self.init_section("Sentinel_2", Sentinel_2_default)
             self.init_section("Sentinel_2_S2C", Sentinel_2_S2C_default)
+            self.init_section("Sentinel_2_L3A", Sentinel_2_L3A_default)
             self.init_section("userFeat", userFeat)
 
             simp_default = {"classification": None,
@@ -436,7 +459,7 @@ class serviceConfigFile:
             self.testVarConfigFile('chain', 'outputPath', str)
             self.testVarConfigFile('chain', 'nomenclaturePath', str)
             self.testVarConfigFile('chain', 'listTile', str)
-            self.testVarConfigFile('chain', 'L5Path', str)
+            self.testVarConfigFile('chain', 'L5Path_old', str)
             self.testVarConfigFile('chain', 'L8Path', str)
             self.testVarConfigFile('chain', 'S2Path', str)
             self.testVarConfigFile('chain', 'S1Path', str)
@@ -508,15 +531,18 @@ class serviceConfigFile:
 
             self.testVarConfigFile('chain', 'remove_tmp_files', bool)
 
-            if self.cfg.chain.L5Path != "None":
+            if self.cfg.chain.L5Path_old != "None":
                 #L5 variable check
-                self.testVarConfigFile('Landsat5', 'temporalResolution', int)
-                self.testVarConfigFile('Landsat5', 'keepBands', Sequence)
-
+                self.testVarConfigFile('Landsat5_old', 'temporalResolution', int)
+                self.testVarConfigFile('Landsat5_old', 'keepBands', Sequence)
             if self.cfg.chain.L8Path != "None":
                 #L8 variable check
                 self.testVarConfigFile('Landsat8', 'temporalResolution', int)
                 self.testVarConfigFile('Landsat8', 'keepBands', Sequence)
+            if self.cfg.chain.L8Path_old != "None":
+                #L8 variable check
+                self.testVarConfigFile('Landsat8_old', 'temporalResolution', int)
+                self.testVarConfigFile('Landsat8_old', 'keepBands', Sequence)
 
             if self.cfg.chain.S2Path != "None":
                 #S2 variable check
@@ -575,7 +601,7 @@ class serviceConfigFile:
                 raise sErr.configError("these parameters are incompatible merge_final_classifications:True and splitGroundTruth:False")
             if self.cfg.argTrain.dempster_shafer_SAR_Opt_fusion and 'None' in self.cfg.chain.S1Path:
                 raise sErr.configError("these parameters are incompatible dempster_shafer_SAR_Opt_fusion : True and S1Path : 'None'")
-            if self.cfg.argTrain.dempster_shafer_SAR_Opt_fusion and 'None' in self.cfg.chain.userFeatPath and 'None' in self.cfg.chain.L5Path and 'None' in self.cfg.chain.L8Path and 'None' in self.cfg.chain.S2Path and 'None' in self.cfg.chain.S2_S2C_Path:
+            if self.cfg.argTrain.dempster_shafer_SAR_Opt_fusion and 'None' in self.cfg.chain.userFeatPath and 'None' in self.cfg.chain.L5Path_old and 'None' in self.cfg.chain.L8Path and 'None' in self.cfg.chain.L8Path_old and 'None' in self.cfg.chain.S2Path and 'None' in self.cfg.chain.S2_S2C_Path:
                 raise sErr.configError("to perform post-classification fusion, optical data must be used")
         # Error managed
         except sErr.configFileError:

@@ -38,7 +38,7 @@ import otbApplication as otb
 from Common.Utils import run
 
 
-def ensure_dir(dirname):
+def ensure_dir(dirname, raise_exe=True):
     """
     Ensure that a named directory exists; if it does not, attempt to create it.
     """
@@ -47,7 +47,8 @@ def ensure_dir(dirname):
         os.makedirs(dirname)
     except OSError, e:
         if e.errno != errno.EEXIST:
-            raise
+            if raise_exe:
+                raise
 
 
 def getOutputPixType(nomencalture_path):
@@ -394,33 +395,7 @@ def getCommonMaskName(cfg):
         :param cfg: class serviceConfigFile
         :return retour: string name of the mask
     """
-    from Common import ServiceConfigFile as SCF
-
-    if not isinstance(cfg, SCF.serviceConfigFile):
-        cfg = SCF.serviceConfigFile(cfg)
-    L5Path = cfg.getParam('chain', 'L5Path')
-    L8Path = cfg.getParam('chain', 'L8Path')
-    S2Path = cfg.getParam('chain', 'S2Path')
-    S1Path = cfg.getParam('chain', 'S1Path')
-    userFeatPath = cfg.getParam('chain', 'userFeatPath')
-
-    if "None" in L5Path:
-        L5Path = None
-    if "None" in L8Path:
-        L8Path = None
-    if "None" in S2Path:
-        S2Path = None
-    if "None" in S1Path:
-        S1Path = None
-    if "None" in userFeatPath:
-        userFeatPath = None
-
-    if onlySAR(cfg):
-        mask_name = "SARMask"
-    elif not L5Path and not L8Path and not S2Path and not S1Path and userFeatPath:
-        mask_name = "UserFeatmask"
-    else:
-        mask_name = "MaskCommunSL"
+    mask_name = "MaskCommunSL"
     return mask_name
 
 
@@ -434,7 +409,7 @@ def dateInterval(dateMin, dataMax, tr):
     end = datetime.date(int(dataMax[0:4]), int(dataMax[4:6]), int(dataMax[6:8]))
     delta = timedelta(days=int(tr))
     curr = start
-    while curr < end:
+    while curr <= end:
         yield curr
         curr += delta
 
@@ -489,10 +464,12 @@ def getDateLandsat(pathLandsat, tiles, sensor="Landsat8"):
     dateMin = 30000000000
     dateMax = 0
     for tile in tiles:
-        folder = os.listdir(pathLandsat + "/" + sensor + "_" + tile)
+        #~ folder = os.listdir(pathLandsat + "/" + sensor + "_" + tile)
+        folder = os.listdir(pathLandsat + "/" + tile)
         for i in range(len(folder)):
             if folder[i].count(".tgz") == 0 and folder[i].count(".jpg") == 0 and folder[i].count(".xml") == 0:
-                contenu = os.listdir(pathLandsat + "/" + sensor + "_" + tile + "/" + folder[i])
+                #~ contenu = os.listdir(pathLandsat + "/" + sensor + "_" + tile + "/" + folder[i])
+                contenu = os.listdir(pathLandsat + "/" + tile + "/" + folder[i])
                 for i in range(len(contenu)):
                     if contenu[i].count(".TIF") != 0:
                         Date = int(contenu[i].split("_")[3])
@@ -1675,6 +1652,8 @@ def renameShapefile(inpath, filename, old_suffix, new_suffix, outpath=None):
     run("cp "+inpath+"/"+filename+old_suffix+".shx "+outpath+"/"+filename+new_suffix+".shx")
     run("cp "+inpath+"/"+filename+old_suffix+".dbf "+outpath+"/"+filename+new_suffix+".dbf")
     run("cp "+inpath+"/"+filename+old_suffix+".prj "+outpath+"/"+filename+new_suffix+".prj")
+    return outpath+"/"+filename+new_suffix+".shp"
+
     return outpath+"/"+filename+new_suffix+".shp"
 
 def ClipVectorData(vectorFile, cutFile, opath, nameOut=None):

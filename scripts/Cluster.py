@@ -176,6 +176,8 @@ def write_PBS_MPI(job_directory, log_directory, task_name, step_to_compute,
                                                 otb_app_path, gdal_data, geotiff_csv,
                                                 os.environ.get('IOTA2DIR'))
 
+    modules = modules + ("export IOTA2DIR={}\n".format(os.environ.get('IOTA2DIR')))
+    
     ressources_HPC = ""
     if config_ressources_req:
         ressources_HPC = "-config_ressources " + config_ressources_req

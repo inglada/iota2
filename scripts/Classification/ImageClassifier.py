@@ -23,7 +23,7 @@ import otbApplication as otb
 from Common import FileUtils as fu
 from Common import OtbAppBank
 from Common import GenerateFeatures as genFeatures
-from Common import ServiceConfigFile as SCF 
+from Common import ServiceConfigFile as SCF
 from Sampling import DimensionalityReduction as DR
 import logging
 
@@ -113,7 +113,9 @@ def launchClassification(tempFolderSerie, Classifmask, model, stats,
     mode = "usually"
     if "SAR.tif" in outputClassif:
         mode = "SAR"
-    AllFeatures, feat_labels, dep_features = genFeatures.generateFeatures(wd, tile, cfg, useGapFilling=useGapFilling, mode=mode)
+    
+    AllFeatures, feat_labels, dep_features = genFeatures.generateFeatures(wd, tile, cfg, mode=mode)
+
     if wMode:
         AllFeatures.ExecuteAndWriteOutput()
     else:

@@ -77,6 +77,149 @@ def unPackFirst(someListOfList):
         else:
             yield values
 
+def CreateImageTimeSeriesGapFillingApplication(OtbParameters):
+    """binding to ImageTimeSeriesGapFilling OTB's application
+    
+    Parameter
+    ---------
+
+    OtbParameters [dic] 
+        dictionnary with otb's parameter keys
+    
+    Return
+    ------
+    class 'otbApplication.Application'
+        ImageTimeSeriesGapFilling application ready to be Execute()
+    
+    Note
+    ----
+    `Complete documentation <http://tully.ups-tlse.fr/jordi/temporalgapfilling/tree/master>`
+    """
+    gapfilling_app = otb.Registry.CreateApplication("ImageTimeSeriesGapFilling")
+    if gapfilling_app is None:
+        raise Exception("Not possible to create 'ImageTimeSeriesGapFilling' application, \
+                         check if OTB is well configured / installed")
+    # mandatory parameters
+    if "in" not in OtbParameters:
+        raise Exception("'in' parameter not found")
+    if "mask" not in OtbParameters:
+        raise Exception("'mask' parameter not found")
+    if "comp" not in OtbParameters:
+        raise Exception("'comp' parameter not found")
+    if "it" not in OtbParameters:
+        raise Exception("'it' parameter not found")
+    
+    in_img = OtbParameters["in"]
+    # input image / temporal series
+    if isinstance(in_img, str):
+        gapfilling_app.SetParameterString("in", in_img)
+    elif isinstance(in_img, otb.Application):
+        inOutParam = getInputParameterOutput(in_img)
+        gapfilling_app.SetParameterInputImage("in", in_img.GetParameterOutputImage(inOutParam))
+    elif isinstance(in_img, tuple):
+        gapfilling_app.SetParameterInputImage("in", in_img[0].GetParameterOutputImage(getInputParameterOutput(in_img[0])))
+    else:
+        raise Exception("input image not recognize")
+
+    in_mask = OtbParameters["mask"]
+    # input image / temporal series
+    if isinstance(in_mask, str):
+        gapfilling_app.SetParameterString("mask", in_mask)
+    elif isinstance(in_mask, otb.Application):
+        inOutParam = getInputParameterOutput(in_mask)
+        gapfilling_app.SetParameterInputImage("mask", in_mask.GetParameterOutputImage(inOutParam))
+    elif isinstance(in_mask, tuple):
+        gapfilling_app.SetParameterInputImage("mask", in_mask[0].GetParameterOutputImage(getInputParameterOutput(in_mask[0])))
+    else:
+        raise Exception("input mask not recognize")
+    
+    gapfilling_app.SetParameterString("it", OtbParameters["it"])
+    gapfilling_app.SetParameterString("comp", OtbParameters["comp"])
+
+    # optional parameters
+    if "id" in OtbParameters:
+        gapfilling_app.SetParameterString("id", OtbParameters["id"])
+    if "od" in OtbParameters:
+        gapfilling_app.SetParameterString("od", OtbParameters["od"])
+    if "out" in OtbParameters:
+        gapfilling_app.SetParameterString("out", OtbParameters["out"])
+    if "ram" in OtbParameters:
+        gapfilling_app.SetParameterString("ram", OtbParameters["ram"])
+    if "pixType" in OtbParameters:
+        gapfilling_app.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
+    return gapfilling_app
+
+
+def CreateIota2FeatureExtractionApplication(OtbParameters):
+    """binding to iota2FeatureExtraction OTB's application
+    
+    Parameter
+    ---------
+
+    OtbParameters [dic] 
+        dictionnary with otb's parameter keys
+    
+    Return
+    ------
+    class 'otbApplication.Application'
+        iota2FeatureExtraction application ready to be Execute()
+    """
+    features_app = otb.Registry.CreateApplication("iota2FeatureExtraction")
+    if features_app is None:
+        raise Exception("Not possible to create 'iota2FeatureExtraction' application, \
+                         check if IOTA2 is well configured / installed")
+    # Mandatory parameters
+    if "in" not in OtbParameters:
+        raise Exception("'in' parameter not found")
+    if "comp" not in OtbParameters:
+        raise Exception("'comp' parameter not found")
+    if "red" not in OtbParameters:
+        raise Exception("'red' parameter not found")
+    if "nir" not in OtbParameters:
+        raise Exception("'nir' parameter not found")
+    if "swir" not in OtbParameters:
+        raise Exception("'swir' parameter not found")
+
+    in_img = OtbParameters["in"]
+    # input image / temporal series
+    if isinstance(in_img, str):
+        features_app.SetParameterString("in", in_img)
+    elif isinstance(in_img, otb.Application):
+        inOutParam = getInputParameterOutput(in_img)
+        features_app.SetParameterInputImage("in", in_img.GetParameterOutputImage(inOutParam))
+    elif isinstance(in_img, tuple):
+        features_app.SetParameterInputImage("in", in_img[0].GetParameterOutputImage(getInputParameterOutput(in_img[0])))
+    else:
+        raise Exception("input image not recognize")
+
+    features_app.SetParameterString("comp", str(OtbParameters["comp"]))
+    features_app.SetParameterString("red", str(OtbParameters["red"]))
+    features_app.SetParameterString("nir", str(OtbParameters["nir"]))
+    features_app.SetParameterString("swir", str(OtbParameters["swir"]))
+
+    if "indfact" in OtbParameters:
+        features_app.SetParameterString("indfact", OtbParameters["indfact"])
+    if "nodata" in OtbParameters:
+        features_app.SetParameterString("nodata", OtbParameters["nodata"])
+    if "copyinput" in OtbParameters:
+        features_app.SetParameterValue("copyinput", OtbParameters["copyinput"])
+    if "relrefl" in OtbParameters:
+        features_app.SetParameterEmpty("relrefl", True)
+    if "relindex" in OtbParameters:
+        features_app.SetParameterString("relindex", OtbParameters["relindex"])
+    if "keepduplicates" in OtbParameters:
+        features_app.SetParameterEmpty("keepduplicates", True)
+    if "acorfeat" in OtbParameters:
+        features_app.SetParameterEmpty("acorfeat", True)
+    if "ram" in OtbParameters:
+        features_app.SetParameterString("ram", OtbParameters["ram"])
+    if "out" in OtbParameters:
+        features_app.SetParameterString("out", OtbParameters["out"])
+    if "pixType" in OtbParameters:
+        features_app.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
+
+    return features_app
+
 
 def CreateSampleAugmentationApplication(OtbParameters):
     """binding to SampleAugmentation OTB's application
@@ -1131,7 +1274,7 @@ def CreateBandMathApplication(OtbParameters):
     in parameter could be string/List of OtbApplication/List of tuple of OtbApplication
     OtbParameters [dic] dictionnary with otb's parameter keys
                         Example :
-                        OtbParameters = {"in":"/image.tif",
+                        OtbParameters = {"in":mask,
                                         pixType:"uint8","out":"/out.tif"}
     OUT :
     bandMath [otb object ready to Execute]
@@ -1336,7 +1479,7 @@ def CreateExtractROIApplication(OtbParameters):
         raise Exception("'in' parameter not found")
 
     inImg = OtbParameters["in"]
-
+   
     if isinstance(inImg, str):
         erApp.SetParameterString("in", inImg)
     elif isinstance(inImg, otb.Application):
@@ -1346,7 +1489,7 @@ def CreateExtractROIApplication(OtbParameters):
         erApp.SetParameterInputImage("in", inImg[0].GetParameterOutputImage(getInputParameterOutput(inImg[0])))
     else:
         raise Exception("input image not recognize")
-
+    
     if "out" in OtbParameters:
         erApp.SetParameterString("out", str(OtbParameters["out"]))
     if "ram" in OtbParameters:
@@ -1392,6 +1535,7 @@ def CreateExtractROIApplication(OtbParameters):
         erApp.SetParameterString("sizex", str(OtbParameters["sizex"]))
     if "sizey" in OtbParameters:
         erApp.SetParameterString("sizey", str(OtbParameters["sizey"]))
+    erApp.UpdateParameters()
     if "cl" in OtbParameters:
         if not isinstance(OtbParameters["cl"], list):
             raise Exception("cl parameter must be a list of strings")
@@ -1699,133 +1843,6 @@ def computeUserFeatures(stack, Dates, nbComponent, expressions):
     return UserFeatures, fields, userFeatureDate, stack
 
 
-def gapFilling(cfg, tile, wMode, featuresPath=None, workingDirectory=None,
-               testMode=False, testSensorData=None, enable_Copy=False, logger=logger):
-
-    """
-    usage : from configuration file, compute gapFilling by sensors to current
-            tile
-
-    IN
-    cfg [Config object] :
-    tile [string] : current tile to compute
-    wMode [bool] : write temporary file ?
-    featuresPath [string] : features's path
-    workingDirectory [string] : path where tmp files will be written
-    testMode [bool] : enable test mode
-    testSensorData [string] : path to sensor's data -> use if test mode == True
-
-    OUT
-    AllgapFill [list of otbApplications] : gapfilling by sensors
-    AllRefl [list of otbApplications] : stack of reflectance before gapfilling
-    AllMask [list of otbApplications] : input gapFilling masks (by sensors)
-    datesInterp [string] : path to interpolation dates
-    realDates [string] : path to real sensors date
-    dep [list of otbApplication] : dependances
-    """
-    from Sensors import Sensors
-
-    dep = []
-    pathConf = cfg.pathConf
-
-    if fut.onlySAR(cfg) or not fut.sensorUserList(cfg):
-        return [], [], [], [], [], []
-    outFeatures = cfg.getParam('GlobChain', 'features')
-    userFeatPath = cfg.getParam('chain', 'userFeatPath')
-    if userFeatPath == "None":
-        userFeatPath = None
-    extractBands = cfg.getParam('iota2FeatureExtraction', 'extractBands')
-    if extractBands is False:
-        extractBands = None
-
-
-    ipathL5 = cfg.getParam('chain', 'L5Path')
-    if ipathL5 == "None":
-        ipathL5 = None
-    ipathL8 = cfg.getParam('chain', 'L8Path')
-    if ipathL8 == "None":
-        ipathL8 = None
-    ipathS2 = cfg.getParam('chain', 'S2Path')
-    if ipathS2 == "None":
-        ipathS2 = None
-    ipathS2_S2C = cfg.getParam('chain', 'S2_S2C_Path')
-    if ipathS2_S2C == "None":
-        ipathS2_S2C = None
-    autoDate = cfg.getParam('GlobChain', 'autoDate')
-
-    tiles = (cfg.getParam('chain', 'listTile')).split()
-
-    S2 = Sensors.Sentinel_2(str(ipathS2), Opath("", create=False), pathConf, "", createFolder=None)
-    S2_S2C = Sensors.Sentinel_2_S2C(str(ipathS2_S2C), Opath("", create=False), pathConf, "", createFolder=None)
-    L8 = Sensors.Landsat8(str(ipathL8), Opath("", create=False), pathConf, "", createFolder=None)
-    L5 = Sensors.Landsat5(str(ipathL5), Opath("", create=False), pathConf, "", createFolder=None)
-    SensorsList = [S2, S2_S2C, L8, L5]
-
-    from Sensors import TimeSeriesStacks
-    AllRefl, AllMask, datesInterp, realDates, commonMask = TimeSeriesStacks.generateStack(tile, cfg,
-                                                                                          featuresPath, wMode,
-                                                                                          workingDirectory,
-                                                                                          testMode, testSensorData, enable_Copy)
-
-
-    AllgapFill = []
-    reflectanceOutput = [currentRefl.GetParameterValue("out") for currentRefl in AllRefl]
-    masksOutput = [currentMask[0].GetParameterValue("out") for currentMask in AllMask]
-    datesInterpOutput = [currentDateInterp for currentDateInterp in datesInterp]
-    datesRealOutput = [currentDateReal for currentDateReal in realDates]
-
-    logger.info("****** gapFilling to sample script ******")
-    logger.info("Reflectances used  : " + " ".join(reflectanceOutput))
-    logger.info("masks used : " + " ".join(masksOutput))
-    logger.info("interpolation dates : " + " ".join(datesInterpOutput))
-    logger.info("real dates : " + " ".join(datesRealOutput))
-    logger.info("*****************************************")
-
-    sensors_reflectance = []
-    concatSensors = otb.Registry.CreateApplication("ConcatenateImages")
-    for refl, mask, currentDatesInterp, currentRealDates in zip(AllRefl, AllMask, datesInterp, realDates):
-        if wMode:
-            refl.ExecuteAndWriteOutput()
-            mask[0].ExecuteAndWriteOutput()
-        else:
-            refl.Execute()
-            mask[0].Execute()
-
-        currentSensor = fut.getCurrentSensor(SensorsList, refl.GetParameterValue("out"))
-        reflDirectory, reflName = os.path.split(refl.GetParameterValue("out"))
-        outGapFilling = reflDirectory + "/" + reflName.replace(".tif", "_GAP.tif")
-        outFeatures = outGapFilling.replace(".tif", "_Features.tif")
-
-        nbDate = fut.getNbDateInTile(currentRealDates)
-        gapFill = otb.Registry.CreateApplication("ImageTimeSeriesGapFilling")
-        comp = len(currentSensor.bands['BANDS'])
-
-        gapFill.SetParameterInputImage("mask", mask[0].GetParameterOutputImage("out"))
-        gapFill.SetParameterString("it", "linear")
-        gapFill.SetParameterString("id", currentRealDates)
-        gapFill.SetParameterString("od", currentDatesInterp)
-        gapFill.SetParameterString("out", outGapFilling)
-        gapFill.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB('int16'))
-
-        if extractBands:
-            bandsToKeep = [bandNumber for bandName, bandNumber in currentSensor.keepBands.items()]
-            extract = fut.ExtractInterestBands(refl, nbDate, bandsToKeep,
-                                               comp, ram=10000)
-            dep.append(extract)
-            dep.append(refl)
-            comp = len(bandsToKeep)
-            gapFill.SetParameterInputImage("in", extract.GetParameterOutputImage("out"))
-            extract.SetParameterString("out", refl.GetParameterValue("out"))
-            sensors_reflectance.append(extract)
-        else:
-            gapFill.SetParameterInputImage("in", refl.GetParameterOutputImage("out"))
-            sensors_reflectance.append(refl)
-        gapFill.SetParameterString("comp", str(comp))
-        AllgapFill.append(gapFill)
-
-    return AllgapFill, sensors_reflectance, AllMask, datesInterp, realDates, dep
-
-
 def writeInterpolateDateFile(interpolationFile, all_dates_file, timeRes):
     """determine interpolation dates boundaries strategy
     """
@@ -1894,8 +1911,8 @@ def sortS1Masks(masksList):
 
 
 def getSARstack(sarConfig, tileName, allTiles, featuresPath, workingDirectory=None):
-    """function use to compute interpolation files
-    TODO : find a more appropriate name
+    """
+    function use to compute interpolation files
     """
     from Sensors.SAR import S1Processor as s1p
     import ConfigParser
@@ -1991,44 +2008,7 @@ def getSARstack(sarConfig, tileName, allTiles, featuresPath, workingDirectory=No
 
     return allFiltered, allMasks, interpDateFiles, inputDateFiles
 
-
-def computeSARfeatures(sarConfig, tileToCompute, allTiles, featuresPath, logger=logger):
-    """
-    IN:
-    sarConfig [string] : path to SAR configuration file
-    tileToCompute [string] : tile name to compute. Ex : T31TCJ
-    allTiles [list of string] : all tiles needed for the run
-                                used to compute interpolation dates (gapFilling)
-    OUT:
-    stackSARFeatures [otb object ready to Execute]
-    dep
-    fields_names [list of strings] : labels for each feature
-    """
-    
-    def computeSARFeatures_dates_expressions(sar_expressions, nb_dates):
-        """function use to compute SAR features assuming VV is 'im1' and
-        VH is 'im2'
-        
-        Parameters
-        ----------
-        sar_expressions : list
-            list containing string features expression
-        nb_dates : dict
-            dictionnary containing by mode (ASC or DES) the number of 
-            available dates
-
-        Return
-        ------
-        list
-        """
-        out_expressions = []
-        for sar_expr in sar_expressions:
-            sar_expr = sar_expr.lower().replace(" ","")
-            sar_date = [sar_expr.replace("vv", "im1b{}".format(i+1)).replace("vh","im2b{}".format(i+1)) for i in range(nb_dates)]
-            out_expressions.append(sar_date)
-        return out_expressions
-
-    def generateSARFeat_dates(sar_expressions, SAR_dict):
+def generateSARFeat_dates(sar_expressions, SAR_dict):
         """
         """
 
@@ -2075,6 +2055,41 @@ def computeSARfeatures(sarConfig, tileToCompute, allTiles, featuresPath, logger=
                                                        "exp" : ";".join(expr)})
         return userSAR_features, SAR_labels
 
+def computeSARFeatures_dates_expressions(sar_expressions, nb_dates):
+        """function use to compute SAR features assuming VV is 'im1' and
+        VH is 'im2'
+        
+        Parameters
+        ----------
+        sar_expressions : list
+            list containing string features expression
+        nb_dates : dict
+            dictionnary containing by mode (ASC or DES) the number of 
+            available dates
+
+        Return
+        ------
+        list
+        """
+        out_expressions = []
+        for sar_expr in sar_expressions:
+            sar_expr = sar_expr.lower().replace(" ","")
+            sar_date = [sar_expr.replace("vv", "im1b{}".format(i+1)).replace("vh","im2b{}".format(i+1)) for i in range(nb_dates)]
+            out_expressions.append(sar_date)
+        return out_expressions
+        
+def computeSARfeatures(sarConfig, tileToCompute, allTiles, featuresPath, logger=logger):
+    """
+    IN:
+    sarConfig [string] : path to SAR configuration file
+    tileToCompute [string] : tile name to compute. Ex : T31TCJ
+    allTiles [list of string] : all tiles needed for the run
+                                used to compute interpolation dates (gapFilling)
+    OUT:
+    stackSARFeatures [otb object ready to Execute]
+    dep
+    fields_names [list of strings] : labels for each feature
+    """
     import ConfigParser
     config = ConfigParser.ConfigParser()
     config.read(sarConfig)
@@ -2094,7 +2109,7 @@ def computeSARfeatures(sarConfig, tileToCompute, allTiles, featuresPath, logger=
                                                                       tileToCompute,
                                                                       allTiles,
                                                                       featuresPath)
-    #number of components per dates VV + VH
+    #number of components per dates
     SAR_GAP = True
     SARcomp = 1
     SARFeatures = []
