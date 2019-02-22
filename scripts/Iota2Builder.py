@@ -39,6 +39,7 @@ class iota2():
         self.steps_group["mosaic"] = OrderedDict()
         self.steps_group["validation"] = OrderedDict()
         self.steps_group["regularisation"] = OrderedDict()
+        self.steps_group["crown"] = OrderedDict()        
         self.steps_group["vectorisation"] = OrderedDict()
         self.steps_group["lcstatistics"] = OrderedDict()                        
         #build steps
@@ -606,7 +607,7 @@ class iota2():
         #STEP : grid generator
         if gridsize is not None:
 
-            #STEP : vectorisation
+            #STEP : regularisation
             t_counter += 1
 
             ramclump = 1024.0 * get_RAM(ressourcesByStep["clump"].ram)
@@ -630,7 +631,7 @@ class iota2():
             self.steps_group["regularisation"][t_counter] = "Clump of regularized classification raster"            
 
 
-            #STEP : Grid generation
+            #STEP : Crown : Grid generation
             t_counter += 1
 
             outfilegrid = os.path.join(PathTEST, 'final', 'simplification', 'grid.shp')
@@ -641,9 +642,9 @@ class iota2():
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["grid"]))
             
-            self.steps_group["vectorisation"][t_counter] = "Generation of grid for serialisation"            
+            self.steps_group["crown"][t_counter] = "Generation of grid for serialisation"            
 
-            #STEP : crownsearch
+            #STEP : Crown : crownsearch
             t_counter += 1
 
             cpuseria = ressourcesByStep["crownsearch"].nb_cpu
@@ -669,9 +670,9 @@ class iota2():
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["crownsearch"]))
      
-            self.steps_group["vectorisation"][t_counter] = "Search crown entities for serialization process "            
+            self.steps_group["crown"][t_counter] = "Search crown entities for serialization process "            
 
-            # STEP : Mask crown and tile rasters
+            # STEP : Crown : Mask crown and tile rasters
             t_counter += 1
 
             ramcrownbuild = 1024.0 * get_RAM(ressourcesByStep["crownbuild"].ram)
@@ -694,7 +695,7 @@ class iota2():
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["crownbuild"]))
             
-            self.steps_group["vectorisation"][t_counter] = "Build crown raster for serialization process "
+            self.steps_group["crown"][t_counter] = "Build crown raster for serialization process "
 
             
             # STEP : Merge tiles of serialisation
@@ -738,7 +739,7 @@ class iota2():
                                                                                               outserial,
                                                                                               douglas,
                                                                                               hermite,
-                                                                                              angle), lambda: mtr.getListValues(checkvalue, clipfile, clipfield, clipvalue)),
+                                                                                              angle), lambda: mtr.getListValues(checkvalue, clipfile, clipfield, os.path.join(PathTEST, 'final', 'simplification', 'vectors'), outprefix, clipvalue)),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["vectorisation"]))
             
@@ -778,7 +779,7 @@ class iota2():
         t_container.append(tLauncher.Tasks(tasks=(lambda x: zs.zonalstats(tmpdir,
                                                                           [rastclass, rastconf, rastval],
                                                                           x,
-                                                                          bingdal), lambda: zs.getParameters(outfilesvectpath, outfilesvectpath)),
+                                                                          bingdal), zs.getParameters(outfilesvectpath, outfilesvectpath)),
                                                   iota2_config=cfg,
                                                   ressources=ressourcesByStep["statistics"]))
 

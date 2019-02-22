@@ -164,7 +164,7 @@ def mergeTileRaster(path, rasters, fieldclip, valueclip, localenv):
 
     return outraster
 
-def getListValues(checkvalue, clipfile, clipfield, clipvalue=""):
+def getListValues(checkvalue, clipfile, clipfield, outvectpath="", prefix="", clipvalue=""):
 
     listvalues = []
     if checkvalue:
@@ -175,6 +175,13 @@ def getListValues(checkvalue, clipfile, clipfield, clipvalue=""):
         else:
             raise Exception("Value {} does not exist in the zone file {} for field {}".format(clipvalue, clipfile, clipfield))
 
+    if outvectpath is not None:
+        for root, dirs, files in os.walk(outvectpath):
+            for filename in files:
+                if ".shp" in filename and "%s_"%(prefix) in filename:
+                    clipval = os.path.splitext(filename)[0].split("_")[1]
+                    listvalues[0].remove(clipval)
+        
     return listvalues[0]
 
 def tilesRastersMergeVectSimp(path, tiles, out, grass, mmu, \
@@ -183,6 +190,8 @@ def tilesRastersMergeVectSimp(path, tiles, out, grass, mmu, \
 
     timeinit = time.time()
 
+    print("Production of vector file %s"%(os.path.splitext(out)[0] + str(valueclip)))
+    
     # local environnement
     localenv = os.path.join(path, "tmp%s"%(str(valueclip)))
     if os.path.exists(localenv):shutil.rmtree(localenv)
@@ -297,7 +306,8 @@ def tilesRastersMergeVectSimp(path, tiles, out, grass, mmu, \
     afa.addFieldArea(outtmp, 10000)
     
     timeprodvect = time.time()     
-    print " ".join([" : ".join(["Production of final shapefile geometry", str(timeprodvect - timeinit)]), "seconds"])
+    print " ".join([" : ".join(["Production of final shapefile geometry of %s"%(os.path.splitext(out)[0] + str(valueclip) + ext), \
+                                str(timeprodvect - timeinit)]), "seconds"])
 
     for ext in ['.shp', '.dbf', '.shx', '.prj']:
         shutil.copyfile(os.path.splitext(outtmp)[0] + ext, os.path.splitext(out)[0] + str(valueclip) + ext)
