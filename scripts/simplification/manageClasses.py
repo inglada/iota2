@@ -117,7 +117,7 @@ class iota_nomenclature(object):
 
     def __str__(self):
 
-        return 'Nomenclature : %s level(s) with %s classes for the last level'%(self.Level, \
+        return 'Nomenclature : %s level(s) with %s classes for the last level'%(self.level, \
                                                                                 self.getMaxLevelClassNb)
 
     def getLevelNumber(self):
@@ -269,7 +269,7 @@ class iota_nomenclature(object):
            Urbain, 100, #b106b1, Urbain, Urbain dense, 1, #b186c1, Urbaindens
 
         Example of config structure for 2 nested levels (l1 = level 1, l2 = level 2) :
-           Classes:
+                   >>> Classes:
            {
 	      Level1:
 	      {
@@ -408,6 +408,7 @@ class iota_nomenclature(object):
         cmdf = DataFrame(matrix, index = self.HierarchicalNomenclature, columns = self.HierarchicalNomenclature)
         cmdf.sort_index(level = self.level - 1, inplace = True, axis=1)
         cmdf.sort_index(level = self.level - 1, inplace = True, axis=0)
+        
         return cmdf
 
     def createColorFileTheia(self, filecolor):
@@ -439,10 +440,10 @@ class iota_nomenclature(object):
  
 iota=iota_nomenclature("/home/vthierion/Documents/OSO/Dev/iota2/scripts/simplification/classes_iota23")
 #iota=iota_nomenclature("/home/vthierion/Documents/OSO/Dev/iota2/scripts/simplification/nomenclature.cfg", 'cfg')
-#print iota
+print iota
 #iota.createColorFileTheia("/home/vthierion/tmp/colorFile.txt")
-iota.createNomenclatureFileTheia("/home/vthierion/tmp/nomenclature.txt")
-#print(iota.createConfusionMatrix(["/home/vthierion/tmp/Classif_Seed_0.csv"]))
+#iota.createNomenclatureFileTheia("/home/vthierion/tmp/nomenclature.txt")
+print(iota.createConfusionMatrix(["/home/vthierion/tmp/Classif_Seed_0.csv"]))
 #print iota.HierarchicalNomenclature
 #print iota.getMaxLevelClassNb()
 #print iota.HierarchicalNomenclature
