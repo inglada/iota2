@@ -322,7 +322,11 @@ class Sentinel_2_S2C(Sensor):
         if self.output_preprocess_directory:
             target_folder = self.output_preprocess_directory
         
-        stacks = sorted(FileSearch_AND(target_folder, True, "{}.tif".format(self.suffix)),
+        pattern = "{}.tif".format(self.suffix)
+        if not "none" in self.cfg_IOTA2.getParam('coregistration','VHRPath').lower():
+            pattern = "{}_COREG.tif".format(self.suffix)
+
+        stacks = sorted(FileSearch_AND(target_folder, True, pattern),
                         key=lambda x : os.path.basename(x).split("_")[self.date_position].split("T")[0])
         return stacks
 
@@ -334,7 +338,12 @@ class Sentinel_2_S2C(Sensor):
         target_folder = self.tile_directory
         if self.output_preprocess_directory:
             target_folder = self.output_preprocess_directory
-        masks = sorted(FileSearch_AND(target_folder, True, "{}.tif".format(self.masks_date_suffix)),
+
+        pattern = "{}.tif".format(self.masks_date_suffix)
+        if not "none" in self.cfg_IOTA2.getParam('coregistration','VHRPath').lower():
+            pattern = "{}_COREG.tif".format(self.suffix)
+
+        masks = sorted(FileSearch_AND(target_folder, True, pattern),
                        key=lambda x : os.path.basename(x).split("_")[self.date_position].split("T")[0])
         return masks
 
