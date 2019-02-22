@@ -769,7 +769,7 @@ class iota2():
         t_container.append(tLauncher.Tasks(tasks=(lambda x: zs.zonalstats(tmpdir,
                                                                           [rastclass, rastconf, rastval],
                                                                           x,
-                                                                          bingdal), lambda: zs.getParameters(outfilesvectpath, outfilesvectpath)),
+                                                                          bingdal), zs.getParameters(outfilesvectpath, outfilesvectpath)),
                                                   iota2_config=cfg,
                                                   ressources=ressourcesByStep["statistics"]))
 
