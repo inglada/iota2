@@ -188,7 +188,7 @@ def launch_coregister(tile, cfg, workingDirectory, launch_mask=True):
     if ipathS2_S2C != "None" and os.path.exists(os.path.join(ipathS2_S2C,tile)):
         datadir = os.path.join(ipathS2_S2C,tile)
         datatype = 'S2_S2C'
-        pattern = "*STACK_10m.tif"
+        pattern = "*STACK.tif"
 
     if cfg.getParam('coregistration', 'pattern') != "None" :
         pattern = cfg.getParam('coregistration', 'pattern')
@@ -343,7 +343,7 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
         shutil.move(finalOutput.replace(ext, '.geom'),insrc.replace(ext, '_COREG.geom'))
 
         # Mask registration if exists
-        masks = glob.glob(os.path.dirname(insrc) + os.sep + 'MASKS' + os.sep + '*reproj' + ext)
+        masks = glob.glob(os.path.dirname(insrc) + os.sep + 'MASKS' + os.sep + '*BINARY_MASK' + ext)
         if len(masks) != 0:
             for mask in masks:
                 srcClip = os.path.join(pathWd,'tempSrcClip.tif')
@@ -477,7 +477,7 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                 shutil.move(finalOutput.replace(ext, '.geom'),insrc.replace(ext, '_COREG.geom'))
 
                 # Mask registration if exists
-                masks = glob.glob(os.path.dirname(insrc) + os.sep + 'MASKS' + os.sep + '*reproj' + ext)
+                masks = glob.glob(os.path.dirname(insrc) + os.sep + 'MASKS' + os.sep + '*BINARY_MASK' + ext)
                 if len(masks) != 0:
                     for mask in masks:
                         srcClip = os.path.join(pathWd,'srcClip.tif')
@@ -612,7 +612,7 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                 shutil.move(finalOutput.replace(ext, '.geom'),insrc.replace(ext, '_COREG.geom'))
 
                 # Mask registration if exists
-                masks = glob.glob(os.path.dirname(insrc) + os.sep + 'MASKS' + os.sep + '*reproj' + ext)
+                masks = glob.glob(os.path.dirname(insrc) + os.sep + 'MASKS' + os.sep + '*BINARY_MASK' + ext)
                 if len(masks) != 0:
                     for mask in masks:
                         srcClip = os.path.join(pathWd,'srcClip.tif')
@@ -711,7 +711,7 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
             shutil.move(finalOutput.replace(ext, '.geom'),insrc.replace(ext, '_COREG.geom'))
 
             # Mask registration if exists
-            masks = glob.glob(os.path.dirname(insrc) + os.sep + 'MASKS' + os.sep + '*reproj*' + ext)
+            masks = glob.glob(os.path.dirname(insrc) + os.sep + 'MASKS' + os.sep + '*BINARY_MASK*' + ext)
             if len(masks) != 0:
                 for mask in masks:
                     srcClip = os.path.join(pathWd,'tempSrcClip.tif')
