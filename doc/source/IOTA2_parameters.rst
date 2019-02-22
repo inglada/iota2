@@ -6,7 +6,7 @@ This file is called the 'configuration file' throughout the documentation.
 This section is dedicated to the description of each parameter in it.
 
 IOTA² parameters are split in 4 families: ``chain``, ``argTrain``,
-``argClassification`` and ``GlobChain``. 
+``argClassification``, ``GlobChain`` and ``coregistration``. 
 
 chain available parameters
 **************************
@@ -813,3 +813,181 @@ argTrain.sampleAugmentation
     In the above example, classes of models "1" and "2" will be augmented to the
     the most represented class in the corresponding model using the jitter method.
 
+coregistration available parameters
+**************************
+
+coregistration.VHRPath
+=======================================
+*Description*
+    absolute path to VHR image
+*Type*
+    string
+*Default value*
+    'None'
+*Example*
+    VHRPath: 'path/to/the/VHR.tif'
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+coregistration.dateVHR
+=======================================
+*Description*
+    date ``YYYYMMDD`` of the VHR image
+*Type*
+    string
+*Default value*
+    'None'
+*Example*
+    dateVHR: '20180601'
+*Notes*
+    The ``dateVHR`` is used to find automatically the best image of the timeseries for coregistration
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+coregistration.dateSrc
+=======================================
+*Description*
+    date ``YYYYMMDD`` of the 
+*Type*
+    string
+*Default value*
+    'None'
+*Example*
+    dateSrc: '20180601'
+*Notes*
+    If no ``dateSrc`` is mentionned, the best image will be automatically choose for coregistration
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+coregistration.bandRef
+=======================================
+*Description*
+    Number of the band of the VHR image to use for coregistration
+*Type*
+    int
+*Default value*
+    1
+*Example*
+    bandRef: 1
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+coregistration.bandSrc
+=======================================
+*Description*
+    Number of the band of the src raster to use for coregistration
+*Type*
+    int
+*Default value*
+    3
+*Example*
+    bandSrc: 3
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+coregistration.resample
+=======================================
+*Description*
+    Resample the reference and the source raster to the same resolution to find sift points
+*Type*
+    bool
+*Default value*
+    True
+*Example*
+    resample: True
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+coregistration.step
+=======================================
+*Description*
+    Initial size of steps between bins in pixels
+*Type*
+    int
+*Default value*
+    256
+*Example*
+    step: 256
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+coregistration.minstep
+=======================================
+*Description*
+    Minimal size of steps between bins in pixels
+*Type*
+    int
+*Default value*
+    16
+*Example*
+    minstep: 16
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+coregistration.minsiftpoints
+=======================================
+*Description*
+    Minimal number of sift points to find to create the new RPC model
+*Type*
+    int
+*Default value*
+    40
+*Example*
+    minsiftpoints: 40
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+coregistration.iterate
+=======================================
+*Description*
+    Proceed several iterationby reducing the step between geobin to find sift points
+*Type*
+    bool
+*Default value*
+    True
+*Example*
+    iterate: True
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+coregistration.prec
+=======================================
+*Description*
+    Estimated shift between source and reference raster in pixel (source raster resolution)
+*Type*
+    int
+*Default value*
+    3
+*Example*
+    prec: 3
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+coregistration.mode
+=======================================
+*Description*
+    Coregistration mode of the timeseries:
+        1: single coregistration between one source image (and its masks) and the VHR image
+        2: this mode operates a coregistration between a image of the timeseries and the VHR image, then the same RPC model is used to orthorectify every images of the timeseries
+        3: cascade mode, this mode operates a first coregistration between a source image and the VHR image, then each image of the timeseries is coregistered step by step with the closest temporal images of the timeseries already coregistered
+*Type*
+    int
+*Default value*
+    2
+*Example*
+    mode: 2
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+coregistration.pattern
+=======================================
+*Description*
+    Pattern of the timeseries files to coregister
+*Type*
+    string
+*Default value*
+    'None'
+*Example*
+    pattern: '*STACK.tif'
+*Notes*
+    By default the value is left to ``'None'`` and the pattern depends on the sensor used (``*STACK.tif`` for Sentinel2, ``ORTHO_SURF_CORR_PENTE*.TIF``)
