@@ -260,6 +260,14 @@ class iota2():
                                            ressources=ressourcesByStep["preprocess_data"]))
         self.steps_group["init"][t_counter] = "preprocess data"
 
+        # STEP : Time series coregistration
+        if not "None" in VHR:
+            t_counter += 1
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: CoRegister.launch_coregister(x,pathConf, workingDirectory),tiles),
+                                           iota2_config=cfg,
+                                           ressources=ressourcesByStep["coregistration"]))
+            self.steps_group["init"][t_counter] = "Time series coregistration on a VHR reference"
+
         # STEP : Common masks generation
         t_counter += 1
         RAM_common_mask = 1024.0 * get_RAM(ressourcesByStep["preprocess_data"].ram)
@@ -270,14 +278,6 @@ class iota2():
                                            iota2_config=cfg,
                                            ressources=ressourcesByStep["get_common_mask"]))
         self.steps_group["init"][t_counter] = "generate common masks"
-
-        # STEP : Time series coregistration
-        if not "None" in VHR:
-            t_counter += 1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: CoRegister.launch_coregister(x,pathConf, workingDirectory),tiles),
-                                           iota2_config=cfg,
-                                           ressources=ressourcesByStep["coregistration"]))
-            self.steps_group["init"][t_counter] = "Time series coregistration on a VHR reference"
 
         # STEP : pix Validity by tiles generation
         t_counter += 1
