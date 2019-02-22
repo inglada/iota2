@@ -1,1 +1,423 @@
-                        <QUALITY_INDEX name="CloudPercent">60</QUALITY_INDEX>
+                <Band_Viewing_Incidence_Angles_Grids_List band_id="B2">
+                    <Viewing_Incidence_Angles_Grids detector_id="06">
+                        <Zenith step_unit="m" values_unit="deg">
+                            <COL_STEP>5000</COL_STEP>
+                            <ROW_STEP>5000</ROW_STEP>
+                            <Values_List>
+                                <VALUES>1.09021 0.833505 0.715816 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>1.02322 0.790534 0.717379 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>0.95988 0.756354 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>0.901803 0.732235 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>0.849433 0.718749 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>0.80433 0.717214 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>0.767401 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>0.740119 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>0.723727 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>0.718341 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                            </Values_List>
+                        </Zenith>
+                        <Azimuth step_unit="m" values_unit="deg">
+                            <COL_STEP>5000</COL_STEP>
+                            <ROW_STEP>5000</ROW_STEP>
+                            <Values_List>
+                                <VALUES>61.5511 43.4402 15.2049 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>58.1686 37.7276 7.87573 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>54.3254 31.4261 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>49.9642 24.6191 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>45.0432 17.46 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>39.5207 10.1479 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>33.4048 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>26.7567 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>19.6983 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>12.4295 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                            </Values_List>
+                        </Azimuth>
+                    </Viewing_Incidence_Angles_Grids>
+                    <Viewing_Incidence_Angles_Grids detector_id="07">
+                        <Zenith step_unit="m" values_unit="deg">
+                            <COL_STEP>5000</COL_STEP>
+                            <ROW_STEP>5000</ROW_STEP>
+                            <Values_List>
+                                <VALUES>NaN NaN 0.378469 0.523008 0.8457 1.21166 1.59135 1.97687 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN 0.381289 0.58989 0.928398 1.29888 1.68038 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN 0.405409 0.662775 1.0128 1.38676 1.76952 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN 0.447464 0.739772 1.09813 1.47494 1.85904 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN 0.502541 0.81991 1.18453 1.56356 1.94871 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN 0.376321 0.567363 0.90198 1.27144 1.65247 2.03844 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN 0.393971 0.638531 0.985717 1.35911 1.74184 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN 0.430798 0.714466 1.07087 1.44747 1.83121 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN 0.482579 0.793619 1.15684 1.53578 1.92097 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>0.372673 0.544755 0.875266 1.24376 1.62442 2.01074 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>0.383927 0.614399 0.958743 1.33105 1.71322 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>0.415475 0.68905 1.04326 1.41886 1.80254 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>0.463124 0.767449 1.12901 1.50722 1.89185 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>0.522712 0.848398 1.21557 1.59575 1.98143 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>0.59035 0.931272 1.30278 1.68468 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>0.663993 1.01571 1.39061 1.77383 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>0.741514 1.10126 1.47876 1.86333 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>0.821943 1.18775 1.56746 1.95281 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>0.904451 1.27485 1.65617 2.04239 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>0.988509 1.36247 1.74542 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>1.07378 1.45052 1.83458 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>1.16006 1.53895 1.92405 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>1.24703 1.62788 2.01375 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                            </Values_List>
+                        </Zenith>
+                        <Azimuth step_unit="m" values_unit="deg">
+                            <COL_STEP>5000</COL_STEP>
+                            <ROW_STEP>5000</ROW_STEP>
+                            <Values_List>
+                                <VALUES>NaN NaN 188.068 236.803 256.45 264.782 269.195 271.893 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN 201.911 243.267 258.995 266.056 269.94 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN 214.814 248.339 261.104 267.158 270.614 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN 225.771 252.392 262.905 268.142 271.226 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN 234.621 255.675 264.429 269.001 271.773 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN 197.693 241.562 258.356 265.757 269.783 272.286 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN 211.093 247.043 260.606 266.92 270.478 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN 222.771 251.383 262.48 267.935 271.111 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN 232.267 254.881 264.097 268.84 271.687 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>193.366 239.78 257.729 265.477 269.631 272.202 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>207.158 245.654 260.08 266.677 270.356 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>219.503 250.314 262.065 267.729 270.999 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>229.717 254.024 263.734 268.654 271.582 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>237.803 257.043 265.181 269.487 272.119 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>244.148 259.53 266.418 270.216 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>249.115 261.591 267.507 270.882 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>253.093 263.35 268.465 271.476 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>256.277 264.836 269.305 272.018 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>258.879 266.119 270.056 272.505 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>261.046 267.23 270.717 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>262.867 268.209 271.328 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>264.425 269.08 271.876 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>265.746 269.842 272.366 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                            </Values_List>
+                        </Azimuth>
+                    </Viewing_Incidence_Angles_Grids>
+                    <Viewing_Incidence_Angles_Grids detector_id="08">
+                        <Zenith step_unit="m" values_unit="deg">
+                            <COL_STEP>5000</COL_STEP>
+                            <ROW_STEP>5000</ROW_STEP>
+                            <Values_List>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN 2.07204 2.44683 2.82747 3.21057 3.59587 3.98134 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN 2.1586 2.53477 2.91579 3.29961 3.68499 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN 2.24528 2.62275 3.00511 3.38888 3.77454 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN 2.33263 2.71136 3.09352 3.47834 3.86523 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN 2.04574 2.42008 2.79984 3.18291 3.56818 3.95541 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN 2.13202 2.5082 2.88915 3.27307 3.65867 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN 2.21918 2.59687 2.97839 3.36248 3.74708 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN 2.30674 2.68541 3.06739 3.45139 3.83742 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN 2.3939 2.77411 3.15648 3.54151 3.92764 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN 2.10642 2.48179 2.86232 3.24502 3.63083 4.01716 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN 2.19258 2.56937 2.95044 3.33446 3.72024 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN 2.27937 2.65703 3.03901 3.42348 3.80958 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN 2.36647 2.74527 3.12768 3.51253 3.89901 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN 2.07951 2.45413 2.83383 3.21686 3.60227 3.98867 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN 2.16591 2.54266 2.92256 3.30606 3.69156 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN 2.25275 2.6299 3.01134 3.39531 3.78128 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN 2.33978 2.71861 3.1006 3.48484 3.87113 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN 2.05319 2.42718 2.80776 3.19083 3.5751 3.96043 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN 2.13923 2.51468 2.89526 3.27909 3.66373 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN 2.22591 2.60241 2.98349 3.36736 3.75279 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN 2.3126 2.69041 3.07234 3.45654 3.8423 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN 2.39975 2.7785 3.16091 3.54557 3.93205 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN 2.11213 2.48689 2.86685 3.24977 3.63495 4.02131 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                            </Values_List>
+                        </Zenith>
+                        <Azimuth step_unit="m" values_unit="deg">
+                            <COL_STEP>5000</COL_STEP>
+                            <ROW_STEP>5000</ROW_STEP>
+                            <Values_List>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN 303.072 299.953 297.657 295.908 294.53 293.418 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN 302.263 299.364 297.215 295.561 294.253 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN 301.509 298.815 296.798 295.242 293.997 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN 300.819 298.309 296.412 294.93 293.741 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN 303.382 300.172 297.826 296.041 294.638 293.506 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN 302.544 299.574 297.379 295.693 294.36 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN 301.778 299.013 296.953 295.36 294.097 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN 301.058 298.487 296.557 295.054 293.848 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN 300.409 298.006 296.184 294.753 293.603 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN 302.847 299.796 297.549 295.833 294.475 293.379 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN 302.064 299.235 297.129 295.505 294.212 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN 301.346 298.712 296.728 295.187 293.958 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN 300.67 298.213 296.353 294.894 293.721 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN 303.18 300.052 297.752 295.994 294.607 293.486 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN 302.375 299.464 297.313 295.652 294.338 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN 301.627 298.927 296.906 295.336 294.081 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN 300.945 298.42 296.515 295.028 293.832 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN 303.514 300.298 297.937 296.144 294.738 293.603 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN 302.685 299.707 297.501 295.804 294.463 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN 301.918 299.148 297.077 295.475 294.201 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN 301.205 298.628 296.683 295.166 293.951 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN 300.544 298.136 296.305 294.866 293.706 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN 302.978 299.92 297.668 295.945 294.581 293.477 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                            </Values_List>
+                        </Azimuth>
+                    </Viewing_Incidence_Angles_Grids>
+                    <Viewing_Incidence_Angles_Grids detector_id="09">
+                        <Zenith step_unit="m" values_unit="deg">
+                            <COL_STEP>5000</COL_STEP>
+                            <ROW_STEP>5000</ROW_STEP>
+                            <Values_List>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 3.9257 4.31838 4.70977 5.10166 5.48962 5.87966 NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 4.01655 4.40913 4.80078 5.19238 5.58047 NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 4.10747 4.50077 4.89227 5.2837 5.67294 NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 4.19818 4.59073 4.98319 5.37441 5.76257 NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 3.89917 4.28892 4.68021 5.07278 5.46358 5.85478 NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 3.9888 4.37936 4.77086 5.16317 5.55465 NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 4.07957 4.47006 4.86183 5.25317 5.64472 NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 4.17074 4.5619 4.95214 5.34321 5.73385 NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 3.8707 4.26062 4.65186 5.04321 5.43368 5.82476 NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 3.96097 4.35132 4.74291 5.134 5.52463 5.91599 NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 4.05115 4.44177 4.83327 5.22429 5.61512 NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 4.14172 4.53273 4.92404 5.31596 5.70609 NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 4.23291 4.62344 5.01465 5.40674 5.79661 NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN 3.9316 4.32332 4.71472 5.1049 5.49632 5.88826 NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN 4.02238 4.41344 4.80464 5.19548 5.58624 NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN 4.11288 4.50397 4.89502 5.2858 5.67641 NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN 4.20323 4.59448 4.98514 5.37594 5.76632 NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN 3.9024 4.2938 4.685 5.07558 5.46624 5.85676 NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN 3.99276 4.38406 4.77542 5.16618 5.55656 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN 4.08364 4.47487 4.8657 5.25649 5.64694 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN 4.17378 4.56516 4.95608 5.34685 5.73752 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN 3.87333 4.2647 4.65559 5.04653 5.4371 5.82949 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN 3.96348 4.3551 4.74614 5.1367 5.52787 5.91814 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                            </Values_List>
+                        </Zenith>
+                        <Azimuth step_unit="m" values_unit="deg">
+                            <COL_STEP>5000</COL_STEP>
+                            <ROW_STEP>5000</ROW_STEP>
+                            <Values_List>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 277.557 278.11 278.563 278.944 279.265 279.544 NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 277.701 278.224 278.659 279.026 279.337 NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 277.835 278.339 278.757 279.111 279.41 NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 277.969 278.448 278.848 279.186 279.476 NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 277.541 278.09 278.548 278.935 279.264 279.546 NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 277.683 278.212 278.651 279.022 279.336 NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 277.823 278.324 278.745 279.101 279.407 NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 277.955 278.438 278.841 279.184 279.476 NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 277.53 278.086 278.546 278.931 279.259 279.542 NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 277.677 278.205 278.647 279.021 279.338 279.612 NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 277.818 278.326 278.75 279.107 279.411 NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 277.954 278.438 278.842 279.187 279.483 NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 278.081 278.546 278.937 279.269 279.552 NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN 277.671 278.209 278.652 279.024 279.342 279.617 NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN 277.813 278.324 278.749 279.109 279.418 NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN 277.948 278.439 278.849 279.193 279.488 NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN 278.08 278.546 278.937 279.27 279.556 NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN 277.658 278.2 278.65 279.027 279.348 279.624 NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN 277.802 278.32 278.75 279.111 279.418 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN 277.935 278.43 278.842 279.192 279.491 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN 278.06 278.535 278.933 279.269 279.557 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN 277.632 278.182 278.635 279.014 279.338 279.62 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN 277.77 278.296 278.732 279.099 279.412 279.68 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                            </Values_List>
+                        </Azimuth>
+                    </Viewing_Incidence_Angles_Grids>
+                    <Viewing_Incidence_Angles_Grids detector_id="10">
+                        <Zenith step_unit="m" values_unit="deg">
+                            <COL_STEP>5000</COL_STEP>
+                            <ROW_STEP>5000</ROW_STEP>
+                            <Values_List>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 5.92451 6.31347 6.70539 7.09177 7.48335 7.87254</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 6.01518 6.40379 6.79582 7.18427 7.57002 NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 6.10745 6.49444 6.88303 7.27237 7.66099 NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 6.19961 6.58906 6.97415 7.36211 7.75151 NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 5.89982 6.29001 6.67979 7.06789 7.45288 7.84024 NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 5.99097 6.38105 6.76982 7.15855 7.54287 NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 6.0808 6.47122 6.86032 7.2491 7.63373 NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 6.16919 6.56164 6.95068 7.33929 7.72358 NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 5.87017 6.25945 6.64941 7.04114 7.42967 7.81512 NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 5.96122 6.35069 6.74228 7.1314 7.51848 7.90414 NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 6.05094 6.43979 6.83034 7.21821 7.60817 NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 6.14133 6.53029 6.91941 7.30817 7.69705 NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 6.23221 6.62059 7.01103 7.40102 7.78616 NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 5.93399 6.32292 6.71122 7.10006 7.48802 7.87602 NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 6.02211 6.41117 6.7999 7.18863 7.57922 NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 6.11216 6.50181 6.89036 7.27967 7.66889 NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 6.20283 6.59276 6.98171 7.36882 7.75971 NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 5.90299 6.29198 6.68084 7.07058 7.45851 7.84775 NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 5.99332 6.38344 6.77164 7.16038 7.54866 NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 6.08343 6.47236 6.86181 7.25201 7.64088 NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 6.17339 6.56284 6.95241 7.34203 7.72984 NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 5.87613 6.26367 6.65322 7.04315 7.43178 7.81939 NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 5.96461 6.35581 6.74612 7.13414 7.52468 7.9094 NaN NaN NaN NaN NaN</VALUES>
+                            </Values_List>
+                        </Zenith>
+                        <Azimuth step_unit="m" values_unit="deg">
+                            <COL_STEP>5000</COL_STEP>
+                            <ROW_STEP>5000</ROW_STEP>
+                            <Values_List>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 290.183 289.801 289.458 289.158 288.885 288.639</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 290.088 289.719 289.388 289.095 288.832 NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 290.002 289.643 289.322 289.032 288.771 NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 289.913 289.561 289.252 288.973 288.719 NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 290.216 289.832 289.492 289.187 288.913 288.664 NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 290.129 289.752 289.418 289.12 288.855 NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 290.039 289.674 289.351 289.061 288.801 NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 289.959 289.602 289.285 288.999 288.745 NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 290.267 289.876 289.528 289.218 288.942 288.693 NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 290.173 289.796 289.458 289.157 288.886 288.64 NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 290.09 289.72 289.389 289.095 288.829 NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 290.003 289.644 289.325 289.038 288.779 NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 289.924 289.575 289.26 288.977 288.724 NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 290.229 289.843 289.502 289.198 288.924 288.676 NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 290.142 289.77 289.438 289.14 288.869 NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 290.06 289.694 289.369 289.077 288.814 NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 289.975 289.619 289.304 289.022 288.763 NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 290.286 289.898 289.553 289.243 288.964 288.711 NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 290.199 289.818 289.482 289.18 288.909 NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 290.111 289.744 289.416 289.121 288.854 NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 290.03 289.67 289.348 289.059 288.8 NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 290.338 289.945 289.596 289.284 289.004 288.751 NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 290.25 289.866 289.524 289.22 288.943 288.696 NaN NaN NaN NaN NaN</VALUES>
+                            </Values_List>
+                        </Azimuth>
+                    </Viewing_Incidence_Angles_Grids>
+                    <Viewing_Incidence_Angles_Grids detector_id="11">
+                        <Zenith step_unit="m" values_unit="deg">
+                            <COL_STEP>5000</COL_STEP>
+                            <ROW_STEP>5000</ROW_STEP>
+                            <Values_List>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 7.8309</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 7.91715</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 8.00737</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 8.10008</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 7.79848 8.18835</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 7.89053 8.27651</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 7.97854 8.36967</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 8.0693 8.46046</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 7.77313 8.1582 8.5463</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 7.86221 8.24883 8.63596</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 7.95303 8.33861 8.72691</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 8.04168 8.42893 8.81584</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 8.13133 8.51972 8.90471</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 7.83375 8.22136 8.6086 8.9948</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 7.92684 8.31309 8.69819 9.08699</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 8.01398 8.40211 8.7889 9.17383</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 8.10492 8.4915 8.87806 9.26316</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 7.80515 8.19459 8.58184 8.96811 9.35359</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 7.89567 8.28404 8.67125 9.05744 9.44343</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 7.9849 8.37312 8.75955 9.1465 9.53321</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 8.07658 8.46451 8.84997 9.23641 9.62215</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 7.77643 8.16631 8.55241 8.939 9.32736 9.71156</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 7.86652 8.25384 8.6411 9.02911 9.41512 9.80196</VALUES>
+                            </Values_List>
+                        </Zenith>
+                        <Azimuth step_unit="m" values_unit="deg">
+                            <COL_STEP>5000</COL_STEP>
+                            <ROW_STEP>5000</ROW_STEP>
+                            <Values_List>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 280.614</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 280.654</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 280.699</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 280.74</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 280.608 280.783</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 280.655 280.82</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 280.696 280.863</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 280.741 280.902</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 280.609 280.78 280.936</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 280.655 280.824 280.976</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 280.702 280.863 281.011</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 280.744 280.905 281.05</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 280.789 280.945 281.083</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 280.662 280.829 280.981 281.12</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 280.709 280.874 281.021 281.155</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 280.753 280.912 281.056 281.186</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 280.795 280.951 281.094 281.221</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 280.669 280.84 280.991 281.127 281.251</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 280.714 280.878 281.027 281.162 281.285</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 280.757 280.919 281.065 281.195 281.314</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 280.802 280.957 281.097 281.226 281.344</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 280.67 280.841 280.995 281.133 281.26 281.372</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 280.714 280.88 281.03 281.165 281.287 281.4</VALUES>
+                            </Values_List>
+                        </Azimuth>
+                    </Viewing_Incidence_Angles_Grids>
+                    <Viewing_Incidence_Angles_Grids detector_id="12">
+                        <Zenith step_unit="m" values_unit="deg">
+                            <COL_STEP>5000</COL_STEP>
+                            <ROW_STEP>5000</ROW_STEP>
+                            <Values_List>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 9.84455</VALUES>
+                            </Values_List>
+                        </Zenith>
+                        <Azimuth step_unit="m" values_unit="deg">
+                            <COL_STEP>5000</COL_STEP>
+                            <ROW_STEP>5000</ROW_STEP>
+                            <Values_List>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN</VALUES>
+                                <VALUES>NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN 287.834</VALUES>
+                            </Values_List>
+                        </Azimuth>
+                    </Viewing_Incidence_Angles_Grids>
+                </Band_Viewing_Incidence_Angles_Grids_List>
+                <QUALITY_INDEX name="CloudPercent">60</QUALITY_INDEX>
