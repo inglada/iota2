@@ -182,7 +182,9 @@ class Sensors_container(object):
         """
         sensors_dates = []
         for sensor in self.enabled_sensors:
-            dates_list = sensor.get_available_dates()
+            dates_list = []
+            if "get_available_dates" in dir(sensor):
+                dates_list = sensor.get_available_dates()
             sensors_dates.append((sensor.__class__.name, dates_list))
         return sensors_dates
 
