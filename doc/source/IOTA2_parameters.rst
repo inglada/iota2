@@ -945,7 +945,7 @@ coregistration available parameters
 **************************
 
 coregistration.VHRPath
-=======================================
+======================
 *Description*
     absolute path to VHR image
 *Type*
@@ -958,7 +958,7 @@ coregistration.VHRPath
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 coregistration.dateVHR
-=======================================
+======================
 *Description*
     date ``YYYYMMDD`` of the VHR image
 *Type*
@@ -973,7 +973,7 @@ coregistration.dateVHR
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 coregistration.dateSrc
-=======================================
+======================
 *Description*
     date ``YYYYMMDD`` of the 
 *Type*
@@ -988,7 +988,7 @@ coregistration.dateSrc
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 coregistration.bandRef
-=======================================
+======================
 *Description*
     Number of the band of the VHR image to use for coregistration
 *Type*
@@ -1001,7 +1001,7 @@ coregistration.bandRef
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 coregistration.bandSrc
-=======================================
+======================
 *Description*
     Number of the band of the src raster to use for coregistration
 *Type*
@@ -1014,7 +1014,7 @@ coregistration.bandSrc
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 coregistration.resample
-=======================================
+=======================
 *Description*
     Resample the reference and the source raster to the same resolution to find sift points
 *Type*
@@ -1027,7 +1027,7 @@ coregistration.resample
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 coregistration.step
-=======================================
+===================
 *Description*
     Initial size of steps between bins in pixels
 *Type*
@@ -1040,7 +1040,7 @@ coregistration.step
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 coregistration.minstep
-=======================================
+======================
 *Description*
     Minimal size of steps between bins in pixels
 *Type*
@@ -1053,7 +1053,7 @@ coregistration.minstep
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 coregistration.minsiftpoints
-=======================================
+============================
 *Description*
     Minimal number of sift points to find to create the new RPC model
 *Type*
@@ -1066,7 +1066,7 @@ coregistration.minsiftpoints
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 coregistration.iterate
-=======================================
+======================
 *Description*
     Proceed several iterationby reducing the step between geobin to find sift points
 *Type*
@@ -1079,7 +1079,7 @@ coregistration.iterate
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 coregistration.prec
-=======================================
+===================
 *Description*
     Estimated shift between source and reference raster in pixel (source raster resolution)
 *Type*
@@ -1092,7 +1092,7 @@ coregistration.prec
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 coregistration.mode
-=======================================
+===================
 *Description*
     Coregistration mode of the timeseries:
         1: single coregistration between one source image (and its masks) and the VHR image
@@ -1108,7 +1108,7 @@ coregistration.mode
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 coregistration.pattern
-=======================================
+======================
 *Description*
     Pattern of the timeseries files to coregister
 *Type*
