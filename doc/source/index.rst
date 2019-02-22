@@ -22,3 +22,4 @@ Indices and tables
 * :doc:`Get IOTA² <HowToGetIOTA2>`
 * :doc:`IOTA² Examples <IOTA2_Example>`
 * :doc:`Development recommendations <develop_reco>`
+* :doc:`IOTA² code architecture : main class <main_class>`
