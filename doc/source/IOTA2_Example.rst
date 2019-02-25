@@ -108,7 +108,7 @@ the provided archive. Also replace the ``MyInstall`` by the path where IOTA² is
 .. Note:: ``IOTA2_Example.cfg`` is the minimal configuration file understandable by IOTA².
 
 Run IOTA²
-============
+=========
 
 First, you have to set a list of environement variables to inform IOTA² "where OTB is".
 The file ``prepare_env.sh`` will do it for you. Then use ``Iota2.py`` to launch the chain.
