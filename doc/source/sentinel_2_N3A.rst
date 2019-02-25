@@ -17,6 +17,20 @@ Data are downloadable from : https://theia.cnes.fr
 IOTA²'s cook
 ************
 
+Configuration file parameter
+============================
+
+``chain.S2_L3A_Path`` is the parameter to enable the use of L3A products
+
+.. code-block:: python
+
+        chain:
+        {
+            ...
+            S2_L3A_Path:"/absolute/path/to/Storage_directory"
+            ...
+        }
+
 Data storage
 ============
 
@@ -24,7 +38,7 @@ Data must be stored by tiles as the following tree :
 
 .. code-block:: console
 
-    └── A_Smart_Name
+    └── Storage_directory
         ├── T31TCJ
         │   ├── SENTINEL2X_20181015-000000-000_L3A_T31TCJ_D_V1-1
         │   │   ├── MASKS
