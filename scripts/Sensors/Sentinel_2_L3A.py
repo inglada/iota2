@@ -547,7 +547,7 @@ class Sentinel_2_L3A(Sensor):
 
         app_dep = []
         if hand_features_flag:
-            hand_features = self.cfg_IOTA2.getParam("Landsat8_old", "additionalFeatures")
+            hand_features = self.cfg_IOTA2.getParam("Sentinel_2_L3A", "additionalFeatures")
             comp = len(self.stack_band_position) if not self.extracted_bands else len(self.extracted_bands)
             userDateFeatures, fields_userFeat, a, b = computeUserFeatures(in_stack,
                                                                           dates_enabled,

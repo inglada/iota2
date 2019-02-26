@@ -272,7 +272,9 @@ class Sentinel_2_S2C(Sensor):
             data_mask = self.preprocess_date_masks(date, self.output_preprocess_directory,
                                                    working_dir, ram)
             current_date = self.get_date_from_name(os.path.basename(date))
-            # TODO check if current_date already exists
+            # manage date dupplicate
+            if current_date in preprocessed_dates:
+                current_date = "{}.1".format(current_date)
             preprocessed_dates[current_date] = {"data": data_prepro,
                                                 "mask": data_mask}
         return preprocessed_dates
@@ -587,7 +589,7 @@ class Sentinel_2_S2C(Sensor):
 
         app_dep = []
         if hand_features_flag:
-            hand_features = self.cfg_IOTA2.getParam("Landsat8_old", "additionalFeatures")
+            hand_features = self.cfg_IOTA2.getParam("Sentinel_2_S2C", "additionalFeatures")
             comp = len(self.stack_band_position) if not self.extracted_bands else len(self.extracted_bands)
             userDateFeatures, fields_userFeat, a, b = computeUserFeatures(in_stack,
                                                                           dates_enabled,
