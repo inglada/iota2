@@ -621,10 +621,8 @@ class iota2():
 
         #STEP : grid generator
         if gridsize is not None:
-
             #STEP : regularisation
             t_counter += 1
-
             ramclump = 1024.0 * get_RAM(ressourcesByStep["clump"].ram)
             if workingDirectory is None:
                 tmpdir = os.path.join(PathTEST, 'final', 'simplification', 'tmp')
@@ -644,11 +642,9 @@ class iota2():
                                                       iota2_config=cfg,
                                                       ressources=ressourcesByStep["clump"]))
             self.steps_group["regularisation"][t_counter] = "Clump of regularized classification raster"            
-
-
+            
             #STEP : Crown : Grid generation
             t_counter += 1
-
             outfilegrid = os.path.join(PathTEST, 'final', 'simplification', 'grid.shp')
             t_container.append(tLauncher.Tasks(tasks=(lambda x: gridg.grid_generate(outfilegrid,
                                                                                     gridsize,
@@ -661,7 +657,6 @@ class iota2():
 
             #STEP : Crown : crownsearch
             t_counter += 1
-
             cpuseria = ressourcesByStep["crownsearch"].nb_cpu
             ramseria = 1024.0 * get_RAM(ressourcesByStep["crownsearch"].ram)
 
@@ -689,9 +684,7 @@ class iota2():
 
             # STEP : Crown : Mask crown and tile rasters
             t_counter += 1
-
             ramcrownbuild = 1024.0 * get_RAM(ressourcesByStep["crownbuild"].ram)
-            
             if workingDirectory is None:
                 tmpdir = os.path.join(PathTEST, 'final', 'simplification', 'tmp')
             else:
@@ -709,13 +702,10 @@ class iota2():
                                                                                  ramcrownbuild), range(gridsize*gridsize)),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["crownbuild"]))
-            
             self.steps_group["crown"][t_counter] = "Build crown raster for serialization process "
-
             
             # STEP : Merge tiles of serialisation
             t_counter += 1
-
             if workingDirectory is None:
                 tmpdir = os.path.join(PathTEST, 'final', 'simplification', 'tmp')
             else:
@@ -754,10 +744,9 @@ class iota2():
                                                                                               outserial,
                                                                                               douglas,
                                                                                               hermite,
-                                                                                              angle), lambda: mtr.getListValues(checkvalue, clipfile, clipfield, os.path.join(PathTEST, 'final', 'simplification', 'vectors'), outprefix, clipvalue)),
+                                                                                              angle), lambda : mtr.getListValues(checkvalue, clipfile, clipfield, os.path.join(PathTEST, 'final', 'simplification', 'vectors'), outprefix, clipvalue)),
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["vectorisation"]))
-            
             self.steps_group["vectorisation"][t_counter] = "Vectorisation and simplification of classification (Serialisation strategy)"
 
         else:
@@ -780,7 +769,7 @@ class iota2():
                                                iota2_config=cfg,
                                                ressources=ressourcesByStep["vectorisation"]))
             self.steps_group["vectorisation"][t_counter] = "Vectorisation and simplification of classification"            
-
+            
         # STEP : statistics
         t_counter += 1
 
@@ -790,16 +779,16 @@ class iota2():
             tmpdir = workingDirectory
 
         outfilesvectpath = os.path.join(PathTEST, 'final', 'simplification', 'vectors')
-
         t_container.append(tLauncher.Tasks(tasks=(lambda x: zs.zonalstats(tmpdir,
                                                                           [rastclass, rastconf, rastval],
                                                                           x,
-                                                                          bingdal), zs.getParameters(outfilesvectpath, outfilesvectpath)),
+                                                                          bingdal), lambda : zs.getParameters(outfilesvectpath,
+                                                                                                              outfilesvectpath)),
                                                   iota2_config=cfg,
                                                   ressources=ressourcesByStep["statistics"]))
-
+        
         self.steps_group["lcstatistics"][t_counter] = "Compute statistics for each polygon of the classification"
-            
+
         # STEP : Join shapefile and statistics
         t_counter += 1
 
@@ -814,7 +803,7 @@ class iota2():
         t_container.append(tLauncher.Tasks(tasks=(lambda x: cs.computeStats(outfilevecttojoin,
                                                                             x,
                                                                             tmpdir,
-                                                                            dozip), lambda: cs.getStatsList(csvfilestojoin)),
+                                                                            dozip), cs.getStatsList(csvfilestojoin)),
                                                   iota2_config=cfg,
                                                   ressources=ressourcesByStep["join"]))
         self.steps_group["lcstatistics"][t_counter] = "Join shapefile and statistics"
