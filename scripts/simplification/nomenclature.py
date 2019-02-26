@@ -14,16 +14,12 @@
 #
 # =========================================================================
 
-import os
-import sys
-import unicodedata
 from xml.etree import cElementTree as ET
-from string import *
 from collections import Counter, defaultdict
 import csv
-import numpy as np
-from pandas import MultiIndex, DataFrame
 import codecs
+import unicodedata
+from pandas import MultiIndex, DataFrame
 from Common import FileUtils as fu
 
 
@@ -42,6 +38,18 @@ def get_unique(seq):
     return [x for x in seq if not (x in seen or seen_add(x))]
 
 def convertDictToList(dictnomenc):
+    """Convert dict obect in list 
+
+    Parameters
+    ----------
+    dictnomenc : dict
+        dict from config file (cfg) which discribe a multi-level nomenclature
+
+    Return
+    ------
+    list
+        list of classes (code, classename, color, alias) to instanciate a Iota2Nomenclature object
+    """
 
     levels = dictnomenc.keys()
     lastlevel = levels[len(levels) - 1]
@@ -64,7 +72,19 @@ def convertDictToList(dictnomenc):
 
 
 def getClassesFromVectorQML(qml):
+    """Get classes from QGIS layer style (QML)
 
+    Parameters
+    ----------
+    qml : str
+        path of a QGIS layer style file
+
+    Return
+    ------
+    list
+        list of classes (code, classename, color, alias (auto-generated)) to instanciate a Iota2Nomenclature object
+    """
+    
     tree = ET.parse(qml).getroot()
 
     classes = []
@@ -120,7 +140,27 @@ class symbolraster:
         self.item.set("color", self.donnees['HEX'])
 
 class symbol:
+    """Class for manipulating QGIS vector symbol:
+
+    Parameters
+    ----------
+    typec : cElementTree object
+        cElementTree object of QML in which create nomenclature style
+
+    codefield : string
+        field name to represent (map)
+
+    valeurs : list
+        list of values (code, classname, red, green, blue, hex color) to describe each classe
+
+    Return
+    ------
+    symbol
+        symbol object
+    """
+
     def __init__(self, typec, codefield, valeurs=[]):
+
         self.typec = typec
         self.valeurs = valeurs
         self.cle = [codefield, 'classname', 'R', 'G', 'B', 'HEX']
@@ -152,6 +192,7 @@ class symbol:
 class Iota2Nomenclature():
     """Class for manipulating multi-level nomenclature :
     - extract specific attributes (code, name, alias, color) on a specfic level
+    - prepare multi-level index (nomenclature)
     - prepare multi-level confusion matrix (OTB style)
     - prepare QGIS layer style (QML)
     - extract nomenclature from QML file
@@ -163,7 +204,7 @@ class Iota2Nomenclature():
 
     Example
     -------
-    >>> nomenclature = iota_nomenclature("nomenclature.csv")
+    >>> nomenclature = Iota2Nomenclature("nomenclature.csv")
 
     Return
     ------
@@ -412,6 +453,23 @@ class Iota2Nomenclature():
 
 
     def createVectorQML(self, outpath, codefield, level, outlinestyle = "SolidLine"):
+        """Create a QML QGIS style file for vector data
+
+        Parameters
+        ----------
+        outpath: str
+            output path of QML QGIS style file
+
+        codefield: str
+            field name to represent (map)
+
+        level: int
+            level of the nomenclature
+
+        outlinestyle: str
+            SolidLine or not for outlinestyle of polygons
+
+        """
 
         intro = ET.Element("qgis")
         transp = ET.SubElement(intro, "transparencyLevelInt")
@@ -443,6 +501,23 @@ class Iota2Nomenclature():
             raise Exception("Duplicates colors or classes found in the nomenclature file")
 
     def createRasterQML(self, outpath, classfield, level, nodata="0"):
+        """Create a QML QGIS style file for raster data
+
+        Parameters
+        ----------
+        outpath: str
+            output path of QML QGIS style file
+
+        classfield: str
+            field name to represent (map)
+
+        level: int
+            level of the nomenclature
+
+        nodata: str
+            pixel value of nodata (default: 0)
+
+        """
 
         intro = ET.Element("qgis")
         pipe = ET.SubElement(intro, "pipe")
