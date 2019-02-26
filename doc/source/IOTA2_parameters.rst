@@ -250,7 +250,7 @@ chain.dataField
 *Example*
     dataField : 'My_integer_field' 
 *Notes*
-    that field must contain integer
+    that field must contain integers, and the name must not contains special characters
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
