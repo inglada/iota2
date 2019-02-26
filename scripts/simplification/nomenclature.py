@@ -127,6 +127,24 @@ def getClassesFromVectorQML(qml):
     return out
 
 class symbolraster:
+    """Class for manipulating QGIS raster symbol:
+
+    Parameters
+    ----------
+    typec : cElementTree object (colorrampshader)
+        cElementTree object of QML in which create nomenclature style
+
+    codefield : string
+        field name to represent (map)
+
+    valeurs : list
+        list of values (code, classname, red, green, blue, hex color) to describe each classe
+
+    Return
+    ------
+    symbol
+        symbolraster object
+    """
     def __init__(self, colorrampshader, codefield, valeurs=[]):
         self.valeurs = valeurs
         self.cle = [codefield, 'classname', 'R', 'G', 'B', 'HEX']
