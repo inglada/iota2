@@ -60,7 +60,8 @@ class Sentinel_2_L3A(Sensor):
         self.date_position = 1 # if date's name split by "_"
         self.features_dir = os.path.join(self.cfg_IOTA2.getParam("chain", "outputPath"),
                                          "features", tile_name)
-        self.full_pipeline = self.cfg_IOTA2.getParam("Sentinel_2_L3A", "full_pipline")
+        self.write_dates_stack = self.cfg_IOTA2.getParam("Sentinel_2_L3A",
+                                                         "write_reproject_resampled_input_dates_stack")
         extract_bands = self.cfg_IOTA2.getParam("Sentinel_2_L3A", "keepBands")
         extract_bands_flag = self.cfg_IOTA2.getParam("iota2FeatureExtraction", "extractBands")
 
@@ -209,7 +210,7 @@ class Sentinel_2_L3A(Sensor):
             bands_proj[band_name] = superimp
             all_reproj.append(superimp)
 
-        if not self.full_pipeline:
+        if self.write_dates_stack:
             for reproj in all_reproj:
                 reproj.Execute()
             date_stack = CreateConcatenateImagesApplication({"il": all_reproj,
@@ -222,7 +223,7 @@ class Sentinel_2_L3A(Sensor):
                     shutil.copy(out_stack_processing, out_stack)
                     os.remove(out_stack_processing)
 
-        return bands_proj if self.full_pipeline else out_stack
+        return bands_proj if self.write_dates_stack is False else out_stack
 
     def preprocess_date_masks(self, date_dir, out_prepro,
                               working_dir=None, ram=128,
@@ -381,7 +382,7 @@ class Sentinel_2_L3A(Sensor):
 
         preprocessed_dates = self.preprocess(working_dir=None, ram=str(ram))
 
-        if self.full_pipeline:
+        if self.write_dates_stack is False:
             dates_concatenation = []
             for date, dico_date in preprocessed_dates.items():
                 for band_name, reproj_date in dico_date["data"].items():
@@ -450,7 +451,7 @@ class Sentinel_2_L3A(Sensor):
 
         preprocessed_dates = self.preprocess(working_dir=None, ram=str(ram))
 
-        if self.full_pipeline:
+        if self.write_dates_stack is False:
             nb_available_dates = len(preprocessed_dates)
         else:
             nb_available_dates = len(self.get_available_dates())

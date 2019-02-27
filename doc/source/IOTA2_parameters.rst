@@ -857,8 +857,8 @@ Sensors available parameters
 
 Sensors available list : Landsat5_old / Landsat8 / Landsat8_old / Sentinel_2 / Sentinel_2_S2C / Sentinel_2_L3A
 
-Sensor.full_pipline
-===================
+Sensor.write_reproject_resampled_input_dates_stack
+==================================================
 *Description*
     Only available to Sentinel_2 / Sentinel_2_S2C / Sentinel_2_L3A sensors.
     If set to False, then IOTA² will write date's stack on disk to improve computations.
@@ -866,11 +866,11 @@ Sensor.full_pipline
 *Type*
     bool
 *Default value*
-    False
+    True
 *Example*
     .. code-block:: python
 
-        full_pipline : True
+        write_reproject_resampled_input_dates_stack : True
 
 Sensor.startDate
 ================
