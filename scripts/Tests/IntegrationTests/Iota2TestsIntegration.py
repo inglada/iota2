@@ -372,6 +372,9 @@ class iota_testFeatures(unittest.TestCase):
     """
     def test_checkOnlySarFeatures(self):
 
+        from Sensors.ProcessLauncher import commonMasks
+        from Sensors.ProcessLauncher import preprocess
+
         def prepareSARconfig():
             from ConfigParser import SafeConfigParser
             parser = SafeConfigParser()
@@ -389,26 +392,6 @@ class iota_testFeatures(unittest.TestCase):
             with open(self.RefSARconfigTest, "w+") as configFile:
                 parser.write(configFile)
 
-        def prepareTestsEnvironment(testPath, featuresPath,
-                                    cfg, SARconfig):
-            
-            """
-
-            """
-            # We force a list of parameters to a specific value
-            # These values are only in memory, in the instance of class SCF
-            # It will never write on disc.
-            cfg.setParam('chain', 'outputPath', testPath)
-            cfg.setParam('chain', 'listTile', "T31TCJ")
-            cfg.setParam('chain', 'L5Path', "None")
-            cfg.setParam('chain', 'L8Path', "None")
-            cfg.setParam('chain', 'S2Path', "None")
-            cfg.setParam('chain', 'S1Path', self.RefSARconfigTest)
-            cfg.setParam('chain', 'userFeatPath', "None")
-            cfg.setParam('GlobChain', 'useAdditionalFeatures', False)
-            cfg.setParam('argTrain', 'cropMix', False)
-
-            osoD.GenerateDirectories(cfg)
 
         if os.path.exists(self.featuresPath):
             shutil.rmtree(self.featuresPath)
@@ -424,25 +407,38 @@ class iota_testFeatures(unittest.TestCase):
         os.mkdir(self.SARfeaturesPath)
         
         prepareSARconfig()
-        
-        prepareTestsEnvironment(self.testPath, self.featuresPath,
-                                self.cfg, self.RefSARconfigTest)
-        
-        
+
+        config_path = os.path.join(iota2dir, "config",
+                                   "Config_4Tuiles_Multi_FUS_Confidence.cfg")
+        config_path_test = os.path.join(self.testPath, "Config_TEST.cfg")
+        shutil.copy(config_path, config_path_test)
+        cfg_test = Config(file(config_path_test))
+        cfg_test.chain.listTile = "T31TCJ"
+        cfg_test.chain.outputPath = self.testPath
+        cfg_test.chain.L5Path_old = "None"
+        cfg_test.chain.L8Path_old = "None"
+        cfg_test.chain.L8Path = "None"
+        cfg_test.chain.S2Path = "None"
+        cfg_test.chain.S1Path = self.RefSARconfigTest
+        cfg_test.chain.userFeatPath = "None"
+        cfg_test.GlobChain.useAdditionalFeatures = False
+        cfg_test.argTrain.cropMix = False
+        cfg_test.save(file(config_path_test, 'w'))
+        config_test = SCF.serviceConfigFile(config_path_test)
+
         referenceShape_test = shapeReferenceVector(self.referenceShape, "T31TCJ")
-        
-        fu.getCommonMasks("T31TCJ", self.cfg, workingDirectory=None)
+        preprocess("T31TCJ", config_path_test)
+        commonMasks("T31TCJ", config_path_test)
         selection_test = os.path.join(self.testPath, "T31TCJ.sqlite")
-        featuresPath = os.path.join(self.cfg.getParam("chain", "outputPath"),
-                                    "features")
+        featuresPath = os.path.join(self.testPath, "features")
         raster_ref = fu.FileSearch_AND(featuresPath, True, ".tif")[0]
         prepare_test_selection(referenceShape_test, raster_ref, selection_test, self.testPath, "code")
 
-        TileEnvelope.GenerateShapeTile(["T31TCJ"], self.featuresPath,
+        TileEnvelope.GenerateShapeTile(["T31TCJ"], featuresPath,
                                        self.testPath+"/envelope",
-                                       None, self.cfg)
+                                       None, config_test)
         VectorSampler.generateSamples({"usually":referenceShape_test},
-                                      None, self.cfg, sampleSelection=selection_test)
+                                      None, config_test, sampleSelection=selection_test)
 
         test_vector = fu.FileSearch_AND(self.testPath+"/learningSamples",
                                         True, ".sqlite")[0]

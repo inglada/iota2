@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 # =========================================================================
 #   Program:   iota2
 #
@@ -28,6 +30,8 @@ logger.addHandler(logging.NullHandler())
 
 class Landsat5(Sensor):
 
+    name = 'Landsat5'
+
     def __init__(self, path_image, opath, fconf, workRes, createFolder="Create",
                  dicoBands={"B1":1, "B2":2, "B3":3, "B4":4, "B5":5, "B6":6},
                  logger=logger):
@@ -44,8 +48,7 @@ class Landsat5(Sensor):
             tmpPath = opath.opathT
 
         cfg_IOTA2 = SCF.serviceConfigFile(fconf)
-        sensorConfig = (cfg_IOTA2.getParam("chain", "pyAppPath")).split(os.path.sep)
-        sensorConfig = (os.path.sep).join(sensorConfig[0:-1] + ["config", "sensors.cfg"])
+        sensorConfig = os.path.join(os.environ.get('IOTA2DIR'), "config", "sensors.cfg")
         cfg_sensors = SCF.serviceConfigFile(sensorConfig, iota_config=False)
 
         self.name = 'Landsat5'
@@ -75,6 +78,9 @@ class Landsat5(Sensor):
         self.struct_path = cfg_sensors.getParam("Landsat5", "arbo")
         self.native_res = int(cfg_sensors.getParam("Landsat5", "nativeRes"))
         self.imType = cfg_sensors.getParam("Landsat5", "imtype")
+        if not "none" in cfg_IOTA2.getParam("coregistration", "VHRPath").lower() and len(glob.glob(self.path + self.struct_path + '*COREG*' + os.path.splitext(self.imType)[1])) > 0 :
+            imType = os.path.splitext(self.imType)
+            self.imType = imType[0]+'_COREG'+imType[1]
         self.pathRes = tmpPath+"/LandRes_%sm/"%workRes
         self.proj = cfg_IOTA2.getParam("GlobChain", "proj")
 
@@ -85,6 +91,13 @@ class Landsat5(Sensor):
         self.div = cfg_sensors.getParam("Landsat5", "div")
         self.nodata = cfg_sensors.getParam("Landsat5", "nodata")
         self.pathmask = self.path + cfg_sensors.getParam("Landsat5", "arbomask")
+        if not "none" in cfg_IOTA2.getParam("coregistration", "VHRPath").lower() and len(glob.glob(self.pathmask + '*COREG*' + os.path.splitext(self.imType)[1])) > 0 :
+            nuages = os.path.splitext(self.nuages)
+            saturation = os.path.splitext(self.saturation)
+            div = os.path.splitext(self.div)
+            self.nuages = nuages[0] + '_COREG' + nuages[1]
+            self.saturation = saturation[0] + '_COREG' + saturation[1]
+            self.div = div[0] + '_COREG' + div[1]
         self.nodata_MASK = cfg_sensors.getParam("Landsat5", "nodata_Mask")
         self.borderMask = self.borderMaskN
 
@@ -141,7 +154,7 @@ class Landsat5(Sensor):
 
 
 class Landsat8(Sensor):
-
+    name = 'Landsat8'
     def __init__(self, path_image, opath, fconf, workRes, createFolder="Create",
                  dicoBands={"B1":1, "B2":2, "B3":3, "B4":4, "B5":5, "B6":6, "B7":7},
                  logger=logger):
@@ -172,8 +185,7 @@ class Landsat8(Sensor):
         sensorEnable = (self.path is not None and len(self.path) > 0 and 'None' not in self.path)
 
         cfg_IOTA2 = SCF.serviceConfigFile(fconf)
-        sensorConfig = (cfg_IOTA2.getParam("chain", "pyAppPath")).split(os.path.sep)
-        sensorConfig = (os.path.sep).join(sensorConfig[0:-1] + ["config", "sensors.cfg"])
+        sensorConfig = os.path.join(os.environ.get('IOTA2DIR'), "config", "sensors.cfg")
         cfg_sensors = SCF.serviceConfigFile(sensorConfig, iota_config=False)
         
         #MASK
@@ -191,6 +203,9 @@ class Landsat8(Sensor):
         self.struct_path = cfg_sensors.getParam("Landsat8", "arbo")
         self.native_res = int(cfg_sensors.getParam("Landsat8", "nativeRes"))
         self.imType = cfg_sensors.getParam("Landsat8", "imtype")
+        if not "none" in cfg_IOTA2.getParam("coregistration", "VHRPath").lower() and len(glob.glob(self.path + self.struct_path + '*COREG*' + os.path.splitext(self.imType)[1])) > 0 :
+            imType = os.path.splitext(self.imType)
+            self.imType = imType[0]+'_COREG'+imType[1]
         self.pathRes = tmpPath+"/LandRes_%sm/"%workRes
         self.proj = cfg_IOTA2.getParam("GlobChain", "proj")
 
@@ -201,6 +216,13 @@ class Landsat8(Sensor):
         self.div = cfg_sensors.getParam("Landsat8", "div")
         self.nodata = cfg_sensors.getParam("Landsat8", "nodata")
         self.pathmask = self.path + cfg_sensors.getParam("Landsat8", "arbomask")
+        if not "none" in cfg_IOTA2.getParam("coregistration", "VHRPath").lower() and len(glob.glob(self.pathmask + '*COREG*' + os.path.splitext(self.imType)[1])) > 0 :
+            nuages = os.path.splitext(self.nuages)
+            saturation = os.path.splitext(self.saturation)
+            div = os.path.splitext(self.div)
+            self.nuages = nuages[0] + '_COREG' + nuages[1]
+            self.saturation = saturation[0] + '_COREG' + saturation[1]
+            self.div = div[0] + '_COREG' + div[1]
         self.nodata_MASK = cfg_sensors.getParam("Landsat8", "nodata_Mask")
         self.borderMask = self.borderMaskN
         
@@ -254,6 +276,7 @@ class Landsat8(Sensor):
 
 
 class Sentinel_2(Sensor):
+    name = 'Sentinel2'
     def __init__(self, path_image, opath, fconf, workRes, createFolder="Create",
                  dicoBands={"B2":1, "B3":2, "B4":3, "B5":4, "B6":5, "B7":6, "B8":7, "B8A":8, "B11":9, "B12":10},
                  logger=logger):
@@ -282,13 +305,15 @@ class Sentinel_2(Sensor):
 
             self.path = path_image
             sensorEnable = (self.path is not None and len(self.path) > 0 and 'None' not in self.path)
-            sensorConfig = (cfg_IOTA2.getParam("chain", "pyAppPath")).split(os.path.sep)
-            sensorConfig = (os.path.sep).join(sensorConfig[0:-1] + ["config", "sensors.cfg"])
+            sensorConfig = os.path.join(os.environ.get('IOTA2DIR'), "config", "sensors.cfg")
             cfg_sensors = SCF.serviceConfigFile(sensorConfig, iota_config=False)
 
             #consts
             self.struct_path = cfg_sensors.getParam("Sentinel_2", "arbo")
             self.imType = cfg_sensors.getParam("Sentinel_2", "imtype")
+            if not "none" in cfg_IOTA2.getParam("coregistration", "VHRPath").lower() and len(glob.glob(self.path + self.struct_path + '*COREG*' + os.path.splitext(self.imType)[1])) > 0 :
+                imType = os.path.splitext(self.imType)
+                self.imType = imType[0]+'_COREG'+imType[1]
             self.fimages = tmpPath+"/"+self.name+"imagesList.txt"
             
             #masks
@@ -302,6 +327,13 @@ class Sentinel_2(Sensor):
             self.nuages = cfg_sensors.getParam("Sentinel_2", "nuages_reproj")
             self.saturation = cfg_sensors.getParam("Sentinel_2", "saturation_reproj")
             self.div = cfg_sensors.getParam("Sentinel_2", "div_reproj")
+            if not "none" in cfg_IOTA2.getParam("coregistration", "VHRPath").lower() and len(glob.glob(self.pathmask + '*COREG*' + os.path.splitext(self.imType)[1])) > 0 :
+                nuages = os.path.splitext(self.nuages)
+                saturation = os.path.splitext(self.saturation)
+                div = os.path.splitext(self.div)
+                self.nuages = nuages[0] + '_COREG' + nuages[1]
+                self.saturation = saturation[0] + '_COREG' + saturation[1]
+                self.div = div[0] + '_COREG' + div[1]
             self.borderMaskN = tmpPath+"/"+self.name+"_Border_MaskN.tif"
             self.borderMask = self.borderMaskN
             self.serieTemp = tmpPath+"/"+self.name+"_ST_REFL.tif"
@@ -388,6 +420,8 @@ class Sentinel_2(Sensor):
 
 class Sentinel_2_S2C(Sensor):
 
+    name = 'Sentinel2S2C'
+
     def __init__(self, path_image, opath, fconf, workRes, createFolder="Create",
                  dicoBands={"B2":1 ,"B3":2 ,"B4":3 ,"B5":4 ,"B6":5 ,"B7":6 ,"B8":7,"B8A":8,"B11":9,"B12":10},
                  logger=logger):
@@ -413,13 +447,14 @@ class Sentinel_2_S2C(Sensor):
             self.fdates = os.path.join(tmpPath, self.name + "imagesDateList.txt")
             self.imRef = None
             sensorEnable = (self.path is not None and len(self.path) > 0 and 'None' not in self.path)
-            
-            sensorConfig = (cfg_IOTA2.getParam("chain", "pyAppPath")).split(os.path.sep)
-            sensorConfig = (os.path.sep).join(sensorConfig[0:-1] + ["config", "sensors.cfg"])
+            sensorConfig = os.path.join(os.environ.get('IOTA2DIR'), "config", "sensors.cfg")
             cfg_sensors = SCF.serviceConfigFile(sensorConfig, iota_config=False)
 
             self.struct_path = cfg_sensors.getParam("Sentinel_2_S2C", "arbo")
             self.imType = cfg_sensors.getParam("Sentinel_2_S2C", "imtype")
+            if not "none" in cfg_IOTA2.getParam("coregistration", "VHRPath").lower() and len(glob.glob(self.path + self.struct_path + '*COREG*' + os.path.splitext(self.imType)[1])) > 0 :
+                imType = os.path.splitext(self.imType)
+                self.imType = imType[0]+'_COREG'+imType[1]
 
             if not createFolder:
                 tmpPath = ""
@@ -435,6 +470,9 @@ class Sentinel_2_S2C(Sensor):
             
             self.pathmask = self.path + cfg_sensors.getParam("Sentinel_2_S2C", "arbomask")
             self.nuages = cfg_sensors.getParam("Sentinel_2_S2C", "nuages")
+            if not "none" in cfg_IOTA2.getParam("coregistration", "VHRPath").lower() and len(glob.glob(self.pathmask + '*COREG*' + os.path.splitext(self.imType)[1])) > 0 :
+                nuages = os.path.splitext(self.nuages)
+                self.nuages = nuages[0] + '_COREG' + nuages[1]
             self.nodata = cfg_sensors.getParam("Sentinel_2_S2C", "nodata")
             self.addFeatures = (cfg_IOTA2.getParam("Sentinel_2_S2C", "additionalFeatures")).split(",")
             

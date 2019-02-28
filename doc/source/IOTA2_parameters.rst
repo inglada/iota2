@@ -6,7 +6,7 @@ This file is called the 'configuration file' throughout the documentation.
 This section is dedicated to the description of each parameter in it.
 
 IOTA² parameters are split in 4 families: ``chain``, ``argTrain``,
-``argClassification`` and ``GlobChain``. 
+``argClassification``, ``GlobChain`` and ``coregistration``. 
 
 chain available parameters
 **************************
@@ -36,19 +36,6 @@ chain.remove_outputPath
     ``mandatory``
 *Example*
     remove_outputPath : True
-
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-chain.pyAppPath
-===============
-*Description*
-    absolute path to the IOTA² python scripts folder
-*Type*
-    string
-*Default value*
-    ``mandatory``
-*Example*
-    pyAppPath : '/absolute/path/to/iota2/scripts'
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -105,10 +92,25 @@ chain.L8Path
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-chain.L5Path
+chain.L8Path_old
 ============
 *Description*
-    absolute path to Landsat-5 images comming from THEIA
+    absolute path to Landsat-8 images comming from old THEIA format (D*H*)
+*Type*
+    string
+*Default value*
+    'None'
+*Example*
+    L8Path_old : '/to/L8_old/Path/'
+*Notes*
+    see the note about tiled sensors data storage : :ref:`tiled data storage`
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+chain.L5Path_old
+============
+*Description*
+    absolute path to Landsat-5 images comming from old THEIA format (D*H*)
 *Type*
     string
 *Default value*
@@ -248,7 +250,7 @@ chain.dataField
 *Example*
     dataField : 'My_integer_field' 
 *Notes*
-    that field must contain integer
+    that field must contain integers, and the name must not contains special characters
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -390,8 +392,8 @@ chain.ratio
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-chain.cloud_treshold
-====================
+chain.cloud_threshold
+=====================
 *Description*
     To train models, IOTA² will use **only**, polygons (or part of them)
     which are "seen" at least 'cloud_treshold' times. A valid area is a
@@ -405,19 +407,6 @@ chain.cloud_treshold
     cloud_threshold:1
 *Notes*
     must be an integer >= 0
-
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-chain.spatialResolution
-=======================
-*Description*
-    output pixel's spatial resolution
-*Type*
-    int
-*Default value*
-    ``mandatory``
-*Example*
-    spatialResolution:30
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -435,7 +424,7 @@ chain.firstStep
     Must be chosen into the list of available steps.
 
     Available choices are 'init', 'sampling', 'learning', 'classification',
-    'mosaic' or 'validation'
+    'mosaic', 'validation', 'regularisation', 'vectorisation' or 'lcstatistics'
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -453,7 +442,7 @@ chain.lastStep
     Must be chosen into the list of available steps.
 
     Available choices are 'init', 'sampling', 'learning', 'classification',
-    'mosaic' or 'validation'
+    'mosaic', 'validation', 'regularisation', 'vectorisation' or 'lcstatistics'
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -813,3 +802,323 @@ argTrain.sampleAugmentation
     In the above example, classes of models "1" and "2" will be augmented to the
     the most represented class in the corresponding model using the jitter method.
 
+argTrain.sampleManagement
+=========================
+*Description*
+    absolute path to a CSV file containing samples transfert strategies
+*Type*
+    string
+*Default value*
+    None
+*Example*
+    .. code-block:: python
+
+        sampleManagement : '/absolute/path/myRules.csv'
+
+        >>> cat /absolute/path/myRules.csv
+                1,2,4,2
+
+        Mean:
+
+        +--------+-------------+------------+----------+
+        | source | destination | class name | quantity |
+        +========+=============+============+==========+
+        |   1    |      2      |      4     |     2    |
+        +--------+-------------+------------+----------+
+
+argTrain.classifier
+===================
+*Description*
+    OTB's classifier name
+*Type*
+    string
+*Default value*
+    ``mandatory``
+*Example*
+    .. code-block:: python
+
+        classifier : 'rf'
+
+argTrain.options
+================
+*Description*
+    OTB's classifier's options
+*Type*
+    string
+*Default value*
+    ``mandatory``
+*Example*
+    .. code-block:: python
+
+        options : ' -classifier.rf.min 5 -classifier.rf.max 25 '
+
+Sensors available parameters
+****************************
+
+Sensors available list : Landsat5_old / Landsat8 / Landsat8_old / Sentinel_2 / Sentinel_2_S2C / Sentinel_2_L3A
+
+Sensor.full_pipline
+===================
+*Description*
+    Only available to Sentinel_2 / Sentinel_2_S2C / Sentinel_2_L3A sensors.
+    If set to False, then IOTA² will write date's stack on disk to improve computations.
+    Else, every computation will be done in RAM, saving disk space.
+*Type*
+    bool
+*Default value*
+    False
+*Example*
+    .. code-block:: python
+
+        full_pipline : True
+
+Sensor.startDate
+================
+*Description*
+    first insterpolation date
+*Type*
+    string
+*Default value*
+    None
+*Example*
+    .. code-block:: python
+
+        startDate : '20170131'
+
+Sensor.endDate
+==============
+*Description*
+    last insterpolation date
+*Type*
+    string
+*Default value*
+    None
+*Example*
+    .. code-block:: python
+
+        endDate : '20170131'
+
+Sensor.temporalResolution
+=========================
+*Description*
+    Temporal resolution, time between two interpolations
+*Type*
+    int
+*Default value*
+    None
+*Example*
+    .. code-block:: python
+
+        temporalResolution : 10
+*Notes*
+    There is no temporal sampling period available with the Sentinel_2_L3A sensor,
+    only clouds are interpolated
+
+Sensor.additionalFeatures
+=========================
+*Description*
+    IOTA² allow adding features by dates. Format is the one provided by OTB's BandMath 
+    application.
+
+*Type*
+    string
+*Default value*
+    None
+*Example*
+    .. code-block:: python
+
+        additionalFeatures : 'b1+b2,(b1-b2)/(b1+b2)'
+*Notes*
+    Custom features must be coma separated.
+
+Sensor.keepBands
+================
+*Description*
+    List of bands to use in the IOTA² run.
+*Type*
+    list
+*Default value*
+    all available bands
+*Example*
+    .. code-block:: python
+
+        keepBands:["B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11", "B12"] # Sentinel-2 case
+
+coregistration available parameters
+**************************
+
+coregistration.VHRPath
+======================
+*Description*
+    absolute path to VHR image
+*Type*
+    string
+*Default value*
+    'None'
+*Example*
+    VHRPath: 'path/to/the/VHR.tif'
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+coregistration.dateVHR
+======================
+*Description*
+    date ``YYYYMMDD`` of the VHR image
+*Type*
+    string
+*Default value*
+    'None'
+*Example*
+    dateVHR: '20180601'
+*Notes*
+    The ``dateVHR`` is used to find automatically the best image of the timeseries for coregistration
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+coregistration.dateSrc
+======================
+*Description*
+    date ``YYYYMMDD`` of the 
+*Type*
+    string
+*Default value*
+    'None'
+*Example*
+    dateSrc: '20180601'
+*Notes*
+    If no ``dateSrc`` is mentionned, the best image will be automatically choose for coregistration
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+coregistration.bandRef
+======================
+*Description*
+    Number of the band of the VHR image to use for coregistration
+*Type*
+    int
+*Default value*
+    1
+*Example*
+    bandRef: 1
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+coregistration.bandSrc
+======================
+*Description*
+    Number of the band of the src raster to use for coregistration
+*Type*
+    int
+*Default value*
+    3
+*Example*
+    bandSrc: 3
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+coregistration.resample
+=======================
+*Description*
+    Resample the reference and the source raster to the same resolution to find sift points
+*Type*
+    bool
+*Default value*
+    True
+*Example*
+    resample: True
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+coregistration.step
+===================
+*Description*
+    Initial size of steps between bins in pixels
+*Type*
+    int
+*Default value*
+    256
+*Example*
+    step: 256
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+coregistration.minstep
+======================
+*Description*
+    Minimal size of steps between bins in pixels
+*Type*
+    int
+*Default value*
+    16
+*Example*
+    minstep: 16
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+coregistration.minsiftpoints
+============================
+*Description*
+    Minimal number of sift points to find to create the new RPC model
+*Type*
+    int
+*Default value*
+    40
+*Example*
+    minsiftpoints: 40
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+coregistration.iterate
+======================
+*Description*
+    Proceed several iterationby reducing the step between geobin to find sift points
+*Type*
+    bool
+*Default value*
+    True
+*Example*
+    iterate: True
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+coregistration.prec
+===================
+*Description*
+    Estimated shift between source and reference raster in pixel (source raster resolution)
+*Type*
+    int
+*Default value*
+    3
+*Example*
+    prec: 3
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+coregistration.mode
+===================
+*Description*
+    Coregistration mode of the timeseries:
+        1: single coregistration between one source image (and its masks) and the VHR image
+        2: this mode operates a coregistration between a image of the timeseries and the VHR image, then the same RPC model is used to orthorectify every images of the timeseries
+        3: cascade mode, this mode operates a first coregistration between a source image and the VHR image, then each image of the timeseries is coregistered step by step with the closest temporal images of the timeseries already coregistered
+*Type*
+    int
+*Default value*
+    2
+*Example*
+    mode: 2
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+coregistration.pattern
+======================
+*Description*
+    Pattern of the timeseries files to coregister
+*Type*
+    string
+*Default value*
+    'None'
+*Example*
+    pattern: '*STACK.tif'
+*Notes*
+    By default the value is left to ``'None'`` and the pattern depends on the sensor used (``*STACK.tif`` for Sentinel2, ``ORTHO_SURF_CORR_PENTE*.TIF``)

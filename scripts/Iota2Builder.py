@@ -22,7 +22,7 @@ class iota2():
     class use to describe steps sequence and variable to use at each step (config)
     """
     def __init__(self, cfg, config_ressources):
-        
+
         # config object
         #~ self.cfg = cfg
         self.cfg = cfg
@@ -41,8 +41,12 @@ class iota2():
         self.steps_group["classification"] = OrderedDict()
         self.steps_group["mosaic"] = OrderedDict()
         self.steps_group["validation"] = OrderedDict()
+        self.steps_group["regularisation"] = OrderedDict()
+        self.steps_group["crown"] = OrderedDict()
+        self.steps_group["vectorisation"] = OrderedDict()
+        self.steps_group["lcstatistics"] = OrderedDict()
 
-        # build steps
+        #build steps
         self.steps = self.build_steps(self.cfg, config_ressources)
         self.sort_step()
 
@@ -74,7 +78,7 @@ class iota2():
         """
         use to establish which step is going to which step group
         """
-        
+
         for step_place, step in enumerate(self.steps):
             self.steps_group[step.step_group][step_place + 1] = step.step_description()
 
@@ -106,7 +110,7 @@ class iota2():
                        'learningSamples', 'model', 'shapeRegion', "features"]
 
         iota2_outputs_dir = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
-        
+
         return [os.path.join(iota2_outputs_dir, d) for d in directories]
 
     def get_steps_number(self):
@@ -124,6 +128,7 @@ class iota2():
         """
         build steps
         """
+
         import os
         from MPI import ressourcesByStep as iota2Ressources
         from Common import ServiceConfigFile as SCF
@@ -151,7 +156,11 @@ class iota2():
                            mosaic, confusionCmd,
                            confusionGeneration, confusionsMerge,
                            reportGeneration, mergeSeedClassifications,
-                           additionalStatistics, additionalStatisticsMerge)
+                           additionalStatistics, additionalStatisticsMerge,
+                           sensorsPreprocess, Coregistration, Regularization,
+                           Clump, Grid, crownSearch, crownBuild,
+                           largeVectorization, VectSimplification,
+                           zonalStatistics, joinStatistics)
 
         # will contains all IOTA² steps
         s_container = StepContainer()
@@ -161,9 +170,15 @@ class iota2():
         step_S1_preproc = Sentinel1PreProcess.Sentinel1PreProcess(cfg,
                                                                   config_ressources,
                                                                   self.workingDirectory)
+        step_PreProcess = sensorsPreprocess.sensorsPreprocess(cfg,
+                                                              config_ressources,
+                                                              self.workingDirectory)
         step_CommonMasks = CommonMasks.CommonMasks(cfg,
                                                    config_ressources,
                                                    self.workingDirectory)
+        step_coregistration = Coregistration.Coregistration(cfg,
+                                                            config_ressources,
+                                                            self.workingDirectory)
         step_pixVal = PixelValidity.PixelValidity(cfg,
                                                   config_ressources,
                                                   self.workingDirectory)
@@ -255,7 +270,34 @@ class iota2():
         step_additional_statistics_merge = additionalStatisticsMerge.additionalStatisticsMerge(cfg,
                                                                                                config_ressources,
                                                                                                self.workingDirectory)
-                                                                
+        step_regularization = Regularization.Regularization(cfg,
+                                                            config_ressources,
+                                                            self.workingDirectory)
+        step_clump = Clump.Clump(cfg,
+                                 config_ressources,
+                                 self.workingDirectory)
+        step_grid = Grid.Grid(cfg,
+                              config_ressources,
+                              self.workingDirectory)
+        step_crown_search = crownSearch.crownSearch(cfg,
+                                                    config_ressources,
+                                                    self.workingDirectory)
+        step_crown_build = crownBuild.crownBuild(cfg,
+                                                 config_ressources,
+                                                 self.workingDirectory)
+        step_large_vecto = largeVectorization.largeVectorization(cfg,
+                                                                 config_ressources,
+                                                                 self.workingDirectory)
+        step_simplification = VectSimplification.simplification(cfg,
+                                                                config_ressources,
+                                                                self.workingDirectory)
+        step_zonal_stats = zonalStatistics.zonalStatistics(cfg,
+                                                           config_ressources,
+                                                           self.workingDirectory)
+        step_join_stats = joinStatistics.joinStatistics(cfg,
+                                                        config_ressources,
+                                                        self.workingDirectory)
+        
         # control variable
         Sentinel1 = SCF.serviceConfigFile(cfg).getParam('chain', 'S1Path')
         shapeRegion = SCF.serviceConfigFile(cfg).getParam('chain', 'regionPath')
@@ -271,13 +313,18 @@ class iota2():
         ground_truth = SCF.serviceConfigFile(cfg).getParam('chain', 'groundTruth')
         runs = SCF.serviceConfigFile(cfg).getParam('chain', 'runs')
         outStat = SCF.serviceConfigFile(cfg).getParam('chain', 'outputStatistics')
+        VHR = SCF.serviceConfigFile(cfg).getParam('coregistration', 'VHRPath')
+        gridsize = SCF.serviceConfigFile(cfg).getParam('Simplification', 'gridsize')
 
         # build chain
         # init steps
         s_container.append(step_build_tree, "init")
-        if not "None" in Sentinel1:
-            s_container.append(step_S1_preproc, "init")
+        s_container.append(step_PreProcess, "init")
         s_container.append(step_CommonMasks, "init")
+
+        if not "none" in VHR.lower():
+            s_container.append(step_coregistration, "init")
+        
         s_container.append(step_pixVal, "init")
 
         # sampling steps
@@ -329,4 +376,19 @@ class iota2():
         if outStat:
             s_container.append(step_additional_statistics, "validation")
             s_container.append(step_additional_statistics_merge, "validation")
+        # regularisation steps
+        s_container.append(step_regularization, "regularisation")
+        if gridsize is not None:
+            s_container.append(step_clump, "regularisation")
+            # crown steps
+            s_container.append(step_grid, "crown")
+            s_container.append(step_crown_search, "crown")
+            s_container.append(step_crown_build, "crown")
+            # vectorization step
+            s_container.append(step_large_vecto, "vectorisation")
+        else:
+            # vectorization step
+            s_container.append(step_simplification, "vectorisation")
+        s_container.append(step_zonal_stats, "lcstatistics")
+        s_container.append(step_join_stats, "lcstatistics")
         return s_container

@@ -21,7 +21,7 @@ We assume that installation will be done in the directory: ``MyInstall``
 .. code-block:: console
 
     cd MyInstall
-    git clone -b develop https://framagit.org/inglada/iota2.git
+    git clone -b develop https://framagit.org/iota2-project/iota2
 
 Now you have the directory ``iota2`` in ``MyInstall`` which contains all IOTA² source code.
 

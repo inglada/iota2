@@ -18,7 +18,6 @@ import os
 import IOTA2Step
 from Cluster import get_RAM
 from Common import ServiceConfigFile as SCF
-from Common import IOTA2Directory as IOTA2_dir
 
 class CommonMasks(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
@@ -27,6 +26,7 @@ class CommonMasks(IOTA2Step.Step):
 
         # step variables
         self.workingDirectory = workingDirectory
+        self.RAM = 1024.0 * get_RAM(self.resources["ram"])
 
     def step_description(self):
         """
@@ -53,12 +53,11 @@ class CommonMasks(IOTA2Step.Step):
             the function to execute as a lambda function. The returned object
             must be a lambda function.
         """
-        from Common import FileUtils as fut
-        step_function = lambda x: fut.getCommonMasks(x, self.cfg, self.workingDirectory)
+        from Sensors import ProcessLauncher
+        step_function = lambda x: ProcessLauncher.commonMasks(x, self.cfg,  self.workingDirectory, self.RAM)
         return step_function
 
     def step_outputs(self):
         """
         """
         pass
-        

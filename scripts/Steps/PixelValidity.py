@@ -16,6 +16,7 @@
 import os
 
 import IOTA2Step
+from Cluster import get_RAM
 from Common import ServiceConfigFile as SCF
 
 class PixelValidity(IOTA2Step.Step):
@@ -24,6 +25,7 @@ class PixelValidity(IOTA2Step.Step):
         super(PixelValidity, self).__init__(cfg, cfg_resources_file)
 
         # step variables
+        self.RAM = 1024.0 * get_RAM(self.resources["ram"])
         self.workingDirectory = workingDirectory
 
     def step_description(self):
@@ -40,10 +42,7 @@ class PixelValidity(IOTA2Step.Step):
             the return could be and iterable or a callable
         """
         tiles = SCF.serviceConfigFile(self.cfg).getParam('chain', 'listTile').split(" ")
-        outputPath = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
-        pathTilesFeat = os.path.join(outputPath, "features")
-        
-        return [os.path.join(pathTilesFeat, tile) for tile in tiles]
+        return tiles
 
     def step_execute(self):
         """
@@ -53,16 +52,18 @@ class PixelValidity(IOTA2Step.Step):
             the function to execute as a lambda function. The returned object
             must be a lambda function.
         """
-        from Common import FileUtils as fut
-        from Sensors import NbView
+        from Sensors import ProcessLauncher
 
         cloud_threshold = SCF.serviceConfigFile(self.cfg).getParam('chain', 'cloud_threshold')
-        cloud_threshold_name = "CloudThreshold_{}.shp".format(cloud_threshold)
-        step_function = lambda x: NbView.genNbView(x, cloud_threshold_name, cloud_threshold, self.cfg, self.workingDirectory)
+        step_function = lambda x: ProcessLauncher.validity(x,
+                                                           self.cfg,
+                                                           "CloudThreshold_{}.shp".format(cloud_threshold),
+                                                           cloud_threshold,
+                                                           self.workingDirectory,
+                                                           self.RAM)
         return step_function
 
     def step_outputs(self):
         """
         """
         pass
-        

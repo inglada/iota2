@@ -39,17 +39,18 @@ class DimensionalityReductionTests(unittest.TestCase):
                        'landsat8_b5_20140118', 'landsat8_b6_20140118',
                        'landsat8_b7_20140118', 'landsat8_ndvi_20140118',
                        'landsat8_ndwi_20140118', 'landsat8_brightness_20140118']
-        self.statsFile = iota2_dataTest+'dim_red_stats.xml'
-        self.testStatsFile = '/tmp/stats.xml'
-        self.outputModelFileName = iota2_dataTest+'/model.pca'
-        self.testOutputModelFileName = '/tmp/model.pca'
-        self.reducedOutputFileName = iota2_dataTest+'/reduced.sqlite'
-        self.testReducedOutputFileName = '/tmp/reduced.sqlite'
-        self.testJointReducedFile = '/tmp/joint.sqlite'
-        self.jointReducedFile = iota2_dataTest+'/joint.sqlite'
-        self.outputSampleFileName = iota2_dataTest+'/reduced_output_samples.sqlite'
-        self.testOutputSampleFileName = '/tmp/reduced_output_samples.sqlite'
+        self.statsFile = os.path.join(iota2_dataTest, 'dim_red_stats.xml')
+        self.testStatsFile = os.path.join(iota2_dataTest, 'tmp', 'stats.xml')
+        self.outputModelFileName = os.path.join(iota2_dataTest, 'model.pca')
+        self.testOutputModelFileName = os.path.join(iota2_dataTest, 'tmp', 'model.pca')
+        self.reducedOutputFileName = os.path.join(iota2_dataTest, 'reduced.sqlite')
+        self.testReducedOutputFileName = os.path.join(iota2_dataTest, 'tmp', 'reduced.sqlite')
+        self.testJointReducedFile = os.path.join(iota2_dataTest, 'tmp', 'joint.sqlite')
+        self.jointReducedFile = os.path.join(iota2_dataTest, 'joint.sqlite')
+        self.outputSampleFileName = 'reduced_output_samples.sqlite'
+        self.testOutputSampleFileName = 'reduced_output_samples.sqlite'
         self.configFile = os.path.join(iota2dir, "config", "Config_4Tuiles_Multi_FUS_Confidence.cfg")
+
     def test_GetAvailableFeatures(self):
 
         expected = '20140118'
@@ -129,6 +130,8 @@ class DimensionalityReductionTests(unittest.TestCase):
 
 
     def test_ApplyDimensionalityReduction(self):
+        from Iota2Tests import compareSQLite
+        
         outputFeatures = ['reduced_'+str(x+1) for x in range(5)]
         (dummy, metaDataFields) = DR.BuildFeaturesLists(self.inputSampleFileName)
         numberOfMetaDataFields = len(metaDataFields)
@@ -140,9 +143,12 @@ class DimensionalityReductionTests(unittest.TestCase):
                                         outputFeatures, inputDimensions,
                                         statsFile = self.statsFile, 
                                         writingMode = 'overwrite')
-        self.assertTrue(filecmp.cmp(self.testReducedOutputFileName, 
-                                    self.reducedOutputFileName, 
-                                    shallow=False), msg="Reduced files don't match")
+
+        self.assertTrue(compareSQLite(self.testReducedOutputFileName,
+                                      self.reducedOutputFileName,
+                                      CmpMode="coordinates"),
+                        msg="Joined files don't match")
+
 
     def test_JoinReducedSampleFiles(self):
         
@@ -157,47 +163,18 @@ class DimensionalityReductionTests(unittest.TestCase):
                                       CmpMode="coordinates"),
                         msg="Joined files don't match")
 
-
-        #self.assertTrue(filecmp.cmp(self.testJointReducedFile, 
-        #                            self.jointReducedFile, 
-        #                            shallow=False), msg="Joined files don't match")
-
     def test_SampleFilePCAReduction(self):
         from Iota2Tests import compareSQLite
 
         test_testOutputSampleFileName = iota2_dataTest + "/" + self.testOutputSampleFileName
-
         DR.SampleFilePCAReduction(self.inputSampleFileName, 
                                   test_testOutputSampleFileName, 'date',
                                   self.targetDimension, tmpDir=os.path.join(iota2_dataTest, "tmp"))
 
-        print compareSQLite(test_testOutputSampleFileName,
-                            self.outputSampleFileName,
-                            CmpMode="coordinates")
-
-        #self.assertTrue(compareSQLite(self.testOutputSampleFileName,
-        #                              self.outputSampleFileName,
-        #                              CmpMode="coordinates"),
-        #                msg="Output sample files don't match")
-        self.assertTrue(filecmp.cmp(test_testOutputSampleFileName, 
-                                    self.outputSampleFileName, 
-                                    shallow=False), msg="Output sample files don't match")
-
-    # """
-    # def test_SampleFileDimensionalityReduction(self):
-    #     outpath = iota2_dataTest = iota2dir + "/data/tmp/learningSamples/reduced"
-    #     if not os.path.exists(outpath):
-    #         os.makedirs(outpath)
-    #     basename = os.path.basename(self.inputSampleFileName)
-    #     ifile = iota2dir+"/data/tmp/learningSamples/"+basename
-    #     shutil.copyfile(self.inputSampleFileName, ifile) 
-    #     ofile = outpath+'/reduced_output_samples.sqlite'
-    #     DR.SampleFileDimensionalityReduction(ifile, ofile,
-    #                                          self.configFile)
-    #     self.assertTrue(filecmp.cmp(ofile, 
-    #                                 self.outputSampleFileName, 
-    #                                 shallow=False), msg="Output sample files don't match")
-    # """
+        self.assertTrue(compareSQLite(test_testOutputSampleFileName,
+                                      os.path.join(iota2_dataTest, self.outputSampleFileName),
+                                      CmpMode="coordinates"),
+                        msg="Output sample files don't match")
 
     def test_BuildChannelGroups(self):
         cg = DR.BuildChannelGroups(self.configFile)
@@ -229,7 +206,6 @@ class DimensionalityReductionTests(unittest.TestCase):
     def test_ApplyDimensionalityReductionToFeatureStack(self):
         imageStack = iota2_dataTest+'/230feats.tif'
         modelList = [self.outputModelFileName]*len(DR.BuildChannelGroups(self.configFile))
-        print "Models", modelList
         (app, other) = DR.ApplyDimensionalityReductionToFeatureStack(self.configFile, imageStack, 
                                                                      modelList)
         app.SetParameterString("out","/tmp/reducedStack.tif")
@@ -244,7 +220,7 @@ class DimensionalityReductionTests(unittest.TestCase):
         modelList = [self.outputModelFileName]*len(DR.BuildChannelGroups(self.configFile))
         (appdr, other) = DR.ApplyDimensionalityReductionToFeatureStack(self.configFile, app, 
                                                                      modelList)
-        appdr.SetParameterString("out","/tmp/reducedStackPipeline.tif")
+        appdr.SetParameterString("out", os.path.join(iota2_dataTest, "tmp", "reducedStackPipeline.tif"))
         appdr.ExecuteAndWriteOutput()
 
 if __name__ == '__main__':
