@@ -98,6 +98,7 @@ def validity(tile_name, config_path, maskOut_name, view_threshold, workingDirect
     from Common.Utils import run
     from Common.FileUtils import erodeShapeFile
     from Common.FileUtils import removeShape
+    from Common.FileUtils import ensure_dir
 
     cfg = SCF.serviceConfigFile(config_path)
     features_dir = os.path.join(cfg.getParam("chain", "outputPath"),
@@ -107,7 +108,8 @@ def validity(tile_name, config_path, maskOut_name, view_threshold, workingDirect
     validity_out = os.path.join(features_dir, validity_name)
     validity_processing = validity_out
     if workingDirectory:
-        validity_processing = os.path.join(workingDirectory, validity_name)
+        ensure_dir(os.path.join(workingDirectory, tile_name))
+        validity_processing = os.path.join(workingDirectory, tile_name, validity_name)
 
     remote_sensor_container = Sensors_container(config_path, tile_name,
                                                working_dir=workingDirectory)
