@@ -1,5 +1,6 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
+
 # =========================================================================
 #   Program:   iota2
 #
@@ -23,8 +24,8 @@ from Common import OtbAppBank as otbApp
 
 def extractStats(vectorIn, pathConf, wD=None):
 
-    dataField = Config(file(pathConf)).chain.dataField
-    iota2Folder = Config(file(pathConf)).chain.outputPath
+    dataField = Config(open(pathConf)).chain.dataField
+    iota2Folder = Config(open(pathConf)).chain.outputPath
 
     tileToCompute = vectorIn.split("/")[-1].split("_")[0]
     modelToCompute = vectorIn.split("/")[-1].split("_")[2].split("f")[0]

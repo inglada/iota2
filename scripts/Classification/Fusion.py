@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -24,7 +24,6 @@ from Common import FileUtils as fu
 from Common import ServiceConfigFile as SCF
 
 LOGGER = logging.getLogger(__name__)
-
 
 def dempster_shafer_fusion_parameters(iota2_dir):
     """
@@ -79,7 +78,6 @@ def dempster_shafer_fusion_parameters(iota2_dir):
                                "sar_model": sar_model,
                                "opt_model": opt_model})
     return out_parameters
-
 
 def perform_fusion(fusion_dic, mob, classif_model_pos, classif_tile_pos, classif_seed_pos,
                    workingDirectory, LOGGER=LOGGER):
@@ -142,7 +140,6 @@ def perform_fusion(fusion_dic, mob, classif_model_pos, classif_tile_pos, classif
                         os.path.join(classif_dir, sar_opt_fus_name))
             os.remove(sar_opt_fus)
     return os.path.join(classif_dir, sar_opt_fus_name)
-
 
 def compute_fusion_choice(iota2_dir, fusion_dic, fusion_class,
                           classif_model_pos, classif_tile_pos, classif_seed_pos,
@@ -230,7 +227,6 @@ def compute_fusion_choice(iota2_dir, fusion_dic, fusion_class,
                         os.path.join(ds_choice_dir,ds_choice_name))
             os.remove(ds_choice)
     return os.path.join(ds_choice_dir,ds_choice_name)
-
 
 def compute_confidence_fusion(fusion_dic, ds_choice,
                               classif_model_pos, classif_tile_pos, classif_seed_pos,
@@ -323,7 +319,6 @@ def compute_confidence_fusion(fusion_dic, ds_choice,
             os.remove(ds_confidence)
     return os.path.join(ds_confidence_dir, ds_confidence_name)
 
-
 def dempster_shafer_fusion(iota2_dir, fusion_dic, mob="precision",
                            workingDirectory=None):
     """
@@ -381,7 +376,6 @@ def dempster_shafer_fusion(iota2_dir, fusion_dic, mob="precision",
                                                ds_no_choice,
                                                workingDirectory)
     return sar_opt_fus, confidence_fus, ds_choice
-
 
 def fusion(pathClassif, cfg, pathWd):
 

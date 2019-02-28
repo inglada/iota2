@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -13,6 +13,7 @@
 #   PURPOSE.  See the above copyright notices for more information.
 #
 # =========================================================================
+
 import argparse
 import shutil
 import os
@@ -27,9 +28,7 @@ from Common import ServiceConfigFile as SCF
 from Sampling import DimensionalityReduction as DR
 import logging
 
-
 logger = logging.getLogger(__name__)
-
 
 def str2bool(v):
     if v.lower() not in ('yes', 'true', 't', 'y', '1', 'no', 'false', 'f', 'n', '0'):
@@ -39,7 +38,6 @@ def str2bool(v):
     if v.lower() in ('no', 'false', 'f', 'n', '0'):
         retour = False
     return retour
-
 
 def filterOTB_output(raster, mask, output, RAM, outputType="uint8"):
 
@@ -55,7 +53,6 @@ def filterOTB_output(raster, mask, output, RAM, outputType="uint8"):
     elif outputType=="float":
         bandMathFilter.SetParameterOutputImagePixelType("out", otb.ImagePixelType_float)
     bandMathFilter.ExecuteAndWriteOutput()
-
 
 def computeClassifications(model, outputClassif, confmap, MaximizeCPU,
                            Classifmask, stats, AllFeatures, RAM, pixType="uint8"):
@@ -81,7 +78,6 @@ def computeClassifications(model, outputClassif, confmap, MaximizeCPU,
         classifier.SetParameterString("imstat", stats)
 
     return classifier, AllFeatures
-
 
 def launchClassification(tempFolderSerie, Classifmask, model, stats,
                          outputClassif, confmap, pathWd, cfg, pixType,
@@ -186,10 +182,3 @@ if __name__ == "__main__":
 
     launchClassification(args.tempFolderSerie, args.mask, args.model, args.stats, args.outputClassif,
                          args.confmap, args.pathWd, cfg, args.pixType, args.MaximizeCPU)
-
-
-
-
-
-
-

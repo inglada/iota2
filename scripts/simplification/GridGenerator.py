@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -111,20 +111,20 @@ def grid_generate(outname, xysize, epsg=2154, raster=None, coordinates=None):
     # Close DataSources
     shape.Destroy()
 
-    print "Grid has %s tiles"%(int(xysize * xysize))
+    print("Grid has %s tiles"%(int(xysize * xysize)))
 
     return int(xysize * xysize)
     
 if __name__ == "__main__":
     if len(sys.argv) == 1:
-	prog = os.path.basename(sys.argv[0])
-	print '      '+sys.argv[0]+' [options]' 
-	print "     Help : ", prog, " --help"
-	print "        or : ", prog, " -h"
-	sys.exit(-1)  
+        prog = os.path.basename(sys.argv[0])
+        print('      '+sys.argv[0]+' [options]') 
+        print("     Help : ", prog, " --help")
+        print("        or : ", prog, " -h")
+        sys.exit(-1)  
     else:
-	usage = "usage: %prog [options] "
-	parser = argparse.ArgumentParser(description = "Grid shapefile generation from an input raster")
+        usage = "usage: %prog [options] "
+        parser = argparse.ArgumentParser(description = "Grid shapefile generation from an input raster")
         parser.add_argument("-o", dest="outname", action="store", \
                             help="ouput grid shapefile path", required = True)
         parser.add_argument("-epsg", dest="epsg", action="store", \
@@ -142,6 +142,5 @@ if __name__ == "__main__":
         elif args.coords is not None:
             nbtiles = grid_generate(args.outname, args.xysize, args.epsg, None, args.coords)
         else:
-            print "One of -r or coords option has to be filled"
+            print("One of -r or coords option has to be filled")
             sys.exit()
-    

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # =========================================================================
@@ -13,6 +13,7 @@
 #   PURPOSE.  See the above copyright notices for more information.
 #
 # =========================================================================
+
 import argparse
 import ast
 import os
@@ -35,7 +36,6 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 streamHandler.setFormatter(formatter)
 
 logger.addHandler(streamHandler)
-
 
 def str2bool(v):
     """

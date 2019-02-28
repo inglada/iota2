@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -117,7 +117,6 @@ def genIntersectionShape(vector1, vector2, vector_out):
         return True
     return False
 
-
 def upperLeft(item):
     """
     function use to sort a list
@@ -125,7 +124,6 @@ def upperLeft(item):
     """
     #upperLeft
     return item[1][2], item[1][1]
-
 
 def mosaicFromShape(rasters, shape, rasterOut, workingDir=None):
     """

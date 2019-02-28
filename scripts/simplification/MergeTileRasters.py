@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3       
 # -*- coding: utf-8 -*-
 
 # =========================================================================
@@ -87,7 +87,6 @@ def init_grass(path, grasslib):
         except:
             raise Exception("Folder '%s' does not own to current user")%(gisdb)
 
-
 def getTilesFiles(zone, tiles, folder, idTileField, tileNamePrefix, localenv, fieldzone = "", valuezone = "", driver = "ESRI Shapefile"):
 
     for ext in ['.shp', '.dbf', '.shx', '.prj']:
@@ -110,8 +109,8 @@ def getTilesFiles(zone, tiles, folder, idTileField, tileNamePrefix, localenv, fi
     else:
         raise Exception('Zone parameter must be a shapefile or layer object')
 
-    tiles = driver.Open(tiles, 0)    
-    lyrTiles = tiles.GetLayer()    
+    tiles = driver.Open(tiles, 0)
+    lyrTiles = tiles.GetLayer()
     
     listFilesTiles = []
 
@@ -139,10 +138,10 @@ def getTilesFiles(zone, tiles, folder, idTileField, tileNamePrefix, localenv, fi
                 if os.path.exists(tilename):
                     listFilesTiles.append(tilename)
                 else:
-                    raise Exception('Tiles folder or prefix name of classification rasters do not exist')          
+                    raise Exception('Tiles folder or prefix name of classification rasters do not exist')
 
         if nbinter == 0:
-            raise Exception('No Tile for the given area')          
+            raise Exception('No Tile for the given area')
     
     return listFilesTiles
 
@@ -190,7 +189,7 @@ def tilesRastersMergeVectSimp(path, tiles, out, grass, mmu, \
 
     timeinit = time.time()
 
-    print("Production of vector file %s"%(os.path.splitext(out)[0] + str(valueclip)))
+    print(("Production of vector file %s"%(os.path.splitext(out)[0] + str(valueclip))))
     
     # local environnement
     localenv = os.path.join(path, "tmp%s"%(str(valueclip)))
@@ -209,7 +208,7 @@ def tilesRastersMergeVectSimp(path, tiles, out, grass, mmu, \
     finalraster = mergeTileRaster(path, localListTilesFiles, fieldclip, valueclip, localenv)
 
     timemerge = time.time()     
-    print " ".join([" : ".join(["Merge Tiles", str(timemerge - timeinit)]), "seconds"])
+    print(" ".join([" : ".join(["Merge Tiles", str(timemerge - timeinit)]), "seconds"]))
 
     # Raster vectorization and simplification
     outvect = os.path.join(localenv, finalraster[:-4] + '.shp')
@@ -220,7 +219,7 @@ def tilesRastersMergeVectSimp(path, tiles, out, grass, mmu, \
     os.remove(finalraster)
     
     timevect = time.time()     
-    print " ".join([" : ".join(["Vectorisation and Simplification", str(timevect - timemerge)]), "seconds"])
+    print(" ".join([" : ".join(["Vectorisation and Simplification", str(timevect - timemerge)]), "seconds"]))
     
     # Get clip shafile layer    
     if clipfile is not None:
@@ -252,7 +251,7 @@ def tilesRastersMergeVectSimp(path, tiles, out, grass, mmu, \
                 raise Exception('Field type %s not handled'%(fieldType))
         else:
             clip = os.path.join(localenv, clipfile)
-            print "'%s' shapefile has only one feature which will used to clip data"%(clip)
+            print("'%s' shapefile has only one feature which will used to clip data"%(clip))
         
         # clip
         clipped = os.path.join(localenv, "clipped.shp")
@@ -273,7 +272,7 @@ def tilesRastersMergeVectSimp(path, tiles, out, grass, mmu, \
         clipped = os.path.join(localenv, "merge.shp")
 
     timeclip = time.time()     
-    print " ".join([" : ".join(["Clip final shapefile", str(timeclip - timevect)]), "seconds"])            
+    print(" ".join([" : ".join(["Clip final shapefile", str(timeclip - timevect)]), "seconds"]))            
         
     # Delete duplicate geometries
     ddg.deleteDuplicateGeometriesSqlite(clipped)
@@ -283,7 +282,7 @@ def tilesRastersMergeVectSimp(path, tiles, out, grass, mmu, \
         os.remove(os.path.splitext(clipped)[0] + ext)
 
     timedupli = time.time()     
-    print " ".join([" : ".join(["Delete duplicated geometries", str(timedupli - timeclip)]), "seconds"])            
+    print(" ".join([" : ".join(["Delete duplicated geometries", str(timedupli - timeclip)]), "seconds"]))            
         
     # Input shapefile
     init_grass(path, grass)
@@ -306,8 +305,8 @@ def tilesRastersMergeVectSimp(path, tiles, out, grass, mmu, \
     afa.addFieldArea(outtmp, 10000)
     
     timeprodvect = time.time()     
-    print " ".join([" : ".join(["Production of final shapefile geometry of %s"%(os.path.splitext(out)[0] + str(valueclip) + ext), \
-                                str(timeprodvect - timeinit)]), "seconds"])
+    print(" ".join([" : ".join(["Production of final shapefile geometry of %s"%(os.path.splitext(out)[0] + str(valueclip) + ext), \
+                                str(timeprodvect - timeinit)]), "seconds"]))
 
     for ext in ['.shp', '.dbf', '.shx', '.prj']:
         shutil.copyfile(os.path.splitext(outtmp)[0] + ext, os.path.splitext(out)[0] + str(valueclip) + ext)
@@ -323,15 +322,14 @@ def tilesRastersMergeVectSimp(path, tiles, out, grass, mmu, \
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
-	prog = os.path.basename(sys.argv[0])
-	print '      '+sys.argv[0]+' [options]' 
-	print "     Help : ", prog, " --help"
-	print "        or : ", prog, " -h"
-	sys.exit(-1)  
- 
+        prog = os.path.basename(sys.argv[0])
+        print('      '+sys.argv[0]+' [options]') 
+        print("     Help : ", prog, " --help")
+        print("        or : ", prog, " -h")
+        sys.exit(-1)  
     else:
-	usage = "usage: %prog [options] "
-	parser = argparse.ArgumentParser(description = "Merge and clip vector tiles " \
+        usage = "usage: %prog [options] "
+        parser = argparse.ArgumentParser(description = "Merge and clip vector tiles " \
         "on a given vector zone")
         parser.add_argument("-wd", dest="path", action="store", \
                             help="Working directory", required = True)
@@ -378,13 +376,10 @@ if __name__ == "__main__":
         parser.add_argument("-angle", action="store_true", \
                             help="Smooth corners of pixels (45°), if empty no corners smoothing", default = False)           
         
-	args = parser.parse_args()
+        args = parser.parse_args()
         
         tilesRastersMergeVectSimp(args.path, args.listTiles, args.out, args.grass, args.mmu, \
                                   args.fieldclass, args.extract, args.field, args.value, args.tileId, args.prefix, args.tileFolder, \
                                   args.douglas, args.hermite, args.angle)
 
-
 #python chaineIOTA/iota2/scripts/simplification/MergeTileRasters.py -wd $TMPDIR -grass /work/OT/theia/oso/OTB/GRASS/grass7.2.1svn-x86_64-pc-linux-gnu-13_03_2017 -listTiles /work/OT/theia/oso/classifications/Simplification/2017/production/out/oso2017_grid.shp -out /work/OT/theia/oso/classifications/Simplification/2017/production/out/departements/departement_8.shp -mmu 1000 -extract /work/OT/theia/oso/classifications/Simplification/FranceEntiere/otb/FranceDepartements.shp -field CODE_DEPT -value "08" -fieldclass cat -tileId FID -prefix tile_ -tileFolder /work/OT/theia/oso/classifications/Simplification/2017/production/out/voisins -douglas 10 -hermite 10 -angle    
-
-

@@ -1,4 +1,5 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
+#-*- coding: utf-8 -*-
 
 import sys
 from sys import argv
@@ -7,8 +8,6 @@ import osr
 from osgeo import ogr
 import random
 import string
-
-
 
 def shpPercentageSelection(infile, field, percentage, opath):
    classes = []
@@ -60,8 +59,6 @@ def shpPercentageSelection(infile, field, percentage, opath):
 
    return outShapefile
 
-
-
 def CreateNewLayer(layer, outShapefile):
       inLayerDefn = layer.GetLayerDefn()
       field_name_target = []
@@ -107,9 +104,9 @@ def CreateNewLayer(layer, outShapefile):
          outLayer.CreateFeature(outFeature)
 
 if __name__=='__main__':
-    usage= 'usage: <infile> <field> <percentage> <opath>'
-    if len(sys.argv) != 5:
-    	print usage
-	sys.exit(1)
-    else:
-	shpPercentageSelection(argv[1], argv[2], argv[3], argv[4])
+	usage= 'usage: <infile> <field> <percentage> <opath>'
+	if len(sys.argv) != 5:
+		print(usage)
+		sys.exit(1)
+	else:
+		shpPercentageSelection(argv[1], argv[2], argv[3], argv[4])

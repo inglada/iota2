@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 # =========================================================================
 #   Program:   iota2
@@ -110,8 +110,8 @@ def get_HPC_disponibility(nb_cpu, ram, process_min, process_max, nb_parameters):
     hpc_ressources_task = None
     #can find ressources
     if node_dic:
-        hpc_ressources_task = dict(Counter([v for k, v in node_dic.items()]))
-        hpc_ressources_task_sorted = sorted(hpc_ressources_task.items(), key=operator.itemgetter(1))
+        hpc_ressources_task = dict(Counter([v for k, v in list(node_dic.items())]))
+        hpc_ressources_task_sorted = sorted(list(hpc_ressources_task.items()), key=operator.itemgetter(1))
 
         nb_processes = sum([int(nb_chunk_avail * nb_processes) for nb_chunk_avail, nb_processes in hpc_ressources_task_sorted])
     else:
@@ -316,7 +316,7 @@ def check_errors(log_path):
 def check_errors_JA(log_dir, task_name):
     """
     """
-    from Common import FileUtils as fut
+    from .Common import FileUtils as fut
 
     if os.path.isdir(log_dir):
         all_logs = fut.FileSearch_AND(log_dir, True, ".ER")
@@ -332,7 +332,7 @@ def launchChain(cfg, config_ressources=None, parallel_mode="MPI"):
     """
     create output directory and then, launch iota2 to HPC
     """
-    import Iota2Builder as chain
+    from . import Iota2Builder as chain
 
     # Check configuration file
     cfg.checkConfigParameters()
@@ -407,8 +407,8 @@ def launchChain(cfg, config_ressources=None, parallel_mode="MPI"):
             errors = check_errors_JA(log_dir=log_err,
                                      task_name=steps[step_num].step_name)
         if errors:
-            print "ERROR in step '" + steps[step_num].step_name + "'"
-            print errors
+            print("ERROR in step '" + steps[step_num].step_name + "'")
+            print(errors)
             return errors
 
         current_step += 1
@@ -430,7 +430,7 @@ if __name__ == "__main__":
     try:
         launchChain(cfg, args.config_ressources, args.parallel_mode)
     except sErr.osoError as e:
-        print e
+        print(e)
     except Exception as e:
-        print e
+        print(e)
         raise

@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+#-*- coding: utf-8 -*-
+
 # =========================================================================
 #   Program:   iota2
 #
@@ -44,7 +47,6 @@ def run(cmd, desc=None, env=os.environ, logger=logger):
     if rc != 0:
         logger.error("Command {}  exited with non-zero return code {}".format(cmd, rc))
         raise Exception("Launch command fail " + cmd + out)
-
 
 class Opath(object):
 

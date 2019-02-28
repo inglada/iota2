@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 import sys
@@ -29,10 +29,10 @@ def splitByArea(Areas, folds):
     outputfolds = [[] for i in range(folds)]
     Areas = sorted(Areas, key=lambda x: x[1])[::-1]
     while Areas:
-        index_rand = random.sample(xrange(folds), folds)
+        index_rand = random.sample(list(range(folds)), folds)
         #to manage the end...
         if len(Areas) <= folds:
-            index_rand = random.sample(xrange(len(Areas)), len(Areas))
+            index_rand = random.sample(list(range(len(Areas))), len(Areas))
         for ind in index_rand:
             outputfolds[ind].append(Areas[ind])
         Areas = Areas[folds::]
@@ -53,8 +53,8 @@ def getFidArea(shapefile, classf):
     try:
         fieldlist.index(classf)
     except:
-        print "The field {} does not exist in the input shapefile".format(classf)
-        print "You must choose one of these existing fields : {}".format(' / '.join(fieldlist))
+        print("The field {} does not exist in the input shapefile".format(classf))
+        print("You must choose one of these existing fields : {}".format(' / '.join(fieldlist)))
         sys.exit(-1)
 
     listid = []
@@ -103,11 +103,11 @@ def extractFeatureFromShape(shapefile, folds, classf, outpath):
                                                                                         outshape, \
                                                                                         shapefile))
                 tomerge.append([idx, outshape])
-                print "subfile %s of classe %s has been produced with an total area of %s"%(outshape,
+                print("subfile %s of classe %s has been produced with an total area of %s"%(outshape,
                                                                                             statsclass[0],
-                                                                                            statsclass[2][idx][1])
+                                                                                            statsclass[2][idx][1]))
 
-    listfolds = set(map(lambda x: x[0], tomerge))
+    listfolds = set([x[0] for x in tomerge])
     listfilesbyfold = [[x, [y[1] for y in tomerge if y[0] == x]] for x in listfolds]
     for listfiles in listfilesbyfold:
         finalfile = os.path.join(outpath, \
@@ -118,9 +118,9 @@ def extractFeatureFromShape(shapefile, folds, classf, outpath):
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         PROG = os.path.basename(sys.argv[0])
-        print '      '+sys.argv[0]+' [options]'
-        print "     Help : ", PROG, " --help"
-        print "        or : ", PROG, " -h"
+        print('      '+sys.argv[0]+' [options]')
+        print("     Help : ", PROG, " --help")
+        print("        or : ", PROG, " -h")
         sys.exit(-1)
     else:
         USAGE = "usage: %prog [options] "

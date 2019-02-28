@@ -1,4 +1,5 @@
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
+#-*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -18,7 +19,7 @@ import logging
 import glob
 import os
 
-from GenSensors import Sensor
+from Sensors.GenSensors import Sensor
 from collections import OrderedDict
 
 logger = logging.getLogger(__name__)
@@ -390,8 +391,8 @@ class Sentinel_2_L3A(Sensor):
 
         if self.write_dates_stack is False:
             dates_concatenation = []
-            for date, dico_date in preprocessed_dates.items():
-                for band_name, reproj_date in dico_date["data"].items():
+            for date, dico_date in list(preprocessed_dates.items()):
+                for band_name, reproj_date in list(dico_date["data"].items()):
                     dates_concatenation.append(reproj_date)
                     reproj_date.Execute()
                     app_dep.append(reproj_date)

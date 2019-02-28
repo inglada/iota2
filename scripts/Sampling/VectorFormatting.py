@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -189,7 +189,7 @@ def keepFields(vec_in, vec_out, fields=[], proj_in=2154, proj_out=2154):
     table_in = (os.path.splitext(os.path.split(vec_in)[-1])[0]).lower()
     table_out = (os.path.splitext(os.path.split(vec_out)[-1])[0]).lower()
 
-    sql_clause = "select GEOMETRY,{} from {}".format(",".join(fields), table_in)
+    sql_clause = "select _ogr_geometry_,{} from {}".format(",".join(fields), table_in)
 
     cmd = "ogr2ogr -s_srs EPSG:{} -t_srs EPSG:{} -dialect 'SQLite' -f 'SQLite' -nln {} -sql '{}' {} {}".format(proj_in,
                                                                                                                proj_out,
@@ -310,7 +310,7 @@ def BuiltWhereSQL_exp(sample_id_to_extract, clause):
     if not clause in ["in", "not in"]:
         raise Exception("clause must be 'in' or 'not in'")
     SQL_LIMIT = 1000.0
-    sample_id_to_extract = map(str, sample_id_to_extract)
+    sample_id_to_extract = list(map(str, sample_id_to_extract))
     sample_id_to_extract = fut.splitList(sample_id_to_extract,
                                          nbSplit=int(math.ceil(float(len(sample_id_to_extract)) / SQL_LIMIT)))
     list_fid = ["fid {} ({})".format(clause, ",".join(chunk)) for chunk in sample_id_to_extract]
@@ -345,6 +345,7 @@ def extract_maj_vote_samples(vec_in, vec_out, ratio_to_keep, dataField,
     from osgeo import ogr
     from osgeo import osr
     import sqlite3 as lite
+    
     class_avail = fut.getFieldElement(vec_in, driverName=driver_name,
                                       field=dataField, mode="unique", elemType="int")
     region_avail = fut.getFieldElement(vec_in, driverName=driver_name,

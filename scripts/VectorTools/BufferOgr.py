@@ -1,10 +1,10 @@
-#!/usr/bin/python
-
+#!/usr/bin/env python3
+#-*- coding: utf-8 -*-
 
 import sys,os
 import argparse
 from osgeo import ogr
-import vector_functions as vf
+from VectorTools import vector_functions as vf
 
 def bufferPoly(inputfn, outputBufferfn, bufferDist):
 
@@ -31,7 +31,7 @@ def bufferPoly(inputfn, outputBufferfn, bufferDist):
             geomBuffer = ingeom.Buffer(bufferDist)
             if geomBuffer.GetArea() != 0:
                 outFeature = ogr.Feature(featureDefn)
-                outFeature.SetGeometry(geomBuffer)                
+                outFeature.SetGeometry(geomBuffer)
                 # copy input value
                 for i in range(0, featureDefn.GetFieldCount()):
                     outFeature.SetField(featureDefn.GetFieldDefn(i).GetNameRef(), feature.GetField(i))
@@ -43,20 +43,20 @@ def bufferPoly(inputfn, outputBufferfn, bufferDist):
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
-	prog = os.path.basename(sys.argv[0])
-	print '      '+sys.argv[0]+' [options]' 
-	print "     Help : ", prog, " --help"
-	print "        or : ", prog, " -h"
-	sys.exit(-1)  
+        prog = os.path.basename(sys.argv[0])
+        print('      '+sys.argv[0]+' [options]') 
+        print("     Help : ", prog, " --help")
+        print("        or : ", prog, " -h")
+        sys.exit(-1)  
     else:
-	usage = "usage: %prog [options] "
-	parser = argparse.ArgumentParser(description = "Apply a buffer of a defined distance"\
+        usage = "usage: %prog [options] "
+        parser = argparse.ArgumentParser(description = "Apply a buffer of a defined distance"\
         "on features of an input shapefile and create a new shapefile with same attributes")
         parser.add_argument("-s", dest="inshapefile", action="store", \
                             help="Input shapefile", required = True)
         parser.add_argument("-o", dest="outshapefile", action="store", \
-                            help="Ouput shapefile", required = True)        
+                            help="Ouput shapefile", required = True)
         parser.add_argument("-b", dest="buff", action="store", \
                             help="Buffer size (m)", required = True)
-	args = parser.parse_args()
+        args = parser.parse_args()
         bufferPoly(args.inshapefile, args.outshapefile, args.buff)

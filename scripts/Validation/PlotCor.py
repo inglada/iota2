@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+#-*- coding: utf-8 -*-
+
 # =========================================================================
 #   Program:   iota2
 #
@@ -17,7 +20,6 @@ matplotlib.use("AGG")
 import matplotlib.pyplot as plt
 from matplotlib.ticker import NullFormatter, MaxNLocator
 from numpy import linspace
-
 
 class Parametres:
     '''

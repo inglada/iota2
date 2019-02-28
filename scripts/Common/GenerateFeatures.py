@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -13,6 +13,7 @@
 #   PURPOSE.  See the above copyright notices for more information.
 #
 # =========================================================================
+
 import argparse
 import ast
 import os
@@ -39,7 +40,6 @@ def str2bool(v):
         return False
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')
-
 
 def generateFeatures(pathWd, tile, cfg, writeFeatures=False,
                      mode="usually"):
@@ -106,7 +106,6 @@ def generateFeatures(pathWd, tile, cfg, writeFeatures=False,
         output_param_name = getInputParameterOutput(sensor_features)
         AllFeatures.SetParameterString(output_param_name, features_raster)
     return AllFeatures, feat_labels, dep
-
 
 if __name__ == "__main__":
 

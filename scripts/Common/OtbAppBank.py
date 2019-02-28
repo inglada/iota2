@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -204,13 +204,13 @@ def CreateIota2FeatureExtractionApplication(OtbParameters):
     if "copyinput" in OtbParameters:
         features_app.SetParameterValue("copyinput", OtbParameters["copyinput"])
     if "relrefl" in OtbParameters:
-        features_app.SetParameterEmpty("relrefl", True)
+        features_app.EnableParameter("relrefl")
     if "relindex" in OtbParameters:
         features_app.SetParameterString("relindex", OtbParameters["relindex"])
     if "keepduplicates" in OtbParameters:
-        features_app.SetParameterEmpty("keepduplicates", True)
+        features_app.EnableParameter("keepduplicates")
     if "acorfeat" in OtbParameters:
-        features_app.SetParameterEmpty("acorfeat", True)
+        features_app.EnableParameter("acorfeat")
     if "ram" in OtbParameters:
         features_app.SetParameterString("ram", OtbParameters["ram"])
     if "out" in OtbParameters:
@@ -1822,7 +1822,7 @@ def computeUserFeatures(stack, Dates, nbComponent, expressions):
         return allExpression
 
     nbDates = len(Dates)
-    fields = ["USER_Features_" + str(cpt + 1) + "_" + date for cpt in xrange(len(expressions)) for date in Dates]
+    fields = ["USER_Features_" + str(cpt + 1) + "_" + date for cpt in range(len(expressions)) for date in Dates]
     expressionDate = [computeExpressionDates(currentExpression, nbDates, nbComponent) for currentExpression in expressions]
     flatExprDate = [currentExp for currentDate in expressionDate for currentExp in currentDate]
 
@@ -1915,9 +1915,9 @@ def getSARstack(sarConfig, tileName, allTiles, featuresPath, workingDirectory=No
     function use to compute interpolation files
     """
     from Sensors.SAR import S1Processor as s1p
-    import ConfigParser
+    import configparser
 
-    config = ConfigParser.ConfigParser()
+    config = configparser.ConfigParser()
     config.read(sarConfig)
     outputDirectory = config.get('Paths', 'Output')
     outputDateFolder = outputDirectory + "/" + tileName[1:]
@@ -2091,8 +2091,8 @@ def computeSARfeatures(sarConfig, tileToCompute, allTiles, featuresPath, logger=
     dep
     fields_names [list of strings] : labels for each feature
     """
-    import ConfigParser
-    config = ConfigParser.ConfigParser()
+    import configparser
+    config = configparser.ConfigParser()
     config.read(sarConfig)
     try:
         interpolation_mode = config.get('Processing',
@@ -2226,10 +2226,10 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
         sens_dates = fut.getNbDateInTile(datesFile,
                                          display=False, raw_dates=True)
         #sort by bands number value
-        sens_bands_names = [bandName for bandName, bandOrder in sorted(sensor.bands["BANDS"].iteritems(), key=lambda (k, v): (v, k))]
+        sens_bands_names = [bandName for bandName, bandOrder in sorted(iter(list(sensor.bands["BANDS"].items())), key=lambda k_v: (k_v[1], k_v[0]))]
 
         if ext_Bands_Flag:
-            sens_bands_names = [bandName for bandName, bandNumber in currentSensor.keepBands.items()]
+            sens_bands_names = [bandName for bandName, bandNumber in list(currentSensor.keepBands.items())]
 
         if iota2FeatExtApp.GetParameterValue("copyinput") is False:
             sens_bands_names = []
@@ -2295,7 +2295,7 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
             logger.debug("Sensor name found : %s"%(currentSensor.name))
             logger.debug("number of bands for sensor %s : %s"%(currentSensor.name, comp))
             if extractBands:
-                bandsToKeep = [bandNumber for bandName, bandNumber in currentSensor.keepBands.items()]
+                bandsToKeep = [bandNumber for bandName, bandNumber in list(currentSensor.keepBands.items())]
                 comp = len(bandsToKeep)
                 logger.debug("keepBands flag detected, number of bands to extract %s"%(comp))
             if useAddFeat:
@@ -2325,11 +2325,11 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
 
             featExtr.SetParameterValue("copyinput", copyinput)
             if relRefl:
-                featExtr.SetParameterEmpty("relrefl", True)
+                featExtr.EnableParameter("relrefl")
             if keepduplicates:
-                featExtr.SetParameterEmpty("keepduplicates", True)
+                featExtr.EnableParameter("keepduplicates")
             if acorfeat:
-                featExtr.SetParameterEmpty("acorfeat", True)
+                featExtr.EnableParameter("acorfeat")
             if featuresFlag:
                 logger.info("Add features compute from iota2FeatureExtraction")
                 AllFeatures.append(featExtr)

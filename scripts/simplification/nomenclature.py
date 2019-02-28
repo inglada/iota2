@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -21,7 +21,6 @@ import codecs
 import unicodedata
 from pandas import MultiIndex, DataFrame
 from Common import FileUtils as fu
-
 
 def convertHextoRGB(color):
     
@@ -51,7 +50,7 @@ def convertDictToList(dictnomenc):
         list of classes (code, classename, color, alias) to instanciate a Iota2Nomenclature object
     """
 
-    levels = dictnomenc.keys()
+    levels = list(dictnomenc.keys())
     lastlevel = levels[len(levels) - 1]
     tabclasses = []
     for idx, cls in enumerate(dictnomenc[lastlevel]):
@@ -70,7 +69,6 @@ def convertDictToList(dictnomenc):
 
     return tabclasses
 
-
 def getClassesFromVectorQML(qml):
     """Get classes from QGIS layer style (QML)
 
@@ -84,7 +82,7 @@ def getClassesFromVectorQML(qml):
     list
         list of classes (code, classename, color, alias (auto-generated)) to instanciate a Iota2Nomenclature object
     """
-    
+
     tree = ET.parse(qml).getroot()
 
     classes = []
@@ -114,7 +112,7 @@ def getClassesFromVectorQML(qml):
     for line in out:
         line[3] = ''.join(e for e in line[3] if e.isalnum())
 
-    duplicates = [item for item, count in Counter([x[3] for x in out]).items() if count > 1]
+    duplicates = [item for item, count in list(Counter([x[3] for x in out]).items()) if count > 1]
 
     if duplicates is not None:
         print("Automatic procedure generated duplicates of Alias, "\
@@ -148,7 +146,7 @@ class symbolraster:
     def __init__(self, colorrampshader, codefield, valeurs=[]):
         self.valeurs = valeurs
         self.cle = [codefield, 'classname', 'R', 'G', 'B', 'HEX']
-        self.donnees = dict(zip(self.cle, self.valeurs))
+        self.donnees = dict(list(zip(self.cle, self.valeurs)))
         self.item = ET.SubElement(colorrampshader, "item")
 
     def creation(self, codefield):
@@ -182,7 +180,7 @@ class symbol:
         self.typec = typec
         self.valeurs = valeurs
         self.cle = [codefield, 'classname', 'R', 'G', 'B', 'HEX']
-        self.donnees = dict(zip(self.cle, self.valeurs))
+        self.donnees = dict(list(zip(self.cle, self.valeurs)))
         self.symb = ET.SubElement(typec, "symbol")
         self.lower = ET.SubElement(self.symb, "lowervalue")
         self.upper = ET.SubElement(self.symb, "uppervalue")
@@ -351,7 +349,7 @@ class Iota2Nomenclature():
             return get_unique([int(x[0]) for x in list(index.get_level_values(level - 1))])
         else:
             raise Exception("Level %s does not exists"%(level))
-            
+
     def setHierarchicalNomenclature(self, nomen):
         """Set a multi-level pandas nomenclature
 
@@ -365,7 +363,7 @@ class Iota2Nomenclature():
         pandas.MultiIndex
             Multi-levels nomenclature        
         """
-        
+
         classeslist = []
         levelname = []
         
@@ -468,7 +466,6 @@ class Iota2Nomenclature():
             raise Exception("The type of nomenclature file is not handled")
 
         return tabnomenc
-
 
     def createVectorQML(self, outpath, codefield, level, outlinestyle = "SolidLine"):
         """Create a QML QGIS style file for vector data

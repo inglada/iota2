@@ -1,6 +1,5 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
-
 
 import os
 import shutil
@@ -15,15 +14,15 @@ from osgeo import osr
 from osgeo.gdalconst import *
 
 from Common import OtbAppBank
-import S1FileManager
-import S1FilteringProcessor
+from . import S1FileManager
+from . import S1FilteringProcessor
 
 logger = logging.getLogger(__name__)
 
 
 def getRasterProjectionEPSG(FileName):
 	SourceDS = gdal.Open(FileName, GA_ReadOnly)
-   	Projection = osr.SpatialReference()
+	Projection = osr.SpatialReference()
 	Projection.ImportFromWkt(SourceDS.GetProjectionRef())
 	ProjectionCode = Projection.GetAttrValue("AUTHORITY", 1)
 	return ProjectionCode
@@ -71,17 +70,17 @@ def FileSearch_AND(PathToFolder,AllPath,*names):
 	"""
 	out = []
 	for path, dirs, files in os.walk(PathToFolder):
-   		 for i in range(len(files)):
+		for i in range(len(files)):
 			flag=0
 			for name in names:
 				if files[i].count(name)!=0 and files[i].count(".aux.xml")==0:
 					flag+=1
 			if flag == len(names):
 				if not AllPath:
-       					out.append(files[i].split(".")[0])
+					out.append(files[i].split(".")[0])
 				else:
 					pathOut = path+'/'+files[i]
-       					out.append(pathOut)
+					out.append(pathOut)
 	return out
 
 def getOrigin(manifest):
@@ -134,9 +133,9 @@ def getPlatformFromS1Raster(PathToRaster):
 class Sentinel1_PreProcess(object):
 
     def __init__(self,configFile):
-        import ConfigParser
+        import configparser
 
-        config = ConfigParser.ConfigParser()
+        config = configparser.ConfigParser()
         config.read(configFile)
         try:
             os.remove("S1ProcessorErr.log.log")
@@ -177,7 +176,7 @@ class Sentinel1_PreProcess(object):
 
 
     def generateBorderMask(self,AllOrtho):
-            print "Generate Mask ..."
+            print("Generate Mask ...")
             masks = []
             for currentOrtho,_ in AllOrtho:
                 outputParameter = OtbAppBank.getInputParameterOutput(currentOrtho)
@@ -276,7 +275,7 @@ class Sentinel1_PreProcess(object):
                     refRaster = None
                 else :
                     refRaster = FileSearch_AND(self.referencesFolder+"/T"+tileName,True,self.rasterPattern)[0]
-                    print "reference raster found : "+refRaster
+                    print("reference raster found : "+refRaster)
                 if self.ManyProjection and outUTMNorthern=="1" and y>0:
                     y=y-10000000.
                     lry=lry-10000000.
@@ -395,7 +394,7 @@ class Sentinel1_PreProcess(object):
 
             return maskFilter
 
-        print "concatenate"
+        print("concatenate")
         allOrtho = []
         allMasks = []
         imageList=[(os.path.split(currentOrtho.GetParameterValue(OtbAppBank.getInputParameterOutput(currentOrtho)))[-1].split("?")[0],currentOrtho,_) for currentOrtho,_ in orthoList]
@@ -806,15 +805,15 @@ def S1PreProcess(cfg, process_tile, workingDirectory=None, getFiltered=False):
     """
     import multiprocessing
     from functools import partial
-    import ConfigParser
+    import configparser
 
-    import S1FileManager
+    from . import S1FileManager
     from Common import FileUtils as fut
 
     if process_tile and not isinstance(process_tile, list):
         process_tile = [process_tile]
 
-    config = ConfigParser.ConfigParser()
+    config = configparser.ConfigParser()
     config.read(cfg)
     wMode =  ast.literal_eval(config.get('Processing','writeTemporaryFiles'))
     wMasks = ast.literal_eval(config.get('Processing','getMasks'))
@@ -833,7 +832,7 @@ def S1PreProcess(cfg, process_tile, workingDirectory=None, getFiltered=False):
     tilesToProcess = [cTile[1:] for cTile in process_tile]
 
     if len(tilesToProcess) == 0:
-       print "No existing tiles found, exiting ..."
+       print("No existing tiles found, exiting ...")
        sys.exit(1)
 
     # Analyse SRTM coverage for MGRS tiles to be processed
@@ -857,16 +856,16 @@ def S1PreProcess(cfg, process_tile, workingDirectory=None, getFiltered=False):
             tilesToProcessChecked.append(tile)
         else:
             # Skip it
-            print "Tile "+str(tile)+" has insuficient SRTM coverage ("+str(100*current_coverage)+"%), it will not be processed"
+            print("Tile "+str(tile)+" has insuficient SRTM coverage ("+str(100*current_coverage)+"%), it will not be processed")
 
     # Remove duplicates
     needed_srtm_tiles=list(set(needed_srtm_tiles))
 
     if len(tilesToProcessChecked) == 0:
-            print "No tiles to process, exiting ..."
+            print("No tiles to process, exiting ...")
             sys.exit(1)
 
-    print "Required SRTM tiles: "+str(needed_srtm_tiles)
+    print("Required SRTM tiles: "+str(needed_srtm_tiles))
 
     srtm_ok = True
 
@@ -874,13 +873,13 @@ def S1PreProcess(cfg, process_tile, workingDirectory=None, getFiltered=False):
         tile_path = os.path.join(S1chain.SRTM,srtm_tile)
         if not os.path.exists(tile_path):
             srtm_ok = False
-            print tile_path+" is missing"
+            print(tile_path+" is missing")
     if not srtm_ok:
-        print "Some SRTM tiles are missing, exiting ..."
+        print("Some SRTM tiles are missing, exiting ...")
         sys.exit(1)
 
     if not os.path.exists(S1chain.geoid):
-        print "Geoid file does not exists ("+S1chain.geoid+"), exiting ..."
+        print("Geoid file does not exists ("+S1chain.geoid+"), exiting ...")
         sys.exit(1)
 
     tilesSet=list(tilesToProcessChecked)
@@ -920,7 +919,7 @@ def S1PreProcess(cfg, process_tile, workingDirectory=None, getFiltered=False):
         try:
             os.mkdir(output_directory)
         except:
-            print "{} already exists".format(output_directory)
+            print("{} already exists".format(output_directory))
     LaunchSARreprojection_prod = partial(LaunchSARreprojection, refRaster=refRaster,
                                          tileName=tile,
                                          geoid=S1chain.geoid,
@@ -973,7 +972,7 @@ def S1PreProcess(cfg, process_tile, workingDirectory=None, getFiltered=False):
                  's1_DES': s1_DES_dates}
 
     #sort detected dates
-    for k, v in date_tile.items():
+    for k, v in list(date_tile.items()):
         v.sort()
 
     #launch outcore generation and prepare mulitemporal filtering

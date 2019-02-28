@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -324,6 +324,9 @@ def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
 def extract_class(vec_in, vec_out, target_class, dataField):
     """
     """
+    if type(target_class) != type(list()) :
+    	target_class = target_class.data
+
     where = " OR ".join(["{}={}".format(dataField.lower(), klass) for klass in target_class])
     cmd = "ogr2ogr -f 'SQLite' -nln output -where '{}' {} {}".format(where, vec_out, vec_in)
     run(cmd)
@@ -631,7 +634,7 @@ def get_repartition(vec, labels, dataField, regionField, regions, runs):
         results = cursor.fetchall()
         repartition[label] = len(results)
     """
-    for label in labels:
+    for label in labels.data:
         repartition[label] = {}
         for region in regions:
             repartition[label][region] = {}
@@ -654,9 +657,9 @@ def get_number_annual_sample(annu_repartition):
     usage : use to flatten annu_repartition to compute number of annual samples
     """
     nb_feat_annu = 0
-    for kc, vc in annu_repartition.items():
-        for kr, vr in vc.items():
-            for ks, vs in vr.items():
+    for kc, vc in list(annu_repartition.items()):
+        for kr, vr in list(vc.items()):
+            for ks, vs in list(vr.items()):
                 nb_feat_annu += vs
 
     return nb_feat_annu
@@ -730,8 +733,8 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
 
     regions = fu.getFieldElement(trainShape, driverName="ESRI Shapefile", field=regionField, mode="unique",
                                  elemType="str")
-    print sampleSelection
-    print trainShape
+    print(sampleSelection)
+    print(trainShape)
     #avoir la répartition des classes anuelles par seed et par region -> pouvoir faire annu_repartition[11][R][S]
     annu_repartition = get_repartition(sampleSelection, annualCrop, dataField, regionField, regions, runs)
     
@@ -872,7 +875,7 @@ def generateSamples(train_shape_dic, pathWd, cfg, RAM=128, wMode=False,
     annualCrop = cfg.getParam('argTrain', 'annualCrop')
 
     #mode must be "usally" or "SAR"
-    mode = train_shape_dic.keys()[0]
+    mode = list(train_shape_dic.keys())[0]
     trainShape = train_shape_dic[mode]
 
     AllClass = fu.getFieldElement(trainShape, "ESRI Shapefile", dataField,
@@ -882,7 +885,7 @@ def generateSamples(train_shape_dic, pathWd, cfg, RAM=128, wMode=False,
     # Get logger
     logger = logging.getLogger(__name__)
 
-    for CurrentClass in annualCrop:
+    for CurrentClass in annualCrop.data:
         try:
             AllClass.remove(str(CurrentClass))
         except ValueError:

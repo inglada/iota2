@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -13,7 +13,6 @@
 #   PURPOSE.  See the above copyright notices for more information.
 #
 # =========================================================================
-
 
 """
 Create a raster of entities and neighbors entities according to an area (from tile).

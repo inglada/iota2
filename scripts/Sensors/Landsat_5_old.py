@@ -1,4 +1,5 @@
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
+#-*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -18,7 +19,7 @@ import logging
 import glob
 import os
 
-from GenSensors import Sensor
+from Sensors.GenSensors import Sensor
 from collections import OrderedDict
 
 logger = logging.getLogger(__name__)
@@ -153,7 +154,7 @@ class Landsat_5_old(Sensor):
         # get date's footprint
         date_edge = []
         for date_dir in input_dates:
-            date_edge.append(glob.glob(os.path.join(date_dir, "{}{}".format(self.struct_path_masks, self.masks_rules.keys()[self.border_pos])))[0])
+            date_edge.append(glob.glob(os.path.join(date_dir, "{}{}".format(self.struct_path_masks, list(self.masks_rules.keys())[self.border_pos])))[0])
 
         self.generate_raster_ref(date_edge[0])
 
@@ -326,9 +327,9 @@ class Landsat_5_old(Sensor):
         date_data = []
         dates_masks = []
         pattern = ""
-        div_mask_patter = self.masks_rules.keys()[self.border_pos]
-        cloud_mask_patter = self.masks_rules.keys()[self.cloud_pos]
-        sat_mask_patter = self.masks_rules.keys()[self.sat_pos]
+        div_mask_patter = list(self.masks_rules.keys())[self.border_pos]
+        cloud_mask_patter = list(self.masks_rules.keys())[self.cloud_pos]
+        sat_mask_patter = list(self.masks_rules.keys())[self.sat_pos]
         if not "none" in self.cfg_IOTA2.getParam('coregistration','VHRPath').lower():
             div_mask_patter = div_mask_patter.replace(".TIF", "_COREG.TIF")
             cloud_mask_patter = div_mask_patter.replace(".TIF", "_COREG.TIF")

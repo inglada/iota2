@@ -1,5 +1,5 @@
-# !/usr/bin/python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
+#-*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -34,7 +34,6 @@ IOTA2_SCRIPTS = IOTA2DIR + "/scripts"
 sys.path.append(IOTA2_SCRIPTS)
 
 from Common import FileUtils as fut
-
 
 def rename_table(vect_file, old_table_name, new_table_name="output"):
     """
@@ -87,7 +86,7 @@ class iota_testSamplesSelection(unittest.TestCase):
     # after launching all tests
     @classmethod
     def tearDownClass(self):
-        print "{} ended".format(self.group_test_name)
+        print("{} ended".format(self.group_test_name))
         if RM_IF_ALL_OK and all(self.all_tests_ok):
             shutil.rmtree(self.iota2_tests_directory)
 

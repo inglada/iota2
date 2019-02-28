@@ -1,5 +1,6 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
+
 # =========================================================================
 #   Program:   iota2
 #
@@ -318,7 +319,7 @@ def compareSQLite(vect_1, vect_2, CmpMode='table', ignored_fields=[]):
         values_2 = getValuesSortedByCoordinates(vect_2)
         sameFeat = []
         for val_1, val_2 in zip(values_1, values_2):
-            for (k1, v1), (k2, v2) in zip(val_1[2].items(), val_2[2].items()):
+            for (k1, v1), (k2, v2) in zip(list(val_1[2].items()), list(val_2[2].items())):
                 if not k1 in ignored_fields and k2 in ignored_fields:
                     sameFeat.append(cmp(v1, v2) == 0)
         if False in sameFeat:
@@ -376,7 +377,7 @@ class iota_testFeatures(unittest.TestCase):
         from Sensors.ProcessLauncher import preprocess
 
         def prepareSARconfig():
-            from ConfigParser import SafeConfigParser
+            from configparser import SafeConfigParser
             parser = SafeConfigParser()
             parser.read(self.RefSARconfig)
             parser.set('Paths', 'Output', self.SARfeaturesPath)
@@ -412,7 +413,7 @@ class iota_testFeatures(unittest.TestCase):
                                    "Config_4Tuiles_Multi_FUS_Confidence.cfg")
         config_path_test = os.path.join(self.testPath, "Config_TEST.cfg")
         shutil.copy(config_path, config_path_test)
-        cfg_test = Config(file(config_path_test))
+        cfg_test = Config(open(config_path_test))
         cfg_test.chain.listTile = "T31TCJ"
         cfg_test.chain.outputPath = self.testPath
         cfg_test.chain.L5Path_old = "None"
@@ -423,7 +424,7 @@ class iota_testFeatures(unittest.TestCase):
         cfg_test.chain.userFeatPath = "None"
         cfg_test.GlobChain.useAdditionalFeatures = False
         cfg_test.argTrain.cropMix = False
-        cfg_test.save(file(config_path_test, 'w'))
+        cfg_test.save(open(config_path_test, 'w'))
         config_test = SCF.serviceConfigFile(config_path_test)
 
         referenceShape_test = shapeReferenceVector(self.referenceShape, "T31TCJ")
@@ -462,5 +463,3 @@ if __name__ == "__main__":
     testsToRun = unittest.TestSuite([loader.loadTestsFromTestCase(cTest)for cTest in largeScaleTests])
     runner = unittest.TextTestRunner()
     results = runner.run(testsToRun)
-
-

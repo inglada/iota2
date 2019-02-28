@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -15,12 +15,7 @@
 # =========================================================================
 
 import logging
-
-try:
-    from cStringIO import StringIO#Python 2
-except ImportError:
-    from io import StringIO
-
+from io import StringIO
 
 class serviceLogger(logging.getLoggerClass()):
     """
@@ -64,9 +59,7 @@ class serviceLogger(logging.getLoggerClass()):
                 self.consoleHandler.setLevel(cfg.getParam('chain', 'logConsoleLevel'))
                 rootLogger.addHandler(self.consoleHandler)
 
-
 class Log_task(logging.getLoggerClass()):
-
 
     def __init__(self, log_level="INFO", enable_console=False):
         """
@@ -100,4 +93,3 @@ class Log_task(logging.getLoggerClass()):
             self.consoleHandler.setFormatter(self.logFormatter)
             self.consoleHandler.setLevel(log_level)
             rootLogger.addHandler(self.consoleHandler)
-

@@ -1,12 +1,12 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
+#-*- coding: utf-8 -*-
 
 import os
 import glob
 import sys
 from sys import argv
-import vector_functions as vf
+from VectorTools import vector_functions as vf
 from osgeo import ogr
-
 
 def AreaPoly(shp1,shp2):
 	ds = vf.openToWrite(shp1)
@@ -29,7 +29,7 @@ def AreaPoly(shp1,shp2):
 		area1 = geom.GetArea()
 		lyr2.SetSpatialFilter(geom)
 		area2 = 0
-		print feat.GetFID()
+		print(feat.GetFID())
 		for feat2 in lyr2:
 			geom2 = feat2.GetGeometryRef()
 			area2 = area2 + geom2.GetArea()
@@ -42,12 +42,11 @@ if __name__=='__main__':
     usage='usage: <shpfile1> <shpfile2>'
     if len(sys.argv) == 3:
         if AreaPoly(sys.argv[1],sys.argv[2]):
-            print 'Succeeded!'
+            print('Succeeded!')
             sys.exit(0)
         else:
-            print 'Failed!'
+            print('Failed!')
             sys.exit(1)
     else:
-        print usage
+        print(usage)
         sys.exit(1)
-

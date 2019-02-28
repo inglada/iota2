@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -13,7 +13,6 @@
 #   PURPOSE.  See the above copyright notices for more information.
 #
 # =========================================================================
-
 
 import os
 import shutil
@@ -76,7 +75,7 @@ def addTileToGrid(UL, UR, LR, LL, newLayer, newLayerDef, tileNameField, TileName
     feature.SetGeometry(poly)
     newLayer.CreateFeature(feature)
     if newLayer.CreateFeature(feature) != 0:
-        print "Failed to create feature in shapefile.\n"
+        print("Failed to create feature in shapefile.\n")
     ring.Destroy()
     poly.Destroy()
     feature.Destroy()
@@ -203,7 +202,7 @@ def launchFit(sensorName, cmdPath, workingDirectory, outDirectory, outGridPath, 
                     os.mkdir(outFolderDateMask)
                 for currentRaster in currentDatas:
                     folder = outFolderDate
-                    print currentRaster
+                    print(currentRaster)
                     if checkMaskFromRaster(currentRaster[0], masksPatterns):
                         folder = outFolderDateMask
                     outFolder = folder

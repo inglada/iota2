@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -25,7 +25,6 @@ from Common.Utils import run
 
 logger = logging.getLogger(__name__)
 
-
 def split_vectors_by_regions(path_list):
     """
     """
@@ -43,7 +42,6 @@ def split_vectors_by_regions(path_list):
         for seed_vect_region in regionVector_sorted:
             output.append(seed_vect_region)
     return output
-
 
 def tile_vectors_to_models(iota2_learning_samples_dir, sep_sar_opt=False):
     """
@@ -69,7 +67,6 @@ def tile_vectors_to_models(iota2_learning_samples_dir, sep_sar_opt=False):
     vect_to_model = split_vectors_by_regions(vectors) + split_vectors_by_regions(vectors_sar)
     return vect_to_model
 
-
 def check_duplicates(sqlite_file, logger=logger):
     """
     """
@@ -87,7 +84,6 @@ def check_duplicates(sqlite_file, logger=logger):
         conn.commit()
         logger.warning("{} were removed in {}".format(len(results), sqlite_file))
 
-
 def cleanRepo(outputPath, logger=logger):
     """
     remove from the directory learningSamples all unnecessary files
@@ -101,12 +97,10 @@ def cleanRepo(outputPath, logger=logger):
             except OSError:
                 logger.debug(c_path + " does not exists")
 
-
 def is_sar(path, sar_pos=5):
     """
     """
     return "SAR" == os.path.basename(path).split("_")[sar_pos]
-
 
 def vectorSamplesMerge(cfg, vectorList, logger=logger):
 
@@ -135,7 +129,6 @@ def vectorSamplesMerge(cfg, vectorList, logger=logger):
     check_duplicates(os.path.join(os.path.join(outputPath, "learningSamples"), shapeOut_name+".sqlite"))
     #~ for vector in vectorList:
         #~ os.remove(vector)
-
 
 if __name__ == "__main__":
 

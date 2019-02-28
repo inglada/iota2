@@ -1,5 +1,6 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
+
 # =========================================================================
 #   Program:   iota2
 #
@@ -39,7 +40,6 @@ def region_tile(sample_sel_dir):
             output.append((region_name, seed, tile))
 
     return output
-
 
 def samples_stats(region_seed_tile, cfg, workingDirectory=None, logger=logger):
     """

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -39,7 +39,7 @@ def get_regions_area(vectors, regions, formatting_vectors_dir,
     OUT
     dico_region_area [dict] : dictionnary containing area by region's key
     """
-    from pyspatialite import dbapi2 as db
+    import sqlite3 as db
     tmp_data = []
     #init dict
     dico_region_area = {}
@@ -62,6 +62,8 @@ def get_regions_area(vectors, regions, formatting_vectors_dir,
                                             field=region_field, mode="unique",
                                             elemType="str")
         conn = db.connect(sqlite_vector)
+        conn.enable_load_extension(True)
+        conn.load_extension("mod_spatialite")
         cursor = conn.cursor()
         table_name = (transform_vector_name.replace(".sqlite", "")).lower()
         for current_region in region_vector:
@@ -80,25 +82,22 @@ def get_regions_area(vectors, regions, formatting_vectors_dir,
 
     return dico_region_area, dico_region_tile, tmp_data
 
-
 def get_splits_regions(areas, region_threshold):
     """
-
     return regions which must be split
     """
     import math
     dic = {}#{'region':Nsplits,..}
-    for region, area in areas.items():
+    for region, area in list(areas.items()):
         fold = int(math.ceil(area/(region_threshold*1e6)))
         if fold > 1:
             dic[region] = fold
     return dic
 
-
 def get_FID_values(vector_path, dataField, regionField, region, value):
     """
     """
-    from pyspatialite import dbapi2 as db
+    import sqlite3 as db
     conn = db.connect(vector_path)
     cursor = conn.cursor()
     table_name = (os.path.splitext(os.path.basename(vector_path))[0]).lower()
@@ -113,7 +112,6 @@ def get_FID_values(vector_path, dataField, regionField, region, value):
     conn = cursor = None
     return [fid[0] for fid in FIDs]
 
-
 def update_vector(vector_path, regionField, new_regions_dict, logger=logger):
     """
     """
@@ -121,12 +119,12 @@ def update_vector(vector_path, regionField, new_regions_dict, logger=logger):
     sqlite3_query_limit = 1000.0
 
     import math
-    from pyspatialite import dbapi2 as db
+    import sqlite3 as db
     conn = db.connect(vector_path)
     cursor = conn.cursor()
     table_name = (os.path.splitext(os.path.basename(vector_path))[0]).lower()
 
-    for new_region_name, FIDs in new_regions_dict.items():
+    for new_region_name, FIDs in list(new_regions_dict.items()):
         nb_sub_split_SQLITE = int(math.ceil(len(FIDs)/sqlite3_query_limit))
         sub_FID_sqlite = fut.splitList(FIDs, nb_sub_split_SQLITE)
 
@@ -148,10 +146,10 @@ def split(regions_split, regions_tiles, dataField, regionField):
     """
     function dedicated to split to huge regions in sub-regions
     """
-    from pyspatialite import dbapi2 as db
+    import sqlite3 as db
     updated_vectors = []
 
-    for region, fold in regions_split.items():
+    for region, fold in list(regions_split.items()):
         vector_paths = regions_tiles[region]
         for vec in vector_paths:
             #init dict new regions
@@ -170,7 +168,7 @@ def split(regions_split, regions_tiles, dataField, regionField):
                 dic_class[c_class] = get_FID_values(vec, dataField, regionField, region, c_class)
 
             nb_feat = 0
-            for class_name, FID_cl in dic_class.items():
+            for class_name, FID_cl in list(dic_class.items()):
                 if FID_cl:
                     FID_folds = fut.splitList(FID_cl, fold)
                     #fill new_regions_dict
@@ -182,7 +180,6 @@ def split(regions_split, regions_tiles, dataField, regionField):
                 updated_vectors.append(vec)
 
     return updated_vectors
-
 
 def transform_to_shape(sqlite_vectors, formatting_vectors_dir):
     """
@@ -197,7 +194,6 @@ def transform_to_shape(sqlite_vectors, formatting_vectors_dir):
         run(cmd)
         out.append(out_path)
     return out
-
 
 def update_learningValination_sets(new_regions_shapes, dataAppVal_dir,
                                    dataField, regionField, ratio,
@@ -218,7 +214,6 @@ def update_learningValination_sets(new_regions_shapes, dataAppVal_dir,
         output_splits = splitbySets(new_region_shape, seeds, dataAppVal_dir,
                                     epsg, epsg, tile_name,
                                     crossValid=enableCrossValidation)
-
 
 def splitSamples(cfg, workingDirectory=None, logger=logger):
     """
@@ -254,7 +249,7 @@ def splitSamples(cfg, workingDirectory=None, logger=logger):
     #get how many sub-regions must be created by too huge regions.
     regions_split = get_splits_regions(areas, region_threshold)
 
-    for region_name, area in areas.items():
+    for region_name, area in list(areas.items()):
         logger.info("region : {} , area : {}".format(region_name, area))
 
     updated_vectors = split(regions_split, regions_tiles, dataField, region_field)

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -87,7 +87,7 @@ class iota2():
         print iota2 steps that will be run
         """
         summarize = "Full processing include the following steps (checked steps will be run):\n"
-        for group in self.steps_group.keys():
+        for group in list(self.steps_group.keys()):
             if len(self.steps_group[group]) > 0:
                 summarize += "Group {}:\n".format(group)
             for key in self.steps_group[group]:
@@ -116,10 +116,11 @@ class iota2():
     def get_steps_number(self):
         start = SCF.serviceConfigFile(self.cfg).getParam('chain', 'firstStep')
         end = SCF.serviceConfigFile(self.cfg).getParam('chain', 'lastStep')
-        start_ind = self.steps_group.keys().index(start)
-        end_ind = self.steps_group.keys().index(end)
+        start_ind = list(self.steps_group.keys()).index(start)
+        end_ind = list(self.steps_group.keys()).index(end)
+
         steps = []
-        for key in self.steps_group.keys()[start_ind:end_ind+1]:
+        for key in list(self.steps_group.keys())[start_ind:end_ind+1]:
             steps.append(self.steps_group[key])
         step_to_compute = [step for step_group in steps for step in step_group]
         return step_to_compute

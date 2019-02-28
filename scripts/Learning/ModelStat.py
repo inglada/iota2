@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -17,7 +17,7 @@
 import argparse
 import os
 from config import Config
-import GetModel as GM
+from Learning import GetModel as GM
 from Common import FileUtils as fu
 from Common import ServiceConfigFile as SCF
 
@@ -37,7 +37,7 @@ def generateStatModel(pathShapes, pathToTiles, pathToStats, pathToCmdStats, path
             fold = name.split("_")[2].split("f")[-1]
             #path = currentShape.split("/")[0]
             nameToRm = name.replace("f"+fold, "").replace(".shp", "")
-            print "remove : "+path+"/"+nameToRm+".shp"
+            print("remove : "+path+"/"+nameToRm+".shp")
             if os.path.exists(path+"/"+nameToRm+".shp"):
                 fu.removeShape(path+"/"+nameToRm, [".prj", ".shp", ".dbf", ".shx"])
 
@@ -73,41 +73,3 @@ if __name__ == "__main__":
     cfg = SCF.serviceConfigFile(args.pathConf)
 
     generateStatModel(args.pathShapes, args.pathToTiles, args.pathToStats, args.pathToCmdStats, args.pathWd, cfg)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

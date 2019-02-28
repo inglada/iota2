@@ -1,12 +1,12 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
+#-*- coding: utf-8 -*-
 
 import os
 import glob
 import sys
 from sys import argv
-import vector_functions as vf
+from VectorTools import vector_functions as vf
 from osgeo import ogr
-
 
 def count(shp1,shp2):
 	ds = vf.openToWrite(shp1)
@@ -32,18 +32,15 @@ def count(shp1,shp2):
 		feat.SetField("Count", count)
 		lyr.SetFeature(feat)
 
-
-
- 
 if __name__=='__main__':
     usage='usage: count <shpfile1> <shpfile2>'
     if len(sys.argv) == 3:
         if count(sys.argv[1],sys.argv[2]):
-            print 'Counting succeeded!'
+            print('Counting succeeded!')
             sys.exit(0)
         else:
-            print 'Counting failed!'
+            print('Counting failed!')
             sys.exit(1)
     else:
-        print usage
+        print(usage)
         sys.exit(1)

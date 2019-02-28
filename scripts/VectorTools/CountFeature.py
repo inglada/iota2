@@ -1,12 +1,12 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
+#-*- coding: utf-8 -*-
 
 import sys 
-import vector_functions as vf
-
+from VectorTools import vector_functions as vf
 
 if len(sys.argv) != 2:
-	print "usage: <shapefile>"
+	print("usage: <shapefile>")
 	sys.exit(1)
 else:
-	print vf.getNbFeat(sys.argv[1])
+	print(vf.getNbFeat(sys.argv[1]))
 	sys.exit(0)

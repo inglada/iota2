@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -379,7 +379,6 @@ def GenerateShapeTile(tiles, pathTiles, pathOut, pathWd, cfg):
         cfg = SCF.serviceConfigFile(cfg)
 
     pathConf = cfg.pathConf
-    import ConfigParser
     #fu.cleanFiles(cfg)
     featuresPath = os.path.join(cfg.getParam('chain', 'outputPath'),
                                 "features")

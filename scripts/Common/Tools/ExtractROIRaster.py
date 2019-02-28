@@ -1,5 +1,6 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
+
 # =========================================================================
 #   Program:   iota2
 #
@@ -21,7 +22,6 @@ from osgeo import ogr
 from osgeo import osr
 from osgeo.gdalconst import *
 from Common.Utils import run
-
 
 def getRasterResolution(rasterIn):
     raster = gdal.Open(rasterIn, GA_ReadOnly)

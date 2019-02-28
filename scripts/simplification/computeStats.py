@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -31,7 +31,7 @@ except ImportError:
     
 def importstats(csvstore, sqlite):
 
-    print sqlite
+    print(sqlite)
     con = sqlite3.connect(sqlite)
     cur = con.cursor()
     cur.execute("CREATE TABLE stats (idstats integer, info text, stat text, class integer, value real);")
@@ -320,7 +320,7 @@ def joinShapeStats(shapefile, stats, tmp, outfile):
     tmpfile = os.path.join(tmp, 'tmp_%s.sqlite'%(layer))
     Utils.run('ogr2ogr -f SQLite %s %s -nln %s'%(tmpfile, shapefile, layer))
 
-    database = db.connect(tmpfile)     
+    database = sqlite3.connect(tmpfile)     
     cursor = database.cursor()
     cursor.execute("ATTACH '%s' as db;"%(stats))
     cursor.execute("create table stats as select * from db.statsfinal;")
@@ -467,20 +467,20 @@ def computeStats(shapefile, csv, tmp, outzip = True, output = ""):
     
 if __name__ == "__main__":
     if len(sys.argv) == 1:
-	prog = os.path.basename(sys.argv[0])
-	print '      '+sys.argv[0]+' [options]' 
-	print "     Help : ", prog, " --help"
-	print "        or : ", prog, " -h"
-	sys.exit(-1)  
+        prog = os.path.basename(sys.argv[0])
+        print('      '+sys.argv[0]+' [options]') 
+        print("     Help : ", prog, " --help")
+        print("        or : ", prog, " -h")
+        sys.exit(-1)  
     else:
-	usage = "usage: %prog [options] "
-	parser = argparse.ArgumentParser(description = "Join stats list to shapefile")
+        usage = "usage: %prog [options] "
+        parser = argparse.ArgumentParser(description = "Join stats list to shapefile")
         parser.add_argument("-shape", dest="shape", action="store", \
                             help="vector file of landcover (shapefile)", required = True)
         parser.add_argument("-stats", dest="stats", action="store", \
                             help="stats file (csv)", required = True)
         parser.add_argument("-nclture", dest="nclture", action="store", \
-                            help="Nomenclature of the classification - (description:code:alias)")        
+                            help="Nomenclature of the classification - (description:code:alias)")
         parser.add_argument("-tmp", dest="tmp", action="store", \
                             help="tmp folder", required = True)
         parser.add_argument("-output", dest="output", action="store", \
@@ -493,8 +493,5 @@ if __name__ == "__main__":
             #computeStats(args.shape, args.stats, args.nclture, args.tmp, args.dozip, args.output)
             computeStats(args.shape, args.stats, args.tmp, args.dozip, args.output)
         else:
-            print "Output file '%s' already exists, please delete it or change output path"%(args.output)
+            print("Output file '%s' already exists, please delete it or change output path"%(args.output))
             sys.exit()
-
-
-            

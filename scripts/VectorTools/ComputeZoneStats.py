@@ -1,8 +1,10 @@
+#!/usr/bin/env python3
+#-*- coding: utf-8 -*-
+
 import gdal, ogr, osr, numpy
 import sys
 from sys import argv
 from scipy.stats import mode
-
 
 def zonal_stats(feat, input_zone_polygon, input_value_raster):
 
@@ -66,7 +68,6 @@ def zonal_stats(feat, input_zone_polygon, input_value_raster):
     ycount = int((ymax - ymin)/pixelWidth)+1
 
     #print xmin, xmax, ymin, ymax, xoff, yoff, xcount, ycount
-	 
 
     # Create memory target raster
     target_ds = gdal.GetDriverByName('GTiff').Create('test.tif', xcount, ycount, gdal.GDT_Byte)
@@ -97,40 +98,37 @@ def zonal_stats(feat, input_zone_polygon, input_value_raster):
     u, indices = numpy.unique(zoneraster, return_inverse=True)
     count = numpy.bincount(zoneraster.ravel())
     mat = numpy.zeros(223,dtype = int)
-    if len(count) != 223:	
-	zer = numpy.zeros(223-len(count), dtype = int)
-	new = numpy.append(count, zer)
-    	return new
+    if len(count) != 223:
+        zer = numpy.zeros(223-len(count), dtype = int)
+        new = numpy.append(count, zer)
+        return new
     else: return count
-   
 
 def loop_zonal_stats(input_zone_polygon, input_value_raster):
 
     shp = ogr.Open(input_zone_polygon,0)
     lyr = shp.GetLayer()
-    featList = range(lyr.GetFeatureCount())
+    featList = list(range(lyr.GetFeatureCount()))
     statDict = {}
     FinalStat = numpy.zeros(223,dtype = int)
 
     for i in lyr:
-	ide = i.GetFID()
+        ide = i.GetFID()
         feat = lyr.GetFeature(ide)
-	if feat.GetGeometryRef():
-        	statValue = zonal_stats(feat, input_zone_polygon, input_value_raster)
-		FinalStat = FinalStat+statValue
+        if feat.GetGeometryRef():
+            statValue = zonal_stats(feat, input_zone_polygon, input_value_raster)
+            FinalStat = FinalStat+statValue
     for i in range(0,len(FinalStat)):
-	if FinalStat[i] != 0:
-		statDict[i] = FinalStat[i]
+        if FinalStat[i] != 0:
+            statDict[i] = FinalStat[i]
     return statDict
 
 def main(input_zone_polygon, input_value_raster):
     return loop_zonal_stats(input_zone_polygon, input_value_raster)
 
-
 if __name__ == "__main__":
 
-    if len( sys.argv ) != 3:
-        print "[ ERROR ] you must supply two arguments: input-zone-shapefile-name.shp input-value-raster-name.tif "
+    if len(sys.argv) != 3:
+        print("[ ERROR ] you must supply two arguments: input-zone-shapefile-name.shp input-value-raster-name.tif ")
         sys.exit( 1 )
-    print main( sys.argv[1], sys.argv[2] )
-
+    print(main( sys.argv[1], sys.argv[2] ))

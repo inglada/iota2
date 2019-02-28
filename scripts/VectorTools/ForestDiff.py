@@ -1,5 +1,5 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-#!/usr/bin/python
 """
 Created on Tue May 31 10:22:06 2016
 
@@ -16,11 +16,11 @@ from osgeo.gdalconst import *
 import math
 import numpy as np
 from scipy.spatial import ConvexHull
-import vector_functions as vf
-import BufferOgr as bo
-import MultiPolyToPoly as mpp
-import shapeDifference as sd
-import MergeFiles as mf
+from VectorTools import vector_functions as vf
+from VectorTools import BufferOgr as bo
+from VectorTools import MultiPolyToPoly as mpp
+from VectorTools import shapeDifference as sd
+from VectorTools import MergeFiles as mf
 
 #%% Fonctions utiles
 # Fonction pour calculer le rectangle englobant d'aire minimale
@@ -123,7 +123,7 @@ def addDiscriminationFields(filein):
             else:
                 layer.DeleteFeature(feat.GetFID())
         else:
-           print 'not geometry'
+           print('not geometry')
            convexity = 0
            compacity = 0
            elongation = 0
@@ -132,7 +132,7 @@ def addDiscriminationFields(filein):
         feat.SetField('Elongation', elongation)
         layer.SetFeature(feat)
     source.Destroy()
-    layer = None    
+    layer = None
     
 # Classification des polygones selon les différents critères Convexité, Elongation et Compacité. 
 def addClassAHF(filein, convex = 0.7, compa = 0.4, elong = 2.5):
@@ -159,11 +159,10 @@ def addClassAHF(filein, convex = 0.7, compa = 0.4, elong = 2.5):
     source.Destroy()
     layer = None
 
-
 def foret_non_foret(chemin, FileInit, FileOut, convex = 0.7, compa = 0.4, elong = 2.5):
 
     os.chdir(chemin)
-    print os.path.join(chemin, FileInit)
+    print(os.path.join(chemin, FileInit))
     
     vf.checkValidGeom(FileInit)
         
@@ -172,7 +171,7 @@ def foret_non_foret(chemin, FileInit, FileOut, convex = 0.7, compa = 0.4, elong 
     bo.bufferPoly('tmp_Erosion20.shp', 'tmp_Dilatation20_poly.shp', 20)        
     
     # Dilatation supplémentaire pour récupérer les objets qui disparaissent suite à l'ouverture par selection spatiale
-    bo.bufferPoly('tmp_Dilatation20_poly.shp', 'tmp_Extra_Dila_poly.shp', 20)        
+    bo.bufferPoly('tmp_Dilatation20_poly.shp', 'tmp_Extra_Dila_poly.shp', 20)
     
     mpp.multipoly2poly('tmp_Dilatation20_poly.shp', 'tmp_Dilatation20.shp')
     mpp.multipoly2poly('tmp_Extra_Dila_poly.shp', 'tmp_Extra_Dila.shp')
@@ -183,8 +182,7 @@ def foret_non_foret(chemin, FileInit, FileOut, convex = 0.7, compa = 0.4, elong 
     sd.shapeDifference(FileInit, 'tmp_Dilatation20.shp', 'tmp_Non_foret_temp_poly.shp', False, None)
     # Transformation des multipolygones en polygones simples
     mpp.multipoly2poly('tmp_Non_foret_temp_poly.shp', 'tmp_Non_Foret_temp.shp')
-    
-    
+
     # Elimination des résidus de la symétries pour obtenir les vrais contours de la forêt
     NF = vf.openToWrite('tmp_Non_Foret_temp.shp')
     ED = vf.openToRead('tmp_Extra_Dila.shp')
@@ -203,7 +201,7 @@ def foret_non_foret(chemin, FileInit, FileOut, convex = 0.7, compa = 0.4, elong 
     NFLayer = None
     EDLayer = None
         
-    # Soustraction de la non-forêt par rapport au fichier initial, pour obtenir les vrais contours de la forêt       
+    # Soustraction de la non-forêt par rapport au fichier initial, pour obtenir les vrais contours de la forêt
     sd.shapeDifference(FileInit, 'tmp_Non_Foret_temp.shp', 'tmp_Foret_temp_poly.shp', False, None)
         
     vf.checkValidGeom('tmp_Foret_temp_poly.shp')        
@@ -275,27 +273,27 @@ def foret_non_foret(chemin, FileInit, FileOut, convex = 0.7, compa = 0.4, elong 
         FL.SetFeature(f)
     F.Destroy()
     FL = None
-        
+
     # Fusion du fichier de forêts avec le fichier de non-forêt
     mf.mergeVectors(['tmp_Foret_full.shp', 'tmp_Non_Foret_full.shp'], FileOut)
-        
+
     # Suppression des fichiers intermédiaires
     os.system('rm tmp_*')
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
-	prog = os.path.basename(sys.argv[0])
-	print '      '+sys.argv[0]+' [options]' 
-	print "     Help : ", prog, " --help"
-	print "        or : ", prog, " -h"
-	sys.exit(-1)  
+        prog = os.path.basename(sys.argv[0])
+        print('      '+sys.argv[0]+' [options]') 
+        print("     Help : ", prog, " --help")
+        print("        or : ", prog, " -h")
+        sys.exit(-1)  
     else:
-	usage = "usage: %prog [options] "
-	parser = argparse.ArgumentParser(description = "Extract forests, hedges, and trees based on an input forest shapefile")
+        usage = "usage: %prog [options] "
+        parser = argparse.ArgumentParser(description = "Extract forests, hedges, and trees based on an input forest shapefile")
         parser.add_argument("-tmp", dest ="tmp", action="store", \
                             help="List of input shapefiles", required = True)
         parser.add_argument("-s", dest="inputshape", action="store", \
-                            help="Folder of input shapefiles", required = True)        
+                            help="Folder of input shapefiles", required = True)
         parser.add_argument("-o", dest="outshapefile", action="store", \
                             help="ESRI Shapefile output filename and path", required = True)
         parser.add_argument("-conv", dest="conv", action="store", \
@@ -304,8 +302,7 @@ if __name__ == "__main__":
                             help="Compacity parameter")
         parser.add_argument("-elong", dest="elong", action="store", \
                             help="Elongation parameter")
-        
-	args = parser.parse_args()
-        
+
+        args = parser.parse_args()
+
         foret_non_foret(args.tmp, args.inputshape, args.outshapefile)
-        

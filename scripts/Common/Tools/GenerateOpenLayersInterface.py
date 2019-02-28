@@ -1,5 +1,6 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
+
 # =========================================================================
 #   Program:   iota2
 #
@@ -381,11 +382,10 @@ map.addLayer(classif)\n\
 </html>'%(urlserveur, classifName))
         htmlFile.close()
 
-
 if __name__ == "__main__":
     if len(sys.argv) < 6:
-        print "Usage: "+sys.argv[0]+" server_url style_file output_path classif_1 metrics_1 [classif_12 metrics_2 ... classif_n metrics_n]"
-        print "Example: python "+sys.argv[0]+" \"http://cyan.ups-tlse.fr:8080/geoserver/SudOuest/wms?\" FR_ALLCLASSES.qml /tmp/html \"SudOuest:OSOV1\" MetricsV1.txt \"SudOuest:OSOV2\" MetricsV2.txt "
+        print("Usage: "+sys.argv[0]+" server_url style_file output_path classif_1 metrics_1 [classif_12 metrics_2 ... classif_n metrics_n]")
+        print("Example: python "+sys.argv[0]+" \"http://cyan.ups-tlse.fr:8080/geoserver/SudOuest/wms?\" FR_ALLCLASSES.qml /tmp/html \"SudOuest:OSOV1\" MetricsV1.txt \"SudOuest:OSOV2\" MetricsV2.txt ")
     else:
         urlserveur = sys.argv[1]
         colorFile = sys.argv[2]

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -285,7 +285,7 @@ def merge_confusions(csv_in, labels, csv_out):
 def confusion_models_merge(csv_list, dataField):
     """
     """
-    from ResultsUtils import parse_csv
+    from Validation.ResultsUtils import parse_csv
 
     csv_path, csv_name = os.path.split(csv_list[0])
     csv_seed_pos = 4
@@ -300,8 +300,8 @@ def confusion_models_merge(csv_list, dataField):
     labels = []
     for csv in csv_list:
         conf_mat_dic = parse_csv(csv)
-        labels_ref = conf_mat_dic.keys()
-        labels_prod = [lab for lab in conf_mat_dic[conf_mat_dic.keys()[0]].keys()]
+        labels_ref = list(conf_mat_dic.keys())
+        labels_prod = [lab for lab in list(conf_mat_dic[list(conf_mat_dic.keys())[0]].keys())]
         all_labels = labels_ref + labels_prod
         labels = labels + all_labels
 
@@ -320,7 +320,7 @@ def confFusion(shapeIn, dataField, csv_out, txt_out, csvPath, cfg):
         N = N - 1
     cropMix = cfg.getParam('argTrain', 'cropMix')
     annualCrop = cfg.getParam('argTrain', 'annualCrop')
-    labelReplacement, labelName = cfg.getParam('argTrain', 'ACropLabelReplacement')
+    labelReplacement, labelName = cfg.getParam('argTrain', 'ACropLabelReplacement').data
     enableCrossValidation = cfg.getParam('chain', 'enableCrossValidation')
     labelReplacement = int(labelReplacement)
 

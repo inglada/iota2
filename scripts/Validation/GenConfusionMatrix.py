@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -27,9 +27,7 @@ from osgeo.gdalconst import *
 from Common import ServiceConfigFile as SCF
 from Common.Utils import run
 
-
 LOGGER = logging.getLogger(__name__)
-
 
 def create_dummy_rasters(missing_tiles, N, cfg):
     """
@@ -51,8 +49,8 @@ def create_dummy_rasters(missing_tiles, N, cfg):
 def compareRef(shapeRef, shapeLearn, classif, diff, footprint, workingDirectory, cfg, pathWd):
 
     minX, maxX, minY, maxY = fu.getRasterExtent(classif)
-    shapeRaster_val = workingDirectory+"/"+shapeRef.split("/")[-1].replace(".shp", ".tif")
-    shapeRaster_learn = workingDirectory+"/"+shapeLearn.split("/")[-1].replace(".shp", ".tif")
+    shapeRaster_val = workingDirectory+"/"+shapeRef.split("/")[-1].replace(".shp", ".tif").replace(".sqlite", ".tif")
+    shapeRaster_learn = workingDirectory+"/"+shapeLearn.split("/")[-1].replace(".shp", ".tif").replace(".sqlite", ".tif")
 
     dataField = cfg.getParam('chain', 'dataField')
     spatialRes = int(cfg.getParam('chain', 'spatialResolution'))

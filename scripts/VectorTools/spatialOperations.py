@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -17,20 +17,20 @@
 import os
 import sys
 import argparse
-import vector_functions as vf
+from VectorTools import vector_functions as vf
 
 def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectformat='SQLite'):
     """
     """
-    from pyspatialite import dbapi2 as db
+    import sqlite3 as db
     tmpfile = []
 
     if not os.path.exists(tmp):
-        print "Temporary folder '%s' does not exist, please create it"%(tmp)
+        print("Temporary folder '%s' does not exist, please create it"%(tmp))
         sys.exit()
 
     if os.path.exists(output):
-        print "Outpout file %s already exists, please delete it"%(output)
+        print("Outpout file %s already exists, please delete it"%(output))
         sys.exit()        
 
     if os.path.splitext(os.path.basename(t1))[1] == '.sqlite':        
@@ -38,7 +38,7 @@ def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectforma
     elif os.path.splitext(os.path.basename(t1))[1] == '.shp':
         layert1 = vf.getLayerName(t1, "ESRI Shapefile")
     else:
-        print "Type of vector file '%s' not supported"%(t1)
+        print("Type of vector file '%s' not supported"%(t1))
         sys.exit()
 
     if os.path.splitext(os.path.basename(t2))[1] == '.sqlite':        
@@ -46,7 +46,7 @@ def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectforma
     elif os.path.splitext(os.path.basename(t2))[1] == '.shp':
         layert2 = vf.getLayerName(t2, "ESRI Shapefile")
     else:
-        print "Type of vector file '%s' not supported"%(t2)
+        print("Type of vector file '%s' not supported"%(t2))
         sys.exit()
         
     layerout = os.path.splitext(os.path.basename(output))[0]
@@ -55,10 +55,11 @@ def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectforma
         os.remove(os.path.join(tmp, 'tmp%s.sqlite'%(layerout)))
         
     database = db.connect(os.path.join(tmp, 'tmp%s.sqlite'%(layerout)))
+    database.enable_load_extension(True)
+    database.load_extension("mod_spatialite")
     cursor = database.cursor()
     cursor.execute('SELECT InitSpatialMetadata()')
 
-    
     # Check if shapefile (and convert in sqlite) or sqlite inputs
     if os.path.splitext(os.path.basename(t1))[1] == '.sqlite':
         t1type = vf.getGeomType(t1, "SQLite")
@@ -72,7 +73,7 @@ def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectforma
         cursor.execute("ATTACH '%s' as db1;"%(t1sqlite))
         tmpfile.append(t1sqlite)
     else:
-        print "Type of vector file '%s' not supported"%(t1)
+        print("Type of vector file '%s' not supported"%(t1))
         sys.exit()
         
     if os.path.splitext(os.path.basename(t2))[1] == '.sqlite':
@@ -87,7 +88,7 @@ def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectforma
         cursor.execute("ATTACH '%s' as db2;"%(t2sqlite))
         tmpfile.append(t2sqlite)
     else:
-        print "Type of vector file '%s' not supported"%(t2)
+        print("Type of vector file '%s' not supported"%(t2))
         sys.exit()
 
     # get fields list
@@ -126,7 +127,7 @@ def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectforma
         cursor.execute('select AddGeometryColumn("t1", "geometry", %s, "MULTIPOINT", 2)'%(epsg))
         point1 = True
     else:
-        print "Geometry type of file %s not handled"%(t1)
+        print("Geometry type of file %s not handled"%(t1))
         
     listnamefieldst1 = []
     for field in listfieldst1:
@@ -134,7 +135,7 @@ def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectforma
             cursor.execute("ALTER TABLE t1 ADD COLUMN %s %s;"%(field[0], field[1]))
             listnamefieldst1.append(field[0])
         except:
-            print "Column '%s' already exists, not added"%(field[0])
+            print("Column '%s' already exists, not added"%(field[0]))
             continue
     cursor.execute('create table t2 (fid integer not null primary key autoincrement);')
     if t2type in (3, 6, 1003, 1006):
@@ -143,7 +144,7 @@ def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectforma
         cursor.execute('select AddGeometryColumn("t2", "geometry", %s, "MULTIPOINT", 2)'%(epsg))
         point2 = True        
     else:
-        print "Geometry type of file %s not handled"%(t2)
+        print("Geometry type of file %s not handled"%(t2))
         
     listnamefieldst2 = []
     for field in listfieldst2:
@@ -151,7 +152,7 @@ def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectforma
             cursor.execute("ALTER TABLE t2 ADD COLUMN %s %s;"%(field[0], field[1]))
             listnamefieldst2.append(field[0])
         except:
-            print "Column '%s' already exists, not added"%(field[0])
+            print("Column '%s' already exists, not added"%(field[0]))
             continue
     if listnamefieldst1:
         if not point1:
@@ -282,14 +283,14 @@ def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectforma
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
-	prog = os.path.basename(sys.argv[0])
-	print '      '+sys.argv[0]+' [options]' 
-	print "     Help : ", prog, " --help"
-	print "        or : ", prog, " -h"
-	sys.exit(-1)  
+        prog = os.path.basename(sys.argv[0])
+        print('      '+sys.argv[0]+' [options]') 
+        print("     Help : ", prog, " --help")
+        print("        or : ", prog, " -h")
+        sys.exit(-1)  
     else:
-	usage = "usage: %prog [options] "
-	parser = argparse.ArgumentParser(description = "Execute spatial operation (intersection or difference or union) "\
+        usage = "usage: %prog [options] "
+        parser = argparse.ArgumentParser(description = "Execute spatial operation (intersection or difference or union) "\
                                          "on two vector files (ESRI Shapefile or sqlite formats)")
         parser.add_argument("-s1", dest="s1", action="store", \
                             help="first sqlite vector file", required = True)
@@ -316,4 +317,3 @@ if __name__ == "__main__":
             intersectSqlites(args.s1, args.s2, args.tmp, args.output, args.epsg, args.operation, args.keepfields)
         else:
             intersectSqlites(args.s1, args.s2, args.tmp, args.output, args.epsg, args.operation, args.keepfields, args.outformat)
-

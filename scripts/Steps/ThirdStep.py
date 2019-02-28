@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -15,11 +15,11 @@
 # =========================================================================
 import os
 
-import IOTA2Step
+from Steps import IOTA2Step
 from Cluster import get_RAM
 
 def awesome_function(arg1, arg2):
-    print "My variable parameter : {} const parameter : {}".format(arg1, arg2)
+    print ("My variable parameter : {} const parameter : {}".format(arg1, arg2))
 
 class ThirdStep(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file):
@@ -38,7 +38,7 @@ class ThirdStep(IOTA2Step.Step):
     def step_inputs(self):
         """
         """
-        return range(1, 3)
+        return list(range(1, 3))
 
     def step_execute(self):
         """
@@ -52,7 +52,7 @@ class ThirdStep(IOTA2Step.Step):
         return step_function
 
     def step_outputs(self):
-        print "no outputs"
+        print ("no outputs")
 
     def step_clean(self):
         """

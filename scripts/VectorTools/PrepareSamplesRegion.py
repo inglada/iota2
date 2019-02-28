@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -22,37 +22,35 @@ from math import sqrt
 from config import Config
 import ogr
 
-import vector_functions as vf
-import FileByClass
-import AddFieldID
-import AddField
-import AddFieldArea
-import DeleteField
-import DeleteDuplicateGeometries
-import BufferOgr
-import MultiPolyToPoly
-import SelectBySize
-import MergeFiles
-import Intersection
-import shapeDifference
+from VectorTools import vector_functions as vf
+from VectorTools import FileByClass
+from VectorTools import AddFieldID
+from VectorTools import AddField
+from VectorTools import AddFieldArea
+from VectorTools import DeleteField
+from VectorTools import DeleteDuplicateGeometries
+from VectorTools import BufferOgr
+from VectorTools import MultiPolyToPoly
+from VectorTools import SelectBySize
+from VectorTools import MergeFiles
+from VectorTools import Intersection
+from VectorTools import shapeDifference
 import RandomInSituByTile
-import CreateGrid
-import checkGeometryAreaThreshField
+from VectorTools import CreateGrid
+from VectorTools import checkGeometryAreaThreshField
 
 def connect_db(user, database, host, port, password, schema):     
     try:
         connString = "PG: host=%s dbname=%s user=%s password=%s port=%s" %(host,database,user,password,port)     
         conn = ogr.Open(connString)
     except:
-        print "I am unable to connect to the database"
+        print("I am unable to connect to the database")
     
     return conn    
 
 def read_config_file(Fileconfig):
-
-    f = file(Fileconfig)    
+    f = open(Fileconfig)    
     return Config(f)
-
 
 def get_sources(cfg):
     
@@ -64,7 +62,7 @@ def get_sources(cfg):
         else:
             key = cfg.Nomenclature[classe].Source
 
-        if key not in sources.keys():
+        if key not in list(sources.keys()):
             sources[key] = []
             sources[key].append(classe)
         else:
@@ -224,7 +222,7 @@ def gestionTraitementsClasse(cfg, layer, outfile, classe, ss_classe, source, res
             return outfile_area
         
         else:
-            print 'Aucun échantillon pour la classe {} dans la base de données {}'.format(classe, source)
+            print('Aucun échantillon pour la classe {} dans la base de données {}'.format(classe, source))
             return None  
 
     else:
@@ -243,7 +241,7 @@ def gestionTraitementsClasse(cfg, layer, outfile, classe, ss_classe, source, res
             os.system("ls {}".format(outfile_buff_mask))
             return outfile_buff_mask     
         else:
-            print "la donnée n'est pas de type linéaire"
+            print("la donnée n'est pas de type linéaire")
             return None
     
 def gestionSamplesClasse(cfg, classe, source, ouputPath, res, area_thresh, pix_thresh, lineBuffer = None):
@@ -328,7 +326,7 @@ def gestionSamplesClasse(cfg, classe, source, ouputPath, res, area_thresh, pix_t
                 path = pathList[0]
                 for expression in chpvalue:
                     if expression[1] == 'None':
-                        print 'gestion directe'
+                        print('gestion directe')
                     else:
                         outfile = ouputPath + '/' + sourcedb + '_' + classe + '_' + str(indfile) + '.shp'
                         outpathList.append(outfile)
@@ -388,7 +386,7 @@ def gestionSamplesClasse(cfg, classe, source, ouputPath, res, area_thresh, pix_t
     return out
                 
 def manageListSources(dictSources, path, key):
-    if key not in dictSources.keys():
+    if key not in list(dictSources.keys()):
         dictSources[key] = [path]
     else:
         dictSources[key].append(path)
@@ -398,7 +396,7 @@ def clipFile(cfg, ouputPath, source):
     try:
         fileToCut = cfg.globalPath[source]
     except:
-        print "No path provide for {} datasource".format(source)
+        print("No path provide for {} datasource".format(source))
         sys.exit(-1)
 
     if fileToCut.lower() != 'database':
@@ -407,7 +405,7 @@ def clipFile(cfg, ouputPath, source):
         command = "ogr2ogr -clipsrc {} {} {}".format(cfg.globalPath.cutFile, outputCut, fileToCut)
         os.system(command)
     else:
-        print "Clip of a database layer will be managed after database extraction"
+        print("Clip of a database layer will be managed after database extraction")
 
 def gestionFichierFinal(samples_shapefile_source, outfile_area, ouputPath, source, classe):
     if outfile_area is not None:
@@ -467,7 +465,7 @@ def gestion_echantillons(Fileconfig, ouputPath):
                     pass
                 
                 if not '_' in source:
-                    print 'Traitement de la base de données {} pour la classe {}'.format(source, classe)
+                    print('Traitement de la base de données {} pour la classe {}'.format(source, classe))
 
                     if buff:
                         outfile_area = gestionSamplesClasse(cfg, classe, source, ouputPath, res, area_thresh, pix_thresh, Buffer)
@@ -480,7 +478,7 @@ def gestion_echantillons(Fileconfig, ouputPath):
                 else:
                     complexDataSets = []
                     for sourceBD in source.split('_'):
-                        print 'Traitement de la base de données {} pour la classe {}'.format(sourceBD, classe)
+                        print('Traitement de la base de données {} pour la classe {}'.format(sourceBD, classe))
 
                         try:
                             Buffer = cfg.Nomenclature[classe].Buffer[source.split('_').index(sourceBD)]
@@ -504,9 +502,9 @@ def gestion_echantillons(Fileconfig, ouputPath):
                             secondPath = [x for x in complexDataSets if priorSource != x[0]][0][1]
                             secondSource = [x for x in complexDataSets if priorSource != x[0]][0][0]
                             if cfg.parameters.landCoverField not in vf.getFields(priorPath):
-                                print 'No landcover field in {} data source'.format(priorSource)
+                                print('No landcover field in {} data source'.format(priorSource))
                         else:
-                            print "the priority source {} not present in sources list".format() 
+                            print("the priority source {} not present in sources list".format()) 
 
                         if (priorPath is not None) and (secondPath is not None):
                             intersectFilename = ouputPath + '/inter_' + priorSource + '_' + secondSource + '_' +  classe + '.shp'
@@ -542,7 +540,7 @@ def gestion_echantillons(Fileconfig, ouputPath):
                     
                 buff = False
         else:
-            print "No Path for source {} provided while required for classes {}".format(source,sources[source])            
+            print("No Path for source {} provided while required for classes {}".format(source,sources[source]))            
 
             
     # Fusion des echantillons des différents classes pour une source donnée
@@ -601,12 +599,12 @@ def gestion_echantillons(Fileconfig, ouputPath):
             idx1 = listpriorities.index(keysource.split('_')[0])
             idx2 = listpriorities.index(keysource.split('_')[1])
             if idx1 < idx2:
-                if idx1 not in dataSourcePriorities.keys():
+                if idx1 not in list(dataSourcePriorities.keys()):
                     dataSourcePriorities[idx1] = outfilemerge
                 else:
                     dataSourcePriorities[idx1 + 0.5] = outfilemerge                    
             else:
-                if idx2 not in dataSourcePriorities.keys():
+                if idx2 not in list(dataSourcePriorities.keys()):
                     dataSourcePriorities[idx2] = outfilemerge
                 else:
                     dataSourcePriorities[idx2 + 0.5] = outfilemerge
@@ -666,33 +664,33 @@ def gestion_echantillons(Fileconfig, ouputPath):
     try:
         filefinal = ouputPath + '/final/echantillons_OSO_' + cfg.parameters.samplesFileName + '.shp'
         checkGeometryAreaThreshField.checkGeometryAreaThreshField(subFinalSsReseaux, area_thresh, pix_thresh, filefinal)
-        print "Les échantillons de classification pour la zone {}"\
-            " ont été produits dans la couche {}".format(cfg.parameters.samplesFileName, filefinal)
+        print("Les échantillons de classification pour la zone {}"\
+            " ont été produits dans la couche {}".format(cfg.parameters.samplesFileName, filefinal))
     except:
-        print "Un problème de copie a été identifié"
+        print("Un problème de copie a été identifié")
 
     try:
         vf.RandomSelectionPolygons(filefinal, cfg.parameters.landCoverField, 1, ouputPath + '/final/', 0.7)
-        print "Les échantillons ont été séparés en deux groupes de validation {} et d'apprentissage {}"\
-            .format(filefinal[:-4] + '_seed0_val.shp', filefinal[:-4] + '_seed0_learn.shp')
+        print("Les échantillons ont été séparés en deux groupes de validation {} et d'apprentissage {}"\
+            .format(filefinal[:-4] + '_seed0_val.shp', filefinal[:-4] + '_seed0_learn.shp'))
     except:
-        print "Problème de tirage aléatoire"
+        print("Problème de tirage aléatoire")
 
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
-	prog = os.path.basename(sys.argv[0])
-	print '      '+sys.argv[0]+' [options]' 
-	print "     Help : ", prog, " --help"
-	print "        or : ", prog, " -h"
-	sys.exit(-1)  
+        prog = os.path.basename(sys.argv[0])
+        print('      '+sys.argv[0]+' [options]') 
+        print("     Help : ", prog, " --help")
+        print("        or : ", prog, " -h")
+        sys.exit(-1)  
     else:
         usage = "usage: %prog [options] "
-	parser = argparse.ArgumentParser(description = "Prepare training and \
+        parser = argparse.ArgumentParser(description = "Prepare training and \
         validation samples for iota2 classification")
         parser.add_argument("-c", dest="config", action="store", \
                             help="configuration file", required = True)
         parser.add_argument("-of", dest="outpath", action="store", \
-                            help="output path to store vector files", required = True)        
-	args = parser.parse_args()
+                            help="output path to store vector files", required = True)
+        args = parser.parse_args()
         gestion_echantillons(args.config, args.outpath)

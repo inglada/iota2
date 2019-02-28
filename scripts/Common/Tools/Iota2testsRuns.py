@@ -1,5 +1,6 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
+
 # =========================================================================
 #   Program:   iota2
 #
@@ -49,7 +50,7 @@ class iota2_run(unittest.TestCase):
 
     @classmethod
     def tearDownClass(self):
-        print "end of iota2_run tests"
+        print("end of iota2_run tests")
 
     def setUp(self):
         """
@@ -91,7 +92,7 @@ class iota2_run(unittest.TestCase):
         from config import Config
         
         #prepare configuration file
-        cfg = Config(file(self.config_path_test))
+        cfg = Config(open(self.config_path_test))
         cfg.chain.outputPath = self.test_working_directory
         cfg.chain.listTile = 'D0005H0002'
         cfg.chain.L8Path = os.path.join(self.iota2_directory, "data/L8_50x50")
@@ -115,7 +116,7 @@ class iota2_run(unittest.TestCase):
         cfg.argClassification.classifMode = 'separate'
         cfg.Landsat8.keepBands = []
         cfg.GlobChain.useAdditionalFeatures = False
-        cfg.save(file(self.config_path_test, 'w'))
+        cfg.save(open(self.config_path_test, 'w'))
 
         import launchChain
         try:

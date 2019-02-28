@@ -1,5 +1,6 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
+
 # =========================================================================
 #   Program:   iota2
 #
@@ -439,7 +440,7 @@ class iota_testStringManipulations(unittest.TestCase):
                 fu.findCurrentTileInString(rString_head +
                                            currentTile +
                                            rString_tail, self.AllS2Tiles)
-            except StandardError:
+            except Exception:
                 S2 = False
         self.assertTrue(S2)
         L8 = True
@@ -448,7 +449,7 @@ class iota_testStringManipulations(unittest.TestCase):
                 fu.findCurrentTileInString(rString_head +
                                            currentTile +
                                            rString_tail, self.AllL8Tiles)
-            except StandardError:
+            except Exception:
                 L8 = False
         self.assertTrue(L8)
 
@@ -459,7 +460,7 @@ class iota_testStringManipulations(unittest.TestCase):
         try:
             nbDates = fu.getNbDateInTile(self.dateFile, display=False)
             self.assertTrue(nbDates == 35)
-        except StandardError:
+        except Exception:
             self.assertTrue(False)
 
         try:
@@ -551,7 +552,7 @@ def compareSQLite(vect_1, vect_2, CmpMode='table', ignored_fields=[]):
         values_2 = getValuesSortedByCoordinates(vect_2)
         sameFeat = []
         for val_1, val_2 in zip(values_1, values_2):
-            for (k1,v1),(k2,v2) in zip(val_1[2].items(), val_2[2].items()):
+            for (k1,v1),(k2,v2) in zip(list(val_1[2].items()), list(val_2[2].items())):
                 if not k1 in ignored_fields and k2 in ignored_fields:
                     sameFeat.append(cmp(v1, v2) == 0)
         if False in sameFeat:
@@ -628,7 +629,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         config_path_test = os.path.join(wD, "Config_TEST.cfg")
         shutil.copy(config_path, config_path_test)
         L8_rasters = os.path.join(self.iota2_directory, "data", "L8_50x50")
-        cfg_test = Config(file(config_path_test))
+        cfg_test = Config(open(config_path_test))
         cfg_test.chain.outputPath = testPath
         cfg_test.chain.listTile = "D0005H0002"
         cfg_test.chain.L8Path_old = L8_rasters
@@ -638,7 +639,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         cfg_test.argTrain.cropMix = False
         cfg_test.argTrain.samplesClassifMix = False
         cfg_test.GlobChain.useAdditionalFeatures = False
-        cfg_test.save(file(config_path_test, 'w'))
+        cfg_test.save(open(config_path_test, 'w'))
 
         os.mkdir(featuresOutputs+"/D0005H0002")
         os.mkdir(featuresOutputs+"/D0005H0002/tmp")
@@ -670,7 +671,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         config_path_test = os.path.join(testPath, "Config_TEST.cfg")
         shutil.copy(config_path, config_path_test)
         L8_rasters = os.path.join(self.iota2_directory, "data", "L8_50x50")
-        cfg_test = Config(file(config_path_test))
+        cfg_test = Config(open(config_path_test))
         cfg_test.chain.outputPath = testPath
         cfg_test.chain.listTile = "D0005H0002"
         cfg_test.chain.L8Path_old = L8_rasters
@@ -681,7 +682,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         cfg_test.argTrain.samplesClassifMix = False
         cfg_test.GlobChain.useAdditionalFeatures = False
         cfg_test.GlobChain.writeOutputs = True
-        cfg_test.save(file(config_path_test, 'w'))
+        cfg_test.save(open(config_path_test, 'w'))
 
         os.mkdir(os.path.join(featuresOutputs, "D0005H0002"))
         os.mkdir(os.path.join(featuresOutputs, "D0005H0002", "tmp"))
@@ -707,7 +708,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         config_path_test = os.path.join(testPath, "Config_TEST.cfg")
         shutil.copy(config_path, config_path_test)
         L8_rasters = os.path.join(self.iota2_directory, "data", "L8_50x50")
-        cfg_test = Config(file(config_path_test))
+        cfg_test = Config(open(config_path_test))
         cfg_test.chain.outputPath = testPath
         cfg_test.chain.listTile = "D0005H0002"
         cfg_test.chain.L8Path_old = L8_rasters
@@ -718,7 +719,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         cfg_test.argTrain.samplesClassifMix = False
         cfg_test.GlobChain.useAdditionalFeatures = False
         cfg_test.GlobChain.writeOutputs = True
-        cfg_test.save(file(config_path_test, 'w'))
+        cfg_test.save(open(config_path_test, 'w'))
 
         os.mkdir(os.path.join(featuresOutputs, "D0005H0002"))
         os.mkdir(os.path.join(featuresOutputs, "D0005H0002", "tmp"))
@@ -742,7 +743,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         config_path_test = os.path.join(testPath, "Config_TEST.cfg")
         shutil.copy(config_path, config_path_test)
         L8_rasters = os.path.join(self.iota2_directory, "data", "L8_50x50")
-        cfg_test = Config(file(config_path_test))
+        cfg_test = Config(open(config_path_test))
         cfg_test.chain.outputPath = testPath
         cfg_test.chain.listTile = "D0005H0002"
         cfg_test.chain.L8Path_old = L8_rasters
@@ -757,7 +758,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         cfg_test.GlobChain.writeOutputs = True
         cfg_test.GlobChain.useAdditionalFeatures = True
         cfg_test.Landsat8_old.additionalFeatures = 'b1+b2,(b1-b2)/(b1+b2)'
-        cfg_test.save(file(config_path_test, 'w'))
+        cfg_test.save(open(config_path_test, 'w'))
         os.mkdir(os.path.join(featuresOutputs, "D0005H0002"))
         os.mkdir(os.path.join(featuresOutputs, "D0005H0002", "tmp"))
         config_test = SCF.serviceConfigFile(config_path_test)
@@ -780,7 +781,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         config_path_test = os.path.join(testPath, "Config_TEST.cfg")
         shutil.copy(config_path, config_path_test)
         L8_rasters = os.path.join(self.iota2_directory, "data", "L8_50x50")
-        cfg_test = Config(file(config_path_test))
+        cfg_test = Config(open(config_path_test))
         cfg_test.chain.outputPath = testPath
         cfg_test.chain.listTile = "D0005H0002"
         cfg_test.chain.L8Path_old = L8_rasters
@@ -795,7 +796,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         cfg_test.GlobChain.writeOutputs = True
         cfg_test.GlobChain.useAdditionalFeatures = True
         cfg_test.Landsat8_old.additionalFeatures = 'b1+b2,(b1-b2)/(b1+b2)'
-        cfg_test.save(file(config_path_test, 'w'))
+        cfg_test.save(open(config_path_test, 'w'))
 
         os.mkdir(os.path.join(featuresOutputs, "D0005H0002"))
         os.mkdir(os.path.join(featuresOutputs, "D0005H0002", "tmp"))
@@ -862,14 +863,14 @@ class iota_testSamplerApplications(unittest.TestCase):
                                    "Config_4Tuiles_Multi_FUS_Confidence.cfg")
             annual_config_path = os.path.join(directory, "AnnualConfig.cfg")
             shutil.copy(config_path, annual_config_path)
-            cfg = Config(file(annual_config_path))
+            cfg = Config(open(annual_config_path))
             cfg.chain.listTile = 'D0005H0002'
             cfg.chain.L8Path_old = annualFeaturesPath
             cfg.chain.L8Path = "None"
             cfg.chain.userFeatPath = 'None'
             cfg.GlobChain.annualClassesExtractionSource = 'False'
             cfg.GlobChain.useAdditionalFeatures = False
-            cfg.save(file(annual_config_path, 'w'))
+            cfg.save(open(annual_config_path, 'w'))
             featuresPath = os.path.join(cfg.chain.outputPath, "features")
             if not os.path.exists(featuresPath):
                 os.mkdir(featuresPath)
@@ -909,14 +910,14 @@ class iota_testSamplerApplications(unittest.TestCase):
         annual_config_path = os.path.join(wD, "AnnualConfig.cfg")
         shutil.copy(self.config.pathConf, annual_config_path)
 
-        cfg = Config(file(annual_config_path))
+        cfg = Config(open(annual_config_path))
         cfg.chain.listTile = 'D0005H0002'
         cfg.chain.L8Path_old = L8_rasters_annual
         cfg.chain.L8Path = "None"
         cfg.chain.featuresPath = features_A_Outputs
         cfg.chain.userFeatPath = 'None'
         cfg.GlobChain.useAdditionalFeatures = False
-        cfg.save(file(annual_config_path, 'w'))
+        cfg.save(open(annual_config_path, 'w'))
 
         #fill up configuration file
         """
@@ -927,7 +928,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         config_path_test = os.path.join(wD, "Config_TEST.cfg")
         shutil.copy(config_path, config_path_test)
         L8_rasters = os.path.join(self.iota2_directory, "data", "L8_50x50")
-        cfg_test = Config(file(config_path_test))
+        cfg_test = Config(open(config_path_test))
         cfg_test.chain.outputPath = testPath
         cfg_test.chain.listTile = "D0005H0002"
         cfg_test.chain.L8Path_old = L8_rasters_non_annual
@@ -939,7 +940,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         cfg_test.argTrain.prevFeatures = annual_config_path
         cfg_test.GlobChain.useAdditionalFeatures = False
         cfg_test.GlobChain.writeOutputs = True
-        cfg_test.save(file(config_path_test, 'w'))
+        cfg_test.save(open(config_path_test, 'w'))
         config_test = SCF.serviceConfigFile(config_path_test)
 
         #Launch sampler
@@ -960,7 +961,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         config_path_test = os.path.join(wD, "Config_TEST.cfg")
         shutil.copy(config_path, config_path_test)
         L8_rasters = os.path.join(self.iota2_directory, "data", "L8_50x50")
-        cfg_test = Config(file(config_path_test))
+        cfg_test = Config(open(config_path_test))
         cfg_test.chain.outputPath = testPath
         cfg_test.chain.listTile = "D0005H0002"
         cfg_test.chain.L8Path_old = L8_rasters_non_annual
@@ -972,7 +973,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         cfg_test.argTrain.prevFeatures = annual_config_path
         cfg_test.GlobChain.useAdditionalFeatures = False
         cfg_test.GlobChain.writeOutputs = False
-        cfg_test.save(file(config_path_test, 'w'))
+        cfg_test.save(open(config_path_test, 'w'))
         config_test = SCF.serviceConfigFile(config_path_test)
         
         #annual sensor data generation (pix annual = 2 * pix non_annual)
@@ -983,14 +984,14 @@ class iota_testSamplerApplications(unittest.TestCase):
         annual_config_path = os.path.join(wD, "AnnualConfig.cfg")
         shutil.copy(self.config.pathConf, annual_config_path)
 
-        cfg = Config(file(annual_config_path))
+        cfg = Config(open(annual_config_path))
         cfg.chain.listTile = 'D0005H0002'
         cfg.chain.L8Path_old = L8_rasters_annual
         cfg.chain.L8Path = "None"
         cfg.chain.featuresPath = features_A_Outputs
         cfg.chain.userFeatPath = 'None'
         cfg.GlobChain.useAdditionalFeatures = False
-        cfg.save(file(annual_config_path, 'w'))
+        cfg.save(open(annual_config_path, 'w'))
 
         #Launch sampler
         VectorSampler.generateSamples({"usually":self.referenceShape_test}, wD, config_test, sampleSelection=self.selection_test)
@@ -1009,7 +1010,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         config_path_test = os.path.join(wD, "Config_TEST.cfg")
         shutil.copy(config_path, config_path_test)
         L8_rasters = os.path.join(self.iota2_directory, "data", "L8_50x50")
-        cfg_test = Config(file(config_path_test))
+        cfg_test = Config(open(config_path_test))
         cfg_test.chain.outputPath = testPath
         cfg_test.chain.listTile = "D0005H0002"
         cfg_test.chain.L8Path_old = L8_rasters_non_annual
@@ -1021,7 +1022,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         cfg_test.argTrain.prevFeatures = annual_config_path
         cfg_test.GlobChain.useAdditionalFeatures = False
         cfg_test.GlobChain.writeOutputs = False
-        cfg_test.save(file(config_path_test, 'w'))
+        cfg_test.save(open(config_path_test, 'w'))
         config_test = SCF.serviceConfigFile(config_path_test)
         
         #annual sensor data generation (pix annual = 2 * pix non_annual)
@@ -1032,14 +1033,14 @@ class iota_testSamplerApplications(unittest.TestCase):
         annual_config_path = os.path.join(wD, "AnnualConfig.cfg")
         shutil.copy(self.config.pathConf, annual_config_path)
 
-        cfg = Config(file(annual_config_path))
+        cfg = Config(open(annual_config_path))
         cfg.chain.listTile = 'D0005H0002'
         cfg.chain.L8Path_old = L8_rasters_annual
         cfg.chain.L8Path = "None"
         cfg.chain.featuresPath = features_A_Outputs
         cfg.chain.userFeatPath = 'None'
         cfg.GlobChain.useAdditionalFeatures = False
-        cfg.save(file(annual_config_path, 'w'))
+        cfg.save(open(annual_config_path, 'w'))
 
         #Launch sampler
         vectorTest = VectorSampler.generateSamples({"usually":self.referenceShape_test}, None,
@@ -1059,7 +1060,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         config_path_test = os.path.join(wD, "Config_TEST.cfg")
         shutil.copy(config_path, config_path_test)
         L8_rasters = os.path.join(self.iota2_directory, "data", "L8_50x50")
-        cfg_test = Config(file(config_path_test))
+        cfg_test = Config(open(config_path_test))
         cfg_test.chain.outputPath = testPath
         cfg_test.chain.listTile = "D0005H0002"
         cfg_test.chain.L8Path_old = L8_rasters_non_annual
@@ -1071,7 +1072,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         cfg_test.argTrain.prevFeatures = annual_config_path
         cfg_test.GlobChain.useAdditionalFeatures = False
         cfg_test.GlobChain.writeOutputs = True
-        cfg_test.save(file(config_path_test, 'w'))
+        cfg_test.save(open(config_path_test, 'w'))
         config_test = SCF.serviceConfigFile(config_path_test)
         #annual sensor data generation (pix annual = 2 * pix non_annual)
         os.mkdir(L8_rasters_annual)
@@ -1081,14 +1082,14 @@ class iota_testSamplerApplications(unittest.TestCase):
         annual_config_path = os.path.join(wD, "AnnualConfig.cfg")
         shutil.copy(self.config.pathConf, annual_config_path)
 
-        cfg = Config(file(annual_config_path))
+        cfg = Config(open(annual_config_path))
         cfg.chain.listTile = 'D0005H0002'
         cfg.chain.L8Path_old = L8_rasters_annual
         cfg.chain.L8Path = "None"
         cfg.chain.featuresPath = features_A_Outputs
         cfg.chain.userFeatPath = 'None'
         cfg.GlobChain.useAdditionalFeatures = False
-        cfg.save(file(annual_config_path, 'w'))
+        cfg.save(open(annual_config_path, 'w'))
 
         #Launch Sampling
         VectorSampler.generateSamples({"usually":self.referenceShape_test}, None,
@@ -1159,7 +1160,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         config_path_test = os.path.join(wD, "Config_TEST.cfg")
         shutil.copy(config_path, config_path_test)
         L8_rasters = os.path.join(self.iota2_directory, "data", "L8_50x50")
-        cfg_test = Config(file(config_path_test))
+        cfg_test = Config(open(config_path_test))
         cfg_test.chain.outputPath = testPath
         cfg_test.chain.listTile = "D0005H0002"
         cfg_test.chain.L8Path_old = L8_rasters_old
@@ -1171,7 +1172,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         cfg_test.argTrain.annualClassesExtractionSource = classifications_path
         cfg_test.GlobChain.useAdditionalFeatures = False
         cfg_test.GlobChain.writeOutputs = True
-        cfg_test.save(file(config_path_test, 'w'))
+        cfg_test.save(open(config_path_test, 'w'))
         config_test = SCF.serviceConfigFile(config_path_test)
 
         """
@@ -1194,7 +1195,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
 
         same = []
-        for key, val in self.expectedFeatures.iteritems():
+        for key, val in list(self.expectedFeatures.items()):
             if len(fu.getFieldElement(test_vector, 'SQLite', 'code', 'all')) != self.expectedFeatures[key]:
                 same.append(True)
             else:
@@ -1214,7 +1215,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         config_path_test = os.path.join(wD, "Config_TEST.cfg")
         shutil.copy(config_path, config_path_test)
         L8_rasters = os.path.join(self.iota2_directory, "data", "L8_50x50")
-        cfg_test = Config(file(config_path_test))
+        cfg_test = Config(open(config_path_test))
         cfg_test.chain.outputPath = testPath
         cfg_test.chain.listTile = "D0005H0002"
         cfg_test.chain.L8Path_old = L8_rasters_old
@@ -1226,7 +1227,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         cfg_test.argTrain.annualClassesExtractionSource = classifications_path
         cfg_test.GlobChain.useAdditionalFeatures = False
         cfg_test.GlobChain.writeOutputs = False
-        cfg_test.save(file(config_path_test, 'w'))
+        cfg_test.save(open(config_path_test, 'w'))
         config_test = SCF.serviceConfigFile(config_path_test)
         
         #generate IOTA output directory
@@ -1245,7 +1246,7 @@ class iota_testSamplerApplications(unittest.TestCase):
 
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
         same = []
-        for key, val in self.expectedFeatures.iteritems():
+        for key, val in list(self.expectedFeatures.items()):
             if len(fu.getFieldElement(test_vector, 'SQLite', 'code', 'all')) != self.expectedFeatures[key]:
                 same.append(True)
             else:
@@ -1265,7 +1266,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         config_path_test = os.path.join(wD, "Config_TEST.cfg")
         shutil.copy(config_path, config_path_test)
         L8_rasters = os.path.join(self.iota2_directory, "data", "L8_50x50")
-        cfg_test = Config(file(config_path_test))
+        cfg_test = Config(open(config_path_test))
         cfg_test.chain.outputPath = testPath
         cfg_test.chain.listTile = "D0005H0002"
         cfg_test.chain.L8Path_old = L8_rasters_old
@@ -1277,7 +1278,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         cfg_test.argTrain.annualClassesExtractionSource = classifications_path
         cfg_test.GlobChain.useAdditionalFeatures = False
         cfg_test.GlobChain.writeOutputs = False
-        cfg_test.save(file(config_path_test, 'w'))
+        cfg_test.save(open(config_path_test, 'w'))
         config_test = SCF.serviceConfigFile(config_path_test)
         
         #generate IOTA output directory
@@ -1296,7 +1297,7 @@ class iota_testSamplerApplications(unittest.TestCase):
 
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
         same = []
-        for key, val in self.expectedFeatures.iteritems():
+        for key, val in list(self.expectedFeatures.items()):
             if len(fu.getFieldElement(test_vector, 'SQLite', 'code', 'all')) != self.expectedFeatures[key]:
                 same.append(True)
             else:
@@ -1315,7 +1316,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         config_path_test = os.path.join(wD, "Config_TEST.cfg")
         shutil.copy(config_path, config_path_test)
         L8_rasters = os.path.join(self.iota2_directory, "data", "L8_50x50")
-        cfg_test = Config(file(config_path_test))
+        cfg_test = Config(open(config_path_test))
         cfg_test.chain.outputPath = testPath
         cfg_test.chain.listTile = "D0005H0002"
         cfg_test.chain.L8Path_old = L8_rasters_old
@@ -1327,7 +1328,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         cfg_test.argTrain.annualClassesExtractionSource = classifications_path
         cfg_test.GlobChain.useAdditionalFeatures = False
         cfg_test.GlobChain.writeOutputs = True
-        cfg_test.save(file(config_path_test, 'w'))
+        cfg_test.save(open(config_path_test, 'w'))
         config_test = SCF.serviceConfigFile(config_path_test)
         #generate IOTA output directory
         IOTA2Directory.GenerateDirectories(config_test)
@@ -1345,7 +1346,7 @@ class iota_testSamplerApplications(unittest.TestCase):
 
         test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
         same = []
-        for key, val in self.expectedFeatures.iteritems():
+        for key, val in list(self.expectedFeatures.items()):
             if len(fu.getFieldElement(test_vector, 'SQLite', 'code', 'all')) != self.expectedFeatures[key]:
                 same.append(True)
             else:
@@ -1607,10 +1608,10 @@ class iota_testGenerateRegionShape(unittest.TestCase):
     def test_GenerateRegionShape(self):
         from Sampling import TileArea as area
 
-        print "pathEnvelope: " + self.pathEnvelope
-        print "model: " + self.model
-        print "shapeRegion: " + self.shapeRegion
-        print "field_Region: " + self.field_Region
+        print("pathEnvelope: " + self.pathEnvelope)
+        print("model: " + self.model)
+        print("shapeRegion: " + self.shapeRegion)
+        print("field_Region: " + self.field_Region)
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
 
@@ -1972,7 +1973,7 @@ class iota_testNoData(unittest.TestCase):
             run(cmd)
 
         fusionFiles = fu.FileSearch_AND(self.pathClassif, True, "_FUSION_")
-        print fusionFiles
+        print(fusionFiles)
         for fusionpath in fusionFiles:
             ND.noData(self.pathOut, self.fusionpath, field_Region,
                       self.pathTilesFeat, self.shapeRegion, N, cfg, None)
@@ -2136,7 +2137,7 @@ class iota_testGenConfMatrix(unittest.TestCase):
         referenceFile1 = self.refData + "/Output/diff_seed_0.tif"
         File1 = self.Final + "/diff_seed_0.tif"
         nbDiff = serviceCompareImageFile.gdalFileCompare(File1, referenceFile1)
-        print nbDiff
+        print(nbDiff)
         self.assertEqual(nbDiff, 0)
 
 
@@ -2553,7 +2554,7 @@ class iota_testPlotCor(unittest.TestCase):
         self.xLabel = ''
         self.yLabel = 'Temperature (K)'
         self.x = [x for x in range(5, 654)]
-        self.y = map(lambda x: 16+14*math.cos(x*2*math.pi/17), self.x)
+        self.y = [16+14*math.cos(x*2*math.pi/17) for x in self.x]
 
     def test_PlotCor(self):
         '''
@@ -2802,7 +2803,7 @@ class iota_testVectorSplits(unittest.TestCase):
             for vect in vectors_to_rm:
                 os.remove(vect)
             VS.splitInSubSets(new_region_shape, self.dataField, self.regionField, self.ratio, self.seeds, "ESRI Shapefile")
-            print new_region_shape
+            print(new_region_shape)
         # We check the output
         self.assertEqual(0, os.system('diff ' + self.refSplitPrj + ' ' + self.outSplitPrj))
         self.assertEqual(0, os.system('diff ' + self.refSplitShp + ' ' + self.outSplitShp))

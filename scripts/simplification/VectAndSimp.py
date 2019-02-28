@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 """
@@ -156,15 +156,14 @@ def simplification(path, raster, grasslib, out, douglas, hermite, mmu, angle=Tru
     
 if __name__ == "__main__":
     if len(sys.argv) == 1:
-	prog = os.path.basename(sys.argv[0])
-	print '      '+sys.argv[0]+' [options]' 
-	print "     Help : ", prog, " --help"
-	print "        or : ", prog, " -h"
-	sys.exit(-1)  
-
+        prog = os.path.basename(sys.argv[0])
+        print('      '+sys.argv[0]+' [options]') 
+        print("     Help : ", prog, " --help")
+        print("        or : ", prog, " -h")
+        sys.exit(-1)  
     else:
-	usage = "usage: %prog [options] "
-	parser = argparse.ArgumentParser(description = "Vectorisation and simplification of a raster file")
+        usage = "usage: %prog [options] "
+        parser = argparse.ArgumentParser(description = "Vectorisation and simplification of a raster file")
         
         parser.add_argument("-wd", dest="path", action="store", \
                             help="Working directory", required = True)
@@ -193,6 +192,6 @@ if __name__ == "__main__":
         parser.add_argument("-debuglvl", dest="debuglvl", action="store", \
                                 help="Debug level", default = "info", required = False)                        
                                 
-    args = parser.parse_args()
-    
-    simplification(args.path, args.raster, args.grass, args.out, args.douglas, args.hermite, args.mmu, args.angle, args.debuglvl)
+        args = parser.parse_args()
+
+        simplification(args.path, args.raster, args.grass, args.out, args.douglas, args.hermite, args.mmu, args.angle, args.debuglvl)

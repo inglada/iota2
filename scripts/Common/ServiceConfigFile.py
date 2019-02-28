@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -19,7 +19,7 @@ import os
 import sys
 from osgeo import ogr
 from config import Config, Sequence, Mapping, Container
-from FileUtils import getFeatStackName, FileSearch_AND, getRasterNbands, get_iota2_project_dir
+from Common.FileUtils import getFeatStackName, FileSearch_AND, getRasterNbands, get_iota2_project_dir
 from Common import ServiceError as sErr
 
 # this is a pointer to the module object instance itself.
@@ -47,7 +47,7 @@ class serviceConfigFile:
             :param pathConf: string path of the config file
         """
         self.pathConf = pathConf
-        self.cfg = Config(file(pathConf))
+        self.cfg = Config(open(pathConf))
         #set default values
         if iota_config:
             #init chain section
@@ -235,14 +235,14 @@ class serviceConfigFile:
         if not hasattr(self.cfg, sectionName):
             section_default = self.init_dicoMapping(sectionDefault)
             self.cfg.addMapping(sectionName, section_default, "")
-        for key, value in sectionDefault.items():
+        for key, value in list(sectionDefault.items()):
             self.addParam(sectionName, key, value)
 
     def init_dicoMapping(self, myDict):
         """use to init a mapping object from a dict
         """
         new_map = Mapping()
-        for key, value in myDict.items():
+        for key, value in list(myDict.items()):
             new_map.addMapping(key, value, "")
         return new_map
 
@@ -563,6 +563,7 @@ class serviceConfigFile:
             # directory tests
             if self.getParam("chain", "jobsPath"):
                 self.testDirectory(self.getParam("chain", "jobsPath"))
+
             self.testDirectory(os.path.join(get_iota2_project_dir(), "scripts"))
             self.testDirectory(self.cfg.chain.nomenclaturePath)
             self.testDirectory(self.cfg.chain.groundTruth)
@@ -615,11 +616,11 @@ class serviceConfigFile:
                 raise sErr.configError("to perform post-classification fusion, optical data must be used")
         # Error managed
         except sErr.configFileError:
-            print "Error in the configuration file " + self.pathConf
+            print("Error in the configuration file " + self.pathConf)
             raise
         # Warning error not managed !
         except Exception:
-            print "Something wrong happened in serviceConfigFile !"
+            print("Something wrong happened in serviceConfigFile !")
             raise
 
         return True
@@ -629,7 +630,7 @@ class serviceConfigFile:
         Return all sections in the configuration file
         :return: list of available section
         """
-        return [section for section in self.cfg.iterkeys()]
+        return [section for section in list(self.cfg.keys())]
 
     def getParam(self, section, variable):
         """

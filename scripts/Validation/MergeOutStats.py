@@ -1,5 +1,6 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
+
 # =========================================================================
 #   Program:   iota2
 #
@@ -29,8 +30,8 @@ from Common import ServiceConfigFile as SCF
 
 def getValidOK(configStats):
 
-    histoValidOK = Config(file(configStats)).ValidOK.histogram
-    bins = Config(file(configStats)).ValidOK.bins
+    histoValidOK = Config(open(configStats)).ValidOK.histogram
+    bins = Config(open(configStats)).ValidOK.bins
 
     histoValidOK_s = histoValidOK.split(" ")
     histoValidOK = [int(currentVal) for currentVal in histoValidOK_s]
@@ -41,8 +42,8 @@ def getValidOK(configStats):
 
 def getValidNOK(configStats):
 
-    histoValidNOK = Config(file(configStats)).ValidNOK.histogram
-    bins = Config(file(configStats)).ValidNOK.bins
+    histoValidNOK = Config(open(configStats)).ValidNOK.histogram
+    bins = Config(open(configStats)).ValidNOK.bins
 
     histoValidNOK_s = histoValidNOK.split(" ")
     histoValidNOK = [int(currentVal) for currentVal in histoValidNOK_s]
@@ -53,8 +54,8 @@ def getValidNOK(configStats):
 
 def getAppOK(configStats):
 
-    histoAppOK = Config(file(configStats)).AppOK.histogram
-    bins = Config(file(configStats)).AppOK.bins
+    histoAppOK = Config(open(configStats)).AppOK.histogram
+    bins = Config(open(configStats)).AppOK.bins
 
     histoAppOK_s = histoAppOK.split(" ")
     histoAppOK = [int(currentVal) for currentVal in histoAppOK_s]
@@ -65,8 +66,8 @@ def getAppOK(configStats):
 
 def getAppNOK(configStats):
 
-    histoAppNOK = Config(file(configStats)).AppNOK.histogram
-    bins = Config(file(configStats)).AppNOK.bins
+    histoAppNOK = Config(open(configStats)).AppNOK.histogram
+    bins = Config(open(configStats)).AppNOK.bins
 
     histoAppNOK_s = histoAppNOK.split(" ")
     histoAppNOK = [int(currentVal) for currentVal in histoAppNOK_s]
@@ -77,8 +78,8 @@ def getAppNOK(configStats):
 
 def getValidity(configStats):
 
-    histoValidity = Config(file(configStats)).TileValidity.histogram
-    bins = Config(file(configStats)).TileValidity.bins
+    histoValidity = Config(open(configStats)).TileValidity.histogram
+    bins = Config(open(configStats)).TileValidity.bins
 
     histoValidity_s = histoValidity.split(" ")
     histoValidity = [int(currentVal) for currentVal in histoValidity_s]
@@ -131,7 +132,7 @@ def mergeOutStats(cfg):
 
     for seed in range(Nruns):
         seedStats = fu.fileSearchRegEx(Testpath+"/final/TMP/*_stats_seed_"+str(seed)+".cfg")
-        AllDiffTest = Config(file(seedStats[0])).AllDiffStats
+        AllDiffTest = Config(open(seedStats[0])).AllDiffStats
         AllDiffTest = AllDiffTest.split(",")
         VOK_buff = []
         VNOK_buff = []
@@ -203,7 +204,6 @@ def mergeOutStats(cfg):
         plt.clf()
         plt.close()
         saveHisto(Testpath+"/final/Validity.txt", SumValidity, binsValidity)
-        
 
 if __name__ == "__main__":
 
@@ -215,5 +215,3 @@ if __name__ == "__main__":
     cfg = SCF.serviceConfigFile(args.config)
 
     mergeOutStats(cfg)
-
-

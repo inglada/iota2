@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -27,7 +27,6 @@ sys.path.append(iota2_script)
 
 from Sampling import DataAugmentation
 
-
 class iota_testSamplesAugmentationUser(unittest.TestCase):
     #before launching tests
     @classmethod
@@ -48,7 +47,7 @@ class iota_testSamplesAugmentationUser(unittest.TestCase):
     #after launching tests
     @classmethod
     def tearDownClass(self):
-        print "{} ended".format(self.group_test_name)
+        print("{} ended".format(self.group_test_name))
         if RM_IF_ALL_OK and all(self.all_tests_ok):
             shutil.rmtree(self.iota2_tests_directory)
 

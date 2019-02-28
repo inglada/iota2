@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -60,7 +60,7 @@ def CreateIndexedColorImage(pszFilename, fileL, co_option=[]):
     """
     indataset = gdal.Open(pszFilename, gdal.GA_ReadOnly)
     if indataset is None:
-        print 'Could not open '+pszFilename
+        print('Could not open '+pszFilename)
         sys.exit(1)
     outpath = pszFilename.split('/')
     if len(outpath) == 1:
@@ -81,7 +81,7 @@ def CreateIndexedColorImage(pszFilename, fileL, co_option=[]):
     outband = outdataset.GetRasterBand(1)
     outband.SetColorTable(ct)
     outband.WriteArray(inarray)
-    print 'The file '+outname+' has been created'
+    print('The file '+outname+' has been created')
     return outname
 
 if __name__ == "__main__":

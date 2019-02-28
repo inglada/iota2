@@ -1,4 +1,4 @@
-# !/usr/bin/python
+# !/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # =========================================================================
 #   Program:   iota2
@@ -86,17 +86,17 @@ def write_xml(samples_per_class, samples_per_vector, output_merged_stats):
     parent_a = SubElement(top, 'Statistic', name='samplesPerClass')
     parent_b = SubElement(top, 'Statistic', name='samplesPerVector')
 
-    samples_per_class_xml = "".join(['<StatisticMap value="{}" />'.format(count) for _, count in samples_per_class.items()])
+    samples_per_class_xml = "".join(['<StatisticMap value="{}" />'.format(count) for _, count in list(samples_per_class.items())])
     samples_per_class_part = XML('''<root>{}</root>'''.format(samples_per_class_xml))
 
-    samples_per_vector_xml = "".join(['<StatisticMap value="{}" />'.format(count) for _, count in samples_per_vector.items()])
+    samples_per_vector_xml = "".join(['<StatisticMap value="{}" />'.format(count) for _, count in list(samples_per_vector.items())])
     samples_per_vector_part = XML('''<root>{}</root>'''.format(samples_per_vector_xml))
 
     for index, c_statistic_map in enumerate(samples_per_class_part):
-        c_statistic_map.set('key', samples_per_class.keys()[index])
+        c_statistic_map.set('key', list(samples_per_class.keys())[index])
 
     for index, c_statistic_map in enumerate(samples_per_vector_part):
-        c_statistic_map.set('key', samples_per_vector.keys()[index])
+        c_statistic_map.set('key', list(samples_per_vector.keys())[index])
 
     # Add to first parent
     parent_a.extend(samples_per_class_part)
@@ -138,11 +138,11 @@ def merge_write_stats(stats, merged_stats):
     samples_per_vector = dict(fut.sortByFirstElem(samples_per_vector))
 
     samples_per_class_sum = collections.OrderedDict()
-    for class_name, count_list in samples_per_class.items():
+    for class_name, count_list in list(samples_per_class.items()):
         samples_per_class_sum[class_name] = sum(count_list)
 
     samples_per_vector_sum = collections.OrderedDict()
-    for poly_fid, count_list in samples_per_vector.items():
+    for poly_fid, count_list in list(samples_per_vector.items()):
         samples_per_vector_sum[poly_fid] = sum(count_list)
 
     # write stats
@@ -285,7 +285,7 @@ def print_dict(dico):
     usage : use to print some dictionnary
     """
     sep = "\n" + "\t".join(["" for _ in range(22)])
-    return sep + sep.join(["{} : {}".format(key, val) for key, val in dico.items()])
+    return sep + sep.join(["{} : {}".format(key, val) for key, val in list(dico.items())])
 
 
 def update_flags(vec_in, runs, flag_val="XXXX", table_name="output"):

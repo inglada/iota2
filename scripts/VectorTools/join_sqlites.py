@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -45,9 +45,9 @@ def build_fields_to_select(base_fields, fieldsnames, dfield, renaming, renaming_
     if renaming is not None:
         (rename_pat, rename_off) = renaming
         fields_as += [fn+' AS '+rename_field(fn,rename_pat,rename_off+idx+renaming_index)
-                      for (fn,idx) in zip(fieldsnames,range(len(fieldsnames)))]
+                      for (fn,idx) in zip(fieldsnames,list(range(len(fieldsnames))))]
         final_fields = ['datatojoin.'+rename_field(fn,rename_pat,rename_off+idx+renaming_index)
-                        for (fn,idx) in zip(fieldsnames,range(len(fieldsnames)))]
+                        for (fn,idx) in zip(fieldsnames,list(range(len(fieldsnames))))]
         renaming_index += len(fieldsnames)
     else:
         fields_as += [fn+' AS '+fn+'_'+str(renaming_index) for fn in fieldsnames]
@@ -83,7 +83,7 @@ def join_sqlites(basefile, sqlites, ofield, fieldsnames = None, dfield=None,
     addindex = "CREATE INDEX idx ON [%s](%s);"%(tablebase, ofield)
     cursor.execute(addindex)
     renaming_index = 0
-    for (filesqlite, fid) in zip(sqlites, range(len(sqlites))):
+    for (filesqlite, fid) in zip(sqlites, list(range(len(sqlites)))):
         if os.path.exists(filesqlite):
             base_fields = ["[%s]."%(tablebase)+d[0] 
                            for d in 
@@ -116,15 +116,15 @@ def join_sqlites(basefile, sqlites, ofield, fieldsnames = None, dfield=None,
             cursor.execute("DROP TABLE datatojoin;")
             cursor.execute("DETACH '%s';"%(db_name))
         else:
-            print filesqlite + "does not exist. Skipping file."
+            print(filesqlite + "does not exist. Skipping file.")
 
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         PROG = os.path.basename(sys.argv[0])
-        print '      '+sys.argv[0]+' [options]'
-        print "     Help : ", PROG, " --help"
-        print "        or : ", PROG, " -h"
+        print('      '+sys.argv[0]+' [options]')
+        print("     Help : ", PROG, " --help")
+        print("        or : ", PROG, " -h")
         sys.exit(-1)
     else:
         USAGE = "usage: %prog [options] "

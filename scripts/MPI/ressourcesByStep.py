@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -17,7 +17,6 @@
 import os
 from Common import ServiceConfigFile as SCF
 
-
 class Ressources():
     def __init__(self, name, nb_cpu, ram, walltime,
                  process_min, process_max):
@@ -32,7 +31,6 @@ class Ressources():
     def set_env_THREADS(self):
         os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = str(self.nb_cpu)
         os.environ["OMP_NUM_THREADS"] = str(self.nb_cpu)
-
 
 def iota2_ressources(iota2_ressources_description="iota2_HPC_ressources_request.cfg"):
     """
@@ -66,4 +64,3 @@ def iota2_ressources(iota2_ressources_description="iota2_HPC_ressources_request.
                                               process_min=process_min,
                                               process_max=process_max)
     return iota2_HPC_requests
-

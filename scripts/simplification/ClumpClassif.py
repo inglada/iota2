@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -128,15 +128,14 @@ def clumpAndStackClassif(path, raster, outpath, ram, float64 = False, exe64 = ""
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
-	prog = os.path.basename(sys.argv[0])
-	print '      '+sys.argv[0]+' [options]' 
-	print "     Help : ", prog, " --help"
-	print "        or : ", prog, " -h"
-	sys.exit(-1)  
- 
+        prog = os.path.basename(sys.argv[0])
+        print('      '+sys.argv[0]+' [options]') 
+        print("     Help : ", prog, " --help")
+        print("        or : ", prog, " -h")
+        sys.exit(-1)  
     else:
-	usage = "usage: %prog [options] "
-	parser = argparse.ArgumentParser(description = "Generete clumps raster from classification raster file")
+        usage = "usage: %prog [options] "
+        parser = argparse.ArgumentParser(description = "Generete clumps raster from classification raster file")
         
         parser.add_argument("-wd", dest="path", action="store", \
                             help="Working directory", required = True)

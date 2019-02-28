@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -13,6 +13,7 @@
 #   PURPOSE.  See the above copyright notices for more information.
 #
 # =========================================================================
+
 import logging
 import os
 import argparse
@@ -27,12 +28,11 @@ import otbApplication as otb
 
 from VectorTools.AddField import addField
 
-
 logger = logging.getLogger(__name__)
 
 def coordParse(s):
     try:
-        x, y = map(float, s.split(", "))
+        x, y = list(map(float, s.split(", ")))
         return (x, y)
     except:
         raise argparse.ArgumentTypeError("Coordinates must be x, y")
@@ -104,7 +104,6 @@ def add_origin_fields(origin_shape, output_layer, region_field_name, runs,
         if fieldName not in output_layers_fields:
             output_layers_fields.append(fieldName)
             output_layer.CreateField(layerDefinition.GetFieldDefn(i))
-
 
 def genAnnualShapePoints(coord, gdalDriver, workingDirectory, rasterResolution,
                          classToKeep, dataField, tile, validityThreshold,
@@ -192,7 +191,7 @@ def genAnnualShapePoints(coord, gdalDriver, workingDirectory, rasterResolution,
 
             add_origin_fields(inlearningShape, layerOUT, region_field_name, runs)
 
-            for currentVal in classToKeep:
+            for currentVal in classToKeep.data:
                 try:
                     nbSamples = annu_repartition[str(currentVal)][currentRegion][current_seed]
                 except:
@@ -271,14 +270,3 @@ if __name__ == "__main__":
 
     # TODO: Add the arguments "region_field_name", "runs" and "annu_repartition" that are missing !
     genAnnualShapePoints(args.coord, args.gdalDriver, args.workingDirectory, args.rasterResolution, args.classToKeep, args.dataField, args.tile, args.validityThreshold, args.validityRaster, args.classificationRaster, args.mask, args.inlearningShape, args.outlearningShape, args.epsg)
-
-
-
-
-
-
-
-
-
-
-

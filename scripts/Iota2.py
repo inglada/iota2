@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -178,7 +178,7 @@ def mpi_schedule(iota2_step, param_array_origin, mpi_service=MPIService(),logPat
         raise
     except:
         if mpi_service.rank == 0 and mpi_service.size > 1:
-            print "Something went wrong, we should log errors."
+            print("Something went wrong, we should log errors.")
             traceback.print_exc()
             stop_workers(mpi_service)
             sys.exit(1)
@@ -216,7 +216,6 @@ def start_workers(mpi_service):
             rank = mpi_service.comm.recv(source=MPI.ANY_SOURCE, tag=0)
             print("Worker process with rank {}/{} started".format(rank,mpi_service.size-1))
             nb_started_workers+=1
-
 
 def remove_tmp_files(cfg, current_step, chain):
     """
@@ -301,7 +300,7 @@ if __name__ == "__main__":
         args.end = len(steps)
 
     if MPIService().rank == 0:
-        print chain_to_process.print_step_summarize(args.start, args.end)
+        print (chain_to_process.print_step_summarize(args.start, args.end))
 
     if args.launchChain is False:
         sys.exit()
@@ -317,12 +316,12 @@ if __name__ == "__main__":
         param_array = []
         if callable(params):
             param_array = params()
-        else:                                                                                                                                                                               
+        else:
             param_array = [param for param in params]
-        for group in chain_to_process.steps_group.keys():
-            if step in chain_to_process.steps_group[group].keys():
-                print "Running step {}: {} ({} tasks)".format(step, chain_to_process.steps_group[group][step],
-                                                              len(param_array))
+        for group in list(chain_to_process.steps_group.keys()):
+            if step in list(chain_to_process.steps_group[group].keys()):
+                print ("Running step {}: {} ({} tasks)".format(step, chain_to_process.steps_group[group][step],
+                                                               len(param_array)))
                 break
         
         if args.parameters:

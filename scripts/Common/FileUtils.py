@@ -1,4 +1,4 @@
-# !/usr/bin/python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # =========================================================================
@@ -54,7 +54,7 @@ def ensure_dir(dirname, raise_exe=True):
     import errno
     try:
         os.makedirs(dirname)
-    except OSError, e:
+    except OSError as e:
         if e.errno != errno.EEXIST:
             if raise_exe:
                 raise
@@ -163,12 +163,12 @@ def commonMaskSARgeneration(cfg, tile, cMaskName):
     """
     generate SAR common mask
     """
-    import ConfigParser
+    import configparser
     from Common import ServiceConfigFile as SCF
     S1Path = cfg.getParam('chain', 'S1Path')
     featureFolder = os.path.join(cfg.getParam('chain', 'outputPath'),
                                  "features")
-    config = ConfigParser.ConfigParser()
+    config = configparser.ConfigParser()
     config.read(S1Path)
     referenceFolder = config.get('Processing', 'ReferencesFolder') + "/" + tile
     stackPattern = config.get('Processing', 'RasterPattern')
@@ -186,7 +186,7 @@ def commonMaskSARgeneration(cfg, tile, cMaskName):
     cMaskPathVec = featureFolder + "/" + tile + "/tmp/" + cMaskName + ".shp"
     VectorMask = "gdal_polygonize.py -f \"ESRI Shapefile\" -mask " + cMaskPath + " " + cMaskPath +\
                  " " + cMaskPathVec
-    print VectorMask
+    print(VectorMask)
     if not os.path.exists(cMaskPathVec):
         os.system(VectorMask)
     os.system(VectorMask)
@@ -300,7 +300,7 @@ def cleanFiles(cfg):
     cfgFile [string] configuration file path
     """
 
-    import ConfigParser
+    import configparser
     S1Path = cfg.getParam('chain', 'S1Path')
     if "None" in S1Path:
         S1Path = None
@@ -315,7 +315,7 @@ def cleanFiles(cfg):
     """
     #Remove SAR dates files
     if S1Path:
-        config = ConfigParser.ConfigParser()
+        config = configparser.ConfigParser()
         config.read(S1Path)
         outputDirectory = config.get('Paths', 'Output')
         inDates = FileSearch_AND(outputDirectory, True, "inputDates.txt")
@@ -602,7 +602,7 @@ def splitList(InList, nbSplit):
         random.shuffle(ys)
         size = len(ys) // n
         leftovers = ys[size * n:]
-        for c in xrange(n):
+        for c in range(n):
             if leftovers:
                 extra = [leftovers.pop()]
             else:
@@ -647,7 +647,7 @@ def getIndex(listOfTuple, keyVal):
     try:
         retour = [item for key, item in listOfTuple].index(keyVal) + 1
     except:
-        print keyVal + " not in list of bands"
+        print(keyVal + " not in list of bands")
         retour = []
     return retour
 
@@ -717,7 +717,7 @@ def keepBiggestArea(shpin, shpout):
         area.append(geom.GetArea())
         allGeom.append(geom.ExportToWkb())
 
-    indexMax = np.argmax(np.array(area))
+    indexMax = int(np.argmax(np.array(area)))
     addPolygon(in_lyr[indexMax], allGeom[indexMax], in_lyr, out_lyr)
 
 
@@ -840,7 +840,7 @@ def readRaster(name, data=False, band=1):
     try:
         raster = gdal.Open(name, 0)
     except:
-        print "Problem on raster file path"
+        print("Problem on raster file path")
         sys.exit()
 
     raster_band = raster.GetRasterBand(band)
@@ -894,7 +894,7 @@ def assembleTile_Merge(AllRaster, spatialResolution, out, ot="Int16", co=None):
 
     gdal_co = ""
     if co:
-        gdal_co = " -co " + " -co ".join(["{}={}".format(co_name, co_value) for co_name, co_value in co.items()])
+        gdal_co = " -co " + " -co ".join(["{}={}".format(co_name, co_value) for co_name, co_value in list(co.items())])
 
 
     AllRaster = " ".join(AllRaster)
@@ -955,7 +955,7 @@ def getNbDateInTile(dateInFile, display=True, raw_dates=False):
                 validDate = datetime.datetime(int(Y), int(M), int(D))
                 allDates.append(vardate)
                 if display:
-                    print validDate
+                    print(validDate)
             except ValueError:
                 raise Exception("unvalid date in : "+dateInFile+" -> '"+str(vardate)+"'")
     if raw_dates:
@@ -1185,7 +1185,7 @@ def getAllModels(PathconfigModels):
     """
     return All models in PathconfigModels file
     """
-    f = file(PathconfigModels)
+    f = open(PathconfigModels)
     cfg = Config(f)
     AllModel = cfg.AllModel
     modelFind = []
@@ -1210,7 +1210,7 @@ def mergeSQLite(outname, opath, files):
         if len(files) > 1:
             for f in range(1, len(files)):
                 fusion = 'ogr2ogr -f SQLite -update -append '+filefusion+' '+files[f]
-                print fusion
+                print(fusion)
                 run(fusion)
     else:
         shutil.copy(files[0], filefusion)
@@ -1528,11 +1528,11 @@ def getListTileFromModel(modelIN, pathToConfig):
     print tiles
     >>tiles = ['D0004H0004','D0005H0008']
     """
-    f = file(pathToConfig)
+    f = open(pathToConfig)
     cfg = Config(f)
     AllModel = cfg.AllModel
 
-    for model in AllModel:
+    for model in AllModel.data:
         if model.modelName == modelIN:
             return model.tilesList.split("_")
 
@@ -1577,7 +1577,7 @@ def getFeatStackName(pathConf):
     Stack_ind = "SL_MultiTempGapF" + userFeat_pattern + ".tif"
     retourListFeat = True
     if len(listIndices) > 1:
-        listIndices = list(listIndices)
+        listIndices = list(listIndices.data)
         listIndices = sorted(listIndices)
         listFeat = "_".join(listIndices)
     elif len(listIndices) == 1:
@@ -1759,19 +1759,19 @@ class serviceCompareImageFile:
         found_diff = 0
 
         if len(list(file1_md.keys())) != len(list(file2_md.keys())):
-            print('Difference in %s metadata key count' % id)
-            print('  file1 Keys: ' + str(list(file1_md.keys())))
-            print('  file2 Keys: ' + str(list(file2_md.keys())))
+            print(('Difference in %s metadata key count' % id))
+            print(('  file1 Keys: ' + str(list(file1_md.keys()))))
+            print(('  file2 Keys: ' + str(list(file2_md.keys()))))
             found_diff += 1
 
         for key in list(file1_md.keys()):
             if key not in file2_md:
-                print('file2 %s metadata lacks key \"%s\"' % (id, key))
+                print(('file2 %s metadata lacks key \"%s\"' % (id, key)))
                 found_diff += 1
             elif file2_md[key] != file1_md[key]:
-                print('Metadata value difference for key "' + key + '"')
-                print('  file1: "' + file1_md[key] + '"')
-                print('  file2:    "' + file2_md[key] + '"')
+                print(('Metadata value difference for key "' + key + '"'))
+                print(('  file1: "' + file1_md[key] + '"'))
+                print(('  file2:    "' + file2_md[key] + '"'))
                 found_diff += 1
 
         return found_diff
@@ -1789,43 +1789,43 @@ class serviceCompareImageFile:
             max_diff = max(max_diff, abs(diff_line).max())
             diff_count += len(diff_line.nonzero()[0])
 
-        print('  Pixels Differing: ' + str(diff_count))
-        print('  Maximum Pixel Difference: ' + str(max_diff))
+        print(('  Pixels Differing: ' + str(diff_count)))
+        print(('  Maximum Pixel Difference: ' + str(max_diff)))
 
     #######################################################
     def __compare_band(self, file1_band, file2_band, id, options=[]):
         found_diff = 0
 
         if file1_band.DataType != file2_band.DataType:
-            print('Band %s pixel types differ.' % id)
-            print('  file1: ' + gdal.GetDataTypeName(file1_band.DataType))
-            print('  file2:    ' + gdal.GetDataTypeName(file2_band.DataType))
+            print(('Band %s pixel types differ.' % id))
+            print(('  file1: ' + gdal.GetDataTypeName(file1_band.DataType)))
+            print(('  file2:    ' + gdal.GetDataTypeName(file2_band.DataType)))
             found_diff += 1
 
         if file1_band.GetNoDataValue() != file2_band.GetNoDataValue():
-            print('Band %s nodata values differ.' % id)
-            print('  file1: ' + str(file1_band.GetNoDataValue()))
-            print('  file2:    ' + str(file2_band.GetNoDataValue()))
+            print(('Band %s nodata values differ.' % id))
+            print(('  file1: ' + str(file1_band.GetNoDataValue())))
+            print(('  file2:    ' + str(file2_band.GetNoDataValue())))
             found_diff += 1
 
         if file1_band.GetColorInterpretation() != file2_band.GetColorInterpretation():
-            print('Band %s color interpretation values differ.' % id)
-            print('  file1: ' + gdal.GetColorInterpretationName(file1_band.GetColorInterpretation()))
-            print('  file2:    ' + gdal.GetColorInterpretationName(file2_band.GetColorInterpretation()))
+            print(('Band %s color interpretation values differ.' % id))
+            print(('  file1: ' + gdal.GetColorInterpretationName(file1_band.GetColorInterpretation())))
+            print(('  file2:    ' + gdal.GetColorInterpretationName(file2_band.GetColorInterpretation())))
             found_diff += 1
 
         if file1_band.Checksum() != file2_band.Checksum():
-            print('Band %s checksum difference:' % id)
-            print('  file1: ' + str(file1_band.Checksum()))
-            print('  file2:    ' + str(file2_band.Checksum()))
+            print(('Band %s checksum difference:' % id))
+            print(('  file1: ' + str(file1_band.Checksum())))
+            print(('  file2:    ' + str(file2_band.Checksum())))
             found_diff += 1
             self.__compare_image_pixels(file1_band, file2_band, id, options)
 
         # Check overviews
         if file1_band.GetOverviewCount() != file2_band.GetOverviewCount():
-            print('Band %s overview count difference:' % id)
-            print('  file1: ' + str(file1_band.GetOverviewCount()))
-            print('  file2:    ' + str(file2_band.GetOverviewCount()))
+            print(('Band %s overview count difference:' % id))
+            print(('  file1: ' + str(file1_band.GetOverviewCount())))
+            print(('  file2:    ' + str(file2_band.GetOverviewCount())))
             found_diff += 1
         else:
             for i in range(file1_band.GetOverviewCount()):
@@ -1861,9 +1861,9 @@ class serviceCompareImageFile:
                 print('  * IsSame() reports them as different.')
 
             print('  file1:')
-            print('  ' + file1_srs.ExportToPrettyWkt())
+            print(('  ' + file1_srs.ExportToPrettyWkt()))
             print('  file2:')
-            print('  ' + file2_srs.ExportToPrettyWkt())
+            print(('  ' + file2_srs.ExportToPrettyWkt()))
 
         return retour
 
@@ -1882,8 +1882,8 @@ class serviceCompareImageFile:
             file2_gt = file2_gdal.GetGeoTransform()
             if file1_gt != file2_gt:
                 print('GeoTransforms Differ:')
-                print('  file1: ' + str(file1_gt))
-                print('  file2:    ' + str(file2_gt))
+                print(('  file1: ' + str(file1_gt)))
+                print(('  file2:    ' + str(file2_gt)))
                 found_diff += 1
 
         # Metadata
@@ -1894,8 +1894,8 @@ class serviceCompareImageFile:
 
         # Bands
         if file1_gdal.RasterCount != file2_gdal.RasterCount:
-            print('Band count mismatch (file1=%d, file2=%d)'
-                  % (file1_gdal.RasterCount, file2_gdal.RasterCount))
+            print(('Band count mismatch (file1=%d, file2=%d)'
+                  % (file1_gdal.RasterCount, file2_gdal.RasterCount)))
             found_diff += 1
 
         # Dimensions
@@ -1906,8 +1906,8 @@ class serviceCompareImageFile:
             nSzY = file2_gdal.GetRasterBand(i + 1).YSize
 
             if gSzX != nSzX or gSzY != nSzY:
-                print('Band size mismatch (band=%d file1=[%d,%d], file2=[%d,%d])' %
-                      (i, gSzX, gSzY, nSzX, nSzY))
+                print(('Band size mismatch (band=%d file1=[%d,%d], file2=[%d,%d])' %
+                      (i, gSzX, gSzY, nSzX, nSzY)))
                 found_diff += 1
 
         # If so-far-so-good, then compare pixels
@@ -1937,8 +1937,8 @@ class serviceCompareImageFile:
             sds_diff = self.__compareGdal(sub_file1_db, sub_file2_db, options)
             found_diff += sds_diff
             if sds_diff > 0:
-                print('%d differences found between:\n  %s\n  %s'
-                      % (sds_diff, file1_sds[key], file2_sds[key]))
+                print(('%d differences found between:\n  %s\n  %s'
+                      % (sds_diff, file1_sds[key], file2_sds[key])))
 
         return found_diff
 
@@ -2036,8 +2036,8 @@ class serviceCompareVectorFile:
 
                 geom1 = feature1.GetGeometryRef()
                 geom2 = feature2.GetGeometryRef()
-                print geom1
-                print geom2
+                print(geom1)
+                print(geom2)
                 # check if coordinates are equal
                 isEqual(str(geom1), str(geom2))
 

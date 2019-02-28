@@ -1,4 +1,5 @@
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
+#-*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -18,7 +19,7 @@ import logging
 import glob
 import os
 
-from GenSensors import Sensor
+from Sensors.GenSensors import Sensor
 from collections import OrderedDict
 
 logger = logging.getLogger(__name__)

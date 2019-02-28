@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -46,11 +46,10 @@ class iota_testSamplesAugmentation(unittest.TestCase):
             shutil.rmtree(self.iota2_tests_directory)
         os.mkdir(self.iota2_tests_directory)
 
-
     #after launching tests
     @classmethod
     def tearDownClass(self):
-        print "{} ended".format(self.group_test_name)
+        print("{} ended".format(self.group_test_name))
         if RM_IF_ALL_OK and all(self.all_tests_ok):
             shutil.rmtree(self.iota2_tests_directory)
 
@@ -88,8 +87,8 @@ class iota_testSamplesAugmentation(unittest.TestCase):
 
     #Tests definitions
     def test_iota2_augmentation_counter(self):
-        """Test how many samples must be add to the sample set
-        
+        """
+        Test how many samples must be add to the sample set
         test the 3 differents strategies
         """
         self.test_working_directory
@@ -112,7 +111,6 @@ class iota_testSamplesAugmentation(unittest.TestCase):
                                                                                     byClass=self.csvFile)
         self.assertEqual(cmp(class_augmentation_byClass, byClass_expected), 0)
 
-
     def test_iota2_augmentation(self):
         """Test data augmentation workflow
         """
@@ -129,4 +127,4 @@ class iota_testSamplesAugmentation(unittest.TestCase):
         class_count_test = Counter(fut.getFieldElement(self.vector_test, driverName="SQLite", field="code",
                                                   mode="all", elemType="int"))
         samples_number = self.class_count[max(self.class_count, key=lambda key: self.class_count[key])]
-        self.assertTrue(all([samples_number == v for k, v in class_count_test.items()]))
+        self.assertTrue(all([samples_number == v for k, v in list(class_count_test.items())]))

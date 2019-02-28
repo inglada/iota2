@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -24,7 +24,7 @@ import time
 import logging
 logger = logging.getLogger(__name__)
 import numpy as np
-import AdaptRegul
+from simplification import AdaptRegul
 
 try:
     from Common import Utils
@@ -125,15 +125,14 @@ def OSORegularization(classif, umc1, core, path, output, ram = "10000", noSeaVec
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
-	prog = os.path.basename(sys.argv[0])
-	print '      '+sys.argv[0]+' [options]'
-	print "     Help : ", prog, " --help"
-	print "        or : ", prog, " -h"
-	sys.exit(-1)
-
+        prog = os.path.basename(sys.argv[0])
+        print('      '+sys.argv[0]+' [options]')
+        print("     Help : ", prog, " --help")
+        print("        or : ", prog, " -h")
+        sys.exit(-1)
     else:
-	usage = "usage: %prog [options] "
-	parser = argparse.ArgumentParser(description = "Regularization and resampling a classification raster")
+        usage = "usage: %prog [options] "
+        parser = argparse.ArgumentParser(description = "Regularization and resampling a classification raster")
         parser.add_argument("-wd", dest="path", action="store", \
                             help="Working directory", required = True)
 

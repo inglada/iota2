@@ -1,5 +1,6 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
+
 # =========================================================================
 #   Program:   iota2
 #
@@ -22,7 +23,6 @@ from Common import FileUtils as fut
 #export IOTA2DIR=/mnt/data/home/vincenta/IOTA2/theia_oso
 #python -m unittest iota2tests_features_labels
 
-
 def prepareAnnualFeatures(workingDirectory, referenceDirectory,
                           pattern, rename=None):
     """
@@ -42,7 +42,7 @@ def prepareAnnualFeatures(workingDirectory, referenceDirectory,
     rastersPath = fut.FileSearch_AND(workingDirectory, True, pattern)
     for raster in rastersPath:
         cmd = 'otbcli_BandMathX -il ' + raster + ' -out ' + raster + ' -exp "im1+im1"'
-        print cmd
+        print(cmd)
         os.system(cmd)
 
     if rename:
@@ -56,9 +56,7 @@ def prepareAnnualFeatures(workingDirectory, referenceDirectory,
             for filename in filenames:
                 all_content.append(os.path.join(dirname, filename))
 
-
 class iota_test_Basic(unittest.TestCase):
-
     """
     this tests group check feature's labels with basic runs
     parameters are set as follow :
@@ -107,7 +105,6 @@ class iota_test_Basic(unittest.TestCase):
     #call after each tests
     def tearDown(self):
         pass
-
 
     def test_Basic(self):
         """
@@ -183,14 +180,14 @@ class iota_test_Basic(unittest.TestCase):
         annual_config_path = os.path.join(self.test_working_directory_tmp, "AnnualConfig.cfg")
         shutil.copy(self.config.pathConf, annual_config_path)
 
-        cfg = Config(file(annual_config_path))
+        cfg = Config(open(annual_config_path))
         cfg.chain.listTile = 'D0005H0002'
         cfg.chain.L8Path = L8_rasters_annual
         cfg.chain.featuresPath = annual_features
         cfg.chain.userFeatPath = 'None'
         cfg.argTrain.samplesOptions = '-sampler random -strategy all'
         cfg.GlobChain.useAdditionalFeatures = False
-        cfg.save(file(annual_config_path, 'w'))
+        cfg.save(open(annual_config_path, 'w'))
 
         #generate IOTA output directory
         IOTA2Directory.GenerateDirectories(self.test_working_directory)

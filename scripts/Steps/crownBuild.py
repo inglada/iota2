@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -15,7 +15,7 @@
 # =========================================================================
 import os
 
-import IOTA2Step
+from Steps import IOTA2Step
 from Cluster import get_RAM
 from Common import ServiceConfigFile as SCF
 
@@ -45,7 +45,7 @@ class crownBuild(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
-        return range(self.gridsize * self.gridsize)
+        return list(range(self.gridsize * self.gridsize))
 
     def step_execute(self):
         """

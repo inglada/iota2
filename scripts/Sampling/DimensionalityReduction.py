@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -13,6 +13,7 @@
 #   PURPOSE.  See the above copyright notices for more information.
 #
 # =========================================================================
+
 import os
 import shutil
 import string
@@ -28,7 +29,6 @@ from VectorTools import join_sqlites as jsq
 
 #root logger
 logger = logging.getLogger(__name__)
-
 
 def GetAvailableFeatures(inputSampleFileName, firstLevel='sensor', secondLevel='band'):
     """Assumes that the features are named following a pattern like
@@ -81,9 +81,9 @@ def GetAvailableFeatures(inputSampleFileName, firstLevel='sensor', secondLevel='
                 else:
                     sl = sensor
                     tl = band
-            if fl not in features.keys():
+            if fl not in list(features.keys()):
                 features[fl] = dict()
-            if sl not in features[fl].keys():
+            if sl not in list(features[fl].keys()):
                 features[fl][sl] = list()
             features[fl][sl].append(tl)
         except:
@@ -92,7 +92,6 @@ def GetAvailableFeatures(inputSampleFileName, firstLevel='sensor', secondLevel='
     if firstLevel == 'global':
         return (featureList[len(metaDataFields):], metaDataFields)
     return (features, metaDataFields)
-
 
 def BuildFeaturesLists(inputSampleFileName, reductionMode='global'):
     """Build a list of lists of the features containing the features to be
@@ -158,7 +157,6 @@ def BuildFeaturesLists(inputSampleFileName, reductionMode='global'):
         raise Exception("Did not find any valid features in " + inputSampleFileName)
     return (fl, metaDataFields)
 
-
 def ComputeFeatureStatistics(inputSampleFileName, outputStatsFile, featureList):
     """Computes the mean and the standard deviation of a set of features
     of a file of samples. It will be used for the dimensionality
@@ -170,7 +168,6 @@ def ComputeFeatureStatistics(inputSampleFileName, outputStatsFile, featureList):
     CStats.UpdateParameters()
     CStats.SetParameterStringList("feat", featureList)
     CStats.ExecuteAndWriteOutput()
-
 
 def TrainDimensionalityReduction(inputSampleFileName, outputModelFileName,
                                  featureList, targetDimension, statsFile=None):
@@ -184,7 +181,6 @@ def TrainDimensionalityReduction(inputSampleFileName, outputModelFileName,
     DRTrain.SetParameterString("algorithm", "pca")
     DRTrain.SetParameterInt("algorithm.pca.dim", targetDimension)
     DRTrain.ExecuteAndWriteOutput()
-
 
 def ExtractMetaDataFields(inputSampleFileName, reducedOutputFileName):
     """Extract MetaDataFields from input vector file in order to append reduced
@@ -202,7 +198,6 @@ def ExtractMetaDataFields(inputSampleFileName, reducedOutputFileName):
                                                                                         reducedOutputFileName,
                                                                                         inputSampleFileName)
     run(cmd)
-
 
 def ApplyDimensionalityReduction(inputSampleFileName, reducedOutputFileName,
                                  modelFileName, inputFeatures,
@@ -229,7 +224,6 @@ def ApplyDimensionalityReduction(inputSampleFileName, reducedOutputFileName,
     DRApply.SetParameterString("mode", writingMode)
     DRApply.ExecuteAndWriteOutput()
 
-
 def JoinReducedSampleFiles(inputFileList, outputSampleFileName,
                            component_list=None, renaming=None):
     """Join the columns of several sample files assuming that they all
@@ -246,7 +240,6 @@ def JoinReducedSampleFiles(inputFileList, outputSampleFileName,
     jsq.join_sqlites(outputSampleFileName, inputFileList[1:],
                      'ogc_fid', component_list,
                      renaming=renaming)
-
 
 def SampleFilePCAReduction(inputSampleFileName, outputSampleFileName,
                            reductionMode, targetDimension,
@@ -304,7 +297,6 @@ def SampleFilePCAReduction(inputSampleFileName, outputSampleFileName,
         for f in filesToRemove:
             os.remove(f)
 
-
 def RenameSampleFiles(inSampleFile, outSampleFile, outputDir):
     """
     """
@@ -314,7 +306,6 @@ def RenameSampleFiles(inSampleFile, outSampleFile, outputDir):
         os.makedirs(backupDir)
     shutil.copyfile(inSampleFile, backupFile)
     shutil.copyfile(outSampleFile, inSampleFile)
-
 
 def RetrieveOriginalSampleFile(inSampleFile, outputDir):
     """If the chain runs after the dimensionality reduction has already
@@ -326,7 +317,6 @@ def RetrieveOriginalSampleFile(inSampleFile, outputDir):
     backupFile = backupDir + '/' + os.path.basename(inSampleFile)
     if os.path.isfile(backupFile):
         shutil.copyfile(backupFile, inSampleFile)
-
 
 def SampleFileDimensionalityReduction(inSampleFile, outSampleFile, outputDir,
                                       targetDimension, reductionMode):
@@ -341,7 +331,6 @@ def SampleFileDimensionalityReduction(inSampleFile, outSampleFile, outputDir,
                            removeTmpFiles=False)
     RenameSampleFiles(inSampleFile, outSampleFile, outputDir)
 
-
 def SampleDimensionalityReduction(ioFilePair, iota2_output, targetDimension, reductionMode):
     """Applies the dimensionality reduction to all sample files and gets
     the parameters from the configuration file"""
@@ -350,7 +339,6 @@ def SampleDimensionalityReduction(ioFilePair, iota2_output, targetDimension, red
     SampleFileDimensionalityReduction(inSampleFile, outSampleFile,
                                       iota2_output, targetDimension,
                                       reductionMode)
-
 
 def BuildIOSampleFileLists(outputDir):
     sampleFileDir = os.path.join(outputDir, "learningSamples")
@@ -361,7 +349,6 @@ def BuildIOSampleFileLists(outputDir):
         outputSampleFile = os.path.join(reducedSamplesDir, basename + '_reduced.sqlite')
         result.append((inputSampleFile, outputSampleFile))
     return result
-
 
 def GetDimRedModelsFromClassificationModel(classificationModel, logger=logger):
     """Builds the name and path of the dimensionality model from the
@@ -384,7 +371,6 @@ def GetDimRedModelsFromClassificationModel(classificationModel, logger=logger):
     models = [m[:-4] for m in models]
     logger.debug("{}".format(sorted(models)))
     return sorted(models)
-
 
 def BuildChannelGroups(configurationFile, logger=logger):
     """Build the lists of channels which have to be extracted from the
@@ -418,7 +404,6 @@ def BuildChannelGroups(configurationFile, logger=logger):
         channelGroups.append(fl)
     return channelGroups
 
-
 def ApplyDimensionalityReductionToFeatureStack(configFile, imageStack,
                                                dimRedModelList, logger=logger):
     """Apply dimensionality reduction to the full stack of features. A
@@ -445,7 +430,7 @@ def ApplyDimensionalityReductionToFeatureStack(configFile, imageStack,
         logger.debug("Channel list : {}".format(cl))
 
         ExtractROIApp = otb.Registry.CreateApplication("ExtractROI")
-        if isinstance(imageStack, basestring):
+        if isinstance(imageStack, str):
             ExtractROIApp.SetParameterString("in", imageStack)
         elif isinstance(imageStack, otb.Application):
             ExtractROIApp.SetParameterInputImage("in", imageStack.GetParameterOutputImage("out"))

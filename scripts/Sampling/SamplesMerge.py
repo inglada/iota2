@@ -1,5 +1,6 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
+
 # =========================================================================
 #   Program:   iota2
 #
@@ -19,9 +20,7 @@ import shutil
 
 from Common import FileUtils as fut
 
-
 logger = logging.getLogger(__name__)
-
 
 def get_models(formatting_vector_directory, regionField, runs):
     """
@@ -55,13 +54,12 @@ def get_models(formatting_vector_directory, regionField, runs):
 
     region_tile_tmp = dict(fut.sortByFirstElem(region_tile))
     region_tile_dic = {}
-    for region, region_tiles in region_tile_tmp.items():
+    for region, region_tiles in list(region_tile_tmp.items()):
         region_tile_dic[region] = list(set(region_tiles))
 
     regions_tiles_seed = [(region, region_tile_dic[region], run) for run in range(runs) for region in all_regions]
 
     return regions_tiles_seed
-
 
 def extract_POI(tile_vector, region, seed, region_field, POI, POI_val,
                 force_seed_field=None):

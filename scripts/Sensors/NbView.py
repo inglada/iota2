@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -74,9 +74,9 @@ def nbViewOptical(tile, workingDirectory, cfg, outputRaster, tilePath, logger=lo
     concat.Execute()
 
     nbRealDates = getLineNumberInFiles(realDates)
-    print "Number of real dates : "+str(nbRealDates)
+    print("Number of real dates : "+str(nbRealDates))
     expr = str(nbRealDates)+"-"+"-".join(["im1b"+str(band+1) for band in range(nbRealDates)])
-    print expr
+    print(expr)
 
     nbView = OtbAppBank.CreateBandMathApplication({"il": (concat, AllMask),
                                                    "exp": expr,
@@ -159,7 +159,7 @@ def nbViewUserFeatures(tile, cfg):
 
 def computeNbView(tile, workingDirectory, cfg, outputRaster, tilePath):
 
-    print "Computing pixel validity by tile"
+    print("Computing pixel validity by tile")
     
     sensorList = fu.sensorUserList(cfg)
 

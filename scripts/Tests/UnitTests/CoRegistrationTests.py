@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -64,7 +64,7 @@ class iota_testCoRegistration(unittest.TestCase):
     # after launching all tests
     @classmethod
     def tearDownClass(self):
-        print "{} ended".format(self.group_test_name)
+        print("{} ended".format(self.group_test_name))
 
     def list2reason(self, exc_list):
         if exc_list and exc_list[-1][0] is self:
@@ -101,10 +101,10 @@ class iota_testCoRegistration(unittest.TestCase):
         datadir_test = os.path.join(self.test_working_directory, "input_data")
         shutil.copytree(self.datadir, datadir_test)
 
-        cfg_coregister = Config(file(test_config))
+        cfg_coregister = Config(open(test_config))
         cfg_coregister.chain.outputPath = self.test_working_directory
         cfg_coregister.chain.S2Path = datadir_test
-        cfg_coregister.save(file(test_config, 'w'))
+        cfg_coregister.save(open(test_config, 'w'))
         ensure_dir(os.path.join(self.test_working_directory, "features", "T38KPD"))
 
         # T38KPD's coregistration 

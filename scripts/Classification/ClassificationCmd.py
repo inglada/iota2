@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -22,7 +22,6 @@ from osgeo import gdal, ogr, osr
 from Common import FileUtils as fu
 from Common import ServiceConfigFile as SCF
 from Common.Utils import run
-
 
 def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
                          fieldRegion, N, pathToCmdClassif, pathOut, RAM, pathWd):

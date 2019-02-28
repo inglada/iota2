@@ -1,5 +1,5 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
+#-*- coding: utf-8 -*-
 
 """ 
 	Bibliothèque pour des traitements sur fichier vector
@@ -55,7 +55,7 @@ def diffBetweenLayers(layer1, layer2, layer_out):
 				- layer1: layer 1 
 				- layer2: layer 2
 				- layer_out: output layer
-        """
+	"""
 	layer1.ResetReading()
 	layer2.ResetReading()
 	feature1 = layer1.GetNextFeature()
@@ -74,17 +74,16 @@ def diffBetweenLayers(layer1, layer2, layer_out):
 				continue
 						
 			if geom1.Intersects(geom2) == 1:
-				newgeom = newgeom.Difference(geom2)			
+				newgeom = newgeom.Difference(geom2)
 			feature2.Destroy()
 			feature2 = layer2.GetNextFeature()
 		if newgeom.GetGeometryName() == 'MULTIPOLYGON':
 			for geom_part in newgeom:
 				addMultiPolygon(geom_part.ExportToWkb(), feature1, layer_out)
 		else:
-			addMultiPolygon(newgeom.ExportToWkb(), feature1, layer_out)		
+			addMultiPolygon(newgeom.ExportToWkb(), feature1, layer_out)
 		feature1.Destroy()
 		feature1 = layer1.GetNextFeature()
-
 
 #--------------------------------------------------------------		
 
@@ -101,12 +100,12 @@ def diffBetweenLayersSpeedUp(layer2, layer1, layer_out, field_name=""):
 	"""
 	# RTree Spatial Indexing with OGR
 	#-- Index creation
-        try:
-                import rtree
-        except ImportError as e:
-                raise ImportError(str(e) + "\n\n Please install rtree module if it isn't installed yet")
+	try:
+		import rtree
+	except ImportError as e:
+		raise ImportError(str(e) + "\n\n Please install rtree module if it isn't installed yet")
 
-	print "Index creation..."
+	print("Index creation...")
 	index = rtree.index.Index(interleaved=False)
 
 	for fid1 in range(0,layer1.GetFeatureCount()):
@@ -118,7 +117,7 @@ def diffBetweenLayersSpeedUp(layer2, layer1, layer_out, field_name=""):
 		index.insert(fid1, (xmin, xmax, ymin, ymax))
 		feat1.Destroy()
 	#-- Search for all features in layer1 that intersect each feature in layer2
-	print "Research..."
+	print("Research...")
 	for fid2 in range(0,layer2.GetFeatureCount()):
 		feat2 = layer2.GetFeature(fid2)
 		geom2 = feat2.GetGeometryRef()
@@ -132,16 +131,16 @@ def diffBetweenLayersSpeedUp(layer2, layer1, layer_out, field_name=""):
 			geom1 = feat1.GetGeometryRef()
 			if geom1 == None:
 				continue
-                        if field_name is not None:
-                                if (geom2.Intersects(geom1)) and (feat1.GetField(field_name) != feat2.GetField(field_name)):
-				        if newgeom == None:
-					        continue
-				        newgeom = newgeom.Difference(geom1)                                        
-                        else:
-                                if (geom2.Intersects(geom1)):
-				        if newgeom == None:
-					        continue
-				        newgeom = newgeom.Difference(geom1)
+			if field_name is not None:
+				if (geom2.Intersects(geom1)) and (feat1.GetField(field_name) != feat2.GetField(field_name)):
+					if newgeom == None:
+						continue
+					newgeom = newgeom.Difference(geom1)
+			else:
+				if (geom2.Intersects(geom1)):
+					if newgeom == None:
+						continue
+					newgeom = newgeom.Difference(geom1)
 			feat1.Destroy()
 		if newgeom == None:
 			continue
@@ -149,9 +148,8 @@ def diffBetweenLayersSpeedUp(layer2, layer1, layer_out, field_name=""):
 			for geom_part in newgeom:
 				addMultiPolygon(geom_part.ExportToWkb(), feat2, layer_out)
 		else:
-			addMultiPolygon(newgeom.ExportToWkb(), feat2, layer_out)		
+			addMultiPolygon(newgeom.ExportToWkb(), feat2, layer_out)
 		feat2.Destroy()
-
 
 #--------------------------------------------------------------		
 def shapeDifference(shp_in1, shp_in2, shp_out, speed, field=""):
@@ -171,78 +169,77 @@ def shapeDifference(shp_in1, shp_in2, shp_out, speed, field=""):
 	shp2 = driver.Open(shp_in2, 0)
 
 	if shp1 is None:
-		print "Could not open file ", shp_in1
+		print("Could not open file ", shp_in1)
 		sys.exit(1)
-                
+
 	if shp2 is None:
-		print "Could not open file ", shp_in2
+		print("Could not open file ", shp_in2)
 		sys.exit(1)
-                
+
 	layer1 = shp1.GetLayer()
 	layer2 = shp2.GetLayer()
-	
+
 	#-- Create output file
 	if os.path.exists(shp_out):
 		os.remove(shp_out)
 	try:
 		output = driver.CreateDataSource(shp_out)
 	except:
-		print 'Could not create output datasource ', shp_out
+		print('Could not create output datasource ', shp_out)
 		sys.exit(1)
-                
+
 	newLayer = output.CreateLayer('SymmetricDifference', geom_type = ogr.wkbPolygon, srs=layer1.GetSpatialRef())
 
 	if newLayer is None:
-                print "Could not create output layer"
+		print("Could not create output layer")
 		sys.exit(1)
 
-        newLayerDef = newLayer.GetLayerDefn()
+	newLayerDef = newLayer.GetLayerDefn()
 	init_fields(layer1, newLayer) ## shapefile 2 should have the same fields as
 	
 	#-- Processing
-        if not speed:
-	        diffBetweenLayers(layer1, layer2, newLayer)
-        else:
-                diffBetweenLayersSpeedUp(layer1, layer2, newLayer, field)
-	
+	if not speed:
+		diffBetweenLayers(layer1, layer2, newLayer)
+	else:
+		diffBetweenLayersSpeedUp(layer1, layer2, newLayer, field)
+
 	shp1.Destroy()
-	shp2.Destroy()	
-			
+	shp2.Destroy()
 
 speed = False
-        
+
 if __name__ == "__main__":
     if len(sys.argv) == 1:
-	prog = os.path.basename(sys.argv[0])
-	print '      '+sys.argv[0]+' [options]' 
-	print "     Help : ", prog, " --help"
-	print "        or : ", prog, " -h"
-	sys.exit(-1)  
+        prog = os.path.basename(sys.argv[0])
+        print('      '+sys.argv[0]+' [options]') 
+        print("     Help : ", prog, " --help")
+        print("        or : ", prog, " -h")
+        sys.exit(-1)  
     else:
-	usage = "usage: %prog [options] "
-	parser = argparse.ArgumentParser(description = "Difference shapefile of" \
+        usage = "usage: %prog [options] "
+        parser = argparse.ArgumentParser(description = "Difference shapefile of" \
         "first shapefile with second shapefile, save is done in an output shapefile")
         parser.add_argument("-s1", dest="inshapefile", action="store", \
                             help="First shapefile", required = True)
         parser.add_argument("-s2", dest="reshapefile", action="store", \
                             help="Second shapefile", required = True)
         parser.add_argument("-o", dest="shapefileout", action="store", \
-                            help="Output shapefile", required = True)        
+                            help="Output shapefile", required = True)
         parser.add_argument("-speed", action="store_true", \
                             help="Use of R Tree Spatial Index (faster)", default = False)
         parser.add_argument("-f", dest="field", action="store", \
-                            help="field to look for difference")        
-	args = parser.parse_args()
+                            help="field to look for difference")
+        args = parser.parse_args()
 
         if not args.speed:
-                print 'ici'
-                shapeDifference(args.inshapefile, args.reshapefile, args.shapefileout, False, None)
+            print('ici')
+            shapeDifference(args.inshapefile, args.reshapefile, args.shapefileout, False, None)
         else:
-                try:
-                        import rtree
-                except ImportError as e:
-                        raise ImportError(
-                                str(e)
-                                + "\n\n Please install rtree module if it isn't installed yet")
-                
-                shapeDifference(args.inshapefile, args.reshapefile, args.shapefileout, True, args.field)
+            try:
+                import rtree
+            except ImportError as e:
+                raise ImportError(
+                        str(e)
+                        + "\n\n Please install rtree module if it isn't installed yet")
+
+            shapeDifference(args.inshapefile, args.reshapefile, args.shapefileout, True, args.field)

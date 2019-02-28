@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -13,8 +13,6 @@
 #   PURPOSE.  See the above copyright notices for more information.
 #
 # =========================================================================
-
-
 
 class osoError(Exception):
     """ Base class for exceptions in oso chain"""
@@ -83,5 +81,3 @@ class fileError(configFileError):
 
 ####################################################################
 ####################################################################
-
-

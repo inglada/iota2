@@ -1,5 +1,5 @@
-# !/usr/bin/python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
+#-*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -20,14 +20,14 @@ library
 """
 import os
 
-from Sentinel_1 import Sentinel_1
-from Sentinel_2 import Sentinel_2
-from Sentinel_2_S2C import Sentinel_2_S2C
-from Sentinel_2_L3A import Sentinel_2_L3A
-from Landsat_5_old import Landsat_5_old
-from Landsat_8 import Landsat_8
-from Landsat_8_old import Landsat_8_old
-from User_features import User_features
+from Sensors.Sentinel_1 import Sentinel_1
+from Sensors.Sentinel_2 import Sentinel_2
+from Sensors.Sentinel_2_S2C import Sentinel_2_S2C
+from Sensors.Sentinel_2_L3A import Sentinel_2_L3A
+from Sensors.Landsat_5_old import Landsat_5_old
+from Sensors.Landsat_8 import Landsat_8
+from Sensors.Landsat_8_old import Landsat_8_old
+from Sensors.User_features import User_features
 
 
 class Sensors_container(object):

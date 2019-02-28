@@ -1,4 +1,5 @@
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
+#-*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -18,7 +19,7 @@ import logging
 import glob
 import os
 
-from GenSensors import Sensor
+from Sensors.GenSensors import Sensor
 from collections import OrderedDict
 
 logger = logging.getLogger(__name__)
@@ -239,13 +240,13 @@ class Sentinel_2(Sensor):
 
         # TODO : throw Exception if no masks are found
         date_mask = []
-        for mask_name, rule in self.masks_rules.items():
+        for mask_name, rule in list(self.masks_rules.items()):
             date_mask.append(glob.glob(os.path.join(date_dir, "{}{}".format(self.struct_path_masks, mask_name)))[0])
 
         # manage directories
         mask_dir = os.path.dirname(date_mask[0])
         logger.debug("preprocessing {} masks".format(mask_dir))
-        mask_name = os.path.basename(date_mask[0]).replace(self.masks_rules.items()[0][0],
+        mask_name = os.path.basename(date_mask[0]).replace(list(self.masks_rules.items())[0][0],
                                                            "{}.tif".format(self.masks_date_suffix))
         out_mask = os.path.join(mask_dir, mask_name)
         if out_prepro:
@@ -330,7 +331,7 @@ class Sentinel_2(Sensor):
         # get date's footprint
         date_edge = []
         for date_dir in input_dates:
-            date_edge.append(glob.glob(os.path.join(date_dir, "{}{}".format(self.struct_path_masks, self.masks_rules.keys()[self.border_pos])))[0])
+            date_edge.append(glob.glob(os.path.join(date_dir, "{}{}".format(self.struct_path_masks, list(self.masks_rules.keys())[self.border_pos])))[0])
 
         expr = " || ".join("1 - im{}b1".format(i + 1) for i in range(len(date_edge)))
         s2_border = CreateBandMathApplication({"il": date_edge,
@@ -411,8 +412,8 @@ class Sentinel_2(Sensor):
 
         if self.write_dates_stack is False:
             dates_concatenation = []
-            for date, dico_date in preprocessed_dates.items():
-                for band_name, reproj_date in dico_date["data"].items():
+            for date, dico_date in list(preprocessed_dates.items()):
+                for band_name, reproj_date in list(dico_date["data"].items()):
                     dates_concatenation.append(reproj_date)
                     reproj_date.Execute()
                     app_dep.append(reproj_date)
@@ -494,7 +495,7 @@ class Sentinel_2(Sensor):
 
         dates_masks = []
         if self.write_dates_stack is False:
-            for date, dico_date in preprocessed_dates.items():
+            for date, dico_date in list(preprocessed_dates.items()):
                 mask_app, mask_app_dep = dico_date["mask"]
                 mask_app.Execute()
                 dates_masks.append(mask_app)

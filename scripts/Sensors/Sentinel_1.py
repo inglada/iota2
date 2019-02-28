@@ -1,4 +1,5 @@
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
+#-*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -18,7 +19,7 @@ import logging
 import glob
 import os
 
-from GenSensors import Sensor
+from Sensors.GenSensors import Sensor
 from collections import OrderedDict
 
 logger = logging.getLogger(__name__)
@@ -33,7 +34,7 @@ class Sentinel_1(Sensor):
     def __init__(self, config_path, tile_name):
         """
         """
-        import ConfigParser
+        import configparser
         from Common import ServiceConfigFile as SCF
         Sensor.__init__(self)
 
@@ -43,7 +44,7 @@ class Sentinel_1(Sensor):
         self.tile_name = tile_name
         self.cfg_IOTA2 = SCF.serviceConfigFile(config_path)
         
-        config_parser = ConfigParser.ConfigParser()
+        config_parser = configparser.ConfigParser()
 
         # running attributes
         self.s1_cfg = self.cfg_IOTA2.getParam("chain", "S1Path")
@@ -80,7 +81,7 @@ class Sentinel_1(Sensor):
     def preprocess(self, working_dir=None, ram=128, logger=logger):
         """
         """
-        from SAR.S1Processor import S1PreProcess
+        from .SAR.S1Processor import S1PreProcess
         # TODO, propagate the ram parameter
         S1PreProcess(self.s1_cfg, self.tile_name, working_dir)
 
@@ -177,7 +178,7 @@ class Sentinel_1(Sensor):
         Due to the SAR data, time series must be split by polarisation and orbit
         (ascending / descending)
         """
-        import ConfigParser
+        import configparser
 
         from Common.FileUtils import getNbDateInTile
         from Common.OtbAppBank import getSARstack
@@ -198,7 +199,7 @@ class Sentinel_1(Sensor):
         s1_data = OrderedDict()
         s1_labels = OrderedDict()
 
-        config = ConfigParser.ConfigParser()
+        config = configparser.ConfigParser()
         config.read(self.s1_cfg)
 
         interpolation_method = "linear"
@@ -256,7 +257,7 @@ class Sentinel_1(Sensor):
     def get_features(self, ram=128, logger=logger):
         """
         """
-        import ConfigParser
+        import configparser
         from Common.FileUtils import getNbDateInTile, FileSearch_AND
         from Common.OtbAppBank import CreateConcatenateImagesApplication
         from Common.OtbAppBank import generateSARFeat_dates
@@ -266,7 +267,7 @@ class Sentinel_1(Sensor):
             (s1_data, dependancies), s1_labels = self.get_time_series_gapFilling(ram)
         else:
             (s1_data, dependancies), s1_labels = self.get_time_series(ram)
-        config = ConfigParser.ConfigParser()
+        config = configparser.ConfigParser()
         config.read(self.s1_cfg)
 
         sar_features_expr = None
@@ -285,7 +286,7 @@ class Sentinel_1(Sensor):
                                          "availDates":None},
                                    "vh":{"App":None,
                                          "availDates":None}}}
-        for sensor_mode, time_series_app in s1_data.items():
+        for sensor_mode, time_series_app in list(s1_data.items()):
             _, polarisation, orbit = sensor_mode.split("_")
             # inputs
             if self.cfg_IOTA2.getParam('GlobChain', 'writeOutputs') is False:
@@ -312,7 +313,7 @@ class Sentinel_1(Sensor):
                                                                                                  display=False,
                                                                                                  raw_dates=True)
         features_labels = []
-        for sensor_mode, features in s1_labels.items():
+        for sensor_mode, features in list(s1_labels.items()):
             features_labels += features
         if sar_features_expr:
             sar_user_features_raster = os.path.join(self.features_dir, "tmp", self.user_sar_features_name)

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -15,7 +15,7 @@
 # =========================================================================
 import os
 
-import IOTA2Step
+from Steps import IOTA2Step
 from Common import ServiceConfigFile as SCF
 from Cluster import get_RAM
 from Sampling import VectorSampler as vs

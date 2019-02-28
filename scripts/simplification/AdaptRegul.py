@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # =========================================================================
@@ -123,7 +123,7 @@ def regularisation(raster, threshold, nbcores, path, ram = "128"):
         filetodelete.append("%s/mask_nd_%s.tif"%(path, str(i + 1)))            
 
     masktime = time.time()
-    print " ".join([" : ".join(["Masks generation for adaptive rules", str(masktime - init_regul)]), "seconds"])
+    print(" ".join([" : ".join(["Masks generation for adaptive rules", str(masktime - init_regul)]), "seconds"]))
 
     # Two successive regularisation (8 neighbors then 4 neighbors)
     for i in range(2):
@@ -158,7 +158,7 @@ def regularisation(raster, threshold, nbcores, path, ram = "128"):
         os.remove(path + "/mask_nd_%s_8.tif"%(str(j + 1)))
         
     adaptativetime = time.time()
-    print " ".join([" : ".join(["Adaptative regularizations", str(adaptativetime - masktime)]), "seconds"])
+    print(" ".join([" : ".join(["Adaptative regularizations", str(adaptativetime - masktime)]), "seconds"]))
     
     # Fusion of rule-based regularisation 
     rastersList = [os.path.join(path, "mask_nd_1_4.tif"), os.path.join(path, "mask_nd_2_4.tif"), os.path.join(path, "mask_nd_3_4.tif"), \
@@ -214,7 +214,7 @@ def regularisation(raster, threshold, nbcores, path, ram = "128"):
     out_classif_sieve = "%s/regul_adapt_maj.tif"%(path)
     
     majoritytime = time.time()
-    print " ".join([" : ".join(["Majority voting regularization", str(majoritytime - adaptativetime)]), "seconds"])
+    print(" ".join([" : ".join(["Majority voting regularization", str(majoritytime - adaptativetime)]), "seconds"]))
 
     for filetodel in filetodelete:
         if os.path.exists(filetodel):
@@ -236,15 +236,14 @@ def gdal_sieve(threshold, connexion, path, i):
         
 if __name__ == "__main__":
     if len(sys.argv) == 1:
-	prog = os.path.basename(sys.argv[0])
-	print '      '+sys.argv[0]+' [options]' 
-	print "     Help : ", prog, " --help"
-	print "        or : ", prog, " -h"
-	sys.exit(-1)  
-
+        prog = os.path.basename(sys.argv[0])
+        print('      '+sys.argv[0]+' [options]') 
+        print("     Help : ", prog, " --help")
+        print("        or : ", prog, " -h")
+        sys.exit(-1)  
     else:
-	usage = "usage: %prog [options] "
-	parser = argparse.ArgumentParser(description = "Adaptative and majority voting regularization process based on landscape rules")
+        usage = "usage: %prog [options] "
+        parser = argparse.ArgumentParser(description = "Adaptative and majority voting regularization process based on landscape rules")
 
         parser.add_argument("-wd", dest="path", action="store", \
                             help="Input path where classification is located", required = True)
@@ -259,11 +258,10 @@ if __name__ == "__main__":
                             help="Minimal mapping unit (in input classificaiton raster file unit)", required = True)
                             
         parser.add_argument("-ram", dest="ram", action="store", \
-                            help="Ram for otb processes", required = True)                         
+                            help="Ram for otb processes", required = True)
                                 
-    args = parser.parse_args()
+        args = parser.parse_args()
     
-    os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"]= str(args.core)
+        os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"]= str(args.core)
 
-    regularisation(args.classif, args.mmu, args.core, args.path, args.ram)
-    
+        regularisation(args.classif, args.mmu, args.core, args.path, args.ram)

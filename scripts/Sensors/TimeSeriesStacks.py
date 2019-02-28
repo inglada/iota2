@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -28,7 +28,7 @@ from Sensors import Sentinel_2
 from Sensors import Sentinel_2_S2C
 from Common.Utils import run
 from Common.Utils import Opath
-from CreateDateFile import CreateFichierDatesReg
+from Sensors.CreateDateFile import CreateFichierDatesReg
 from Common import FileUtils as fu
 from gdal import Warp
 
@@ -140,7 +140,7 @@ def PreProcessS2_S2C(outproj, ipathS2_S2C, tile_name, s2_s2c_target_dir, working
         """
         nb_bands = 10
 
-        dates = [date for band, date_img in s2c_bands_dates.items() for date in date_img.keys()]
+        dates = [date for band, date_img in list(s2c_bands_dates.items()) for date in list(date_img.keys())]
         dates_unique = set(dates)
         
         date_ap = [dates.count(date_u) for date_u in dates_unique]
@@ -164,7 +164,7 @@ def PreProcessS2_S2C(outproj, ipathS2_S2C, tile_name, s2_s2c_target_dir, working
         from Common import OtbAppBank
         
         #get all dates
-        s2c_dates = s2c_bands_dates[s2c_bands_dates.keys()[0]].keys()
+        s2c_dates = list(s2c_bands_dates[list(s2c_bands_dates.keys())[0]].keys())
         
         #for each date concatenates bands
         for s2c_date in s2c_dates:
@@ -619,13 +619,13 @@ def PreProcessS2(config, s2_dir, tile, outRes, projOut, workingDirectory,
 
     cfg = Config(config)
     struct = cfg.Sentinel_2.arbo
-    arbomask = Config(file(config)).Sentinel_2.arbomask
-    cloud = Config(file(config)).Sentinel_2.nuages
-    sat = Config(file(config)).Sentinel_2.saturation
-    div = Config(file(config)).Sentinel_2.div
-    cloud_reproj = Config(file(config)).Sentinel_2.nuages_reproj
-    sat_reproj = Config(file(config)).Sentinel_2.saturation_reproj
-    div_reproj = Config(file(config)).Sentinel_2.div_reproj
+    arbomask = Config(open(config)).Sentinel_2.arbomask
+    cloud = Config(open(config)).Sentinel_2.nuages
+    sat = Config(open(config)).Sentinel_2.saturation
+    div = Config(open(config)).Sentinel_2.div
+    cloud_reproj = Config(open(config)).Sentinel_2.nuages_reproj
+    sat_reproj = Config(open(config)).Sentinel_2.saturation_reproj
+    div_reproj = Config(open(config)).Sentinel_2.div_reproj
 
     needReproj = False
     tileFolder = os.path.join(s2_dir, tile)
@@ -683,8 +683,8 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
 
     logger.info("prepare sensor's stack for tile : " + tile)
 
-    import Sensors
-    from GenSensors import CreateCommonZone_bindings
+    from Sensors import Sensors
+    from Sensors.GenSensors import CreateCommonZone_bindings
     from Common import ServiceConfigFile as SCF
     if writeOutput == "False":
         writeOutput = False
@@ -884,7 +884,7 @@ def generateStack(tile, cfg, outputDirectory, writeOutput=False,
             try:
                 os.mkdir(outputDirectory+"/tmp")
             except:
-                print outputDirectory+"/tmp"+" allready exists"
+                print(outputDirectory+"/tmp"+" allready exists")
 
         if outputDirectory and not os.path.exists(outputDirectory+"/tmp/"+os.path.split(commonRasterMask)[-1]):
             shutil.copy(commonRasterMask, outputDirectory+"/tmp")

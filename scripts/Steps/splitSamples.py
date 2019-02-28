@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -15,7 +15,7 @@
 # =========================================================================
 import os
 
-import IOTA2Step
+from Steps import IOTA2Step
 
 class splitSamples(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):

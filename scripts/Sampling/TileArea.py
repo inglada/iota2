@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -51,7 +51,6 @@ def AddFieldModel(shpIn, modNum, fieldOut, logger=logger):
             layer.SetFeature(feat)
         else:
             logger.debug("feature " + str(feat.GetFID()) + " has not geometry")
-
 
 def CreateModelShapeFromTiles(tilesModel, pathTiles, proj, pathOut, OutSHPname, fieldOut, pathWd):
 
@@ -120,7 +119,6 @@ def CreateModelShapeFromTiles(tilesModel, pathTiles, proj, pathOut, OutSHPname, 
     else:
         for rm in to_remove:
             fu.removeShape(rm.replace(".shp",""), [".prj",".shp",".dbf",".shx"])
-
 
 def generateRegionShape(pathTiles, pathToModel, pathOut, fieldOut, cfg,
                         pathWd, logger=logger):

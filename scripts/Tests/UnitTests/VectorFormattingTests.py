@@ -1,5 +1,5 @@
-# !/usr/bin/python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
+#-*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -68,7 +68,7 @@ class iota_testVectorFormatting(unittest.TestCase):
     # after launching all tests
     @classmethod
     def tearDownClass(self):
-        print "{} ended".format(self.group_test_name)
+        print("{} ended".format(self.group_test_name))
         if RM_IF_ALL_OK and all(self.all_tests_ok):
             shutil.rmtree(self.iota2_tests_directory)
 
@@ -237,7 +237,7 @@ class iota_testVectorFormatting(unittest.TestCase):
         by_class_extract_vector = Counter(features_extract_vector)
 
         buff = []
-        for class_name, class_count in by_class_origin.items():
+        for class_name, class_count in list(by_class_origin.items()):
             buff.append(by_class_in_vector[class_name] == extraction_ratio * class_count)
 
         self.assertTrue(all(buff), msg="extraction of samples failed")

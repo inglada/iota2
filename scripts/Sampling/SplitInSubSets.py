@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -25,7 +25,6 @@ from osgeo.gdalconst import *
 from Common import FileUtils as fut
 
 logger = logging.getLogger(__name__)
-
 
 def get_randomPoly(layer, field, classes, ratio, regionField, regions):
     """
@@ -69,7 +68,6 @@ def get_randomPoly(layer, field, classes, ratio, regionField, regions):
     layer.SetAttributeFilter(None)
     return set(sample_id_learn), set(sample_id_valid)
 
-
 def get_CrossValId(layer, dataField, classes, seeds, regionField,
                      regions):
     """
@@ -111,7 +109,6 @@ def get_CrossValId(layer, dataField, classes, seeds, regionField,
                 id_sets[fold_num] += [cFID for cFID, cArea in fold]
     layer.SetAttributeFilter(None)
     return id_sets
-
 
 def splitInSubSets(vectoFile, dataField, regionField, 
                    ratio=0.5, seeds=1, driver_name="SQLite", 
@@ -201,7 +198,6 @@ def splitInSubSets(vectoFile, dataField, regionField,
             feat.SetField(seed_field_name, flag)
             layer.SetFeature(feat)
         i = layer = None
-
 
 if __name__ == "__main__":
     func_description = "This function is dedicated to split a shape into N subsets\

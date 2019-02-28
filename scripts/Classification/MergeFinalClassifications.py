@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -19,7 +19,6 @@ import logging
 from Common import FileUtils as fut
 
 logger = logging.getLogger(__name__)
-
 
 def compute_fusion_options(iota2_dir_final, final_classifications, method,
                            undecidedlabel, dempstershafer_mob, pixType,

@@ -1,11 +1,11 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
+#-*- coding: utf-8 -*-
 
 import os
 import glob
 import sys
 from sys import argv
-import vector_functions as vf
-
+from VectorTools import vector_functions as vf
 
 def totalArea(shapefile, sizepix):
 	ds = vf.openToRead(shapefile)
@@ -22,7 +22,7 @@ def totalArea(shapefile, sizepix):
 if __name__=='__main__':
 	usage= 'usage: <shapefile> <size of pixel>'
 	if len(sys.argv) == 3:
-		print totalArea(argv[1], argv[2])
+		print(totalArea(argv[1], argv[2]))
 	else:
-	        print usage
-        	sys.exit(1)   
+		print(usage)
+		sys.exit(1)

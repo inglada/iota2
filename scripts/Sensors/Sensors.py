@@ -1,4 +1,5 @@
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
+#-*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -18,8 +19,8 @@ import logging
 import glob
 import os
 
-from GenSensors import Sensor
-from GenSensors import MonException
+from Sensors.GenSensors import Sensor
+from Sensors.GenSensors import MonException
 from collections import OrderedDict
 from Common.FileUtils import get_iota2_project_dir
 
@@ -59,7 +60,7 @@ class Landsat5(Sensor):
         self.DatesVoulues = None
         self.path = path_image
         self.bands["BANDS"] = dicoBands
-        self.nbBands = len(self.bands['BANDS'].keys())
+        self.nbBands = len(list(self.bands['BANDS'].keys()))
         self.posDate = 3
         self.fimages = tmpPath+"/"+self.name+"imagesList.txt"
         self.fdates = tmpPath+""+self.name+"imagesDateList.txt"
@@ -105,24 +106,24 @@ class Landsat5(Sensor):
         sensorEnable = (self.path is not None and len(self.path) > 0 and 'None' not in self.path)
 
         #bands definitions
-        self.bands["BANDS"] = OrderedDict([(key, value) for key, value in sorted(dicoBands.iteritems(), key=lambda (k, v): (v, k))])
+        self.bands["BANDS"] = OrderedDict([(key, value) for key, value in sorted(iter(list(dicoBands.items())), key=lambda k_v2: (k_v2[1], k_v2[0]))])
         self.red = self.bands["BANDS"]['B3']
         self.nir = self.bands["BANDS"]['B4']
         self.swir = self.bands["BANDS"]['B5']
 
         if sensorEnable and cfg_IOTA2.getParam("iota2FeatureExtraction", "extractBands") == True:
-            self.keepBands = OrderedDict([(k, v) for k, v in self.bands["BANDS"].items() if k in cfg_IOTA2.getParam("Landsat5", "keepBands")])
+            self.keepBands = OrderedDict([(k, v) for k, v in list(self.bands["BANDS"].items()) if k in cfg_IOTA2.getParam("Landsat5", "keepBands")])
             if cfg_IOTA2.getParam("GlobChain", "features"):
                 try:
-                    self.red = self.keepBands.keys().index('B3')
+                    self.red = list(self.keepBands.keys()).index('B3')
                 except:
                     raise Exception("red band is needed to compute features")
                 try:
-                    self.nir = self.keepBands.keys().index('B4')
+                    self.nir = list(self.keepBands.keys()).index('B4')
                 except:
                     raise Exception("nir band is needed to compute features")
                 try:
-                    self.swir = self.keepBands.keys().index('B5')
+                    self.swir = list(self.keepBands.keys()).index('B5')
                 except:
                     raise Exception("swir band is needed to compute features")
             else:
@@ -137,7 +138,7 @@ class Landsat5(Sensor):
                 else:
                     logger.debug('[Landsat5] Found the following images: {}'.format(self.liste))
                     self.imRef = self.liste[0]
-        except MonException, mess:
+        except MonException as mess:
             logger.error('[Landsat5] Exception caught: {}'.format(mess))
 
 
@@ -178,7 +179,7 @@ class Landsat8(Sensor):
         self.DatesVoulues = None
         self.path = path_image
         self.bands["BANDS"] = dicoBands
-        self.nbBands = len(self.bands['BANDS'].keys())
+        self.nbBands = len(list(self.bands['BANDS'].keys()))
         self.posDate = 3
         self.fimages = tmpPath+"/"+self.name+"imagesList.txt"
         self.fdates = tmpPath+"/"+self.name+"imagesDateList.txt"
@@ -228,24 +229,24 @@ class Landsat8(Sensor):
         self.borderMask = self.borderMaskN
         
         #bands definitions
-        self.bands["BANDS"] = OrderedDict([(key, value) for key, value in sorted(dicoBands.iteritems(), key=lambda (k, v): (v, k))])
+        self.bands["BANDS"] = OrderedDict([(key, value) for key, value in sorted(iter(list(dicoBands.items())), key=lambda k_v3: (k_v3[1], k_v3[0]))])
         self.red = self.bands["BANDS"]['B4']
         self.nir = self.bands["BANDS"]['B5']
         self.swir = self.bands["BANDS"]['B6']
 
         if sensorEnable and cfg_IOTA2.getParam("iota2FeatureExtraction", "extractBands") == True:
-            self.keepBands = OrderedDict([(k, v) for k, v in self.bands["BANDS"].items() if k in cfg_IOTA2.getParam("Landsat8", "keepBands")])
+            self.keepBands = OrderedDict([(k, v) for k, v in list(self.bands["BANDS"].items()) if k in cfg_IOTA2.getParam("Landsat8", "keepBands")])
             if cfg_IOTA2.getParam("GlobChain", "features"):
                 try:
-                    self.red = self.keepBands.keys().index('B4')
+                    self.red = list(self.keepBands.keys()).index('B4')
                 except:
                     raise Exception("red band is needed to compute features")
                 try:
-                    self.nir = self.keepBands.keys().index('B5')
+                    self.nir = list(self.keepBands.keys()).index('B5')
                 except:
                     raise Exception("nir band is needed to compute features")
                 try:
-                    self.swir = self.keepBands.keys().index('B6')
+                    self.swir = list(self.keepBands.keys()).index('B6')
                 except:
                     raise Exception("swir band is needed to compute features")
             else:
@@ -260,7 +261,7 @@ class Landsat8(Sensor):
                 else:
                     logger.debug('[Landsat8] Found the following images: {}'.format(self.liste))
                     self.imRef = self.liste[0]
-        except MonException, mess:
+        except MonException as mess:
             logger.error('[Landsat8] Exception caught: {}'.format(mess))
 
     def getDateFromName(self, nameIm):
@@ -354,31 +355,31 @@ class Sentinel_2(Sensor):
             self.imRef = None
             
             #bands definitions
-            self.bands["BANDS"] = OrderedDict([(key, value) for key, value in sorted(dicoBands.iteritems(), key=lambda (k, v): (v, k))])
+            self.bands["BANDS"] = OrderedDict([(key, value) for key, value in sorted(iter(list(dicoBands.items())), key=lambda k_v: (k_v[1], k_v[0]))])
             self.red = self.bands["BANDS"]['B4']
             self.nir = self.bands["BANDS"]['B8']
             self.swir = self.bands["BANDS"]['B11']
 
             self.keepBands = None
             if sensorEnable and cfg_IOTA2.getParam("iota2FeatureExtraction", "extractBands") == True:
-                self.keepBands = OrderedDict([(k, v) for k, v in self.bands["BANDS"].items() if k in cfg_IOTA2.getParam("Sentinel_2", "keepBands")])
+                self.keepBands = OrderedDict([(k, v) for k, v in list(self.bands["BANDS"].items()) if k in cfg_IOTA2.getParam("Sentinel_2", "keepBands")])
                 if cfg_IOTA2.getParam("GlobChain", "features"):
                     try:
-                        self.red = self.keepBands.keys().index('B4')
+                        self.red = list(self.keepBands.keys()).index('B4')
                     except:
                         raise Exception("red band is needed to compute features")
                     try:
-                        self.nir = self.keepBands.keys().index('B8')
+                        self.nir = list(self.keepBands.keys()).index('B8')
                     except:
                         raise Exception("nir band is needed to compute features")
                     try:
-                        self.swir = self.keepBands.keys().index('B11')
+                        self.swir = list(self.keepBands.keys()).index('B11')
                     except:
                         raise Exception("swir band is needed to compute features")
                 else:
                     self.red = self.nir = self.swir = -1
 
-            self.nbBands = len(self.bands['BANDS'].keys())
+            self.nbBands = len(list(self.bands['BANDS'].keys()))
 
             try:
                 self.liste = []
@@ -389,7 +390,7 @@ class Sentinel_2(Sensor):
                     else:
                         logger.debug('[Sentinel2] Found the following images: {}'.format(self.liste))
                         self.imRef = self.liste[0]
-            except MonException, mess:
+            except MonException as mess:
                 logger.error('[Sentinel2] Exception caught: {}'.format(mess))
 
     def getDateFromName(self, nameIm):
@@ -415,7 +416,7 @@ class Sentinel_2(Sensor):
                 else:
                     logger.debug('[Spot4] Found the following images: {}'.format(liste))
                     self.imRef = liste[0]
-            except MonException, mess:
+            except MonException as mess:
                 logger.error('[Spot4] Exception caught: {}'.format(mess))
 
 
@@ -477,30 +478,30 @@ class Sentinel_2_S2C(Sensor):
             self.nodata = cfg_sensors.getParam("Sentinel_2_S2C", "nodata")
             self.addFeatures = (cfg_IOTA2.getParam("Sentinel_2_S2C", "additionalFeatures")).split(",")
             
-            self.bands["BANDS"] = OrderedDict([(key, value) for key, value in sorted(dicoBands.iteritems(), key=lambda (k,v): (v,k))])
+            self.bands["BANDS"] = OrderedDict([(key, value) for key, value in sorted(iter(list(dicoBands.items())), key=lambda k_v1: (k_v1[1],k_v1[0]))])
             self.red = self.bands["BANDS"]['B4']
             self.nir = self.bands["BANDS"]['B8']
             self.swir = self.bands["BANDS"]['B11']
 
             self.keepBands = None
             if sensorEnable and cfg_IOTA2.getParam("iota2FeatureExtraction", "extractBands") == True:
-                self.keepBands = OrderedDict([(k, v) for k, v in self.bands["BANDS"].items() if k in cfg_IOTA2.getParam("Sentinel_2_S2C", "keepBands")])
+                self.keepBands = OrderedDict([(k, v) for k, v in list(self.bands["BANDS"].items()) if k in cfg_IOTA2.getParam("Sentinel_2_S2C", "keepBands")])
                 if cfg_IOTA2.getParam("GlobChain", "features"):
                     try:
-                        self.red = self.keepBands.keys().index('B4')
+                        self.red = list(self.keepBands.keys()).index('B4')
                     except:
                         raise Exception ("red band is needed to compute features")
                     try:
-                        self.nir = self.keepBands.keys().index('B8')
+                        self.nir = list(self.keepBands.keys()).index('B8')
                     except:
                         raise Exception ("nir band is needed to compute features")
                     try:
-                        self.swir = self.keepBands.keys().index('B11')
+                        self.swir = list(self.keepBands.keys()).index('B11')
                     except:
                         raise Exception ("swir band is needed to compute features")
                 else:
                     self.red = self.nir = self.swir = -1
-            self.nbBands = len(self.bands['BANDS'].keys())
+            self.nbBands = len(list(self.bands['BANDS'].keys()))
 
     def getDateFromName(self, nameIm, complete_date=False):
         """ extract date from sen2cor image's name

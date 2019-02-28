@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -27,7 +27,7 @@ def genResults(pathRes, pathNom):
     """
     generate IOTA² final report
     """
-    import ResultsUtils as resU
+    from Validation import ResultsUtils as resU
 
     all_csv = fu.FileSearch_AND(pathRes+"/TMP", True, "Classif", ".csv")
 

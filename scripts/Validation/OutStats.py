@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 # =========================================================================
 #   Program:   iota2
@@ -80,7 +80,7 @@ def outStats(cfg, tile, sample, workingDirectory):
     cloudAllTile = Testpath+"/final/PixelsValidity.tif"
     src_ds = gdal.Open(cloudAllTile)
     if src_ds is None:
-        print 'Unable to open %s'%cloudAllTile
+        print('Unable to open %s'%cloudAllTile)
         sys.exit(1)
     srcband = src_ds.GetRasterBand(1).ReadAsArray()
     maxView = np.amax(srcband)

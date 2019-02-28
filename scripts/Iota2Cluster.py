@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 # =========================================================================
 #   Program:   iota2
@@ -134,10 +134,9 @@ if __name__ == "__main__":
     # Exception manage by the chain
     # We only print the error message
     except sErr.osoError as e:
-        print e
+        print (e)
     # Exception not manage (bug)
     # print error message + all stack
     except Exception as e:
-        print e
+        print (e)
         raise
-

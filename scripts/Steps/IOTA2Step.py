@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -52,7 +52,7 @@ class StepContainer(object):
     def __len__(self):
         return len(self.container)
 
-def return_decorator(validate_function, type_string="<type 'function'>"):
+def return_decorator(validate_function, type_string="<class 'function'>"):
     """
     This function is use as decorator to check output functions type
 
@@ -140,7 +140,7 @@ class Step(object):
         """
         """
         mandatory_type = {"cfg" : "str"}
-        for attribute, value in self.__dict__.items():
+        for attribute, value in list(self.__dict__.items()):
             if attribute in mandatory_type:
                 if value.__class__.__name__ != str(mandatory_type[attribute]):
                     raise Exception("in {} class, attribute '{}' must be of type : {} not {}".format(self.__class__.__name__,

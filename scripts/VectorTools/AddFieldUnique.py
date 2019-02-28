@@ -1,4 +1,5 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
+#-*- coding: utf-8 -*-
 
 from osgeo import ogr
 import sys
@@ -28,9 +29,9 @@ if __name__=='__main__':
     usage='usage: <infile> <nameField> <value>'
     if len(sys.argv) == 4:
         addFieldID(sys.argv[1],sys.argv[2],sys.argv[3])# == 0:
-        print 'Add of field succeeded!'
+        print('Add of field succeeded!')
         #sys.exit(0)
         #else : print "pb"
     else:
-        print usage
+        print(usage)
         sys.exit(1)

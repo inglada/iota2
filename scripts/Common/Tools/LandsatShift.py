@@ -1,4 +1,5 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
+#-*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -138,9 +139,9 @@ def landsatShift(l8ImageIn, s2ImageIn, removeTemporaryFiles=True, \
                                                  removeTemporaryFiles, \
                                                  workingDir, s2SubsamplingRate, \
                                                  l8RedChannel)
-    print "Estimated shift"
-    print "dx (std) = ", str(dx)+"("+str(stdx)+")"
-    print "dy (std) = ", str(dy)+"("+str(stdy)+")"
+    print("Estimated shift")
+    print("dx (std) = ", str(dx)+"("+str(stdx)+")")
+    print("dy (std) = ", str(dy)+"("+str(stdy)+")")
     #A test on std could be included here
     shiftImage(l8ImageIn, -dx, -dy)
     shutil.copy2(l8ImageIn, "tmp_"+l8ImageIn)
@@ -151,9 +152,9 @@ def landsatShift(l8ImageIn, s2ImageIn, removeTemporaryFiles=True, \
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         prog = os.path.basename(sys.argv[0])
-        print '      '+sys.argv[0]+' [options]'
-        print "     Help : ", prog, " --help"
-        print "        or : ", prog, " -h"
+        print('      '+sys.argv[0]+' [options]')
+        print("     Help : ", prog, " --help")
+        print("        or : ", prog, " -h")
         sys.exit(-1)
     else:
         usage = "usage: %prog [options] "

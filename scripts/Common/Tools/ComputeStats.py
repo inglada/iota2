@@ -1,5 +1,6 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
+
 # =========================================================================
 #   Program:   iota2
 #
@@ -26,9 +27,7 @@ from config import Config
 from Common import FileUtils as fut
 from Validation import plotCor as correlation
 
-
 def cleanSqliteDatabase(db, table):
-
     conn2 = lite.connect(db)
     cursor2 = conn2.cursor()
     cursor2.execute("SELECT name FROM sqlite_master WHERE type='table';")
@@ -40,7 +39,6 @@ def cleanSqliteDatabase(db, table):
     cursor2 = conn2 = None
 
 class StdevFunc:
-
     def __init__(self):
         self.M = 0.0
         self.S = 0.0
@@ -70,7 +68,6 @@ class spearmanrFunc:
         return stats.spearmanr(self.samples1, self.samples2)[0]
 
 def computeStatistics(finalDataBasePath, dataField):
-
     conn = lite.connect(finalDataBasePath)
     cursor = conn.cursor()
     cursor.execute("select name from sqlite_master where type = 'table';")
@@ -156,7 +153,7 @@ def plotRelation(finalDataBasePath, dataField, seed, iota2Folder):
         y = [cX for cX, cY in valuesByClass[cClass]]
         x = [cY for cX, cY in valuesByClass[cClass]]
         outputPath = iota2Folder+"/final/TMP/"+nomenclature[cClass].replace(" ", "_")+"_confFValid_Seed_"+str(seed)+".png"
-        print "Creating : "+outputPath
+        print("Creating : "+outputPath)
         #title="Confidence = f( Validity ) : Class :"+nomenclature[cClass]
         parametres = correlation.Parametres()
         parametres.xlims = [minVal, maxVal]
@@ -169,9 +166,9 @@ def plotRelation(finalDataBasePath, dataField, seed, iota2Folder):
     
 def computeStats(pathConf, wD=None):
 
-    dataField = Config(file(pathConf)).chain.dataField
-    iota2Folder = Config(file(pathConf)).chain.outputPath
-    runs = Config(file(pathConf)).chain.runs
+    dataField = Config(open(pathConf)).chain.dataField
+    iota2Folder = Config(open(pathConf)).chain.outputPath
+    runs = Config(open(pathConf)).chain.runs
     workingDirectory = iota2Folder+"/final/TMP"
     if wD:
         workingDirectory = wD
@@ -196,9 +193,9 @@ def computeStats(pathConf, wD=None):
         cursor.execute("select name from sqlite_master where type = 'table';")
         tableName = str(cursor.fetchall()[-1][0])
         
-        print "Fill up statistics dataBase"
+        print("Fill up statistics dataBase")
         for currentDataBase in dataBase:
-            print ("Add dataBase : {}".format(currentDataBase))
+            print(("Add dataBase : {}".format(currentDataBase)))
             cursor.execute("ATTACH '%s' as db2;"%(currentDataBase))
             cursor.execute("CREATE TABLE output2 AS SELECT * FROM db2.output;")
             cursor.execute("INSERT INTO "+tableName+"("+fields+") SELECT "+fields+" FROM output2;")
@@ -211,12 +208,11 @@ def computeStats(pathConf, wD=None):
         #plot relation
         plotsSeed = plotRelation(finalDataBasePath, dataField, seed, iota2Folder)
         #Compute statistics
-        print "Compute statistics"
+        print("Compute statistics")
         statsByClass = computeStatistics(finalDataBasePath, dataField)
         statsBySeed.append(statsByClass)
 
     return statsBySeed
-
 
 if __name__ == "__main__":
 
@@ -226,18 +222,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     statsBySeed = computeStats(args.pathConf, args.pathWd)
-    print statsBySeed
+    print(statsBySeed)
     """
     Example :
     python computeStats.py -wd /work/OT/theia/oso/TMP/sampleExtraction -conf /home/uz/vincenta/config/configS1S2_4Tiles_multiSARdespeckle.cfg
     """
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    

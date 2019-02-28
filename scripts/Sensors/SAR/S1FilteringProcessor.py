@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 # =========================================================================
 #   Program:   iota2
@@ -13,7 +13,7 @@
 #
 # =========================================================================
 
-import ConfigParser
+import configparser
 import os
 import re
 import logging
@@ -81,7 +81,7 @@ def main(ortho=None, configFile=None, dates=None, tileName=None, logger=logger):
     import ast
     from Common import FileUtils
 
-    config = ConfigParser.ConfigParser()
+    config = configparser.ConfigParser()
     config.read(configFile)
     wMode = ast.literal_eval(config.get('Processing','writeTemporaryFiles'))
     stackFlag = ast.literal_eval(config.get('Processing','outputStack'))
@@ -97,7 +97,7 @@ def main(ortho=None, configFile=None, dates=None, tileName=None, logger=logger):
     outputPreProcess = config.get('Paths','Output')
     wr = config.get('Filtering','Window_radius')
 
-    directories=os.walk(outputPreProcess).next()
+    directories=next(os.walk(outputPreProcess))
     SARFilter = []
     #OUTCOREs
     for d in directories[1]:

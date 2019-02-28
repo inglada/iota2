@@ -1,10 +1,10 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
+#-*- coding: utf-8 -*-
 
 import os
 import glob
 import sys
-import vector_functions as vf
-
+from VectorTools import vector_functions as vf
 
 def modifID(shapefile, fieldID):
 	ds = vf.openToWrite(shapefile)
@@ -16,13 +16,12 @@ def modifID(shapefile, fieldID):
 		layer.SetFeature(feat)
 		i += 1
 
-
 if __name__=='__main__':
     usage='usage: <infile> <fieldID>'
     if len(sys.argv) == 3:
         if modifID(sys.argv[1],sys.argv[2]) == 0:
-            print 'Update of field succeeded!'
+            print('Update of field succeeded!')
             sys.exit(0)
     else:
-        print usage
+        print(usage)
         sys.exit(1)

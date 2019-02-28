@@ -1,5 +1,5 @@
-# !/usr/bin/python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
+#-*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -99,7 +99,7 @@ class iota_testOpticalSARFusion(unittest.TestCase):
     # after launching all tests
     @classmethod
     def tearDownClass(self):
-        print "{} ended".format(self.group_test_name)
+        print("{} ended".format(self.group_test_name))
         if RM_IF_ALL_OK and all(self.all_tests_ok):
             shutil.rmtree(self.iota2_tests_directory)
 
@@ -174,7 +174,7 @@ class iota_testOpticalSARFusion(unittest.TestCase):
         parameters_test = Fusion.dempster_shafer_fusion_parameters(iota2_dir)
         # test_parameters depend of execution environement, remove local path is necessary
         for param_group in parameters_test:
-            for key, value in param_group.items():
+            for key, value in list(param_group.items()):
                 param_group[key] = value.replace(iota2_dir, "")
         # assert
         self.assertTrue(all(param_group_test == param_group_ref for param_group_test, param_group_ref in zip(parameters_test, self.parameter_ref)),

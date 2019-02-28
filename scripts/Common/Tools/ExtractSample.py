@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -33,10 +33,10 @@ def extraction(shapeE, DriverE, field, field_val, nb_extrac, shapeS, fieldo, Dri
     dataSourceS = driver.Open(shapeS, 1)
     layerS = dataSourceS.GetLayer()
 
-    print "checking FID"
+    print("checking FID")
     All_FID = [(currentFeat.GetField(field), currentFeat.GetFID()) for currentFeat in layer if currentFeat.GetField(field) in field_val]
     All_FID = fu.sortByFirstElem(All_FID)
-    print "FIDs found"
+    print("FIDs found")
     # get Fieldo index
 
     featureDefnS = layerS.GetLayerDefn()
@@ -56,15 +56,15 @@ def extraction(shapeE, DriverE, field, field_val, nb_extrac, shapeS, fieldo, Dri
     i = 0
     fid_ind = layerS
     for val in field_val:
-        print "fill up "+str(val)+" values"
+        print("fill up "+str(val)+" values")
         # list of Fid of the current landcover type (val)
         listFid = [x[1] for x in All_FID if x[0] == val][0]
         # Random selection
-        print len(listFid)
+        print(len(listFid))
         nbExtraction = nb_extrac[i]
         if nbExtraction > len(listFid):
             nbExtraction = len(listFid)
-            print "Warning : class "+str(val)+" extraction set to "+str(nbExtraction)
+            print("Warning : class "+str(val)+" extraction set to "+str(nbExtraction))
             sublistFid = random.sample(listFid, nbExtraction)
 
         chunkSublistFID = fu.splitList(sublistFid, 1+int(len(sublistFid)/1000))
@@ -93,7 +93,7 @@ def extraction(shapeE, DriverE, field, field_val, nb_extrac, shapeS, fieldo, Dri
 
         layerS = layer = None
 
-    print "DONE"
+    print("DONE")
 
 if __name__ == "__main__":
 

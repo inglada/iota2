@@ -1,4 +1,5 @@
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
+#-*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -28,7 +29,7 @@ def preprocess(tile_name, config_path, working_directory=None, RAM=128):
     RAM [int]
         pipeline's size (Mo)
     """
-    from Sensors_container import Sensors_container
+    from Sensors.Sensors_container import Sensors_container
 
     remoteSensor_container = Sensors_container(config_path, tile_name,
                                                working_dir=working_directory)
@@ -50,7 +51,7 @@ def commonMasks(tile_name, config_path, working_directory=None, RAM=128):
         pipeline's size (Mo)
     """
     import os
-    from Sensors_container import Sensors_container
+    from Sensors.Sensors_container import Sensors_container
     from Common.Utils import run
     from Common.FileUtils import ensure_dir
     
@@ -91,7 +92,7 @@ def validity(tile_name, config_path, maskOut_name, view_threshold, workingDirect
     """
     import os
     import shutil
-    from Sensors_container import Sensors_container
+    from Sensors.Sensors_container import Sensors_container
     from Common.OtbAppBank import CreateConcatenateImagesApplication
     from Common.OtbAppBank import CreateBandMathApplication
     from Common import ServiceConfigFile as SCF
@@ -118,7 +119,7 @@ def validity(tile_name, config_path, maskOut_name, view_threshold, workingDirect
     sensors_masks = []
     for sensor_name, (time_series_masks, time_series_dep, nb_bands) in sensors_time_series_masks:
         if sensor_name.lower() == "sentinel1":
-            for sensor_mode, time_series_masks_app in time_series_masks.items():
+            for sensor_mode, time_series_masks_app in list(time_series_masks.items()):
                 time_series_masks_app.Execute()
                 sensors_masks.append(time_series_masks_app)
         else:

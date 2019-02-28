@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -29,7 +29,7 @@ from skimage.measure import regionprops
 import numpy as np
 from Common import FileUtils as fut
 import time
-import vector_functions as vf
+from VectorTools import vector_functions as vf
 
 # This is needed in order to be able to send pyhton objects throug MPI send
 MPI.pickle.dumps = dill.dumps
@@ -62,7 +62,7 @@ def kill_slaves(mpi_service):
     :param mpi_service
     """
     for i in range(1, mpi_service.size):
-        print "Kill signal to slave " + str(i), "debug"
+        print("Kill signal to slave " + str(i), "debug")
         mpi_service.comm.send(None, dest=i, tag=1)
 
 
@@ -89,36 +89,35 @@ def mpi_schedule_job_array(csvstore, job_array, mpi_service=MPIService()):
                 if len(param_array) > 0:
                     task_param = param_array.pop(0)
                     mpi_service.comm.send([job, task_param], dest=slave_rank, tag=0)
-            print "All tasks sent"
+            print("All tasks sent")
             try:
                 kill_slaves(mpi_service)
             except Exception as inst:
-                print inst
-            print "All tasks completed"
+                print(inst)
+            print("All tasks completed")
             return results
         else:
             # slave
             mpi_status = MPI.Status()
             while 1:
                 # waiting sending works by master
-                print 'Slave ' + str(mpi_service.rank) + ' is ready...'
+                print('Slave ' + str(mpi_service.rank) + ' is ready...')
                 [task_job, task_param] = mpi_service.comm.recv(source=0, tag=MPI.ANY_TAG, status=mpi_status)
                 if mpi_status.Get_tag() == 1:
-                    print 'Closed rank ' + str(mpi_service.rank)
+                    print('Closed rank ' + str(mpi_service.rank))
                     break
                 start_date = datetime.datetime.now()
                 result = task_job(task_param)
                 end_date = datetime.datetime.now()
-                print mpi_service.rank, task_param, "ended"
+                print(mpi_service.rank, task_param, "ended")
                 mpi_service.comm.send([mpi_service.rank, [start_date, end_date, result]], dest=0, tag=0)
 
     except:
         if mpi_service.rank == 0:
-            print "Something went wrong, we should log errors."
+            print("Something went wrong, we should log errors.")
             traceback.print_exc()
             kill_slaves(mpi_service)
             sys.exit(1)
-
 
 def listClasses(shpfile, field):
 
@@ -159,10 +158,10 @@ def countByAtt(params):
                 geom = feat.GetGeometryRef()
                 area += geom.GetArea()
         partcl = area / totalarea * 100
-        print "Class # %s: %s features and a total area of %s (rate : %s)"%(str(classe), \
+        print("Class # %s: %s features and a total area of %s (rate : %s)"%(str(classe), \
                                                                             str(featureCount),\
                                                                             str(area), \
-                                                                            str(round(partcl,4)))
+                                                                            str(round(partcl,4))))
         stats.append([classe, featureCount, area, partcl])
         layer.ResetReading()
     else:
@@ -173,15 +172,14 @@ def countByAtt(params):
                 geom = feat.GetGeometryRef()
                 area += geom.GetArea()
         partcl = area / totalarea * 100       
-        print "Class # %s: %s features and a total area of %s (rate : %s)"%(str(classe), \
+        print("Class # %s: %s features and a total area of %s (rate : %s)"%(str(classe), \
                                                                             str(featureCount),\
                                                                             str(area),\
-                                                                            str(round(partcl,4)))           
+                                                                            str(round(partcl,4))))
         stats.append([classe, featureCount, area, partcl])
         layer.ResetReading()
 
     return stats
-
 
 def master(vector, field, csvstore):
 
@@ -192,7 +190,7 @@ def master(vector, field, csvstore):
         listclasses = listClasses(vector, field)
 
     param_list = []
-    print listclasses
+    print(listclasses)
     for classe in listclasses:
         param_list.append((vector, classe, field))
 
@@ -204,13 +202,12 @@ def master(vector, field, csvstore):
             writer = csv.writer(myfile)
             writer.writerows(results)
 
-            
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         PROG = os.path.basename(sys.argv[0])
-        print '      '+sys.argv[0]+' [options]'
-        print "     Help : ", PROG, " --help"
-        print "        or : ", PROG, " -h"
+        print('      '+sys.argv[0]+' [options]')
+        print("     Help : ", PROG, " --help")
+        print("        or : ", PROG, " -h")
         sys.exit(-1)
     else:
         USAGE = "usage: %prog [options] "
@@ -224,6 +221,5 @@ if __name__ == "__main__":
         PARSER.add_argument("-csv", dest="csv", action="store",\
                             help="csv file to store results", required=True)
 
-        
         args = PARSER.parse_args()
         master(args.ins, args.field, args.csv)

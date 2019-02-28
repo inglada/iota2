@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -23,7 +23,6 @@ from osgeo import ogr
 from Common import ServiceConfigFile as SCF
 
 def getStatsFromSamples(InSamples, ground_truth, region_field):
-
     """
         IN:
             InSamples [string] : path to a sqlite file containing N fields value_0 .... value_N-1 representing features values
@@ -55,9 +54,7 @@ def getStatsFromSamples(InSamples, ground_truth, region_field):
     allStdDev = [stddev for mean, stddev in allStat]
     return allMean, allStdDev
 
-
 def writeStatsFromSample(InSamples, outStats, ground_truth, region_field):
-
     allMean, allStdDev = getStatsFromSamples(InSamples, ground_truth, region_field)
 
     with open(outStats, "w") as statsFile:
@@ -72,7 +69,6 @@ def writeStatsFromSample(InSamples, outStats, ground_truth, region_field):
             statsFile.write('        <StatisticVector value="' + str(currentStd) + '" />\n')
         statsFile.write('    </Statistic>\n\
                             </FeatureStatistics>')
-
 
 def get_svm_normalization_stats(stats_dir, region_name, seed):
     """
@@ -102,14 +98,12 @@ def buildTrainCmd_points(r, paths, classif, options, dataField, out,
             cmd = "{} {}".format(cmd, proba_option)
     return cmd
 
-
 def getFeatures_labels(learning_vector):
     """
     """
     nb_no_features = 4
     fields = fu.getAllFieldsInShape(learning_vector, driver='SQLite')
     return fields[nb_no_features::]
-
 
 def config_model(outputPath, region_field):
     """
@@ -146,19 +140,18 @@ def config_model(outputPath, region_field):
     for shape_region in shape_regions:
         tile = os.path.splitext(os.path.basename(shape_region))[0].split("_")[-1]
         region = os.path.splitext(os.path.basename(shape_region))[0].split("_")[-2]
-        for model_name, tiles_model in model_tiles.items():
+        for model_name, tiles_model in list(model_tiles.items()):
             if model_name.split("f")[0] == region and tile not in tiles_model:
                 tiles_model.append(tile)
 
     #Construct output file string
     output = "AllModel:\n["
-    for model_name, tiles_model in model_tiles.items():
+    for model_name, tiles_model in list(model_tiles.items()):
         output_tmp = "\n\tmodelName:'{}'\n\ttilesList:'{}'".format(model_name, "_".join(tiles_model))
         output = output + "\n\t{" + output_tmp + "\n\t}"
     output += "\n]"
 
     return output
-
 
 def launchTraining(cfg, dataField, stat, N,
                    pathToCmdTrain, out, pathWd):
@@ -218,7 +211,6 @@ def launchTraining(cfg, dataField, stat, N,
 
     fu.writeCmds(pathToCmdTrain + "/train.txt", cmd_out)
     return cmd_out
-
 
 if __name__ == "__main__":
 

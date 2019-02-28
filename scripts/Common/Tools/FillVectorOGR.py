@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -23,7 +23,6 @@ from osgeo import ogr
 #from osgeo import osr
 from Common import FileUtils as fu
 
-
 def extraction(vectorFill, vectorSource, field, field_val, driversFill, driversSource):
 
     ogrDriversSource = ogr.GetDriverByName(driversSource)
@@ -31,9 +30,9 @@ def extraction(vectorFill, vectorSource, field, field_val, driversFill, driversS
 
     layerSource = dataSourceSource.GetLayer()
 
-    print "RECHERCHE DES FIDs"
+    print("RECHERCHE DES FIDs")
     All_FID = [(currentFeat.GetField(field), str(currentFeat.GetFID())) for currentFeat in layerSource if currentFeat.GetField(field) in field_val]
-    print "FIDs trouvée"
+    print("FIDs trouvée")
     layerSource.ResetReading()
 
     All_FID = fu.sortByFirstElem(All_FID)
@@ -42,8 +41,8 @@ def extraction(vectorFill, vectorSource, field, field_val, driversFill, driversS
         splits = fu.splitList(FID, len(vectorFill))
         for currentSplit, currentVectorFill in zip(splits, vectorFill):
             cmd = "ogr2ogr -append "+currentVectorFill+" "+vectorSource+" -where \" fid in ("+",".join(currentSplit)+")\""
-            print cmd
-            print "Ajout de "+str(currentClass)+" dans "+currentVectorFill.split("/")[-1]
+            print(cmd)
+            print("Ajout de "+str(currentClass)+" dans "+currentVectorFill.split("/")[-1])
             os.system(cmd)
 
 #-where "fid in (2, 0)"
@@ -62,14 +61,3 @@ if __name__ == "__main__":
     extraction(args.vectorFill, args.vectorSource, args.field, args.field_val, args.driversFill, args.driversSource)
 
 #python fillVector.py -vectorSource.driver "ESRI Shapefile" -vectorToFill.driver "ESRI Shapefile" "ESRI Shapefile" -field.value 1 44 -field code -vectorSource /mnt/sdb1/Data/corse/test_sansForet.shp -vectorToFill /mnt/sdb1/Data/corse/test_avecForet_1.shp /mnt/sdb1/Data/corse/test_avecForet_2.shp
-
-
-
-
-
-
-
-
-
-
-

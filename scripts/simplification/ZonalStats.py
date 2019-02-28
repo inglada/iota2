@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -67,6 +67,7 @@ def zonalstats(path, rasters, params, gdalpath = "", res = 10):
     vectorname = os.path.splitext(os.path.basename(vector))[0]
     ds = vf.openToRead(vector)
     lyr = ds.GetLayer()
+
     for idval in idvals:
         lyr.SetAttributeFilter("FID=" + str(idval))
         for feat in lyr:
@@ -155,15 +156,14 @@ def zonalstats(path, rasters, params, gdalpath = "", res = 10):
                 stats.append(results_final)
         else:
             results_final.append([[idval, 'classif', 'part', 0, 0], [idval, 'confidence', 'mean', 0, 0], [idval, 'validity', 'mean', 0, 0],[idval, 'validity', 'std', 0, 0]])
-            print "Feature with FID = %s of shapefile %s with null stats (maybe its size is too small)"%(idval, vector)
+            print("Feature with FID = %s of shapefile %s with null stats (maybe its size is too small)"%(idval, vector))
             stats.append(results_final[0])
 
     with open(csvstore, 'a') as myfile:
         writer = csv.writer(myfile)
         writer.writerows(stats)
 
-def getParameters(vectorpath, csvstorepath, chunk=1):
-    
+def getParameters(vectorpath, csvstorepath, chunk=1):    
     listvectors = getVectorsList(vectorpath)
     params = []
     if os.path.isdir(vectorpath):
@@ -171,13 +171,13 @@ def getParameters(vectorpath, csvstorepath, chunk=1):
             listfid = getFidList(vect)
             csvstore = os.path.join(csvstorepath, "stats_%s"%(os.path.splitext(os.path.basename(vect))[0]))
             #TODO : split in chunks with sum of feature areas quite equal
-            listfid = [listfid[i::chunk] for i in xrange(chunk)]
+            listfid = [listfid[i::chunk] for i in range(chunk)]
             for fidlist in listfid:                 
                 params.append((vect, fidlist, csvstore))
     else:
         listfid = getFidList(vectorpath)
         csvstore = os.path.join(csvstorepath, "stats_%s"%(os.path.splitext(os.path.basename(vectorpath))[0]))
-        listfid = [listfid[i::chunk] for i in xrange(chunk)]        
+        listfid = [listfid[i::chunk] for i in range(chunk)]        
         for fidlist in listfid:                 
             params.append((vect, fidlist, csvstore))
 
@@ -190,13 +190,12 @@ def computZonalStats(path, inr, shape, csvstore, gdal, chunk=1):
     for parameters in params:
         zonalstats(path, inr, parameters, gdal, chunk)
 
-
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         PROG = os.path.basename(sys.argv[0])
-        print '      '+sys.argv[0]+' [options]'
-        print "     Help : ", PROG, " --help"
-        print "        or : ", PROG, " -h"
+        print('      '+sys.argv[0]+' [options]')
+        print("     Help : ", PROG, " --help")
+        print("        or : ", PROG, " -h")
         sys.exit(-1)
     else:
         USAGE = "usage: %prog [options] "

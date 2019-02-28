@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 import os.path
@@ -6,18 +6,17 @@ import sys
 import argparse
 from shutil import copyfile
 from osgeo import ogr
-import vector_functions as vf
-import NomenclatureHarmonisation as nh
-import AddFieldID
-import DeleteField
-import AddFieldArea
-import DeleteDuplicateGeometriesSqlite
-import BufferOgr
-import MultiPolyToPoly
-import SelectBySize
-import checkGeometryAreaThreshField
-import SimplifyPoly
-
+from VectorTools import vector_functions as vf
+from VectorTools import NomenclatureHarmonisation as nh
+from VectorTools import AddFieldID
+from VectorTools import DeleteField
+from VectorTools import AddFieldArea
+from VectorTools import DeleteDuplicateGeometriesSqlite
+from VectorTools import BufferOgr
+from VectorTools import MultiPolyToPoly
+from VectorTools import SelectBySize
+from VectorTools import checkGeometryAreaThreshField
+from VectorTools import SimplifyPoly
 
 def traitEchantillons(shapefile, outfile, outpath, areapix, pix_thresh, tmp, fieldout, bufferdist = 0, tolerance = None, csvfile = 1, delimiter = 1, fieldin = 1):
 
@@ -44,19 +43,19 @@ def traitEchantillons(shapefile, outfile, outpath, areapix, pix_thresh, tmp, fie
         simplyFile = os.path.splitext(newshapefile)[0] + "_spfy.shp"
         SimplifyPoly.simplify(newshapefile, simplyFile, tolerance)
         intermediate.append(simplyFile)
-        print "File geometries well simplified"
+        print("File geometries well simplified")
     else:
         simplyFile = newshapefile
 
-    intermediate.append(simplyFile)        
-        
+    intermediate.append(simplyFile)
+
     # Empty geometry identification
     try:
         outShapefile, _ = vf.checkEmptyGeom(simplyFile)
-        print 'Check empty geometries succeeded'
+        print('Check empty geometries succeeded')
     except Exception as e:
-        print 'Check empty geometries did not work for the following error :'
-        print e
+        print('Check empty geometries did not work for the following error :')
+        print(e)
 
     # Duplicate geometries
     DeleteDuplicateGeometriesSqlite.deleteDuplicateGeometriesSqlite(outShapefile)
@@ -70,36 +69,36 @@ def traitEchantillons(shapefile, outfile, outpath, areapix, pix_thresh, tmp, fie
         intermediate.append(outbuffer)
         try:
             BufferOgr.bufferPoly(outShapefile, outbuffer, bufferdist)
-            print 'Negative buffer of {} m succeeded'.format(bufferdist)
+            print('Negative buffer of {} m succeeded'.format(bufferdist))
         except Exception as e:
-            print 'Negative buffer did not work for the following error :'
-            print e
+            print('Negative buffer did not work for the following error :')
+            print(e)
     else:
         outbuffer = outShapefile
 
     outfile = os.path.dirname(shapefile) + '/' + outfile
     checkGeometryAreaThreshField.checkGeometryAreaThreshField(outbuffer, areapix, pix_thresh, outfile)
-    
-    print 'Samples vector file "{}" for classification are now ready'.format(outfile)
+
+    print('Samples vector file "{}" for classification are now ready'.format(outfile))
 
     if tmp:
         driver = ogr.GetDriverByName('ESRI Shapefile')
         for fileinter in intermediate:
             if os.path.exists(fileinter):
                 driver.DeleteDataSource(fileinter)
-                print 'Intermediate file {} deleted'.format(fileinter)
+                print('Intermediate file {} deleted'.format(fileinter))
     else:
-        print 'Intermediate files are preserved in folder {}'.format(os.path.dirname(os.path.realpath(intermediate[0])))
+        print('Intermediate files are preserved in folder {}'.format(os.path.dirname(os.path.realpath(intermediate[0]))))
 
 def manageFieldShapefile(shapefile, fieldout, areapix):
-  
+
     # existing fields
     fieldList = vf.getFields(shapefile)
     #fieldList = [x.lower() for x in fieldList]
     #fieldList.remove(fieldout.lower())
     fieldList.remove(fieldout)
 
-    print fieldList
+    print(fieldList)
     # FID creation
     if 'ID' not in fieldList:
         AddFieldID.addFieldID(shapefile)
@@ -112,7 +111,7 @@ def manageFieldShapefile(shapefile, fieldout, areapix):
         AddFieldArea.addFieldArea(shapefile, areapix)
         fieldList.remove('Area')
     else:
-        AddFieldArea.addFieldArea(shapefile, areapix)        
+        AddFieldArea.addFieldArea(shapefile, areapix)
 
     # Suppression des champs initiaux
     for field in fieldList:
@@ -121,14 +120,14 @@ def manageFieldShapefile(shapefile, fieldout, areapix):
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
-	prog = os.path.basename(sys.argv[0])
-	print '      '+sys.argv[0]+' [options]' 
-	print "     Help : ", prog, " --help"
-	print "        or : ", prog, " -h"
-	sys.exit(-1)  
+        prog = os.path.basename(sys.argv[0])
+        print('      '+sys.argv[0]+' [options]') 
+        print("     Help : ", prog, " --help")
+        print("        or : ", prog, " -h")
+        sys.exit(-1)  
     else:
-	usage = "usage: %prog [options] "
-	parser = argparse.ArgumentParser(description = "This function treats input vector file (-s)" \
+        usage = "usage: %prog [options] "
+        parser = argparse.ArgumentParser(description = "This function treats input vector file (-s)" \
                                          "to use it for training / validation samples of classification" \
                                          "proccess. Output vector file (-o) will be stored in the same folder"\
                                          "than input vector file and intermediate files in a specified folder (-tmppath)")
@@ -157,17 +156,17 @@ if __name__ == "__main__":
         parser.add_argument("-recode", action='store_true', help="Harmonisation of nomenclature with specific classes codes" \
                             "(please provide CSV recode rules, CSV delimiter, Existing field and Field to create)", default = False)
         parser.add_argument("-notmp", action='store_true', help="No Keeping intermediate files", default = False)
-	args = parser.parse_args()
+        args = parser.parse_args()
 
         if args.recode:
             if (args.csv is None) or (args.delimiter is None) or (args.ofield is None):
-                print 'Please provide CSV recode rules (-csv), CSV delimiter (-d) and Field to populate (-of)'
+                print('Please provide CSV recode rules (-csv), CSV delimiter (-d) and Field to populate (-of)')
                 sys.exit(-1)
             else:
                 if args.buffer is not None:
                     if int(args.buffer) >= 0:
-                        print args.buffer
-                        print "Buffer distance must be negative"
+                        print(args.buffer)
+                        print("Buffer distance must be negative")
                         sys.exit(-1)
                     else:
                         traitEchantillons(args.shapefile, args.output, args.tmppath, args.areapix, args.pixthresh, args.notmp, \

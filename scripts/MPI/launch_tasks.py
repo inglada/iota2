@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -35,13 +35,11 @@ def launchBashCmd(bashCmd):
     #bashCmd.split(" ")
     #subprocess.check_output(bashCmd, shell=False)
 
-
 def launchPythonCmd(f, *arg):
     """
     Launch function with args
     """
     f(*arg)
-
 
 class Tasks():
     """

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -22,7 +22,6 @@ import argparse
 from osgeo import ogr
 #from osgeo import osr
 from Common import FileUtils as fu
-
 
 def extraction(vectorFill, vectorSource, field, field_val, driversFill, driversSource):
 
@@ -57,10 +56,10 @@ def extraction(vectorFill, vectorSource, field, field_val, driversFill, driversS
             filterFID = "("+" OR ".join(["("+" OR ".join([FIDColumn+"="+str(currentFID) for currentFID in chunk])+")" for chunk in chunkSublistFID])+")"
             layerSource.SetAttributeFilter(filterFID)
             newfid = fidMax
-            print "Ajout de "+str(currentClass)+" dans "+vectorFill[i]+" filter : "+filterFID
+            print("Ajout de "+str(currentClass)+" dans "+vectorFill[i]+" filter : "+filterFID)
             for feature in layerSource:
                 geom = feature.GetGeometryRef()
-                print geom
+                print(geom)
                 dstfeature = ogr.Feature(layerSource.GetLayerDefn())
                 dstfeature.SetGeometry(geom)
                 dstfeature.SetFID(newfid + 1)
@@ -73,7 +72,6 @@ def extraction(vectorFill, vectorSource, field, field_val, driversFill, driversS
 
                 dstfeature.Destroy()
             i += 1
-
 
     for layerToFill in layerFill:
         layerToFill = None
@@ -94,15 +92,3 @@ if __name__ == "__main__":
     extraction(args.vectorFill, args.vectorSource, args.field, args.field_val, args.driversFill, args.driversSource)
 
 #python fillVector.py -vectorSource.driver "ESRI Shapefile" -vectorToFill.driver "ESRI Shapefile" "ESRI Shapefile" -field.value 1 -field code -vectorSource /mnt/sdb1/Data/corse/test_sansForet.shp -vectorToFill /mnt/sdb1/Data/corse/test_avecForet_1.shp /mnt/sdb1/Data/corse/test_avecForet_2.shp
-
-
-
-
-
-
-
-
-
-
-
-

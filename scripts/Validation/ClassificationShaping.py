@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -24,7 +24,6 @@ from Common import FileUtils as fu
 from Common import CreateIndexedColorImage as color
 from Common import ServiceConfigFile as SCF
 from Common.Utils import run
-
 
 def BuildNbVoteCmd(classifTile, VoteMap):
 
@@ -303,7 +302,6 @@ def ClassificationShaping(pathClassif, pathEnvelope, pathImg, fieldEnv, N,
     if pathWd:
         shutil.copy(pathWd+"/PixelsValidity.tif", pathTest+"/final")
         os.remove(pathWd+"/PixelsValidity.tif")
-
 
 if __name__ == "__main__":
 

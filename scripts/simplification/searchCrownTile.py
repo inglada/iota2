@@ -1,5 +1,4 @@
-
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -295,7 +294,7 @@ def searchCrownTile(inpath, raster, clump, ram, grid, outpath, nbcore = 4, ngrid
                 topo = dict(fu.sortByFirstElem(listelt))
 
                 # Flat list and remove tile entities
-                flatneighbors = set(chain(*dict((key,value) for key, value in topo.iteritems() if key in listTileId).values()))       
+                flatneighbors = set(chain(*list(dict((key,value) for key, value in list(topo.items()) if key in listTileId).values())))
 
                 timecrownentities = time.time()
                 logger.info(" ".join([" : ".join(["List crown entities", str(round(timecrownentities - timeextract, 2))]), "seconds"]))
@@ -334,15 +333,14 @@ def searchCrownTile(inpath, raster, clump, ram, grid, outpath, nbcore = 4, ngrid
 #------------------------------------------------------------------------------
 if __name__ == "__main__":
     if len(sys.argv) == 1:
-	prog = os.path.basename(sys.argv[0])
-	print '      '+sys.argv[0]+' [options]'
-	print "     Help : ", prog, " --help"
-	print "        or : ", prog, " -h"
-	sys.exit(-1)
-
+        prog = os.path.basename(sys.argv[0])
+        print('      '+sys.argv[0]+' [options]')
+        print("     Help : ", prog, " --help")
+        print("        or : ", prog, " -h")
+        sys.exit(-1)
     else:
-	usage = "usage: %prog [options] "
-	parser = argparse.ArgumentParser(description = "Manage tile clumps (in the ngrid th of the grid shapefile) and neighbors clumps " \
+        usage = "usage: %prog [options] "
+        parser = argparse.ArgumentParser(description = "Manage tile clumps (in the ngrid th of the grid shapefile) and neighbors clumps " \
                                          ".i.e clumps in the crown. Result raster (tile_ngrid.tif) gets all clumps (tile and crown ones). " \
                                          "To differenciate them tile clumps have OSO classification codes while crown clumps have ID clumps ")
 
@@ -370,12 +368,12 @@ if __name__ == "__main__":
         parser.add_argument("-out", dest="out", action="store", \
                             help="outname directory", required = True)
 
-    args = parser.parse_args()
-    os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"]= str(args.core)
+        args = parser.parse_args()
+        os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"]= str(args.core)
 
-    logger = logging.getLogger(__name__)
-    logger.addHandler(logging.StreamHandler(sys.stdout))
-    logger.setLevel(10)
+        logger = logging.getLogger(__name__)
+        logger.addHandler(logging.StreamHandler(sys.stdout))
+        logger.setLevel(10)
 
-    serialisation(args.path, args.classif, args.clump, args.ram, args.grid, \
+        serialisation(args.path, args.classif, args.clump, args.ram, args.grid, \
                   args.out, args.core, args.ngrid)

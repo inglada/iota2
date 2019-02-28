@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -56,13 +56,13 @@ def edgeStat(image, outStat_directory, useFilter, ram):
     stat.SetParameterString("ram", str(ram))
     stat.SetParameterString("out", outStat)
 
-    print "computing "+outStat
+    print("computing "+outStat)
 
     stat.ExecuteAndWriteOutput()
 
     mean, std = getStatMeanAndStd(outStat)
-    print "mean : "+str(mean)
-    print "std  : "+str(std)
+    print("mean : "+str(mean))
+    print("std  : "+str(std))
     return mean, std
 
 if __name__ == "__main__":
@@ -76,28 +76,3 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     edgeStat(args.image, args.outStat_directory, args.useFilter, args.ram)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -114,7 +114,7 @@ def addLineToFile(inputFile, line):
 
 def launchFit(noDataM, noDataR, tileFolder, currentTile, sensorName, S2Folder, S2Bands, masks):
     S2Bands = S2Bands+masks
-    noDataM = dict(zip(masks, noDataM))
+    noDataM = dict(list(zip(masks, noDataM)))
     try:
         workingDirectory = os.environ["TMPDIR"]
     except:
@@ -130,11 +130,11 @@ def launchFit(noDataM, noDataR, tileFolder, currentTile, sensorName, S2Folder, S
         buf = []
         cpt = 0
         for currentBand in S2Bands:
-            print "Current Band : "+currentBand
+            print("Current Band : "+currentBand)
             buf.append([])
             AllTiles = []
             for currentFolder in currentSameDate:
-                print currentFolder
+                print(currentFolder)
                 path = FileSearch_fast(currentFolder, True, currentBand, ".tif")
                 tile = path.split("/")[-1].split("_")[-1].replace(".tif", "")
                 X, Y, inEPSG = getTileOrigin(tile, S2Folder)

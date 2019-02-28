@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 import sys
@@ -54,9 +54,9 @@ def deleteDuplicateGeometriesSqlite(shapefile, do_corrections=True, output_file=
         os.system("ogr2ogr -f 'ESRI Shapefile' %s %s"%(shapefile, outsqlite))
 
         if nb_dupplicates != 0:
-            print "Analyse of duplicated features done. %s duplicates found and deleted"%(nb_dupplicates)
+            print("Analyse of duplicated features done. %s duplicates found and deleted"%(nb_dupplicates))
         else:
-            print "Analyse of duplicated features done. No duplicates found"
+            print("Analyse of duplicated features done. No duplicates found")
             
         cursor = conn = None
 
@@ -65,15 +65,14 @@ def deleteDuplicateGeometriesSqlite(shapefile, do_corrections=True, output_file=
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
-	prog = os.path.basename(sys.argv[0])
-	print '      '+sys.argv[0]+' [options]' 
-	print "     Help : ", prog, " --help"
-	print "        or : ", prog, " -h"
-	sys.exit(-1)  
- 
+        prog = os.path.basename(sys.argv[0])
+        print('      '+sys.argv[0]+' [options]') 
+        print("     Help : ", prog, " --help")
+        print("        or : ", prog, " -h")
+        sys.exit(-1)  
     else:
-	usage = "usage: %prog [options] "
-	parser = argparse.ArgumentParser(description = "Find geometries duplicates based on sqlite method")
+        usage = "usage: %prog [options] "
+        parser = argparse.ArgumentParser(description = "Find geometries duplicates based on sqlite method")
         
         parser.add_argument("-in", dest="inshape", action="store", \
                             help="Input shapefile to analyse", required = True)

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -17,119 +17,117 @@
 import argparse
 import sys,os,random,shutil
 from osgeo import gdal, ogr,osr
-import vector_functions as vf        
+from VectorTools import vector_functions as vf
 
 def get_randomPoly(dataSource,field,classes,ratio):
 	listallid = []
 	listValid = []
 
 	for cl in classes:
-                listid = []
-                layer = dataSource.GetLayer()
-                layer.SetAttributeFilter(field+" = "+str(cl))
-                featureCount = float(layer.GetFeatureCount())
-	        if featureCount == 1:
-	 	        for feat in layer:
-           	                _id = feat.GetFID()
-		                listallid.append(_id)
-                                listValid.append(_id)
-                else:
-         	        polbysel = round(featureCount*float(ratio))
-		        #polbysel = round(featureCount/2.0)
-         	        if polbysel <= 1:
-	    		        polbysel = 1
-         	        for feat in layer:
-            		        _id = feat.GetFID()
-            		        listid.append(_id)
-            		        listid.sort()
-         	        listToChoice = random.sample(listid, int(polbysel))
-         	        #print listToChoice
-         	        for fid in listToChoice:
-            		        listallid.append(fid)  
+		listid = []
+		layer = dataSource.GetLayer()
+		layer.SetAttributeFilter(field+" = "+str(cl))
+		featureCount = float(layer.GetFeatureCount())
+		if featureCount == 1:
+			for feat in layer:
+				_id = feat.GetFID()
+				listallid.append(_id)
+				listValid.append(_id)
+		else:
+			polbysel = round(featureCount*float(ratio))
+			#polbysel = round(featureCount/2.0)
+			if polbysel <= 1:
+				polbysel = 1
+				for feat in layer:
+					_id = feat.GetFID()
+					listid.append(_id)
+					listid.sort()
+				listToChoice = random.sample(listid, int(polbysel))
+				#print listToChoice
+				for fid in listToChoice:
+					listallid.append(fid)  
 	listallid.sort()
 	return listallid,listValid
 
 def RandomInSitu(vectorFile, field, nbdraws, opath, name, ratio, pathWd):
 
-   """
-		
-   """
+	"""
+	"""
 
-   classes = []
-   shapefile = vectorFile
-   allFID = []
-   nbtirage = nbdraws
-   nameshp = shapefile.split('.')
-   namefile = nameshp[0].split('/')
-   driver = ogr.GetDriverByName("ESRI Shapefile")
-   dataSource = driver.Open(shapefile, 0)
-   layer = dataSource.GetLayer()
+	classes = []
+	shapefile = vectorFile
+	allFID = []
+	nbtirage = nbdraws
+	nameshp = shapefile.split('.')
+	namefile = nameshp[0].split('/')
+	driver = ogr.GetDriverByName("ESRI Shapefile")
+	dataSource = driver.Open(shapefile, 0)
+	layer = dataSource.GetLayer()
 
-   
-# Find the number of polygons by class
-   for feature in layer:
-       pid = feature.GetFID()
-       allFID.append(pid)
-       cl =  feature.GetField(field)
-       if cl not in classes:
-          classes.append(cl)
+	# Find the number of polygons by class
+	for feature in layer:
+		pid = feature.GetFID()
+		allFID.append(pid)
+		cl =  feature.GetField(field)
+		if cl not in classes:
+			classes.append(cl)
 
-   AllTrain = []
-   AllValid = []
-   for tirage in range(0, nbtirage):
-      listallid, listValid = get_randomPoly(dataSource,field,classes,ratio)
-      ch = ""
-      listFid = []
-      for fid in listallid:
-         listFid.append("FID="+str(fid))
+	AllTrain = []
+	AllValid = []
+	for tirage in range(0, nbtirage):
+		listallid, listValid = get_randomPoly(dataSource,field,classes,ratio)
+		ch = ""
+		listFid = []
+		for fid in listallid:
+			listFid.append("FID="+str(fid))
 
-      resultA = []
-      for e in listFid:
-          resultA.append(e)
-          resultA.append(' OR ')
-      resultA.pop()
+		resultA = []
+		for e in listFid:
+			resultA.append(e)
+			resultA.append(' OR ')
+		resultA.pop()
 
-      chA =  ''.join(resultA)
-      layer.SetAttributeFilter(chA)
-      learningShape = opath + "/" + name + "_seed" + str(tirage) + "_learn.shp"
-      if pathWd == None:
-         outShapefile = opath + "/" + name + "_seed" + str(tirage)+ "_learn.shp"
-         vf.CreateNewLayer(layer, outShapefile)
-      else :
-	 outShapefile = pathWd + "/" +name + "_seed" + str(tirage) + "_learn.shp"
-         vf.CreateNewLayer(layer, outShapefile)
-         vf.copyShapefile(outShapefile, opath + "/" + name + "_seed" + str(tirage) + "_learn.shp")
+		chA =  ''.join(resultA)
+		layer.SetAttributeFilter(chA)
+		learningShape = opath + "/" + name + "_seed" + str(tirage) + "_learn.shp"
+		if pathWd == None:
+			outShapefile = opath + "/" + name + "_seed" + str(tirage)+ "_learn.shp"
+			vf.CreateNewLayer(layer, outShapefile)
+		else :
+			outShapefile = pathWd + "/" +name + "_seed" + str(tirage) + "_learn.shp"
+			vf.CreateNewLayer(layer, outShapefile)
+			vf.copyShapefile(outShapefile, opath + "/" + name + "_seed" + str(tirage) + "_learn.shp")
 
-      for i in allFID:
-         if i not in listallid:
-            listValid.append(i)
+		for i in allFID:
+			if i not in listallid:
+				listValid.append(i)
 
-      chV = ""
-      listFidV = []
-      for fid in listValid:
-         listFidV.append("FID="+str(fid))
+		chV = ""
+		listFidV = []
+		for fid in listValid:
+			listFidV.append("FID="+str(fid))
 
-      resultV = []
-      for e in listFidV:
-          resultV.append(e)
-          resultV.append(' OR ')
-      resultV.pop()
-       
-      chV =  ''.join(resultV)
-      layer.SetAttributeFilter(chV)
-      validationShape = opath + "/" + name + "_seed" + str(tirage) + "_val.shp"
-      if pathWd == None:
-         outShapefile2 = opath + "/" + name + "_seed" + str(tirage) + "_val.shp"
-         vf.CreateNewLayer(layer, outShapefile2)
-      else :
-	 outShapefile2 = pathWd + "/" + name + "_seed" + str(tirage) + "_val.shp"
-         vf.CreateNewLayer(layer, outShapefile2)
-         vf.copyShapefile(outShapefile2, opath + "/" + name + "_seed" + str(tirage) + "_val.shp")
+		resultV = []
+		for e in listFidV:
+			resultV.append(e)
+			resultV.append(' OR ')
+		resultV.pop()
 
-      AllTrain.append(learningShape)
-      AllValid.append(validationShape)
+		chV =  ''.join(resultV)
+		layer.SetAttributeFilter(chV)
+		validationShape = opath + "/" + name + "_seed" + str(tirage) + "_val.shp"
+		if pathWd == None:
+			outShapefile2 = opath + "/" + name + "_seed" + str(tirage) + "_val.shp"
+			vf.CreateNewLayer(layer, outShapefile2)
+		else :
+			outShapefile2 = pathWd + "/" + name + "_seed" + str(tirage) + "_val.shp"
+			vf.CreateNewLayer(layer, outShapefile2)
+			vf.copyShapefile(outShapefile2, opath + "/" + name + "_seed" + str(tirage) + "_val.shp")
 
-   return AllTrain,AllValid
+		AllTrain.append(learningShape)
+		AllValid.append(validationShape)
+
+	return AllTrain,AllValid
 
 def RandomInSituByTile(shapefile, dataField, N, pathOut,ratio, pathWd):
 
@@ -138,19 +136,19 @@ def RandomInSituByTile(shapefile, dataField, N, pathOut,ratio, pathWd):
 	daLayer = dataSource.GetLayer(0)
 	layerDefinition = daLayer.GetLayerDefn()
 	ratio = float(ratio)
- 
+
 	driver = ogr.GetDriverByName('ESRI Shapefile')
 	dataSource = driver.Open(shapefile, 0) 
 	# Check to see if shapefile is found.
 	if dataSource is None:
 		raise Exception("Could not open " + shapefile)
 	else:
-    		layer = dataSource.GetLayer()
-    		featureCount = layer.GetFeatureCount()
+		layer = dataSource.GetLayer()
+		featureCount = layer.GetFeatureCount()
 		if featureCount!=0:
 			AllTrain,AllValid = RandomInSitu(shapefile, dataField, N, pathOut, name, ratio, pathWd)
 
-        return AllTrain,AllValid
+	return AllTrain,AllValid
 
 if __name__ == "__main__":
 
@@ -165,20 +163,3 @@ if __name__ == "__main__":
 	args = parser.parse_args()
 
 	RandomInSituByTile(args.path, args.dataField, args.N, args.pathOut,args.ratio,args.pathWd)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

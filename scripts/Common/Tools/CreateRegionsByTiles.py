@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -24,7 +24,6 @@ from Common import FileUtils as fu
 from Common.Utils import run
 
 logger = logging.getLogger(__name__)
-
 
 def splitVectorLayer(shp_in, attribute, attribute_type, field_vals, pathOut):
     """
