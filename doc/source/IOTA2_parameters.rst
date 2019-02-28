@@ -1121,4 +1121,148 @@ coregistration.pattern
 *Example*
     pattern: '*STACK.tif'
 *Notes*
-    By default the value is left to ``'None'`` and the pattern depends on the sensor used (``*STACK.tif`` for Sentinel2, ``ORTHO_SURF_CORR_PENTE*.TIF``)
+    By default the value is left to ``'None'`` and the pattern depends
+    on the sensor used (``*STACK.tif`` for Sentinel2,
+    ``ORTHO_SURF_CORR_PENTE*.TIF``)
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Simplification.classification
+======================
+*Description*
+    Classification raster file to regularise, vectorize and
+    simplify
+*Type*
+    string
+*Default value*
+    'Classif_seed_0.tif'
+*Example*
+    pattern: 'Classif_seed_0.tif'
+*Notes*
+    By default the value is the output
+    classification of iota² chain.
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Simplification.confidence
+======================
+*Description*
+    Confidence raster file corresponding to the classification given by
+    ``Simplification.classification``
+*Type*
+    string
+*Default value*
+    'Confidence_Seed_0.tif'
+*Example*
+    pattern: 'Confidence_Seed_0.tif'
+*Notes*
+    By default the value is the output
+    confidence of iota² chain.
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Simplification.validity
+======================
+*Description*
+    Validity raster file corresponding to the classification given by
+    ``Simplification.classification``
+*Type*
+    string
+*Default value*
+    'PixelsValidity.tif'
+*Example*
+    pattern: 'PixelsValidity.tif'
+*Notes*
+    By default the value is the output
+    validity of iota² chain.
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Simplification.seed
+======================
+*Description*
+    In case of multiple runs ``chain.runs``, run of the classification(seed) to vectorize
+*Type*
+    int
+*Default value*
+    None
+*Example*
+    seed: None
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Simplification.umc1
+======================
+*Description*
+    Two successive regularisation processes can be run with different
+    gdal_sieve parameters. First regularisation process is compute
+    with four connectedness. The umc parameters corresponds to a size
+    threshold in pixels. Only raster polygons smaller than this size
+    will be removed. 
+*Type*
+    int
+*Default value*
+    10
+*Example*
+    umc1: 10
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Simplification.umc2
+======================
+*Description*
+    Two successive regularisation processes can be run with different
+    gdal_sieve parameters. Second regularisation process is compute
+    with eight connectedness. The umc parameters corresponds to a size
+    threshold in pixels. Only raster polygons smaller than this size
+    will be removed.
+*Type*
+    int
+*Default value*
+    3
+*Example*
+    umc2: 3   
+    
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Simplification.inland
+======================
+*Description*
+    In case of presence of sea water, this vector file helps to delineate
+    inland and sea water.
+*Type*
+    string
+*Default value*
+    None
+*Example*
+    colorTable:'/path/to/inland.shp'
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Simplification.rssize
+======================
+*Description*
+    Spatial resolution for classification resampling (regularisation step).
+*Type*
+    int
+*Default value*
+    20
+*Example*
+    rsssize:20
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Simplification.lib64bit
+======================
+*Description*
+    Band math and concatenate OTB executables with 64 bits
+    capabilities (only for large areas where clumps number > 2²³ bits
+    for mantisse)    
+*Type*
+    string
+*Default value*
+    None
+*Example*
+    lib64bit: '/path/to/otbbinaries'
+*Notes*
+    By default OTB applications use internally 32 bits float
