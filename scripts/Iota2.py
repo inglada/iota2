@@ -349,7 +349,7 @@ if __name__ == "__main__":
             steps[step-1].step_status = "success"
         if rm_tmp and param_index is None:
             remove_tmp_files(cfg, current_step=step, chain=chain_to_process)
-    chain_to_process.save_chain()
+    #~ chain_to_process.save_chain()
     stop_workers(mpi_service)
     
     if not step_completed:
