@@ -162,7 +162,7 @@ def zonalstats(path, rasters, params, gdalpath = "", res = 10):
         writer = csv.writer(myfile)
         writer.writerows(stats)
 
-def getParameters(vectorpath, csvstorepath, chunck=1):
+def getParameters(vectorpath, csvstorepath, chunk=1):
     
     listvectors = getVectorsList(vectorpath)
     params = []
@@ -170,24 +170,25 @@ def getParameters(vectorpath, csvstorepath, chunck=1):
         for vect in listvectors:
             listfid = getFidList(vect)
             csvstore = os.path.join(csvstorepath, "stats_%s"%(os.path.splitext(os.path.basename(vect))[0]))
-            listfid = [listfid[i::chunck] for i in xrange(chunck)]
+            #TODO : split in chunks with sum of feature areas quite equal
+            listfid = [listfid[i::chunk] for i in xrange(chunk)]
             for fidlist in listfid:                 
                 params.append((vect, fidlist, csvstore))
     else:
         listfid = getFidList(vectorpath)
         csvstore = os.path.join(csvstorepath, "stats_%s"%(os.path.splitext(os.path.basename(vectorpath))[0]))
-        listfid = [listfid[i::chunck] for i in xrange(chunck)]        
+        listfid = [listfid[i::chunk] for i in xrange(chunk)]        
         for fidlist in listfid:                 
             params.append((vect, fidlist, csvstore))
 
     return params
 
-def computZonalStats(path, inr, shape, csvstore, gdal):
-
-    params = getParameters(shape, csvstore)
+def computZonalStats(path, inr, shape, csvstore, gdal, chunk=1):
+    #TODO : optimize chunk with real-time HPC ressources
+    params = getParameters(shape, csvstore, chunk)
 
     for parameters in params:
-        zonalstats(path, inr, parameters, gdal)
+        zonalstats(path, inr, parameters, gdal, chunk)
 
 
 if __name__ == "__main__":
@@ -214,7 +215,9 @@ if __name__ == "__main__":
                             required=True)        
         PARSER.add_argument("-gdal", dest="gdal", action="store",\
                             help="gdal 2.2.4 binaries path (problem of very small features with lower gdal version)", default = "")
+        PARSER.add_argument("-chunk", dest="chunk", action="store",\
+                            help="number of feature groups", default=1)        
         
         args = PARSER.parse_args()
 
-        computZonalStats(args.path, args.inr, args.shape, args.csvpath, args.gdal)
+        computZonalStats(args.path, args.inr, args.shape, args.csvpath, args.gdal, args.chunk)
