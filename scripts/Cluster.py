@@ -379,13 +379,13 @@ def launchChain(cfg, config_ressources=None, parallel_mode="MPI"):
 
         if parallel_mode == "MPI":
             pbs, log_err = write_PBS_MPI(job_directory=job_dir, log_directory=log_dir,
-                                         task_name=steps[step_num].TaskName, step_to_compute=step_num+1,
+                                         task_name=steps[step_num].step_name, step_to_compute=step_num+1,
                                          nb_parameters=nbParameter, request=ressources,
                                          script_path=scripts, config_path=config_path,
                                          config_ressources_req=config_ressources)
         elif parallel_mode == "JobArray":
              pbs, log_err = write_PBS_JA(job_directory=job_dir, log_directory=log_dir,
-                                         task_name=steps[step_num].TaskName, step_to_compute=step_num+1,
+                                         task_name=steps[step_num].step_name, step_to_compute=step_num+1,
                                          nb_parameters=nbParameter, request=ressources,
                                          script_path=scripts, config_path=config_path,
                                          config_ressources_req=config_ressources)
