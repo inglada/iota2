@@ -226,8 +226,8 @@ def write_PBS_JA(job_directory, log_directory, task_name, step_to_compute,
                       "#PBS -l walltime={4}\n"
                       "#PBS -e {5}/\n"
                       "#PBS -o {6}/\n"
-                      "\n").format(request.name, nb_parameters - 1, request.nb_cpu,
-                                   request.ram, request.walltime, step_log_directory, step_log_directory)
+                      "\n").format(task_name, nb_parameters - 1, request["cpu"],
+                                   request["ram"], request["walltime"], step_log_directory, step_log_directory)
     elif nb_parameters == 1:
         ressources = ("#!/bin/bash\n"
                       "#PBS -N {}\n"
@@ -237,8 +237,8 @@ def write_PBS_JA(job_directory, log_directory, task_name, step_to_compute,
                       "#PBS -l walltime={}\n"
                       "#PBS -o {}\n"
                       "#PBS -e {}\n"
-                      "\n").format(request.name, request.nb_cpu,
-                                   request.ram, request.walltime,
+                      "\n").format(task_name, request["cpu"],
+                                   request["ram"], request["walltime"],
                                    log_out, log_err)
 
     py_path = os.environ.get('PYTHONPATH')
@@ -265,7 +265,7 @@ def write_PBS_JA(job_directory, log_directory, task_name, step_to_compute,
     exe = ("\nexport ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS={0}\n"
            "\ncd {1}\n"
            "python {2}/Iota2.py -param_index $PBS_ARRAY_INDEX -config {3} "
-           "-starting_step {4} -ending_step {5} {6}").format(request.nb_cpu,
+           "-starting_step {4} -ending_step {5} {6}").format(request["cpu"],
                                                              log_directory,
                                                              script_path, config_path,
                                                              step_to_compute, step_to_compute,
@@ -274,7 +274,7 @@ def write_PBS_JA(job_directory, log_directory, task_name, step_to_compute,
         exe = ("\nexport ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS={0}\n"
                "\ncd {1}\n"
                "python {2}/Iota2.py -config {3} "
-               "-starting_step {4} -ending_step {5} {6}").format(request.nb_cpu,
+               "-starting_step {4} -ending_step {5} {6}").format(request["cpu"],
                                                                  log_directory,
                                                                  script_path, config_path,
                                                                  step_to_compute, step_to_compute,
@@ -408,7 +408,7 @@ def launchChain(cfg, config_ressources=None, parallel_mode="MPI"):
             errors = check_errors(log_err)
         else :
             errors = check_errors_JA(log_dir=log_err,
-                                     task_name=steps[step_num].TaskName)
+                                     task_name=steps[step_num].step_name)
         if errors:
             print "ERROR in step '" + steps[step_num].step_name + "'"
             print errors
