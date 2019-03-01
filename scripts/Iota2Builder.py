@@ -317,11 +317,10 @@ class iota2():
         # init steps
         s_container.append(step_build_tree, "init")
         s_container.append(step_PreProcess, "init")
-        s_container.append(step_CommonMasks, "init")
-
         if not "none" in VHR.lower():
             s_container.append(step_coregistration, "init")
-        
+
+        s_container.append(step_CommonMasks, "init")       
         s_container.append(step_pixVal, "init")
 
         # sampling steps
