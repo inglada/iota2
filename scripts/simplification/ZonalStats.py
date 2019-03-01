@@ -159,12 +159,16 @@ def zonalstats(path, rasters, params, gdalpath = "", res = 10):
             for band in bands:
                 if os.path.exists(band):
                     idxband += 1
+                    if idxband == 1:
+                        stats = CountPixelByClass(band)
+                    '''
                     rastertmp = gdal.Open(band, 0)
                     data = rastertmp.ReadAsArray()
                     img = label(data)
                     listlab = []
                     if len(np.unique(img)) != 1 or np.unique(img)[0] != 0:
-                        if idxband == 1:
+
+                            
                             res = rastertmp.GetGeoTransform()[1]
                             try:
                                 for reg in regionprops(img, data):
@@ -205,19 +209,25 @@ def zonalstats(path, rasters, params, gdalpath = "", res = 10):
 
                     data = img = None
 
+                    '''
+
                 Utils.run("rm %s"%(band))
 
-                rastertmp = None
-                stats.append(results_final)
+                #rastertmp = None
+                #stats.append(results_final)
         else:
+            print "gdal problem"
+            '''
             results_final.append([[idval, 'classif', 'part', 0, 0], [idval, 'confidence', 'mean', 0, 0], [idval, 'validity', 'mean', 0, 0],[idval, 'validity', 'std', 0, 0]])
             print "Feature with FID = %s of shapefile %s with null stats (maybe its size is too small)"%(idval, vector)
             stats.append(results_final[0])
-
+            '''
+    '''
     with open(csvstore, 'a') as myfile:
         writer = csv.writer(myfile)
         writer.writerows(stats)
-
+    '''
+    
 def getParameters(vectorpath, csvstorepath, chunk=1):
     
     listvectors = getVectorsList(vectorpath)
