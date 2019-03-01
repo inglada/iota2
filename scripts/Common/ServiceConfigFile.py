@@ -553,7 +553,6 @@ class serviceConfigFile:
             # directory tests
             if self.getParam("chain", "jobsPath"):
                 self.testDirectory(self.getParam("chain", "jobsPath"))
-            print os.path.join(os.environ.get('IOTA2DIR'), "scripts")
             self.testDirectory(os.path.join(os.environ.get('IOTA2DIR'), "scripts"))
             self.testDirectory(self.cfg.chain.nomenclaturePath)
             self.testDirectory(self.cfg.chain.groundTruth)
