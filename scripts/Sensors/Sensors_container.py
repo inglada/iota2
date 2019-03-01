@@ -20,7 +20,6 @@ library
 """
 import os
 
-
 from Sentinel_1 import Sentinel_1
 from Sentinel_2 import Sentinel_2
 from Sentinel_2_S2C import Sentinel_2_S2C
@@ -34,8 +33,17 @@ from User_features import User_features
 class Sensors_container(object):
     def __init__(self, config_path, tile_name, working_dir):
         """
-        TODO : remove config_path and replace it by a list of dictionnaries
-               containing data's paths and data's structure by sensors
+        Parameters
+        ----------
+        config_path : string
+            absolute path to a IOTA2 configuration file
+        tile_name : string
+            tile to consider : "T31TCJ"
+        working_dir : string
+            absolute path to a working directory dedicated to compute temporary
+            data
+
+        TODO : make the class independant from a configuration file
         """
         from Common import ServiceConfigFile as SCF
 
@@ -50,20 +58,23 @@ class Sensors_container(object):
         self.common_mask_dir = os.path.join(self.features_dir, "tmp")
 
     def __str__(self):
-        """
-        return enabled sensors and the current tile
+        """return enabled sensors and the current tile
         """
         return "tile's name : {}, available sensors : {}".format(self.tile_name,
                                                                  ", ".join(self.print_enabled_sensors_name()))
 
     def __repr__(self):
-        """
-        return available dates by sensors
+        """return enabled sensors and the current tile
         """
         return self.__str__()
 
     def get_iota2_sensors_names(self):
-        """
+        """sensor manageable by IOTA2
+
+        Return
+        ------
+        list
+            list of manageable sensors' name
         """
         available_sensors_name = [Landsat5.name,
                                   Landsat8.name,
@@ -76,8 +87,12 @@ class Sensors_container(object):
         return available_sensors_name
 
     def print_enabled_sensors_name(self):
-        """
-        define which sensors will be used, also sensors's order
+        """define which sensors will be used
+
+        Return
+        ------
+        list
+            list of enabled sensors's name
         """
         l5_old = self.cfg.getParam("chain", "L5Path_old")
         l8 = self.cfg.getParam("chain", "L8Path")
@@ -108,8 +123,18 @@ class Sensors_container(object):
         return enabled_sensors
 
     def get_sensor(self, sensor_name):
-        """
-        return sensor object, found by name
+        """get a sensor by name
+
+        Parameters
+        ----------
+        sensor_name : string
+            sensor's name
+
+        Return
+        ------
+        sensor
+            return the sensor with the name "sensor_name". If no sensors are found
+            return None
         """
         sensor_found = []
         for sensor in self.enabled_sensors:
@@ -117,18 +142,30 @@ class Sensors_container(object):
                 sensor_found.append(sensor)
         if len(sensor_found) > 1:
             raise Exception("Too many sensors found with the name {}".format(sensor_name))
-        return sensor_found[0]
+        return sensor_found[0] if sensor_found else None
 
     def remove_sensor(self, sensor_name):
-        """
-        return sensor object, found by name
+        """remove a sensor in the available sensor list
+
+        Parameters
+        ----------
+        sensor_name : string
+            sensor's name
         """
         for index, sensor in enumerate(self.enabled_sensors):
             if sensor_name == sensor.__class__.name:
                 self.enabled_sensors.pop(index)
         
     def get_enabled_sensors(self):
-        """
+        """build enabled sensor list
+
+        This function define sensors to use in IOTA2 run. It is where sensor's
+        order is define : Landsat-5, Landsat-8 until user-features
+        
+        Return
+        ------
+        list
+            list of enabled sensors
         """
         l5_old = self.cfg.getParam("chain", "L5Path_old")
         l8 = self.cfg.getParam("chain", "L8Path")
@@ -159,14 +196,33 @@ class Sensors_container(object):
         return enabled_sensors
 
     def sensors_preprocess(self, available_ram=128):
-        """
+        """preprocessing every enabled sensors
+
+        Parameters
+        ----------
+        available_ram : int
+            RAM, usefull to many OTB's applications.
         """
         for sensor in self.enabled_sensors:
             self.sensor_preprocess(sensor, self.working_dir, available_ram)
 
     def sensor_preprocess(self, sensor, working_dir, available_ram):
-        """
-        prepare sensor data
+        """sensor preprocessing
+
+        Parameters
+        ----------
+        sensor : sensor
+        working_dir : string
+            absolute path to a working directory dedicated to compute temporary
+            data
+        available_ram : int
+            RAM, usefull to many OTB's applications.
+
+        Return
+        ------
+        object
+            return the object returned from sensor.preprocess. Nowadays, nothing
+            is done with it, no object's type are imposed but it could change.
         """
         sensor_prepro_app = None
         if "preprocess" in dir(sensor):
@@ -174,11 +230,15 @@ class Sensors_container(object):
         return sensor_prepro_app
 
     def sensors_dates(self):
-        """
-        return sorted available dates per sensor(callable after sensors_preprocess)
+        """by sensors, get available dates
 
-        TODO :
-        add flag to check if sensors_preprocess allready called once ?
+        if exists get_available_dates's sensor method is called. The method must
+        return a list of sorted available dates.
+
+        Return
+        ------
+        list
+            list of tuple containing (sensor's name, [list of available dates])
         """
         sensors_dates = []
         for sensor in self.enabled_sensors:
@@ -189,8 +249,21 @@ class Sensors_container(object):
         return sensors_dates
 
     def get_sensors_footprint(self, available_ram=128):
-        """
-        each sensors must return a binary raster (as otb application) 0 mean NODATA
+        """get sensor's footprint
+
+        It provide the list of otb's application dedicated to generate sensor's
+        footprint. Each otb's application must be dedicated to the generation of
+        a binary raster, 0 meaning 'NODATA'
+
+        Parameters
+        ----------
+        available_ram : int
+            RAM, usefull to many OTB's applications.
+
+        Return
+        ------
+        list
+            list of tuple containing (sensor's name, otbApplication)
         """
         sensors_footprint = []
         for sensor in self.enabled_sensors:
@@ -198,7 +271,20 @@ class Sensors_container(object):
         return sensors_footprint
 
     def get_common_sensors_footprint(self, available_ram=128):
-        """
+        """get common sensor's footprint
+
+        provide an otbApplication ready to be 'ExecuteAndWriteOutput' generating
+        a binary raster which is the intersection of all sensor's footprint
+
+        Parameters
+        ----------
+        available_ram : int
+            RAM, usefull to many OTB's applications.
+
+        Return
+        ------
+        tuple
+            (otbApplication, dependencies)
         """
         from Common.OtbAppBank import CreateBandMathApplication
         sensors_footprint = []
@@ -211,7 +297,7 @@ class Sensors_container(object):
             all_dep.append(footprint)
 
         expr = "+".join("im{}b1".format(i + 1) for i in range(len(sensors_footprint)))
-        expr = "{}>0?1:0".format(expr)
+        expr = "{}=={}?1:0".format(expr, len(sensors_footprint))
         common_mask_out = os.path.join(self.common_mask_dir, self.common_mask_name)
         common_mask = CreateBandMathApplication({"il": sensors_footprint,
                                                  "exp":expr,
@@ -221,8 +307,18 @@ class Sensors_container(object):
         return common_mask, all_dep
 
     def get_sensors_time_series(self, available_ram=128):
-        """
-        return the time series as a otb's application ready to be executed
+        """get time series to each enabled sensors
+
+        Parameters
+        ----------
+        available_ram : int
+            RAM, usefull to many OTB's applications.
+
+        Return
+        ------
+        list
+            list of tuple : (sensor's name, (otbApplication, dependencies), labels)
+            where labels are sorted feature's name
         """
         sensors_time_series = []
         for sensor in self.enabled_sensors:
@@ -231,8 +327,17 @@ class Sensors_container(object):
         return sensors_time_series
 
     def get_sensors_time_series_masks(self, available_ram=128):
-        """
-        return the time series as a otb's application ready to be executed
+        """get time series masks to each enabled sensors
+
+        Parameters
+        ----------
+        available_ram : int
+            RAM, usefull to many OTB's applications.
+
+        Return
+        ------
+        list
+            list of tuple : (sensor's name, (otbApplication, dependencies, number of masks))
         """
         sensors_time_series_masks = []
         for sensor in self.enabled_sensors:
@@ -241,8 +346,18 @@ class Sensors_container(object):
         return sensors_time_series_masks
 
     def get_sensors_time_series_gapfilling(self, available_ram=128):
-        """
-        return the time series as a otb's application ready to be executed
+        """get time series gapfilled to each enabled sensors
+
+        Parameters
+        ----------
+        available_ram : int
+            RAM, usefull to many OTB's applications.
+
+        Return
+        ------
+        list
+            list of tuple : (sensor's name, ((otbApplication, dependencies), labels))
+            where labels are sorted feature's name
         """
         sensors_time_series = []
         for sensor in self.enabled_sensors:
@@ -251,8 +366,18 @@ class Sensors_container(object):
         return sensors_time_series
 
     def get_sensors_features(self, available_ram=128):
-        """
-        return the time series as a otb's application ready to be executed
+        """get features to each enabled sensors
+
+        Parameters
+        ----------
+        available_ram : int
+            RAM, usefull to many OTB's applications.
+
+        Return
+        ------
+        list
+            list of tuple : (sensor's name, ((otbApplication, dependencies), labels))
+            where labels are sorted feature's name
         """
         sensors_features = []
         for sensor in self.enabled_sensors:

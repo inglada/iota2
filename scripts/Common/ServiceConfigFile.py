@@ -153,7 +153,7 @@ class serviceConfigFile:
             #init sensors parameters
             Landsat8_default = {"additionalFeatures": "",
                                 "temporalResolution": 16,
-                                "full_pipline": False,
+                                "write_reproject_resampled_input_dates_stack": True,
                                 "startDate": "",
                                 "endDate": "",
                                 "keepBands": self.init_listSequence(["B1", "B2", "B3", "B4", "B5", "B6", "B7"])}
@@ -169,19 +169,19 @@ class serviceConfigFile:
                                 "keepBands": self.init_listSequence(["B1", "B2", "B3", "B4", "B5", "B6"])}
             Sentinel_2_default = {"additionalFeatures": "",
                                   "temporalResolution": 10,
-                                  "full_pipline": False,
+                                  "write_reproject_resampled_input_dates_stack": True,
                                   "startDate": "",
                                   "endDate": "",
                                   "keepBands": self.init_listSequence(["B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11", "B12"])}
             Sentinel_2_S2C_default = {"additionalFeatures": "",
                                       "temporalResolution": 10,
-                                      "full_pipline": False,
+                                      "write_reproject_resampled_input_dates_stack": True,
                                       "startDate": "",
                                       "endDate": "",
                                       "keepBands": self.init_listSequence(["B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11", "B12"])}
             Sentinel_2_L3A_default = {"additionalFeatures": "",
                                       "temporalResolution": 10,
-                                      "full_pipline": False,
+                                      "write_reproject_resampled_input_dates_stack": True,
                                       "startDate": "",
                                       "endDate": "",
                                       "keepBands": self.init_listSequence(["B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11", "B12"])}

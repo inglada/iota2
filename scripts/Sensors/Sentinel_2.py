@@ -50,7 +50,8 @@ class Sentinel_2(Sensor):
         self.s2_data = self.cfg_IOTA2.getParam("chain", "S2Path")
         self.tile_directory = os.path.join(self.s2_data, tile_name)
         self.struct_path_masks = cfg_sensors.getParam("Sentinel_2", "arbomask")
-        self.full_pipeline = self.cfg_IOTA2.getParam("Sentinel_2", "full_pipline")
+        self.write_dates_stack = self.cfg_IOTA2.getParam("Sentinel_2",
+                                                         "write_reproject_resampled_input_dates_stack")
         self.features_dir = os.path.join(self.cfg_IOTA2.getParam("chain", "outputPath"),
                                          "features", tile_name)
         extract_bands = self.cfg_IOTA2.getParam("Sentinel_2", "keepBands")
@@ -205,7 +206,7 @@ class Sentinel_2(Sensor):
             bands_proj[band_name] = superimp
             all_reproj.append(superimp)
 
-        if not self.full_pipeline:
+        if self.write_dates_stack:
             for reproj in all_reproj:
                 reproj.Execute()
             date_stack = CreateConcatenateImagesApplication({"il": all_reproj,
@@ -217,7 +218,7 @@ class Sentinel_2(Sensor):
                 if working_dir:
                     shutil.copy(out_stack_processing, out_stack)
                     os.remove(out_stack_processing)
-        return bands_proj if self.full_pipeline else out_stack
+        return bands_proj if self.write_dates_stack is False else out_stack
 
     def preprocess_date_masks(self, date_dir, out_prepro,
                               working_dir=None, ram=128,
@@ -268,7 +269,7 @@ class Sentinel_2(Sensor):
         # needed to travel throught iota2's library
         app_dep = [binary_mask_rule]
         
-        if not self.full_pipeline:
+        if self.write_dates_stack:
             if not os.path.exists(out_mask):
                 superimp.ExecuteAndWriteOutput()
                 if working_dir:
@@ -295,7 +296,9 @@ class Sentinel_2(Sensor):
             data_mask = self.preprocess_date_masks(date, self.output_preprocess_directory,
                                                    working_dir, ram)
             current_date = self.get_date_from_name(os.path.basename(date))
-            #~ # TODO check if current_date already exists
+            # manage date dupplicate
+            if current_date in preprocessed_dates:
+                current_date = "{}.1".format(current_date)
             preprocessed_dates[current_date] = {"data": data_prepro,
                                                 "mask": data_mask}
         return preprocessed_dates
@@ -396,7 +399,7 @@ class Sentinel_2(Sensor):
 
         preprocessed_dates = self.preprocess(working_dir=None, ram=str(ram))
 
-        if self.full_pipeline:
+        if self.write_dates_stack is False:
             dates_concatenation = []
             for date, dico_date in preprocessed_dates.items():
                 for band_name, reproj_date in dico_date["data"].items():
@@ -480,7 +483,7 @@ class Sentinel_2(Sensor):
         preprocessed_dates = self.preprocess(working_dir=None, ram=str(ram))
 
         dates_masks = []
-        if self.full_pipeline:
+        if self.write_dates_stack is False:
             for date, dico_date in preprocessed_dates.items():
                 mask_app, mask_app_dep = dico_date["mask"]
                 mask_app.Execute()
@@ -578,7 +581,7 @@ class Sentinel_2(Sensor):
         
         app_dep = []
         if hand_features_flag:
-            hand_features = self.cfg_IOTA2.getParam("Landsat8_old", "additionalFeatures")
+            hand_features = self.cfg_IOTA2.getParam("Sentinel_2", "additionalFeatures")
             comp = len(self.stack_band_position) if not self.extracted_bands else len(self.extracted_bands)
             userDateFeatures, fields_userFeat, a, b = computeUserFeatures(in_stack,
                                                                           dates_enabled,
