@@ -332,8 +332,8 @@ if __name__ == "__main__":
             params = args.parameters
         else:
             params = param_array
-        if steps[step-1].previous_step:
-            print "Etape précédente : {}".format(steps[step-1].previous_step.step_status)
+        #~ if steps[step-1].previous_step:
+            #~ print "Etape précédente : {}".format(steps[step-1].previous_step.step_status)
         steps[step-1].step_status = "running"
         logFile = steps[step-1].logFile
         if param_index is not None:
