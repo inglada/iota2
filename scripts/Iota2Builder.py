@@ -367,7 +367,7 @@ class iota2():
         if keep_runs_results:
             s_container.append(step_confusions, "validation")
             s_container.append(step_confusions_merge, "validation")
-        s_container.append(step_report, "validation")
+            s_container.append(step_report, "validation")
         if merge_final_classifications and runs > 1:
             s_container.append(step_merge_iota_classif, "validation")
         if outStat:
