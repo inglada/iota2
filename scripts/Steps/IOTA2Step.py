@@ -81,7 +81,7 @@ class Step(object):
     """
     This class is the definition of a IOTA² step. New steps must herit from
     """
-    def __init__(self, cfg, cfg_resources_file):
+    def __init__(self, cfg, cfg_resources_file, resources_block_name=None):
         """
         """
         from Common import ServiceConfigFile as SCF
@@ -93,9 +93,7 @@ class Step(object):
         self.step_group = ""
 
         # get resources needed
-        # self.resources_block_name must be define in sub-class
-        self.resources_block_name = None
-        self.resources = self.parse_resource_file(self.resources_block_name, cfg_resources_file)
+        self.resources = self.parse_resource_file(resources_block_name, cfg_resources_file)
 
         # define log path
         outputPath = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
