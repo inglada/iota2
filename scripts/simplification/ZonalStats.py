@@ -58,6 +58,62 @@ def getUniqueId(csvpath):
     
     return list(set(df.groupby(0).groups))
 
+
+def CountPixelByClass(databand):
+    # TODO : 1 méthode pour les statistiques qualitatives (parts de valeur de pixel)
+    # TODO : 1 méthode pour les statistiques quantitatives (mean, std, max, min)    
+    # np.array(np.unique(x, return_counts=True)).T
+    
+    if os.path.exists(band):
+        rastertmp = gdal.Open(databand, 0)
+        data = rastertmp.ReadAsArray()
+        img = label(data)
+        counts = []
+
+        col_names =  ['value', 'count']
+        statsdf  = pd.DataFrame(columns = col_names)
+        
+        if len(np.unique(img)) != 1 or np.unique(img)[0] != 0:
+            res = rastertmp.GetGeoTransform()[1]
+            try:
+                for reg in regionprops(img, data):
+                    # A tester !
+                    counts.append([[x for x in np.unique(reg.intensity_image) if x != 0][0], reg.area])
+            except:
+                counts = np.array(np.unique(data != 0, return_counts=True)).T
+            # test si counts a des valeurs !
+            # listlab = pd.DataFrame(data=counts, columns = col_names)
+            # pourcentage
+            # listlab['rate'] = listlab['count'] / listlab['count'].sum()
+            # classmaj
+            # classmaj = listlab[listlab['rate'] == max(listlab['rate'])]['value']
+            # posclassmaj
+            # posclassmaj = np.where(data==int(classmaj))
+            # Transposition pour jointure directe
+            # listlabT = listlab.T
+            # classStats = pd.DataFrame(data=[listlabT.loc['rate'].values], columns=[int(x) for x in listlabT.loc['value']])
+            # 
+            listlab = listlabT = data = None
+    else:
+        raise Exception("Raster does not exist")
+    
+    return classStat, classmaj, posclassmaj
+
+def RasterStats(databand, posclassmaj=[]):
+
+    if os.path.exists(band):
+        rastertmp = gdal.Open(databand, 0)
+        data = rastertmp.ReadAsArray()
+        img = label(data)
+        
+        if len(np.unique(img)) != 1 or np.unique(img)[0] != 0:
+                mean = round(np.mean(data[posclassmaj]), 2)
+                std = round(np.std(data[posclassmaj]), 2)
+                max = round(np.max(data[posclassmaj]), 2)
+                min = round(np.min(data[posclassmaj]), 2)
+                
+        return mean, std, max, min
+
 def zonalstats(path, rasters, params, gdalpath = "", res = 10):
     
     vector, idvals, csvstore = params
