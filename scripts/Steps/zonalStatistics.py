@@ -22,7 +22,8 @@ from Common import ServiceConfigFile as SCF
 class zonalStatistics(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
-        super(zonalStatistics, self).__init__(cfg, cfg_resources_file)
+        resources_block_name = "statistics"
+        super(zonalStatistics, self).__init__(cfg, cfg_resources_file, resources_block_name)
 
         # step variables
         self.RAM = 1024.0 * get_RAM(self.resources["ram"])

@@ -21,13 +21,15 @@ from Common import ServiceConfigFile as SCF
 class learnModel(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
-        super(learnModel, self).__init__(cfg, cfg_resources_file)
+        resources_block_name = "training"
+        super(learnModel, self).__init__(cfg, cfg_resources_file, resources_block_name)
 
         # step variables
         self.workingDirectory = workingDirectory
         self.output_path = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
         self.data_field = SCF.serviceConfigFile(self.cfg).getParam('chain', 'dataField')
         self.runs = SCF.serviceConfigFile(self.cfg).getParam('chain', 'runs')
+
     def step_description(self):
         """
         function use to print a short description of the step's purpose

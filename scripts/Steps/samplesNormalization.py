@@ -21,7 +21,8 @@ from Common import ServiceConfigFile as SCF
 class samplesNormalization(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
-        super(samplesNormalization, self).__init__(cfg, cfg_resources_file)
+        resources_block_name = "stats_by_models"
+        super(samplesNormalization, self).__init__(cfg, cfg_resources_file, resources_block_name)
 
         # step variables
         self.output_path = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')

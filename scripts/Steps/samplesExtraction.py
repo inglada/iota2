@@ -23,7 +23,8 @@ from Sampling import VectorSampler as vs
 class samplesExtraction(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
-        super(samplesExtraction, self).__init__(cfg, cfg_resources_file)
+        resources_block_name = "vectorSampler"
+        super(samplesExtraction, self).__init__(cfg, cfg_resources_file, resources_block_name)
 
         # step variables
         self.workingDirectory = workingDirectory

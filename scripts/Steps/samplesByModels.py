@@ -22,7 +22,8 @@ from Sampling import VectorSamplesMerge as VSM
 class samplesByModels(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file):
         # heritage init
-        super(samplesByModels, self).__init__(cfg, cfg_resources_file)
+        resources_block_name = "mergeSample"
+        super(samplesByModels, self).__init__(cfg, cfg_resources_file, resources_block_name)
 
         # step variables
         self.output_path = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')

@@ -22,7 +22,8 @@ from Common import ServiceConfigFile as SCF
 class mergeSeedClassifications(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
-        super(mergeSeedClassifications, self).__init__(cfg, cfg_resources_file)
+        resources_block_name = "merge_final_classifications"
+        super(mergeSeedClassifications, self).__init__(cfg, cfg_resources_file, resources_block_name)
 
         # step variables
         self.workingDirectory = workingDirectory

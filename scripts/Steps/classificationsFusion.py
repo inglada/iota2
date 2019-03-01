@@ -22,7 +22,8 @@ from Common import ServiceConfigFile as SCF
 class classificationsFusion(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
-        super(classificationsFusion, self).__init__(cfg, cfg_resources_file)
+        resources_block_name = "fusion"
+        super(classificationsFusion, self).__init__(cfg, cfg_resources_file, resources_block_name)
 
         # step variables
         self.workingDirectory = workingDirectory

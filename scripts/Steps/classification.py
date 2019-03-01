@@ -21,7 +21,8 @@ from Common import ServiceConfigFile as SCF
 class classification(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
-        super(classification, self).__init__(cfg, cfg_resources_file)
+        resources_block_name = "classifications"
+        super(classification, self).__init__(cfg, cfg_resources_file, resources_block_name)
 
         # step variables
         self.workingDirectory = workingDirectory

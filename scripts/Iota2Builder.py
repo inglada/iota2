@@ -140,7 +140,7 @@ class iota2():
 
         from Steps.IOTA2Step import StepContainer
 
-        from Steps import (IOTA2DirTree, Sentinel1PreProcess,
+        from Steps import (IOTA2DirTree,
                            CommonMasks, PixelValidity,
                            Envelope, genRegionVector,
                            VectorFormatting, splitSamples,
@@ -167,9 +167,6 @@ class iota2():
 
         # class instance
         step_build_tree = IOTA2DirTree.IOTA2DirTree(cfg, config_ressources)
-        step_S1_preproc = Sentinel1PreProcess.Sentinel1PreProcess(cfg,
-                                                                  config_ressources,
-                                                                  self.workingDirectory)
         step_PreProcess = sensorsPreprocess.sensorsPreprocess(cfg,
                                                               config_ressources,
                                                               self.workingDirectory)
