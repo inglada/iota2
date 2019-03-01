@@ -93,7 +93,9 @@ class Step(object):
         self.step_group = ""
 
         # get resources needed
-        self.resources = self.parse_resource_file(self.step_name, cfg_resources_file)
+        # self.resources_block_name must be define in sub-class
+        self.resources_block_name = None
+        self.resources = self.parse_resource_file(self.resources_block_name, cfg_resources_file)
 
         # define log path
         outputPath = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
@@ -105,7 +107,6 @@ class Step(object):
 
         # "waiting", "running", "success", "fail"
         self.step_status = "waiting"
-
 
     def parse_resource_file(self, step_name, cfg_resources_file):
         """
@@ -121,7 +122,7 @@ class Step(object):
 
         cfg_resources = Config(cfg_resources_file)
         resource = {}
-        cfg_step_resources = getattr(cfg_resources, step_name, {})
+        cfg_step_resources = getattr(cfg_resources, str(step_name), {})
         resource["cpu"] = getattr(cfg_step_resources, "nb_cpu", default_cpu)
         resource["ram"] = getattr(cfg_step_resources, "ram", default_ram)
         resource["walltime"] = getattr(cfg_step_resources, "walltime", default_walltime)
