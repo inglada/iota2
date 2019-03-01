@@ -24,6 +24,8 @@ class IOTA2DirTree(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file):
         # heritage init
         super(IOTA2DirTree, self).__init__(cfg, cfg_resources_file)
+        resources_block_name = "iota2_dir"
+        self.resources = self.parse_resource_file(resources_block_name, cfg_resources_file)
 
     def step_description(self):
         """
