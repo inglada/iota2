@@ -23,4 +23,6 @@ Indices and tables
 * :doc:`IOTA² Examples <IOTA2_Example>`
 * :doc:`Development recommendations <develop_reco>`
 * :doc:`IOTA² code architecture : main class <main_class>`
+* :doc:`Add steps to IOTA² <add_IOTA2_new_step>`
 * :doc:`Sentinel-2 Level 3A <sentinel_2_N3A>`
+
