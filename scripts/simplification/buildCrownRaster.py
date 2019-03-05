@@ -72,10 +72,10 @@ def manageBlocks(pathCrowns, tilenumber, blocksize, inpath, outpath, ram, logger
                 intervalY = np.arange(0, row, blocksize)
                 nbcolsblock = len(intervalX)
                 nbrowsblock = len(intervalY)
-                
-                with open(os.path.join(pathCrowns, "listid_%s"%(tilenumber)), 'r') as f:
+
+                with open(os.path.join(pathCrowns, "listid_%s"%(tilenumber)), 'rb') as f:
                     listid = pickle.load(f)
-                    
+
                 nbblock = 0
                 for y in intervalY:
                     for x in intervalX:
