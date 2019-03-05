@@ -2008,7 +2008,7 @@ def getSARstack(sarConfig, tileName, allTiles, featuresPath, workingDirectory=No
 
     return allFiltered, allMasks, interpDateFiles, inputDateFiles
 
-def generateSARFeat_dates(sar_expressions, SAR_dict):
+def generateSARFeat_dates(sar_expressions, SAR_dict, output_raster=None):
         """
         """
 
@@ -2052,6 +2052,7 @@ def generateSARFeat_dates(sar_expressions, SAR_dict):
                 feature_counter+=1
 
         userSAR_features = CreateBandMathXApplication({"il": input_features,
+                                                       "out" : output_raster if output_raster else "",
                                                        "exp" : ";".join(expr)})
         return userSAR_features, SAR_labels
 
