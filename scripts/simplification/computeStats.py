@@ -21,7 +21,6 @@ import time
 import csv
 import sqlite3
 from zipfile import ZipFile
-from pyspatialite import dbapi2 as db
 import logging
 logger = logging.getLogger(__name__)
 
@@ -316,7 +315,7 @@ def pivotstats23(sqlite):
     
 #def joinShapeStats(shapefile, stats, tmp, outfile, nomenclature):
 def joinShapeStats(shapefile, stats, tmp, outfile):    
-
+    from pyspatialite import dbapi2 as db
     layer = os.path.splitext(os.path.basename(shapefile))[0]
     tmpfile = os.path.join(tmp, 'tmp_%s.sqlite'%(layer))
     Utils.run('ogr2ogr -f SQLite %s %s -nln %s'%(tmpfile, shapefile, layer))

@@ -81,6 +81,7 @@ def get_qsub_cmd(cfg, config_ressources=None, parallel_mode="MPI"):
                                                 otb_app_path, gdal_data, geotiff_csv,
                                                 os.environ.get('IOTA2DIR'))
 
+    modules = modules + ("export IOTA2DIR={}\n".format(os.environ.get('IOTA2DIR')))
     exe = ("python {0}/Cluster.py -config {1} -mode {2}").format(scripts,
                                                                  config_path,
                                                                  parallel_mode)

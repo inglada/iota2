@@ -105,9 +105,7 @@ def launchTask(function, parameter, logger, mpi_services=None):
         traceback.print_exc()
         parameter_success = False
         logger.root.log(51, "parameter : '" + str(parameter) + "' : failed")
-        #~ if mpi_services:
-            #~ stop_workers(mpi_services)
-        
+
     end_job = time.time()
     end_date = datetime.datetime.now()
 
@@ -121,8 +119,8 @@ def launchTask(function, parameter, logger, mpi_services=None):
     return worker_complete_log, start_date, end_date, returned_data, parameter_success
 
 
-def mpi_schedule_job_array(job_array, mpi_service=MPIService(),logPath=None,
-                           logger_lvl="INFO", enable_console=False):
+def mpi_schedule(iota2_step, param_array_origin, mpi_service=MPIService(),logPath=None,
+                 logger_lvl="INFO", enable_console=False):
     """
     A simple MPI scheduler to execute jobs in parallel.
     """
@@ -130,10 +128,10 @@ def mpi_schedule_job_array(job_array, mpi_service=MPIService(),logPath=None,
     if mpi_service.rank != 0:
         return None
 
+    job = iota2_step.step_execute()
+    
     returned_data_list = []
     parameters_success = []
-    job = job_array.job
-    param_array_origin = job_array.param_array
     
     if not param_array_origin:
         raise Exception("JobArray must contain a list of parameter as argument")
@@ -186,7 +184,8 @@ def mpi_schedule_job_array(job_array, mpi_service=MPIService(),logPath=None,
             sys.exit(1)
 
     step_completed = all(parameters_success)
-
+    if step_completed:
+        iota2_step.step_clean()
     return returned_data_list, step_completed
 
 
@@ -217,24 +216,6 @@ def start_workers(mpi_service):
             rank = mpi_service.comm.recv(source=MPI.ANY_SOURCE, tag=0)
             print("Worker process with rank {}/{} started".format(rank,mpi_service.size-1))
             nb_started_workers+=1
-
-def print_step_summarize(iota2_chain):
-    """
-    usage : print iota2 steps that will be run
-    """
-    
-    if MPIService().rank != 0:
-        return None
-    
-    print("Full processing include the following steps (checked steps will be run): ")
-    for group in iota2_chain.steps_group.keys():
-        print("Group {}:".format(group))
-        for key in iota2_chain.steps_group[group]:
-            highlight = "[ ]"
-            if key >= args.start and key<=args.end:
-                highlight="[x]"
-            print("\t {} Step {}: {}".format(highlight, key, iota2_chain.steps_group[group][key]))
-    print("\n")
 
 
 def remove_tmp_files(cfg, current_step, chain):
@@ -300,7 +281,10 @@ if __name__ == "__main__":
 
     cfg = SCF.serviceConfigFile(args.configPath)
     cfg.checkConfigParameters()
-    chain_to_process = chain.iota2(cfg, args.config_ressources)
+    chain_to_process = chain.iota2(cfg.pathConf, args.config_ressources)
+    if os.path.exists(chain_to_process.iota2_pickle):
+        chain_to_process = chain_to_process.load_chain()
+
     logger_lvl = cfg.getParam('chain', 'logFileLevel')
     enable_console = cfg.getParam('chain', 'enableConsole')
     param_index = args.param_index
@@ -311,7 +295,6 @@ if __name__ == "__main__":
             
     if args.start == args.end == 0:
         all_steps = chain_to_process.get_steps_number()
-
         args.start = all_steps[0]
         args.end = all_steps[-1]
 
@@ -320,11 +303,12 @@ if __name__ == "__main__":
     if args.end == -1:
         args.end = len(steps)
 
-    print_step_summarize(chain_to_process)
+    if MPIService().rank == 0:
+        print chain_to_process.print_step_summarize(args.start, args.end)
 
     if args.launchChain is False:
         sys.exit()
-
+    
     # Initialize MPI service
     mpi_service = MPIService()
 
@@ -332,34 +316,41 @@ if __name__ == "__main__":
     start_workers(mpi_service)
 
     for step in np.arange(args.start, args.end+1):
-        params = steps[step-1].parameters
+        params = steps[step-1].step_inputs()
         param_array = []
         if callable(params):
             param_array = params()
         else:                                                                                                                                                                               
             param_array = [param for param in params]
-
         for group in chain_to_process.steps_group.keys():
             if step in chain_to_process.steps_group[group].keys():
                 print "Running step {}: {} ({} tasks)".format(step, chain_to_process.steps_group[group][step],
                                                               len(param_array))
                 break
-        params = param_array
+        
         if args.parameters:
             params = args.parameters
+        else:
+            params = param_array
+        #~ if steps[step-1].previous_step:
+            #~ print "Etape précédente : {}".format(steps[step-1].previous_step.step_status)
+        steps[step-1].step_status = "running"
         logFile = steps[step-1].logFile
         if param_index is not None:
             params = [params[param_index]]
             logFile = (steps[step-1].logFile).replace(".log", "_{}.log".format(param_index))
-        _, step_completed = mpi_schedule_job_array(JobArray(steps[step-1].jobs, params),
-                                                   mpi_service, logFile,
-                                                   logger_lvl)
+        _, step_completed = mpi_schedule(steps[step-1], params,
+                                         mpi_service, logFile,
+                                         logger_lvl)
         if not step_completed:
+            steps[step-1].step_status = "fail"
             break
+        else :
+            steps[step-1].step_status = "success"
         if rm_tmp and param_index is None:
             remove_tmp_files(cfg, current_step=step, chain=chain_to_process)
-
+    #~ chain_to_process.save_chain()
     stop_workers(mpi_service)
-
+    
     if not step_completed:
         sys.exit(-1)

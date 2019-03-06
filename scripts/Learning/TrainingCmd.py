@@ -156,6 +156,8 @@ def launchTraining(cfg, dataField, stat, N,
     """
     OUT : les commandes pour l'app
     """
+    if not isinstance(cfg, SCF.serviceConfigFile):
+        cfg = SCF.serviceConfigFile(cfg)
     #const
     posModel = -3
     posSeed = -2
