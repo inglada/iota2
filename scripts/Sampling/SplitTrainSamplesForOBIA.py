@@ -122,5 +122,5 @@ def format_sample_to_segmentation(cfg, region_tiles_seed, wd):
         tiles_samples.append(tileSamplesVector)
         intersect.intersectSqlites(samplesVector, segmentationVector, outFolder, tileSamplesVector, epsg, "intersection", attributes, vectformat='SQLite')
 
-    tileSamplesVector = os.path.join(outFolder, 'segmentation', "samples_region_{}_seed_{}.shp".format(region, seed))
-    fut.mergeVectors(tileSamplesVector,outFolder,tiles_samples)
+    tileSamplesVector = "samples_region_{}_seed_{}".format(region, seed)
+    fu.mergeVectors(tileSamplesVector,outFolder,tiles_samples)

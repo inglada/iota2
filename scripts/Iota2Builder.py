@@ -143,7 +143,8 @@ class iota2():
                            CommonMasks, PixelValidity,
                            Envelope, genRegionVector,
                            VectorFormatting, splitSamples,
-                           samplesMerge, statsSamplesModel,
+                           samplesMerge, splitSegmentationByTiles,
+                           formatSamplesToSegmentation, statsSamplesModel,
                            samplingLearningPolygons, samplesByTiles,
                            samplesExtraction, samplesByModels,
                            copySamples, genSyntheticSamples,
@@ -193,6 +194,12 @@ class iota2():
         step_merge_samples = samplesMerge.samplesMerge(cfg,
                                                        config_ressources,
                                                        self.workingDirectory)
+        step_split_segmentation_by_tiles = splitSegmentationByTiles.splitSegmentationByTiles(cfg,
+                                                                                             config_ressources,
+                                                                                             self.workingDirectory)
+        step_format_samples_to_segmentation = formatSamplesToSegmentation.formatSamplesToSegmentation(cfg,
+                                                                                                       config_ressources,
+                                                                                                       self.workingDirectory)
         step_models_samples_stats = statsSamplesModel.statsSamplesModel(cfg,
                                                                         config_ressources,
                                                                         self.workingDirectory)
@@ -310,6 +317,7 @@ class iota2():
         runs = SCF.serviceConfigFile(cfg).getParam('chain', 'runs')
         outStat = SCF.serviceConfigFile(cfg).getParam('chain', 'outputStatistics')
         VHR = SCF.serviceConfigFile(cfg).getParam('coregistration', 'VHRPath')
+        OBIA_segmentation_path = SCF.serviceConfigFile(cfg).getParam('chain','OBIA_segmentation_path')
         gridsize = SCF.serviceConfigFile(cfg).getParam('Simplification', 'gridsize')
 
         # build chain
@@ -330,33 +338,37 @@ class iota2():
         if shapeRegion and classif_mode == "fusion":
             s_container.append(step_split_huge_vec, "sampling")
         s_container.append(step_merge_samples, "sampling")
-        s_container.append(step_models_samples_stats, "sampling")
-        s_container.append(step_samples_selection, "sampling")
-        s_container.append(step_prepare_selection, "sampling")
-        s_container.append(step_generate_learning_samples, "sampling")
-        s_container.append(step_merge_learning_samples, "sampling")
-        if sampleManagement and sampleManagement.lower() != 'none':
-            s_container.append(step_copy_sample_between_models, "sampling")
-        if sample_augmentation_flag:
-            s_container.append(step_generate_samples, "sampling")
-        if dimred:
-            s_container.append(step_dimRed, "sampling")
+        if OBIA_segmentation_path is None:
+            s_container.append(step_models_samples_stats, "sampling")
+            s_container.append(step_samples_selection, "sampling")
+            s_container.append(step_prepare_selection, "sampling")
+            s_container.append(step_generate_learning_samples, "sampling")
+            s_container.append(step_merge_learning_samples, "sampling")
+            if sampleManagement and sampleManagement.lower() != 'none':
+                s_container.append(step_copy_sample_between_models, "sampling")
+            if sample_augmentation_flag:
+                s_container.append(step_generate_samples, "sampling")
+            if dimred:
+                s_container.append(step_dimRed, "sampling")
 
-        # learning steps
-        if "svm" in classifier.lower():
-            s_container.append(step_normalize_samples, "learning")
-        s_container.append(step_learning, "learning")
+            # learning steps
+            if "svm" in classifier.lower():
+                s_container.append(step_normalize_samples, "learning")
+            s_container.append(step_learning, "learning")
 
-        # classifications steps
-        s_container.append(step_classiCmd, "classification")
-        s_container.append(step_classification, "classification")
-        if ds_sar_opt:
-            s_container.append(step_confusion_sar_opt, "classification")
-            s_container.append(step_confusion_sar_opt_fusion, "classification")
-            s_container.append(step_sar_opt_fusion, "classification")
-        if classif_mode == "fusion" and shapeRegion:
-            s_container.append(step_classif_fusion, "classification")
-            s_container.append(step_manage_fus_indecision, "classification")
+            # classifications steps
+            s_container.append(step_classiCmd, "classification")
+            s_container.append(step_classification, "classification")
+            if ds_sar_opt:
+                s_container.append(step_confusion_sar_opt, "classification")
+                s_container.append(step_confusion_sar_opt_fusion, "classification")
+                s_container.append(step_sar_opt_fusion, "classification")
+            if classif_mode == "fusion" and shapeRegion:
+                s_container.append(step_classif_fusion, "classification")
+                s_container.append(step_manage_fus_indecision, "classification")
+        else :
+            s_container.append(step_split_segmentation_by_tiles,"sampling")
+            s_container.append(step_format_samples_to_segmentation,"sampling")
 
         # mosaic step
         s_container.append(step_mosaic, "mosaic")
