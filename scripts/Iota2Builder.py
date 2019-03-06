@@ -128,7 +128,7 @@ class iota2():
         tiles = TmpTiles.split(" ")
         Sentinel1 = cfg.getParam('chain', 'S1Path')
     	VHR = cfg.getParam('coregistration','VHRPath')
-        obia_mode = cfg.getParam('objectbase','obia_mode')
+        OBIA_segmentation_path = cfg.getParam('chain','OBIA_segmentation_path')
         pathTilesFeat = os.path.join(PathTEST, "features")
         shapeRegion = cfg.getParam('chain', 'regionPath')
         field_Region = cfg.getParam('chain', 'regionField')
@@ -308,26 +308,6 @@ class iota2():
                                            ressources=ressourcesByStep["samplesFormatting"]))
         self.steps_group["sampling"][t_counter] = "Prepare samples"
 
-        if obia_mode == "True":
-            # if segmentation_vector == 'None' :
-            #     t_counter += 1
-            #     t_container.append(tLauncher.Tasks(tasks=(lambda x:),tiles),iota2_config=cfg,ressources=ressourcesByStep[""])
-            #     self.steps_group["sampling"][t_counter] = "Segmentation"
-
-            t_counter += 1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: SG.split_segmentation_by_tiles(pathConf, x, workingDirectory),
-                                                      tiles),
-                                               iota2_config=cfg,
-                                               ressources=ressourcesByStep["samplesFormatting"]))
-            self.steps_group["sampling"][t_counter] = "split segmentation with tiles"
-
-            t_counter += 1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: SG.format_sample_to_segmentation(pathConf, x, workingDirectory),
-                                                      tiles),
-                                               iota2_config=cfg,
-                                               ressources=ressourcesByStep["samplesFormatting"]))
-            self.steps_group["sampling"][t_counter] = "samples intersection with segmentation"
-
         if shapeRegion and CLASSIFMODE == "fusion":
             # STEP : Split learning polygons and Validation polygons in sub-sample if necessary
             # (too many samples to learn a model)
@@ -346,107 +326,123 @@ class iota2():
                                            ressources=ressourcesByStep["samplesMerge"]))
         self.steps_group["sampling"][t_counter] = "merge samples by models"
 
-        # STEP : Samples statistics
-        t_counter += 1
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: SamplesStat.samples_stats(x, pathConf, workingDirectory),
-                                                  lambda: SamplesStat.region_tile(os.path.join(PathTEST, "samplesSelection"))),
-                                           iota2_config=cfg,
-                                           ressources=ressourcesByStep["samplesStatistics"]))
-        self.steps_group["sampling"][t_counter] = "generate samples statistics"
-
-        # STEP : compute selection by models
-        t_counter += 1
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: SamplesSelection.samples_selection(x, pathConf, workingDirectory),
-                                                  lambda: fu.FileSearch_AND(os.path.join(PathTEST, "samplesSelection"), True, ".shp")),
-                                           iota2_config=cfg,
-                                           ressources=ressourcesByStep["samplesSelection"]))
-        self.steps_group["sampling"][t_counter] = "select samples by models"
-
-        # STEP : merge selection by tiles
-        t_counter += 1
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: SamplesSelection.prepareSelection(os.path.join(PathTEST, "samplesSelection"), x, workingDirectory),
-                                                  tiles),
-                                           iota2_config=cfg,
-                                           ressources=ressourcesByStep["samplesSelection_tiles"]))
-        self.steps_group["sampling"][t_counter] = "merge selections by tiles"
-
-        # STEP : Samples Extraction
-        t_counter += 1
-        RAM_extraction = 1024.0 * get_RAM(ressourcesByStep["vectorSampler"].ram)
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: vs.generateSamples(x, workingDirectory, pathConf, RAM_extraction),
-                                                  lambda: vs.get_vectors_to_sample(os.path.join(PathTEST, "formattingVectors"), ds_sar_opt)),
-                                           iota2_config=cfg,
-                                           ressources=ressourcesByStep["vectorSampler"]))
-        self.steps_group["sampling"][t_counter] = "generate samples"
-
-        # STEP : MergeSamples
-        t_counter += 1
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: VSM.vectorSamplesMerge(pathConf, x),
-                                                  lambda: VSM.tile_vectors_to_models(os.path.join(PathTEST, "learningSamples"), ds_sar_opt)),
-                                           iota2_config=cfg,
-                                           ressources=ressourcesByStep["mergeSample"]))
-        self.steps_group["sampling"][t_counter] = "merge samples"
-        
-        if sampleManagement and sampleManagement.lower() != 'none':
-            # STEP : sampleManagement
-            t_counter+=1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: DataAugmentation.DataAugmentationByCopy(dataField.lower(),
-                                                                                                        sampleManagement,
-                                                                                                        x, workingDirectory),
-                                                      lambda: DataAugmentation.GetDataAugmentationByCopyParameters(PathTEST + "/learningSamples")),
-                                           iota2_config=cfg,
-                                           ressources=ressourcesByStep["samplesManagement"]))
-            self.steps_group["sampling"][t_counter] = "copy samples between models according to user request"
-
-        if sample_augmentation_flag:
-            # STEP : sampleAugmentation
-            t_counter+=1
-            t_container.append(tLauncher.Tasks(tasks=(lambda x: DataAugmentation.DataAugmentationSynthetic(x,
-                                                                                                           shapeData,
-                                                                                                           dataField.lower(),
-                                                                                                           sample_augmentation,
-                                                                                                           workingDirectory),
-                                                      lambda: DataAugmentation.GetDataAugmentationSyntheticParameters(PathTEST)),
+        if OBIA_segmentation_path is None :
+            # STEP : Samples statistics
+            t_counter += 1
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: SamplesStat.samples_stats(x, pathConf, workingDirectory),
+                                                      lambda: SamplesStat.region_tile(os.path.join(PathTEST, "samplesSelection"))),
                                                iota2_config=cfg,
-                                               ressources=ressourcesByStep["samplesAugmentation"]))
-            self.steps_group["sampling"][t_counter] = "generate synthetic samples"
-        # STEP : Dimensionality Reduction
-        if dimred:
-            t_counter+=1
-            t_container.append(
-                tLauncher.Tasks(tasks=(lambda x: 
-                                       DR.SampleDimensionalityReduction(x, PathTEST,
-                                                                        targetDimension,
-                                                                        reductionMode),
-                                       lambda: DR.BuildIOSampleFileLists(PathTEST)),
-                                iota2_config=cfg,
-                                ressources=ressourcesByStep["dimensionalityReduction"]))
-            self.steps_group["dimred"][t_counter] = "dimensionality reduction"
+                                               ressources=ressourcesByStep["samplesStatistics"]))
+            self.steps_group["sampling"][t_counter] = "generate samples statistics"
 
-        if classifier == "svm":
-            # STEP : Compute statistics by models
+            # STEP : compute selection by models
+            t_counter += 1
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: SamplesSelection.samples_selection(x, pathConf, workingDirectory),
+                                                      lambda: fu.FileSearch_AND(os.path.join(PathTEST, "samplesSelection"), True, ".shp")),
+                                               iota2_config=cfg,
+                                               ressources=ressourcesByStep["samplesSelection"]))
+            self.steps_group["sampling"][t_counter] = "select samples by models"
+
+            # STEP : merge selection by tiles
+            t_counter += 1
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: SamplesSelection.prepareSelection(os.path.join(PathTEST, "samplesSelection"), x, workingDirectory),
+                                                      tiles),
+                                               iota2_config=cfg,
+                                               ressources=ressourcesByStep["samplesSelection_tiles"]))
+            self.steps_group["sampling"][t_counter] = "merge selections by tiles"
+
+            # STEP : Samples Extraction
+            t_counter += 1
+            RAM_extraction = 1024.0 * get_RAM(ressourcesByStep["vectorSampler"].ram)
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: vs.generateSamples(x, workingDirectory, pathConf, RAM_extraction),
+                                                      lambda: vs.get_vectors_to_sample(os.path.join(PathTEST, "formattingVectors"), ds_sar_opt)),
+                                               iota2_config=cfg,
+                                               ressources=ressourcesByStep["vectorSampler"]))
+            self.steps_group["sampling"][t_counter] = "generate samples"
+
+            # STEP : MergeSamples
+            t_counter += 1
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: VSM.vectorSamplesMerge(pathConf, x),
+                                                      lambda: VSM.tile_vectors_to_models(os.path.join(PathTEST, "learningSamples"), ds_sar_opt)),
+                                               iota2_config=cfg,
+                                               ressources=ressourcesByStep["mergeSample"]))
+            self.steps_group["sampling"][t_counter] = "merge samples"
+            
+            if sampleManagement and sampleManagement.lower() != 'none':
+                # STEP : sampleManagement
+                t_counter+=1
+                t_container.append(tLauncher.Tasks(tasks=(lambda x: DataAugmentation.DataAugmentationByCopy(dataField.lower(),
+                                                                                                            sampleManagement,
+                                                                                                            x, workingDirectory),
+                                                          lambda: DataAugmentation.GetDataAugmentationByCopyParameters(PathTEST + "/learningSamples")),
+                                               iota2_config=cfg,
+                                               ressources=ressourcesByStep["samplesManagement"]))
+                self.steps_group["sampling"][t_counter] = "copy samples between models according to user request"
+
+            if sample_augmentation_flag:
+                # STEP : sampleAugmentation
+                t_counter+=1
+                t_container.append(tLauncher.Tasks(tasks=(lambda x: DataAugmentation.DataAugmentationSynthetic(x,
+                                                                                                               shapeData,
+                                                                                                               dataField.lower(),
+                                                                                                               sample_augmentation,
+                                                                                                               workingDirectory),
+                                                          lambda: DataAugmentation.GetDataAugmentationSyntheticParameters(PathTEST)),
+                                                   iota2_config=cfg,
+                                                   ressources=ressourcesByStep["samplesAugmentation"]))
+                self.steps_group["sampling"][t_counter] = "generate synthetic samples"
+            # STEP : Dimensionality Reduction
+            if dimred:
+                t_counter+=1
+                t_container.append(
+                    tLauncher.Tasks(tasks=(lambda x: 
+                                           DR.SampleDimensionalityReduction(x, PathTEST,
+                                                                            targetDimension,
+                                                                            reductionMode),
+                                           lambda: DR.BuildIOSampleFileLists(PathTEST)),
+                                    iota2_config=cfg,
+                                    ressources=ressourcesByStep["dimensionalityReduction"]))
+                self.steps_group["dimred"][t_counter] = "dimensionality reduction"
+
+            if classifier == "svm":
+                # STEP : Compute statistics by models
+                t_counter += 1
+                t_container.append(tLauncher.Tasks(tasks=(lambda x: bashLauncherFunction(x),
+                                                          lambda: MS.generateStatModel(pathAppVal,
+                                                                                       pathTilesFeat,
+                                                                                       pathStats,
+                                                                                       cmdPath + "/stats",
+                                                                                       None, cfg)),
+                                                   iota2_config=cfg,
+                                                   ressources=ressourcesByStep["stats_by_models"]))
+                self.steps_group["learning"][t_counter] = "compute statistics for each model"        
+
+            # STEP : Learning
             t_counter += 1
             t_container.append(tLauncher.Tasks(tasks=(lambda x: bashLauncherFunction(x),
-                                                      lambda: MS.generateStatModel(pathAppVal,
-                                                                                   pathTilesFeat,
-                                                                                   pathStats,
-                                                                                   cmdPath + "/stats",
-                                                                                   None, cfg)),
+                                                      lambda: TC.launchTraining(cfg,
+                                                                                dataField,
+                                                                                pathStats,
+                                                                                nbRuns, cmdPath + "/train",
+                                                                                pathModels, workingDirectory)),
                                                iota2_config=cfg,
-                                               ressources=ressourcesByStep["stats_by_models"]))
-            self.steps_group["learning"][t_counter] = "compute statistics for each model"        
+                                               ressources=ressourcesByStep["training"]))
+            self.steps_group["learning"][t_counter] = "learning"
+        
+        else :
+            t_counter += 1
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: SG.split_segmentation_by_tiles(pathConf, x, tiles, workingDirectory),
+                                                      tiles),
+                                               iota2_config=cfg,
+                                               ressources=ressourcesByStep["samplesFormatting"]))
+            self.steps_group["sampling"][t_counter] = "split segmentation with tiles"
 
-        # STEP : Learning
-        t_counter += 1
-        t_container.append(tLauncher.Tasks(tasks=(lambda x: bashLauncherFunction(x),
-                                                  lambda: TC.launchTraining(cfg,
-                                                                            dataField,
-                                                                            pathStats,
-                                                                            nbRuns, cmdPath + "/train",
-                                                                            pathModels, workingDirectory)),
-                                           iota2_config=cfg,
-                                           ressources=ressourcesByStep["training"]))
-        self.steps_group["learning"][t_counter] = "learning"
+            t_counter += 1
+            t_container.append(tLauncher.Tasks(tasks=(lambda x: SG.format_sample_to_segmentation(pathConf, x, workingDirectory),
+                                                      lambda: samplesMerge.get_models(os.path.join(PathTEST, "formattingVectors"), field_Region, nbRuns)),
+                                               iota2_config=cfg,
+                                               ressources=ressourcesByStep["samplesFormatting"]))
+            self.steps_group["sampling"][t_counter] = "samples intersection with segmentation"
 
         # STEP : generate Classifications commands and masks
         RAM_classification = 1024.0 * get_RAM(ressourcesByStep["classifications"].ram)

@@ -84,7 +84,8 @@ class serviceConfigFile:
                              "dempstershafer_mob": "precision",
                              "merge_final_classifications_ratio": 0.1,
                              "keep_runs_results": True,
-                             "remove_tmp_files": False}
+                             "remove_tmp_files": False,
+                             "OBIA_segmentation_path": None}
             self.init_section("chain", chain_default)
             #init coregistration section
             coregistration_default = {"VHRPath":"None",
@@ -102,12 +103,6 @@ class serviceConfigFile:
                               "pattern":"None"
                               }
             self.init_section("coregistration",coregistration_default)
-            #init obia section
-            obia_default = {"obia_mode":False,
-                            "segmentation_vector":"None",
-                            "segmentation_raster":"None"
-                            }
-            self.init_section("objectbase",obia_default)
             #init argTrain section
             sampleSel_default = self.init_dicoMapping({"sampler":"random",
                                                        "strategy":"all"})

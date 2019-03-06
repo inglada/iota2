@@ -53,12 +53,23 @@ def split_segmentation_by_tiles(cfg, tile, wd):
         cfg = SCF.serviceConfigFile(cfg)
 
     epsg = int((cfg.getParam('GlobChain', 'proj')).split(":")[-1])
-    segmentationRaster = cfg.getParam('objectbase','segmentation_raster')
-    if segmentationRaster == "None":
-        segmentationRaster = os.path.join(cfg.getParam('chain', 'outputPath'), "segmentation",'seg_input.tif')
+    segmentation = cfg.getParam('chain','OBIA_segmentation_path')
+    segmentationRaster = None
+    segmentationVector = None
+    try :
+        segmentationRaster = gdal.Open(segmentation)
+        if segmentationRaster is not None :
+            segmentationRaster = segmentation
+            logger.info("%s loaded as raster segmentation reference")
+    except :
+        logger.info("%s is not a raster input...")
+    if segmentationRaster is None:
+        segmentationVector = ogr.Open(segmentation)
+        if segmentationVector is not None :
+            segmentationVector = segmentation
+            logger.info("%s loaded as vector segmentation reference")
 
-    segmentationVector = cfg.getParam('objectbase','segmentation_vector')
-    if segmentationVector == "None":
+    if segmentationVector is None:
         tileVector = os.path.join(cfg.getParam('chain', 'outputPath'), "envelope", tile + '.shp')
         tiledRasterSegmentation = os.path.join(cfg.getParam('chain', 'outputPath'), "segmentation", tile + '_seg.tif')
         extractRoiApp = OtbAppBank.CreateExtractROIApplication({"in": segmentationRaster,
@@ -77,7 +88,7 @@ def split_segmentation_by_tiles(cfg, tile, wd):
         tiledVectorSegmentation = os.path.join(outFolder, tile + '_seg.shp')
         intersect.intersectSqlites(segmentationVector, tileVector, outFolder, tiledVectorSegmentation, epsg, "union", [], vectformat='SQLite')
 
-def format_sample_to_segmentation(cfg, tile, wd):
+def format_sample_to_segmentation(cfg, region_tiles_seed, wd):
     """ Split train samples with segmentation
 
     Parameters
@@ -94,26 +105,22 @@ def format_sample_to_segmentation(cfg, tile, wd):
     """
     from Common import ServiceConfigFile as SCF
 
-    logger.info("Split %s train sample with segmentation" % tile)
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
 
-    segmentationVector = cfg.getParam('objectbase','segmentation_vector')
-    if segmentationVector == "None":
-        segmentationVector = os.path.join(cfg.getParam('chain', 'outputPath'), "segmentation",tile + "_seg.shp")
-
-    samplesVector = os.path.join(cfg.getParam('chain', 'outputPath'),'formattingVectors',tile + '.shp')
-
-    outFolder = os.path.join(cfg.getParam('chain', 'outputPath'), "segmentation")
-    trainSampleSeg = os.path.join(outFolder, tile + '_train_Seg.shp')
-    epsg = int((cfg.getParam('GlobChain', 'proj')).split(":")[-1])
-
+    region, tiles, seed = region_tiles_seed
+    samplesVector = os.path.join(cfg.getParam('chain', 'outputPath'), 'samplesSelection', "samples_region_{}_seed_{}.shp".format(region, seed))
     dataField = (cfg.getParam('chain', 'dataField')).lower()
     regionField = (cfg.getParam('chain', 'regionField')).lower()
-    seeds = cfg.getParam('chain', 'runs')
-    seedslist = []
-    for seed in range(seeds):
-    	seedslist.append("seed_"+str(seed))
+    attributes = [dataField, regionField, "originfid", "seed_"+str(seed)]
+    outFolder = os.path.join(cfg.getParam('chain', 'outputPath'), "segmentation")
+    epsg = int((cfg.getParam('GlobChain', 'proj')).split(":")[-1])
+    tiles_samples = []
+    for tile in tiles :
+        segmentationVector = os.path.join(outFolder, tile + "_seg.shp")
+        tileSamplesVector = os.path.join(outFolder, "{}_samples_region_{}_seed_{}.shp".format(tile,region, seed))
+        tiles_samples.append(tileSamplesVector)
+        intersect.intersectSqlites(samplesVector, segmentationVector, outFolder, tileSamplesVector, epsg, "intersection", attributes, vectformat='SQLite')
 
-    attributes = [dataField, regionField, "originfid"] + seedslist + ["tile_o"]
-    intersect.intersectSqlites(samplesVector, segmentationVector, outFolder, trainSampleSeg, epsg, "intersection", attributes, vectformat='SQLite')
+    tileSamplesVector = os.path.join(outFolder, 'segmentation', "samples_region_{}_seed_{}.shp".format(region, seed))
+    fut.mergeVectors(tileSamplesVector,outFolder,tiles_samples)

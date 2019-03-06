@@ -98,7 +98,7 @@ def GenerateDirectories(cfg):
             shutil.rmtree(root+"/final/merge_final_classifications")
         os.mkdir(root+"/final/merge_final_classifications")
 
-    obia = cfg.getParam('objectbase', 'obia_mode')
+    obia = cfg.getParam('chain', 'OBIA_segmentation_path')
     if obia:
         if os.path.exists(root+"/segmentation"):
             shutil.rmtree(root+"/segmentation")
