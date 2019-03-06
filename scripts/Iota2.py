@@ -300,7 +300,8 @@ if __name__ == "__main__":
         args.end = len(steps)
 
     if MPIService().rank == 0:
-        print (chain_to_process.print_step_summarize(args.start, args.end))
+        print(chain_to_process.print_step_summarize(args.start, args.end))
+
 
     if args.launchChain is False:
         sys.exit()

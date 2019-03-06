@@ -76,7 +76,6 @@ def return_decorator(validate_function, type_string="<class 'function'>"):
         return return_value
     return decorator_wrapper
 
-
 class Step(object):
     """
     This class is the definition of a IOTA² step. New steps must herit from

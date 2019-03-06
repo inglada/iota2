@@ -18,7 +18,6 @@ import os
 from Steps import IOTA2Step
 from Common import ServiceConfigFile as SCF
 
-
 class additionalStatistics(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
