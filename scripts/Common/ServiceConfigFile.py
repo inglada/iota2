@@ -19,7 +19,7 @@ import os
 import sys
 from osgeo import ogr
 from config import Config, Sequence, Mapping, Container
-from FileUtils import getFeatStackName, FileSearch_AND, getRasterNbands
+from FileUtils import getFeatStackName, FileSearch_AND, getRasterNbands, get_iota2_project_dir
 from Common import ServiceError as sErr
 
 # this is a pointer to the module object instance itself.
@@ -553,7 +553,7 @@ class serviceConfigFile:
             # directory tests
             if self.getParam("chain", "jobsPath"):
                 self.testDirectory(self.getParam("chain", "jobsPath"))
-            self.testDirectory(os.path.join(os.environ.get('IOTA2DIR'), "scripts"))
+            self.testDirectory(os.path.join(get_iota2_project_dir(), "scripts"))
             self.testDirectory(self.cfg.chain.nomenclaturePath)
             self.testDirectory(self.cfg.chain.groundTruth)
             self.testDirectory(self.cfg.chain.colorTable)
