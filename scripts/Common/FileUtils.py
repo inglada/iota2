@@ -38,6 +38,15 @@ import otbApplication as otb
 from Common.Utils import run
 
 
+def get_iota2_project_dir():
+    """
+    """
+    parent = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                            os.pardir))
+    iota2dir = os.path.abspath(os.path.join(parent, os.pardir))
+    return iota2dir
+
+
 def ensure_dir(dirname, raise_exe=True):
     """
     Ensure that a named directory exists; if it does not, attempt to create it.
