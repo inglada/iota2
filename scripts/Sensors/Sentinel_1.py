@@ -42,8 +42,6 @@ class Sentinel_1(Sensor):
 
         self.tile_name = tile_name
         self.cfg_IOTA2 = SCF.serviceConfigFile(config_path)
-        cfg_sensors = os.path.join(os.environ.get('IOTA2DIR'), "config", "sensors.cfg")
-        cfg_sensors = SCF.serviceConfigFile(cfg_sensors, iota_config=False)
         
         config_parser = ConfigParser.ConfigParser()
 
