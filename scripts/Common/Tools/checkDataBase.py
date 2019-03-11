@@ -16,6 +16,7 @@
 
 import argparse
 
+
 def str2bool(v):
     """
     usage : use in argParse as function to parse options
@@ -31,11 +32,28 @@ def str2bool(v):
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
-def do_check(input_vector, output_vector, epsg, pix_area,
+def do_check(input_vector, output_vector, data_field, epsg, pix_area,
              pix_area_threshold, do_corrections):
     """
     """
-    import checkGeometryAreaThreshField
+    from VectorTools import checkGeometryAreaThreshField
+    from VectorTools.vector_functions import getFields
+    from VectorTools.vector_functions import getFieldType
+
+    input_vector_fields = getFields(input_vector)
+
+    errors = []
+    if not data_field in input_vector_fields:
+        error_msg = "field '{}' not found".format(data_field)
+        errors.append(error_msg)
+
+    label_field_type = getFieldType(input_vector, data_field)
+    if not label_field_type is int:
+        error_msg = "field '{}' is not containing intergers".format(data_field)
+        errors.append(error_msg)
+    print errors
+    return errors
+
 if __name__ == "__main__":
     description=("This function allow user if the inpute dataBase can be used by IOTA²'s\n"
                  "\t- remove empty geometries\n"
@@ -73,6 +91,6 @@ if __name__ == "__main__":
                         default=False, type=str2bool)
     args = parser.parse_args()
 
-    do_check(args.input_vector, args.output_vector,
+    do_check(args.input_vector, args.output_vector, args.data_field,
              args.epsg, args.pix_area, args.pix_area_threshold,
              args.do_corrections)
