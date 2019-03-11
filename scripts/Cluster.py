@@ -24,6 +24,7 @@ import numpy as np
 from Common import ServiceError as sErr
 from Common import ServiceConfigFile as SCF
 from Common import ServiceLogger as sLog
+from Common import FileUtils as fut
 
 def get_RAM(ram):
         """
