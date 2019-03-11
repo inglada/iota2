@@ -235,6 +235,7 @@ chain.groundTruth
     2. The file must contain an integer field to descriminate features which belong to the same class
     3. Geometries hav to be of ``POLYGON`` type
     4. No overlapping between polygons
+    5. File's name must not contains special characters at first position (4Tiles.shp)
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -269,12 +270,13 @@ chain.regionPath
     The use of this field enables IOTA² to generate one model per region.
     The purpose of this feaure is highlighted by the example : :ref:`two-zones`
 
-    the regions file must respect the following rules
+    the file must respect the following rules
 
     1. It must be a shapeFile (.shp)
     2. The file must contain an string field to descriminate regions
     3. Geometries have to be ``POLYGON`` or ``MULTIPOLYGON``
     4. No overlapping between polygons
+    5. File's name must not contains special characters at first position (4Tiles.shp)
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
