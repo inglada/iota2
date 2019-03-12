@@ -477,46 +477,54 @@ def deleteInvalidGeom(shp):
 
 #--------------------------------------------------------------------
 def checkValidGeom(shp):
-  	"""
-  	Check the validity of geometries in a file. If geometry is not valid then buffer 0 to correct
-  	Works for files with polygons
-   	"""
-	print "Verifying geometries validity"
-	ds = openToWrite(shp)
-	layer = ds.GetLayer()
-	nbfeat = getNbFeat(shp)
-	count = 0
-	corr = 0
-	fidl = []
-	#print layer.GetFeature(24667)
+    """Check the validity of geometries in a file. If geometry is not valid then
+    apply buffer 0 to correct. Works for files with polygons
 
-	for feat in layer:
-		#feat = layer.GetFeature(i)
-		fid =  feat.GetFID()
-		if feat.GetGeometryRef() is None:
-			print fid
-			layer.DeleteFeature(fid)
-			ds.ExecuteSQL('REPACK '+layer.GetName())
-			layer.ResetReading()
-		else:
-			geom = feat.GetGeometryRef()
-			valid = geom.IsValid()
-			ring =  geom.IsRing()
-			simple =  geom.IsSimple()
-			if valid == False:
-				fidl.append(fid)
-				buffer_test =  feat.SetGeometry(geom.Buffer(0))
-				layer.SetFeature(feat)
-				if buffer_test == 0:
-					print "Feature %d has been corrected" % feat.GetFID()
-					corr += 1
-				else:
-					print "Feature %d could not be corrected" % feat.GetFID()
-				count += 1
-		
-	print "From %d invalid features, %d were corrected" %(count, corr)
-	ds.ExecuteSQL('REPACK '+layer.GetName())
-	return shp
+    Parameters
+    ----------
+    shp : string
+        input shapeFile
+    Return
+    ------
+    tuple
+        (output_shape, count, corr) where count is the number of invalid features
+        and corr the number of invalid features corrected
+    """
+    print "Verifying geometries validity"
+    ds = openToWrite(shp)
+    layer = ds.GetLayer()
+    nbfeat = getNbFeat(shp)
+    count = 0
+    corr = 0
+    fidl = []
+
+    for feat in layer:
+        #feat = layer.GetFeature(i)
+        fid =  feat.GetFID()
+        if feat.GetGeometryRef() is None:
+            print fid
+            layer.DeleteFeature(fid)
+            ds.ExecuteSQL('REPACK '+layer.GetName())
+            layer.ResetReading()
+        else:
+            geom = feat.GetGeometryRef()
+            valid = geom.IsValid()
+            ring =  geom.IsRing()
+            simple =  geom.IsSimple()
+            if valid == False:
+                fidl.append(fid)
+                buffer_test =  feat.SetGeometry(geom.Buffer(0))
+                layer.SetFeature(feat)
+                if buffer_test == 0:
+                    print "Feature %d has been corrected" % feat.GetFID()
+                    corr += 1
+                else:
+                    print "Feature %d could not be corrected" % feat.GetFID()
+                count += 1
+        
+    print "From %d invalid features, %d were corrected" %(count, corr)
+    ds.ExecuteSQL('REPACK '+layer.GetName())
+    return shp, count, corr
 
 #--------------------------------------------------------------------
 def checkEmptyGeom(shp, do_corrections=True, output_file=None):
