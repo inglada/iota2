@@ -36,6 +36,7 @@ def vector_name_check(input_vector):
     """
     check if first character is a letter
     """
+    import os
     import string
     avail_characters = string.ascii_letters
     first_character = os.path.basename(input_vector)[0]
@@ -63,9 +64,11 @@ def do_check(input_vector, output_vector, data_field, epsg, pix_area,
              pix_area_threshold, do_corrections):
     """
     """
+    import os
     from VectorTools import checkGeometryAreaThreshField
     from VectorTools.vector_functions import getFields
     from VectorTools.vector_functions import getFieldType
+    from VectorTools.vector_functions import checkEmptyGeom
 
     input_vector_fields = getFields(input_vector)
 
@@ -88,9 +91,16 @@ def do_check(input_vector, output_vector, data_field, epsg, pix_area,
         errors.append(error_msg)
 
     # geometries checks 
-    #~ outShapefileGeom = vf.checkEmptyGeom(shapefile)
-    #~ outShapefileGeom = vf.checkEmptyGeom(shapefile, outputShapeFile, do_corrections)
-    
+    shape_no_empty_name = "no_empty.shp"
+    shape_no_empty_dir = os.path.split(input_vector)[0]
+    shape_no_empty = os.path.join(shape_no_empty_dir, shape_no_empty_name)
+    _, empty_geom_number = checkEmptyGeom(input_vector, do_corrections, shape_no_empty)
+    if empty_geom_number != 0:
+        error_msg = "'{}' contains empty geometries".format(input_vector)
+        if do_corrections:
+            error_msg = "{} and they were removed".format(error_msg)
+        errors.append(error_msg)
+
     # suppression des doubles géométries
     #~ DeleteDuplicateGeometriesSqlite.deleteDuplicateGeometriesSqlite(outShapefileGeom)
     #~ DeleteDuplicateGeometriesSqlite.deleteDuplicateGeometriesSqlite(inputShapeFile, outShapefileGeom, do_corrections)
