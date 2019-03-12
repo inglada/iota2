@@ -527,7 +527,7 @@ def checkEmptyGeom(shp, do_corrections=True, output_file=None):
     input_shape : string
         input shapeFile
     do_correction : bool
-        return if empty an empty geometry was found
+        flag to remove empty geometries
     output_shape : string
         output shapeFile, if set to None output_shape = input_shape
     Return
