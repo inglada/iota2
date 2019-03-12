@@ -65,11 +65,14 @@ def do_check(input_vector, output_vector, data_field, epsg, pix_area,
     """
     """
     import os
+    from Common.FileUtils import removeShape
     from VectorTools import checkGeometryAreaThreshField
     from VectorTools.vector_functions import getFields
     from VectorTools.vector_functions import getFieldType
     from VectorTools.vector_functions import checkEmptyGeom
+    from VectorTools.DeleteDuplicateGeometriesSqlite import deleteDuplicateGeometriesSqlite
 
+    tmp_files = []
     input_vector_fields = getFields(input_vector)
 
     errors = []
@@ -94,17 +97,27 @@ def do_check(input_vector, output_vector, data_field, epsg, pix_area,
     shape_no_empty_name = "no_empty.shp"
     shape_no_empty_dir = os.path.split(input_vector)[0]
     shape_no_empty = os.path.join(shape_no_empty_dir, shape_no_empty_name)
-    _, empty_geom_number = checkEmptyGeom(input_vector, do_corrections, shape_no_empty)
+    shape_no_empty, empty_geom_number = checkEmptyGeom(input_vector, do_corrections, shape_no_empty)
     if empty_geom_number != 0:
-        error_msg = "'{}' contains empty geometries".format(input_vector)
+        error_msg = "'{}' contains {} empty geometries".format(input_vector, empty_geom_number)
         if do_corrections:
             error_msg = "{} and they were removed".format(error_msg)
         errors.append(error_msg)
+    tmp_files.append(shape_no_empty)
 
-    # suppression des doubles géométries
-    #~ DeleteDuplicateGeometriesSqlite.deleteDuplicateGeometriesSqlite(outShapefileGeom)
-    #~ DeleteDuplicateGeometriesSqlite.deleteDuplicateGeometriesSqlite(inputShapeFile, outShapefileGeom, do_corrections)
-    
+    # remove dupplicates features
+    shape_no_duplicates_name = "no_duplicates.shp"
+    shape_no_duplicates_dir = os.path.split(input_vector)[0]
+    shape_no_duplicates = os.path.join(shape_no_duplicates_dir, shape_no_duplicates_name)
+    shape_no_duplicates, duplicated_features = deleteDuplicateGeometriesSqlite(shape_no_empty,
+                                                                               do_corrections,
+                                                                               shape_no_duplicates)
+    if duplicated_features != 0:
+        error_msg = "'{}' contains {} duplicated features".format(input_vector, duplicated_features)
+        if do_corrections:
+            error_msg = "{} and they were removed".format(error_msg)
+        errors.append(error_msg)
+    tmp_files.append(shape_no_duplicates)
     # Suppression des multipolygons
     #~ MultiPolyToPoly.multipoly2poly(outShapefileGeom, shapefileNoDupspoly)
     #~ MultiPolyToPoly.multipoly2poly(inputshape, outputShape, do_corrections)
@@ -123,6 +136,9 @@ def do_check(input_vector, output_vector, data_field, epsg, pix_area,
     # remove features with empty geometries
     #~ remove_invalid_features(shapefile)
     #~ remove_invalid_features(shapefile, outputshape, do_corrections)
+    for tmp_file in tmp_files:
+        if tmp_file is not input_vector:
+            removeShape(tmp_file.replace(".shp", ""), [".prj",".shp",".dbf",".shx"])
     return errors
 
 if __name__ == "__main__":
@@ -130,7 +146,6 @@ if __name__ == "__main__":
                  "\t- remove empty geometries\n"
                  "\t- remove duplicate geometries\n"
                  "\t- split multi-polygons to polygons\n"
-                 "\t- polygons could be filtered by Area\n"
                  "\t- check projection\n"
                  "\t- check if the label field is integer type")
     parser = argparse.ArgumentParser(description)
