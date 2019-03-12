@@ -70,7 +70,9 @@ def do_check(input_vector, output_vector, data_field, epsg, pix_area,
     from VectorTools.vector_functions import getFields
     from VectorTools.vector_functions import getFieldType
     from VectorTools.vector_functions import checkEmptyGeom
+    from VectorTools.vector_functions import checkValidGeom
     from VectorTools.DeleteDuplicateGeometriesSqlite import deleteDuplicateGeometriesSqlite
+    from VectorTools.MultiPolyToPoly import multipoly2poly
 
     tmp_files = []
     input_vector_fields = getFields(input_vector)
@@ -105,7 +107,7 @@ def do_check(input_vector, output_vector, data_field, epsg, pix_area,
         errors.append(error_msg)
     tmp_files.append(shape_no_empty)
 
-    # remove dupplicates features
+    # remove duplicates features
     shape_no_duplicates_name = "no_duplicates.shp"
     shape_no_duplicates_dir = os.path.split(input_vector)[0]
     shape_no_duplicates = os.path.join(shape_no_duplicates_dir, shape_no_duplicates_name)
@@ -118,16 +120,18 @@ def do_check(input_vector, output_vector, data_field, epsg, pix_area,
             error_msg = "{} and they were removed".format(error_msg)
         errors.append(error_msg)
     tmp_files.append(shape_no_duplicates)
-    # Suppression des multipolygons
-    #~ MultiPolyToPoly.multipoly2poly(outShapefileGeom, shapefileNoDupspoly)
-    #~ MultiPolyToPoly.multipoly2poly(inputshape, outputShape, do_corrections)
 
-    # recalcul des superficies, on est obligé d'ajouter une nouvelle colonne ?
-    #~ AddFieldArea.addFieldArea(shapefileNoDupspoly, pixelArea)
-
-    # Filter by Area
-    #~ SelectBySize.selectBySize(shapefileNoDupspoly, 'Area', pix_thresh, outshape)
-    #~ SelectBySize.selectBySize(shapefileNoDupspoly, pix_thresh, outshape, do_corrections)
+    # remove multipolygons
+    shape_no_multi_name = "no_multi.shp"
+    shape_no_multi_dir = os.path.split(input_vector)[0]
+    shape_no_multi = os.path.join(shape_no_multi_dir, shape_no_multi_name)
+    multipolygons_number = multipoly2poly(shape_no_duplicates, shape_no_multi, do_corrections)
+    if multipolygons_number != 0:
+        error_msg = "'{}' contains {} MULTIPOLYGON".format(input_vector, multipolygons_number)
+        if do_corrections:
+            error_msg = "{} and they were removed".format(error_msg)
+        errors.append(error_msg)
+    tmp_files.append(shape_no_multi)
 
     # Check valid geometry
     #~ vf.checkValidGeom(outshape)
@@ -137,7 +141,7 @@ def do_check(input_vector, output_vector, data_field, epsg, pix_area,
     #~ remove_invalid_features(shapefile)
     #~ remove_invalid_features(shapefile, outputshape, do_corrections)
     for tmp_file in tmp_files:
-        if tmp_file is not input_vector:
+        if tmp_file is not input_vector and os.path.exists(tmp_file):
             removeShape(tmp_file.replace(".shp", ""), [".prj",".shp",".dbf",".shx"])
     return errors
 
