@@ -549,7 +549,7 @@ def checkEmptyGeom(shp, do_corrections=True, output_file=None):
             elif empty is True:
                 count += 1
 
-    output_shape = None
+    output_shape = shp
     if do_corrections:
         if count == 0:
             print "No empty geometries"
