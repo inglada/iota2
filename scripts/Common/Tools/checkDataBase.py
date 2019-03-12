@@ -44,8 +44,9 @@ def vector_name_check(input_vector):
 
 
 def remove_invalid_features(shapefile):
-    
+    from osgeo import ogr
     # remove invalid features
+    none_geom = 0
     driver = ogr.GetDriverByName("ESRI Shapefile")
     dataSource = driver.Open(shapefile, 1)
     if not dataSource:
@@ -56,16 +57,17 @@ def remove_invalid_features(shapefile):
         feat = layer[feature]
         geom = feat.GetGeometryRef()
         if not geom:
+            none_geom += 1
             layer.DeleteFeature(feature)
     layer.ResetReading()
+    return none_geom
 
-
-def do_check(input_vector, output_vector, data_field, epsg, pix_area,
-             pix_area_threshold, do_corrections):
+def do_check(input_vector, output_vector, data_field, epsg, do_corrections):
     """
     """
     import os
     from Common.FileUtils import removeShape
+    from Common.FileUtils import cpShapeFile
     from VectorTools import checkGeometryAreaThreshField
     from VectorTools.vector_functions import getFields
     from VectorTools.vector_functions import getFieldType
@@ -134,15 +136,32 @@ def do_check(input_vector, output_vector, data_field, epsg, pix_area,
     tmp_files.append(shape_no_multi)
 
     # Check valid geometry
-    #~ vf.checkValidGeom(outshape)
-    #~ vf.checkValidGeom(inputShape, outshape)
+    shape_valid_geom_name = "valid_geom.shp"
+    shape_valid_geom_dir = os.path.split(input_vector)[0]
+    shape_valid_geom = os.path.join(shape_valid_geom_dir, shape_valid_geom_name)
+    shape_valid_geom = output_vector if output_vector else shape_valid_geom
+    
+    input_valid_geom_shape = shape_no_multi if do_corrections else shape_no_duplicates
+    cpShapeFile(input_valid_geom_shape.replace(".shp", ""), shape_valid_geom.replace(".shp", ""),
+                extensions=[".prj",".shp",".dbf",".shx"])
+    shape_valid_geom, invalid_geom, invalid_geom_corrected = checkValidGeom(shape_valid_geom)
 
-    # remove features with empty geometries
-    #~ remove_invalid_features(shapefile)
-    #~ remove_invalid_features(shapefile, outputshape, do_corrections)
+    if invalid_geom != 0:
+        error_msg = "'{}' contains {} invalid geometries and {} were removed in {}".format(input_vector,
+                                                                                           invalid_geom,
+                                                                                           invalid_geom_corrected,
+                                                                                           shape_valid_geom)
+        errors.append(error_msg)
+    if output_vector is not None:
+        tmp_files.append(shape_valid_geom)
+
+    # remove features with None geometries
+    remove_invalid_features(shape_valid_geom)
+
     for tmp_file in tmp_files:
         if tmp_file is not input_vector and os.path.exists(tmp_file):
             removeShape(tmp_file.replace(".shp", ""), [".prj",".shp",".dbf",".shx"])
+    print "\n".join(errors)
     return errors
 
 if __name__ == "__main__":
@@ -151,6 +170,7 @@ if __name__ == "__main__":
                  "\t- remove duplicate geometries\n"
                  "\t- split multi-polygons to polygons\n"
                  "\t- check projection\n"
+                 "\t- check vector's name\n"
                  "\t- check if the label field is integer type")
     parser = argparse.ArgumentParser(description)
     parser.add_argument("-in.vector",
@@ -167,14 +187,6 @@ if __name__ == "__main__":
                         help="EPSG's code (mandatory)",
                         dest="epsg", required=True,
                         type=int)
-    parser.add_argument("-pixArea",
-                        help="pixel's area (mandatory)",
-                        dest="pix_area", required=True,
-                        type=float)
-    parser.add_argument("-pixAreaThreshold",
-                        help="pixel's area threshold",
-                        dest="pix_area_threshold", required=False,
-                        default=0.0, type=float)
     parser.add_argument("-doCorrections",
                         help="enable corrections (default = False)",
                         dest="do_corrections", required=False,
@@ -182,5 +194,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     do_check(args.input_vector, args.output_vector, args.data_field,
-             args.epsg, args.pix_area, args.pix_area_threshold,
-             args.do_corrections)
+             args.epsg, args.do_corrections)
