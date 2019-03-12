@@ -13,6 +13,8 @@
 #   PURPOSE.  See the above copyright notices for more information.
 #
 # =========================================================================
+import os
+import sys
 
 import argparse
 
@@ -165,6 +167,13 @@ def do_check(input_vector, output_vector, data_field, epsg, do_corrections):
     return errors
 
 if __name__ == "__main__":
+    parent = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                            os.pardir))
+    iota2_scripts_dir = os.path.abspath(os.path.join(parent, os.pardir))
+
+    if not iota2_scripts_dir in sys.path:
+        sys.path.append(iota2_scripts_dir)
+    
     description=("This function allow user if the inpute dataBase can be used by IOTA²'s\n"
                  "\t- remove empty geometries\n"
                  "\t- remove duplicate geometries\n"
