@@ -237,6 +237,10 @@ chain.groundTruth
     4. No overlapping between polygons
     5. File's name must not contains special characters at first position (4Tiles.shp)
 
+    Users could check if their dataBase is compatible with IOTA²'s restrictions by using 
+    the script ``scripts/Common/Tools/checkDataBase.py``. (launch checkDataBase.py -h in
+    order to know parameters)
+
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 chain.dataField
@@ -277,6 +281,10 @@ chain.regionPath
     3. Geometries have to be ``POLYGON`` or ``MULTIPOLYGON``
     4. No overlapping between polygons
     5. File's name must not contains special characters at first position (4Tiles.shp)
+
+    Users could check if their dataBase is compatible with IOTA²'s restrictions by using 
+    the script ``scripts/Common/Tools/checkDataBase.py``. (launch checkDataBase.py -h in
+    order to know parameters)
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
