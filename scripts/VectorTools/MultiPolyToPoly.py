@@ -12,27 +12,45 @@ def addPolygon(feat, simplePolygon, in_lyr, out_lyr, field_name_list):
     polygon = ogr.CreateGeometryFromWkb(simplePolygon)
     out_feat = ogr.Feature(featureDefn)
     for field in field_name_list:
-	inValue = feat.GetField(field)
-	out_feat.SetField(field, inValue)
+        inValue = feat.GetField(field)
+        out_feat.SetField(field, inValue)
 
     out_feat.SetGeometry(polygon)
     out_lyr.CreateFeature(out_feat)
     out_lyr.SetFeature(out_feat)
 
 
-def manageMultiPoly2Poly(in_lyr, out_lyr, field_name_list):
+def manageMultiPoly2Poly(in_lyr, out_lyr, field_name_list, do_correction=True):
+    multi_cpt = 0
     for in_feat in in_lyr:
         geom = in_feat.GetGeometryRef()
         if geom is not None:
             if geom.GetGeometryName() == 'MULTIPOLYGON':
-                for geom_part in geom:
-                    addPolygon(in_feat, geom_part.ExportToWkb(), in_lyr, out_lyr, field_name_list)
+                multi_cpt+=1
+                if do_correction:
+                    for geom_part in geom:
+                        addPolygon(in_feat, geom_part.ExportToWkb(), in_lyr, out_lyr, field_name_list)
             else:
-                addPolygon(in_feat, geom.ExportToWkb(), in_lyr, out_lyr, field_name_list)
+                if do_correction:
+                    addPolygon(in_feat, geom.ExportToWkb(), in_lyr, out_lyr, field_name_list)
+    return multi_cpt
 
+def multipoly2poly(inshape, outshape, do_correction=True):
+    """Check if a geometry is a MULTIPOLYGON, if it is it will not be split in POLYGON
 
-def multipoly2poly(inshape, outshape):
-
+    Parameters
+    ----------
+    inshape : string
+        input shapeFile
+    outshape : string
+        output shapeFile
+    do_correction : bool
+        flag to remove MULTIPOLYGONs
+    Return
+    ------
+    int
+        number of MULTIPOLYGON found
+    """
     # Get field list
     field_name_list = vf.getFields(inshape)
     
@@ -44,18 +62,20 @@ def multipoly2poly(inshape, outshape):
     srsObj = in_lyr.GetSpatialRef()
     if os.path.exists(outshape):
         driver.DeleteDataSource(outshape)
+    out_lyr = None
+    if do_correction:
+        out_ds = driver.CreateDataSource(outshape)
+        out_lyr = out_ds.CreateLayer('poly', srsObj, geom_type = ogr.wkbPolygon)
+        for i in range(0, len(field_name_list)):
+            fieldDefn = inLayerDefn.GetFieldDefn(i)
+            fieldName = fieldDefn.GetName()
+            if fieldName not in field_name_list:
+                continue
+            out_lyr.CreateField(fieldDefn)
 
-    out_ds = driver.CreateDataSource(outshape)
-    out_lyr = out_ds.CreateLayer('poly', srsObj, geom_type = ogr.wkbPolygon)
+    multipoly = manageMultiPoly2Poly(in_lyr, out_lyr, field_name_list, do_correction)
+    return multipoly
 
-    for i in range(0, len(field_name_list)):
-	fieldDefn = inLayerDefn.GetFieldDefn(i)
-	fieldName = fieldDefn.GetName()
-	if fieldName not in field_name_list:
-		continue
-	out_lyr.CreateField(fieldDefn)
-
-    manageMultiPoly2Poly(in_lyr, out_lyr, field_name_list)
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
