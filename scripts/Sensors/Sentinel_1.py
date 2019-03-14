@@ -42,8 +42,6 @@ class Sentinel_1(Sensor):
 
         self.tile_name = tile_name
         self.cfg_IOTA2 = SCF.serviceConfigFile(config_path)
-        cfg_sensors = os.path.join(os.environ.get('IOTA2DIR'), "config", "sensors.cfg")
-        cfg_sensors = SCF.serviceConfigFile(cfg_sensors, iota_config=False)
         
         config_parser = ConfigParser.ConfigParser()
 
@@ -61,7 +59,9 @@ class Sentinel_1(Sensor):
         # output's names
         self.mask_orbit_pol_name = "{}_{}_MASK".format(self.__class__.name, tile_name)
         self.gapFilling_orbit_pol_name = "{}_{}_TSG".format(self.__class__.name, tile_name)
-        self.sar_features_name = "{}_{}_TSF".format(self.__class__.name, tile_name)
+        self.gapFilling_orbit_pol_name_mask = "{}_{}_MASK".format(self.__class__.name, tile_name)
+        self.sar_features_name = "{}_{}_Features.tif".format(self.__class__.name, tile_name)
+        self.user_sar_features_name = "{}_{}_USER_Features.tif".format(self.__class__.name, tile_name)
         self.footprint_name = "{}_{}_footprint.tif".format(self.__class__.name,
                                                            tile_name)
 
@@ -183,6 +183,7 @@ class Sentinel_1(Sensor):
         from Common.OtbAppBank import getSARstack
         from Common.OtbAppBank import CreateConcatenateImagesApplication
         from Common.OtbAppBank import CreateImageTimeSeriesGapFillingApplication
+        from Common.OtbAppBank import getInputParameterOutput
 
         (allFiltered,
          allMasks,
@@ -211,13 +212,33 @@ class Sentinel_1(Sensor):
             polarisation = sar_mode.split("_")[1]
             orbit = sar_mode.split("_")[2]
 
-            masks_stack = CreateConcatenateImagesApplication({"il":masks})
-            masks_stack.Execute()
-            filtered.Execute()
+            gapFilling_orbit_pol_name_masks = "{}_{}_{}.tif".format(self.gapFilling_orbit_pol_name_mask,
+                                                                    orbit, polarisation)
+            gapFilling_raster_mask = os.path.join(self.features_dir, "tmp", gapFilling_orbit_pol_name_masks)
+
+            masks_stack = CreateConcatenateImagesApplication({"il": masks,
+                                                              "out": gapFilling_raster_mask,
+                                                              "ram": str(ram)})
+
+            if self.cfg_IOTA2.getParam('GlobChain', 'writeOutputs') is False:
+                filtered.Execute()
+                masks_stack.Execute()
+            else :
+                filtered_raster = filtered.GetParameterValue(getInputParameterOutput(filtered))
+                masks_stack_raster = masks_stack.GetParameterValue(getInputParameterOutput(masks_stack))
+                if not os.path.exists(masks_stack_raster):
+                    masks_stack.ExecuteAndWriteOutput()
+                if not os.path.exists(filtered_raster):
+                    filtered.ExecuteAndWriteOutput()
+                if os.path.exists(masks_stack_raster):
+                    masks_stack = masks_stack_raster
+                if os.path.exists(filtered_raster):
+                    filtered = filtered_raster
             dependancies.append((filtered, masks_stack))
             gapFilling_orbit_pol_name = "{}_{}_{}.tif".format(self.gapFilling_orbit_pol_name,
                                                               orbit, polarisation)
             gapFilling_raster = os.path.join(self.features_dir, "tmp", gapFilling_orbit_pol_name)
+
             gap_app = CreateImageTimeSeriesGapFillingApplication({"in": filtered,
                                                                   "mask": masks_stack,
                                                                   "it": interpolation_method,
@@ -230,7 +251,6 @@ class Sentinel_1(Sensor):
             sar_dates = sorted(getNbDateInTile(interp_dates, display=False, raw_dates=True),key=lambda x: int(x))
             labels = ["{}_{}_{}_{}".format(self.__class__.name, orbit, polarisation, date).lower() for date in sar_dates]
             s1_labels[sar_mode] = labels
-            
         return (s1_data, dependancies), s1_labels
 
     def get_features(self, ram=128, logger=logger):
@@ -240,6 +260,7 @@ class Sentinel_1(Sensor):
         from Common.FileUtils import getNbDateInTile, FileSearch_AND
         from Common.OtbAppBank import CreateConcatenateImagesApplication
         from Common.OtbAppBank import generateSARFeat_dates
+        from Common.OtbAppBank import getInputParameterOutput
 
         if self.use_gapfilling:
             (s1_data, dependancies), s1_labels = self.get_time_series_gapFilling(ram)
@@ -266,8 +287,18 @@ class Sentinel_1(Sensor):
                                          "availDates":None}}}
         for sensor_mode, time_series_app in s1_data.items():
             _, polarisation, orbit = sensor_mode.split("_")
+            # inputs
+            if self.cfg_IOTA2.getParam('GlobChain', 'writeOutputs') is False:
+                time_series_app.Execute()
+            else:
+                time_series_raster = time_series_app.GetParameterValue(getInputParameterOutput(time_series_app))
+                if not os.path.exists(time_series_raster):
+                    time_series_app.ExecuteAndWriteOutput()
+                if os.path.exists(time_series_raster):
+                    time_series_app = time_series_raster
+
             sar_time_series[orbit.lower()][polarisation.lower()]["App"] = time_series_app
-            time_series_app.Execute()
+
             s1_features.append(time_series_app)
             dependancies.append(time_series_app)
             if self.use_gapfilling:
@@ -284,8 +315,15 @@ class Sentinel_1(Sensor):
         for sensor_mode, features in s1_labels.items():
             features_labels += features
         if sar_features_expr:
-            userSAR_features, userSAR_features_lab = generateSARFeat_dates(sar_features_expr, sar_time_series)
-            userSAR_features.Execute()
+            sar_user_features_raster = os.path.join(self.features_dir, "tmp", self.user_sar_features_name)
+            userSAR_features, userSAR_features_lab = generateSARFeat_dates(sar_features_expr, sar_time_series, sar_user_features_raster)
+            if self.cfg_IOTA2.getParam('GlobChain', 'writeOutputs') is False:
+                userSAR_features.Execute()
+            else:
+                if not os.path.exists(sar_user_features_raster):
+                    userSAR_features.ExecuteAndWriteOutput()
+                if os.path.exists(sar_user_features_raster):
+                    userSAR_features = sar_user_features_raster
             dependancies.append(userSAR_features)
             s1_features.append(userSAR_features)
             features_labels += userSAR_features_lab

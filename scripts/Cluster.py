@@ -24,6 +24,7 @@ import numpy as np
 from Common import ServiceError as sErr
 from Common import ServiceConfigFile as SCF
 from Common import ServiceLogger as sLog
+from Common import FileUtils as fut
 
 def get_RAM(ram):
         """
@@ -171,12 +172,9 @@ def write_PBS_MPI(job_directory, log_directory, task_name, step_to_compute,
                "export LD_LIBRARY_PATH={}\n"
                "export OTB_APPLICATION_PATH={}\n"
                "export GDAL_DATA={}\n"
-               "export GEOTIFF_CSV={}\n"
-               "export IOTA2DIR={}\n\n").format(py_path, path, ld_lib_path,
-                                                otb_app_path, gdal_data, geotiff_csv,
-                                                os.environ.get('IOTA2DIR'))
-
-    modules = modules + ("export IOTA2DIR={}\n".format(os.environ.get('IOTA2DIR')))
+               "export GEOTIFF_CSV={}\n").format(py_path, path, ld_lib_path,
+                                                 otb_app_path, gdal_data, geotiff_csv
+                                                 )
     
     ressources_HPC = ""
     if config_ressources_req:
@@ -253,10 +251,9 @@ def write_PBS_JA(job_directory, log_directory, task_name, step_to_compute,
                "export LD_LIBRARY_PATH={}\n"
                "export OTB_APPLICATION_PATH={}\n"
                "export GDAL_DATA={}\n"
-               "export GEOTIFF_CSV={}\n"
-               "export IOTA2DIR={}\n\n").format(py_path, path, ld_lib_path,
-                                                otb_app_path, gdal_data, geotiff_csv,
-                                                os.environ.get('IOTA2DIR'))
+               "export GEOTIFF_CSV={}\n").format(py_path, path, ld_lib_path,
+                                                 otb_app_path, gdal_data, geotiff_csv
+                                                 )
 
     ressources_HPC = ""
     if config_ressources_req:
@@ -350,7 +347,7 @@ def launchChain(cfg, config_ressources=None, parallel_mode="MPI"):
     PathTEST = cfg.getParam('chain', 'outputPath')
     start_step = cfg.getParam("chain", "firstStep")
     end_step = cfg.getParam("chain", "lastStep")
-    scripts = os.path.join(os.environ.get('IOTA2DIR'), "scripts")
+    scripts = os.path.join(fut.get_iota2_project_dir(), "scripts")
     job_dir = cfg.getParam("chain", "jobsPath")
     log_dir = os.path.join(PathTEST, "logs")
 

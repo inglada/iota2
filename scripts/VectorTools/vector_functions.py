@@ -477,86 +477,107 @@ def deleteInvalidGeom(shp):
 
 #--------------------------------------------------------------------
 def checkValidGeom(shp):
-  	"""
-  	Check the validity of geometries in a file. If geometry is not valid then buffer 0 to correct
-  	Works for files with polygons
-   	"""
-	print "Verifying geometries validity"
-	ds = openToWrite(shp)
-	layer = ds.GetLayer()
-	nbfeat = getNbFeat(shp)
-	count = 0
-	corr = 0
-	fidl = []
-	#print layer.GetFeature(24667)
+    """Check the validity of geometries in a file. If geometry is not valid then
+    apply buffer 0 to correct. Works for files with polygons
 
-	for feat in layer:
-		#feat = layer.GetFeature(i)
-		fid =  feat.GetFID()
-		if feat.GetGeometryRef() is None:
-			print fid
-			layer.DeleteFeature(fid)
-			ds.ExecuteSQL('REPACK '+layer.GetName())
-			layer.ResetReading()
-		else:
-			geom = feat.GetGeometryRef()
-			valid = geom.IsValid()
-			ring =  geom.IsRing()
-			simple =  geom.IsSimple()
-			if valid == False:
-				fidl.append(fid)
-				buffer_test =  feat.SetGeometry(geom.Buffer(0))
-				layer.SetFeature(feat)
-				if buffer_test == 0:
-					print "Feature %d has been corrected" % feat.GetFID()
-					corr += 1
-				else:
-					print "Feature %d could not be corrected" % feat.GetFID()
-				count += 1
-		
-	print "From %d invalid features, %d were corrected" %(count, corr)
-	ds.ExecuteSQL('REPACK '+layer.GetName())
-	return shp
+    Parameters
+    ----------
+    shp : string
+        input shapeFile
+    Return
+    ------
+    tuple
+        (output_shape, count, corr) where count is the number of invalid features
+        and corr the number of invalid features corrected
+    """
+    print "Verifying geometries validity"
+    ds = openToWrite(shp)
+    layer = ds.GetLayer()
+    nbfeat = getNbFeat(shp)
+    count = 0
+    corr = 0
+    fidl = []
+
+    for feat in layer:
+        #feat = layer.GetFeature(i)
+        fid =  feat.GetFID()
+        if feat.GetGeometryRef() is None:
+            print fid
+            layer.DeleteFeature(fid)
+            ds.ExecuteSQL('REPACK '+layer.GetName())
+            layer.ResetReading()
+        else:
+            geom = feat.GetGeometryRef()
+            valid = geom.IsValid()
+            ring =  geom.IsRing()
+            simple =  geom.IsSimple()
+            if valid == False:
+                fidl.append(fid)
+                buffer_test =  feat.SetGeometry(geom.Buffer(0))
+                layer.SetFeature(feat)
+                if buffer_test == 0:
+                    print "Feature %d has been corrected" % feat.GetFID()
+                    corr += 1
+                else:
+                    print "Feature %d could not be corrected" % feat.GetFID()
+                count += 1
+        
+    print "From %d invalid features, %d were corrected" %(count, corr)
+    ds.ExecuteSQL('REPACK '+layer.GetName())
+    return shp, count, corr
 
 #--------------------------------------------------------------------
-def checkEmptyGeom(shp):
-   """
-   Check if a geometry is empty and create a new file with no empty geometries, if empty geometries is null, do nothing
-   """
-   print "Verifying empty geometries"
-   ds = openToRead(shp)
-   layer = ds.GetLayer()
-   allFID = []
-   count = 0
-   for feat in layer:
-	fid = feat.GetFID()
-	geom = feat.GetGeometryRef()
+def checkEmptyGeom(shp, do_corrections=True, output_file=None):
+    """Check if a geometry is empty, then if it does it will not be copied in output shapeFile
+
+    Parameters
+    ----------
+    input_shape : string
+        input shapeFile
+    do_correction : bool
+        flag to remove empty geometries
+    output_shape : string
+        output shapeFile, if set to None output_shape = input_shape
+    Return
+    ------
+    tuple
+        (output_shape, invalid_geom_number) where invalid_geom_number is the number of empty geometries
+    """
+    ds = openToRead(shp)
+    layer = ds.GetLayer()
+    allFID = []
+    count = 0
+    for feat in layer:
+        fid = feat.GetFID()
+        geom = feat.GetGeometryRef()
         if geom is not None:
-	   empty = geom.IsEmpty()
-	   if empty is False:
-	      allFID.append(fid)
-	   elif empty is True:
-	      count += 1
-   if count == 0:
-	print "No empty geometries"
-	outShapefile = shp
-   else:
-	for fid in allFID:
-        	allFID.append("FID="+str(fid))
-	#Add the word OR
-      	allList = []
-      	for item in allFID:
-        	allList.append(item)
-        	allList.append(' OR ')
-      	allList.pop()
+            empty = geom.IsEmpty()
+            if empty is False:
+                allFID.append(fid)
+            elif empty is True:
+                count += 1
 
-        ch = ' '.join(allList)
-	layer.SetAttributeFilter(ch)
-	outShapefile = shp.split('.')[0]+"-NoEmpty.shp"
-        CreateNewLayer(layer, outShapefile)
-	print ("%d empty geometries were deleted") %(len(allFID))
+    output_shape = shp
+    if do_corrections:
+        if count == 0:
+            print "No empty geometries"
+            outShapefile = shp
+        else:
+            for fid in allFID:
+                allFID.append("FID="+str(fid))
+            #Add the word OR
+            allList = []
+            for item in allFID:
+                allList.append(item)
+                allList.append(' OR ')
+            allList.pop()
 
-   return outShapefile
+            ch = ' '.join(allList)
+            layer.SetAttributeFilter(ch)
+            outShapefile = output_file if output_file is not None else shp.split('.')[0]+"-NoEmpty.shp"
+            CreateNewLayer(layer, outShapefile)
+            print ("%d empty geometries were deleted") %(len(allFID))
+    return (output_shape, count)
 
 #--------------------------------------------------------------------
 def checkIsRingGeom(shp):

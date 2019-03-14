@@ -224,7 +224,7 @@ class S1FileManager(object):
       for mgrsTile in mgrs_layer:
             if mgrsTile.GetField('NAME') ==mgrsTileName:
                return mgrsTile.GetGeometryRef().Clone()
-      raise "MGRS tile does not exist",mgrsTileName
+      raise Exception("MGRS tile does not exist "+mgrsTileName)
 
 
    

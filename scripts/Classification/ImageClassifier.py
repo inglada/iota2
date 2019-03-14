@@ -59,9 +59,13 @@ def filterOTB_output(raster, mask, output, RAM, outputType="uint8"):
 
 def computeClassifications(model, outputClassif, confmap, MaximizeCPU,
                            Classifmask, stats, AllFeatures, RAM, pixType="uint8"):
-
+    """
+    """
     classifier = otb.Registry.CreateApplication("ImageClassifier")
-    classifier.SetParameterInputImage("in", AllFeatures.GetParameterOutputImage("out"))
+    if isinstance(AllFeatures, str):
+        classifier.SetParameterString("in", AllFeatures)
+    else:
+        classifier.SetParameterInputImage("in", AllFeatures.GetParameterOutputImage("out"))
     classifier.SetParameterString("out", outputClassif+"?&writegeom=false")
     if pixType=="uint8":
         classifier.SetParameterOutputImagePixelType("out", otb.ImagePixelType_uint8)
@@ -82,7 +86,9 @@ def computeClassifications(model, outputClassif, confmap, MaximizeCPU,
 def launchClassification(tempFolderSerie, Classifmask, model, stats,
                          outputClassif, confmap, pathWd, cfg, pixType,
                          MaximizeCPU=True, RAM=500, logger=logger):
-
+    """
+    """
+    from Common.OtbAppBank import getInputParameterOutput
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
 
@@ -116,8 +122,11 @@ def launchClassification(tempFolderSerie, Classifmask, model, stats,
     
     AllFeatures, feat_labels, dep_features = genFeatures.generateFeatures(wd, tile, cfg, mode=mode)
 
+    feature_raster = AllFeatures.GetParameterValue(getInputParameterOutput(AllFeatures))
     if wMode:
-        AllFeatures.ExecuteAndWriteOutput()
+        if not os.path.exists(feature_raster):
+            AllFeatures.ExecuteAndWriteOutput()
+        AllFeatures = feature_raster
     else:
         AllFeatures.Execute()
 

@@ -1822,7 +1822,7 @@ def computeUserFeatures(stack, Dates, nbComponent, expressions):
         return allExpression
 
     nbDates = len(Dates)
-    fields = ["USER_Features_" + str(cpt + 1) + "_" + date for cpt in xrange(nbDates) for date in Dates]
+    fields = ["USER_Features_" + str(cpt + 1) + "_" + date for cpt in xrange(len(expressions)) for date in Dates]
     expressionDate = [computeExpressionDates(currentExpression, nbDates, nbComponent) for currentExpression in expressions]
     flatExprDate = [currentExp for currentDate in expressionDate for currentExp in currentDate]
 
@@ -2008,7 +2008,7 @@ def getSARstack(sarConfig, tileName, allTiles, featuresPath, workingDirectory=No
 
     return allFiltered, allMasks, interpDateFiles, inputDateFiles
 
-def generateSARFeat_dates(sar_expressions, SAR_dict):
+def generateSARFeat_dates(sar_expressions, SAR_dict, output_raster=None):
         """
         """
 
@@ -2052,6 +2052,7 @@ def generateSARFeat_dates(sar_expressions, SAR_dict):
                 feature_counter+=1
 
         userSAR_features = CreateBandMathXApplication({"il": input_features,
+                                                       "out" : output_raster if output_raster else "",
                                                        "exp" : ";".join(expr)})
         return userSAR_features, SAR_labels
 

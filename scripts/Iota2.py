@@ -276,9 +276,6 @@ if __name__ == "__main__":
                         default=None)
     args = parser.parse_args()
 
-    if not "IOTA2DIR" in os.environ:
-        raise Exception ("environment variable 'IOTA2DIR' not found")
-
     cfg = SCF.serviceConfigFile(args.configPath)
     cfg.checkConfigParameters()
     chain_to_process = chain.iota2(cfg.pathConf, args.config_ressources)

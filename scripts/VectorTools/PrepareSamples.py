@@ -52,7 +52,7 @@ def traitEchantillons(shapefile, outfile, outpath, areapix, pix_thresh, tmp, fie
         
     # Empty geometry identification
     try:
-        outShapefile = vf.checkEmptyGeom(simplyFile)
+        outShapefile, _ = vf.checkEmptyGeom(simplyFile)
         print 'Check empty geometries succeeded'
     except Exception as e:
         print 'Check empty geometries did not work for the following error :'
