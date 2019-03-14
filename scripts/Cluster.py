@@ -306,7 +306,7 @@ def check_errors(log_path):
             if error_find:
                 errors.append([error for error in error_find])
     """
-    err_pattern = ["Traceback", "PBS: job killed:", ": fail", "Segmentation fault"]
+    err_pattern = ["Traceback", "PBS: job killed:", ": fail", "Segmentation fault", "OpenCV Error"]
     with open(log_path, "r") as log_err:
         for line in log_err:
             for err_patt in err_pattern:
