@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 def tile_samples_zonal_statistics(tile, cfg, workingDirectory=None):
     """
     """
-        from Common import ServiceConfigFile as SCF
+    from Common import ServiceConfigFile as SCF
     #because serviceConfigFile's objects are not serializable
     if not isinstance(cfg, SCF.serviceConfigFile):
         config_path = cfg
