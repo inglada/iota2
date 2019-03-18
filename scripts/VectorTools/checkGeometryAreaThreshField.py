@@ -20,7 +20,7 @@ def checkGeometryAreaThreshField(shapefile, pixelArea, pix_thresh, outshape):
 
     # Empty geometry identification
     try:
-        outShapefileGeom = vf.checkEmptyGeom(shapefile)
+        outShapefileGeom, _ = vf.checkEmptyGeom(shapefile)
         tmpfile.append(outShapefileGeom)        
         print 'Check empty geometries succeeded'
     except Exception as e:

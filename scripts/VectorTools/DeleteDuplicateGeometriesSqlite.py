@@ -6,8 +6,23 @@ import os
 import sqlite3 as lite
 import argparse
 
-def deleteDuplicateGeometriesSqlite(shapefile):
+def deleteDuplicateGeometriesSqlite(shapefile, do_corrections=True, output_file=None):
+    """Check if a features is duplicates, then if it does it will not be copied in output shapeFile
 
+    Parameters
+    ----------
+    input_shape : string
+        input shapeFile
+    do_correction : bool
+        flag to remove dupplicates
+    output_shape : string
+        output shapeFile, if set to None output_shape = input_shape
+    Return
+    ------
+    tuple
+        (output_shape, duplicates_features_number) where duplicates_features_number
+        is the number of duplicated features
+    """
     tmpnamelyr = "tmp" + os.path.splitext(os.path.basename(shapefile))[0]
     tmpname = "%s.sqlite"%(tmpnamelyr)
     outsqlite = os.path.join(os.path.dirname(shapefile), tmpname)
@@ -26,19 +41,27 @@ def deleteDuplicateGeometriesSqlite(shapefile):
     cursor.execute("select count(*) from tmp")
     nbfeat1 = cursor.fetchall()
 
-    conn.commit()
-    
-    os.system("rm %s"%(shapefile))
-    os.system("ogr2ogr -f 'ESRI Shapefile' %s %s"%(shapefile, outsqlite))
+    nb_dupplicates = int(nbfeat0[0][0]) - int(nbfeat1[0][0])
 
-    if int(nbfeat0[0][0]) - int(nbfeat1[0][0]) != 0:
-        print "Analyse of duplicated features done. %s duplicates found and deleted"%(int(nbfeat0[0][0]) - int(nbfeat1[0][0]))
-    else:
-        print "Analyse of duplicated features done. No duplicates found"
-        
-    cursor = conn = None
+    if do_corrections:
+        conn.commit()
+
+        if output_file is None:
+            os.system("rm %s"%(shapefile))
+
+        shapefile = output_file if output_file is not None else shapefile
+
+        os.system("ogr2ogr -f 'ESRI Shapefile' %s %s"%(shapefile, outsqlite))
+
+        if nb_dupplicates != 0:
+            print "Analyse of duplicated features done. %s duplicates found and deleted"%(nb_dupplicates)
+        else:
+            print "Analyse of duplicated features done. No duplicates found"
+            
+        cursor = conn = None
 
     os.remove(outsqlite)
+    return shapefile, nb_dupplicates
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:

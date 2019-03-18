@@ -34,6 +34,8 @@ class Landsat_8(Sensor):
         """
         """
         from Common import ServiceConfigFile as SCF
+        from Common.FileUtils import get_iota2_project_dir
+
         Sensor.__init__(self)
 
         if not os.path.exists(config_path):
@@ -41,7 +43,7 @@ class Landsat_8(Sensor):
 
         self.tile_name = tile_name
         self.cfg_IOTA2 = SCF.serviceConfigFile(config_path)
-        cfg_sensors = os.path.join(os.environ.get('IOTA2DIR'), "config", "sensors.cfg")
+        cfg_sensors = os.path.join(get_iota2_project_dir(), "config", "sensors.cfg")
         cfg_sensors = SCF.serviceConfigFile(cfg_sensors, iota_config=False)
 
         # running attributes

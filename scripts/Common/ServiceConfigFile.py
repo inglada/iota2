@@ -19,7 +19,7 @@ import os
 import sys
 from osgeo import ogr
 from config import Config, Sequence, Mapping, Container
-from FileUtils import getFeatStackName, FileSearch_AND, getRasterNbands
+from FileUtils import getFeatStackName, FileSearch_AND, getRasterNbands, get_iota2_project_dir
 from Common import ServiceError as sErr
 
 # this is a pointer to the module object instance itself.
@@ -258,6 +258,15 @@ class serviceConfigFile:
     def __repr__(self):
         return "Configuration file : " + self.pathConf
 
+    def testShapeName(self, input_vector):
+        """
+        """
+        import string
+        avail_characters = string.ascii_letters
+        first_character = os.path.basename(input_vector)[0]
+        if first_character not in avail_characters:
+            raise sErr.configError("the file '{}' is containing a non-ascii letter at first position in it's name : {}".format(input_vector,
+                                                                                                                         first_character))
     def testVarConfigFile(self, section, variable, varType, valeurs="", valDefaut=""):
         """
             This function check if variable is in obj
@@ -432,6 +441,7 @@ class serviceConfigFile:
             """
             """
             region_path = cfg.chain.regionPath
+            self.testShapeName(region_path)
             if not region_path:
                 raise sErr.configError("chain.regionPath must be set")
 
@@ -555,7 +565,7 @@ class serviceConfigFile:
             # directory tests
             if self.getParam("chain", "jobsPath"):
                 self.testDirectory(self.getParam("chain", "jobsPath"))
-            self.testDirectory(os.path.join(os.environ.get('IOTA2DIR'), "scripts"))
+            self.testDirectory(os.path.join(get_iota2_project_dir(), "scripts"))
             self.testDirectory(self.cfg.chain.nomenclaturePath)
             self.testDirectory(self.cfg.chain.groundTruth)
             self.testDirectory(self.cfg.chain.colorTable)
@@ -565,7 +575,9 @@ class serviceConfigFile:
                 self.testDirectory(self.cfg.chain.S2_S2C_output_path)
             # test of groundTruth file
             Field_FType = []
+            
             dataSource = ogr.Open(self.cfg.chain.groundTruth)
+            self.testShapeName(self.cfg.chain.groundTruth)
             daLayer = dataSource.GetLayer(0)
             layerDefinition = daLayer.GetLayerDefn()
             for i in range(layerDefinition.GetFieldCount()):
