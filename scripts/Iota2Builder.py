@@ -147,6 +147,7 @@ class iota2():
                            formatSamplesToSegmentation, statsSamplesModel,
                            samplingLearningPolygons, samplesByTiles,
                            samplesExtraction, samplesByModels,
+                           learningSamplesZonalStatistics, tilesSamplesZonalStatistics,
                            copySamples, genSyntheticSamples,
                            samplesDimReduction, samplesNormalization,
                            learnModel, classiCmd,
@@ -200,6 +201,12 @@ class iota2():
         step_format_samples_to_segmentation = formatSamplesToSegmentation.formatSamplesToSegmentation(cfg,
                                                                                                        config_ressources,
                                                                                                        self.workingDirectory)
+        step_learning_samples_zonal_statistics = learningSamplesZonalStatistics.learningSamplesZonalStatistics(cfg,
+                                                                                     config_ressources,
+                                                                                     self.workingDirectory)
+        step_tiles_samples_zonal_statistics = tilesSamplesZonalStatistics.tilesSamplesZonalStatistics(cfg,
+                                                                                     config_ressources,
+                                                                                     self.workingDirectory)
         step_models_samples_stats = statsSamplesModel.statsSamplesModel(cfg,
                                                                         config_ressources,
                                                                         self.workingDirectory)
@@ -369,6 +376,8 @@ class iota2():
         else :
             s_container.append(step_split_segmentation_by_tiles,"sampling")
             s_container.append(step_format_samples_to_segmentation,"sampling")
+            s_container.append(step_learning_samples_zonal_statistics,"sampling")
+            s_container.append(step_tiles_samples_zonal_statistics,"sampling")
 
         # mosaic step
         s_container.append(step_mosaic, "mosaic")

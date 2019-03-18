@@ -204,13 +204,13 @@ def CreateIota2FeatureExtractionApplication(OtbParameters):
     if "copyinput" in OtbParameters:
         features_app.SetParameterValue("copyinput", OtbParameters["copyinput"])
     if "relrefl" in OtbParameters:
-        features_app.SetParameterEmpty("relrefl", True)
+        features_app.SetParameterString("relrefl", "True")
     if "relindex" in OtbParameters:
         features_app.SetParameterString("relindex", OtbParameters["relindex"])
     if "keepduplicates" in OtbParameters:
-        features_app.SetParameterEmpty("keepduplicates", True)
+        features_app.SetParameterString("keepduplicates", "True")
     if "acorfeat" in OtbParameters:
-        features_app.SetParameterEmpty("acorfeat", True)
+        features_app.SetParameterString("acorfeat", "True")
     if "ram" in OtbParameters:
         features_app.SetParameterString("ram", OtbParameters["ram"])
     if "out" in OtbParameters:
@@ -1719,6 +1719,58 @@ def CreatePixelValueApplication(OtbParameters):
         PixelValueApp.SetParameterString("out", str(OtbParameters["out"]))
 
     return PixelValueApp
+
+def CreateZonalStatistics(OtbParameters):
+    """
+    IN:
+    parameter consistency are not tested here (done in otb's applications)
+    every value could be string
+
+    in parameters should be string
+    OtbParameters [dic] dictionnary with otb's parameter keys
+                        Example :
+                        OtbParameters = {"in":"/image.tif",
+                                        pixType:"uint8","out":"/out.tif"}
+    OUT :
+    rasterApp [otb object ready to Execute]
+    """
+    ZonalStatsApp = otb.Registry.CreateApplication("ZonalStatistics")
+    if ZonalStatsApp is None:
+        raise Exception("Not possible to create 'ZonalStatistics' application, \
+                         check if OTB is well configured / installed")
+
+    #Mandatory
+    if "in" not in OtbParameters:
+        raise Exception("'in' parameter not found")
+
+    if isinstance(OtbParameters["in"], str):
+        ZonalStatsApp.SetParameterString("in", str(OtbParameters["in"]))
+    elif isinstance(OtbParameters["in"], otb.Application):
+        inOutParam = getInputParameterOutput(OtbParameters["in"])
+        ZonalStatsApp.SetParameterInputImage("in", OtbParameters["in"].GetParameterOutputImage(inOutParam))
+    if "inbv" in OtbParameters:
+        ZonalStatsApp.SetParameterString("inbv", OtbParameters["inbv"])
+    if "inzone.vector.in" in OtbParameters:
+        ZonalStatsApp.SetParameterString("inzone", "vector")
+        ZonalStatsApp.SetParameterString("inzone.vector.in", OtbParameters["inzone.vector.in"])
+    if "inzone.labelimage.in" in OtbParameters:
+        ZonalStatsApp.SetParameterString("inzone", "labelimage")
+        if isinstance(OtbParameters["inzone.labelimage.in"], str):
+            ZonalStatsApp.SetParameterString("inzone.labelimage.in", str(OtbParameters["inzone.labelimage.in"]))
+        elif isinstance(OtbParameters["inzone.labelimage.in"], otb.Application):
+            inOutParam = getInputParameterOutput(OtbParameters["inzone.labelimage.in"])
+            ZonalStatsApp.SetParameterInputImage("inzone.labelimage.in", OtbParameters["inzone.labelimage.in"].GetParameterOutputImage(inOutParam))
+    if "out.vector.filename" in OtbParameters:
+        ZonalStatsApp.SetParameterString("out","vector")
+        ZonalStatsApp.SetParameterString("out.vector.filename",OtbParameters["out.vector.filename"])
+    if "out.xml.filename" in OtbParameters:
+        ZonalStatsApp.SetParameterString("out","xml")
+        ZonalStatsApp.SetParameterString("out.xml.filename",OtbParameters["out.xml.filename"])
+    if "out.raster.filename" in OtbParameters:
+        ZonalStatsApp.SetParameterString("out","raster")
+        ZonalStatsApp.SetParameterString("out.raster.filename",OtbParameters["out.raster.filename"])
+
+    return ZonalStatsApp
 
 def CreateLSGRMApplication(OtbParameters):
     """
