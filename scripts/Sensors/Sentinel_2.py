@@ -138,7 +138,7 @@ class Sentinel_2(Sensor):
         from Common.FileUtils import FileSearch_AND
         pattern = "{}.tif".format(self.masks_date_suffix)
         if not "none" in self.cfg_IOTA2.getParam('coregistration','VHRPath').lower():
-            pattern = "{}_COREG.tif".format(self.suffix)
+            pattern = "{}_COREG.tif".format(self.masks_date_suffix)
         masks = sorted(FileSearch_AND(self.output_preprocess_directory, True, "{}".format(pattern)),
                        key=lambda x : os.path.basename(x).split("_")[self.date_position].split("-")[0])
         return masks
