@@ -14,6 +14,8 @@
 #
 # =========================================================================
 
+from dask_jobqueue import PBSCluster
+from dask.distributed import Client
 
 import Iota2Builder as chain
 from Common import FileUtils as fut
@@ -237,6 +239,25 @@ def remove_tmp_files(cfg, current_step, chain):
                 shutil.rmtree(dir_to_rm)
 
 
+def get_dask_client():
+    """
+    """
+    client = PBSCluster(cores=1,
+                        memory="5GB",
+                        project='SmartName',
+                        name='workerName',
+                        walltime='04:00:00',
+                        interface='ib0',
+                        env_extra=["export LD_LIBRARY_PATH={}:/work/logiciels/rh7/Python/3.5.2/lib".format(os.environ.get('LD_LIBRARY_PATH')),
+                                   "export PYTHONPATH={}:{}/scripts".format(os.environ.get('PYTHONPATH'), fut.get_iota2_project_dir()),
+                                   "export PATH={}".format(os.environ.get('PATH')),
+                                   "export OTB_APPLICATION_PATH={}".format(os.environ.get('OTB_APPLICATION_PATH')),
+                                   "export GDAL_DATA={}".format(os.environ.get('GDAL_DATA')),
+                                   "export GEOTIFF_CSV={}".format(os.environ.get('GEOTIFF_CSV'))],
+                        local_directory='$TMPDIR')
+    return client
+
+
 if __name__ == "__main__":
 
     from Common import ServiceConfigFile as SCF
@@ -279,8 +300,6 @@ if __name__ == "__main__":
     cfg = SCF.serviceConfigFile(args.configPath)
     cfg.checkConfigParameters()
     chain_to_process = chain.iota2(cfg.pathConf, args.config_ressources)
-    if os.path.exists(chain_to_process.iota2_pickle):
-        chain_to_process = chain_to_process.load_chain()
 
     logger_lvl = cfg.getParam('chain', 'logFileLevel')
     enable_console = cfg.getParam('chain', 'enableConsole')
@@ -319,6 +338,7 @@ if __name__ == "__main__":
             param_array = params()
         else:                                                                                                                                                                               
             param_array = [param for param in params]
+        
         for group in chain_to_process.steps_group.keys():
             if step in chain_to_process.steps_group[group].keys():
                 print "Running step {}: {} ({} tasks)".format(step, chain_to_process.steps_group[group][step],
@@ -329,25 +349,7 @@ if __name__ == "__main__":
             params = args.parameters
         else:
             params = param_array
-        #~ if steps[step-1].previous_step:
-            #~ print "Etape précédente : {}".format(steps[step-1].previous_step.step_status)
-        steps[step-1].step_status = "running"
-        logFile = steps[step-1].logFile
-        if param_index is not None:
-            params = [params[param_index]]
-            logFile = (steps[step-1].logFile).replace(".log", "_{}.log".format(param_index))
-        _, step_completed = mpi_schedule(steps[step-1], params,
-                                         mpi_service, logFile,
-                                         logger_lvl)
-        if not step_completed:
-            steps[step-1].step_status = "fail"
-            break
-        else :
-            steps[step-1].step_status = "success"
-        if rm_tmp and param_index is None:
-            remove_tmp_files(cfg, current_step=step, chain=chain_to_process)
-    #~ chain_to_process.save_chain()
-    stop_workers(mpi_service)
-    
-    if not step_completed:
-        sys.exit(-1)
+        cluster = get_dask_client()
+        cluster.scale(len(params))
+        client = Client(cluster)
+        results = client.gather(client.map(steps[step-1].step_execute(), params))
