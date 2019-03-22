@@ -239,22 +239,36 @@ def remove_tmp_files(cfg, current_step, chain):
                 shutil.rmtree(dir_to_rm)
 
 
-def get_dask_client():
+def get_dask_client(client_type="local"):
     """
     """
-    client = PBSCluster(cores=1,
-                        memory="5GB",
-                        project='SmartName',
-                        name='workerName',
-                        walltime='04:00:00',
-                        interface='ib0',
-                        env_extra=["export LD_LIBRARY_PATH={}:/work/logiciels/rh7/Python/3.5.2/lib".format(os.environ.get('LD_LIBRARY_PATH')),
-                                   "export PYTHONPATH={}:{}/scripts".format(os.environ.get('PYTHONPATH'), fut.get_iota2_project_dir()),
-                                   "export PATH={}".format(os.environ.get('PATH')),
-                                   "export OTB_APPLICATION_PATH={}".format(os.environ.get('OTB_APPLICATION_PATH')),
-                                   "export GDAL_DATA={}".format(os.environ.get('GDAL_DATA')),
-                                   "export GEOTIFF_CSV={}".format(os.environ.get('GEOTIFF_CSV'))],
-                        local_directory='$TMPDIR')
+    from distributed import LocalCluster
+
+    if client_type.lower()=="cluster":
+        client = PBSCluster(cores=1,
+                            memory="5GB",
+                            project='SmartName',
+                            name='workerName',
+                            walltime='04:00:00',
+                            interface='ib0',
+                            env_extra=["export LD_LIBRARY_PATH={}:/work/logiciels/rh7/Python/3.5.2/lib".format(os.environ.get('LD_LIBRARY_PATH')),
+                                       "export PYTHONPATH={}:{}/scripts".format(os.environ.get('PYTHONPATH'), fut.get_iota2_project_dir()),
+                                       "export PATH={}".format(os.environ.get('PATH')),
+                                       "export OTB_APPLICATION_PATH={}".format(os.environ.get('OTB_APPLICATION_PATH')),
+                                       "export GDAL_DATA={}".format(os.environ.get('GDAL_DATA')),
+                                       "export GEOTIFF_CSV={}".format(os.environ.get('GEOTIFF_CSV'))],
+                            local_directory='$TMPDIR')
+    elif client_type.lower()=="cloud":
+        # not implemented
+        pass
+    else:
+        client =  LocalCluster(n_workers=3, threads_per_worker=1,
+							   processes=True, loop=None,
+							   start=None, ip=None, scheduler_port=0,
+							   silence_logs=30, diagnostics_port=8787,
+							   services=None, worker_services=None,
+							   service_kwargs=None, asynchronous=False,
+							   security=None, memory_limit='1GB')
     return client
 
 
@@ -295,6 +309,11 @@ if __name__ == "__main__":
                         required=False,
                         type=int,
                         default=None)
+    parser.add_argument("-client", dest="client",
+                        help="deployed client architecture [local/cluster/cloud] default=local",
+                        choices=["local", "cluster", "cloud"],
+                        required=False,
+                        default="local")
     args = parser.parse_args()
 
     cfg = SCF.serviceConfigFile(args.configPath)
@@ -349,7 +368,11 @@ if __name__ == "__main__":
             params = args.parameters
         else:
             params = param_array
-        cluster = get_dask_client()
-        cluster.scale(len(params))
-        client = Client(cluster)
+        dask_client = get_dask_client(args.client)
+        if dask_client is not None:
+            client = Client(dask_client)
+            dask_client.scale(len(params))
+        else :
+            client = Client(processes=False)
+            
         results = client.gather(client.map(steps[step-1].step_execute(), params))
