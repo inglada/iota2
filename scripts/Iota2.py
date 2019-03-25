@@ -17,11 +17,12 @@ import sys
 import os
 import dask
 #~ dask.config.set({'distributed.worker.multiprocessing-method': 'spawn'})
-dask.config.set({'distributed.worker.multiprocessing-method': 'fork'})
+dask.config.set({'logging.worker': 'debug'})
 from dask_jobqueue import PBSCluster
 from dask.distributed import Client
 import argparse
 import numpy as np
+import threading
 
 import Iota2Builder as chain
 from Common import FileUtils as fut
@@ -82,7 +83,7 @@ def get_dask_client(client_type="local", step_num=0, nb_tasks=1):
         client.scale(nb_tasks)
     elif client_type.lower()=="localcluster":
         client =  LocalCluster(n_workers=nb_tasks, threads_per_worker=1,
-							   processes=True, loop=None,
+							   processes=False, loop=None,
 							   start=None, ip=None, scheduler_port=0,
 							   silence_logs=30, diagnostics_port=8787,
 							   services=None, worker_services=None,
@@ -93,6 +94,14 @@ def get_dask_client(client_type="local", step_num=0, nb_tasks=1):
         pass
     return client
 
+
+def init_log():
+    """
+    """
+    import logging
+    logFormatter = logging.Formatter("%(asctime)s [%(name)s] [%(levelname)s] - %(message)s")
+    rootLogger = logging.getLogger()
+    rootLogger.setLevel(20)
 
 if __name__ == "__main__":
 
@@ -158,6 +167,10 @@ if __name__ == "__main__":
     if args.launchChain is False:
         sys.exit()
 
+    from Common import ServiceLogger
+    from Common import ServiceConfigFile as SCF
+    cfg = SCF.serviceConfigFile(args.configPath)
+
     for step in np.arange(args.start, args.end+1):
         params = steps[step-1].step_inputs()
         if args.parameters:
@@ -174,9 +187,21 @@ if __name__ == "__main__":
             client = Client(dask_client)
         else :
             client = Client(processes=False)
+
+        client.register_worker_callbacks(init_log)
+        #~ print threading.active_count()
         results = client.gather(client.map(steps[step-1].step_execute(), params))
 
+        #~ print dask_client.workers[0].log
+        #~ print dask_client.workers[0].story()
+        #~ for log in range(len(dask_client.workers[0].log)):
+            #~ print dask_client.workers[0].log[log]
+        #~ print dask_client.workers[0].log
+        #~ print results
+        #~ pause = raw_input("??")
+        
         if dask_client is not None:
             dask_client.close()
         client.close()
+        
         dask_client = client = None

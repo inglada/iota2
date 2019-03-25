@@ -14,6 +14,7 @@
 #
 # =========================================================================
 
+import logging
 import argparse
 import sys
 import os
@@ -27,6 +28,9 @@ from osgeo.gdalconst import *
 from Common import FileUtils as fu
 from Common import ServiceConfigFile as SCF
 from Common.Utils import run
+
+logger = logging.getLogger(__name__)
+logger.addHandler(logging.NullHandler())
 
 """
 It's in this script that tile's priority are manage. This priority use tile origin. If you want to change priority, you have to modify
@@ -373,11 +377,12 @@ def genTileEnvPrio(ObjListTile, out, tmpFile, proj):
                     fu.removeShape(tmpFile+"/"+tmpName.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"])
 
 
-def GenerateShapeTile(tiles, pathTiles, pathOut, pathWd, cfg):
+def GenerateShapeTile(tiles, pathTiles, pathOut, pathWd, cfg, logger=logger):
 
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
 
+    logger.info("computing envolpes to tiles : {}".format(tiles))
     pathConf = cfg.pathConf
     import ConfigParser
     #fu.cleanFiles(cfg)
