@@ -138,6 +138,37 @@ def spatialFilter(vect, clipzone, clipfield, clipvalue, outvect, driverclip = "E
    else:
       print "No intersection between the two vector files"
       del lyrclip, lyrvect, dsvect, dsclip
+#--------------------------------------------------------------------
+def intersect_shp(t1,t2,out_folder,out_name,driverclip = "ESRI Shapefile", drivervect = "ESRI Shapefile", driverout = "ESRI Shapefile"):
+   dsvect = openToRead(t1, drivervect)
+   dsclip = openToRead(t2, driverclip)
+   lyrvect = dsvect.GetLayer()
+   lyrvectDefn = lyrvect.GetLayerDefn()
+   lyrclip = dsclip.GetLayer()
+   lyrclipDefn = lyrclip.GetLayerDefn()
+
+   outpath = copyShp2(t1,os.path.join(out_folder,out_name))
+   outds = openToWrite(outpath,driverout)
+   outlyr = outds.GetLayer()
+
+   for i in range(0, lyrvect.GetFeatureCount(1)):
+      feat = lyrvect.GetFeature(i)
+      geom = feat.GetGeometryRef()
+      lyrclip.SetSpatialFilter(geom)
+      if lyrclip.GetFeatureCount() != 0 :
+        for j in range(0,lyrclip.GetFeatureCount(1)):
+          feat_clip = lyrclip.GetNextFeature()
+          geom_clip = feat_clip.GetGeometryRef()
+          geom_clipped = geom.Intersection(geom_clip)
+          out_feat = ogr.Feature(outlyr.GetLayerDefn())
+          out_feat.SetGeometry(geom_clipped)
+          for ind in range(0,feat.GetFieldCount()):
+            field_ind = out_feat.GetFieldIndex(feat.GetFieldDefnRef(ind).GetName())
+            field_value = feat.GetFieldAsString(ind)
+            out_feat.SetField(field_ind, field_value)
+          
+          outlyr.CreateFeature(out_feat)
+      lyrclip.SetSpatialFilter(None)
 
 #--------------------------------------------------------------------
 def getLayerName(shapefile, driver = "ESRI Shapefile", layernb = 0):
@@ -275,6 +306,39 @@ def copyShp(shp, keyname):
    Creates an empty new layer based on the properties and attributs of an input file
    """
    outShapefile = shp.split('.')[0]+'-'+keyname+'.shp'
+   print outShapefile
+   ds = openToRead(shp)
+   layer = ds.GetLayer()
+   inLayerDefn = layer.GetLayerDefn()
+   field_name_target = getFields(shp)
+   outDriver = ogr.GetDriverByName("ESRI Shapefile")
+   #if file already exists, delete it
+   if os.path.exists(outShapefile):
+      outDriver.DeleteDataSource(outShapefile)
+   outDataSource = outDriver.CreateDataSource(outShapefile)
+   out_lyr_name = os.path.splitext( os.path.split( outShapefile )[1] )[0]
+   #Get the spatial reference of the input layer
+   srsObj = layer.GetSpatialRef()
+   #Creates the spatial reference of the output layer
+   outLayer = outDataSource.CreateLayer( out_lyr_name, srsObj, geom_type=getGeomType(shp) )
+   # Add input Layer Fields to the output Layer if it is the one we want
+   for i in range(0, inLayerDefn.GetFieldCount()):
+      fieldDefn = inLayerDefn.GetFieldDefn(i)
+      fieldName = fieldDefn.GetName()
+      if fieldName not in field_name_target:
+         continue
+      outLayer.CreateField(fieldDefn)
+   # Get the output Layer's Feature Definition
+   outLayerDefn = outLayer.GetLayerDefn()
+   #print layer.GetFeatureCount()
+   print "New file created : %s" %(outShapefile)
+   return outShapefile
+#--------------------------------------------------------------------
+
+def copyShp2(shp, outShapefile):
+   """
+   Creates an empty new layer based on the properties and attributs of an input file
+   """
    print outShapefile
    ds = openToRead(shp)
    layer = ds.GetLayer()
