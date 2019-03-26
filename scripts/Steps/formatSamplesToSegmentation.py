@@ -18,7 +18,6 @@ import os
 import IOTA2Step
 from Common import ServiceConfigFile as SCF
 from Sampling import SamplesMerge as samples_merge
-from Sampling.SplitTrainSamplesForOBIA import format_sample_to_segmentation
 
 class formatSamplesToSegmentation(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
@@ -55,6 +54,7 @@ class formatSamplesToSegmentation(IOTA2Step.Step):
             the function to execute as a lambda function. The returned object
             must be a lambda function.
         """
+        from Sampling.SplitTrainSamplesForOBIA import format_sample_to_segmentation
         step_function = lambda x: format_sample_to_segmentation(self.cfg, x, self.workingDirectory)
         return step_function
 
