@@ -18,6 +18,7 @@ import os
 import IOTA2Step
 from Cluster import get_RAM
 from Common import ServiceConfigFile as SCF
+from Sampling import SamplesMerge as samples_merge
 
 class tilesSamplesZonalStatistics(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
@@ -27,6 +28,9 @@ class tilesSamplesZonalStatistics(IOTA2Step.Step):
 
         # step variables
         self.workingDirectory = workingDirectory
+        self.output_path = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
+        self.field_region = SCF.serviceConfigFile(self.cfg).getParam('chain', 'regionField')
+        self.nb_runs = SCF.serviceConfigFile(self.cfg).getParam('chain', 'runs')
 
     def step_description(self):
         """
@@ -41,8 +45,8 @@ class tilesSamplesZonalStatistics(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
-        tiles = SCF.serviceConfigFile(self.cfg).getParam('chain', 'listTile').split(" ")
-        return tiles
+        region_seed_tile = samples_merge.get_models(os.path.join(self.output_path, "formattingVectors"), self.field_region, self.nb_runs)
+        return region_seed_tile
 
     def step_execute(self):
         """
@@ -53,7 +57,7 @@ class tilesSamplesZonalStatistics(IOTA2Step.Step):
             must be a lambda function.
         """
         from Sampling import SamplesZonalStatistics
-        step_function = lambda x: SamplesZonalStatistics.tiles_samples_zonal_statistics(x, self.cfg, self.workingDirectory)
+        step_function = lambda x: SamplesZonalStatistics.tile_samples_zonal_statistics(x, self.cfg, self.workingDirectory)
         return step_function
 
     def step_outputs(self):
