@@ -195,7 +195,7 @@ class iota2():
         step_merge_samples = samplesMerge.samplesMerge(cfg,
                                                        config_ressources,
                                                        self.workingDirectory)
-        step_split_segmentation_by_tiles = splitSegmentationByTiles.splitSegmentationByTiles(cfg,
+        step_split_segmentation_by_tiles_regions = splitSegmentationByTiles.splitSegmentationByTiles(cfg,
                                                                                              config_ressources,
                                                                                              self.workingDirectory)
         step_format_samples_to_segmentation = formatSamplesToSegmentation.formatSamplesToSegmentation(cfg,
@@ -374,7 +374,7 @@ class iota2():
                 s_container.append(step_classif_fusion, "classification")
                 s_container.append(step_manage_fus_indecision, "classification")
         else :
-            s_container.append(step_split_segmentation_by_tiles,"sampling")
+            s_container.append(step_split_segmentation_by_tiles_regions,"sampling")
             s_container.append(step_format_samples_to_segmentation,"sampling")
             s_container.append(step_learning_samples_zonal_statistics,"sampling")
             s_container.append(step_tiles_samples_zonal_statistics,"sampling")
