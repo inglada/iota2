@@ -45,8 +45,8 @@ class learningSamplesZonalStatistics(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
-        tiles = samples_merge.get_models(os.path.join(self.output_path, "formattingVectors"), self.field_region, self.nb_runs)
-        return tiles
+        region_seed_tile = samples_merge.get_models(os.path.join(self.output_path, "formattingVectors"), self.field_region, self.nb_runs)
+        return region_seed_tile
 
     def step_execute(self):
         """
