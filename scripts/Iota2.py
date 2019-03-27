@@ -98,11 +98,25 @@ def get_dask_client(client_type="local", step_num=0, nb_tasks=1):
 def init_log():
     """
     """
+    try:
+        from cStringIO import StringIO#Python 2
+    except ImportError:
+        from io import StringIO
+    
     import logging
     logFormatter = logging.Formatter("%(asctime)s [%(name)s] [%(levelname)s] - %(message)s")
     rootLogger = logging.getLogger()
     rootLogger.setLevel(20)
-
+    consoleHandler = logging.StreamHandler()
+    consoleHandler.setFormatter(logFormatter)
+    consoleHandler.setLevel(20)
+    rootLogger.addHandler(consoleHandler)
+    
+    stream = StringIO()
+    handler = logging.StreamHandler(stream)
+    handler.setFormatter(logFormatter)
+    handler.setLevel(20)
+    rootLogger.addHandler(handler)
 if __name__ == "__main__":
 
     from Common import ServiceConfigFile as SCF
@@ -188,14 +202,19 @@ if __name__ == "__main__":
         else :
             client = Client(processes=False)
 
-        client.register_worker_callbacks(init_log)
+        #~ client.register_worker_callbacks(init_log)
+        client.run(init_log)
         #~ print threading.active_count()
         results = client.gather(client.map(steps[step-1].step_execute(), params))
-
+        print "--------------------------------------------------------------"
+        print client.get_scheduler_logs()
+        print 
+        print client.get_worker_logs()
+        print results
         #~ print dask_client.workers[0].log
-        #~ print dask_client.workers[0].story()
-        #~ for log in range(len(dask_client.workers[0].log)):
-            #~ print dask_client.workers[0].log[log]
+        print dask_client.workers[0].story()
+        for log in range(len(dask_client.workers[0].log)):
+            print dask_client.workers[0].log[log]
         #~ print dask_client.workers[0].log
         #~ print results
         #~ pause = raw_input("??")
