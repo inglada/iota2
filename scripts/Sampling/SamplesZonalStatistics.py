@@ -38,15 +38,17 @@ def tile_samples_zonal_statistics(region_seed_tile, cfg, workingDirectory=None):
     iota2_directory = cfg.getParam('chain', 'outputPath')
     seg_directory = os.path.join(iota2_directory, "segmentation")
 
-    outputs_list = []
     for tile in tiles :
         samples = os.path.join(seg_directory, "{}_{}_seg.shp".format(tile, region))
         sensor_tile_container = Sensors_container(config_path,
                                           tile,
                                           working_dir=None)
         sensors_features = sensor_tile_container.get_sensors_features(available_ram=1000)
+        outputs_list = []
+        labels=[]
         for sensor_name, ((sensor_features, sensor_features_dep), features_labels) in sensors_features:
             sensor_features.Execute()
+            labels+=features_labels
             output_xml = os.path.join(seg_directory, "{}_{}_tile_samples_region_{}_seed_{}_stats.xml".format(sensor_name, tile, region, seed))
             ZonalStatisticsApp = otb.CreateZonalStatistics({"in":sensor_features,
                                                             "inbv": "0",
@@ -55,7 +57,13 @@ def tile_samples_zonal_statistics(region_seed_tile, cfg, workingDirectory=None):
                                                             "out.xml.filename": output_xml
                                                             })
             ZonalStatisticsApp.ExecuteAndWriteOutput()
-            clean_xml_stats(output_xml)
+            outputs_list.append(output_xml)
+        tile_stats_xml = os.path.join(seg_directory, "{}_tile_samples_region_{}_seed_{}_stats.xml".format(tile, region, seed))
+        merge_xml_stats(tile_stats_xml, outputs_list)
+        labels_out = os.path.join(seg_directory,"{}_tile_samples_region_{}_seed_{}_stats_label.txt".format(sensor_name, tile, region, seed))
+        with open(labels_out,'w') as file :
+            for lab in labels:
+                file.write(str(lab)+'\n')
 
 
 def learning_samples_zonal_statistics(region_seed_tile, cfg, workingDirectory=None):
@@ -79,21 +87,26 @@ def learning_samples_zonal_statistics(region_seed_tile, cfg, workingDirectory=No
                                           tile,
                                           working_dir=None)
         sensors_features = sensor_tile_container.get_sensors_features(available_ram=1000)
+        labels=[]
         for sensor_name, ((sensor_features, sensor_features_dep), features_labels) in sensors_features:
             sensor_features.Execute()
+            labels+=features_labels
             output_xml = os.path.join(seg_directory, "{}_{}_learn_samples_region_{}_seed_{}_stats.xml".format(sensor_name, tile, region, seed))
             ZonalStatisticsApp = otb.CreateZonalStatistics({"in":sensor_features,
                                                             "inbv": "0",
                                                             "inzone.vector.in": learning_samples,
                                                             "inzone.vector.iddatafield": "ID",
-                                                            "out.xml.filename": output_xml
+                                                            "out.shp.filename": os.path.splitext(output_xml)[0]+'.shp'
                                                             })
             ZonalStatisticsApp.ExecuteAndWriteOutput()
             outputs_list.append(output_xml)
 
     learning_samples_stats = os.path.join(seg_directory,"learn_samples_region_{}_seed_{}_stats.xml".format(region, seed))
     merge_xml_stats(learning_samples_stats,outputs_list)
-    # fut.mergeVectors(learning_samples_stats,seg_directory,outputs_list)
+    labels_out = os.path.join(seg_directory,"learn_samples_region_{}_seed_{}_stats_lable.txt".format(region, seed))
+    with open(labels_out,'w') as file :
+        for lab in labels:
+            file.write(str(lab)+'\n')
 
 def merge_xml_stats(output,stats_files):
     from xml.etree import ElementTree as ET
@@ -107,27 +120,34 @@ def merge_xml_stats(output,stats_files):
         for stat in data.iter('Statistic'):
             if stat.attrib['name']=='mean':
                 for res in stat.iter('StatisticMap'):
-                    statMean.append(res)
+                    k = res.attrib['key']
+                    if statMean.find(".//StatisticMap[@key='{}']".format(k)) == None :
+                        statMean.append(res)
+                    else :
+                        row = statMean.find(".//StatisticMap[@key='{}']".format(k))
+                        array = row.attrib['value'][1:-1].split(',')
+                        array += res.attrib['value'][1:-1].split(',')
+                        row.attrib['value'] = [float(x) for x in array]
             if stat.attrib['name']=='std':
                 for res in stat.iter('StatisticMap'):
-                    statStd.append(res)
+                    k = res.attrib['key']
+                    if statStd.find(".//StatisticMap[@key='{}']".format(k)) == None :
+                        statStd.append(res)
+                    else :
+                        row = statStd.find(".//StatisticMap[@key='{}']".format(k))
+                        array = row.attrib['value'][1:-1].split(',')
+                        array += res.attrib['value'][1:-1].split(',')
+                        row.attrib['value'] = [float(x) for x in array]
     wrap = ET.ElementTree(generalStatistics)
     wrap.write(output,encoding="UTF-8",xml_declaration=True)
 
-def clean_xml_stats(stats_file):
-    from xml.etree import ElementTree as ET
+# def clean_xml_stats(stats_file):
+#     from xml.etree import ElementTree as ET
 
-    generalStatistics = ET.Element('GeneralStatistics')
-    statMean = ET.SubElement(generalStatistics,'Statistic', name='mean')
-    statStd = ET.SubElement(generalStatistics,'Statistic', name='std')
-
-    data = ET.parse(stats_file).getroot()
-    for stat in data.iter('Statistic'):
-        if stat.attrib['name']=='mean':
-            for res in stat.iter('StatisticMap'):
-                statMean.append(res)
-        if stat.attrib['name']=='std':
-            for res in stat.iter('StatisticMap'):
-                statStd.append(res)
-    wrap = ET.ElementTree(generalStatistics)
-    wrap.write(stats_file,encoding="UTF-8",xml_declaration=True)
+#     rm_names=['count','min','max']
+#     generalStatistics = ET.parse(stats_file).getroot()
+#     for name in rm_names:
+#         sub_element = generalStatistics.find('.//Statistic[@name="{}"'.format(name))
+#         generalStatistics.remove(sub_element)
+#     wrap = ET.ElementTree(generalStatistics)
+#     wrap.write(stats_file,encoding="UTF-8",xml_declaration=True)
