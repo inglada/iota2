@@ -97,6 +97,9 @@ def buildTrainCmd_points(r, paths, classif, options, dataField, out,
 
     if "svm" in classif.lower():
         cmd = cmd+" -io.stats "+stat
+        proba_option = "-classifier.libsvm.prob True"
+        if not proba_option in options:
+            cmd = "{} {}".format(cmd, proba_option)
     return cmd
 
 
