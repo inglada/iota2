@@ -21,6 +21,7 @@ from Common import OtbAppBank as otb
 from Common import FileUtils as fut
 from Common.Utils import run
 from Sensors.Sensors_container import Sensors_container
+from VectorTools import XMLStatsToShape
 
 logger = logging.getLogger(__name__)
 
@@ -59,11 +60,13 @@ def tile_samples_zonal_statistics(region_seed_tile, cfg, workingDirectory=None):
             ZonalStatisticsApp.ExecuteAndWriteOutput()
             outputs_list.append(output_xml)
         tile_stats_xml = os.path.join(seg_directory, "{}_tile_samples_region_{}_seed_{}_stats.xml".format(tile, region, seed))
-        merge_xml_stats(tile_stats_xml, outputs_list)
+        XMLStatsToShape.merge_xml_stats(tile_stats_xml, outputs_list)
+        XMLStatsToShape.add_field_from_XML(samples, tile_stats_xml,labels)
+        labels = XMLStatsToShape.labels_format_to_DBF(labels)
         labels_out = os.path.join(seg_directory,"{}_tile_samples_region_{}_seed_{}_stats_label.txt".format(sensor_name, tile, region, seed))
-        with open(labels_out,'w') as file :
-            for lab in labels:
-                file.write(str(lab)+'\n')
+        with open(labels_out,'w') as label_file :
+            for l in labels:
+                file.write(str(l)+'\n')
 
 
 def learning_samples_zonal_statistics(region_seed_tile, cfg, workingDirectory=None):
@@ -82,7 +85,7 @@ def learning_samples_zonal_statistics(region_seed_tile, cfg, workingDirectory=No
 
     outputs_list = []
     for tile in tiles :
-        learning_samples = os.path.join(seg_directory, "{}_samples_region_{}_seed_{}.shp".format(tile, region, seed))
+        learning_samples = os.path.join(seg_directory, "{}_learn_samples_region_{}_seed_{}.shp".format(tile, region, seed))
         sensor_tile_container = Sensors_container(config_path,
                                           tile,
                                           working_dir=None)
@@ -96,58 +99,17 @@ def learning_samples_zonal_statistics(region_seed_tile, cfg, workingDirectory=No
                                                             "inbv": "0",
                                                             "inzone.vector.in": learning_samples,
                                                             "inzone.vector.iddatafield": "ID",
-                                                            "out.shp.filename": os.path.splitext(output_xml)[0]+'.shp'
+                                                            "out.xml.filename": output_xml
                                                             })
             ZonalStatisticsApp.ExecuteAndWriteOutput()
             outputs_list.append(output_xml)
 
     learning_samples_stats = os.path.join(seg_directory,"learn_samples_region_{}_seed_{}_stats.xml".format(region, seed))
-    merge_xml_stats(learning_samples_stats,outputs_list)
-    labels_out = os.path.join(seg_directory,"learn_samples_region_{}_seed_{}_stats_lable.txt".format(region, seed))
+    XMLStatsToShape.merge_xml_stats(learning_samples_stats,outputs_list)
+    learning_samples_vector = os.path.join(seg_directory,"learn_samples_region_{}_seed_{}.shp".format(region, seed))
+    XMLStatsToShape.add_field_from_XML(learning_samples_vector, learning_samples_stats, labels)
+    labels = XMLStatsToShape.labels_format_to_DBF(labels)
+    labels_out = os.path.join(seg_directory,"learn_samples_region_{}_seed_{}_stats_label.txt".format(region, seed))
     with open(labels_out,'w') as file :
-        for lab in labels:
-            file.write(str(lab)+'\n')
-
-def merge_xml_stats(output,stats_files):
-    from xml.etree import ElementTree as ET
-
-    generalStatistics = ET.Element('GeneralStatistics')
-    statMean = ET.SubElement(generalStatistics,'Statistic', name='mean')
-    statStd = ET.SubElement(generalStatistics,'Statistic', name='std')
-
-    for file in stats_files :
-        data = ET.parse(file).getroot()
-        for stat in data.iter('Statistic'):
-            if stat.attrib['name']=='mean':
-                for res in stat.iter('StatisticMap'):
-                    k = res.attrib['key']
-                    if statMean.find(".//StatisticMap[@key='{}']".format(k)) == None :
-                        statMean.append(res)
-                    else :
-                        row = statMean.find(".//StatisticMap[@key='{}']".format(k))
-                        array = row.attrib['value'][1:-1].split(',')
-                        array += res.attrib['value'][1:-1].split(',')
-                        row.attrib['value'] = [float(x) for x in array]
-            if stat.attrib['name']=='std':
-                for res in stat.iter('StatisticMap'):
-                    k = res.attrib['key']
-                    if statStd.find(".//StatisticMap[@key='{}']".format(k)) == None :
-                        statStd.append(res)
-                    else :
-                        row = statStd.find(".//StatisticMap[@key='{}']".format(k))
-                        array = row.attrib['value'][1:-1].split(',')
-                        array += res.attrib['value'][1:-1].split(',')
-                        row.attrib['value'] = [float(x) for x in array]
-    wrap = ET.ElementTree(generalStatistics)
-    wrap.write(output,encoding="UTF-8",xml_declaration=True)
-
-# def clean_xml_stats(stats_file):
-#     from xml.etree import ElementTree as ET
-
-#     rm_names=['count','min','max']
-#     generalStatistics = ET.parse(stats_file).getroot()
-#     for name in rm_names:
-#         sub_element = generalStatistics.find('.//Statistic[@name="{}"'.format(name))
-#         generalStatistics.remove(sub_element)
-#     wrap = ET.ElementTree(generalStatistics)
-#     wrap.write(stats_file,encoding="UTF-8",xml_declaration=True)
+        for l in labels:
+            file.write(str(l)+'\n')

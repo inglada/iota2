@@ -134,20 +134,20 @@ def format_sample_to_segmentation(cfg, region_tiles_seed, wd):
     tiles_samples = []
     for tile in tiles :
         segmentationVector = os.path.join(outFolder, '{}_{}_seg.shp'.format(tile, region))
-        tileSamplesVector = os.path.join(outFolder, "{}_samples_region_{}_seed_{}.shp".format(tile, region, seed))
+        tileSamplesVector = os.path.join(outFolder, "{}_learn_samples_region_{}_seed_{}.shp".format(tile, region, seed))
         tiles_samples.append(tileSamplesVector)
         if os.path.exists(tileSamplesVector) :
             fu.removeShape(os.path.splitext(tileSamplesVector)[0],['.prj','.shp','.dbf','.shx'])
         intersect_shp(samplesVector, segmentationVector, outFolder, tileSamplesVector)
         # intersect.intersectSqlites(samplesVector, segmentationVector, outFolder, tileSamplesVector, epsg, "intersection", attributes, vectformat='ESRI Shapefile')
 
-    samplesVector = "samples_region_{}_seed_{}".format(region, seed)
+    samplesVector = "learn_samples_region_{}_seed_{}".format(region, seed)
     fu.mergeVectors(samplesVector,outFolder,tiles_samples)
     samplesVector = os.path.join(outFolder,samplesVector+'.shp')
     addFieldID(samplesVector)
     for tile in tiles:
         tileVector = os.path.join(cfg.getParam('chain', 'outputPath'), "shapeRegion", "{}_region_{}_{}.shp".format(region_pattern, region, tile))
-        tileSamplesVector = "{}_samples_region_{}_seed_{}.shp".format(tile, region, seed)
+        tileSamplesVector = "{}_learn_samples_region_{}_seed_{}.shp".format(tile, region, seed)
         if os.path.exists(os.path.join(outFolder,tileSamplesVector)) :
             fu.removeShape(os.path.splitext(os.path.join(outFolder,tileSamplesVector))[0],['.prj','.shp','.dbf','.shx'])
         intersect_shp(samplesVector, tileVector, outFolder, tileSamplesVector)
