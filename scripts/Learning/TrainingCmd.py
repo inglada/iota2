@@ -22,7 +22,7 @@ from Common import FileUtils as fu
 from osgeo import ogr
 from Common import ServiceConfigFile as SCF
 
-def getStatsFromSamples(InSamples):
+def getStatsFromSamples(InSamples, ground_truth, region_field):
 
     """
         IN:
@@ -38,7 +38,8 @@ def getStatsFromSamples(InSamples):
         raise Exception("Can not open : " + InSamples)
 
     layer = ds.GetLayer()
-    featuresFields = fu.getVectorFeatures(InSamples)
+    featuresFields = fu.getVectorFeatures(ground_truth, region_field, InSamples)
+
     allStat = []
     for currentBand in featuresFields:
         bandValues = []
@@ -55,9 +56,9 @@ def getStatsFromSamples(InSamples):
     return allMean, allStdDev
 
 
-def writeStatsFromSample(InSamples, outStats):
+def writeStatsFromSample(InSamples, outStats, ground_truth, region_field):
 
-    allMean, allStdDev = getStatsFromSamples(InSamples)
+    allMean, allStdDev = getStatsFromSamples(InSamples, ground_truth, region_field)
 
     with open(outStats, "w") as statsFile:
         statsFile.write('<?xml version="1.0" ?>\n\
@@ -73,6 +74,13 @@ def writeStatsFromSample(InSamples, outStats):
                             </FeatureStatistics>')
 
 
+def get_svm_normalization_stats(stats_dir, region_name, seed):
+    """
+    """
+    return fu.FileSearch_AND(stats_dir,
+                             True,
+                             "samples_region_{}_seed_{}.xml".format(region_name, seed))[0]
+
 def buildTrainCmd_points(r, paths, classif, options, dataField, out,
                          stat, features_labels, model_name):
 
@@ -87,9 +95,8 @@ def buildTrainCmd_points(r, paths, classif, options, dataField, out,
     cmd = cmd+" -classifier "+classif+" "+options+" -cfield "+dataField.lower()+" -io.out "+out+"/" + model_name
     cmd = cmd+" -feat "+features_labels
 
-    #~ if ("svm" in classif):
-        #~ cmd = cmd+" -io.stats "+stat+"/Model_"+str(r)+".xml"
-
+    if "svm" in classif.lower():
+        cmd = cmd+" -io.stats "+stat
     return cmd
 
 
@@ -169,6 +176,7 @@ def launchTraining(cfg, dataField, stat, N,
     outputPath = cfg.getParam('chain', 'outputPath')
     dataField = cfg.getParam('chain', 'dataField')
     regionField = cfg.getParam('chain', 'regionField')
+    ground_truth = cfg.getParam('chain', 'groundTruth')
     runs = cfg.getParam('chain', 'runs')
 
     pathToModelConfig = outputPath + "/config_model/configModel.cfg"
@@ -193,14 +201,15 @@ def launchTraining(cfg, dataField, stat, N,
             suffix = "_SAR"
         model = os.path.split(sample)[-1].split("_")[posModel_sample]
         seed = os.path.split(sample)[-1].split("_")[posSeed_sample].split("seed")[-1]
-        if classif == "svm":
-            outStats = outputPath + "/stats/Model_" + model + ".xml"
+        if classif.lower()=="svm" or classif.lower()=="libsvm":
+            outStats = os.path.join(outputPath, "stats", "Model_{}_seed_{}.xml".format(model, seed))
             if os.path.exists(outStats):
                 os.remove(outStats)
-            writeStatsFromSample(sample, outStats)
+            writeStatsFromSample(sample, outStats, ground_truth, regionField)
+
         model_name = "model_{}_seed_{}{}.txt".format(model, seed, suffix)
         cmd = buildTrainCmd_points(model, sample, classif, options, dataField, out,
-                                   stat, " ".join(features_labels), model_name)
+                                   outStats, " ".join(features_labels), model_name)
         cmd_out.append(cmd)
 
     fu.writeCmds(pathToCmdTrain + "/train.txt", cmd_out)
