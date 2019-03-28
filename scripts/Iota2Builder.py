@@ -343,9 +343,7 @@ class iota2():
         if dimred:
             s_container.append(step_dimRed, "sampling")
 
-        # learning steps
-        if "svm" in classifier.lower():
-            s_container.append(step_normalize_samples, "learning")
+        # learning step
         s_container.append(step_learning, "learning")
 
         # classifications steps
