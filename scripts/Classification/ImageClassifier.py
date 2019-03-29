@@ -41,6 +41,74 @@ def str2bool(v):
     return retour
 
 
+class iota2Classification():
+    def __init__(self, cfg, classifier_type, model, tile, output_directory,
+                 confidence=True, proba_map=False, classif_mask=None,
+                 dim_red={}, pixType="uint8", working_directory=None,
+                 logger=logger, mode="usually"):
+        """
+        TODO :
+            remove the dependance from cfg which still needed to compute features (first, remove from generateFeatures)
+            remove the 'mode' parameter
+        """
+        self.classification = ""
+        self.confidence = ""
+  
+        self.proba_map_path = self.get_proba_map(classifier_type,
+                                                 output_directory,
+                                                 model,
+                                                 tile, proba_map)
+
+    
+    def get_proba_map(self, classifier_type, output_directory, model, tile, gen_proba):
+        """get probability map absolute path
+
+        Parameters
+        ----------
+        classifier_type : string
+            classifier's name (provided by OTB)
+        output_directory : string
+            output directory
+        model : string
+            model's absolute path
+        tile : string
+            tile's name to compute
+
+        Return
+        ------
+        string
+            absolute path to the probality map
+        
+        """
+        model_name = self.get_model_name(model)
+        seed = self.get_model_seed(model)
+        proba_map_name = "PROBAMAP_{}_model_{}_seed_{}.tif".format(tile, model_name, seed)
+
+        proba_map = ""
+        classifier_avail = ["sharkrf"]
+        if classifier_type in classifier_avail:
+            proba_map = os.path.join(output_directory, proba_map_name)
+        if gen_proba and proba_map is "":
+            warn_mes = ("classifier '{}' not available to generate a probability "
+                        "map, those available are {}").format(classifier_type, classifier_avail)
+            logger.warning(warn_mes)
+        return proba_map if gen_proba else ""
+
+    def get_model_name(self, model):
+        """
+        """
+        return os.path.splitext(os.path.basename(model))[0].split("_")[1]
+
+    def get_model_seed(self, model):
+        """
+        """
+        return os.path.splitext(os.path.basename(model))[0].split("_")[3]
+        
+    def generate(self):
+        """
+        """
+        pass
+
 def filterOTB_output(raster, mask, output, RAM, outputType="uint8"):
 
     bandMathFilter = otb.Registry.CreateApplication("BandMath")
@@ -72,6 +140,8 @@ def computeClassifications(model, outputClassif, confmap, MaximizeCPU,
     elif pixType=="uint16":
         classifier.SetParameterOutputImagePixelType("out", otb.ImagePixelType_uint16)
     classifier.SetParameterString("confmap", confmap+"?&writegeom=false")
+    classifier.SetParameterString("probamap", outputClassif.replace(".tif", "_PROBAMAP.tif"))
+    classifier.SetParameterString("nbclasses", "13")
     classifier.SetParameterString("model", model)
     classifier.SetParameterString("ram", str(0.4 * float(RAM)))
 
@@ -88,12 +158,21 @@ def launchClassification(tempFolderSerie, Classifmask, model, stats,
                          MaximizeCPU=True, RAM=500, logger=logger):
     """
     """
+    
     from Common.OtbAppBank import getInputParameterOutput
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
 
+    classifier_type = cfg.getParam('argTrain', 'classifier')
+    output_directory = os.path.join(cfg.getParam('chain', 'outputPath'), "classif")
     tiles = (cfg.getParam('chain', 'listTile')).split()
     tile = fu.findCurrentTileInString(Classifmask, tiles)
+    
+    classif = iota2Classification(cfg, classifier_type, model, tile, output_directory, proba_map=True)
+
+    pause = raw_input("STOP")
+
+    
     wMode = cfg.getParam('GlobChain', 'writeOutputs')
     outputPath = cfg.getParam('chain', 'outputPath')
     featuresPath = os.path.join(outputPath, "features")
