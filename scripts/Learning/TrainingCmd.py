@@ -204,6 +204,7 @@ def launchTraining(cfg, dataField, stat, N,
             suffix = "_SAR"
         model = os.path.split(sample)[-1].split("_")[posModel_sample]
         seed = os.path.split(sample)[-1].split("_")[posSeed_sample].split("seed")[-1]
+        outStats=None
         if classif.lower()=="svm" or classif.lower()=="libsvm":
             outStats = os.path.join(outputPath, "stats", "Model_{}_seed_{}.xml".format(model, seed))
             if os.path.exists(outStats):
