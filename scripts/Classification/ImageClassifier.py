@@ -19,14 +19,8 @@ import os
 import ast
 from config import Config
 import logging
-import otbApplication as otb
-from Common import FileUtils as fu
-from Common import OtbAppBank
-from Common import GenerateFeatures as genFeatures
-from Common import ServiceConfigFile as SCF
-from Sampling import DimensionalityReduction as DR
-import logging
 
+from Common import ServiceConfigFile as SCF
 
 logger = logging.getLogger(__name__)
 
@@ -42,25 +36,37 @@ def str2bool(v):
 
 
 class iota2Classification():
-    def __init__(self, cfg, classifier_type, model, tile, output_directory,
+    def __init__(self, cfg, features_stack, classifier_type, model, tile, output_directory, nb_class, 
                  confidence=True, proba_map=False, classif_mask=None,
                  dim_red={}, pixType="uint8", working_directory=None,
-                 RAM=128, logger=logger, mode="usually"):
+                 stat_norm=None, RAM=128, logger=logger, mode="usually"):
         """
         TODO :
             remove the dependance from cfg which still needed to compute features (first, remove from generateFeatures)
             remove the 'mode' parameter
         """
+        self.classif_mask = classif_mask
+        self.output_directory = output_directory
+        self.RAM = RAM
+        self.pixType = pixType
+        self.stats = stat_norm
+        self.classifier_model = model
         self.model_name = self.get_model_name(model)
         self.seed = self.get_model_seed(model)
-
-        self.classification = os.path.join(output_directory, "Classif_{}")
-        self.confidence = ""  
+        self.features_stack = features_stack
+        self.classification = os.path.join(output_directory,
+                                           "Classif_{}_model_{}_seed_{}.tif".format(tile,
+                                                                                    self.model_name,
+                                                                                    self.seed))
+        self.confidence = os.path.join(output_directory,
+                                       "{}_model_{}_confidence_seed_{}.tif".format(tile,
+                                                                                   self.model_name,
+                                                                                   self.seed))
         self.proba_map_path = self.get_proba_map(classifier_type,
                                                  output_directory,
                                                  model,
                                                  tile, proba_map)
-
+        self.working_directory = working_directory
     
     def get_proba_map(self, classifier_type, output_directory, model, tile, gen_proba):
         """get probability map absolute path
@@ -84,8 +90,9 @@ class iota2Classification():
         """
         model_name = self.get_model_name(model)
         seed = self.get_model_seed(model)
-        proba_map_name = "PROBAMAP_{}_model_{}_seed_{}.tif".format(tile, model_name, seed)
-
+        proba_map_name = "PROBAMAP_{}_model_{}_seed_{}.tif".format(tile,
+                                                                   model_name,
+                                                                   seed)
         proba_map = ""
         classifier_avail = ["sharkrf"]
         if classifier_type in classifier_avail:
@@ -109,58 +116,72 @@ class iota2Classification():
     def generate(self):
         """
         """
-        pass
+        import shutil
+        from Common.OtbAppBank import CreateImageClassifierApplication
+        from Common.OtbAppBank import CreateBandMathApplication
 
-def filterOTB_output(raster, mask, output, RAM, outputType="uint8"):
+        if self.working_directory:
+            self.classification = os.path.join(self.working_directory, os.path.split(self.classification)[-1])
+            self.confidence = os.path.join(self.working_directory, os.path.split(self.confidence)[-1])
+        classifier_options = {"in": self.features_stack,
+                              "model": self.classifier_model,
+                              "confmap": self.confidence,
+                              "ram": str(0.4 * float(self.RAM)),
+                              "pixType": self.pixType,
+                              "out": self.classification}
+        if self.proba_map_path:
+            if self.working_directory:
+                self.proba_map_path = os.path.join(self.working_directory, os.path.split(self.proba_map_path)[-1])
+            classifier_options["probamap"] = self.proba_map_path
+            classifier_options["nbclasses"] = "10"
+        if self.stats:
+            classifier_options["imstat"] = self.stats
+        classifier = CreateImageClassifierApplication(classifier_options)
+        logger.info("Compute Classification : {}".format(self.classification))
+        classifier.ExecuteAndWriteOutput()
+        logger.info("Classification : {} done".format(self.classification))
 
-    bandMathFilter = otb.Registry.CreateApplication("BandMath")
-    bandMathFilter.SetParameterString("exp", "im2b1>=1?im1b1:0")
-    bandMathFilter.SetParameterStringList("il", [raster, mask])
-    bandMathFilter.SetParameterString("ram", str(0.9 * float(RAM)))
-    bandMathFilter.SetParameterString("out", output+"?&writegeom=false")
-    if outputType=="uint8":
-        bandMathFilter.SetParameterOutputImagePixelType("out", otb.ImagePixelType_uint8)
-    elif outputType=="uint16":
-        bandMathFilter.SetParameterOutputImagePixelType("out", otb.ImagePixelType_uint16)
-    elif outputType=="float":
-        bandMathFilter.SetParameterOutputImagePixelType("out", otb.ImagePixelType_float)
-    bandMathFilter.ExecuteAndWriteOutput()
-
-
-def computeClassifications(model, outputClassif, confmap, MaximizeCPU,
-                           Classifmask, stats, AllFeatures, RAM, pixType="uint8"):
-    """
-    """
-    classifier = otb.Registry.CreateApplication("ImageClassifier")
-    if isinstance(AllFeatures, str):
-        classifier.SetParameterString("in", AllFeatures)
-    else:
-        classifier.SetParameterInputImage("in", AllFeatures.GetParameterOutputImage("out"))
-    classifier.SetParameterString("out", outputClassif+"?&writegeom=false")
-    if pixType=="uint8":
-        classifier.SetParameterOutputImagePixelType("out", otb.ImagePixelType_uint8)
-    elif pixType=="uint16":
-        classifier.SetParameterOutputImagePixelType("out", otb.ImagePixelType_uint16)
-    classifier.SetParameterString("confmap", confmap+"?&writegeom=false")
-    classifier.SetParameterString("probamap", outputClassif.replace(".tif", "_PROBAMAP.tif"))
-    classifier.SetParameterString("nbclasses", "13")
-    classifier.SetParameterString("model", model)
-    classifier.SetParameterString("ram", str(0.4 * float(RAM)))
-
-    if not MaximizeCPU:
-        classifier.SetParameterString("mask", Classifmask)
-    if stats:
-        classifier.SetParameterString("imstat", stats)
-
-    return classifier, AllFeatures
-
+        if self.classif_mask:
+            mask_filter = CreateBandMathApplication({"il": [self.classification, self.classif_mask],
+                                                     "ram": self.RAM,
+                                                     "pixType": self.pixType,
+                                                     "out": self.classification,
+                                                     "exp": "im2b1>=1?im1b1:0"})
+            mask_filter.ExecuteAndWriteOutput()
+            mask_filter = CreateBandMathApplication({"il": [self.confidence, self.classif_mask],
+                                                     "ram": self.RAM,
+                                                     "pixType": self.pixType,
+                                                     "out": self.confidence,
+                                                     "exp": "im2b1>=1?im1b1:0"})
+            mask_filter.ExecuteAndWriteOutput()
+            if self.proba_map_path:
+                mask_filter = CreateBandMathApplication({"il": [self.proba_map_path, self.classif_mask],
+                                                         "ram": self.RAM,
+                                                         "pixType": self.pixType,
+                                                         "out": self.proba_map_path,
+                                                         "exp": "im2b1>=1?im1b1:0"})
+                mask_filter.ExecuteAndWriteOutput()
+        if self.working_directory:
+            shutil.copy(self.classification, os.path.join(self.output_directory,
+                                                          os.path.split(self.classification)[-1]))
+            os.remove(self.classification)
+            shutil.copy(self.confidence, os.path.join(self.output_directory,
+                                                          os.path.split(self.confidence)[-1]))
+            os.remove(self.confidence)
+            if self.proba_map_path:
+                shutil.copy(self.proba_map_path, os.path.join(self.output_directory,
+                                                              os.path.split(self.proba_map_path)[-1]))
+                os.remove(self.proba_map_path)
 
 def launchClassification(tempFolderSerie, Classifmask, model, stats,
                          outputClassif, confmap, pathWd, cfg, pixType,
                          MaximizeCPU=True, RAM=500, logger=logger):
     """
     """
+    from Common import GenerateFeatures as genFeatures
+    from Sampling import DimensionalityReduction as DR
     
+    from Common import FileUtils as fu
     from Common.OtbAppBank import getInputParameterOutput
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
@@ -169,11 +190,6 @@ def launchClassification(tempFolderSerie, Classifmask, model, stats,
     output_directory = os.path.join(cfg.getParam('chain', 'outputPath'), "classif")
     tiles = (cfg.getParam('chain', 'listTile')).split()
     tile = fu.findCurrentTileInString(Classifmask, tiles)
-    
-    #~ classif = iota2Classification(cfg, classifier_type, model, tile, output_directory, proba_map=True)
-
-    #~ pause = raw_input("STOP")
-
     
     wMode = cfg.getParam('GlobChain', 'writeOutputs')
     outputPath = cfg.getParam('chain', 'outputPath')
@@ -202,7 +218,7 @@ def launchClassification(tempFolderSerie, Classifmask, model, stats,
         mode = "SAR"
     
     AllFeatures, feat_labels, dep_features = genFeatures.generateFeatures(wd, tile, cfg, mode=mode)
-
+    
     feature_raster = AllFeatures.GetParameterValue(getInputParameterOutput(AllFeatures))
     if wMode:
         if not os.path.exists(feature_raster):
@@ -224,26 +240,15 @@ def launchClassification(tempFolderSerie, Classifmask, model, stats,
             ClassifInput.ExecuteAndWriteOutput()
         else:
             ClassifInput.Execute()
+    # these two parameters should come from the configuration file
+    nb_class = 10
+    proba_map_expected = True
+    classif = iota2Classification(cfg, ClassifInput, classifier_type, model, tile, output_directory,
+                                  nb_class, proba_map=proba_map_expected, working_directory=pathWd,
+                                  classif_mask=Classifmask, pixType=pixType, stat_norm=stats, RAM=RAM,
+                                  mode=mode)
+    classif.generate()
 
-    classifier, inputStack = computeClassifications(model, outputClassif,
-                                                    confmap, MaximizeCPU,
-                                                    Classifmask, stats,
-                                                    ClassifInput, RAM, 
-                                                    pixType=pixType)
-
-    logger.info("Compute Classification : {}".format(outputClassif))
-    classifier.ExecuteAndWriteOutput()
-    logger.info("Classification : {} done.".format(outputClassif))
-    if MaximizeCPU:
-        filterOTB_output(outputClassif, Classifmask, outputClassif, RAM, outputType=pixType)
-        filterOTB_output(confmap, Classifmask, confmap, RAM, outputType="float")
-
-    if pathWd:
-        shutil.copy(outputClassif, outputPath+"/classif")
-        os.remove(outputClassif)
-    if pathWd:
-        shutil.copy(confmap, outputPath+"/classif")
-        os.remove(confmap)
 
 if __name__ == "__main__":
 
