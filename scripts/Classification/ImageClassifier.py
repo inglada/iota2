@@ -45,15 +45,17 @@ class iota2Classification():
     def __init__(self, cfg, classifier_type, model, tile, output_directory,
                  confidence=True, proba_map=False, classif_mask=None,
                  dim_red={}, pixType="uint8", working_directory=None,
-                 logger=logger, mode="usually"):
+                 RAM=128, logger=logger, mode="usually"):
         """
         TODO :
             remove the dependance from cfg which still needed to compute features (first, remove from generateFeatures)
             remove the 'mode' parameter
         """
-        self.classification = ""
-        self.confidence = ""
-  
+        self.model_name = self.get_model_name(model)
+        self.seed = self.get_model_seed(model)
+
+        self.classification = os.path.join(output_directory, "Classif_{}")
+        self.confidence = ""  
         self.proba_map_path = self.get_proba_map(classifier_type,
                                                  output_directory,
                                                  model,
@@ -168,9 +170,9 @@ def launchClassification(tempFolderSerie, Classifmask, model, stats,
     tiles = (cfg.getParam('chain', 'listTile')).split()
     tile = fu.findCurrentTileInString(Classifmask, tiles)
     
-    classif = iota2Classification(cfg, classifier_type, model, tile, output_directory, proba_map=True)
+    #~ classif = iota2Classification(cfg, classifier_type, model, tile, output_directory, proba_map=True)
 
-    pause = raw_input("STOP")
+    #~ pause = raw_input("STOP")
 
     
     wMode = cfg.getParam('GlobChain', 'writeOutputs')
