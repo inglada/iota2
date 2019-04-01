@@ -34,7 +34,7 @@ from osgeo import gdal
 from osgeo import ogr
 from osgeo import osr
 from osgeo.gdalconst import *
-import otbApplication as otb
+#~ import otbApplication as otb
 from Common.Utils import run
 
 
@@ -558,6 +558,7 @@ def unPackFirst(someListOfList):
 
 
 def commonPixTypeToOTB(string):
+    import otbApplication as otb
     dico = {"complexDouble": otb.ComplexImagePixelType_double,
             "complexFloat": otb.ComplexImagePixelType_float,
             "double": otb.ImagePixelType_double,
@@ -656,6 +657,7 @@ def ExtractInterestBands(stack, nbDates, SPbandsList, comp, ram=128):
     """
     usage : extract bands according to 'SPbandsList' parameter
     """
+    import otbApplication as otb
     SB_ToKeep = ["Channel" + str(int(currentBand) + i * comp) for i in range(nbDates) for currentBand in SPbandsList]
     extract = otb.Registry.CreateApplication("ExtractROI")
 
