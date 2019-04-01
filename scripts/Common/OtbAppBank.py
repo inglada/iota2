@@ -77,6 +77,60 @@ def unPackFirst(someListOfList):
         else:
             yield values
 
+def CreateImageClassifierApplication(OtbParameters):
+    """binding to ImageClassifier OTB's application
+    
+    Parameter
+    ---------
+
+    OtbParameters [dic] 
+        dictionnary with otb's parameter keys
+    
+    Return
+    ------
+    class 'otbApplication.Application'
+        ImageClassifier application ready to be Execute()
+    """
+    classifier = otb.Registry.CreateApplication("ImageClassifier")
+    if classifier is None:
+        raise Exception("Not possible to create 'ImageClassifier' application, \
+                         check if OTB is well configured / installed")
+    # mandatory parameters
+    if "in" not in OtbParameters:
+        raise Exception("'in' parameter not found")
+    if "model" not in OtbParameters:
+        raise Exception("'model' parameter not found")
+
+    in_img = OtbParameters["in"]
+    if isinstance(in_img, str):
+        classifier.SetParameterString("in", in_img)
+    else:
+        classifier.SetParameterInputImage("in", in_img.GetParameterOutputImage(getInputParameterOutput(in_img)))
+    if "model" in OtbParameters:
+        classifier.SetParameterString("model", OtbParameters["model"])
+
+    # optional parameters
+    if "mask" in OtbParameters:
+        classifier.SetParameterString("mask", OtbParameters["mask"])
+    if "imstat" in OtbParameters:
+        classifier.SetParameterString("imstat", OtbParameters["imstat"])
+    if "nodatalabel" in OtbParameters:
+        classifier.SetParameterString("nodatalabel", OtbParameters["nodatalabel"])
+    if "out" in OtbParameters:
+        classifier.SetParameterString("out", OtbParameters["out"])
+    if "confmap" in OtbParameters:
+        classifier.SetParameterString("confmap", OtbParameters["confmap"])
+    if "probamap" in OtbParameters:
+        classifier.SetParameterString("probamap", OtbParameters["probamap"])
+    if "ram" in OtbParameters:
+        classifier.SetParameterString("ram", str(OtbParameters["ram"]))
+    if "nbclasses" in OtbParameters:
+        classifier.SetParameterString("nbclasses", OtbParameters["nbclasses"])
+    if "pixType" in OtbParameters:
+        classifier.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
+    return classifier
+
+
 def CreateImageTimeSeriesGapFillingApplication(OtbParameters):
     """binding to ImageTimeSeriesGapFilling OTB's application
     
