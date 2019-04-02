@@ -129,6 +129,7 @@ class serviceConfigFile:
             self.init_section("argTrain", argTrain_default)
             #init argClassification section
             argClassification_default = {"noLabelManagement": "maxConfidence",
+                                         "enable_probability_map": False
                                          "fusionOptions": "-nodatalabel 0 -method majorityvoting"}
             self.init_section("argClassification", argClassification_default)
             #init GlobChain section
@@ -519,6 +520,7 @@ class serviceConfigFile:
             check_sampleAugmentation()
 
             self.testVarConfigFile('argClassification', 'classifMode', str, ["separate", "fusion"])
+            self.testVarConfigFile('argClassification', 'enable_probability_map', bool)
             self.testVarConfigFile('argClassification', 'noLabelManagement', str, ["maxConfidence", "learningPriority"])
 
             self.testVarConfigFile('GlobChain', 'proj', str)
