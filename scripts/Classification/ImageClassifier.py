@@ -168,12 +168,19 @@ class iota2Classification():
             mask_filter.ExecuteAndWriteOutput()
             if self.proba_map_path:
                 expr = "im2b1>=1?im1:{}".format("{"+";".join(["0"] * nb_class_run)+"}")
-                mask_filter = CreateBandMathXApplication({"il": [self.proba_map_path, self.classif_mask],
+                mask_filter = CreateBandMathXApplication({"il": [self.proba_map_path,
+                                                                 self.classif_mask],
                                                           "ram": str(self.RAM),
                                                           "pixType": "uint16",
                                                           "out": self.proba_map_path,
                                                           "exp": expr})
                 mask_filter.ExecuteAndWriteOutput()
+        if self.proba_map_path:
+            class_model = self.models_class[self.model_name][int(self.seed)]
+            class_model = [11, 12, 31, 32, 34, 51, 211, 221, 222]
+            if len(class_model) != len(all_class):
+                self.reorder_proba_map(self.proba_map_path, class_model, all_class)
+            pause = raw_input("CHUI LA")
         if self.working_directory:
             shutil.copy(self.classification, os.path.join(self.output_directory,
                                                           os.path.split(self.classification)[-1]))
@@ -186,7 +193,19 @@ class iota2Classification():
                                                               os.path.split(self.proba_map_path)[-1]))
                 os.remove(self.proba_map_path)
 
+    def reorder_proba_map(self, proba_map_path, class_model, all_class):
+        """reorder the probability map
 
+        in order to merge proability raster containing a different number of effective 
+        class it is needed to reorder them according to a reference
+
+        Parameters
+        ----------
+        proba_map_path : string
+        class_model : list
+            list containing labels in the model used to classify 
+        all_class
+        """
 def get_class_by_models(iota2_samples_dir, data_field):
     """ inform which class will be used to by models
 
