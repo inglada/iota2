@@ -36,15 +36,15 @@ def str2bool(v):
 
 
 class iota2Classification():
-    def __init__(self, cfg, features_stack, classifier_type, model, tile, output_directory, nb_class, 
-                 confidence=True, proba_map=False, classif_mask=None,
-                 dim_red={}, pixType="uint8", working_directory=None,
-                 stat_norm=None, RAM=128, logger=logger, mode="usually"):
+    def __init__(self, cfg, features_stack, classifier_type, model, tile, output_directory, models_class, 
+                 confidence=True, proba_map=False, classif_mask=None, pixType="uint8",
+                 working_directory=None, stat_norm=None, RAM=128, logger=logger, mode="usually"):
         """
         TODO :
             remove the dependance from cfg which still needed to compute features (first, remove from generateFeatures)
             remove the 'mode' parameter
         """
+        self.models_class = models_class
         self.classif_mask = classif_mask
         self.output_directory = output_directory
         self.RAM = RAM
@@ -119,10 +119,13 @@ class iota2Classification():
         import shutil
         from Common.OtbAppBank import CreateImageClassifierApplication
         from Common.OtbAppBank import CreateBandMathApplication
+        from Common.OtbAppBank import CreateBandMathXApplication
 
         if self.working_directory:
-            self.classification = os.path.join(self.working_directory, os.path.split(self.classification)[-1])
-            self.confidence = os.path.join(self.working_directory, os.path.split(self.confidence)[-1])
+            self.classification = os.path.join(self.working_directory,
+                                               os.path.split(self.classification)[-1])
+            self.confidence = os.path.join(self.working_directory,
+                                           os.path.split(self.confidence)[-1])
         classifier_options = {"in": self.features_stack,
                               "model": self.classifier_model,
                               "confmap": self.confidence,
@@ -130,36 +133,46 @@ class iota2Classification():
                               "pixType": self.pixType,
                               "out": self.classification}
         if self.proba_map_path:
+            all_class = []
+            for model_name, dico_seed in self.models_class.items():
+                for seed_number, avail_class in dico_seed.items():
+                    all_class += avail_class
+            all_class = sorted(list(set(all_class)))
+            nb_class_run = len(all_class)
             if self.working_directory:
-                self.proba_map_path = os.path.join(self.working_directory, os.path.split(self.proba_map_path)[-1])
+                self.proba_map_path = os.path.join(self.working_directory,
+                                                   os.path.split(self.proba_map_path)[-1])
             classifier_options["probamap"] = self.proba_map_path
-            classifier_options["nbclasses"] = "10"
+            classifier_options["nbclasses"] = str(nb_class_run)
+
         if self.stats:
             classifier_options["imstat"] = self.stats
         classifier = CreateImageClassifierApplication(classifier_options)
         logger.info("Compute Classification : {}".format(self.classification))
         classifier.ExecuteAndWriteOutput()
         logger.info("Classification : {} done".format(self.classification))
-
         if self.classif_mask:
-            mask_filter = CreateBandMathApplication({"il": [self.classification, self.classif_mask],
-                                                     "ram": self.RAM,
+            mask_filter = CreateBandMathApplication({"il": [self.classification,
+                                                            self.classif_mask],
+                                                     "ram": str(self.RAM),
                                                      "pixType": self.pixType,
                                                      "out": self.classification,
                                                      "exp": "im2b1>=1?im1b1:0"})
             mask_filter.ExecuteAndWriteOutput()
-            mask_filter = CreateBandMathApplication({"il": [self.confidence, self.classif_mask],
-                                                     "ram": self.RAM,
-                                                     "pixType": self.pixType,
+            mask_filter = CreateBandMathApplication({"il": [self.confidence,
+                                                            self.classif_mask],
+                                                     "ram": str(self.RAM),
+                                                     "pixType": "float",
                                                      "out": self.confidence,
                                                      "exp": "im2b1>=1?im1b1:0"})
             mask_filter.ExecuteAndWriteOutput()
             if self.proba_map_path:
-                mask_filter = CreateBandMathApplication({"il": [self.proba_map_path, self.classif_mask],
-                                                         "ram": self.RAM,
-                                                         "pixType": self.pixType,
-                                                         "out": self.proba_map_path,
-                                                         "exp": "im2b1>=1?im1b1:0"})
+                expr = "im2b1>=1?im1:{}".format("{"+";".join(["0"] * nb_class_run)+"}")
+                mask_filter = CreateBandMathXApplication({"il": [self.proba_map_path, self.classif_mask],
+                                                          "ram": str(self.RAM),
+                                                          "pixType": "uint16",
+                                                          "out": self.proba_map_path,
+                                                          "exp": expr})
                 mask_filter.ExecuteAndWriteOutput()
         if self.working_directory:
             shutil.copy(self.classification, os.path.join(self.output_directory,
@@ -173,6 +186,46 @@ class iota2Classification():
                                                               os.path.split(self.proba_map_path)[-1]))
                 os.remove(self.proba_map_path)
 
+
+def get_class_by_models(iota2_samples_dir, data_field):
+    """ inform which class will be used to by models
+
+    Parameters
+    ----------
+    iota2_samples_dir : string
+        path to the directory containing samples dedicated to learn models
+
+    data_field : string
+        field which contains labels in vector file
+
+    Return 
+    ------
+    dic[model][seed]
+
+    Example
+    -------
+    >>> dico_models = get_class_by_models("/somewhere/learningSamples", "code")
+    >>> print dico_models["1"][0]
+    >>> [11, 12, 31]
+    """
+    from Common.FileUtils import FileSearch_AND
+    from Common.FileUtils import getFieldElement
+    
+    samples_files =  FileSearch_AND(iota2_samples_dir, True,
+                                    "Samples_region_", "_seed", "_learn.sqlite")
+    class_models = {}
+    for samples_file in samples_files:
+        model_name = os.path.splitext(os.path.basename(samples_file))[0].split("_")[2]
+        class_models[model_name] = {}
+    for samples_file in samples_files:
+        model_name = os.path.splitext(os.path.basename(samples_file))[0].split("_")[2]
+        seed_number = int(os.path.splitext(os.path.basename(samples_file))[0].split("_")[3].replace("seed", ""))
+        class_models[model_name][seed_number] = sorted(getFieldElement(samples_file, driverName="SQLite",
+                                                                       field=data_field.lower(), mode="unique",
+                                                                       elemType="int"))
+    return class_models
+
+
 def launchClassification(tempFolderSerie, Classifmask, model, stats,
                          outputClassif, confmap, pathWd, cfg, pixType,
                          MaximizeCPU=True, RAM=500, logger=logger):
@@ -180,7 +233,7 @@ def launchClassification(tempFolderSerie, Classifmask, model, stats,
     """
     from Common import GenerateFeatures as genFeatures
     from Sampling import DimensionalityReduction as DR
-    
+
     from Common import FileUtils as fu
     from Common.OtbAppBank import getInputParameterOutput
     if not isinstance(cfg, SCF.serviceConfigFile):
@@ -195,6 +248,7 @@ def launchClassification(tempFolderSerie, Classifmask, model, stats,
     outputPath = cfg.getParam('chain', 'outputPath')
     featuresPath = os.path.join(outputPath, "features")
     dimred = cfg.getParam('dimRed', 'dimRed')
+    proba_map_expected = cfg.getParam('argClassification', 'enable_probability_map')
     wd = pathWd
     if not pathWd: 
         wd = featuresPath
@@ -235,16 +289,28 @@ def launchClassification(tempFolderSerie, Classifmask, model, stats,
         logger.debug("Dim red models : {}".format(dimRedModelList))
         [ClassifInput, other] = DR.ApplyDimensionalityReductionToFeatureStack(cfg,AllFeatures,
                                                                               dimRedModelList)
-        
         if wMode:
             ClassifInput.ExecuteAndWriteOutput()
         else:
             ClassifInput.Execute()
-    # these two parameters should come from the configuration file
-    nb_class = 10
-    proba_map_expected = True
+
+    # pour connaitre les classes dans TOUT les modèles, regarder les classes présentent dans
+    # dataAppVal *seed_0_learn.sqlite. C'est ce qui va déterminer nb_class
+
+    # il faut ensuite connaitre les classes du modèle en question (nb_class_modèle) et 
+    # avec un bandMathX, recoder à la bonne place les proba par classes -> faire une fonction
+    # et la tester dans Iota2Test.py
+    # utiliser bandMathX avec l'opérateur 'bands' -> bands( im1, { 1, 2, 1, 1 } ) ?
+    #~ nb_class = len(toutes les classes possible)
+    #~ nb_class_model = len(toutes les classes possible dans le modèle)
+    
+    iota2_samples_dir = os.path.join(cfg.getParam('chain', 'outputPath'),
+                                     "learningSamples")
+    data_field = cfg.getParam('chain', 'dataField')
+    models_class = get_class_by_models(iota2_samples_dir, data_field)
+
     classif = iota2Classification(cfg, ClassifInput, classifier_type, model, tile, output_directory,
-                                  nb_class, proba_map=proba_map_expected, working_directory=pathWd,
+                                  models_class, proba_map=proba_map_expected, working_directory=pathWd,
                                   classif_mask=Classifmask, pixType=pixType, stat_norm=stats, RAM=RAM,
                                   mode=mode)
     classif.generate()
