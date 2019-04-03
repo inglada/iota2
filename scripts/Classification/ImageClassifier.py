@@ -175,12 +175,12 @@ class iota2Classification():
                                                           "out": self.proba_map_path,
                                                           "exp": expr})
                 mask_filter.ExecuteAndWriteOutput()
+
         if self.proba_map_path:
-            class_model = self.models_class[self.model_name][int(self.seed)]
-            class_model = [11, 12, 31, 32, 34, 51, 211, 221, 222]
+            class_model = self.models_class[self.model_name][int(self.seed)]            
             if len(class_model) != len(all_class):
                 self.reorder_proba_map(self.proba_map_path, class_model, all_class)
-            pause = raw_input("CHUI LA")
+
         if self.working_directory:
             shutil.copy(self.classification, os.path.join(self.output_directory,
                                                           os.path.split(self.classification)[-1]))
@@ -204,8 +204,35 @@ class iota2Classification():
         proba_map_path : string
         class_model : list
             list containing labels in the model used to classify 
-        all_class
+        all_class : list
+            list containing all possible labels
         """
+        from Common.OtbAppBank import CreateBandMathXApplication
+
+        class_model_copy = [elem for elem in class_model]
+
+        # NODATA index in probability map
+        NODATA_LABEL_idx = len(all_class)
+        NODATA_LABEL_buff = "NODATALABEL"
+        nb_class_diff = len(class_model) - len(all_class)
+        index_vector = []
+
+        for index_label, expected_label in enumerate(all_class):
+            if expected_label not in class_model:
+                class_model_copy.insert(index_label, NODATA_LABEL_buff)
+        for class_model_label in class_model_copy:
+            if class_model_label in class_model:
+                idx = class_model.index(class_model_label) + 1
+            else:
+                idx = NODATA_LABEL_idx
+            index_vector.append(idx)
+        exp = "bands(im1, {})".format("{" + ",".join(map(str, index_vector)) + "}")
+        reorder_app = CreateBandMathXApplication({"il": proba_map_path,
+                                                  "ram": self.RAM,
+                                                  "exp": exp,
+                                                  "out": proba_map_path})
+        reorder_app.ExecuteAndWriteOutput()
+
 def get_class_by_models(iota2_samples_dir, data_field):
     """ inform which class will be used to by models
 
