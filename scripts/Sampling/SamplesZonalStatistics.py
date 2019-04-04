@@ -41,6 +41,7 @@ def tile_samples_zonal_statistics(region_seed_tile, cfg, workingDirectory=None):
 
     iota2_directory = cfg.getParam('chain', 'outputPath')
     seg_directory = os.path.join(iota2_directory, "segmentation")
+    tsamples_directory = os.path.join(iota2_directory, "tilesSamples")
 
     for tile in tiles :
         logger.info("Compute zonal statistics for {}".format(tile))
@@ -58,7 +59,7 @@ def tile_samples_zonal_statistics(region_seed_tile, cfg, workingDirectory=None):
             for samples in samples_list :
                 n = os.path.splitext(samples)[0].split('_')[-1]
                 n_list.append(n)
-                output_xml = os.path.join(seg_directory, tile, "{}_{}_tile_samples_region_{}_{}_stats.xml".format(sensor_name, tile, region, n))
+                output_xml = os.path.join(tsamples_directory, tile, "{}_{}_tile_samples_region_{}_{}_stats.xml".format(sensor_name, tile, region, n))
                 key = "DN"
                 ZonalStatisticsApp = otb.CreateZonalStatistics({"in":sensor_features,
                                                                 "inbv": "0",
@@ -70,8 +71,8 @@ def tile_samples_zonal_statistics(region_seed_tile, cfg, workingDirectory=None):
         logger.info("Statistics management")
         cmd_list=[]
         for n in n_list :
-            outputs_list = glob.glob(os.path.join(seg_directory, tile, "*_{}_tile_samples_region_{}_{}_stats.xml".format(tile, region, n)))
-            tile_stats_xml = os.path.join(seg_directory, tile, "{}_tile_samples_region_{}_{}_stats.xml".format(tile, region, n))
+            outputs_list = glob.glob(os.path.join(tsamples_directory, tile, "*_{}_tile_samples_region_{}_{}_stats.xml".format(tile, region, n)))
+            tile_stats_xml = os.path.join(tsamples_directory, tile, "{}_tile_samples_region_{}_{}_stats.xml".format(tile, region, n))
             if len(outputs_list)>1 :
                 XMLStatsToShape.merge_xml_stats(tile_stats_xml, outputs_list)
             else :
@@ -83,7 +84,7 @@ def tile_samples_zonal_statistics(region_seed_tile, cfg, workingDirectory=None):
             labels_dbf = XMLStatsToShape.labels_format_to_DBF(labels)
             samples = os.path.join(seg_directory, tile, "{}_region_{}_seg_{}.shp".format(tile, region, n))
             input_fields= XMLStatsToShape.list_shp_field(samples)
-            tile_samples_vector_stats = os.path.join(seg_directory, tile,"{}_tile_samples_region_{}_{}_stats.shp".format(tile, region, n))
+            tile_samples_vector_stats = os.path.join(tsamples_directory, tile,"{}_tile_samples_region_{}_{}_stats.shp".format(tile, region, n))
             cmd = '''ogr2ogr -f "ESRI Shapefile" -sql "SELECT'''
             for field in input_fields :
                 cmd += ''' shp.{} as {} ,'''.format(field, field)
@@ -97,8 +98,8 @@ def tile_samples_zonal_statistics(region_seed_tile, cfg, workingDirectory=None):
             cmd_list.append(cmd)
             
         queuedProcess(cmd_list, N_processes=6, shell=True)
-        labels_out = os.path.join(seg_directory,"tile_samples_region_{}_stats_label.txt".format(tile, region))
-        with open(labels_out,'w') as label_file :
+        labels_out = os.path.join(tsamples_directory, "tile_samples_region_{}_stats_label.txt".format(region))
+        with open(labels_out, 'w') as label_file :
             for l in labels_dbf:
                 label_file.write(str(l)+'\n')
 
@@ -134,6 +135,7 @@ def learning_samples_zonal_statistics(region_seed_tile, cfg, workingDirectory=No
 
     iota2_directory = cfg.getParam('chain', 'outputPath')
     seg_directory = os.path.join(iota2_directory, "segmentation")
+    lsamples_directory = os.path.join(iota2_directory, "learningSamples")
 
     outputs_list = []
     logger.info("Compute zonal statistics for learning samples region {} seed {}".format(region, seed))
@@ -147,8 +149,8 @@ def learning_samples_zonal_statistics(region_seed_tile, cfg, workingDirectory=No
         for sensor_name, ((sensor_features, sensor_features_dep), features_labels) in sensors_features:
             sensor_features.Execute()
             labels+=features_labels
-            output_xml = os.path.join(seg_directory, "{}_{}_learn_samples_region_{}_seed_{}_stats.xml".format(sensor_name, tile, region, seed))
-            output_shp = os.path.join(seg_directory, "{}_{}_learn_samples_region_{}_seed_{}_stats.shp".format(sensor_name, tile, region, seed))
+            output_xml = os.path.join(lsamples_directory, "{}_{}_learn_samples_region_{}_seed_{}_stats.xml".format(sensor_name, tile, region, seed))
+            output_shp = os.path.join(lsamples_directory, "{}_{}_learn_samples_region_{}_seed_{}_stats.shp".format(sensor_name, tile, region, seed))
             key = "ID"
             ZonalStatisticsApp = otb.CreateZonalStatistics({"in":sensor_features,
                                                             "inbv": "0",
@@ -170,14 +172,14 @@ def learning_samples_zonal_statistics(region_seed_tile, cfg, workingDirectory=No
             outputs_list.append(output_xml)
 
     logger.info("Statistics management")
-    learning_samples_stats = os.path.join(seg_directory,"learn_samples_region_{}_seed_{}_stats.xml".format(region, seed))
-    XMLStatsToShape.merge_xml_stats(learning_samples_stats,outputs_list)
-    csv_stats = XMLStatsToShape.convert_XML_to_CSV(learning_samples_stats,key,labels)
+    learning_samples_stats = os.path.join(lsamples_directory, "learn_samples_region_{}_seed_{}_stats.xml".format(region, seed))
+    XMLStatsToShape.merge_xml_stats(learning_samples_stats, outputs_list)
+    csv_stats = XMLStatsToShape.convert_XML_to_CSV(learning_samples_stats, key, labels)
     labels = XMLStatsToShape.labels_format_to_DBF(labels)
     logger.info("Creating output")
-    learning_samples_vector = os.path.join(seg_directory,"learn_samples_region_{}_seed_{}.shp".format(region, seed))
+    learning_samples_vector = os.path.join(seg_directory, "learn_samples_region_{}_seed_{}.shp".format(region, seed))
     input_fields= XMLStatsToShape.list_shp_field(learning_samples_vector)
-    learning_samples_vector_stats = os.path.join(seg_directory,"learn_samples_region_{}_seed_{}_stats.shp".format(region, seed))
+    learning_samples_vector_stats = os.path.join(lsamples_directory, "learn_samples_region_{}_seed_{}_stats.shp".format(region, seed))
     cmd = '''ogr2ogr -f "ESRI Shapefile" -sql "SELECT'''
     for field in input_fields :
         cmd += ''' shp.{} as {} ,'''.format(field, field)
@@ -191,7 +193,7 @@ def learning_samples_zonal_statistics(region_seed_tile, cfg, workingDirectory=No
     print cmd
     os.system(cmd)
     # XMLStatsToShape.add_field_from_XML(learning_samples_vector, learning_samples_stats, ID, labels)
-    labels_out = os.path.join(seg_directory,"learn_samples_region_{}_seed_{}_stats_label.txt".format(region, seed))
-    with open(labels_out,'w') as label_file :
+    labels_out = os.path.join(lsamples_directory, "learn_samples_region_{}_seed_{}_stats_label.txt".format(region, seed))
+    with open(labels_out, 'w') as label_file :
         for l in labels:
             label_file.write(str(l)+'\n')

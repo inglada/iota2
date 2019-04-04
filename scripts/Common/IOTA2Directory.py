@@ -103,3 +103,6 @@ def GenerateDirectories(cfg):
         if os.path.exists(root+"/segmentation"):
             shutil.rmtree(root+"/segmentation")
         os.mkdir(root+"/segmentation")
+        if os.path.exists(root+"/tilesSamples"):
+            shutil.rmtree(root+"/tilesSamples")
+        os.mkdir(root+"/tilesSamples")
