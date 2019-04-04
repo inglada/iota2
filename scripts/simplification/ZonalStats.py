@@ -60,108 +60,109 @@ def getUniqueId(csvpath):
 
 def zonalstats(path, rasters, params, gdalpath = "", res = 10):
     
-    vector, idval, csvstore = params
+    vector, idvals, csvstore = params
 
-    # vector open
+    stats = []
+    # vector open and iterate features
     vectorname = os.path.splitext(os.path.basename(vector))[0]
     ds = vf.openToRead(vector)
     lyr = ds.GetLayer()
-    lyr.SetAttributeFilter("FID=" + str(idval))
-    for feat in lyr:
-        geom = feat.GetGeometryRef()
-        area = geom.GetArea()
-        
-    # rasters  creation
-    if gdalpath != "" and gdalpath is not None:
-        gdalpath = gdalpath + "/"
-    else:
-        gdalpath = ""
+    for idval in idvals:
+        lyr.SetAttributeFilter("FID=" + str(idval))
+        for feat in lyr:
+            geom = feat.GetGeometryRef()
+            area = geom.GetArea()
 
-    bands = []
-    success = True
+        # rasters  creation
+        if gdalpath != "" and gdalpath is not None:
+            gdalpath = gdalpath + "/"
+        else:
+            gdalpath = ""
 
-    for idx, raster in enumerate(rasters):
-        tmpfile = os.path.join(path, 'rast_%s_%s_%s'%(vectorname, str(idval), idx))
-        bands.append(tmpfile)
-        
-        try:
-            cmd = '%sgdalwarp -tr %s %s -tap -q -overwrite -cutline %s -crop_to_cutline --config GDAL_CACHEMAX 9000 -wm 9000 -wo NUM_THREADS=ALL_CPUS -cwhere "FID=%s" %s %s'%(gdalpath, res, res, vector, idval, raster, tmpfile)        
-            Utils.run(cmd)
-            success = True
-        except:
-            success = False            
-            pass
+        bands = []
+        success = True
 
-    results_final = []
-    if success:
-        # analyze raster
-        idxband  = 0
-        for band in bands:
-            if os.path.exists(band):
-                idxband += 1
-                rastertmp = gdal.Open(band, 0)
-                data = rastertmp.ReadAsArray()
-                img = label(data)
-                listlab = []
-                if len(np.unique(img)) != 1 or np.unique(img)[0] != 0:
-                    if idxband == 1:
-                        res = rastertmp.GetGeoTransform()[1]
-                        try:
-                            for reg in regionprops(img, data):
-                                listlab.append([[x for x in np.unique(reg.intensity_image) if x != 0][0], reg.area])
-                        except:
-                            elts, cptElts = np.unique(data, return_counts=True)
-                            for idx, elts in enumerate(elts):
-                                if elts != 0:
-                                    listlab.append([elts, cptElts[idx]])
+        for idx, raster in enumerate(rasters):
+            tmpfile = os.path.join(path, 'rast_%s_%s_%s'%(vectorname, str(idval), idx))
+            bands.append(tmpfile)
+
+            try:
+                cmd = '%sgdalwarp -tr %s %s -tap -q -overwrite -cutline %s '\
+                      '-crop_to_cutline --config GDAL_CACHEMAX 9000 -wm 9000 '\
+                      '-wo NUM_THREADS=ALL_CPUS -cwhere "FID=%s" %s %s'%(gdalpath, res, res, vector, idval, raster, tmpfile)        
+                Utils.run(cmd)
+                success = True
+            except:
+                success = False            
+                pass
+
+        results_final = []
+        if success:
+            # analyze raster
+            idxband  = 0
+            for band in bands:
+                if os.path.exists(band):
+                    idxband += 1
+                    rastertmp = gdal.Open(band, 0)
+                    data = rastertmp.ReadAsArray()
+                    img = label(data)
+                    listlab = []
+                    if len(np.unique(img)) != 1 or np.unique(img)[0] != 0:
+                        if idxband == 1:
+                            res = rastertmp.GetGeoTransform()[1]
+                            try:
+                                for reg in regionprops(img, data):
+                                    listlab.append([[x for x in np.unique(reg.intensity_image) if x != 0][0], reg.area])
+                            except:
+                                elts, cptElts = np.unique(data, return_counts=True)
+                                for idx, elts in enumerate(elts):
+                                    if elts != 0:
+                                        listlab.append([elts, cptElts[idx]])
 
 
-                        if len(listlab) != 0:                
-                            classmaj = [y for y in listlab if y[1] == max([x[1] for x in listlab])][0][0]
-                            posclassmaj = np.where(data==classmaj)
-                            results = []
+                            if len(listlab) != 0:                
+                                classmaj = [y for y in listlab if y[1] == max([x[1] for x in listlab])][0][0]
+                                posclassmaj = np.where(data==classmaj)
+                                results = []
 
-                            for i, g in groupby(sorted(listlab), key = lambda x: x[0]):
-                                results.append([i, sum(v[1] for v in g)])
+                                for i, g in groupby(sorted(listlab), key = lambda x: x[0]):
+                                    results.append([i, sum(v[1] for v in g)])
 
-                            sumpix = sum([x[1] for x in results])
-                            for elt in [[int(w), round(((float(z) * float(res) * float(res)) /float(sumpix)), 2)] for w, z in results]:
-                                results_final.append([idval, 'classif', 'part'] + elt)
+                                sumpix = sum([x[1] for x in results])
+                                for elt in [[int(w), round(((float(z) * float(res) * float(res)) /float(sumpix)), 2)] for w, z in results]:
+                                    results_final.append([idval, 'classif', 'part'] + elt)
 
-                    if idxband != 1:
-                        if idxband == 2:
-                            results_final.append([idval, 'confidence', 'mean', int(classmaj), round(np.mean(data[posclassmaj]), 2)])
-                        elif idxband == 3:
-                            results_final.append([idval, 'validity', 'mean', int(classmaj), round(np.mean(data[posclassmaj]), 2)])
-                            results_final.append([idval, 'validity', 'std', int(classmaj), round(np.std(data[posclassmaj]), 2)])                
-                else:
-                    if idxband == 1:
-                        results_final.append([idval, 'classif', 'part', 0, 0])
-                    elif idxband == 2:
-                        results_final.append([idval, 'confidence', 'mean', 0, 0])
-                    elif idxband == 3:                        
-                        results_final.append([idval, 'validity', 'mean', 0, 0])
-                        results_final.append([idval, 'validity', 'std', 0, 0])
-                    
-                data = img = None
+                        if idxband != 1:
+                            if idxband == 2:
+                                results_final.append([idval, 'confidence', 'mean', int(classmaj), round(np.mean(data[posclassmaj]), 2)])
+                            elif idxband == 3:
+                                results_final.append([idval, 'validity', 'mean', int(classmaj), round(np.mean(data[posclassmaj]), 2)])
+                                results_final.append([idval, 'validity', 'std', int(classmaj), round(np.std(data[posclassmaj]), 2)])                
+                    else:
+                        if idxband == 1:
+                            results_final.append([idval, 'classif', 'part', 0, 0])
+                        elif idxband == 2:
+                            results_final.append([idval, 'confidence', 'mean', 0, 0])
+                        elif idxband == 3:                        
+                            results_final.append([idval, 'validity', 'mean', 0, 0])
+                            results_final.append([idval, 'validity', 'std', 0, 0])
 
-            Utils.run("rm %s"%(band))
+                    data = img = None
 
-            rastertmp = None
+                Utils.run("rm %s"%(band))
 
-        with open(csvstore, 'a') as myfile:
-            writer = csv.writer(myfile)
-            writer.writerows(results_final)
+                rastertmp = None
+                stats.append(results_final)
+        else:
+            results_final.append([[idval, 'classif', 'part', 0, 0], [idval, 'confidence', 'mean', 0, 0], [idval, 'validity', 'mean', 0, 0],[idval, 'validity', 'std', 0, 0]])
+            print "Feature with FID = %s of shapefile %s with null stats (maybe its size is too small)"%(idval, vector)
+            stats.append(results_final[0])
 
-    else:
-        results_final.append([[idval, 'classif', 'part', 0, 0], [idval, 'confidence', 'mean', 0, 0], [idval, 'validity', 'mean', 0, 0],[idval, 'validity', 'std', 0, 0]])
-        with open(csvstore, 'a') as myfile:
-            writer = csv.writer(myfile)
-            writer.writerows(results_final[0])                             
-        print "Feature with FID = %s of shapefile %s not treated (maybe its size is too small)"%(idval, vector)
-        
+    with open(csvstore, 'a') as myfile:
+        writer = csv.writer(myfile)
+        writer.writerows(stats)
 
-def getParameters(vectorpath, csvstorepath):
+def getParameters(vectorpath, csvstorepath, chunk=1):
     
     listvectors = getVectorsList(vectorpath)
     params = []
@@ -169,28 +170,25 @@ def getParameters(vectorpath, csvstorepath):
         for vect in listvectors:
             listfid = getFidList(vect)
             csvstore = os.path.join(csvstorepath, "stats_%s"%(os.path.splitext(os.path.basename(vect))[0]))
-            if os.path.exists(csvstore):
-                if len(getUniqueId(csvstore)) != len(listfid):
-                    os.remove(csvstore)
-                    for fid in listfid:        
-                        params.append((vect, fid, csvstore))
-            else:
-                for fid in listfid:        
-                    params.append((vect, fid, csvstore))
+            #TODO : split in chunks with sum of feature areas quite equal
+            listfid = [listfid[i::chunk] for i in xrange(chunk)]
+            for fidlist in listfid:                 
+                params.append((vect, fidlist, csvstore))
     else:
         listfid = getFidList(vectorpath)
         csvstore = os.path.join(csvstorepath, "stats_%s"%(os.path.splitext(os.path.basename(vectorpath))[0]))
-        for fid in listfid:        
-            params.append((vectorpath, fid, csvstore))
+        listfid = [listfid[i::chunk] for i in xrange(chunk)]        
+        for fidlist in listfid:                 
+            params.append((vect, fidlist, csvstore))
 
     return params
 
-def computZonalStats(path, inr, shape, csvstore, gdal):
-
-    params = getParameters(shape, csvstore)
+def computZonalStats(path, inr, shape, csvstore, gdal, chunk=1):
+    #TODO : optimize chunk with real-time HPC ressources
+    params = getParameters(shape, csvstore, chunk)
 
     for parameters in params:
-        zonalstats(path, inr, parameters, gdal)
+        zonalstats(path, inr, parameters, gdal, chunk)
 
 
 if __name__ == "__main__":
@@ -217,7 +215,9 @@ if __name__ == "__main__":
                             required=True)        
         PARSER.add_argument("-gdal", dest="gdal", action="store",\
                             help="gdal 2.2.4 binaries path (problem of very small features with lower gdal version)", default = "")
+        PARSER.add_argument("-chunk", dest="chunk", action="store",\
+                            help="number of feature groups", default=1)        
         
         args = PARSER.parse_args()
 
-        computZonalStats(args.path, args.inr, args.shape, args.csvpath, args.gdal)
+        computZonalStats(args.path, args.inr, args.shape, args.csvpath, args.gdal, args.chunk)

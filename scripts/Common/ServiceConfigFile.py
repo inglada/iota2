@@ -19,7 +19,7 @@ import os
 import sys
 from osgeo import ogr
 from config import Config, Sequence, Mapping, Container
-from FileUtils import getFeatStackName, FileSearch_AND, getRasterNbands
+from FileUtils import getFeatStackName, FileSearch_AND, getRasterNbands, get_iota2_project_dir
 from Common import ServiceError as sErr
 
 # this is a pointer to the module object instance itself.
@@ -52,12 +52,18 @@ class serviceConfigFile:
         if iota_config:
             #init chain section
             chain_default = {"outputStatistics": False,
-                             "L5Path": "None",
+                             "L5Path_old": "None",
+                             "L5_old_output_path": None,
                              "L8Path": "None",
+                             "L8_output_path": None,
+                             "L8Path_old": "None",
+                             "L8_old_output_path": None,
                              "S2Path": "None",
                              "S2_output_path" : None,
                              "S2_S2C_Path": "None",
                              "S2_S2C_output_path": None,
+                             "S2_L3A_Path": "None",
+                             "S2_L3A_output_path": None,
                              "S1Path": "None",
                              "userFeatPath": "None",
                              "jobsPath" : None,
@@ -111,7 +117,7 @@ class serviceConfigFile:
             argTrain_default = {"sampleSelection": sampleSel_default,
                                 "sampleAugmentation": sampleAugmentationg_default,
                                 "sampleManagement": None,
-                                "dempster_shafer_SAR_Opt_fusion":False,
+                                "dempster_shafer_SAR_Opt_fusion": False,
                                 "cropMix": False,
                                 "prevFeatures":"None",
                                 "outputPrevFeatures":"None",
@@ -147,31 +153,48 @@ class serviceConfigFile:
             #init sensors parameters
             Landsat8_default = {"additionalFeatures": "",
                                 "temporalResolution": 16,
+                                "write_reproject_resampled_input_dates_stack": True,
                                 "startDate": "",
                                 "endDate": "",
                                 "keepBands": self.init_listSequence(["B1", "B2", "B3", "B4", "B5", "B6", "B7"])}
-            Landsat5_default = {"additionalFeatures": "",
+            Landsat8_old_default = {"additionalFeatures": "",
+                                    "temporalResolution": 16,
+                                    "startDate": "",
+                                    "endDate": "",
+                                    "keepBands": self.init_listSequence(["B1", "B2", "B3", "B4", "B5", "B6", "B7"])}
+            Landsat5_old_default = {"additionalFeatures": "",
                                 "temporalResolution": 16,
                                 "startDate": "",
                                 "endDate": "",
-                                "keepBands": self.init_listSequence(["B1", "B2", "B3", "B4", "B5", "B6", "B7"])}
+                                "keepBands": self.init_listSequence(["B1", "B2", "B3", "B4", "B5", "B6"])}
             Sentinel_2_default = {"additionalFeatures": "",
                                   "temporalResolution": 10,
+                                  "write_reproject_resampled_input_dates_stack": True,
                                   "startDate": "",
                                   "endDate": "",
-                                  "keepBands": self.init_listSequence(["B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11"])}
+                                  "keepBands": self.init_listSequence(["B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11", "B12"])}
             Sentinel_2_S2C_default = {"additionalFeatures": "",
                                       "temporalResolution": 10,
+                                      "write_reproject_resampled_input_dates_stack": True,
                                       "startDate": "",
                                       "endDate": "",
-                                      "keepBands": self.init_listSequence(["B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11"])}
+                                      "keepBands": self.init_listSequence(["B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11", "B12"])}
+            Sentinel_2_L3A_default = {"additionalFeatures": "",
+                                      "temporalResolution": 10,
+                                      "write_reproject_resampled_input_dates_stack": True,
+                                      "startDate": "",
+                                      "endDate": "",
+                                      "keepBands": self.init_listSequence(["B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11", "B12"])}
+                                      
             userFeat =  {"arbo": "/*",
                          "patterns":"ALT,ASP,SLP"}
 
-            self.init_section("Landsat5", Landsat5_default)
+            self.init_section("Landsat5_old", Landsat5_old_default)
             self.init_section("Landsat8", Landsat8_default)
+            self.init_section("Landsat8_old", Landsat8_old_default)
             self.init_section("Sentinel_2", Sentinel_2_default)
             self.init_section("Sentinel_2_S2C", Sentinel_2_S2C_default)
+            self.init_section("Sentinel_2_L3A", Sentinel_2_L3A_default)
             self.init_section("userFeat", userFeat)
 
             simp_default = {"classification": None,
@@ -234,6 +257,15 @@ class serviceConfigFile:
     def __repr__(self):
         return "Configuration file : " + self.pathConf
 
+    def testShapeName(self, input_vector):
+        """
+        """
+        import string
+        avail_characters = string.ascii_letters
+        first_character = os.path.basename(input_vector)[0]
+        if first_character not in avail_characters:
+            raise sErr.configError("the file '{}' is containing a non-ascii letter at first position in it's name : {}".format(input_vector,
+                                                                                                                         first_character))
     def testVarConfigFile(self, section, variable, varType, valeurs="", valDefaut=""):
         """
             This function check if variable is in obj
@@ -408,6 +440,7 @@ class serviceConfigFile:
             """
             """
             region_path = cfg.chain.regionPath
+            self.testShapeName(region_path)
             if not region_path:
                 raise sErr.configError("chain.regionPath must be set")
 
@@ -436,7 +469,7 @@ class serviceConfigFile:
             self.testVarConfigFile('chain', 'outputPath', str)
             self.testVarConfigFile('chain', 'nomenclaturePath', str)
             self.testVarConfigFile('chain', 'listTile', str)
-            self.testVarConfigFile('chain', 'L5Path', str)
+            self.testVarConfigFile('chain', 'L5Path_old', str)
             self.testVarConfigFile('chain', 'L8Path', str)
             self.testVarConfigFile('chain', 'S2Path', str)
             self.testVarConfigFile('chain', 'S1Path', str)
@@ -473,7 +506,6 @@ class serviceConfigFile:
             self.testVarConfigFile('argTrain', 'classifier', str)
             self.testVarConfigFile('argTrain', 'options', str)
             self.testVarConfigFile('argTrain', 'cropMix', bool)
-            self.testVarConfigFile('argTrain', 'dempster_shafer_SAR_Opt_fusion', bool)
             self.testVarConfigFile('argTrain', 'prevFeatures', str)
             self.testVarConfigFile('argTrain', 'outputPrevFeatures', str)
             self.testVarConfigFile('argTrain', 'annualCrop', Sequence)
@@ -508,15 +540,18 @@ class serviceConfigFile:
 
             self.testVarConfigFile('chain', 'remove_tmp_files', bool)
 
-            if self.cfg.chain.L5Path != "None":
+            if self.cfg.chain.L5Path_old != "None":
                 #L5 variable check
-                self.testVarConfigFile('Landsat5', 'temporalResolution', int)
-                self.testVarConfigFile('Landsat5', 'keepBands', Sequence)
-
+                self.testVarConfigFile('Landsat5_old', 'temporalResolution', int)
+                self.testVarConfigFile('Landsat5_old', 'keepBands', Sequence)
             if self.cfg.chain.L8Path != "None":
                 #L8 variable check
                 self.testVarConfigFile('Landsat8', 'temporalResolution', int)
                 self.testVarConfigFile('Landsat8', 'keepBands', Sequence)
+            if self.cfg.chain.L8Path_old != "None":
+                #L8 variable check
+                self.testVarConfigFile('Landsat8_old', 'temporalResolution', int)
+                self.testVarConfigFile('Landsat8_old', 'keepBands', Sequence)
 
             if self.cfg.chain.S2Path != "None":
                 #S2 variable check
@@ -528,8 +563,7 @@ class serviceConfigFile:
             # directory tests
             if self.getParam("chain", "jobsPath"):
                 self.testDirectory(self.getParam("chain", "jobsPath"))
-            print os.path.join(os.environ.get('IOTA2DIR'), "scripts")
-            self.testDirectory(os.path.join(os.environ.get('IOTA2DIR'), "scripts"))
+            self.testDirectory(os.path.join(get_iota2_project_dir(), "scripts"))
             self.testDirectory(self.cfg.chain.nomenclaturePath)
             self.testDirectory(self.cfg.chain.groundTruth)
             self.testDirectory(self.cfg.chain.colorTable)
@@ -539,7 +573,9 @@ class serviceConfigFile:
                 self.testDirectory(self.cfg.chain.S2_S2C_output_path)
             # test of groundTruth file
             Field_FType = []
+            
             dataSource = ogr.Open(self.cfg.chain.groundTruth)
+            self.testShapeName(self.cfg.chain.groundTruth)
             daLayer = dataSource.GetLayer(0)
             layerDefinition = daLayer.GetLayerDefn()
             for i in range(layerDefinition.GetFieldCount()):
@@ -575,7 +611,7 @@ class serviceConfigFile:
                 raise sErr.configError("these parameters are incompatible merge_final_classifications:True and splitGroundTruth:False")
             if self.cfg.argTrain.dempster_shafer_SAR_Opt_fusion and 'None' in self.cfg.chain.S1Path:
                 raise sErr.configError("these parameters are incompatible dempster_shafer_SAR_Opt_fusion : True and S1Path : 'None'")
-            if self.cfg.argTrain.dempster_shafer_SAR_Opt_fusion and 'None' in self.cfg.chain.userFeatPath and 'None' in self.cfg.chain.L5Path and 'None' in self.cfg.chain.L8Path and 'None' in self.cfg.chain.S2Path and 'None' in self.cfg.chain.S2_S2C_Path:
+            if self.cfg.argTrain.dempster_shafer_SAR_Opt_fusion and 'None' in self.cfg.chain.userFeatPath and 'None' in self.cfg.chain.L5Path_old and 'None' in self.cfg.chain.L8Path and 'None' in self.cfg.chain.L8Path_old and 'None' in self.cfg.chain.S2Path and 'None' in self.cfg.chain.S2_S2C_Path:
                 raise sErr.configError("to perform post-classification fusion, optical data must be used")
         # Error managed
         except sErr.configFileError:

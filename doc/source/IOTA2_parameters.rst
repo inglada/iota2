@@ -39,19 +39,6 @@ chain.remove_outputPath
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-chain.pyAppPath
-===============
-*Description*
-    absolute path to the IOTA² python scripts folder
-*Type*
-    string
-*Default value*
-    ``mandatory``
-*Example*
-    pyAppPath : '/absolute/path/to/iota2/scripts'
-
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
 chain.nomenclaturePath
 ======================
 *Description*
@@ -105,10 +92,25 @@ chain.L8Path
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-chain.L5Path
+chain.L8Path_old
 ============
 *Description*
-    absolute path to Landsat-5 images comming from THEIA
+    absolute path to Landsat-8 images comming from old THEIA format (D*H*)
+*Type*
+    string
+*Default value*
+    'None'
+*Example*
+    L8Path_old : '/to/L8_old/Path/'
+*Notes*
+    see the note about tiled sensors data storage : :ref:`tiled data storage`
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+chain.L5Path_old
+============
+*Description*
+    absolute path to Landsat-5 images comming from old THEIA format (D*H*)
 *Type*
     string
 *Default value*
@@ -233,6 +235,11 @@ chain.groundTruth
     2. The file must contain an integer field to descriminate features which belong to the same class
     3. Geometries hav to be of ``POLYGON`` type
     4. No overlapping between polygons
+    5. File's name must not contains special characters at first position (4Tiles.shp)
+
+    Users could check if their dataBase is compatible with IOTA²'s restrictions by using 
+    the script ``scripts/Common/Tools/checkDataBase.py``. (launch checkDataBase.py -h in
+    order to know parameters)
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -248,7 +255,8 @@ chain.dataField
 *Example*
     dataField : 'My_integer_field' 
 *Notes*
-    that field must contain integer
+    that field must contain integers > 0, and the dataField's name
+    must not contains special characters
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -266,12 +274,17 @@ chain.regionPath
     The use of this field enables IOTA² to generate one model per region.
     The purpose of this feaure is highlighted by the example : :ref:`two-zones`
 
-    the regions file must respect the following rules
+    the file must respect the following rules
 
     1. It must be a shapeFile (.shp)
     2. The file must contain an string field to descriminate regions
     3. Geometries have to be ``POLYGON`` or ``MULTIPOLYGON``
     4. No overlapping between polygons
+    5. File's name must not contains special characters at first position (4Tiles.shp)
+
+    Users could check if their dataBase is compatible with IOTA²'s restrictions by using 
+    the script ``scripts/Common/Tools/checkDataBase.py``. (launch checkDataBase.py -h in
+    order to know parameters)
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -390,8 +403,8 @@ chain.ratio
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-chain.cloud_treshold
-====================
+chain.cloud_threshold
+=====================
 *Description*
     To train models, IOTA² will use **only**, polygons (or part of them)
     which are "seen" at least 'cloud_treshold' times. A valid area is a
@@ -405,19 +418,6 @@ chain.cloud_treshold
     cloud_threshold:1
 *Notes*
     must be an integer >= 0
-
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-chain.spatialResolution
-=======================
-*Description*
-    output pixel's spatial resolution
-*Type*
-    int
-*Default value*
-    ``mandatory``
-*Example*
-    spatialResolution:30
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -435,7 +435,7 @@ chain.firstStep
     Must be chosen into the list of available steps.
 
     Available choices are 'init', 'sampling', 'learning', 'classification',
-    'mosaic' or 'validation'
+    'mosaic', 'validation', 'regularisation', 'vectorisation' or 'lcstatistics'
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -453,7 +453,7 @@ chain.lastStep
     Must be chosen into the list of available steps.
 
     Available choices are 'init', 'sampling', 'learning', 'classification',
-    'mosaic' or 'validation'
+    'mosaic', 'validation', 'regularisation', 'vectorisation' or 'lcstatistics'
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -813,11 +813,153 @@ argTrain.sampleAugmentation
     In the above example, classes of models "1" and "2" will be augmented to the
     the most represented class in the corresponding model using the jitter method.
 
+argTrain.sampleManagement
+=========================
+*Description*
+    absolute path to a CSV file containing samples transfert strategies
+*Type*
+    string
+*Default value*
+    None
+*Example*
+    .. code-block:: python
+
+        sampleManagement : '/absolute/path/myRules.csv'
+
+        >>> cat /absolute/path/myRules.csv
+                1,2,4,2
+
+        Mean:
+
+        +--------+-------------+------------+----------+
+        | source | destination | class name | quantity |
+        +========+=============+============+==========+
+        |   1    |      2      |      4     |     2    |
+        +--------+-------------+------------+----------+
+
+argTrain.classifier
+===================
+*Description*
+    OTB's classifier name
+*Type*
+    string
+*Default value*
+    ``mandatory``
+*Example*
+    .. code-block:: python
+
+        classifier : 'rf'
+
+argTrain.options
+================
+*Description*
+    OTB's classifier's options
+*Type*
+    string
+*Default value*
+    ``mandatory``
+*Example*
+    .. code-block:: python
+
+        options : ' -classifier.rf.min 5 -classifier.rf.max 25 '
+
+Sensors available parameters
+****************************
+
+Sensors available list : Landsat5_old / Landsat8 / Landsat8_old / Sentinel_2 / Sentinel_2_S2C / Sentinel_2_L3A
+
+Sensor.write_reproject_resampled_input_dates_stack
+==================================================
+*Description*
+    Only available to Sentinel_2 / Sentinel_2_S2C / Sentinel_2_L3A sensors.
+    If set to False, then IOTA² will write date's stack on disk to improve computations.
+    Else, every computation will be done in RAM, saving disk space.
+*Type*
+    bool
+*Default value*
+    True
+*Example*
+    .. code-block:: python
+
+        write_reproject_resampled_input_dates_stack : True
+
+Sensor.startDate
+================
+*Description*
+    first insterpolation date
+*Type*
+    string
+*Default value*
+    None
+*Example*
+    .. code-block:: python
+
+        startDate : '20170131'
+
+Sensor.endDate
+==============
+*Description*
+    last insterpolation date
+*Type*
+    string
+*Default value*
+    None
+*Example*
+    .. code-block:: python
+
+        endDate : '20170131'
+
+Sensor.temporalResolution
+=========================
+*Description*
+    Temporal resolution, time between two interpolations
+*Type*
+    int
+*Default value*
+    None
+*Example*
+    .. code-block:: python
+
+        temporalResolution : 10
+*Notes*
+    There is no temporal sampling period available with the Sentinel_2_L3A sensor,
+    only clouds are interpolated
+
+Sensor.additionalFeatures
+=========================
+*Description*
+    IOTA² allow adding features by dates. Format is the one provided by OTB's BandMath 
+    application.
+
+*Type*
+    string
+*Default value*
+    None
+*Example*
+    .. code-block:: python
+
+        additionalFeatures : 'b1+b2,(b1-b2)/(b1+b2)'
+*Notes*
+    Custom features must be coma separated.
+
+Sensor.keepBands
+================
+*Description*
+    List of bands to use in the IOTA² run.
+*Type*
+    list
+*Default value*
+    all available bands
+*Example*
+    .. code-block:: python
+
+        keepBands:["B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11", "B12"] # Sentinel-2 case
+
 coregistration available parameters
 **************************
 
 coregistration.VHRPath
-=======================================
+======================
 *Description*
     absolute path to VHR image
 *Type*
@@ -830,7 +972,7 @@ coregistration.VHRPath
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 coregistration.dateVHR
-=======================================
+======================
 *Description*
     date ``YYYYMMDD`` of the VHR image
 *Type*
@@ -845,7 +987,7 @@ coregistration.dateVHR
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 coregistration.dateSrc
-=======================================
+======================
 *Description*
     date ``YYYYMMDD`` of the 
 *Type*
@@ -860,7 +1002,7 @@ coregistration.dateSrc
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 coregistration.bandRef
-=======================================
+======================
 *Description*
     Number of the band of the VHR image to use for coregistration
 *Type*
@@ -873,7 +1015,7 @@ coregistration.bandRef
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 coregistration.bandSrc
-=======================================
+======================
 *Description*
     Number of the band of the src raster to use for coregistration
 *Type*
@@ -886,7 +1028,7 @@ coregistration.bandSrc
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 coregistration.resample
-=======================================
+=======================
 *Description*
     Resample the reference and the source raster to the same resolution to find sift points
 *Type*
@@ -899,7 +1041,7 @@ coregistration.resample
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 coregistration.step
-=======================================
+===================
 *Description*
     Initial size of steps between bins in pixels
 *Type*
@@ -912,7 +1054,7 @@ coregistration.step
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 coregistration.minstep
-=======================================
+======================
 *Description*
     Minimal size of steps between bins in pixels
 *Type*
@@ -925,7 +1067,7 @@ coregistration.minstep
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 coregistration.minsiftpoints
-=======================================
+============================
 *Description*
     Minimal number of sift points to find to create the new RPC model
 *Type*
@@ -938,7 +1080,7 @@ coregistration.minsiftpoints
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 coregistration.iterate
-=======================================
+======================
 *Description*
     Proceed several iterationby reducing the step between geobin to find sift points
 *Type*
@@ -951,7 +1093,7 @@ coregistration.iterate
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 coregistration.prec
-=======================================
+===================
 *Description*
     Estimated shift between source and reference raster in pixel (source raster resolution)
 *Type*
@@ -964,7 +1106,7 @@ coregistration.prec
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 coregistration.mode
-=======================================
+===================
 *Description*
     Coregistration mode of the timeseries:
         1: single coregistration between one source image (and its masks) and the VHR image
@@ -980,7 +1122,7 @@ coregistration.mode
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 coregistration.pattern
-=======================================
+======================
 *Description*
     Pattern of the timeseries files to coregister
 *Type*
@@ -990,4 +1132,148 @@ coregistration.pattern
 *Example*
     pattern: '*STACK.tif'
 *Notes*
-    By default the value is left to ``'None'`` and the pattern depends on the sensor used (``*STACK.tif`` for Sentinel2, ``ORTHO_SURF_CORR_PENTE*.TIF``)
+    By default the value is left to ``'None'`` and the pattern depends
+    on the sensor used (``*STACK.tif`` for Sentinel2,
+    ``ORTHO_SURF_CORR_PENTE*.TIF``)
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Simplification.classification
+======================
+*Description*
+    Classification raster file to regularise, vectorize and
+    simplify
+*Type*
+    string
+*Default value*
+    'Classif_seed_0.tif'
+*Example*
+    pattern: 'Classif_seed_0.tif'
+*Notes*
+    By default the value is the output
+    classification of iota² chain.
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Simplification.confidence
+======================
+*Description*
+    Confidence raster file corresponding to the classification given by
+    ``Simplification.classification``
+*Type*
+    string
+*Default value*
+    'Confidence_Seed_0.tif'
+*Example*
+    pattern: 'Confidence_Seed_0.tif'
+*Notes*
+    By default the value is the output
+    confidence of iota² chain.
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Simplification.validity
+======================
+*Description*
+    Validity raster file corresponding to the classification given by
+    ``Simplification.classification``
+*Type*
+    string
+*Default value*
+    'PixelsValidity.tif'
+*Example*
+    pattern: 'PixelsValidity.tif'
+*Notes*
+    By default the value is the output
+    validity of iota² chain.
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Simplification.seed
+======================
+*Description*
+    In case of multiple runs ``chain.runs``, run of the classification(seed) to vectorize
+*Type*
+    int
+*Default value*
+    None
+*Example*
+    seed: None
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Simplification.umc1
+======================
+*Description*
+    Two successive regularisation processes can be run with different
+    gdal_sieve parameters. First regularisation process is compute
+    with four connectedness. The umc parameters corresponds to a size
+    threshold in pixels. Only raster polygons smaller than this size
+    will be removed. 
+*Type*
+    int
+*Default value*
+    10
+*Example*
+    umc1: 10
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Simplification.umc2
+======================
+*Description*
+    Two successive regularisation processes can be run with different
+    gdal_sieve parameters. Second regularisation process is compute
+    with eight connectedness. The umc parameters corresponds to a size
+    threshold in pixels. Only raster polygons smaller than this size
+    will be removed.
+*Type*
+    int
+*Default value*
+    3
+*Example*
+    umc2: 3   
+    
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Simplification.inland
+======================
+*Description*
+    In case of presence of sea water, this vector file helps to delineate
+    inland and sea water.
+*Type*
+    string
+*Default value*
+    None
+*Example*
+    colorTable:'/path/to/inland.shp'
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Simplification.rssize
+======================
+*Description*
+    Spatial resolution for classification resampling (regularisation step).
+*Type*
+    int
+*Default value*
+    20
+*Example*
+    rsssize:20
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Simplification.lib64bit
+======================
+*Description*
+    Band math and concatenate OTB executables with 64 bits
+    capabilities (only for large areas where clumps number > 2²³ bits
+    for mantisse)    
+*Type*
+    string
+*Default value*
+    None
+*Example*
+    lib64bit: '/path/to/otbbinaries'
+*Notes*
+    By default OTB applications use internally 32 bits float

@@ -28,9 +28,10 @@ def get_qsub_cmd(cfg, config_ressources=None, parallel_mode="MPI"):
     """
     build qsub cmd to launch iota2 on HPC
     """
+    from Common.FileUtils import get_iota2_project_dir
 
     log_dir = os.path.join(cfg.getParam("chain", "outputPath"), "logs")
-    scripts = os.path.join(os.environ.get('IOTA2DIR'), "scripts")
+    scripts = os.path.join(get_iota2_project_dir(), "scripts")
     job_dir = cfg.getParam("chain", "jobsPath")
     if job_dir is None:
         raise Exception("the parameter 'chain.jobsPath' is needed to launch IOTA2 on clusters")
@@ -76,10 +77,8 @@ def get_qsub_cmd(cfg, config_ressources=None, parallel_mode="MPI"):
                "export LD_LIBRARY_PATH={}\n"
                "export OTB_APPLICATION_PATH={}\n"
                "export GDAL_DATA={}\n"
-               "export GEOTIFF_CSV={}\n"
-               "export IOTA2DIR={}\n\n").format(py_path, path, ld_lib_path,
-                                                otb_app_path, gdal_data, geotiff_csv,
-                                                os.environ.get('IOTA2DIR'))
+               "export GEOTIFF_CSV={}\n").format(py_path, path, ld_lib_path,
+                                                 otb_app_path, gdal_data, geotiff_csv)
 
     exe = ("python {0}/Cluster.py -config {1} -mode {2}").format(scripts,
                                                                  config_path,
@@ -103,10 +102,6 @@ def launchChain(cfg, config_ressources=None, parallel_mode="MPI"):
     launch iota2 to HPC
     """
     import Iota2Builder as chain
-
-    if not "IOTA2DIR" in os.environ:
-        raise Exception ("environment variable 'IOTA2DIR' not found, please load a IOTA2's module")
-
     # Check configuration file
     cfg.checkConfigParameters()
     # Starting of logging service
@@ -134,9 +129,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
     cfg = SCF.serviceConfigFile(args.config)
 
-    iota2dir = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                            os.pardir))
-    os.environ["IOTA2DIR"] = iota2dir
     try:
         launchChain(cfg, args.config_ressources, args.parallel_mode)
     # Exception manage by the chain

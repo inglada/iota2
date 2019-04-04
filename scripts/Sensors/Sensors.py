@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 # =========================================================================
 #   Program:   iota2
 #
@@ -19,6 +21,7 @@ import os
 from GenSensors import Sensor
 from GenSensors import MonException
 from collections import OrderedDict
+from Common.FileUtils import get_iota2_project_dir
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +30,8 @@ logger.addHandler(logging.NullHandler())
 
 
 class Landsat5(Sensor):
+
+    name = 'Landsat5'
 
     def __init__(self, path_image, opath, fconf, workRes, createFolder="Create",
                  dicoBands={"B1":1, "B2":2, "B3":3, "B4":4, "B5":5, "B6":6},
@@ -44,7 +49,7 @@ class Landsat5(Sensor):
             tmpPath = opath.opathT
 
         cfg_IOTA2 = SCF.serviceConfigFile(fconf)
-        sensorConfig = os.path.join(os.environ.get('IOTA2DIR'), "config", "sensors.cfg")
+        sensorConfig = os.path.join(get_iota2_project_dir(), "config", "sensors.cfg")
         cfg_sensors = SCF.serviceConfigFile(sensorConfig, iota_config=False)
 
         self.name = 'Landsat5'
@@ -150,7 +155,7 @@ class Landsat5(Sensor):
 
 
 class Landsat8(Sensor):
-
+    name = 'Landsat8'
     def __init__(self, path_image, opath, fconf, workRes, createFolder="Create",
                  dicoBands={"B1":1, "B2":2, "B3":3, "B4":4, "B5":5, "B6":6, "B7":7},
                  logger=logger):
@@ -181,7 +186,7 @@ class Landsat8(Sensor):
         sensorEnable = (self.path is not None and len(self.path) > 0 and 'None' not in self.path)
 
         cfg_IOTA2 = SCF.serviceConfigFile(fconf)
-        sensorConfig = os.path.join(os.environ.get('IOTA2DIR'), "config", "sensors.cfg")
+        sensorConfig = os.path.join(get_iota2_project_dir(), "config", "sensors.cfg")
         cfg_sensors = SCF.serviceConfigFile(sensorConfig, iota_config=False)
         
         #MASK
@@ -272,6 +277,7 @@ class Landsat8(Sensor):
 
 
 class Sentinel_2(Sensor):
+    name = 'Sentinel2'
     def __init__(self, path_image, opath, fconf, workRes, createFolder="Create",
                  dicoBands={"B2":1, "B3":2, "B4":3, "B5":4, "B6":5, "B7":6, "B8":7, "B8A":8, "B11":9, "B12":10},
                  logger=logger):
@@ -300,7 +306,7 @@ class Sentinel_2(Sensor):
 
             self.path = path_image
             sensorEnable = (self.path is not None and len(self.path) > 0 and 'None' not in self.path)
-            sensorConfig = os.path.join(os.environ.get('IOTA2DIR'), "config", "sensors.cfg")
+            sensorConfig = os.path.join(get_iota2_project_dir(), "config", "sensors.cfg")
             cfg_sensors = SCF.serviceConfigFile(sensorConfig, iota_config=False)
 
             #consts
@@ -415,6 +421,8 @@ class Sentinel_2(Sensor):
 
 class Sentinel_2_S2C(Sensor):
 
+    name = 'Sentinel2S2C'
+
     def __init__(self, path_image, opath, fconf, workRes, createFolder="Create",
                  dicoBands={"B2":1 ,"B3":2 ,"B4":3 ,"B5":4 ,"B6":5 ,"B7":6 ,"B8":7,"B8A":8,"B11":9,"B12":10},
                  logger=logger):
@@ -440,7 +448,7 @@ class Sentinel_2_S2C(Sensor):
             self.fdates = os.path.join(tmpPath, self.name + "imagesDateList.txt")
             self.imRef = None
             sensorEnable = (self.path is not None and len(self.path) > 0 and 'None' not in self.path)
-            sensorConfig = os.path.join(os.environ.get('IOTA2DIR'), "config", "sensors.cfg")
+            sensorConfig = os.path.join(get_iota2_project_dir(), "config", "sensors.cfg")
             cfg_sensors = SCF.serviceConfigFile(sensorConfig, iota_config=False)
 
             self.struct_path = cfg_sensors.getParam("Sentinel_2_S2C", "arbo")

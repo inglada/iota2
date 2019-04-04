@@ -24,6 +24,7 @@ import numpy as np
 from Common import ServiceError as sErr
 from Common import ServiceConfigFile as SCF
 from Common import ServiceLogger as sLog
+from Common import FileUtils as fut
 
 def get_RAM(ram):
         """
@@ -140,9 +141,9 @@ def write_PBS_MPI(job_directory, log_directory, task_name, step_to_compute,
     """
     log_err= os.path.join(log_directory, task_name + "_err.log")
     log_out = os.path.join(log_directory, task_name + "_out.log")
-    MPI_process, nb_chunk, ram, nb_cpu = get_HPC_disponibility(request.nb_cpu, request.ram,
-                                                               request.process_min, 
-                                                               request.process_max,
+    MPI_process, nb_chunk, ram, nb_cpu = get_HPC_disponibility(request["cpu"], request["ram"],
+                                                               request["process_min"], 
+                                                               request["process_max"],
                                                                nb_parameters)
 
     ressources = ("#!/bin/bash\n"
@@ -155,8 +156,8 @@ def write_PBS_MPI(job_directory, log_directory, task_name, step_to_compute,
                   "#PBS -l walltime={5}\n"
                   "#PBS -o {6}\n"
                   "#PBS -e {7}\n"
-                  "\n").format(request.name, nb_chunk, nb_cpu,
-                               str(ram) + "gb", MPI_process, request.walltime,
+                  "\n").format(task_name, nb_chunk, nb_cpu,
+                               str(ram) + "gb", MPI_process, request["walltime"],
                                log_out, log_err)
 
     py_path = os.environ.get('PYTHONPATH')
@@ -171,11 +172,10 @@ def write_PBS_MPI(job_directory, log_directory, task_name, step_to_compute,
                "export LD_LIBRARY_PATH={}\n"
                "export OTB_APPLICATION_PATH={}\n"
                "export GDAL_DATA={}\n"
-               "export GEOTIFF_CSV={}\n"
-               "export IOTA2DIR={}\n\n").format(py_path, path, ld_lib_path,
-                                                otb_app_path, gdal_data, geotiff_csv,
-                                                os.environ.get('IOTA2DIR'))
-
+               "export GEOTIFF_CSV={}\n").format(py_path, path, ld_lib_path,
+                                                 otb_app_path, gdal_data, geotiff_csv
+                                                 )
+    
     ressources_HPC = ""
     if config_ressources_req:
         ressources_HPC = "-config_ressources " + config_ressources_req
@@ -184,7 +184,7 @@ def write_PBS_MPI(job_directory, log_directory, task_name, step_to_compute,
     
     exe = ("\nmpirun -x ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS={0} -np {1} "
            "python {2}/Iota2.py -config {3} "
-           "-starting_step {4} -ending_step {5} {6}").format(request.nb_cpu, nprocs,
+           "-starting_step {4} -ending_step {5} {6}").format(request["cpu"], nprocs,
                                                              script_path, config_path,
                                                              step_to_compute, step_to_compute,
                                                              ressources_HPC)
@@ -224,8 +224,8 @@ def write_PBS_JA(job_directory, log_directory, task_name, step_to_compute,
                       "#PBS -l walltime={4}\n"
                       "#PBS -e {5}/\n"
                       "#PBS -o {6}/\n"
-                      "\n").format(request.name, nb_parameters - 1, request.nb_cpu,
-                                   request.ram, request.walltime, step_log_directory, step_log_directory)
+                      "\n").format(task_name, nb_parameters - 1, request["cpu"],
+                                   request["ram"], request["walltime"], step_log_directory, step_log_directory)
     elif nb_parameters == 1:
         ressources = ("#!/bin/bash\n"
                       "#PBS -N {}\n"
@@ -235,8 +235,8 @@ def write_PBS_JA(job_directory, log_directory, task_name, step_to_compute,
                       "#PBS -l walltime={}\n"
                       "#PBS -o {}\n"
                       "#PBS -e {}\n"
-                      "\n").format(request.name, request.nb_cpu,
-                                   request.ram, request.walltime,
+                      "\n").format(task_name, request["cpu"],
+                                   request["ram"], request["walltime"],
                                    log_out, log_err)
 
     py_path = os.environ.get('PYTHONPATH')
@@ -251,10 +251,9 @@ def write_PBS_JA(job_directory, log_directory, task_name, step_to_compute,
                "export LD_LIBRARY_PATH={}\n"
                "export OTB_APPLICATION_PATH={}\n"
                "export GDAL_DATA={}\n"
-               "export GEOTIFF_CSV={}\n"
-               "export IOTA2DIR={}\n\n").format(py_path, path, ld_lib_path,
-                                                otb_app_path, gdal_data, geotiff_csv,
-                                                os.environ.get('IOTA2DIR'))
+               "export GEOTIFF_CSV={}\n").format(py_path, path, ld_lib_path,
+                                                 otb_app_path, gdal_data, geotiff_csv
+                                                 )
 
     ressources_HPC = ""
     if config_ressources_req:
@@ -263,7 +262,7 @@ def write_PBS_JA(job_directory, log_directory, task_name, step_to_compute,
     exe = ("\nexport ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS={0}\n"
            "\ncd {1}\n"
            "python {2}/Iota2.py -param_index $PBS_ARRAY_INDEX -config {3} "
-           "-starting_step {4} -ending_step {5} {6}").format(request.nb_cpu,
+           "-starting_step {4} -ending_step {5} {6}").format(request["cpu"],
                                                              log_directory,
                                                              script_path, config_path,
                                                              step_to_compute, step_to_compute,
@@ -272,7 +271,7 @@ def write_PBS_JA(job_directory, log_directory, task_name, step_to_compute,
         exe = ("\nexport ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS={0}\n"
                "\ncd {1}\n"
                "python {2}/Iota2.py -config {3} "
-               "-starting_step {4} -ending_step {5} {6}").format(request.nb_cpu,
+               "-starting_step {4} -ending_step {5} {6}").format(request["cpu"],
                                                                  log_directory,
                                                                  script_path, config_path,
                                                                  step_to_compute, step_to_compute,
@@ -307,7 +306,7 @@ def check_errors(log_path):
             if error_find:
                 errors.append([error for error in error_find])
     """
-    err_pattern = ["Traceback", "PBS: job killed:", ": fail", "Segmentation fault"]
+    err_pattern = ["Traceback", "PBS: job killed:", ": fail", "Segmentation fault", "OpenCV Error"]
     with open(log_path, "r") as log_err:
         for line in log_err:
             for err_patt in err_pattern:
@@ -348,11 +347,13 @@ def launchChain(cfg, config_ressources=None, parallel_mode="MPI"):
     PathTEST = cfg.getParam('chain', 'outputPath')
     start_step = cfg.getParam("chain", "firstStep")
     end_step = cfg.getParam("chain", "lastStep")
-    scripts = os.path.join(os.environ.get('IOTA2DIR'), "scripts")
+    scripts = os.path.join(fut.get_iota2_project_dir(), "scripts")
     job_dir = cfg.getParam("chain", "jobsPath")
     log_dir = os.path.join(PathTEST, "logs")
 
-    chain_to_process = chain.iota2(cfg, config_ressources)
+
+    chain_to_process = chain.iota2(cfg.pathConf, config_ressources)
+
     steps = chain_to_process.steps
     nb_steps = len(steps)
     all_steps = chain_to_process.get_steps_number()
@@ -368,22 +369,20 @@ def launchChain(cfg, config_ressources=None, parallel_mode="MPI"):
     stepToCompute = np.arange(start_step, end_step)
     current_step = 1
     for step_num in np.arange(start_step, end_step):
-        try:
-            nbParameter = len(steps[step_num].parameters)
-        except TypeError:
-            nbParameter = len(steps[step_num].parameters())
 
-        ressources = steps[step_num].ressources
+        nbParameter = len(steps[step_num].step_inputs())
+
+        ressources = steps[step_num].resources
 
         if parallel_mode == "MPI":
             pbs, log_err = write_PBS_MPI(job_directory=job_dir, log_directory=log_dir,
-                                         task_name=steps[step_num].TaskName, step_to_compute=step_num+1,
+                                         task_name=steps[step_num].step_name, step_to_compute=step_num+1,
                                          nb_parameters=nbParameter, request=ressources,
                                          script_path=scripts, config_path=config_path,
                                          config_ressources_req=config_ressources)
         elif parallel_mode == "JobArray":
              pbs, log_err = write_PBS_JA(job_directory=job_dir, log_directory=log_dir,
-                                         task_name=steps[step_num].TaskName, step_to_compute=step_num+1,
+                                         task_name=steps[step_num].step_name, step_to_compute=step_num+1,
                                          nb_parameters=nbParameter, request=ressources,
                                          script_path=scripts, config_path=config_path,
                                          config_ressources_req=config_ressources)
@@ -406,9 +405,9 @@ def launchChain(cfg, config_ressources=None, parallel_mode="MPI"):
             errors = check_errors(log_err)
         else :
             errors = check_errors_JA(log_dir=log_err,
-                                     task_name=steps[step_num].TaskName)
+                                     task_name=steps[step_num].step_name)
         if errors:
-            print "ERROR in step '" + steps[step_num].TaskName + "'"
+            print "ERROR in step '" + steps[step_num].step_name + "'"
             print errors
             return errors
 

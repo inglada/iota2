@@ -23,7 +23,7 @@ import otbApplication as otb
 from Common import FileUtils as fu
 from Common import OtbAppBank
 from Common import GenerateFeatures as genFeatures
-from Common import ServiceConfigFile as SCF 
+from Common import ServiceConfigFile as SCF
 from Sampling import DimensionalityReduction as DR
 import logging
 
@@ -59,9 +59,13 @@ def filterOTB_output(raster, mask, output, RAM, outputType="uint8"):
 
 def computeClassifications(model, outputClassif, confmap, MaximizeCPU,
                            Classifmask, stats, AllFeatures, RAM, pixType="uint8"):
-
+    """
+    """
     classifier = otb.Registry.CreateApplication("ImageClassifier")
-    classifier.SetParameterInputImage("in", AllFeatures.GetParameterOutputImage("out"))
+    if isinstance(AllFeatures, str):
+        classifier.SetParameterString("in", AllFeatures)
+    else:
+        classifier.SetParameterInputImage("in", AllFeatures.GetParameterOutputImage("out"))
     classifier.SetParameterString("out", outputClassif+"?&writegeom=false")
     if pixType=="uint8":
         classifier.SetParameterOutputImagePixelType("out", otb.ImagePixelType_uint8)
@@ -82,7 +86,9 @@ def computeClassifications(model, outputClassif, confmap, MaximizeCPU,
 def launchClassification(tempFolderSerie, Classifmask, model, stats,
                          outputClassif, confmap, pathWd, cfg, pixType,
                          MaximizeCPU=True, RAM=500, logger=logger):
-
+    """
+    """
+    from Common.OtbAppBank import getInputParameterOutput
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
 
@@ -113,9 +119,14 @@ def launchClassification(tempFolderSerie, Classifmask, model, stats,
     mode = "usually"
     if "SAR.tif" in outputClassif:
         mode = "SAR"
-    AllFeatures, feat_labels, dep_features = genFeatures.generateFeatures(wd, tile, cfg, useGapFilling=useGapFilling, mode=mode)
+    
+    AllFeatures, feat_labels, dep_features = genFeatures.generateFeatures(wd, tile, cfg, mode=mode)
+
+    feature_raster = AllFeatures.GetParameterValue(getInputParameterOutput(AllFeatures))
     if wMode:
-        AllFeatures.ExecuteAndWriteOutput()
+        if not os.path.exists(feature_raster):
+            AllFeatures.ExecuteAndWriteOutput()
+        AllFeatures = feature_raster
     else:
         AllFeatures.Execute()
 

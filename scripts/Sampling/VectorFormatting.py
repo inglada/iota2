@@ -344,7 +344,6 @@ def extract_maj_vote_samples(vec_in, vec_out, ratio_to_keep, dataField,
     from osgeo import gdal
     from osgeo import ogr
     from osgeo import osr
-    from osgeo.gdalconst import *
     import sqlite3 as lite
     class_avail = fut.getFieldElement(vec_in, driverName=driver_name,
                                       field=dataField, mode="unique", elemType="int")
@@ -376,7 +375,6 @@ def extract_maj_vote_samples(vec_in, vec_out, ratio_to_keep, dataField,
     run(cmd)
 
     fut.removeShape(vec_in_rm.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"])
-
 
 def VectorFormatting(cfg, tile_name, workingDirectory=None, logger=logger):
     """
@@ -538,7 +536,7 @@ def VectorFormatting(cfg, tile_name, workingDirectory=None, logger=logger):
             shutil.copy(currentSplit, os.path.join(cfg.getParam('chain', 'outputPath'), "dataAppVal"))
             os.remove(currentSplit)
 
-        if merge_final_classifications and enableCrossValidation is False:
+        if merge_final_classifications and enableCrossValidation is False and fusionMergeAllValidation is False:
             shutil.copy(maj_vote_sample_tile, os.path.join(final_directory, "merge_final_classifications"))
 
 if __name__ == "__main__":

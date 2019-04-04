@@ -162,19 +162,19 @@ def launch_coregister(tile, cfg, workingDirectory, launch_mask=True):
     and
     `SuperImpose <https://www.orfeo-toolbox.org/Applications/Superimpose.html>`_
     """
-
+    from Sensors.ProcessLauncher import commonMasks
     from Common import ServiceConfigFile as SCF
 
     logger.info("Source Raster Registration")
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
 
-    ipathL5 = cfg.getParam('chain', 'L5Path')
+    ipathL5 = cfg.getParam('chain', 'L5Path_old')
     if ipathL5 != "None" and os.path.exists(os.path.join(ipathL5,tile)):
         datadir = os.path.join(ipathL5,tile)
         datatype = 'L5'
         pattern = "ORTHO_SURF_CORR_PENTE*.TIF"
-    ipathL8 = cfg.getParam('chain', 'L8Path')
+    ipathL8 = cfg.getParam('chain', 'L8Path_old')
     if ipathL8 != "None" and os.path.exists(os.path.join(ipathL8,tile)):
         datadir = os.path.join(ipathL8,tile)
         datatype = 'L8'
@@ -188,7 +188,7 @@ def launch_coregister(tile, cfg, workingDirectory, launch_mask=True):
     if ipathS2_S2C != "None" and os.path.exists(os.path.join(ipathS2_S2C,tile)):
         datadir = os.path.join(ipathS2_S2C,tile)
         datatype = 'S2_S2C'
-        pattern = "*STACK_10m.tif"
+        pattern = "*STACK.tif"
 
     if cfg.getParam('coregistration', 'pattern') != "None" :
         pattern = cfg.getParam('coregistration', 'pattern')
@@ -229,7 +229,7 @@ def launch_coregister(tile, cfg, workingDirectory, launch_mask=True):
                False, workingDirectory)
 
     if launch_mask:
-        fu.getCommonMasks(tile, cfg)
+        commonMasks(tile, cfg.pathConf)
 
 def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, minsiftpoints=40, iterate=1, prec=3, mode=2, datadir=None, pattern='*STACK.tif', datatype='S2', writeFeatures=False, workingDirectory=None):
     """ register an image / a time series on a reference image
@@ -343,7 +343,7 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
         shutil.move(finalOutput.replace(ext, '.geom'),insrc.replace(ext, '_COREG.geom'))
 
         # Mask registration if exists
-        masks = glob.glob(os.path.dirname(insrc) + os.sep + 'MASKS' + os.sep + '*reproj' + ext)
+        masks = glob.glob(os.path.dirname(insrc) + os.sep + 'MASKS' + os.sep + '*BINARY_MASK' + ext)
         if len(masks) != 0:
             for mask in masks:
                 srcClip = os.path.join(pathWd,'tempSrcClip.tif')
@@ -477,7 +477,7 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                 shutil.move(finalOutput.replace(ext, '.geom'),insrc.replace(ext, '_COREG.geom'))
 
                 # Mask registration if exists
-                masks = glob.glob(os.path.dirname(insrc) + os.sep + 'MASKS' + os.sep + '*reproj' + ext)
+                masks = glob.glob(os.path.dirname(insrc) + os.sep + 'MASKS' + os.sep + '*BINARY_MASK' + ext)
                 if len(masks) != 0:
                     for mask in masks:
                         srcClip = os.path.join(pathWd,'srcClip.tif')
@@ -612,7 +612,7 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                 shutil.move(finalOutput.replace(ext, '.geom'),insrc.replace(ext, '_COREG.geom'))
 
                 # Mask registration if exists
-                masks = glob.glob(os.path.dirname(insrc) + os.sep + 'MASKS' + os.sep + '*reproj' + ext)
+                masks = glob.glob(os.path.dirname(insrc) + os.sep + 'MASKS' + os.sep + '*BINARY_MASK' + ext)
                 if len(masks) != 0:
                     for mask in masks:
                         srcClip = os.path.join(pathWd,'srcClip.tif')
@@ -711,7 +711,7 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
             shutil.move(finalOutput.replace(ext, '.geom'),insrc.replace(ext, '_COREG.geom'))
 
             # Mask registration if exists
-            masks = glob.glob(os.path.dirname(insrc) + os.sep + 'MASKS' + os.sep + '*reproj*' + ext)
+            masks = glob.glob(os.path.dirname(insrc) + os.sep + 'MASKS' + os.sep + '*BINARY_MASK*' + ext)
             if len(masks) != 0:
                 for mask in masks:
                     srcClip = os.path.join(pathWd,'tempSrcClip.tif')

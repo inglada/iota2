@@ -33,7 +33,7 @@ def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
     classif = cfg.getParam('argTrain', 'classifier')
     shapeRegion = cfg.getParam('chain', 'regionPath')
     outputPath = cfg.getParam('chain', 'outputPath')
-    scriptPath = os.path.join(os.environ.get('IOTA2DIR'), "scripts")
+    scriptPath = os.path.join(fu.get_iota2_project_dir(), "scripts")
     classifMode = cfg.getParam('argClassification', 'classifMode')
     pixType = fu.getOutputPixType(cfg.getParam('chain', 'nomenclaturePath'))
     Stack_ind = fu.getFeatStackName(pathConf)
@@ -124,9 +124,10 @@ def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
             cmdcpy = ""
             cmd = appli+" -in "+pathToFeat+" -model "+path+" -mask "+pathOut+"/MASK/"+maskTif+" -out "+out+" "+pixType_cmd+" -ram "+ str(RAM) + " " + CmdConfidenceMap
 
-            # ajout des stats lors de la phase de classification
-            #~ if classif == "svm":
-                #~ cmd = cmd+" -imstat "+stat+"/Model_"+str(model)+".xml"
+            # add stats if svm
+            if "svm" in classif.lower():
+                model_statistics = os.path.join(stat, "Model_{}_seed_{}.xml".format(model, seed))
+                cmd = "{} -imstat {}".format(cmd, model_statistics)
             AllCmd.append(cmd)
     fu.writeCmds(pathToCmdClassif+"/class.txt", AllCmd)
     return AllCmd
