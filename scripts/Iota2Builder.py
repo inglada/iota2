@@ -346,33 +346,31 @@ class iota2():
             s_container.append(step_split_huge_vec, "sampling")
         s_container.append(step_merge_samples, "sampling")
         if OBIA_segmentation_path is None:
-            s_container.append(step_models_samples_stats, "sampling")
-            s_container.append(step_samples_selection, "sampling")
-            s_container.append(step_prepare_selection, "sampling")
-            s_container.append(step_generate_learning_samples, "sampling")
-            s_container.append(step_merge_learning_samples, "sampling")
-            if sampleManagement and sampleManagement.lower() != 'none':
-                s_container.append(step_copy_sample_between_models, "sampling")
-            if sample_augmentation_flag:
-                s_container.append(step_generate_samples, "sampling")
-            if dimred:
-                s_container.append(step_dimRed, "sampling")
+          s_container.append(step_models_samples_stats, "sampling")
+          s_container.append(step_samples_selection, "sampling")
+          s_container.append(step_prepare_selection, "sampling")
+          s_container.append(step_generate_learning_samples, "sampling")
+          s_container.append(step_merge_learning_samples, "sampling")
+          if sampleManagement and sampleManagement.lower() != 'none':
+              s_container.append(step_copy_sample_between_models, "sampling")
+          if sample_augmentation_flag:
+              s_container.append(step_generate_samples, "sampling")
+          if dimred:
+              s_container.append(step_dimRed, "sampling")
 
-            # learning steps
-            if "svm" in classifier.lower():
-                s_container.append(step_normalize_samples, "learning")
-            s_container.append(step_learning, "learning")
+          # learning step
+          s_container.append(step_learning, "learning")
 
-            # classifications steps
-            s_container.append(step_classiCmd, "classification")
-            s_container.append(step_classification, "classification")
-            if ds_sar_opt:
-                s_container.append(step_confusion_sar_opt, "classification")
-                s_container.append(step_confusion_sar_opt_fusion, "classification")
-                s_container.append(step_sar_opt_fusion, "classification")
-            if classif_mode == "fusion" and shapeRegion:
-                s_container.append(step_classif_fusion, "classification")
-                s_container.append(step_manage_fus_indecision, "classification")
+          # classifications steps
+          s_container.append(step_classiCmd, "classification")
+          s_container.append(step_classification, "classification")
+          if ds_sar_opt:
+              s_container.append(step_confusion_sar_opt, "classification")
+              s_container.append(step_confusion_sar_opt_fusion, "classification")
+              s_container.append(step_sar_opt_fusion, "classification")
+          if classif_mode == "fusion" and shapeRegion:
+              s_container.append(step_classif_fusion, "classification")
+              s_container.append(step_manage_fus_indecision, "classification")
         else :
             s_container.append(step_split_segmentation_by_tiles_regions,"sampling")
             s_container.append(step_format_samples_to_segmentation,"sampling")

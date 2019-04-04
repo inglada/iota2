@@ -906,7 +906,7 @@ def assembleTile_Merge(AllRaster, spatialResolution, out, ot="Int16", co=None):
                                                                     ot, AllRaster)
     run(cmd)
 
-def getVectorFeatures(InputShape):
+def getVectorFeatures(ground_truth, region_field, InputShape):
     """
     IN :
     InputShape [string] : path to a vector (otbcli_SampleExtraction output)
@@ -915,13 +915,16 @@ def getVectorFeatures(InputShape):
     AllFeat : [lsit of string] : list of all feature fought in InputShape. This vector must
     contains field with pattern 'value_N' N:[0,int(someInt)]
     """
+    input_fields = getAllFieldsInShape(ground_truth) + [region_field, "originfid", "tile_o"]
+    
     dataSource = ogr.Open(InputShape)
     daLayer = dataSource.GetLayer(0)
     layerDefinition = daLayer.GetLayerDefn()
-
+    
     AllFeat = []
     for i in range(layerDefinition.GetFieldCount()):
-        if "value_" in layerDefinition.GetFieldDefn(i).GetName():
+        field_name = layerDefinition.GetFieldDefn(i).GetName()
+        if field_name not in input_fields and field_name not in [input_field.lower() for input_field in input_fields]:
             AllFeat.append(layerDefinition.GetFieldDefn(i).GetName())
     return AllFeat
 
