@@ -179,7 +179,8 @@ class iota2Classification():
         if self.proba_map_path:
             class_model = self.models_class[self.model_name][int(self.seed)]            
             if len(class_model) != len(all_class):
-                self.reorder_proba_map(self.proba_map_path, class_model, all_class)
+                logger.info("reordering the probability map : '{}'".format(self.proba_map_path))
+                self.reorder_proba_map(self.proba_map_path, self.proba_map_path, class_model, all_class)
 
         if self.working_directory:
             shutil.copy(self.classification, os.path.join(self.output_directory,
@@ -193,7 +194,7 @@ class iota2Classification():
                                                               os.path.split(self.proba_map_path)[-1]))
                 os.remove(self.proba_map_path)
 
-    def reorder_proba_map(self, proba_map_path, class_model, all_class):
+    def reorder_proba_map(self, proba_map_path_in, proba_map_path_out, class_model, all_class):
         """reorder the probability map
 
         in order to merge proability raster containing a different number of effective 
@@ -201,7 +202,10 @@ class iota2Classification():
 
         Parameters
         ----------
-        proba_map_path : string
+        proba_map_path_in : string
+            input probability map
+        proba_map_path_out : string
+            output probability map
         class_model : list
             list containing labels in the model used to classify 
         all_class : list
@@ -227,10 +231,10 @@ class iota2Classification():
                 idx = NODATA_LABEL_idx
             index_vector.append(idx)
         exp = "bands(im1, {})".format("{" + ",".join(map(str, index_vector)) + "}")
-        reorder_app = CreateBandMathXApplication({"il": proba_map_path,
+        reorder_app = CreateBandMathXApplication({"il": proba_map_path_in,
                                                   "ram": self.RAM,
                                                   "exp": exp,
-                                                  "out": proba_map_path})
+                                                  "out": proba_map_path_out})
         reorder_app.ExecuteAndWriteOutput()
 
 def get_class_by_models(iota2_samples_dir, data_field):
@@ -339,16 +343,6 @@ def launchClassification(tempFolderSerie, Classifmask, model, stats,
             ClassifInput.ExecuteAndWriteOutput()
         else:
             ClassifInput.Execute()
-
-    # pour connaitre les classes dans TOUT les modèles, regarder les classes présentent dans
-    # dataAppVal *seed_0_learn.sqlite. C'est ce qui va déterminer nb_class
-
-    # il faut ensuite connaitre les classes du modèle en question (nb_class_modèle) et 
-    # avec un bandMathX, recoder à la bonne place les proba par classes -> faire une fonction
-    # et la tester dans Iota2Test.py
-    # utiliser bandMathX avec l'opérateur 'bands' -> bands( im1, { 1, 2, 1, 1 } ) ?
-    #~ nb_class = len(toutes les classes possible)
-    #~ nb_class_model = len(toutes les classes possible dans le modèle)
     
     iota2_samples_dir = os.path.join(cfg.getParam('chain', 'outputPath'),
                                      "learningSamples")
