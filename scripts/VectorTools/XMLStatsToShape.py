@@ -5,7 +5,7 @@ import sys, os
 import argparse
 from xml.etree import ElementTree as ET
 
-def add_field_from_XML(filein,xml,labels):
+def add_field_from_XML(filein,xml,key,labels):
 	driver = ogr.GetDriverByName('ESRI Shapefile')
 	source = driver.Open(filein, 1)
 	layer = source.GetLayer()
@@ -24,7 +24,7 @@ def add_field_from_XML(filein,xml,labels):
 	statmean = data.find('.//Statistic[@name="mean"]')
 	for layerfeat in statmean.iter('StatisticMap'):
 		ID = layerfeat.attrib['key']
-		layer.SetAttributeFilter('ID = %s'%ID)
+		layer.SetAttributeFilter('{} = {}'.format(key, ID))
 		feat = layer.GetNextFeature()
 		if feat is not None :
 			values = [int(float(x)) if float(x) == float(x) else None for x in layerfeat.attrib['value'][1:-1].split(',')]
@@ -33,6 +33,38 @@ def add_field_from_XML(filein,xml,labels):
 					feat.SetField(nb+i,value)
 			layer.SetFeature(feat)
 	return 0
+
+def convert_XML_to_CSV(xml,key,labels):
+	import csv
+	csv_output = os.path.splitext(xml)[0] + '.csv'
+	csvwriter = csv.writer(open(csv_output,'w'))
+	head=[key]
+	labels = labels_format_to_DBF(labels)
+	head+=labels
+	csvwriter.writerow(head)
+
+	data = ET.parse(xml).getroot()
+	statmean = data.find('.//Statistic[@name="mean"]')
+	for feat in statmean.iter('StatisticMap'):
+		res=[]
+		res.append(feat.attrib['key'])
+		values = [int(float(x)) if float(x) == float(x) else None for x in feat.attrib['value'][1:-1].split(',')]
+		res += values
+		csvwriter.writerow(res)
+	return csv_output
+
+def list_shp_field(shp):
+	driver = ogr.GetDriverByName('ESRI Shapefile')
+	source = driver.Open(shp, 1)
+	layer = source.GetLayer()
+	layer_defn = layer.GetLayerDefn()
+	nb = layer_defn.GetFieldCount()
+
+	field_list = []
+	for ind in range(0,nb) :
+		field = layer_defn.GetFieldDefn(ind)
+		field_list.append(field.GetName())
+	return field_list
 
 def clean_all_features_field(layer,labels):
 	layer_defn = layer.GetLayerDefn()
@@ -103,7 +135,7 @@ def clean_xml_stats(stats_file):
     rm_names=['count','min','max','std']
     generalStatistics = ET.parse(stats_file).getroot()
     for name in rm_names:
-        sub_element = generalStatistics.find('.//Statistic[@name="{}"'.format(name))
+        sub_element = generalStatistics.find('.//Statistic[@name="{}"]'.format(name))
         generalStatistics.remove(sub_element)
     wrap = ET.ElementTree(generalStatistics)
     wrap.write(stats_file,encoding="UTF-8",xml_declaration=True)  

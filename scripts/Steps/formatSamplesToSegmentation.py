@@ -54,7 +54,7 @@ class formatSamplesToSegmentation(IOTA2Step.Step):
             the function to execute as a lambda function. The returned object
             must be a lambda function.
         """
-        from Sampling.SplitTrainSamplesForOBIA import format_sample_to_segmentation
+        from Sampling.SplitSamplesForOBIA import format_sample_to_segmentation
         step_function = lambda x: format_sample_to_segmentation(self.cfg, x, self.workingDirectory)
         return step_function
 
