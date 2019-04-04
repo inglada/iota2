@@ -54,21 +54,30 @@ class iota2Classification():
         self.model_name = self.get_model_name(model)
         self.seed = self.get_model_seed(model)
         self.features_stack = features_stack
+        classification_name = "Classif_{}_model_{}_seed_{}.tif".format(tile,
+                                                                       self.model_name,
+                                                                       self.seed)
+        confidence_name = "{}_model_{}_confidence_seed_{}.tif".format(tile,
+                                                                      self.model_name,
+                                                                      self.seed)
+        proba_map_name = "PROBAMAP_{}_model_{}_seed_{}.tif".format(tile,
+                                                                   self.model_name,
+                                                                   self.seed)
+        if mode == "SAR":
+            classification_name = classification_name.replace(".tif", "_SAR.tif")
+            confidence_name = confidence_name.replace(".tif", "_SAR.tif")
+            proba_map_name = proba_map_name.replace(".tif", "_SAR.tif")
         self.classification = os.path.join(output_directory,
-                                           "Classif_{}_model_{}_seed_{}.tif".format(tile,
-                                                                                    self.model_name,
-                                                                                    self.seed))
+                                           classification_name)
         self.confidence = os.path.join(output_directory,
-                                       "{}_model_{}_confidence_seed_{}.tif".format(tile,
-                                                                                   self.model_name,
-                                                                                   self.seed))
+                                       confidence_name)
         self.proba_map_path = self.get_proba_map(classifier_type,
                                                  output_directory,
                                                  model,
-                                                 tile, proba_map)
+                                                 tile, proba_map, proba_map_name)
         self.working_directory = working_directory
     
-    def get_proba_map(self, classifier_type, output_directory, model, tile, gen_proba):
+    def get_proba_map(self, classifier_type, output_directory, model, tile, gen_proba, proba_map_name):
         """get probability map absolute path
 
         Parameters
@@ -81,7 +90,8 @@ class iota2Classification():
             model's absolute path
         tile : string
             tile's name to compute
-
+        proba_map_name : string
+            probability raster name
         Return
         ------
         string
@@ -90,9 +100,6 @@ class iota2Classification():
         """
         model_name = self.get_model_name(model)
         seed = self.get_model_seed(model)
-        proba_map_name = "PROBAMAP_{}_model_{}_seed_{}.tif".format(tile,
-                                                                   model_name,
-                                                                   seed)
         proba_map = ""
         classifier_avail = ["sharkrf"]
         if classifier_type in classifier_avail:
@@ -128,10 +135,10 @@ class iota2Classification():
                                            os.path.split(self.confidence)[-1])
         classifier_options = {"in": self.features_stack,
                               "model": self.classifier_model,
-                              "confmap": self.confidence,
+                              "confmap": "{}?&writegeom=false".format(self.confidence),
                               "ram": str(0.4 * float(self.RAM)),
                               "pixType": self.pixType,
-                              "out": self.classification}
+                              "out": "{}?&writegeom=false".format(self.classification)}
         if self.proba_map_path:
             all_class = []
             for model_name, dico_seed in self.models_class.items():
@@ -142,7 +149,7 @@ class iota2Classification():
             if self.working_directory:
                 self.proba_map_path = os.path.join(self.working_directory,
                                                    os.path.split(self.proba_map_path)[-1])
-            classifier_options["probamap"] = self.proba_map_path
+            classifier_options["probamap"] = "{}?&writegeom=false".format(self.proba_map_path)
             classifier_options["nbclasses"] = str(nb_class_run)
 
         if self.stats:
