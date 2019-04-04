@@ -1771,6 +1771,14 @@ def CreateZonalStatistics(OtbParameters):
     if "out.raster.filename" in OtbParameters:
         ZonalStatsApp.SetParameterString("out","raster")
         ZonalStatsApp.SetParameterString("out.raster.filename",OtbParameters["out.raster.filename"])
+    if "params.mean" in OtbParameters:
+        ZonalStatsApp.SetParameterString("params.mean",OtbParameters["params.mean"])
+    if "params.min" in OtbParameters:
+        ZonalStatsApp.SetParameterString("params.min",OtbParameters["params.min"])
+    if "params.max" in OtbParameters:
+        ZonalStatsApp.SetParameterString("params.max",OtbParameters["params.max"])
+    if "params.stdev" in OtbParameters:
+        ZonalStatsApp.SetParameterString("params.stdev",OtbParameters["params.stdev"])
 
     return ZonalStatsApp
 
