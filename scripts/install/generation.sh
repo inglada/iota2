@@ -156,6 +156,18 @@ if [[ "$ok" == "1" ]]; then
       fi
       cd $prefix_dir/OTB/OTB/Modules/Remote/
       ln -sf ../../../../TETIS/otbPointMatchCoregistrationModel OTBPointMatchCoregistrationModel
+
+      # Add ComputeVectorFeaturesStatistics module
+      echo "Adding ComputeVectorFeaturesStatistics module ..."
+      cd $prefix_dir/TETIS
+      if [ -d "./otbVectorClassification " ]; then
+        echo "otbVectorClassification  repository already cloned. skipping."
+      else
+        echo "get otbVectorClassification "
+        git clone https://gitlab.irstea.fr/raffaele.gaetano/otbVectorClassification
+      fi
+      cd $prefix_dir/OTB/OTB/Modules/Remote/
+      ln -sf ../../../../TETIS/otbVectorClassification otbVectorClassification
     fi
   fi
   #----------------------------------------
@@ -175,7 +187,7 @@ if [[ "$ok" == "1" ]]; then
       # Building iota2
       echo "Building iota2 ..."
       cd $prefix_dir/OTB/build/OTB/build
-      cmake -DCMAKE_CXX_COMPILER=${CXX} -DCMAKE_CXX_FLAGS:STRING=-std=c++14 -DModule_IOTA2:BOOL=ON -DModule_IOTA2:BOOL=ON -DModule_OTBTemporalGapFilling:BOOL=ON -DModule_MultitempFiltering:BOOL=ON -DModule_OTBAppPointMatchCoregistration:BOOL=ON $prefix_dir/OTB/OTB 
+      cmake -DCMAKE_CXX_COMPILER=${CXX} -DCMAKE_CXX_FLAGS:STRING=-std=c++14 -DModule_IOTA2:BOOL=ON -DModule_IOTA2:BOOL=ON -DModule_OTBTemporalGapFilling:BOOL=ON -DModule_MultitempFiltering:BOOL=ON -DModule_OTBAppPointMatchCoregistration:BOOL=ON -DModule_OTBAppVectorFeaturesStatistics:BOOL=ON $prefix_dir/OTB/OTB 
       make
       make install
     fi
