@@ -148,6 +148,7 @@ class iota2():
                            samplingLearningPolygons, samplesByTiles,
                            samplesExtraction, samplesByModels,
                            learningSamplesZonalStatistics, tilesSamplesZonalStatistics,
+                           obiaLearning, reduceModelSkew,
                            copySamples, genSyntheticSamples,
                            samplesDimReduction, samplesNormalization,
                            learnModel, classiCmd,
@@ -207,6 +208,12 @@ class iota2():
         step_tiles_samples_zonal_statistics = tilesSamplesZonalStatistics.tilesSamplesZonalStatistics(cfg,
                                                                                      config_ressources,
                                                                                      self.workingDirectory)
+        step_unskew_model = reduceModelSkew.reduceModelSkew(cfg,
+                                                    config_ressources,
+                                                    self.workingDirectory)
+        step_obia_learning = obiaLearning.obiaLearning(cfg,
+                                                      config_ressources,
+                                                      self.workingDirectory)
         step_models_samples_stats = statsSamplesModel.statsSamplesModel(cfg,
                                                                         config_ressources,
                                                                         self.workingDirectory)
@@ -376,6 +383,10 @@ class iota2():
             s_container.append(step_format_samples_to_segmentation,"sampling")
             s_container.append(step_learning_samples_zonal_statistics,"sampling")
             s_container.append(step_tiles_samples_zonal_statistics,"sampling")
+
+            # learning steps
+            s_container.append(step_unskew_model, "learning")
+            s_container.append(step_obia_learning,"learning")
 
         # mosaic step
         s_container.append(step_mosaic, "mosaic")
