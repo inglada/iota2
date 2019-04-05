@@ -141,8 +141,10 @@ def definePandasDf(idvals, paramstats={1:'rate', 2:'statsmaj', 3:'stats_11'}, cl
             [cols.append(x) for x in ["meanb%sc%s"%(param, cl), "stdb%sc%s"%(param, cl), "maxb%sc%s"%(param, cl), "minb%sc%s"%(param, cl)]]
         else:
             raise Exception("The method %s is not implemented")%(paramstats[param])
+
+        cols.append('geometry')
         
-    return pad.DataFrame(np.nan, index=idvals, columns=cols)
+    return gpad.DataFrame(np.nan, index=idvals, columns=cols)
     
 def zonalstats(path, rasters, params, gdalpath = "", res = 10):
     
@@ -210,9 +212,11 @@ def zonalstats(path, rasters, params, gdalpath = "", res = 10):
                     if methodstat == 'rate':
                         classStats, classmaj, posclassmaj = CountPixelByClass(band, idval)
                         stats.update(classStats)
+                        stats['geometry'].iloc[idval] = geom
                     elif methodstat == 'stats':
                         cols = ["meanb%s"%(int(param)), "stdb%s"%(int(param)), "maxb%s"%(int(param)), "minb%s"%(int(param))]
                         stats.update(pad.DataFrame(data=[RasterStats(band)], index=[idval], columns = cols))
+                        stats['geometry'].iloc[idval] = geom
                     elif methodstat == 'statsmaj':
                         if not classmaj:                            
                             if "rate" in paramstats.values():
@@ -223,6 +227,7 @@ def zonalstats(path, rasters, params, gdalpath = "", res = 10):
                             
                         cols = ["meanmajb%s"%(int(param)), "stdmajb%s"%(int(param)), "maxmajb%s"%(int(param)), "minmajb%s"%(int(param))]
                         stats.update(pad.DataFrame(data=[RasterStats(band, posclassmaj)], index=[idval], columns = cols))
+                        stats['geometry'].iloc[idval] = geom
                         
                     elif "stats_" in methodstat:                        
                         if "rate" in paramstats.values():
@@ -237,7 +242,7 @@ def zonalstats(path, rasters, params, gdalpath = "", res = 10):
 
                         cols = ["meanb%sc%s"%(int(param), cl), "stdb%sc%s"%(int(param), cl), "maxb%sc%s"%(int(param), cl), "minb%sc%s"%(int(param), cl)]                        
                         stats.update(pad.DataFrame(data=[RasterStats(band, posclass)], index=[idval], columns = cols))
-
+                        stats['geometry'].iloc[idval] = geom
                         data = band = None
                     else:
                         print "The method %s is not implemented"%(paramstats[param])
