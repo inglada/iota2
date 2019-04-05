@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -163,7 +163,7 @@ def do_check(input_vector, output_vector, data_field, epsg, do_corrections):
     for tmp_file in tmp_files:
         if tmp_file is not input_vector and os.path.exists(tmp_file):
             removeShape(tmp_file.replace(".shp", ""), [".prj",".shp",".dbf",".shx"])
-    print "\n".join(errors)
+    print ("\n".join(errors))
     return errors
 
 if __name__ == "__main__":
