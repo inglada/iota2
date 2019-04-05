@@ -44,7 +44,7 @@ class samplesNormalization(IOTA2Step.Step):
         return MS.generateStatModel(os.path.join(self.output_path, "dataAppVal"),
                                     os.path.join(self.output_path, "features"),
                                     os.path.join(self.output_path, "stats"),
-                                    os.path.join(cmdPath, "stats"),
+                                    os.path.join(self.output_path, "cmd", "stats"),
                                     None, self.cfg)
 
     def step_execute(self):

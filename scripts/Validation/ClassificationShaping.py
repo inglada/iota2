@@ -285,7 +285,11 @@ def ClassificationShaping(pathClassif, pathEnvelope, pathImg, fieldEnv, N,
         assembleFolder = pathTest+"/final"
         if pathWd:
             assembleFolder = pathWd
-        fu.assembleTile_Merge(classification[seed],spatialResolution,assembleFolder+"/Classif_Seed_"+str(seed)+".tif","Byte", co={"COMPRESS":"LZW", "BIGTIFF":"YES"})
+        fu.assembleTile_Merge(classification[seed],
+                              spatialResolution,
+                              "{}/Classif_Seed_{}.tif".format(assembleFolder, seed),
+                              "Byte" if pixType=="uint8" else "Int16",
+                              co={"COMPRESS":"LZW", "BIGTIFF":"YES"})
         if pathWd:
             shutil.copy(pathWd+"/Classif_Seed_"+str(seed)+".tif", pathTest+"/final")
             os.remove(pathWd+"/Classif_Seed_"+str(seed)+".tif")

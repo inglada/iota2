@@ -219,7 +219,11 @@ class Sentinel_2_L3A(Sensor):
                                                              "ram": str(ram),
                                                              "pixType" : "int16",
                                                              "out": out_stack_processing})
-            if not os.path.exists(out_stack):
+            same_proj = False
+            if os.path.exists(out_stack):
+                same_proj = int(getRasterProjectionEPSG(out_stack)) == int(self.target_proj)
+
+            if not os.path.exists(out_stack) or same_proj is False:
                 date_stack.ExecuteAndWriteOutput()
                 if working_dir:
                     shutil.copy(out_stack_processing, out_stack)
