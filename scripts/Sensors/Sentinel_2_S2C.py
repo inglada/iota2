@@ -258,7 +258,11 @@ class Sentinel_2_S2C(Sensor):
                                                     "pixType":"uint8",
                                                     "ram": str(ram)})
         if self.write_dates_stack:
-            if not os.path.exists(out_mask):
+            same_proj = False
+            if os.path.exists(out_mask):
+                same_proj = int(getRasterProjectionEPSG(out_mask)) == int(self.target_proj)
+
+            if not os.path.exists(out_mask) or same_proj is False:
                 superimp.ExecuteAndWriteOutput()
                 if working_dir:
                     shutil.copy(out_mask_processing, out_mask)
