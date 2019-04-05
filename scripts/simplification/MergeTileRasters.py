@@ -117,6 +117,8 @@ def getTilesFiles(zone, tiles, folder, idTileField, tileNamePrefix, localenv, fi
 
     # get zone geometry
     fieldType = vf.getFieldType(zone, fieldzone)
+    print fieldType
+    raw_input("pause2")
     if fieldType == int:
         lyrZone.SetAttributeFilter(fieldzone + " = " + str(valuezone))
     elif fieldType == str:
@@ -127,12 +129,14 @@ def getTilesFiles(zone, tiles, folder, idTileField, tileNamePrefix, localenv, fi
     if lyrZone.GetFeatureCount() != 0:
         for featZone in lyrZone:
             geomZone = featZone.GetGeometryRef()
+            print featZone
         
         nbinter = 0
         # iterate tiles to find intersection
         for featTile in lyrTiles:
             geomTile = featTile.GetGeometryRef()
             nbTile = int(featTile.GetField(idTileField))
+            print nbTile
             if geomTile.Intersects(geomZone):
                 nbinter += 1
                 tilename = os.path.join(folder, tileNamePrefix + str(nbTile) + '.tif')
