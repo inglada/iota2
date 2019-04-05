@@ -219,10 +219,6 @@ class Sentinel_2(Sensor):
                 same_proj = int(getRasterProjectionEPSG(out_stack)) == int(self.target_proj)
 
             if not os.path.exists(out_stack) or same_proj is False:
-                print getRasterProjectionEPSG(out_stack)
-                print self.target_proj
-
-                #~ pause = raw_input("coucou")
                 date_stack.ExecuteAndWriteOutput()
                 if working_dir:
                     shutil.copy(out_stack_processing, out_stack)
