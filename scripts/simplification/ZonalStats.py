@@ -147,10 +147,14 @@ def definePandasDf(idvals, paramstats={1:'rate', 2:'statsmaj', 3:'stats_11'}, cl
     cols.append('geometry')
     return gpad.GeoDataFrame(np.nan, index=idvals, columns=cols)        
     
-def zonalstats(path, rasters, params, gdalpath = "", res = 10):
+def zonalstats(path, rasters, params, paramstats={}, gdalpath="", res=10):
     
-    vector, idvals, csvstore, clipvalue = params
+    vector, idvals = params
 
+    # if no vector subsetting (all features)
+    if not idvals:
+        idvals = getFidList(vector)
+    
     stats = []
     # vector open and iterate features
     vectorname = os.path.splitext(os.path.basename(vector))[0]
@@ -158,9 +162,10 @@ def zonalstats(path, rasters, params, gdalpath = "", res = 10):
     lyr = ds.GetLayer()
 
     # Prepare stats DataFrame
-    # TODO Add paramstats as parameter
     paramstats = {2:'statsmaj', 1:'rate', 3:'stats'}
     stats = definePandasDf(idvals, paramstats)
+
+    # Iterate FID list
     for idval in idvals:        
     
         lyr.SetAttributeFilter("FID=" + str(idval))
@@ -203,6 +208,7 @@ def zonalstats(path, rasters, params, gdalpath = "", res = 10):
             # statsmaj : meanmaj, stdmaj, maxmaj, minmaj of majority class
             # rate : rate of each pixel value (classe names)
             # stats_cl : mean_cl, std_cl, max_cl, min_cl of one class
+            # bufx : rate method in a square window of x pixel around point geometry
             # for param in params:
             #     ...
             #for band in bands:
@@ -213,14 +219,17 @@ def zonalstats(path, rasters, params, gdalpath = "", res = 10):
                     if methodstat == 'rate':
                         classStats, classmaj, posclassmaj = CountPixelByClass(band, idval)
                         stats.update(classStats)
+                        
                     elif methodstat == 'stats':
                         cols = ["meanb%s"%(int(param)), "stdb%s"%(int(param)), "maxb%s"%(int(param)), "minb%s"%(int(param))]
                         stats.update(pad.DataFrame(data=[RasterStats(band)], index=[idval], columns = cols))
+                        
                     elif methodstat == 'statsmaj':
                         if not classmaj:                            
                             if "rate" in paramstats.values():
                                 idxbdclasses = [x for x in paramstats if paramstats[x] == "rate"][0]
                                 classStats, classmaj, posclassmaj = CountPixelByClass(bands[idxbdclasses - 1], idval)
+                                classStats = None
                             else:
                                 raise Exception("No classification raster provided")
                             
@@ -241,7 +250,13 @@ def zonalstats(path, rasters, params, gdalpath = "", res = 10):
 
                         cols = ["meanb%sc%s"%(int(param), cl), "stdb%sc%s"%(int(param), cl), "maxb%sc%s"%(int(param), cl), "minb%sc%s"%(int(param), cl)]                        
                         stats.update(pad.DataFrame(data=[RasterStats(band, posclass)], index=[idval], columns = cols))
+
+                    elif "buf" in methodstat:
+                        # check if geom == Point
                         
+                        # get numpy array of the window
+                        band = None
+                        # CountPixelByClass(band, idval)
                     else:
                         print "The method %s is not implemented"%(paramstats[param])
 
@@ -251,29 +266,27 @@ def zonalstats(path, rasters, params, gdalpath = "", res = 10):
 
     stats["geometry"] = stats["geometry"].apply(wkt.loads)
     statsfinal = gpad.GeoDataFrame(stats, geometry="geometry")
-
     
-def getParameters(vectorpath, csvstorepath, chunk=1):
+    # Export depending on columns number (shapefile, sqlite, geojson)
+    # keep fidorigin for external join
+    
+def getParameters(vectorpath, csvstorepath="", chunk=1):
     
     listvectors = getVectorsList(vectorpath)
     params = []
     if os.path.isdir(vectorpath):
         for vect in listvectors:
             listfid = getFidList(vect)
-            clipvalue = os.path.splitext(os.path.basename(vect))[0]
-            csvstore = os.path.join(csvstorepath, "stats_%s"%(clipvalue))
             # prepare list of fids to remove in listfid before chunk 
             #TODO : split in chunks with sum of feature areas quite equal
             listfid = [listfid[i::chunk] for i in xrange(chunk)]
             for fidlist in listfid:                 
-                params.append((vect, fidlist, csvstore, clipvalue))
+                params.append((vect, fidlist))
     else:
-        clipvalue = os.path.splitext(os.path.basename(vectorpath))[0]
         listfid = getFidList(vectorpath)
-        csvstore = os.path.join(csvstorepath, "stats_%s"%(clipvalue))
         listfid = [listfid[i::chunk] for i in xrange(chunk)]        
         for fidlist in listfid:                 
-            params.append((vect, fidlist, csvstore, clipvalue))
+            params.append((vect, fidlist))
 
     return params
 
