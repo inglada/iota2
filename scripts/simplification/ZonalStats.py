@@ -190,6 +190,7 @@ def zonalstats(path, rasters, params, paramstats={}, gdalpath="", res=10):
             bands.append(tmpfile)
 
             try:
+                # TODO find coordinates of bbox (-te flag) from point coordinates and buffer size (+ resolution)
                 cmd = '%sgdalwarp -tr %s %s -tap -q -overwrite -cutline %s '\
                       '-crop_to_cutline --config GDAL_CACHEMAX 9000 -wm 9000 '\
                       '-wo NUM_THREADS=ALL_CPUS -cwhere "FID=%s" %s %s'%(gdalpath, res, res, vector, idval, raster, tmpfile)        
