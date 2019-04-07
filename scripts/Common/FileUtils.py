@@ -849,6 +849,25 @@ def readRaster(name, data=False, band=1):
     else:
         return xsize, ysize, projection, transform
 
+def arraytoRaster(array, output, model, driver='GTiff'):
+
+    driver = gdal.GetDriverByName(driver)
+
+    modelfile = readRaster(model, False)
+    cols = modelfile[0]
+    rows = modelfile[1]
+    outRaster = driver.Create(output, cols, rows, 1, gdal.GDT_Byte)
+    outRaster.SetGeoTransform((modelfile[3][0], \
+                               modelfile[3][1], 0, \
+                               modelfile[3][3], 0, \
+                               modelfile[3][5]))
+    outband = outRaster.GetRasterBand(1)
+    outband.WriteArray(array)
+    outRasterSRS = osr.SpatialReference()
+    outRasterSRS.ImportFromWkt(modelfile[2])
+    outRaster.SetProjection(outRasterSRS.ExportToWkt())
+    outband.FlushCache()
+    
 
 def getRasterResolution(rasterIn):
     """
