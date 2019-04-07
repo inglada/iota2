@@ -23,6 +23,7 @@ import ogr
 import gdal
 import pandas as pad
 import geopandas as gpad
+from shapely import wkt
 from skimage.measure import label
 from skimage.measure import regionprops
 import numpy as np
@@ -127,6 +128,7 @@ def RasterStats(band, posclassmaj=None):
 def definePandasDf(idvals, paramstats={1:'rate', 2:'statsmaj', 3:'stats_11'}, classes="/home/qt/thierionv/iota2/iota2/scripts/simplification/nomenclature17.cfg"):
 
     cols = []
+
     for param in paramstats:
         if paramstats[param] == "rate": 
             nomenc = nomenclature.Iota2Nomenclature(classes, 'cfg')    
@@ -142,9 +144,8 @@ def definePandasDf(idvals, paramstats={1:'rate', 2:'statsmaj', 3:'stats_11'}, cl
         else:
             raise Exception("The method %s is not implemented")%(paramstats[param])
 
-        cols.append('geometry')
-        
-    return gpad.DataFrame(np.nan, index=idvals, columns=cols)
+    cols.append('geometry')
+    return gpad.GeoDataFrame(np.nan, index=idvals, columns=cols)        
     
 def zonalstats(path, rasters, params, gdalpath = "", res = 10):
     
@@ -157,15 +158,18 @@ def zonalstats(path, rasters, params, gdalpath = "", res = 10):
     lyr = ds.GetLayer()
 
     # Prepare stats DataFrame
+    # TODO Add paramstats as parameter
     paramstats = {2:'statsmaj', 1:'rate', 3:'stats'}
     stats = definePandasDf(idvals, paramstats)
-
     for idval in idvals:        
     
         lyr.SetAttributeFilter("FID=" + str(idval))
         for feat in lyr:
             geom = feat.GetGeometryRef()
-            area = geom.GetArea()
+            if geom:
+                area = geom.GetArea()
+                geomdf = pad.DataFrame(index=[idval], columns=["geometry"], data=[str(geom.ExportToWkt())])
+                stats.update(geomdf)
 
         # rasters  creation
         if gdalpath != "" and gdalpath is not None:
@@ -189,11 +193,8 @@ def zonalstats(path, rasters, params, gdalpath = "", res = 10):
             except:
                 success = False            
                 pass
-
-
+            
         if success:
-            # analyze raster
-            idxband  = 0
             
             # issues sur frama : 1. nouveau : pour Zonal stats 2. modif : nomenclature => modification du fichier de configuration 
             # exemple de paramétrage de statistiques
@@ -212,11 +213,9 @@ def zonalstats(path, rasters, params, gdalpath = "", res = 10):
                     if methodstat == 'rate':
                         classStats, classmaj, posclassmaj = CountPixelByClass(band, idval)
                         stats.update(classStats)
-                        stats['geometry'].iloc[idval] = geom
                     elif methodstat == 'stats':
                         cols = ["meanb%s"%(int(param)), "stdb%s"%(int(param)), "maxb%s"%(int(param)), "minb%s"%(int(param))]
                         stats.update(pad.DataFrame(data=[RasterStats(band)], index=[idval], columns = cols))
-                        stats['geometry'].iloc[idval] = geom
                     elif methodstat == 'statsmaj':
                         if not classmaj:                            
                             if "rate" in paramstats.values():
@@ -227,7 +226,6 @@ def zonalstats(path, rasters, params, gdalpath = "", res = 10):
                             
                         cols = ["meanmajb%s"%(int(param)), "stdmajb%s"%(int(param)), "maxmajb%s"%(int(param)), "minmajb%s"%(int(param))]
                         stats.update(pad.DataFrame(data=[RasterStats(band, posclassmaj)], index=[idval], columns = cols))
-                        stats['geometry'].iloc[idval] = geom
                         
                     elif "stats_" in methodstat:                        
                         if "rate" in paramstats.values():
@@ -237,82 +235,23 @@ def zonalstats(path, rasters, params, gdalpath = "", res = 10):
                             rastertmp = gdal.Open(bands[idxbdclasses - 1], 0)
                             data = rastertmp.ReadAsArray()
                             posclass = np.where(data==int(cl))
+                            data = None                            
                         else:
                             raise Exception("No classification raster provided")
 
                         cols = ["meanb%sc%s"%(int(param), cl), "stdb%sc%s"%(int(param), cl), "maxb%sc%s"%(int(param), cl), "minb%sc%s"%(int(param), cl)]                        
                         stats.update(pad.DataFrame(data=[RasterStats(band, posclass)], index=[idval], columns = cols))
-                        stats['geometry'].iloc[idval] = geom
-                        data = band = None
+                        
                     else:
                         print "The method %s is not implemented"%(paramstats[param])
-                            
-                    '''
-                    rastertmp = gdal.Open(band, 0)
-                    data = rastertmp.ReadAsArray()
-                    img = label(data)
-                    listlab = []
-                    if len(np.unique(img)) != 1 or np.unique(img)[0] != 0:
 
-                            
-                            res = rastertmp.GetGeoTransform()[1]
-                            try:
-                                for reg in regionprops(img, data):
-                                    listlab.append([[x for x in np.unique(reg.intensity_image) if x != 0][0], reg.area])
-                            except:
-                                elts, cptElts = np.unique(data, return_counts=True)
-                                for idx, elts in enumerate(elts):
-                                    if elts != 0:
-                                        listlab.append([elts, cptElts[idx]])
-
-
-                            if len(listlab) != 0:                
-                                classmaj = [y for y in listlab if y[1] == max([x[1] for x in listlab])][0][0]
-                                posclassmaj = np.where(data==classmaj)
-                                results = []
-
-                                for i, g in groupby(sorted(listlab), key = lambda x: x[0]):
-                                    results.append([i, sum(v[1] for v in g)])
-
-                                sumpix = sum([x[1] for x in results])
-                                for elt in [[int(w), round(((float(z) * float(res) * float(res)) /float(sumpix)), 2)] for w, z in results]:
-                                    results_final.append([idval, 'classif', 'part'] + elt)
-
-                        if idxband != 1:
-                            if idxband == 2:
-                                results_final.append([idval, 'confidence', 'mean', int(classmaj), round(np.mean(data[posclassmaj]), 2)])
-                            elif idxband == 3:
-                                results_final.append([idval, 'validity', 'mean', int(classmaj), round(np.mean(data[posclassmaj]), 2)])
-                                results_final.append([idval, 'validity', 'std', int(classmaj), round(np.std(data[posclassmaj]), 2)])                
-                    else:
-                        if idxband == 1:
-                            results_final.append([idval, 'classif', 'part', 0, 0])
-                        elif idxband == 2:
-                            results_final.append([idval, 'confidence', 'mean', 0, 0])
-                        elif idxband == 3:                        
-                            results_final.append([idval, 'validity', 'mean', 0, 0])
-                            results_final.append([idval, 'validity', 'std', 0, 0])
-
-                    data = img = None
-
-                    '''
-                print stats
-                #Utils.run("rm %s"%(band))
-
-                #rastertmp = None
-                #stats.append(results_final)
+                band = None            
         else:
             print "gdal problem"
-            '''
-            results_final.append([[idval, 'classif', 'part', 0, 0], [idval, 'confidence', 'mean', 0, 0], [idval, 'validity', 'mean', 0, 0],[idval, 'validity', 'std', 0, 0]])
-            print "Feature with FID = %s of shapefile %s with null stats (maybe its size is too small)"%(idval, vector)
-            stats.append(results_final[0])
-            '''
-    '''
-    with open(csvstore, 'a') as myfile:
-        writer = csv.writer(myfile)
-        writer.writerows(stats)
-    '''
+
+    stats["geometry"] = stats["geometry"].apply(wkt.loads)
+    statsfinal = gpad.GeoDataFrame(stats, geometry="geometry")
+
     
 def getParameters(vectorpath, csvstorepath, chunk=1):
     
