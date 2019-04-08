@@ -89,7 +89,7 @@ def proba_map_fusion(proba_map_list, ram=128, working_directory=None, logger=log
     proba_map_fus_name[model_pos] = proba_map_fus_name[model_pos].split("f")[0]
     proba_map_fus_name = "_".join(proba_map_fus_name)
 
-    exp = "mean({})".format(",".join(["im{}".format(i + 1) for i in range(len(proba_map_list))]))
+    exp = "({}) dv {}".format("+".join(["im{}".format(i + 1) for i in range(len(proba_map_list))]), len(proba_map_list))
     proba_map_fus_path = os.path.join(proba_map_fus_dir, proba_map_fus_name)
     if working_directory:
         proba_map_fus_path = os.path.join(working_directory, proba_map_fus_name)
