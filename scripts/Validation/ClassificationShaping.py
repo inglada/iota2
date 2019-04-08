@@ -15,6 +15,7 @@
 # =========================================================================
 
 import argparse, os, re, shutil
+import logging
 import ast
 from osgeo import gdal, ogr, osr
 from config import Config
@@ -24,6 +25,9 @@ from Common import FileUtils as fu
 from Common import CreateIndexedColorImage as color
 from Common import ServiceConfigFile as SCF
 from Common.Utils import run
+
+
+logger = logging.getLogger(__name__)
 
 
 def BuildNbVoteCmd(classifTile, VoteMap):
@@ -64,6 +68,44 @@ def removeInListByRegEx(InputList, RegEx):
 
     return Outlist
 
+
+def proba_map_fusion(proba_map_list, ram=128, working_directory=None, logger=logger):
+    """fusion of probabilities map
+
+    Parameters
+    ----------
+    proba_map_list : list
+        list of probabilities map to merge
+    ram : int
+        available ram in mb
+    working_directory : string
+        working directory absolute path
+    """
+    from Common.OtbAppBank import CreateBandMathXApplication
+    model_pos = 3
+
+    proba_map_fus_dir, proba_map_fus_name = os.path.split(proba_map_list[0])
+    proba_map_fus_name = proba_map_fus_name.split("_")
+    proba_map_fus_name[model_pos] = proba_map_fus_name[model_pos].split("f")[0]
+    proba_map_fus_name = "_".join(proba_map_fus_name)
+
+    exp = "mean({})".format(",".join(["im{}".format(i + 1) for i in range(len(proba_map_list))]))
+    proba_map_fus_path = os.path.join(proba_map_fus_dir, proba_map_fus_name)
+    if working_directory:
+        proba_map_fus_path = os.path.join(working_directory, proba_map_fus_name)
+    logger.info("Fusion of probality maps : {} at {}".format(proba_map_list, proba_map_fus_path))
+    proba_merge = CreateBandMathXApplication({"il": proba_map_list,
+                                              "ram": str(ram),
+                                              "out": proba_map_fus_path,
+                                              "exp": exp})
+    proba_merge.ExecuteAndWriteOutput()
+    if working_directory:
+        copy_target = os.path.join(proba_map_fus_dir,
+                                   proba_map_fus_name)
+        logger.debug("copy {} to {}".format(proba_map_fus_path, copy_target))
+        shutil.copy(proba_map_fus_path, copy_target)
+        os.remove(proba_map_fus_path)
+
 def genGlobalConfidence(N, pathWd, cfg):
 
     spatialRes = cfg.getParam('chain', 'spatialResolution')
@@ -73,7 +115,8 @@ def genGlobalConfidence(N, pathWd, cfg):
     AllTile = cfg.getParam('chain', 'listTile').split(" ")
     shapeRegion =cfg.getParam('chain', 'regionPath')
     ds_sar_opt = cfg.getParam('argTrain', 'dempster_shafer_SAR_Opt_fusion')
-
+    proba_map_flag = cfg.getParam('argClassification', 'enable_probability_map')
+    PROBAMAP_PATTERN = "PROBAMAP"
     tmpClassif = pathTest+"/classif/tmpClassif"
     pathToClassif = pathTest+"/classif"
 
@@ -123,6 +166,12 @@ def genGlobalConfidence(N, pathWd, cfg):
                         if ds_sar_opt:
                             finalTile = pathToClassif+"/Classif_"+tuile+"_model_"+model+"_seed_"+str(seed)+"_DS.tif"
                         confidence = fu.fileSearchRegEx(pathToClassif+"/"+tuile+"*model_"+model+"f*_confidence_seed_"+str(seed) + suffix)
+                        if proba_map_flag:
+                            proba_map_fusion(proba_map_list=fu.fileSearchRegEx("{}/{}_{}_model_{}f*_seed_{}.tif".format(pathToClassif,
+                                                                                                                        PROBAMAP_PATTERN,
+                                                                                                                        tuile, model, seed)),
+                                                         working_directory=pathWd,
+                                                         ram=2000)
                         classifTile = sorted(classifTile)
                         confidence = sorted(confidence)
                         OutPutConfidence = tmpClassif+"/"+tuile+"_model_"+model+"_confidence_seed_"+str(seed)+".tif"
