@@ -241,6 +241,7 @@ def ClassificationShaping(pathClassif, pathEnvelope, pathImg, fieldEnv, N,
     featuresPath = os.path.join(pathTest, "features")
     outputStatistics = cfg.getParam('chain', 'outputStatistics')
     spatialResolution = cfg.getParam('chain', 'spatialResolution')
+    proba_map_flag = cfg.getParam('argClassification', 'enable_probability_map')
     shapeRegion = cfg.getParam('chain', 'regionPath')
     allTMPFolder = fu.fileSearchRegEx(pathTest+"/TMPFOLDER*")
     if allTMPFolder:
@@ -261,12 +262,20 @@ def ClassificationShaping(pathClassif, pathEnvelope, pathImg, fieldEnv, N,
 
     classification = []
     confidence = []
+    proba_map = []
     cloud = []
     for seed in range(N):
         classification.append([])
         confidence.append([])
         cloud.append([])
         sort = []
+        if proba_map_flag:
+            proba_map_list = removeInListByRegEx(fu.FileSearch_AND(pathClassif,
+                                                                   True, "PROBAMAP_",
+                                                                   "_model_",
+                                                                   "_seed_{}.tif".format(seed)),
+                                                 ".*model_.*f.*_seed." + suffix)
+            proba_map.append(proba_map_list)
         if classifMode == "separate" or shapeRegion:
             AllClassifSeed = fu.FileSearch_AND(pathClassif,True,".tif","Classif","seed_"+str(seed))
             if ds_sar_opt:
@@ -340,6 +349,14 @@ def ClassificationShaping(pathClassif, pathEnvelope, pathImg, fieldEnv, N,
             os.remove(pathWd+"/Confidence_Seed_"+str(seed)+".tif")
         color.CreateIndexedColorImage(pathTest+"/final/Classif_Seed_"+str(seed)+".tif",colorpath)
 
+        if proba_map_flag:
+            proba_map_mosaic = os.path.join(assembleFolder, "ProbabilityMap_seed_{}.tif".format(seed))
+            fu.assembleTile_Merge(proba_map[seed], spatialResolution,
+                                  proba_map_mosaic,
+                                  "Int16", co={"COMPRESS":"LZW", "BIGTIFF":"YES"})
+            if pathWd:
+                shutil.copy(proba_map_mosaic, pathTest+"/final")
+                os.remove(proba_map_mosaic)
     fu.assembleTile_Merge(cloud[0],spatialResolution,assembleFolder+"/PixelsValidity.tif","Byte", co={"COMPRESS":"LZW", "BIGTIFF":"YES"})
     if pathWd:
         shutil.copy(pathWd+"/PixelsValidity.tif", pathTest+"/final")
