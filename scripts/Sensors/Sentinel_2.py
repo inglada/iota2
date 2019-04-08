@@ -214,7 +214,11 @@ class Sentinel_2(Sensor):
                                                              "ram": str(ram),
                                                              "pixType" : "int16",
                                                              "out": out_stack_processing})
-            if not os.path.exists(out_stack):
+            same_proj = False
+            if os.path.exists(out_stack):
+                same_proj = int(getRasterProjectionEPSG(out_stack)) == int(self.target_proj)
+
+            if not os.path.exists(out_stack) or same_proj is False:
                 date_stack.ExecuteAndWriteOutput()
                 if working_dir:
                     shutil.copy(out_stack_processing, out_stack)
@@ -271,7 +275,11 @@ class Sentinel_2(Sensor):
         app_dep = [binary_mask_rule]
 
         if self.write_dates_stack:
-            if not os.path.exists(out_mask):
+            same_proj = False
+            if os.path.exists(out_mask):
+                same_proj = int(getRasterProjectionEPSG(out_mask)) == int(self.target_proj)
+
+            if not os.path.exists(out_mask) or same_proj is False:
                 superimp.ExecuteAndWriteOutput()
                 if working_dir:
                     shutil.copy(out_mask_processing, out_mask)
