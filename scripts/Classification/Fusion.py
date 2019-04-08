@@ -325,7 +325,7 @@ def compute_confidence_fusion(fusion_dic, ds_choice,
 
 
 def dempster_shafer_fusion(iota2_dir, fusion_dic, mob="precision",
-                           workingDirectory=None):
+                           proba_map_flag=False, workingDirectory=None):
     """
     perform a fusion of classifications thanks acording to Dempster-Shafer's method
 
@@ -338,6 +338,8 @@ def dempster_shafer_fusion(iota2_dir, fusion_dic, mob="precision",
         "opt_model"
     mob : string
         Dempster-Shafer's mass of belive
+    proba_map_flag : bool
+        perform fusion to probability maps ?
     workingDirectory : string
         path to a working directory
 
