@@ -47,10 +47,12 @@ def BuildConfidenceCmd(finalTile, classifTile, confidence, OutPutConfidence, fac
         exp.append("(im"+str(i+2)+"b1==0?0:im1b1!=im"+str(i+2)+"b1?1-im"+str(i+2+N)+"b1:im"+str(i+2+N)+"b1)")
     #expConfidence="im1b1==0?0:("+"+".join(exp)+")/im"+str(2+2*N)+"b1"
     expConfidence = "im1b1==0?0:("+"+".join(exp)+")/"+str(len(classifTile))
+
     All = classifTile+confidence
     All = " ".join(All)
 
     cmd = 'otbcli_BandMath -ram 5120 -il '+finalTile+' '+All+' -out '+OutPutConfidence+' '+pixType+' -exp "'+str(fact)+'*('+expConfidence+')"'
+
     return cmd
 
 def removeInListByRegEx(InputList, RegEx):
@@ -96,18 +98,8 @@ def genGlobalConfidence(N, pathWd, cfg):
                     shutil.copyfile(globalConf, globalConf_f)
                     os.remove(globalConf)
                 else:
-                    finalTile = fu.fileSearchRegEx(pathToClassif+"/"+tuile+"*NODATA*_seed"+str(seed)+"*")[0]#final tile (without nodata)
-                    classifTile = fu.fileSearchRegEx(pathToClassif+"/Classif_"+tuile+"*model*_seed_"+str(seed)+"*")# tmp tile (produce by each classifier, without nodata)
-                    confidence = fu.fileSearchRegEx(pathToClassif+"/"+tuile+"*model*confidence_seed_"+str(seed)+"*")
-                    classifTile = sorted(classifTile)
-                    confidence = sorted(confidence)
-                    OutPutConfidence = tmpClassif+"/"+tuile+"_GlobalConfidence_seed_"+str(seed)+".tif"
-                    cmd = BuildConfidenceCmd(finalTile,classifTile,confidence,OutPutConfidence,fact=100)
-                    run(cmd)
-
-                    shutil.copy(OutPutConfidence, pathTest+"/final/TMP")
-                    os.remove(OutPutConfidence)
-                    #shutil.rmtree(tmpClassif)
+                    raise Exception(("if there is no region shape specify in the "
+                                     "configuration file, argClassification.classifMode must be set to 'separate'"))
 
             else:#output Mode
                 suffix = "*"
