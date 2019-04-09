@@ -1,4 +1,4 @@
-![](assets/iota2-logo.png "iota2")
+![](assets/iota2-logo.png =250x)
 
 Infrastructure pour l'Occupation des sols par Traitement Automatique Incorporant les Orfeo Toolbox Applications - $\iota^2$ 
 
