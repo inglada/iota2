@@ -26,3 +26,5 @@ Table of contents
 * :doc:`Add steps to iota2 <add_IOTA2_new_step>`
 * :doc:`Sentinel-2 Level 3A <sentinel_2_N3A>`
 
+The source code for iota2 is hosted at https://framagit.org/iota2-project/iota2/edit/develop/doc/source/index.rst
+
