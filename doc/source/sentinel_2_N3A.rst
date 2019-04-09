@@ -14,7 +14,7 @@ Download data
 
 Data are downloadable from : https://theia.cnes.fr
 
-IOTA²'s cook
+iota2's cook
 ************
 
 Configuration file parameter
@@ -66,7 +66,7 @@ parameter ``GlobChain.useGapFilling`` is set to ``True``, the gapfilling is proc
 GapFilling
 ++++++++++
 
-GapFilling allow IOTA² the interpolation of clouds and resample every tile's
+GapFilling allow iota2 the interpolation of clouds and resample every tile's
 temporal series on the same temporal grid. The cloud interpolation is based on
 masks provided by L3A products. 
 
@@ -75,7 +75,7 @@ Masks usage
 
 A ``BINARY_MASK`` raster is generated for each L3A dates and place next to native data.
 ``BINARY_MASK`` is the raster provided to the gapFilling algorithm to know pixels
-to interpolate by dates. IOTA² use ``_FLG_R1.tif`` raster to determine pixels to flag as to be interpolated.
+to interpolate by dates. iota2 use ``_FLG_R1.tif`` raster to determine pixels to flag as to be interpolated.
 Every pixels under ``0`` and ``1`` respectively ``NODATA`` and ``Cloud / Cloud's shadow`` will be interpolated.
 
 Features
