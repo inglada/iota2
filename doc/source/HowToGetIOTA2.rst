@@ -1,31 +1,31 @@
-How to get IOTA² ?
+How to get iota2 ?
 ==================
 
 Licence
 -------
 
-:abbr:`IOTA² (Infrastructure pour l'Occupation des sols par Traitement Automatique Incorporant les Orfeo Toolbox Applications)`
+:abbr:`iota2 (Infrastructure pour l'Occupation des sols par Traitement Automatique Incorporant les Orfeo Toolbox Applications)`
 is a free software under the GNU Affero General Public License v3.0. See `here <http://www.gnu.org/licenses/agpl.html>`_ 
 for details.
 
-How to install IOTA²?
+How to install iota2?
 ----------------------
 
-IOTA² is only tested on some Linux distributions : Ubuntu and CentOS.
-In this section, steps to install IOTA² from scratch will be detailed.
+iota2 is only tested on some Linux distributions : Ubuntu and CentOS.
+In this section, steps to install iota2 from scratch will be detailed.
 
 We assume that installation will be done in the directory: ``MyInstall``
 
-**Step 1 :** download IOTA²
+**Step 1 :** download iota2
 
 .. code-block:: console
 
     cd MyInstall
     git clone -b develop https://framagit.org/iota2-project/iota2
 
-Now you have the directory ``iota2`` in ``MyInstall`` which contains all IOTA² source code.
+Now you have the directory ``iota2`` in ``MyInstall`` which contains all iota2 source code.
 
-**Step 2 :** get IOTA² light dependencies
+**Step 2 :** get iota2 light dependencies
 
 if you are using Ubuntu :
 
@@ -51,8 +51,8 @@ This step can be long (up to several hours depending on your hardware).
 How to test the installation
 ----------------------------
 
-IOTA² tests are implemented using the unittest framework which is a well known Python library.
-To check your IOTA² install you should launch the commands below:
+iota2 tests are implemented using the unittest framework which is a well known Python library.
+To check your iota2 install you should launch the commands below:
 
 .. code-block:: console
 
@@ -68,6 +68,6 @@ At the end, a short summary of the success/fail status of the tests is printed t
 
     OK
 
-In order to run IOTA² to produce land cover maps you could follow one of these :doc:`examples. <IOTA2_Example>`
+In order to run iota2 to produce land cover maps you could follow one of these :doc:`examples. <IOTA2_Example>`
 
         
