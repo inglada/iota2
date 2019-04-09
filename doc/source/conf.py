@@ -143,7 +143,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'IOTA2.tex', u'iota2 Documentation',
-     u'Arthur VINCENT', 'manual'),
+     u'iota2 dev team', 'manual'),
 ]
 
 

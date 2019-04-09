@@ -3,11 +3,11 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to IOTA²'s documentation !
+Welcome to iota2's documentation !
 ==================================
 
 .. Note::
-    This short documentation was written to quickly help users to run IOTA², and
+    This short documentation was written to quickly help users to run iota2, and
     developers to contribute to the project. It is not complete and most parts still in development.
 
 .. toctree::
@@ -16,8 +16,8 @@ Welcome to IOTA²'s documentation !
 
 
 
-Indices and tables
-==================
+Table of contents
+=================
 
 * :doc:`Get iota2 <HowToGetIOTA2>`
 * :doc:`iota2 Examples <IOTA2_Example>`
