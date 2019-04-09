@@ -144,7 +144,10 @@ def validity(tile_name, config_path, maskOut_name, view_threshold, workingDirect
     threshold_raster_out = os.path.join(features_dir, maskOut_name.replace(".shp", ".tif"))
     threshold_vector_out_tmp = os.path.join(features_dir, maskOut_name.replace(".shp", "_TMP.shp"))
     threshold_vector_out = os.path.join(features_dir, maskOut_name)
-    threshold_raster = CreateBandMathApplication({"il": validity_processing,
+    
+    input_threshold = validity_processing if os.path.exists(validity_processing) else validity_out
+    
+    threshold_raster = CreateBandMathApplication({"il": input_threshold,
                                                   "exp": "im1b1>={}?1:0".format(view_threshold),
                                                   "ram": str(RAM),
                                                   "pixType": "uint8",
