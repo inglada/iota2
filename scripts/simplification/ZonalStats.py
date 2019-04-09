@@ -30,6 +30,7 @@ import numpy as np
 
 try:
     from VectorTools import vector_functions as vf
+    from VectorTools import BufferOgr as bfo
     from simplification import nomenclature
     from Common import Utils
 except ImportError:
@@ -147,8 +148,16 @@ def definePandasDf(idvals, paramstats={1:'rate', 2:'statsmaj', 3:'stats_11'}, cl
     cols.append('geometry')
     return gpad.GeoDataFrame(np.nan, index=idvals, columns=cols)        
     
-def zonalstats(path, rasters, params, paramstats={}, gdalpath="", res=10):
-    
+def zonalstats(path, rasters, params, paramstats={}, bufferDist=5, gdalpath="", res=10):
+
+    # issues sur frama : 1. nouveau : pour Zonal stats 2. modif : nomenclature => modification du fichier de configuration 
+    # exemple de paramétrage de statistiques
+    # paramstats = {1:"rate", 2:"statsmaj", 3:"statsmaj", 4:"stats", 2:stats_cl}
+    # stats : mean_b, std_b, max_b, min_b
+    # statsmaj : meanmaj, stdmaj, maxmaj, minmaj of majority class
+    # rate : rate of each pixel value (classe names)
+    # stats_cl : mean_cl, std_cl, max_cl, min_cl of one class    
+
     vector, idvals = params
 
     # if no vector subsetting (all features)
@@ -156,8 +165,13 @@ def zonalstats(path, rasters, params, paramstats={}, gdalpath="", res=10):
         idvals = getFidList(vector)
     
     stats = []
-    # vector open and iterate features
+    # vector open and iterate features and/or buffer geom
     vectorname = os.path.splitext(os.path.basename(vector))[0]
+    # Test if geometry type is point and bufferDist != None # 1 pixel ???
+    #    vectorbuff = vectorname + "buff.shp"
+    #    bfo.bufferPoly(vector, vectorbuff, bufferDist) # Same FID ???
+    #    vector = vectorbuff
+    
     ds = vf.openToRead(vector)
     lyr = ds.GetLayer()
 
@@ -189,8 +203,7 @@ def zonalstats(path, rasters, params, paramstats={}, gdalpath="", res=10):
             tmpfile = os.path.join(path, 'rast_%s_%s_%s'%(vectorname, str(idval), idx))
             bands.append(tmpfile)
 
-            try:
-                # TODO find coordinates of bbox (-te flag) from point coordinates and buffer size (+ resolution)
+            try:                                
                 cmd = '%sgdalwarp -tr %s %s -tap -q -overwrite -cutline %s '\
                       '-crop_to_cutline --config GDAL_CACHEMAX 9000 -wm 9000 '\
                       '-wo NUM_THREADS=ALL_CPUS -cwhere "FID=%s" %s %s'%(gdalpath, res, res, vector, idval, raster, tmpfile)        
@@ -201,22 +214,13 @@ def zonalstats(path, rasters, params, paramstats={}, gdalpath="", res=10):
                 pass
             
         if success:
-            
-            # issues sur frama : 1. nouveau : pour Zonal stats 2. modif : nomenclature => modification du fichier de configuration 
-            # exemple de paramétrage de statistiques
-            # paramstats = {1:"rate", 2:"statsmaj", 3:"statsmaj", 4:"stats", 2:stats_cl}
-            # stats : mean_b, std_b, max_b, min_b
-            # statsmaj : meanmaj, stdmaj, maxmaj, minmaj of majority class
-            # rate : rate of each pixel value (classe names)
-            # stats_cl : mean_cl, std_cl, max_cl, min_cl of one class
-            # bufx : rate method in a square window of x pixel around point geometry
-            # for param in params:
-            #     ...
-            #for band in bands:
+
             for param in paramstats:
                 band = bands[int(param) - 1]
+
                 if os.path.exists(band):
                     methodstat = paramstats[param]
+
                     if methodstat == 'rate':
                         classStats, classmaj, posclassmaj = CountPixelByClass(band, idval)
                         stats.update(classStats)
@@ -252,12 +256,6 @@ def zonalstats(path, rasters, params, paramstats={}, gdalpath="", res=10):
                         cols = ["meanb%sc%s"%(int(param), cl), "stdb%sc%s"%(int(param), cl), "maxb%sc%s"%(int(param), cl), "minb%sc%s"%(int(param), cl)]                        
                         stats.update(pad.DataFrame(data=[RasterStats(band, posclass)], index=[idval], columns = cols))
 
-                    elif "buf" in methodstat:
-                        # check if geom == Point
-                        
-                        # get numpy array of the window
-                        band = None
-                        # CountPixelByClass(band, idval)
                     else:
                         print "The method %s is not implemented"%(paramstats[param])
 
@@ -268,7 +266,7 @@ def zonalstats(path, rasters, params, paramstats={}, gdalpath="", res=10):
     stats["geometry"] = stats["geometry"].apply(wkt.loads)
     statsfinal = gpad.GeoDataFrame(stats, geometry="geometry")
     
-    # Export depending on columns number (shapefile, sqlite, geojson)
+    # Export depending on columns number (shapefile, sqlite, geojson) # Check Issue on framagit
     # keep fidorigin for external join
     
 def getParameters(vectorpath, csvstorepath="", chunk=1):
@@ -278,7 +276,8 @@ def getParameters(vectorpath, csvstorepath="", chunk=1):
     if os.path.isdir(vectorpath):
         for vect in listvectors:
             listfid = getFidList(vect)
-            # prepare list of fids to remove in listfid before chunk 
+            # prepare list of fids to remove in listfid before chunk
+            
             #TODO : split in chunks with sum of feature areas quite equal
             listfid = [listfid[i::chunk] for i in xrange(chunk)]
             for fidlist in listfid:                 
@@ -292,6 +291,7 @@ def getParameters(vectorpath, csvstorepath="", chunk=1):
     return params
 
 def computZonalStats(path, inr, shape, csvstore, gdal, chunk=1):
+
     #TODO : optimize chunk with real-time HPC ressources
     params = getParameters(shape, csvstore, chunk)
 
