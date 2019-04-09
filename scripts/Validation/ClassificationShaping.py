@@ -143,7 +143,6 @@ def genGlobalConfidence(N, pathWd, cfg):
                 else:
                     raise Exception(("if there is no region shape specify in the "
                                      "configuration file, argClassification.classifMode must be set to 'separate'"))
-
             else:#output Mode
                 suffix = "*"
                 if ds_sar_opt:
@@ -167,11 +166,11 @@ def genGlobalConfidence(N, pathWd, cfg):
                             finalTile = pathToClassif+"/Classif_"+tuile+"_model_"+model+"_seed_"+str(seed)+"_DS.tif"
                         confidence = fu.fileSearchRegEx(pathToClassif+"/"+tuile+"*model_"+model+"f*_confidence_seed_"+str(seed) + suffix)
                         if proba_map_flag:
-                            proba_map_fusion(proba_map_list=fu.fileSearchRegEx("{}/{}_{}_model_{}f*_seed_{}.tif".format(pathToClassif,
-                                                                                                                        PROBAMAP_PATTERN,
-                                                                                                                        tuile, model, seed)),
-                                                         working_directory=pathWd,
-                                                         ram=2000)
+                            proba_map_fusion(proba_map_list=fu.fileSearchRegEx("{}/{}_{}_model_{}f*_seed_{}{}.tif".format(pathToClassif,
+                                                                                                                          PROBAMAP_PATTERN,
+                                                                                                                          tuile, model, seed, suffix)),
+                                             working_directory=pathWd,
+                                             ram=2000)
                         classifTile = sorted(classifTile)
                         confidence = sorted(confidence)
                         OutPutConfidence = tmpClassif+"/"+tuile+"_model_"+model+"_confidence_seed_"+str(seed)+".tif"
@@ -270,10 +269,8 @@ def ClassificationShaping(pathClassif, pathEnvelope, pathImg, fieldEnv, N,
         cloud.append([])
         sort = []
         if proba_map_flag:
-            proba_map_list = removeInListByRegEx(fu.FileSearch_AND(pathClassif,
-                                                                   True, "PROBAMAP_",
-                                                                   "_model_",
-                                                                   "_seed_{}.tif".format(seed)),
+            proba_map_list = fu.fileSearchRegEx(pathTest+"/classif/PROBAMAP_*_model_*_seed_" + str(seed) + suffix+".tif")
+            proba_map_list = removeInListByRegEx(proba_map_list,
                                                  ".*model_.*f.*_seed." + suffix)
             proba_map.append(proba_map_list)
         if classifMode == "separate" or shapeRegion:
