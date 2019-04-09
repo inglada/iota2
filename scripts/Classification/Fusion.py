@@ -278,9 +278,9 @@ def compute_confidence_fusion(fusion_dic, ds_choice,
     Notes
     -----
     confidence fusion rules are :
-        SAR's label is chosen by the DS method, SAR confidence is chosen
-        Optical's label is chosen by the DS method, optical confidence is chosen
-        if the same label is chosen by SAR and optical models, then the
+        If SAR's label is chosen by the DS method then SAR confidence is chosen.
+        If Optical's label is chosen by the DS method then optical confidence is chosen.
+        If the same label is chosen by SAR and optical models, then the
         maximum confidence is chosen.
     Return
     ------
@@ -324,6 +324,112 @@ def compute_confidence_fusion(fusion_dic, ds_choice,
     return os.path.join(ds_confidence_dir, ds_confidence_name)
 
 
+def compute_probamap_fusion(fusion_dic, ds_choice,
+                            classif_model_pos, classif_tile_pos, classif_seed_pos,
+                            ds_choice_both,
+                            ds_choice_sar,
+                            ds_choice_opt,
+                            ds_no_choice,
+                            workingDirectory, ram=128, LOGGER=LOGGER):
+    """
+    from the fusion of classification's raster choice compute the fusion of confidence map
+
+    Parameters
+    ----------
+
+    fusion_dic : dict
+        dictionnary containing keys : "sar_classif", "opt_classif", "sar_model"
+        "opt_model"
+    ds_choice : string
+        path to the fusion of classifications choice map
+    classif_model_pos : int
+        position of the model's name in classification's name if
+        splited by '_'
+    classif_tile_pos : int
+        position of the tile's name in classification's name if
+        splited by '_'
+    classif_seed_pos : int
+        position of the seed number in classification's name if
+        splited by '_'
+    ds_choice_both : int
+        output value if fusion of classifications get the same label than
+        SAR classification and optical classification
+    ds_choice_sar : int
+        output value if fusion of classifications get the same label than
+        SAR classification
+    ds_choice_opt : int
+        output value if fusion of classifications get the same label than
+        optical classification
+    ds_no_choice : int
+        default case
+    workingDirectory : string
+        path to a working directory
+    LOGGER : logging
+        root logger
+
+    Notes
+    -----
+    fusion rules are :
+        If SAR's label is chosen by the DS method then SAR confidence is chosen.
+        If Optical's label is chosen by the DS method then optical confidence is chosen.
+        If the same label is chosen by SAR and optical models, then the
+        output pixel vector is given my the model which is more confidence in it's choice.
+    Return
+    ------
+    string
+        output path
+    """
+    from Common import OtbAppBank
+    from Common.FileUtils import getRasterNbands
+
+    classif_dir, _ = os.path.split(fusion_dic["sar_classif"])
+    model = os.path.basename(fusion_dic["sar_classif"]).split("_")[classif_model_pos]
+    seed = os.path.basename(fusion_dic["sar_classif"]).split("_")[classif_seed_pos]
+    tile = os.path.basename(fusion_dic["sar_classif"]).split("_")[classif_tile_pos]
+    sar_proba_map = fu.fileSearchRegEx(os.path.join(classif_dir,
+                                                    "PROBAMAP_{}_model_{}_seed_{}_SAR.tif".format(tile, model, seed)))[0]
+    opt_proba_map = fu.fileSearchRegEx(os.path.join(classif_dir,
+                                                    "PROBAMAP_{}_model_{}_seed_{}.tif".format(tile, model, seed)))[0]
+    sar_confidence = fu.fileSearchRegEx(os.path.join(classif_dir,
+                                                     "{}_model_{}_confidence_seed_{}_SAR.tif".format(tile, model, seed)))[0]
+    opt_confidence = fu.fileSearchRegEx(os.path.join(classif_dir,
+                                                     "{}_model_{}_confidence_seed_{}.tif".format(tile, model, seed)))[0]
+    im_list = [ds_choice, sar_proba_map, opt_proba_map, sar_confidence, opt_confidence]
+    nb_bands_probamap_opt = getRasterNbands(opt_proba_map)
+    nb_bands_probamap_sar = getRasterNbands(sar_proba_map)
+    if nb_bands_probamap_opt != nb_bands_probamap_sar:
+        raise Exception("SAR probality map and Optical probality map must have the same number of bands")
+    exp = ("im1b1=={ds_choice_both} and im4b1>im5b1?im2:"
+           "im1b1=={ds_choice_both} and im4b1<im5b1?im3:"
+           "im1b1=={ds_choice_sar}?im2:"
+           "im1b1=={ds_choice_opt}?im3:"
+           "{ds_no_choice}").format(ds_choice_both=ds_choice_both,
+                                    ds_choice_sar=ds_choice_sar,
+                                    ds_choice_opt=ds_choice_opt,
+                                    ds_no_choice="{" + ",".join([str(ds_no_choice)] * nb_bands_probamap_opt) + "}")
+    ds_probamap_name = "PROBAMAP_{}_model_{}_seed_{}_DS.tif".format(tile, model, seed)
+    ds_probamap_dir = classif_dir
+    ds_probamap = os.path.join(ds_probamap_dir, ds_probamap_name)
+    if workingDirectory:
+        ds_probamap = os.path.join(workingDirectory, ds_probamap_name)
+    probamap_param = {"il": im_list,
+                      "out": ds_probamap,
+                      "ram": str(ram),
+                      "exp": exp}
+    probamap_app = OtbAppBank.CreateBandMathXApplication(probamap_param)
+
+    if not os.path.exists(os.path.join(ds_probamap_dir, ds_probamap_name)):
+        LOGGER.info("computing : {}".format(ds_probamap))
+        probamap_app.ExecuteAndWriteOutput()
+        LOGGER.debug("{} : DONE".format(ds_probamap))
+        if workingDirectory:
+            # copy confidence
+            shutil.copy(ds_probamap,
+                        os.path.join(os.path.join(ds_probamap_dir, ds_probamap_name)))
+            # remove
+            os.remove(ds_probamap)
+    return os.path.join(os.path.join(ds_probamap_dir, ds_probamap_name))
+
 def dempster_shafer_fusion(iota2_dir, fusion_dic, mob="precision",
                            proba_map_flag=False, workingDirectory=None):
     """
@@ -348,6 +454,7 @@ def dempster_shafer_fusion(iota2_dir, fusion_dic, mob="precision",
     list
         list containing : the Dempster-Shafer fusion labels path,
                               Dempster-Shafer fusion confidence path,
+                              Dempster-Shafer fusion probability path,
                               Dempster-Shafer fusion choice path
     """
     # const
@@ -382,7 +489,18 @@ def dempster_shafer_fusion(iota2_dir, fusion_dic, mob="precision",
                                                ds_choice_opt,
                                                ds_no_choice,
                                                workingDirectory)
-    return sar_opt_fus, confidence_fus, ds_choice
+    # probability map
+    proba_map_fus = None
+    if proba_map_flag:
+        proba_map_fus = compute_probamap_fusion(fusion_dic, ds_choice,
+                                                classif_model_pos, classif_tile_pos, classif_seed_pos,
+                                                ds_choice_both,
+                                                ds_choice_sar,
+                                                ds_choice_opt,
+                                                ds_no_choice,
+                                                workingDirectory,
+                                                ram=2000)
+    return sar_opt_fus, confidence_fus, proba_map_fus, ds_choice
 
 
 def fusion(pathClassif, cfg, pathWd):
