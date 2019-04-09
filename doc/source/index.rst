@@ -19,10 +19,10 @@ Welcome to IOTA²'s documentation !
 Indices and tables
 ==================
 
-* :doc:`Get IOTA² <HowToGetIOTA2>`
-* :doc:`IOTA² Examples <IOTA2_Example>`
+* :doc:`Get iota2 <HowToGetIOTA2>`
+* :doc:`iota2 Examples <IOTA2_Example>`
 * :doc:`Development recommendations <develop_reco>`
-* :doc:`IOTA² code architecture : main class <main_class>`
-* :doc:`Add steps to IOTA² <add_IOTA2_new_step>`
+* :doc:`iota2 code architecture : main class <main_class>`
+* :doc:`Add steps to iota2 <add_IOTA2_new_step>`
 * :doc:`Sentinel-2 Level 3A <sentinel_2_N3A>`
 
