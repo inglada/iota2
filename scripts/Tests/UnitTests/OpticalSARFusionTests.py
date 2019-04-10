@@ -318,10 +318,12 @@ class iota_testOpticalSARFusion(unittest.TestCase):
                       "opt_model": self.opt_confusion}
         workingDirectory = None
         # Launch function
-        fusion_path, confidence_path, choice_path = Fusion.dempster_shafer_fusion(iota2_dir,
-                                                                                  fusion_dic,
-                                                                                  mob="precision",
-                                                                                  workingDirectory=None)
+        (fusion_path, confidence_path,
+        probamap_path, choice_path) = Fusion.dempster_shafer_fusion(iota2_dir,
+                                                                    fusion_dic,
+                                                                    mob="precision",
+                                                                    workingDirectory=workingDirectory)
         self.assertEqual("/classif/Classif_T31TCJ_model_1_seed_0_DS.tif", fusion_path.replace(iota2_dir, ""))
         self.assertEqual("/classif/T31TCJ_model_1_confidence_seed_0_DS.tif", confidence_path.replace(iota2_dir, ""))
         self.assertEqual("/final/TMP/DSchoice_T31TCJ_model_1_seed_0.tif", choice_path.replace(iota2_dir, ""))
+        self.assertTrue(probamap_path is None)
