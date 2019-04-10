@@ -254,6 +254,7 @@ class Sentinel_2_S2C(Sensor):
 
         superimp, _ = CreateSuperimposeApplication({"inr": self.ref_image,
                                                     "inm": binary_mask,
+                                                    "interpolator" : "nn",
                                                     "out": out_mask_processing,
                                                     "pixType":"uint8",
                                                     "ram": str(ram)})

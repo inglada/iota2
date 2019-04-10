@@ -267,6 +267,7 @@ class Landsat_8(Sensor):
         # reproject using reference image
         superimp, _ = CreateSuperimposeApplication({"inr": self.ref_image,
                                                     "inm": binary_mask_rule,
+                                                    "interpolator" : "nn",
                                                     "out": out_mask_processing,
                                                     "pixType":"uint8",
                                                     "ram": str(ram)})
