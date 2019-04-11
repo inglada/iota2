@@ -1,0 +1,43 @@
+Write outputs
+*************
+.. Note:: It is assumed that examples in :doc:`IOTA2_Example <IOTA2_Example>` were properly.
+
+The first steps of iota2 correspond to the definition of data cubes: all temporal acquisitions are stacked together. For instace, with 10 temporal acquisitions and 4 spectral bands. An hypercube of 40 spectro-temporal features is used for the processing. If needed, additionnal steps are required to handle irregular time sampling and clouds/shadows, such as describe in `https://www.mdpi.com/2072-4292/11/4/433`: this is a common situation when processing several Sentinel-2 tiles. Such steps will basically, will project all the data onto a same and regular sampletime (whose step is define by the variable ``Sensor.temporalResolution``). It is termed /Gapfilling/.
+
+Because it can leads to very large set of files, the default behavior of iota2 is to **not** write the temporal cubes used for the processing. Everythings are computed in memory (i.e., in the RAM), and only the necessary (or light) files are written on hard drive. It also improves the processing time since writting is time comsumming.
+
+However, it is possible to tell iota2 to write outputs, for further analysis for instance. This feature is controled by the variable ``GlobChain.writeOutputs``. To do so, the variable must be set to ``True`` in the configuration file:
+
+.. code-block:: python
+		GlobChain:
+		{
+		# Your parameters
+		writeOutputs:True
+		}
+
+With respect to the standard ouput, for each tile, the data cube before and after the gapfilling, and the complete cube of feature (spectral bands + spectral indices) after gapfilling are written.
+
+.. code-block:: console
+		features/
+		└── T31TCJ
+		    ├── CloudThreshold_0.dbf
+		    ├── CloudThreshold_0.prj
+		    ├── CloudThreshold_0.shp
+ 		    ├── CloudThreshold_0.shx
+		    ├── nbView.tif
+		    └── tmp
+		        ├── MaskCommunSL.dbf
+                        ├── MaskCommunSL.prj
+                        ├── MaskCommunSL.shp
+                        ├── MaskCommunSL.shx
+                        ├── MaskCommunSL.tif
+                        ├── Sentinel2_T31TCJ_input_dates.txt
+                        ├── Sentinel2_T31TCJ_interpolation_dates.txt
+                        ├── Sentinel2_T31TCJ_MASKS.tif
+                        ├── Sentinel2_T31TCJ_reference.tif
+                        ├── Sentinel2_T31TCJ_TSG.tif
+                        ├── Sentinel2_T31TCJ_TS.tif
+                        └── T31TCJ_Features.tif
+
+
+   
