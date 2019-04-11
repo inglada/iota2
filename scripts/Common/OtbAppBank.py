@@ -272,6 +272,16 @@ def CreateIota2FeatureExtractionApplication(OtbParameters):
     if "pixType" in OtbParameters:
         features_app.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
 
+    if ("keepduplicates" in OtbParameters and OtbParameters["keepduplicates"] is True
+        and 
+        "copyinput" in OtbParameters and OtbParameters["copyinput"] is False):
+        
+        warning_msg = ("'iota2FeatureExtraction' cannot be use with the following parameters: "
+                       "'keepduplicates' : True and 'copyinput' : False. 'keepduplicates' is set"
+                       " to False")
+        logger.warning(warning_msg)
+        features_app.SetParameterValue("keepduplicates", False)
+
     return features_app
 
 
