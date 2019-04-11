@@ -258,13 +258,13 @@ def CreateIota2FeatureExtractionApplication(OtbParameters):
     if "copyinput" in OtbParameters:
         features_app.SetParameterValue("copyinput", OtbParameters["copyinput"])
     if "relrefl" in OtbParameters:
-        features_app.SetParameterEmpty("relrefl", True)
+        features_app.SetParameterValue("relrefl", OtbParameters["relrefl"])
     if "relindex" in OtbParameters:
         features_app.SetParameterString("relindex", OtbParameters["relindex"])
     if "keepduplicates" in OtbParameters:
-        features_app.SetParameterEmpty("keepduplicates", True)
+        features_app.SetParameterValue("keepduplicates", OtbParameters["keepduplicates"])
     if "acorfeat" in OtbParameters:
-        features_app.SetParameterEmpty("acorfeat", True)
+        features_app.SetParameterValue("acorfeat", OtbParameters["acorfeat"])
     if "ram" in OtbParameters:
         features_app.SetParameterString("ram", OtbParameters["ram"])
     if "out" in OtbParameters:
