@@ -15,6 +15,7 @@
 # =========================================================================
 
 import os, sys, argparse
+from collections import OrderedDict
 import datetime
 import time
 import csv
@@ -31,6 +32,7 @@ import numpy as np
 try:
     from VectorTools import vector_functions as vf
     from VectorTools import BufferOgr as bfo
+    from Common import FileUtils as fut
     from simplification import nomenclature
     from Common import Utils
 except ImportError:
@@ -63,14 +65,11 @@ def getUniqueId(csvpath):
     return list(set(df.groupby(0).groups))
 
 
-def CountPixelByClass(databand, fid):
-    # TODO : 1 méthode pour les statistiques qualitatives (parts de valeur de pixel)
-    # TODO : 1 méthode pour les statistiques quantitatives (mean, std, max, min)    
-    # np.array(np.unique(x, return_counts=True)).T
+def CountPixelByClass(databand, fid, band=0):
 
     if os.path.exists(databand):
         rastertmp = gdal.Open(databand, 0)
-        data = rastertmp.ReadAsArray()
+        data = rastertmp.ReadAsArray(band)
         img = label(data)
         counts = []
 
@@ -102,7 +101,7 @@ def CountPixelByClass(databand, fid):
 
                 # Transposition pour jointure directe
                 listlabT = listlab.T
-                classStats = pad.DataFrame(data=[listlabT.loc['rate'].values], index=[fid], columns=[int(x) for x in listlabT.loc['value']])
+                classStats = pad.DataFrame(data=[listlabT.loc['rate'].values], index=[fid], columns=[str(int(x)) for x in listlabT.loc['value']])                
 
         listlab = listlabT = data = None
         
@@ -134,7 +133,7 @@ def definePandasDf(idvals, paramstats={1:'rate', 2:'statsmaj', 3:'stats_11'}, cl
         if paramstats[param] == "rate": 
             nomenc = nomenclature.Iota2Nomenclature(classes, 'cfg')    
             desclasses = nomenc.HierarchicalNomenclature.get_level_values(nomenc.getLevelNumber() - 1)
-            [cols.append(x) for x, y, w, z in desclasses]
+            [cols.append(str(x)) for x, y, w, z in desclasses]
         elif paramstats[param] == "stats":
             [cols.append(x) for x in ["meanb%s"%(param), "stdb%s"%(param), "maxb%s"%(param), "minb%s"%(param)]]
         elif paramstats[param] == "statsmaj":        
@@ -146,9 +145,10 @@ def definePandasDf(idvals, paramstats={1:'rate', 2:'statsmaj', 3:'stats_11'}, cl
             raise Exception("The method %s is not implemented")%(paramstats[param])
 
     cols.append('geometry')
+
     return gpad.GeoDataFrame(np.nan, index=idvals, columns=cols)        
     
-def zonalstats(path, rasters, params, paramstats={}, bufferDist=5, gdalpath="", res=10):
+def zonalstats(path, rasters, params, paramstats={}, bufferDist=None, gdalpath="", res=10):
 
     # issues sur frama : 1. nouveau : pour Zonal stats 2. modif : nomenclature => modification du fichier de configuration 
     # exemple de paramétrage de statistiques
@@ -159,22 +159,37 @@ def zonalstats(path, rasters, params, paramstats={}, bufferDist=5, gdalpath="", 
     # stats_cl : mean_cl, std_cl, max_cl, min_cl of one class    
 
     vector, idvals = params
-
+    
     # if no vector subsetting (all features)
     if not idvals:
         idvals = getFidList(vector)
     
-    stats = []
     # vector open and iterate features and/or buffer geom
     vectorname = os.path.splitext(os.path.basename(vector))[0]
-    # Test if geometry type is point and bufferDist != None # 1 pixel ???
-    #    vectorbuff = vectorname + "buff.shp"
-    #    bfo.bufferPoly(vector, vectorbuff, bufferDist) # Same FID ???
-    #    vector = vectorbuff
+    vectorgeomtype = vf.getGeomType(vector)
+    if vectorgeomtype in (1, 4, 1001, 1004):
+        if vectorgeomtype == 1:
+            schema = {'geometry': 'Point', 'properties' : {}}
+        elif vectorgeomtype == 4:
+            schema = {'geometry': 'MultiPoint', 'properties' : {}}
+            
+        if not bufferDist:
+            bufferDist = res / 2
+        vectorbuff = vectorname + "buff.shp"
+        lyr = bfo.bufferPoly(vector, vectorbuff, bufferDist=bufferDist)
+    elif vectorgeomtype in (3, 6, 1003, 1006):
+        if vectorgeomtype == 3:
+            schema = {'geometry': 'Polygon', 'properties' : {}}
+        elif vectorgeomtype == 6:
+            schema = {'geometry': 'MultiPolygon', 'properties' : {}}
+            
+    else:
+        raise Exception("Geometry type of vector file not handled")
     
     ds = vf.openToRead(vector)
     lyr = ds.GetLayer()
-
+    spatialRef = lyr.GetSpatialRef().ExportToProj4()
+    
     # Prepare stats DataFrame
     paramstats = {2:'statsmaj', 1:'rate', 3:'stats'}
     stats = definePandasDf(idvals, paramstats)
@@ -186,10 +201,11 @@ def zonalstats(path, rasters, params, paramstats={}, bufferDist=5, gdalpath="", 
         for feat in lyr:
             geom = feat.GetGeometryRef()
             if geom:
-                area = geom.GetArea()
                 geomdf = pad.DataFrame(index=[idval], columns=["geometry"], data=[str(geom.ExportToWkt())])
                 stats.update(geomdf)
 
+        if vectorbuff:vector=vectorbuff
+                
         # rasters  creation
         if gdalpath != "" and gdalpath is not None:
             gdalpath = gdalpath + "/"
@@ -203,6 +219,8 @@ def zonalstats(path, rasters, params, paramstats={}, bufferDist=5, gdalpath="", 
             tmpfile = os.path.join(path, 'rast_%s_%s_%s'%(vectorname, str(idval), idx))
             bands.append(tmpfile)
 
+            # TODO : try gdalwarp on multiband raster
+            # TODO : try out raster in memory
             try:                                
                 cmd = '%sgdalwarp -tr %s %s -tap -q -overwrite -cutline %s '\
                       '-crop_to_cutline --config GDAL_CACHEMAX 9000 -wm 9000 '\
@@ -214,17 +232,22 @@ def zonalstats(path, rasters, params, paramstats={}, bufferDist=5, gdalpath="", 
                 pass
             
         if success:
-
             for param in paramstats:
-                band = bands[int(param) - 1]
+                # Multi-raster / Multi-band (only if gdwarp can warp multi-band raster)
+                if len(rasters) != 1:
+                    band = bands[int(param) - 1]
+                    nbband = 0
+                else:
+                    band = rasters
+                    nbband = int(param) - 1
 
                 if os.path.exists(band):
                     methodstat = paramstats[param]
 
                     if methodstat == 'rate':
-                        classStats, classmaj, posclassmaj = CountPixelByClass(band, idval)
+                        classStats, classmaj, posclassmaj = CountPixelByClass(band, idval, nbband)
                         stats.update(classStats)
-                        
+
                     elif methodstat == 'stats':
                         cols = ["meanb%s"%(int(param)), "stdb%s"%(int(param)), "maxb%s"%(int(param)), "minb%s"%(int(param))]
                         stats.update(pad.DataFrame(data=[RasterStats(band)], index=[idval], columns = cols))
@@ -261,13 +284,17 @@ def zonalstats(path, rasters, params, paramstats={}, bufferDist=5, gdalpath="", 
 
                 band = None            
         else:
-            print "gdal problem"
+            print "gdalwarp problem for feature %s (geometry error, too small area, etc.)"%(idval)
 
+    # Improve columns type and width and ordering (same as nomenclature file)
+    schema['properties'] = OrderedDict([(x.encode('utf8'), 'float:10.2') for x in list(stats.columns) if x != 'geometry'])
     stats["geometry"] = stats["geometry"].apply(wkt.loads)
     statsfinal = gpad.GeoDataFrame(stats, geometry="geometry")
-    
+    statsfinal.fillna(0, inplace=True)
+    statsfinal.crs = {'init':'proj4:%s'%(spatialRef)}
+
+    statsfinal.to_file("/home/qt/thierionv/teststats.shp", driver="ESRI Shapefile", schema=schema)
     # Export depending on columns number (shapefile, sqlite, geojson) # Check Issue on framagit
-    # keep fidorigin for external join
     
 def getParameters(vectorpath, csvstorepath="", chunk=1):
     
