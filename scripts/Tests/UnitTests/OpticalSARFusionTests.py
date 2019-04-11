@@ -286,7 +286,88 @@ class iota_testOpticalSARFusion(unittest.TestCase):
         self.assertTrue(np.allclose(self.ds_fus_confidence_ref, ds_fus_confidence_test),
                         msg="fusion of confidences failed")
         
+    def test_compute_probamap_fusion(self):
+        """
+        TEST : Fusion.compute_probamap_fusion()
+        """
+        from Classification import Fusion
+        from Common import IOTA2Directory
+        from Common import ServiceConfigFile as SCF
+        
+        # define inputs
+        sar_raster = os.path.join(self.test_working_directory, "Classif_T31TCJ_model_1_seed_0_SAR.tif")
+        opt_raster = os.path.join(self.test_working_directory, "Classif_T31TCJ_model_1_seed_0.tif")
+        arrayToRaster(self.sar_classif, sar_raster)
+        arrayToRaster(self.optical_classif, opt_raster)
 
+        sar_confid_raster = os.path.join(self.test_working_directory, "T31TCJ_model_1_confidence_seed_0_SAR.tif")
+        opt_confid_raster = os.path.join(self.test_working_directory, "T31TCJ_model_1_confidence_seed_0.tif")
+        arrayToRaster(self.sar_confidence, sar_confid_raster, output_format="float")
+        arrayToRaster(self.optical_confidence, opt_confid_raster, output_format="float")
+
+        ds_choice = os.path.join(self.test_working_directory, "choice.tif")
+        arrayToRaster(self.choice_map_ref, ds_choice)
+
+        fusion_dic = {"sar_classif": sar_raster,
+                      "opt_classif": opt_raster,
+                      "sar_model": self.sar_confusion,
+                      "opt_model": self.opt_confusion}
+        workingDirectory = None
+
+        sar_probamap_arr = [np.array([[253, 874, 600],
+                                      [947, 812, 941],
+                                      [580, 94, 192]][::-1]),
+                            np.array([[541, 711, 326],
+                                      [273, 915, 698],
+                                      [296, 1000, 624]][::-1]),
+                            np.array([[253, 290, 610],
+                                      [406, 685, 333],
+                                      [302, 410, 515]][::-1]),
+                            np.array([[216, 766, 98],
+                                      [914, 288, 504],
+                                      [70, 631, 161]][::-1]),
+                            np.array([[371, 873, 134],
+                                      [477, 701, 765],
+                                      [549, 301, 847]][::-1]),
+                            np.array([[870, 201, 85],
+                                      [555, 644, 802],
+                                      [98, 807, 77]][::-1])]
+        opt_probamap_sar = [np.array([[268, 528, 131],
+                                      [514, 299, 252],
+                                      [725, 427, 731]][::-1]),
+                            np.array([[119, 241, 543],
+                                      [974, 629, 626],
+                                      [3, 37, 819]][::-1]),
+                            np.array([[409, 534, 710],
+                                      [916, 43, 993],
+                                      [207, 68, 282]][::-1]),
+                            np.array([[820, 169, 423],
+                                      [710, 626, 525],
+                                      [377, 777, 461]][::-1]),
+                            np.array([[475, 116, 395],
+                                      [838, 297, 262],
+                                      [650, 828, 595]][::-1]),
+                            np.array([[940, 261, 20],
+                                      [339, 934, 278],
+                                      [444, 326, 219]][::-1])]
+        sar_probamap_path = os.path.join(self.test_working_directory, "PROBAMAP_T31TCJ_model_1_seed_0_SAR.tif")
+        arrayToRaster(sar_probamap_arr, sar_probamap_path)
+        opt_probamap_path = os.path.join(self.test_working_directory, "PROBAMAP_T31TCJ_model_1_seed_0.tif")
+        arrayToRaster(opt_probamap_sar, opt_probamap_path)
+
+        # Launch function
+        ds_fus_confidence_test = Fusion.compute_probamap_fusion(fusion_dic,
+                                                                ds_choice,
+                                                                self.classif_model_pos,
+                                                                self.classif_tile_pos,
+                                                                self.classif_seed_pos,
+                                                                self.ds_choice_both,
+                                                                self.ds_choice_sar,
+                                                                self.ds_choice_opt,
+                                                                self.ds_no_choice,
+                                                                workingDirectory)
+        # assert
+        
     def test_ds_fusion(self):
         """
         TEST : Fusion.dempster_shafer_fusion. Every functions called in Fusion.dempster_shafer_fusion
