@@ -167,7 +167,7 @@ if [[ "$ok" == "1" ]]; then
       cd $prefix_dir/OTB
       mkdir -p build
       cd build
-      cmake -DCMAKE_CXX_COMPILER=${CXX} -DCMAKE_CXX_FLAGS:STRING=-std=c++14 -DUSE_SYSTEM_BOOST=ON -DBUILD_TESTING=OFF -DCMAKE_BUILD_TYPE=Release -DOTB_WRAP_PYTHON:BOOL=ON -DGDAL_SB_EXTRA_OPTIONS:STRING="--with-python" -DCMAKE_INSTALL_PREFIX=$prefix_dir/OTB/install/ -DDOWNLOAD_LOCATION=$prefix_dir/OTB/SuperBuild-archives/ -DOTB_USE_QWT=ON -DOTB_USE_GLEW=ON -DOTB_USE_GLUT=ON -DOTB_USE_OPENGL=ON $prefix_dir/OTB/OTB/SuperBuild/
+      cmake -DCMAKE_CXX_COMPILER=${CXX} -DCMAKE_CXX_FLAGS:STRING=-std=c++14 -DUSE_SYSTEM_BOOST=ON -DBUILD_TESTING=OFF -DCMAKE_BUILD_TYPE=Release -DOTB_WRAP_PYTHON:BOOL=ON -DGDAL_SB_EXTRA_OPTIONS:STRING="--with-python" -DCMAKE_INSTALL_PREFIX=$prefix_dir/OTB/install/ -DDOWNLOAD_LOCATION=$prefix_dir/OTB/SuperBuild-archives/ -DOTB_USE_QT=OFF -DOTB_USE_QWT=OFF -DOTB_USE_GLEW=OFF -DOTB_USE_GLUT=OFF -DOTB_USE_OPENGL=OFF $prefix_dir/OTB/OTB/SuperBuild/
       make
 #      make VERBOSE=1 -j2
     fi
