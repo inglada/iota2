@@ -16,6 +16,7 @@
 
 import os, sys, argparse
 from collections import OrderedDict
+from itertools import chain
 import datetime
 import time
 import csv
@@ -311,7 +312,17 @@ def zonalstats(path, rasters, params, paramstats={}, bufferDist=None, gdalpath="
             print "gdalwarp problem for feature %s (geometry error, too small area, etc.)"%(idval)
 
     # Improve columns type and width and ordering (same as nomenclature file)
-    schema['properties'] = OrderedDict([(x.encode('utf8'), 'float:10.2') for x in list(stats.columns) if x != 'geometry'])
+    classes="/home/qt/thierionv/iota2/iota2/scripts/simplification/nomenclature17.cfg"
+    nomenc = nomenclature.Iota2Nomenclature(classes, 'cfg')    
+    desclasses = nomenc.HierarchicalNomenclature.get_level_values(nomenc.getLevelNumber() - 1)
+
+    cols = [(str(x), str(z)) for x, y, w, z in desclasses]
+
+    for col in cols:
+        stats.rename(columns={col[0]:col[1]}, inplace=True)
+
+    schema['properties'] = OrderedDict([(x.decode('utf8'), 'float:10.2') for x in list(stats.columns) if x != 'geometry'])
+    
     stats["geometry"] = stats["geometry"].apply(wkt.loads)
     statsfinal = gpad.GeoDataFrame(stats, geometry="geometry")
     statsfinal.fillna(0, inplace=True)
