@@ -239,7 +239,7 @@ class iota2Classification():
             index_vector.append(idx)
         exp = "bands(im1, {})".format("{" + ",".join(map(str, index_vector)) + "}")
         reorder_app = CreateBandMathXApplication({"il": proba_map_path_in,
-                                                  "ram": self.RAM,
+                                                  "ram": str(self.RAM),
                                                   "exp": exp,
                                                   "out": proba_map_path_out})
         reorder_app.ExecuteAndWriteOutput()
