@@ -1,6 +1,8 @@
 Playing with features in iota2
 ##############################
 
+.. toctree::
+
 Write outputs
 *************
 
@@ -79,3 +81,41 @@ If you don't want the spectral indices, the variable ``GlobChain.features`` can 
 		}
 
 Note that it is possible to include additionnal spectral indices using the variable ``Sensor.additionalFeatures``. Again, it is possible to write such feature to the hard drive by setting ``GlobChain.writeOutputs`` to ``True``.
+
+Use precomputed features
+************************
+Once the features have been written on the hard drive, it possible to use them in iota2 and saving pre-processing time. It also possible to include additionnal precomputed features such as elevation or any feature that match the spatial resolution and footprint of the data.
+
+.. Warning:: It is up to you to check spatial coherence (resolution and footprint) of the provided data.
+
+To tell iota2 to use your feature, your first have to specify the path to the data with the variable ``chain.userFeatPath``. 
+
+.. code-block:: python
+
+		chain
+		{
+		# Your parameters
+		userFeatPath: "/path/to/the/features/"
+		}
+
+Then you have to explain to iota2 which features use and how to combine them with the other feature, this is done with the section ``userFeat``. Assuming you want to use the datacube written in the first section (/Sentinel2_T31TCJ_TSG.tif/) you have to make a folder corresponding to the tile T31TCJ (one folder per tile, as for Sentinel-2 original data sets) and copy the data:
+
+.. code-block:: console
+		
+		/path/to/the/features/
+		             └── T31TCJ
+			         └── Sentinel2_T31TCJ_TSG.tif
+
+.. Note:: You can use symbolic link 
+
+Then, in the configuration file you should set the section as
+
+.. code-block:: python
+
+		userFeat:
+		{
+		arbo:"/*"
+		patterns:"TSG"
+		}
+
+``arbo:"/*"`` tells iota2 to scan all the folders in the directory, and ``patterns:"TSG"`` tells iota2 to process files with the pattern "TSG" in their names. It is possible to provide a list of pattern, e.g., "TSG,MNT,NDVI".
