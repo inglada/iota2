@@ -69,7 +69,8 @@ def CountPixelByClass(databand, fid, band=0):
 
     if os.path.exists(databand):
         rastertmp = gdal.Open(databand, 0)
-        data = rastertmp.ReadAsArray(band)
+        banddata = rastertmp.GetRasterBand(band)
+        data = banddata.ReadAsArray()        
         img = label(data)
         counts = []
 
@@ -84,7 +85,6 @@ def CountPixelByClass(databand, fid, band=0):
                 counts = npcounts.tolist()
             except:
                 for reg in regionprops(img, data):
-                    print reg.intensity_image
                     counts.append([[x for x in np.unique(reg.intensity_image) if x != 0][0], reg.area])
                 
             if len(counts[0]) != 0:
@@ -110,11 +110,12 @@ def CountPixelByClass(databand, fid, band=0):
     
     return classStats, classmaj, posclassmaj
 
-def RasterStats(band, posclassmaj=None):
+def RasterStats(band, nbband=0, posclassmaj=None):
 
     if os.path.exists(band):
         rastertmp = gdal.Open(band, 0)
-        data = rastertmp.ReadAsArray()
+        banddata = rastertmp.GetRasterBand(nbband)
+        data = banddata.ReadAsArray()
         img = label(data)
         if len(np.unique(img)) != 1 or np.unique(img)[0] != 0:
                 mean = round(np.mean(data[posclassmaj]), 2)
@@ -214,7 +215,6 @@ def zonalstats(path, rasters, params, paramstats={}, bufferDist=None, gdalpath="
 
         bands = []
         success = True
-
         for idx, raster in enumerate(rasters):
             tmpfile = os.path.join(path, 'rast_%s_%s_%s'%(vectorname, str(idval), idx))
             bands.append(tmpfile)
@@ -224,7 +224,7 @@ def zonalstats(path, rasters, params, paramstats={}, bufferDist=None, gdalpath="
             try:                                
                 cmd = '%sgdalwarp -tr %s %s -tap -q -overwrite -cutline %s '\
                       '-crop_to_cutline --config GDAL_CACHEMAX 9000 -wm 9000 '\
-                      '-wo NUM_THREADS=ALL_CPUS -cwhere "FID=%s" %s %s'%(gdalpath, res, res, vector, idval, raster, tmpfile)        
+                      '-wo NUM_THREADS=ALL_CPUS -cwhere "FID=%s" %s %s'%(gdalpath, res, res, vector, idval, raster, tmpfile)
                 Utils.run(cmd)
                 success = True
             except:
@@ -236,11 +236,11 @@ def zonalstats(path, rasters, params, paramstats={}, bufferDist=None, gdalpath="
                 # Multi-raster / Multi-band (only if gdwarp can warp multi-band raster)
                 if len(rasters) != 1:
                     band = bands[int(param) - 1]
-                    nbband = 0
+                    nbband = 1
                 else:
-                    band = rasters
-                    nbband = int(param) - 1
-
+                    band = tmpfile
+                    nbband = int(param)                                    
+                        
                 if os.path.exists(band):
                     methodstat = paramstats[param]
 
@@ -250,19 +250,26 @@ def zonalstats(path, rasters, params, paramstats={}, bufferDist=None, gdalpath="
 
                     elif methodstat == 'stats':
                         cols = ["meanb%s"%(int(param)), "stdb%s"%(int(param)), "maxb%s"%(int(param)), "minb%s"%(int(param))]
-                        stats.update(pad.DataFrame(data=[RasterStats(band)], index=[idval], columns = cols))
+                        stats.update(pad.DataFrame(data=[RasterStats(band, nbband)], index=[idval], columns = cols))
                         
                     elif methodstat == 'statsmaj':
-                        if not classmaj:                            
+                        if not classmaj:
                             if "rate" in paramstats.values():
                                 idxbdclasses = [x for x in paramstats if paramstats[x] == "rate"][0]
-                                classStats, classmaj, posclassmaj = CountPixelByClass(bands[idxbdclasses - 1], idval)
-                                classStats = None
+                                if len(rasters) != 1:
+                                    bandrate = bands[idxbdclasses - 1]
+                                    nbbandrate = 0
+                                else:
+                                    bandrate = band
+                                    nbbandrate = idxbdclasses - 1
                             else:
                                 raise Exception("No classification raster provided")
                             
+                            classStats, classmaj, posclassmaj = CountPixelByClass(bandrate, idval, nbbandrate)
+                            classStats = None
+
                         cols = ["meanmajb%s"%(int(param)), "stdmajb%s"%(int(param)), "maxmajb%s"%(int(param)), "minmajb%s"%(int(param))]
-                        stats.update(pad.DataFrame(data=[RasterStats(band, posclassmaj)], index=[idval], columns = cols))
+                        stats.update(pad.DataFrame(data=[RasterStats(band, nbband, posclassmaj)], index=[idval], columns = cols))
                         
                     elif "stats_" in methodstat:                        
                         if "rate" in paramstats.values():
@@ -277,7 +284,7 @@ def zonalstats(path, rasters, params, paramstats={}, bufferDist=None, gdalpath="
                             raise Exception("No classification raster provided")
 
                         cols = ["meanb%sc%s"%(int(param), cl), "stdb%sc%s"%(int(param), cl), "maxb%sc%s"%(int(param), cl), "minb%sc%s"%(int(param), cl)]                        
-                        stats.update(pad.DataFrame(data=[RasterStats(band, posclass)], index=[idval], columns = cols))
+                        stats.update(pad.DataFrame(data=[RasterStats(band, nbband, posclass)], index=[idval], columns = cols))
 
                     else:
                         print "The method %s is not implemented"%(paramstats[param])
@@ -293,7 +300,7 @@ def zonalstats(path, rasters, params, paramstats={}, bufferDist=None, gdalpath="
     statsfinal.fillna(0, inplace=True)
     statsfinal.crs = {'init':'proj4:%s'%(spatialRef)}
 
-    statsfinal.to_file("/home/qt/thierionv/teststats.shp", driver="ESRI Shapefile", schema=schema)
+    statsfinal.to_file("/home/qt/thierionv/teststats2.shp", driver="ESRI Shapefile", schema=schema)
     # Export depending on columns number (shapefile, sqlite, geojson) # Check Issue on framagit
     
 def getParameters(vectorpath, csvstorepath="", chunk=1):
