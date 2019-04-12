@@ -59,7 +59,7 @@ Default iota2' behavior is to use the spectral bands and compute few spectral in
 		keepBands:["B2", "B3", "B4", "B8"]
 		}
 
-If you don't want the spectral indices, the variable ``GlobChain.features`` can be set to an empty list and
+If you don't want the spectral indices, the variable ``GlobChain.features`` can be set to an empty list and 
 
 .. code-block:: python
 
