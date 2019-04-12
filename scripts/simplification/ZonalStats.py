@@ -20,6 +20,8 @@ import datetime
 import time
 import csv
 from itertools import groupby
+#from osgeo.gdal import Dataset
+import osgeo
 import ogr
 import gdal
 import pandas as pad
@@ -65,10 +67,19 @@ def getUniqueId(csvpath):
     return list(set(df.groupby(0).groups))
 
 
-def CountPixelByClass(databand, fid, band=0):
+def countPixelByClass(databand, fid, band=0):
 
-    if os.path.exists(databand):
-        rastertmp = gdal.Open(databand, 0)
+    if databand:
+        if isinstance(databand, str):
+            if os.path.exists(databand):
+                rastertmp = gdal.Open(databand, 0)
+            else:
+                raise Exception('Raster file %s not exist'%(databand))
+        elif isinstance(databand, osgeo.gdal.Dataset):
+            rastertmp = databand
+        else:
+            raise Exception('Type of raster dataset not handled')
+        
         banddata = rastertmp.GetRasterBand(band)
         data = banddata.ReadAsArray()        
         img = label(data)
@@ -110,10 +121,19 @@ def CountPixelByClass(databand, fid, band=0):
     
     return classStats, classmaj, posclassmaj
 
-def RasterStats(band, nbband=0, posclassmaj=None):
+def rasterStats(band, nbband=0, posclassmaj=None):
 
-    if os.path.exists(band):
-        rastertmp = gdal.Open(band, 0)
+    if band:
+        if isinstance(band, str):
+            if os.path.exists(band):
+                rastertmp = gdal.Open(band, 0)
+            else:
+                raise Exception('Raster file %s not exist'%(band))
+        elif isinstance(band, osgeo.gdal.Dataset):
+            rastertmp = band
+        else:
+            raise Exception('Type of raster dataset not handled')
+        
         banddata = rastertmp.GetRasterBand(nbband)
         data = banddata.ReadAsArray()
         img = label(data)
@@ -216,41 +236,38 @@ def zonalstats(path, rasters, params, paramstats={}, bufferDist=None, gdalpath="
         bands = []
         success = True
         for idx, raster in enumerate(rasters):
-            tmpfile = os.path.join(path, 'rast_%s_%s_%s'%(vectorname, str(idval), idx))
-            bands.append(tmpfile)
+            try:
+                gdal.SetConfigOption("GDAL_CACHEMAX", "9000")
+                tmpfile = gdal.Warp('', raster, xRes = res, yRes = res, targetAlignedPixels = True, cutlineDSName = vector, cropToCutline = True, \
+                                    cutlineWhere = "FID=%s"%(idval), format = 'MEM', warpMemoryLimit=9000, warpOptions = ["NUM_THREADS=ALL_CPUS"])
+                
+                bands.append(tmpfile)
 
-            # TODO : try gdalwarp on multiband raster
-            # TODO : try out raster in memory
-            try:                                
-                cmd = '%sgdalwarp -tr %s %s -tap -q -overwrite -cutline %s '\
-                      '-crop_to_cutline --config GDAL_CACHEMAX 9000 -wm 9000 '\
-                      '-wo NUM_THREADS=ALL_CPUS -cwhere "FID=%s" %s %s'%(gdalpath, res, res, vector, idval, raster, tmpfile)
-                Utils.run(cmd)
                 success = True
             except:
                 success = False            
                 pass
-            
+
         if success:
             for param in paramstats:
-                # Multi-raster / Multi-band (only if gdwarp can warp multi-band raster)
+                # Multi-raster / Multi-band
                 if len(rasters) != 1:
                     band = bands[int(param) - 1]
                     nbband = 1
                 else:
                     band = tmpfile
                     nbband = int(param)                                    
-                        
-                if os.path.exists(band):
+                    
+                if band:                    
                     methodstat = paramstats[param]
 
                     if methodstat == 'rate':
-                        classStats, classmaj, posclassmaj = CountPixelByClass(band, idval, nbband)
+                        classStats, classmaj, posclassmaj = countPixelByClass(band, idval, nbband)
                         stats.update(classStats)
 
                     elif methodstat == 'stats':
                         cols = ["meanb%s"%(int(param)), "stdb%s"%(int(param)), "maxb%s"%(int(param)), "minb%s"%(int(param))]
-                        stats.update(pad.DataFrame(data=[RasterStats(band, nbband)], index=[idval], columns = cols))
+                        stats.update(pad.DataFrame(data=[rasterStats(band, nbband)], index=[idval], columns = cols))
                         
                     elif methodstat == 'statsmaj':
                         if not classmaj:
@@ -265,11 +282,11 @@ def zonalstats(path, rasters, params, paramstats={}, bufferDist=None, gdalpath="
                             else:
                                 raise Exception("No classification raster provided")
                             
-                            classStats, classmaj, posclassmaj = CountPixelByClass(bandrate, idval, nbbandrate)
+                            classStats, classmaj, posclassmaj = countPixelByClass(bandrate, idval, nbbandrate)
                             classStats = None
 
                         cols = ["meanmajb%s"%(int(param)), "stdmajb%s"%(int(param)), "maxmajb%s"%(int(param)), "minmajb%s"%(int(param))]
-                        stats.update(pad.DataFrame(data=[RasterStats(band, nbband, posclassmaj)], index=[idval], columns = cols))
+                        stats.update(pad.DataFrame(data=[rasterStats(band, nbband, posclassmaj)], index=[idval], columns = cols))
                         
                     elif "stats_" in methodstat:                        
                         if "rate" in paramstats.values():
@@ -284,7 +301,7 @@ def zonalstats(path, rasters, params, paramstats={}, bufferDist=None, gdalpath="
                             raise Exception("No classification raster provided")
 
                         cols = ["meanb%sc%s"%(int(param), cl), "stdb%sc%s"%(int(param), cl), "maxb%sc%s"%(int(param), cl), "minb%sc%s"%(int(param), cl)]                        
-                        stats.update(pad.DataFrame(data=[RasterStats(band, nbband, posclass)], index=[idval], columns = cols))
+                        stats.update(pad.DataFrame(data=[rasterStats(band, nbband, posclass)], index=[idval], columns = cols))
 
                     else:
                         print "The method %s is not implemented"%(paramstats[param])
