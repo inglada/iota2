@@ -293,7 +293,7 @@ class iota_testOpticalSARFusion(unittest.TestCase):
         from Classification import Fusion
         from Common import IOTA2Directory
         from Common import ServiceConfigFile as SCF
-        
+
         # define inputs
         sar_raster = os.path.join(self.test_working_directory, "Classif_T31TCJ_model_1_seed_0_SAR.tif")
         opt_raster = os.path.join(self.test_working_directory, "Classif_T31TCJ_model_1_seed_0.tif")
@@ -314,6 +314,7 @@ class iota_testOpticalSARFusion(unittest.TestCase):
                       "opt_model": self.opt_confusion}
         workingDirectory = None
 
+        # random probability maps
         sar_probamap_arr = [np.array([[253, 874, 600],
                                       [947, 812, 941],
                                       [580, 94, 192]][::-1]),
@@ -332,7 +333,7 @@ class iota_testOpticalSARFusion(unittest.TestCase):
                             np.array([[870, 201, 85],
                                       [555, 644, 802],
                                       [98, 807, 77]][::-1])]
-        opt_probamap_sar = [np.array([[268, 528, 131],
+        opt_probamap_arr = [np.array([[268, 528, 131],
                                       [514, 299, 252],
                                       [725, 427, 731]][::-1]),
                             np.array([[119, 241, 543],
@@ -350,10 +351,11 @@ class iota_testOpticalSARFusion(unittest.TestCase):
                             np.array([[940, 261, 20],
                                       [339, 934, 278],
                                       [444, 326, 219]][::-1])]
+        # to rasters
         sar_probamap_path = os.path.join(self.test_working_directory, "PROBAMAP_T31TCJ_model_1_seed_0_SAR.tif")
         arrayToRaster(sar_probamap_arr, sar_probamap_path)
         opt_probamap_path = os.path.join(self.test_working_directory, "PROBAMAP_T31TCJ_model_1_seed_0.tif")
-        arrayToRaster(opt_probamap_sar, opt_probamap_path)
+        arrayToRaster(opt_probamap_arr, opt_probamap_path)
 
         # Launch function
         ds_fus_confidence_test = Fusion.compute_probamap_fusion(fusion_dic,
@@ -366,8 +368,34 @@ class iota_testOpticalSARFusion(unittest.TestCase):
                                                                 self.ds_choice_opt,
                                                                 self.ds_no_choice,
                                                                 workingDirectory)
-        # assert
+        # asserts
         
+        # length assert
+        from Common.FileUtils import getRasterNbands
+        self.assertTrue(len(sar_probamap_arr)==len(opt_probamap_arr)==getRasterNbands(ds_fus_confidence_test))
+        
+        # fusion assert
+        is_ok = []
+        ds_fus_confidence_test_arr = rasterToArray(ds_fus_confidence_test)
+        for band_num in range(len(ds_fus_confidence_test_arr)):
+            merged_band = ds_fus_confidence_test_arr[band_num]
+            sar_proba_band = sar_probamap_arr[band_num]
+            opt_proba_band = opt_probamap_arr[band_num]
+            for (merged_proba, sar_proba, opt_proba,
+                 choice, sar_confi, opt_confi) in zip(merged_band.flat, sar_proba_band.flat,
+                                                      opt_proba_band.flat, self.choice_map_ref.flat,
+                                                      self.sar_confidence.flat, self.optical_confidence.flat):
+                if choice == 1:
+                    if sar_confi > opt_confi:
+                        is_ok.append(int(merged_proba)==int(sar_proba))
+                    else:
+                        is_ok.append(int(merged_proba)==int(opt_proba))
+                elif choice == 2:
+                    is_ok.append(int(merged_proba)==int(sar_proba))
+                elif choice == 3:
+                    is_ok.append(int(merged_proba)==int(opt_proba))
+        self.assertTrue(all(is_ok))
+
     def test_ds_fusion(self):
         """
         TEST : Fusion.dempster_shafer_fusion. Every functions called in Fusion.dempster_shafer_fusion
