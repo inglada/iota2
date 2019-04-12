@@ -1,6 +1,10 @@
+Write intermediate results
+##########################
+
 Write outputs
 *************
-.. Note:: It is assumed that examples in :doc:`IOTA2_Example <IOTA2_Example>` were properly.
+
+.. Note:: It is assumed that examples in :doc:`IOTA2_Example <IOTA2_Example>` were properly run.
 
 The first steps of iota2 correspond to the definition of data cubes: all temporal acquisitions are stacked together. For instace, with 10 temporal acquisitions and 4 spectral bands. An hypercube of 40 spectro-temporal features is used for the processing. If needed, additionnal steps are required to handle irregular time sampling and clouds/shadows, such as describe in `https://www.mdpi.com/2072-4292/11/4/433`: this is a common situation when processing several Sentinel-2 tiles. Such steps will basically, will project all the data onto a same and regular sampletime (whose step is define by the variable ``Sensor.temporalResolution``). It is termed /Gapfilling/.
 
@@ -9,6 +13,7 @@ Because it can leads to very large set of files, the default behavior of iota2 i
 However, it is possible to tell iota2 to write outputs, for further analysis for instance. This feature is controled by the variable ``GlobChain.writeOutputs``. To do so, the variable must be set to ``True`` in the configuration file:
 
 .. code-block:: python
+		
 		GlobChain:
 		{
 		# Your parameters
@@ -18,6 +23,7 @@ However, it is possible to tell iota2 to write outputs, for further analysis for
 With respect to the standard ouput, for each tile, the data cube before and after the gapfilling, and the complete cube of feature (spectral bands + spectral indices) after gapfilling are written.
 
 .. code-block:: console
+		
 		features/
 		└── T31TCJ
 		    ├── CloudThreshold_0.dbf
@@ -40,4 +46,28 @@ With respect to the standard ouput, for each tile, the data cube before and afte
                         └── T31TCJ_Features.tif
 
 
-   
+Select a subset of features
+***************************
+
+Default iota2' behavior is to use the spectral bands and compute few spectral indices. It is possible to select a few of them. For instance, with Sentinel-2 to use only the spectral bands at 10m/pixel the variable ``Sensor.keepBands`` can be changed to
+
+.. code-block:: python
+		
+		Sentinel_2:
+		{
+		# Your parameters
+		keepBands:["B2", "B3", "B4", "B8"]
+		}
+
+If you don't want the spectral indices, the variable ``GlobChain.features`` can be set to an empty list and
+
+.. code-block:: python
+
+		GlobChain:
+		{
+		# Your parameters
+		writeOutputs:True # or False
+		features : []
+		}
+
+Note that it is possible to include additionnal spectral indices using the variable ``Sensor.additionalFeatures``.
