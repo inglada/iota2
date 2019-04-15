@@ -27,6 +27,7 @@ import ogr
 import gdal
 import pandas as pad
 import geopandas as gpad
+import fiona
 from shapely import wkt
 from skimage.measure import label
 from skimage.measure import regionprops
@@ -311,24 +312,28 @@ def zonalstats(path, rasters, params, paramstats={}, bufferDist=None, gdalpath="
         else:
             print "gdalwarp problem for feature %s (geometry error, too small area, etc.)"%(idval)
 
-    # Improve columns type and width and ordering (same as nomenclature file)
-    classes="/home/qt/thierionv/iota2/iota2/scripts/simplification/nomenclature17.cfg"
-    nomenc = nomenclature.Iota2Nomenclature(classes, 'cfg')    
-    desclasses = nomenc.HierarchicalNomenclature.get_level_values(nomenc.getLevelNumber() - 1)
-
-    cols = [(str(x), str(z)) for x, y, w, z in desclasses]
-
-    for col in cols:
-        stats.rename(columns={col[0]:col[1]}, inplace=True)
-
-    schema['properties'] = OrderedDict([(x.decode('utf8'), 'float:10.2') for x in list(stats.columns) if x != 'geometry'])
-    
+            
+    # Export
     stats["geometry"] = stats["geometry"].apply(wkt.loads)
     statsfinal = gpad.GeoDataFrame(stats, geometry="geometry")
     statsfinal.fillna(0, inplace=True)
     statsfinal.crs = {'init':'proj4:%s'%(spatialRef)}
 
-    statsfinal.to_file("/home/qt/thierionv/teststats2.shp", driver="ESRI Shapefile", schema=schema)
+    # change column names
+    # get multi-level nomenclature
+    classes="/home/qt/thierionv/iota2/iota2/scripts/simplification/nomenclature17.cfg"
+    nomenc = nomenclature.Iota2Nomenclature(classes, 'cfg')    
+    desclasses = nomenc.HierarchicalNomenclature.get_level_values(nomenc.getLevelNumber() - 1)
+    cols = [(str(x), str(z)) for x, y, w, z in desclasses]
+
+    for col in cols:
+        statsfinal.rename(columns={col[0]:col[1].decode('utf8')}, inplace=True)
+
+    # change columns type
+    schema['properties'] = OrderedDict([(x, 'float:10.2') for x in list(statsfinal.columns) if x != 'geometry'])    
+
+    # exportation
+    statsfinal.to_file("/home/qt/thierionv/teststats3.shp", driver="ESRI Shapefile", schema=schema, encoding='utf-8')
     # Export depending on columns number (shapefile, sqlite, geojson) # Check Issue on framagit
     
 def getParameters(vectorpath, csvstorepath="", chunk=1):
