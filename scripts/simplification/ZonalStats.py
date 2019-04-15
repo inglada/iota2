@@ -171,7 +171,7 @@ def definePandasDf(idvals, paramstats={1:'rate', 2:'statsmaj', 3:'stats_11'}, cl
 
     return gpad.GeoDataFrame(np.nan, index=idvals, columns=cols)        
     
-def zonalstats(path, rasters, params, paramstats={}, bufferDist=None, gdalpath="", res=10, write_ouput=False, gdalcachemax="9000"):
+def zonalstats(path, rasters, params, output, paramstats={}, bufferDist=None, gdalpath="", res=10, write_ouput=False, gdalcachemax="9000"):
 
     # issues sur frama : 1. nouveau : pour Zonal stats 2. modif : nomenclature => modification du fichier de configuration 
     # exemple de paramétrage de statistiques
@@ -340,19 +340,35 @@ def zonalstats(path, rasters, params, paramstats={}, bufferDist=None, gdalpath="
     # change columns type
     schema['properties'] = OrderedDict([(x, 'float:10.2') for x in list(statsfinal.columns) if x != 'geometry'])    
 
-    # exportation
-    statsfinal.to_file("/home/qt/thierionv/teststats3.shp", driver="ESRI Shapefile", schema=schema, encoding='utf-8')
+    # exportation # TO TEST
+    convert = False
+    if os.path.splitext(output)[1] == ".shp":
+        driver = "ESRI Shapefile"
+    elif os.path.splitext(output)[1] == ".geojson":
+        driver = "GeoJSON"
+    elif os.path.splitext(output)[1] == ".sqlite":
+        driver = "ESRI Shapefile"
+        convert = True
+    else:
+        raise Exception("This outpuit format is not handled")
+
+    if not convert:
+        statsfinal.to_file(output, driver=driver, schema=schema, encoding='utf-8')
+    else:
+        outputinter = os.path.splitext(output)[0] + '.shp'
+        statsfinal.to_file(outputinter, driver=driver, schema=schema, encoding='utf-8')
+        output = os.path.splitext(output)[0] + '.sqlite'        
+        Utils.run('ogr2ogr -f SQLite %s %s'%(output, outputinter))
+            
     # Export depending on columns number (shapefile, sqlite, geojson) # Check Issue on framagit
     
-def getParameters(vectorpath, csvstorepath="", chunk=1):
+def getParameters(vectorpath, chunk=1):
     
     listvectors = getVectorsList(vectorpath)
     params = []
     if os.path.isdir(vectorpath):
         for vect in listvectors:
-            listfid = getFidList(vect)
-            # prepare list of fids to remove in listfid before chunk
-            
+            listfid = getFidList(vect)            
             #TODO : split in chunks with sum of feature areas quite equal
             listfid = [listfid[i::chunk] for i in xrange(chunk)]
             for fidlist in listfid:                 
@@ -368,7 +384,7 @@ def getParameters(vectorpath, csvstorepath="", chunk=1):
 def computZonalStats(path, inr, shape, csvstore, gdal, chunk=1):
 
     #TODO : optimize chunk with real-time HPC ressources
-    params = getParameters(shape, csvstore, chunk)
+    params = getParameters(shape, chunk)
 
     for parameters in params:
         zonalstats(path, inr, parameters, gdal, chunk)
