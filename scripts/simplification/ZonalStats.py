@@ -171,7 +171,7 @@ def definePandasDf(idvals, paramstats={1:'rate', 2:'statsmaj', 3:'stats_11'}, cl
 
     return gpad.GeoDataFrame(np.nan, index=idvals, columns=cols)        
     
-def zonalstats(path, rasters, params, paramstats={}, bufferDist=None, gdalpath="", res=10):
+def zonalstats(path, rasters, params, paramstats={}, bufferDist=None, gdalpath="", res=10, write_ouput=False, gdalcachemax="9000"):
 
     # issues sur frama : 1. nouveau : pour Zonal stats 2. modif : nomenclature => modification du fichier de configuration 
     # exemple de paramétrage de statistiques
@@ -238,10 +238,18 @@ def zonalstats(path, rasters, params, paramstats={}, bufferDist=None, gdalpath="
         bands = []
         success = True
         for idx, raster in enumerate(rasters):
+            if write_ouput:
+                tmpfile = os.path.join(path, 'rast_%s_%s_%s'%(vectorname, str(idval), idx))            
             try:
-                gdal.SetConfigOption("GDAL_CACHEMAX", "9000")
-                tmpfile = gdal.Warp('', raster, xRes = res, yRes = res, targetAlignedPixels = True, cutlineDSName = vector, cropToCutline = True, \
-                                    cutlineWhere = "FID=%s"%(idval), format = 'MEM', warpMemoryLimit=9000, warpOptions = ["NUM_THREADS=ALL_CPUS"])
+                if write_ouput:
+                    cmd = '%sgdalwarp -tr %s %s -tap -q -overwrite -cutline %s '\
+                          '-crop_to_cutline --config GDAL_CACHEMAX %s -wm %s '\
+                          '-wo NUM_THREADS=ALL_CPUS -cwhere "FID=%s" %s %s'%(gdalpath, res, res, vector, gdalcachemax, gdalcachemax, idval, raster, tmpfile)
+                    Utils.run(cmd)
+                else:                    
+                    gdal.SetConfigOption("GDAL_CACHEMAX", gdalcachemax)
+                    tmpfile = gdal.Warp('', raster, xRes = res, yRes = res, targetAlignedPixels = True, cutlineDSName = vector, cropToCutline = True, \
+                                        cutlineWhere = "FID=%s"%(idval), format = 'MEM', warpMemoryLimit=9000, warpOptions = ["NUM_THREADS=ALL_CPUS"])
                 
                 bands.append(tmpfile)
 
