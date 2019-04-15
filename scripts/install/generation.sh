@@ -34,7 +34,7 @@ echo $SH_DIR
 prefix_dir=$SH_DIR
 ok=0
 OTB_VERSION='6.6.1'
-#~ OTB_DEV_COMMIT='766b5b4a716d02a7320ee6b3cabdf7a9a65ca68d'
+OTB_DEV_COMMIT='8271c62b5891d3da9cb2e9ba3a2706a26de8c323'
 
 if [ ! -z $CXX ]; then
   echo "Compiler used : $CXX"
@@ -81,8 +81,8 @@ if [[ "$ok" == "1" ]]; then
       else
         git clone -b develop https://github.com/orfeotoolbox/OTB.git
         cd OTB
-        #~ git checkout $OTB_DEV_COMMIT
-        git checkout release-6.6
+        git checkout $OTB_DEV_COMMIT
+        #~ git checkout release-6.6
       fi
 
       echo "Getting Superbuild archives ..."
@@ -167,7 +167,7 @@ if [[ "$ok" == "1" ]]; then
       cd $prefix_dir/OTB
       mkdir -p build
       cd build
-      cmake -DCMAKE_CXX_COMPILER=${CXX} -DCMAKE_CXX_FLAGS:STRING=-std=c++14 -DUSE_SYSTEM_BOOST=ON -DBUILD_TESTING=OFF -DCMAKE_BUILD_TYPE=Release -DOTB_WRAP_PYTHON:BOOL=ON -DGDAL_SB_EXTRA_OPTIONS:STRING="--with-python" -DCMAKE_INSTALL_PREFIX=$prefix_dir/OTB/install/ -DDOWNLOAD_LOCATION=$prefix_dir/OTB/SuperBuild-archives/ -DOTB_USE_QT=OFF -DOTB_USE_QWT=OFF -DOTB_USE_GLEW=OFF -DOTB_USE_GLUT=OFF -DOTB_USE_OPENGL=OFF $prefix_dir/OTB/OTB/SuperBuild/
+      cmake -DPYTHON_INCLUDE_DIR=/usr/include/python2.7 -DPYTHON_EXECUTABLE=/usr/bin/python2.7 -DCMAKE_CXX_COMPILER=${CXX} -DCMAKE_CXX_FLAGS:STRING=-std=c++14 -DUSE_SYSTEM_BOOST=ON -DBUILD_TESTING=OFF -DCMAKE_BUILD_TYPE=Release -DOTB_WRAP_PYTHON:BOOL=ON -DGDAL_SB_EXTRA_OPTIONS:STRING="--with-python" -DCMAKE_INSTALL_PREFIX=$prefix_dir/OTB/install/ -DDOWNLOAD_LOCATION=$prefix_dir/OTB/SuperBuild-archives/ -DOTB_USE_QT=OFF -DOTB_USE_QWT=OFF -DOTB_USE_GLEW=OFF -DOTB_USE_GLUT=OFF -DOTB_USE_OPENGL=OFF $prefix_dir/OTB/OTB/SuperBuild/
       make
 #      make VERBOSE=1 -j2
     fi
@@ -175,7 +175,7 @@ if [[ "$ok" == "1" ]]; then
       # Building iota2
       echo "Building iota2 ..."
       cd $prefix_dir/OTB/build/OTB/build
-      cmake -DCMAKE_CXX_COMPILER=${CXX} -DCMAKE_CXX_FLAGS:STRING=-std=c++14 -DModule_IOTA2:BOOL=ON -DModule_IOTA2:BOOL=ON -DModule_OTBTemporalGapFilling:BOOL=ON -DModule_MultitempFiltering:BOOL=ON -DModule_OTBAppPointMatchCoregistration:BOOL=ON $prefix_dir/OTB/OTB 
+      cmake -DPYTHON_INCLUDE_DIR=/usr/include/python2.7 -DPYTHON_EXECUTABLE=/usr/bin/python2.7 -DCMAKE_CXX_COMPILER=${CXX} -DCMAKE_CXX_FLAGS:STRING=-std=c++14 -DModule_IOTA2:BOOL=ON -DModule_IOTA2:BOOL=ON -DModule_OTBTemporalGapFilling:BOOL=ON -DModule_MultitempFiltering:BOOL=ON -DModule_OTBAppPointMatchCoregistration:BOOL=ON $prefix_dir/OTB/OTB 
       make
       make install
     fi
