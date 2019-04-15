@@ -249,7 +249,7 @@ def zonalstats(path, rasters, params, paramstats={}, bufferDist=None, gdalpath="
                 else:                    
                     gdal.SetConfigOption("GDAL_CACHEMAX", gdalcachemax)
                     tmpfile = gdal.Warp('', raster, xRes = res, yRes = res, targetAlignedPixels = True, cutlineDSName = vector, cropToCutline = True, \
-                                        cutlineWhere = "FID=%s"%(idval), format = 'MEM', warpMemoryLimit=9000, warpOptions = ["NUM_THREADS=ALL_CPUS"])
+                                        cutlineWhere = "FID=%s"%(idval), format = 'MEM', warpMemoryLimit=gdalcachemax, warpOptions = ["NUM_THREADS=ALL_CPUS"])
                 
                 bands.append(tmpfile)
 
