@@ -1330,6 +1330,22 @@ def getRasterExtent(raster_in):
             retour = [minX, maxX, minY, maxY]
     return retour
 
+def matchGrid(val,grid):
+	return min(grid, key = lambda x:abs(x-val))
+
+def geoToPix(raster,geoX,geoY):
+	
+	minXe,maxXe,minYe,maxYe = getRasterExtent(raster)
+	spacingX,spacingY = getRasterResolution(raster)
+	Xgrid = np.arange(minXe+spacingX,maxXe,spacingX)
+	Ygrid = np.arange(maxYe-spacingY,minYe,spacingY)
+
+	pixX = list(Xgrid).index(matchGrid(geoX,Xgrid))
+	pixY = list(Ygrid).index(matchGrid(geoY,Ygrid))
+	
+	print "X : "+str(pixX)+"\nY : "+str(pixY)
+	return pixX, pixY
+
 
 def ResizeImage(imgIn, imout, spx, spy, imref, proj, pixType):
     """
