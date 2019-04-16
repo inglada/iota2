@@ -138,12 +138,14 @@ def rasterStats(band, nbband=0, posclassmaj=None):
         
         banddata = rastertmp.GetRasterBand(nbband)
         data = banddata.ReadAsArray()
+        print data
         img = label(data)
-        if len(np.unique(img)) != 1 or np.unique(img)[0] != 0:
-                mean = round(np.mean(data[posclassmaj]), 2)
-                std = round(np.std(data[posclassmaj]), 2)
-                max = round(np.max(data[posclassmaj]), 2)
-                min = round(np.min(data[posclassmaj]), 2)
+
+        #if len(np.unique(img)) != 1 or np.unique(img)[0] != 0:
+        mean = round(np.mean(data[posclassmaj]), 2)
+        std = round(np.std(data[posclassmaj]), 2)
+        max = round(np.max(data[posclassmaj]), 2)
+        min = round(np.min(data[posclassmaj]), 2)
                 
         return mean, std, max, min
 
@@ -171,7 +173,7 @@ def definePandasDf(idvals, paramstats={1:'rate', 2:'statsmaj', 3:'stats_11'}, cl
 
     return gpad.GeoDataFrame(np.nan, index=idvals, columns=cols)        
     
-def zonalstats(path, rasters, params, output, paramstats={}, bufferDist=None, gdalpath="", res=10, write_ouput=False, gdalcachemax="9000"):
+def zonalstats(path, rasters, params, output, paramstats, bufferDist=None, gdalpath="", res=10, write_ouput=False, gdalcachemax="9000"):
 
     # issues sur frama : 1. nouveau : pour Zonal stats 2. modif : nomenclature => modification du fichier de configuration 
     # exemple de paramétrage de statistiques
@@ -180,9 +182,11 @@ def zonalstats(path, rasters, params, output, paramstats={}, bufferDist=None, gd
     # statsmaj : meanmaj, stdmaj, maxmaj, minmaj of majority class
     # rate : rate of each pixel value (classe names)
     # stats_cl : mean_cl, std_cl, max_cl, min_cl of one class    
-
-    vector, idvals = params
     
+    vector, idvals = params
+
+    res = abs(fut.getRasterResolution(rasters[0])[0])
+
     # if no vector subsetting (all features)
     if not idvals:
         idvals = getFidList(vector)
@@ -190,6 +194,7 @@ def zonalstats(path, rasters, params, output, paramstats={}, bufferDist=None, gd
     # vector open and iterate features and/or buffer geom
     vectorname = os.path.splitext(os.path.basename(vector))[0]
     vectorgeomtype = vf.getGeomType(vector)
+    vectorbuff = None
     if vectorgeomtype in (1, 4, 1001, 1004):
         if vectorgeomtype == 1:
             schema = {'geometry': 'Point', 'properties' : {}}
@@ -208,18 +213,16 @@ def zonalstats(path, rasters, params, output, paramstats={}, bufferDist=None, gd
             
     else:
         raise Exception("Geometry type of vector file not handled")
-    
+
     ds = vf.openToRead(vector)
     lyr = ds.GetLayer()
     spatialRef = lyr.GetSpatialRef().ExportToProj4()
     
     # Prepare stats DataFrame
-    paramstats = {2:'statsmaj', 1:'rate', 3:'stats'}
     stats = definePandasDf(idvals, paramstats)
 
     # Iterate FID list
     for idval in idvals:        
-    
         lyr.SetAttributeFilter("FID=" + str(idval))
         for feat in lyr:
             geom = feat.GetGeometryRef()
@@ -240,23 +243,26 @@ def zonalstats(path, rasters, params, output, paramstats={}, bufferDist=None, gd
         for idx, raster in enumerate(rasters):
             if write_ouput:
                 tmpfile = os.path.join(path, 'rast_%s_%s_%s'%(vectorname, str(idval), idx))            
-            try:
-                if write_ouput:
-                    cmd = '%sgdalwarp -tr %s %s -tap -q -overwrite -cutline %s '\
-                          '-crop_to_cutline --config GDAL_CACHEMAX %s -wm %s '\
-                          '-wo NUM_THREADS=ALL_CPUS -cwhere "FID=%s" %s %s'%(gdalpath, res, res, vector, gdalcachemax, gdalcachemax, idval, raster, tmpfile)
-                    Utils.run(cmd)
-                else:                    
-                    gdal.SetConfigOption("GDAL_CACHEMAX", gdalcachemax)
-                    tmpfile = gdal.Warp('', raster, xRes = res, yRes = res, targetAlignedPixels = True, cutlineDSName = vector, cropToCutline = True, \
-                                        cutlineWhere = "FID=%s"%(idval), format = 'MEM', warpMemoryLimit=gdalcachemax, warpOptions = ["NUM_THREADS=ALL_CPUS"])
-                
-                bands.append(tmpfile)
+            #try:
+            if write_ouput:
+                cmd = '%sgdalwarp -tr %s %s -tap -q -overwrite -cutline %s '\
+                      '-crop_to_cutline --config GDAL_CACHEMAX %s -wm %s '\
+                      '-wo "NUM_THREADS=ALL_CPUS" -wo "CUTLINE_ALL_TOUCHED=YES" -cwhere "FID=%s" %s %s -ot Float32'%(gdalpath, res, res, vector, gdalcachemax, gdalcachemax, idval, raster, tmpfile)
 
-                success = True
-            except:
-                success = False            
-                pass
+                #gdalwarp -tr 8000 8000 -tap -overwrite -cutline /work/OT/theia/oso/vincent/DT_MAIZE_IRR_ER10_L93.shp -crop_to_cutline -cwhere "FID=0" /work/OT/theia/oso/vincent/RASTER_SAFRAN_Concatenat_20170916.tif /home/qt/thierionv/tmp/rast_DT_MAIZE_IRR_ER10_L93_0_0 -ot Float32 -wo "CUTLINE_ALL_TOUCHED=YES"
+                print cmd
+                Utils.run(cmd)
+            else:                    
+                gdal.SetConfigOption("GDAL_CACHEMAX", gdalcachemax)
+                tmpfile = gdal.Warp('', raster, xRes = res, yRes = res, targetAlignedPixels = True, cutlineDSName = vector, cropToCutline = True, \
+                                    cutlineWhere = "FID=%s"%(idval), format = 'MEM', warpMemoryLimit=gdalcachemax, warpOptions = [["NUM_THREADS=ALL_CPUS"],["CUTLINE_ALL_TOUCHED=YES"]])
+                
+            bands.append(tmpfile)
+
+            #success = True
+            #except:
+            #success = False            
+            #pass
 
         if success:
             for param in paramstats:
@@ -266,7 +272,7 @@ def zonalstats(path, rasters, params, output, paramstats={}, bufferDist=None, gd
                     nbband = 1
                 else:
                     band = tmpfile
-                    nbband = int(param)                                    
+                    nbband = int(param)
                     
                 if band:                    
                     methodstat = paramstats[param]
@@ -342,6 +348,7 @@ def zonalstats(path, rasters, params, output, paramstats={}, bufferDist=None, gd
 
     # exportation # TO TEST
     convert = False
+    print output
     if os.path.splitext(output)[1] == ".shp":
         driver = "ESRI Shapefile"
     elif os.path.splitext(output)[1] == ".geojson":
@@ -374,6 +381,7 @@ def getParameters(vectorpath, chunk=1):
             for fidlist in listfid:                 
                 params.append((vect, fidlist))
     else:
+        vect = vectorpath
         listfid = getFidList(vectorpath)
         listfid = [listfid[i::chunk] for i in xrange(chunk)]        
         for fidlist in listfid:                 
@@ -381,15 +389,14 @@ def getParameters(vectorpath, chunk=1):
 
     return params
 
-def computZonalStats(path, inr, shape, csvstore, gdal, chunk=1):
+def computZonalStats(path, inr, shape, params, output, buffer="", gdal="", chunk=1, cache="1000", write_outputs=False):
 
     #TODO : optimize chunk with real-time HPC ressources
-    params = getParameters(shape, chunk)
+    chunks = getParameters(shape, chunk)
 
-    for parameters in params:
-        zonalstats(path, inr, parameters, gdal, chunk)
-
-
+    for block in chunks:
+        zonalstats(path, inr, block, output, params, buffer, gdal, write_outputs, cache)
+        
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         PROG = os.path.basename(sys.argv[0])
@@ -409,14 +416,23 @@ if __name__ == "__main__":
         PARSER.add_argument("-shape", dest="shape", action="store",\
                             help="shapefiles path",\
                             required=True)
-        PARSER.add_argument("-csvpath", dest="csvpath", action="store",\
-                            help="stats output path",\
+        PARSER.add_argument("-output", dest="output", action="store",\
+                            help="vector output with statistics",\
                             required=True)        
         PARSER.add_argument("-gdal", dest="gdal", action="store",\
                             help="gdal 2.2.4 binaries path (problem of very small features with lower gdal version)", default = "")
         PARSER.add_argument("-chunk", dest="chunk", action="store",\
-                            help="number of feature groups", default=1)        
+                            help="number of feature groups", default=1)
+        PARSER.add_argument("-params", dest="params", action="store",\
+                            help="", default={1:"stats"})
+        PARSER.add_argument("-buffer", dest="buffer", action="store",\
+                            help="", default="")
+        PARSER.add_argument("-write_outputs", action='store_true',\
+                            help="", default=False)
+        PARSER.add_argument("-gdal_cache", dest="cache", action="store",\
+                            help="", default="1000")
         
         args = PARSER.parse_args()
-
-        computZonalStats(args.path, args.inr, args.shape, args.csvpath, args.gdal, args.chunk)
+        #zonalstats(args.path, args.inr, [args.shape, None], {1:'rate'})
+        #(path, rasters, params, output, paramstats={}, bufferDist=None, gdalpath="", write_ouput=False, gdalcachemax="9000"):
+        computZonalStats(args.path, args.inr, args.shape, args.params, args.output, args.buffer, args.gdal, args.chunk, args.cache, args.write_outputs)
