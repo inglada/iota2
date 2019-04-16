@@ -123,7 +123,7 @@ def countPixelByClass(databand, fid, band=0):
     
     return classStats, classmaj, posclassmaj
 
-def rasterStats(band, nbband=0, posclassmaj=None):
+def rasterStats(band, nbband=0, posclassmaj=None, posToRead=None):
 
     if band:
         if isinstance(band, str):
@@ -137,17 +137,20 @@ def rasterStats(band, nbband=0, posclassmaj=None):
             raise Exception('Type of raster dataset not handled')
         
         banddata = rastertmp.GetRasterBand(nbband)
-        data = banddata.ReadAsArray()
-        print data
-        img = label(data)
 
-        #if len(np.unique(img)) != 1 or np.unique(img)[0] != 0:
-        mean = round(np.mean(data[posclassmaj]), 2)
-        std = round(np.std(data[posclassmaj]), 2)
-        max = round(np.max(data[posclassmaj]), 2)
-        min = round(np.min(data[posclassmaj]), 2)
-                
-        return mean, std, max, min
+        if not posToRead:
+            data = banddata.ReadAsArray()
+            img = label(data)
+            if len(np.unique(img)) != 1 or np.unique(img)[0] != 0:
+                mean = round(np.mean(data[posclassmaj]), 2)
+                std = round(np.std(data[posclassmaj]), 2)
+                max = round(np.max(data[posclassmaj]), 2)
+                min = round(np.min(data[posclassmaj]), 2)
+
+            return mean, std, max, min
+        else:
+            data = banddata.ReadAsArray(posToRead[0], posToRead[1], posToRead[2], posToRead[3])[0]
+            return data
 
 
 def definePandasDf(idvals, paramstats={1:'rate', 2:'statsmaj', 3:'stats_11'}, classes="/home/qt/thierionv/iota2/iota2/scripts/simplification/nomenclature17.cfg"):
@@ -155,7 +158,7 @@ def definePandasDf(idvals, paramstats={1:'rate', 2:'statsmaj', 3:'stats_11'}, cl
     cols = []
 
     for param in paramstats:
-        if paramstats[param] == "rate": 
+        if paramstats[param] == "rate":
             nomenc = nomenclature.Iota2Nomenclature(classes, 'cfg')    
             desclasses = nomenc.HierarchicalNomenclature.get_level_values(nomenc.getLevelNumber() - 1)
             [cols.append(str(x)) for x, y, w, z in desclasses]
@@ -166,6 +169,8 @@ def definePandasDf(idvals, paramstats={1:'rate', 2:'statsmaj', 3:'stats_11'}, cl
         elif "stats_" in paramstats[param]:
             cl = paramstats[param].split('_')[1]            
             [cols.append(x) for x in ["meanb%sc%s"%(param, cl), "stdb%sc%s"%(param, cl), "maxb%sc%s"%(param, cl), "minb%sc%s"%(param, cl)]]
+        elif "val" in paramstats[param]:
+            [cols.append("val%bs"%(param))]
         else:
             raise Exception("The method %s is not implemented")%(paramstats[param])
 
@@ -173,7 +178,7 @@ def definePandasDf(idvals, paramstats={1:'rate', 2:'statsmaj', 3:'stats_11'}, cl
 
     return gpad.GeoDataFrame(np.nan, index=idvals, columns=cols)        
     
-def zonalstats(path, rasters, params, output, paramstats, bufferDist=None, gdalpath="", res=10, write_ouput=False, gdalcachemax="9000"):
+def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist=None, gdalpath="", res=10, write_ouput=False, gdalcachemax="9000"):
 
     # issues sur frama : 1. nouveau : pour Zonal stats 2. modif : nomenclature => modification du fichier de configuration 
     # exemple de paramétrage de statistiques
@@ -181,7 +186,8 @@ def zonalstats(path, rasters, params, output, paramstats, bufferDist=None, gdalp
     # stats : mean_b, std_b, max_b, min_b
     # statsmaj : meanmaj, stdmaj, maxmaj, minmaj of majority class
     # rate : rate of each pixel value (classe names)
-    # stats_cl : mean_cl, std_cl, max_cl, min_cl of one class    
+    # stats_cl : mean_cl, std_cl, max_cl, min_cl of one class
+    # val : value of corresponding pixel (only for Point geom)
     
     vector, idvals = params
 
@@ -195,31 +201,36 @@ def zonalstats(path, rasters, params, output, paramstats, bufferDist=None, gdalp
     vectorname = os.path.splitext(os.path.basename(vector))[0]
     vectorgeomtype = vf.getGeomType(vector)
     vectorbuff = None
-    if vectorgeomtype in (1, 4, 1001, 1004):
+    # Value extraction
+    if not bufferDist and vectorgeomtype in (1, 4, 1001, 1004):
         if vectorgeomtype == 1:
             schema = {'geometry': 'Point', 'properties' : {}}
         elif vectorgeomtype == 4:
             schema = {'geometry': 'MultiPoint', 'properties' : {}}
-            
-        if not bufferDist:
-            bufferDist = res / 2
-        vectorbuff = vectorname + "buff.shp"
-        lyr = bfo.bufferPoly(vector, vectorbuff, bufferDist=bufferDist)
-    elif vectorgeomtype in (3, 6, 1003, 1006):
-        if vectorgeomtype == 3:
-            schema = {'geometry': 'Polygon', 'properties' : {}}
-        elif vectorgeomtype == 6:
-            schema = {'geometry': 'MultiPolygon', 'properties' : {}}
-            
+    # Stats extraction
     else:
-        raise Exception("Geometry type of vector file not handled")
+        if vectorgeomtype in (1, 4, 1001, 1004):
+            if vectorgeomtype == 1:
+                schema = {'geometry': 'Point', 'properties' : {}}
+            elif vectorgeomtype == 4:
+                schema = {'geometry': 'MultiPoint', 'properties' : {}}
+            vectorbuff = vectorname + "buff.shp"
+            _ = bfo.bufferPoly(vector, vectorbuff, bufferDist=bufferDist)
+        elif vectorgeomtype in (3, 6, 1003, 1006):
+            if vectorgeomtype == 3:
+                schema = {'geometry': 'Polygon', 'properties' : {}}
+            elif vectorgeomtype == 6:
+                schema = {'geometry': 'MultiPolygon', 'properties' : {}}
+        else:
+            raise Exception("Geometry type of vector file not handled")
 
     ds = vf.openToRead(vector)
     lyr = ds.GetLayer()
     spatialRef = lyr.GetSpatialRef().ExportToProj4()
+
     
     # Prepare stats DataFrame
-    stats = definePandasDf(idvals, paramstats)
+    stats = definePandasDf(idvals, paramstats, classes)
 
     # Iterate FID list
     for idval in idvals:        
@@ -228,6 +239,7 @@ def zonalstats(path, rasters, params, output, paramstats, bufferDist=None, gdalp
             geom = feat.GetGeometryRef()
             if geom:
                 geomdf = pad.DataFrame(index=[idval], columns=["geometry"], data=[str(geom.ExportToWkt())])
+                xpt, ypt, _ = geom.GetPoint()
                 stats.update(geomdf)
 
         if vectorbuff:vector=vectorbuff
@@ -240,29 +252,37 @@ def zonalstats(path, rasters, params, output, paramstats, bufferDist=None, gdalp
 
         bands = []
         success = True
+        
         for idx, raster in enumerate(rasters):
-            if write_ouput:
+
+            # Value extraction
+            if methodstat == 'val':
+                if vectorgeomtype not in (1, 4, 1001, 1004):
+                    raise Exception("Type of input vector %s must 'Point' for pixel value extraction"%(vector))
+                else:
+                    bands.append(raster)
+                    tmpfile = raster
+
+            # Stats Extraction
+            else:
                 tmpfile = os.path.join(path, 'rast_%s_%s_%s'%(vectorname, str(idval), idx))            
-            #try:
-            if write_ouput:
-                cmd = '%sgdalwarp -tr %s %s -tap -q -overwrite -cutline %s '\
-                      '-crop_to_cutline --config GDAL_CACHEMAX %s -wm %s '\
-                      '-wo "NUM_THREADS=ALL_CPUS" -wo "CUTLINE_ALL_TOUCHED=YES" -cwhere "FID=%s" %s %s -ot Float32'%(gdalpath, res, res, vector, gdalcachemax, gdalcachemax, idval, raster, tmpfile)
-
-                #gdalwarp -tr 8000 8000 -tap -overwrite -cutline /work/OT/theia/oso/vincent/DT_MAIZE_IRR_ER10_L93.shp -crop_to_cutline -cwhere "FID=0" /work/OT/theia/oso/vincent/RASTER_SAFRAN_Concatenat_20170916.tif /home/qt/thierionv/tmp/rast_DT_MAIZE_IRR_ER10_L93_0_0 -ot Float32 -wo "CUTLINE_ALL_TOUCHED=YES"
-                print cmd
-                Utils.run(cmd)
-            else:                    
-                gdal.SetConfigOption("GDAL_CACHEMAX", gdalcachemax)
-                tmpfile = gdal.Warp('', raster, xRes = res, yRes = res, targetAlignedPixels = True, cutlineDSName = vector, cropToCutline = True, \
-                                    cutlineWhere = "FID=%s"%(idval), format = 'MEM', warpMemoryLimit=gdalcachemax, warpOptions = [["NUM_THREADS=ALL_CPUS"],["CUTLINE_ALL_TOUCHED=YES"]])
+                try:
+                    if write_ouput:
+                        cmd = '%sgdalwarp -tr %s %s -tap -q -overwrite -cutline %s '\
+                              '-crop_to_cutline --config GDAL_CACHEMAX %s -wm %s '\
+                              '-wo "NUM_THREADS=ALL_CPUS" -wo "CUTLINE_ALL_TOUCHED=YES" -cwhere "FID=%s" %s %s -ot Float32'%(gdalpath, res, res, vector, gdalcachemax, gdalcachemax, idval, raster, tmpfile)
+                        Utils.run(cmd)
+                    else:                    
+                        gdal.SetConfigOption("GDAL_CACHEMAX", gdalcachemax)
+                        tmpfile = gdal.Warp('', raster, xRes = res, yRes = res, targetAlignedPixels = True, cutlineDSName = vector, cropToCutline = True, \
+                                            cutlineWhere = "FID=%s"%(idval), format = 'MEM', warpMemoryLimit=gdalcachemax, warpOptions = [["NUM_THREADS=ALL_CPUS"],["CUTLINE_ALL_TOUCHED=YES"]])
                 
-            bands.append(tmpfile)
+                    bands.append(tmpfile)
 
-            #success = True
-            #except:
-            #success = False            
-            #pass
+                    success = True
+                except:
+                    success = False            
+                    pass
 
         if success:
             for param in paramstats:
@@ -319,36 +339,42 @@ def zonalstats(path, rasters, params, output, paramstats, bufferDist=None, gdalp
                         cols = ["meanb%sc%s"%(int(param), cl), "stdb%sc%s"%(int(param), cl), "maxb%sc%s"%(int(param), cl), "minb%sc%s"%(int(param), cl)]                        
                         stats.update(pad.DataFrame(data=[rasterStats(band, nbband, posclass)], index=[idval], columns = cols))
 
+                    elif "val" in methodstat:
+                        colpt, rowpt = fut.geoToPix(raster, xpt, ypt)
+                        posToRead = (0, 0, colpt, rowpt)
+                        cols = ["val_b%s"%(param)]
+                        stats.update(pad.DataFrame(data=[rasterStats(band, nbband, None, posToRead)], index=[idval], columns = cols))
+
                     else:
-                        print "The method %s is not implemented"%(paramstats[param])
+                        print("The method %s is not implemented"%(paramstats[param]))
 
-                band = None            
+                band = None
         else:
-            print "gdalwarp problem for feature %s (geometry error, too small area, etc.)"%(idval)
+            print("gdalwarp problem for feature %s (geometry error, too small area, etc.)"%(idval))
 
-            
-    # Export
+    # Prepare geometry and projection
     stats["geometry"] = stats["geometry"].apply(wkt.loads)
     statsfinal = gpad.GeoDataFrame(stats, geometry="geometry")
     statsfinal.fillna(0, inplace=True)
     statsfinal.crs = {'init':'proj4:%s'%(spatialRef)}
 
-    # change column names
-    # get multi-level nomenclature
-    classes="/home/qt/thierionv/iota2/iota2/scripts/simplification/nomenclature17.cfg"
-    nomenc = nomenclature.Iota2Nomenclature(classes, 'cfg')    
-    desclasses = nomenc.HierarchicalNomenclature.get_level_values(nomenc.getLevelNumber() - 1)
-    cols = [(str(x), str(z)) for x, y, w, z in desclasses]
+    # change column names if rate stats expected
+    if "rate" in paramstats:
+        # get multi-level nomenclature    
+        #classes="/home/qt/thierionv/iota2/iota2/scripts/simplification/nomenclature17.cfg"
+        nomenc = nomenclature.Iota2Nomenclature(classes, 'cfg')    
+        desclasses = nomenc.HierarchicalNomenclature.get_level_values(nomenc.getLevelNumber() - 1)
+        cols = [(str(x), str(z)) for x, y, w, z in desclasses]
 
-    for col in cols:
-        statsfinal.rename(columns={col[0]:col[1].decode('utf8')}, inplace=True)
+        # rename columns with alias
+        for col in cols:
+            statsfinal.rename(columns={col[0]:col[1].decode('utf8')}, inplace=True)
 
     # change columns type
     schema['properties'] = OrderedDict([(x, 'float:10.2') for x in list(statsfinal.columns) if x != 'geometry'])    
 
     # exportation # TO TEST
     convert = False
-    print output
     if os.path.splitext(output)[1] == ".shp":
         driver = "ESRI Shapefile"
     elif os.path.splitext(output)[1] == ".geojson":
@@ -389,13 +415,13 @@ def getParameters(vectorpath, chunk=1):
 
     return params
 
-def computZonalStats(path, inr, shape, params, output, buffer="", gdal="", chunk=1, cache="1000", write_outputs=False):
+def computZonalStats(path, inr, shape, params, output, classes="", buffer="", gdal="", chunk=1, cache="1000", write_outputs=False):
 
     #TODO : optimize chunk with real-time HPC ressources
     chunks = getParameters(shape, chunk)
 
     for block in chunks:
-        zonalstats(path, inr, block, output, params, buffer, gdal, write_outputs, cache)
+        zonalstats(path, inr, block, output, params, classes, buffer, gdal, write_outputs, cache)
         
 if __name__ == "__main__":
     if len(sys.argv) == 1:
@@ -425,6 +451,8 @@ if __name__ == "__main__":
                             help="number of feature groups", default=1)
         PARSER.add_argument("-params", dest="params", action="store",\
                             help="", default={1:"stats"})
+        PARSER.add_argument("-classes", dest="classes", action="store",\
+                            help="", default="")        
         PARSER.add_argument("-buffer", dest="buffer", action="store",\
                             help="", default="")
         PARSER.add_argument("-write_outputs", action='store_true',\
@@ -435,4 +463,4 @@ if __name__ == "__main__":
         args = PARSER.parse_args()
         #zonalstats(args.path, args.inr, [args.shape, None], {1:'rate'})
         #(path, rasters, params, output, paramstats={}, bufferDist=None, gdalpath="", write_ouput=False, gdalcachemax="9000"):
-        computZonalStats(args.path, args.inr, args.shape, args.params, args.output, args.buffer, args.gdal, args.chunk, args.cache, args.write_outputs)
+        computZonalStats(args.path, args.inr, args.shape, args.params, args.output, args.classes, args.buffer, args.gdal, args.chunk, args.cache, args.write_outputs)
