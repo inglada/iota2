@@ -27,6 +27,7 @@ Table of contents
 * :doc:`Sentinel-2 Level 3A <sentinel_2_N3A>`
 * :doc:`About features <IOTA2_Play_with_features>`
 * :doc:`iota2's input parameters <IOTA2_parameters>`
+* :doc:`About samples <iota2_samples_management>`
 
 The source code for iota2 is hosted at https://framagit.org/iota2-project/iota2/
 
