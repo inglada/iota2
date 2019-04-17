@@ -153,15 +153,16 @@ def rasterStats(band, nbband=0, posclassmaj=None, posToRead=None):
             return data
 
 
-def definePandasDf(idvals, paramstats={1:'rate', 2:'statsmaj', 3:'stats_11'}, classes="/home/qt/thierionv/iota2/iota2/scripts/simplification/nomenclature17.cfg"):
+def definePandasDf(idvals, paramstats={}, classes=""):
 
     cols = []
 
     for param in paramstats:
         if paramstats[param] == "rate":
-            nomenc = nomenclature.Iota2Nomenclature(classes, 'cfg')    
-            desclasses = nomenc.HierarchicalNomenclature.get_level_values(nomenc.getLevelNumber() - 1)
-            [cols.append(str(x)) for x, y, w, z in desclasses]
+            if classes != "":
+                nomenc = nomenclature.Iota2Nomenclature(classes, 'cfg')    
+                desclasses = nomenc.HierarchicalNomenclature.get_level_values(nomenc.getLevelNumber() - 1)
+                [cols.append(str(x)) for x, y, w, z in desclasses]
         elif paramstats[param] == "stats":
             [cols.append(x) for x in ["meanb%s"%(param), "stdb%s"%(param), "maxb%s"%(param), "minb%s"%(param)]]
         elif paramstats[param] == "statsmaj":        
@@ -301,8 +302,13 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
                         classStats, classmaj, posclassmaj = countPixelByClass(band, idval, nbband)
                         stats.update(classStats)
 
+                        # Add columns when pixel values are not identified in nomencalture file
+                        if list(classStats.columns) != list(stats.columns):
+                            newcols =  list(set(list(classStats.columns)).difference(set(list(stats.columns))))
+                            pad.concat([stats, classStats[newcols]], axis=1)
+
                     elif methodstat == 'stats':
-                        cols = ["meanb%s"%(int(param)), "stdb%s"%(int(param)), "maxb%s"%(int(param)), "minb%s"%(int(param))]
+                        cols = ["meanb%s"%(int(param)), "stdb%s"%(int(param)), "maxb%s"%(int(param)), "minb%s"%(int(param))]            
                         stats.update(pad.DataFrame(data=[rasterStats(band, nbband)], index=[idval], columns = cols))
                         
                     elif methodstat == 'statsmaj':
@@ -358,8 +364,8 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
     statsfinal.fillna(0, inplace=True)
     statsfinal.crs = {'init':'proj4:%s'%(spatialRef)}
 
-    # change column names if rate stats expected
-    if "rate" in paramstats:
+    # change column names if rate stats expected and nomenclature file is provided
+    if "rate" in paramstats and classes != "":
         # get multi-level nomenclature    
         #classes="/home/qt/thierionv/iota2/iota2/scripts/simplification/nomenclature17.cfg"
         nomenc = nomenclature.Iota2Nomenclature(classes, 'cfg')    
