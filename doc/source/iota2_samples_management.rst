@@ -4,7 +4,7 @@ iota²'s samples management
 This chapter is dedicated to explanations about how samples are managed during 
 the iota² run. First, we will see how to give iota² inputs about the dataBase location and
 some restrictions on it. Next, a focus will be done on fields dedicated to set-up 
-a sampling strategy. To finish, every strategy will illustrated through examples.
+a sampling strategy. To finish, every strategy will be illustrated through examples.
 
 Input dataBase location and label's field
 *****************************************
@@ -12,13 +12,13 @@ Input dataBase location and label's field
 +-------------+--------------------------+--------------+------------------------------------------+
 |Parameter Key|Parameter Type            |Default value |Parameter purpose                         |
 +=============+==========================+==============+==========================================+
-|groundTruth  |String                    | Mandatory    |Input dataBase                            |
+|groundTruth  |string                    | Mandatory    |Input dataBase                            |
 +-------------+--------------------------+--------------+------------------------------------------+
-|dataField    |String                    | Mandatory    |Field into the dataBase containing labels |
+|dataField    |string                    | Mandatory    |Field into the dataBase containing labels |
 +-------------+--------------------------+--------------+------------------------------------------+
 
 .. Note:: 
-    In the downloadable data-set `here <http://osr-cesbio.ups-tlse.fr/echangeswww/TheiaOSO/IOTA2_TEST_S2.tar.bz2>`_, 
+    In the downloadable `data-set <http://osr-cesbio.ups-tlse.fr/echangeswww/TheiaOSO/IOTA2_TEST_S2.tar.bz2>`_, 
     the dataBase is the file named 'groundTruth.shp' and the field of interest (dataField) is named 'CODE'
 
 Sampling strategy fields
@@ -39,7 +39,7 @@ Sampling strategy fields
 +----------------------------+--------------------------+-----------------+---------------------------------------------------------------------------------------------------------------------------+
 |:ref:`sampleAugmentationTag`|python's dictionnary      | cf Note 2       |Generate synthetic samples                                                                                                 |
 +----------------------------+--------------------------+-----------------+---------------------------------------------------------------------------------------------------------------------------+
-|:ref:`sampleManagement`     |string                    | None            |Transfert samples between samples-set                                                                                      |
+|:ref:`sampleManagement`     |string                    | None            |Copy samples between samples-set                                                                                           |
 +----------------------------+--------------------------+-----------------+---------------------------------------------------------------------------------------------------------------------------+
 
 *Note 1* : sampleSelection default value
@@ -78,14 +78,14 @@ splitGroundTruth
 ----------------
 
 By default this parameter is set to ``False`` and see what happened
-if this parameter is set to ``True``. :download:`configuration <./config/config_splitGroundTruth.cfg>`
+if this parameter is set to ``True``. :download:`cfg <./config/config_splitGroundTruth.cfg>`
 
 In iota²'s outputs, there is a directory named ``dataAppVal`` which contains by
 tiles all learning and validation polygons. After launching iota², the dataAppVal directory
 should contains two files : ``T31TCJ_seed_0_learn.sqlite`` and ``T31TCJ_seed_0_val.sqlite``.
 
 .. Note:: files T31TCJ_seed_0_*.sqlite contain polygons for each models, here 
-    discriminate thanks the field ``region``.
+    discriminate thanks to the field ``region``.
 
 As the dataBase input was not split, the two files must contain the same number of features.
 The entire dataBase is used to learn the model and to evaluate classifications. This kind 
@@ -98,7 +98,7 @@ ratio
 
 Unlike the ``splitGroundTruth``, the ``ratio`` parameter allows users to tune the
 ratio between polygons dedicated to learn models and polygons used to evaluate 
-classifications. By launching iota² with the ratio parameter :download:`configuration <./config/config_ratio.cfg>` 
+classifications. By launching iota² with the ratio parameter :download:`cfg <./config/config_ratio.cfg>` 
 we can observe the content of files ``T31TCJ_seed_0_*.sqlite`` in the iota²'s
 output directory ``dataAppVal``.
 
@@ -132,8 +132,8 @@ used to determine if samples are usable. Considering a remote acquisition, a val
 pixel is a pixel which is not under clouds, clouds' shadow or which is saturated.
 Thus, usable samples are samples which are valid more than ``cloud_threshold`` times.
 
-We can observe the influence of the ``cloud_threshold`` parameter by launching the
-:download:`configuration file <./config/config_cloudThreshold.cfg>`
+We can observe the influence of the ``cloud_threshold`` parameter by launching iota²
+with :download:`cfg <./config/config_cloudThreshold.cfg>`
 
 First, here is the tree from the ``features`` iota² output directory
 
@@ -193,7 +193,7 @@ seeds (random splits).
     
     random sampling polygon at 100% rate
 
-Points represent pixel centroid selected by the strategy to learn a model. Here,
+Points represent pixel's centroid selected by the strategy to learn a model. Here,
 every pixels under polygons will be dedicated to learn models. This is the default 
 strategy 
 
@@ -205,7 +205,7 @@ strategy
         "strategy": "all"
     }
 
-In some case, it could be interesting to change the default strategy by one more 
+Sometimes, it could be interesting to change the default strategy by one more 
 suited to a specific use-case : using High resolution remote sensor, too many polygons,
 polygons too big, class repartition is unbalanced ...
 
@@ -257,8 +257,8 @@ Different sampling strategy by models
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 An interesting feature is the ability of iota² to set a strategy by model.
-Obviously, many models must exist and mentionned in the configuration file.
-For instance :download:`cfg<./config/config_manyStrategies.cfg>`
+Obviously, many models must exist and mentionned in the configuration file. 
+:download:`cfg<./config/config_manyStrategies.cfg>`
 
 .. code-block:: python
 
@@ -357,7 +357,7 @@ sampleAugmentation's parameters
 +--------------------------+--------------------------+--------------+-------------------------------------------------------------------------------------------------+
 |samples.strategy.byClass  |string                    | Mandatory    |path to a CSV file. First column the class's label, Second column : number of samples required   |
 +--------------------------+--------------------------+--------------+-------------------------------------------------------------------------------------------------+
-|activate                  |boolean                   | False        |Field into the dataBase containing labels                                                        |
+|activate                  |boolean                   | False        |flag to activate sample augmentation                                                             |
 +--------------------------+--------------------------+--------------+-------------------------------------------------------------------------------------------------+
 
 Set augmentation strategy in iota²
@@ -380,4 +380,26 @@ class in the corresponding model using the jitter method.:download:`cfg<./config
 sampleManagement
 ----------------
 
-some text
+This parameter allow users to copy samples from a samples-set dedicated to learn
+a model to an other models.
+
+This feature is convenient if a model do not contains enough samples to represent 
+a specific class. Then, user can provide a CSV file reporting how copy sample by models.
+
+The CSV file must respect the following format :
+
++--------------+---------------+-------------+---------------+
+| first column | second column | third column| fourth column |
++==============+===============+=============+===============+
+|   source     | destination   |class label  |   quantity    |
++--------------+---------------+-------------+---------------+
+
+A CSV file containing
+
+.. code-block:: console
+
+    1,2,11,2
+    1,2,31,14
+
+Will copy 2 samples (randomly selected) of the class 11 from the model 1 to the model 2.
+After that, 14 samples of the class 31 will be copied from the model 1 to the model 2.
