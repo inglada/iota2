@@ -149,14 +149,12 @@ def rasterStats(band, nbband=0, posclassmaj=None, posToRead=None):
 
             return mean, std, max, min
         else:
-            data = banddata.ReadAsArray(posToRead[0], posToRead[1], posToRead[2], posToRead[3])[0]
-            return data
+            return np.float(banddata.ReadAsArray()[posToRead[1], posToRead[0]])
 
 
 def definePandasDf(idvals, paramstats={}, classes=""):
 
     cols = []
-
     for param in paramstats:
         if paramstats[param] == "rate":
             if classes != "":
@@ -171,7 +169,7 @@ def definePandasDf(idvals, paramstats={}, classes=""):
             cl = paramstats[param].split('_')[1]            
             [cols.append(x) for x in ["meanb%sc%s"%(param, cl), "stdb%sc%s"%(param, cl), "maxb%sc%s"%(param, cl), "minb%sc%s"%(param, cl)]]
         elif "val" in paramstats[param]:
-            [cols.append("val%bs"%(param))]
+            [cols.append("valb%s"%(param))]
         else:
             raise Exception("The method %s is not implemented")%(paramstats[param])
 
@@ -202,12 +200,20 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
     vectorname = os.path.splitext(os.path.basename(vector))[0]
     vectorgeomtype = vf.getGeomType(vector)
     vectorbuff = None
+
+    if isinstance(paramstats, list):
+        paramstats = dict([(x.split(':')[0],x.split(':')[1])  for x in paramstats])    
+    
     # Value extraction
     if not bufferDist and vectorgeomtype in (1, 4, 1001, 1004):
-        if vectorgeomtype == 1:
-            schema = {'geometry': 'Point', 'properties' : {}}
-        elif vectorgeomtype == 4:
-            schema = {'geometry': 'MultiPoint', 'properties' : {}}
+        if 'val' in paramstats.values():
+            if vectorgeomtype == 1:
+                schema = {'geometry': 'Point', 'properties' : {}}
+            elif vectorgeomtype == 4:
+                schema = {'geometry': 'MultiPoint', 'properties' : {}}
+        else:
+            raise Exception("Only pixel value extraction available when Point geometry without buffer distance is provided")
+            
     # Stats extraction
     else:
         if vectorgeomtype in (1, 4, 1001, 1004):
@@ -229,7 +235,6 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
     lyr = ds.GetLayer()
     spatialRef = lyr.GetSpatialRef().ExportToProj4()
 
-    
     # Prepare stats DataFrame
     stats = definePandasDf(idvals, paramstats, classes)
 
@@ -240,7 +245,8 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
             geom = feat.GetGeometryRef()
             if geom:
                 geomdf = pad.DataFrame(index=[idval], columns=["geometry"], data=[str(geom.ExportToWkt())])
-                xpt, ypt, _ = geom.GetPoint()
+                if vectorgeomtype in (1, 4, 1001, 1004):
+                    xpt, ypt, _ = geom.GetPoint()
                 stats.update(geomdf)
 
         if vectorbuff:vector=vectorbuff
@@ -253,11 +259,10 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
 
         bands = []
         success = True
-        
         for idx, raster in enumerate(rasters):
 
             # Value extraction
-            if methodstat == 'val':
+            if 'val' in paramstats.values():
                 if vectorgeomtype not in (1, 4, 1001, 1004):
                     raise Exception("Type of input vector %s must 'Point' for pixel value extraction"%(vector))
                 else:
@@ -302,7 +307,7 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
                         classStats, classmaj, posclassmaj = countPixelByClass(band, idval, nbband)
                         stats.update(classStats)
 
-                        # Add columns when pixel values are not identified in nomencalture file
+                        # Add columns when pixel values are not identified in nomenclature file
                         if list(classStats.columns) != list(stats.columns):
                             newcols =  list(set(list(classStats.columns)).difference(set(list(stats.columns))))
                             pad.concat([stats, classStats[newcols]], axis=1)
@@ -346,11 +351,9 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
                         stats.update(pad.DataFrame(data=[rasterStats(band, nbband, posclass)], index=[idval], columns = cols))
 
                     elif "val" in methodstat:
-                        colpt, rowpt = fut.geoToPix(raster, xpt, ypt)
-                        posToRead = (0, 0, colpt, rowpt)
-                        cols = ["val_b%s"%(param)]
-                        stats.update(pad.DataFrame(data=[rasterStats(band, nbband, None, posToRead)], index=[idval], columns = cols))
-
+                        colpt, rowpt = fut.geoToPix(band, xpt, ypt)
+                        cols = "valb%s"%(param)
+                        stats.update(pad.DataFrame(data=[rasterStats(band, nbband, None, (colpt, rowpt))], index=[idval], columns = [cols]))
                     else:
                         print("The method %s is not implemented"%(paramstats[param]))
 
@@ -455,8 +458,8 @@ if __name__ == "__main__":
                             help="gdal 2.2.4 binaries path (problem of very small features with lower gdal version)", default = "")
         PARSER.add_argument("-chunk", dest="chunk", action="store",\
                             help="number of feature groups", default=1)
-        PARSER.add_argument("-params", dest="params", action="store",\
-                            help="", default={1:"stats"})
+        PARSER.add_argument("-params", dest="params", nargs ='+',\
+                            help="", default='1:stats')
         PARSER.add_argument("-classes", dest="classes", action="store",\
                             help="", default="")        
         PARSER.add_argument("-buffer", dest="buffer", action="store",\
