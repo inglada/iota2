@@ -987,6 +987,22 @@ def getGroundSpacing(pathToFeat, ImgInfo):
     return spx, spy
 
 
+def str2bool(v):
+    """
+    usage : use in argParse as function to parse options
+
+    IN:
+    v [string]
+    out [bool]
+    """
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
+
+
 def getRasterProjectionEPSG(FileName):
     """
     usage get raster EPSG projection code
@@ -1299,52 +1315,79 @@ def mergeVectors(outname, opath, files, ext="shp", out_Tbl_name=None):
 
 def getRasterExtent(raster_in):
     """
-    Get raster extent of raster_in from GetGeoTransform()
-    ARGs:
-    INPUT:
-        - raster_in: input raster
-    OUTPUT
-        - ex: extent with [minX,maxX,minY,maxY]
+        Get raster extent of raster_in from GetGeoTransform()
+        ARGs:
+            INPUT:
+                - raster_in: input raster
+            OUTPUT
+                - ex: extent with [minX,maxX,minY,maxY]
     """
-    
-    retour = []
     if not os.path.isfile(raster_in):
-        pass
-    else:
-        raster = gdal.Open(raster_in, GA_ReadOnly)
-        if raster is None:
-            pass
-        else:
-            geotransform = raster.GetGeoTransform()
-            originX = geotransform[0]
-            originY = geotransform[3]
-            spacingX = geotransform[1]
-            spacingY = geotransform[5]
-            r, c = raster.RasterYSize, raster.RasterXSize
+        return []
+    raster = gdal.Open(raster_in, GA_ReadOnly)
+    if raster is None:
+        return []
+    geotransform = raster.GetGeoTransform()
+    originX = geotransform[0]
+    originY = geotransform[3]
+    spacingX = geotransform[1]
+    spacingY = geotransform[5]
+    r, c = raster.RasterYSize, raster.RasterXSize
+    
+    minX = originX
+    maxY = originY
+    maxX = minX + c*spacingX
+    minY = maxY + r*spacingY
+    
+    return [minX,maxX,minY,maxY]
+
+def matchGrid(coordinate, grid):
+    """
+    """
+    interval_list = []
+    pix_coordinate = None
+    for cpt, value in enumerate(grid[:-1]):
+        interval_list.append((value, grid[cpt + 1]))
+    for index, (inf, sup) in enumerate(interval_list):
+        if (coordinate > inf and coordinate < sup) or (coordinate < inf and coordinate > sup):
+            pix_coordinate = index
+    return pix_coordinate
+
+def geoToPix(raster, geoX, geoY, disp=False):
+    """conver geographical coordinates to pixels
+
+    Parameters
+    ----------
+    raster : string
+        absolute path to an image
+    geoX : float
+        X geographic coordinate
+    geoY : float
+        Y geographic coordinate
+    disp : bool
+        flag to print coordinates
+    """
+    minXe,maxXe,minYe,maxYe = getRasterExtent(raster)
+    spacingX, spacingY = getRasterResolution(raster)
+    stepX = spacingX
+    Xgrid = np.arange(minXe, maxXe + spacingX, spacingX)
+    Ygrid = np.arange(maxYe, minYe + spacingY, spacingY)
+
+    pixY = matchGrid(geoY, Ygrid)
+    pixX = matchGrid(geoX, Xgrid)
+
+    coordinates = pixX, pixY
+    
+    if pixX is None or pixY is None:
+        coordinates = None
         
-            minX = originX
-            maxY = originY
-            maxX = minX + c * spacingX
-            minY = maxY + r * spacingY
+    if disp:
+        disp_msg = "X : {}\nY : {}".format(pixX, pixY)
+        if coordinates is None:
+            disp_msg = "out of bounds"
+        print(disp_msg)
         
-            retour = [minX, maxX, minY, maxY]
-    return retour
-
-def matchGrid(val,grid):
-	return min(grid, key = lambda x:abs(x-val))
-
-def geoToPix(raster,geoX,geoY):
-	
-	minXe,maxXe,minYe,maxYe = getRasterExtent(raster)
-	spacingX,spacingY = getRasterResolution(raster)
-	Xgrid = np.arange(minXe+spacingX,maxXe,spacingX)
-	Ygrid = np.arange(maxYe-spacingY,minYe,spacingY)
-
-	pixX = list(Xgrid).index(matchGrid(geoX,Xgrid))
-	pixY = list(Ygrid).index(matchGrid(geoY,Ygrid))
-	
-	print "X : "+str(pixX)+"\nY : "+str(pixY)
-	return pixX, pixY
+    return coordinates
 
 
 def ResizeImage(imgIn, imout, spx, spy, imref, proj, pixType):
