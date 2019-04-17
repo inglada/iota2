@@ -119,7 +119,10 @@ and ``T31TCJ_seed_0_val.sqlite`` will contain 13 features each.
 runs
 ----
 
-some text
+The parameter run ``do not influence the strategy``. However, strategies will be 
+repeated in order to be free of bias during selection. Thanks to this parameter, 
+and if it is superior to 1, iota² can provide a confidence interval for each 
+coefficient measuring the classification's quality.
 
 .. _cloud_threshold:
 
