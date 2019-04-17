@@ -4,7 +4,7 @@ iota²'s samples management
 This chapter is dedicated to explanations about how samples are managed during 
 the iota² run. First, we will see how to give iota² inputs about the dataBase location and
 some restrictions on it. Next, a focus will be done on fields dedicated to set-up 
-a sampling strategy.
+a sampling strategy. To finish, every strategy will illustrated through examples.
 
 Input dataBase location and label's field
 *****************************************
@@ -24,21 +24,23 @@ Input dataBase location and label's field
 Sampling strategy fields
 ************************
 
-+------------------+--------------------------+-----------------+---------------------------------------------------------------------------------------------------------------------------+
-|Parameter Key     |Parameter Type            |Default value    |Parameter purpose                                                                                                          |
-+==================+==========================+=================+===========================================================================================================================+
-|ratio             |float                     | 0.5             |Ratio in ]0;1[ range : learning samples / validation samples                                                               |
-+------------------+--------------------------+-----------------+---------------------------------------------------------------------------------------------------------------------------+
-|splitGroundTruth  |boolean                   | True            |Enable the split in learning and validation samples set                                                                    |
-+------------------+--------------------------+-----------------+---------------------------------------------------------------------------------------------------------------------------+
-|runs              |integer                   | 1               |Number of random splits between learning samples and validation samples                                                    |
-+------------------+--------------------------+-----------------+---------------------------------------------------------------------------------------------------------------------------+
-|cloud_threshold   |integer                   | 1               |Threshold neeeded to pick-up learning samples. Every samples which are valid > cloud_threshold could be use to learn models|
-+------------------+--------------------------+-----------------+---------------------------------------------------------------------------------------------------------------------------+
-|sampleSelection   |python's dictionnary      | cf Note 1       |Sampling strategy in learning polygons                                                                                     |
-+------------------+--------------------------+-----------------+---------------------------------------------------------------------------------------------------------------------------+
-|sampleAugmentation|python's dictionnary      | cf Note 2       |Generate synthetic samples                                                                                                 |
-+------------------+--------------------------+-----------------+---------------------------------------------------------------------------------------------------------------------------+
++----------------------------+--------------------------+-----------------+---------------------------------------------------------------------------------------------------------------------------+
+|Parameter Key               |Parameter Type            |Default value    |Parameter purpose                                                                                                          |
++============================+==========================+=================+===========================================================================================================================+
+|:ref:`ratio`                |float                     | 0.5             |Ratio in ]0;1[ range : learning samples / validation samples                                                               |
++----------------------------+--------------------------+-----------------+---------------------------------------------------------------------------------------------------------------------------+
+|:ref:`splitGroundTruth`     |boolean                   | True            |Enable the split in learning and validation samples set                                                                    |
++----------------------------+--------------------------+-----------------+---------------------------------------------------------------------------------------------------------------------------+
+|:ref:`runs`                 |integer                   | 1               |Number of random splits between learning samples and validation samples                                                    |
++----------------------------+--------------------------+-----------------+---------------------------------------------------------------------------------------------------------------------------+
+|:ref:`cloud_threshold`      |integer                   | 1               |Threshold neeeded to pick-up learning samples. Every samples which are valid > cloud_threshold could be use to learn models|
++----------------------------+--------------------------+-----------------+---------------------------------------------------------------------------------------------------------------------------+
+|:ref:`sampleSelectionTag`   |python's dictionnary      | cf Note 1       |Sampling strategy in learning polygons                                                                                     |
++----------------------------+--------------------------+-----------------+---------------------------------------------------------------------------------------------------------------------------+
+|:ref:`sampleAugmentationTag`|python's dictionnary      | cf Note 2       |Generate synthetic samples                                                                                                 |
++----------------------------+--------------------------+-----------------+---------------------------------------------------------------------------------------------------------------------------+
+|:ref:`sampleManagement`     |string                    | None            |Transfert samples between samples-set                                                                                      |
++----------------------------+--------------------------+-----------------+---------------------------------------------------------------------------------------------------------------------------+
 
 *Note 1* : sampleSelection default value
 
@@ -70,6 +72,8 @@ Every examples come with a configuration file allowing users to reproduce output
 These configaration files will produce iota²'s outputs in ``'/XXXX/IOTA2_TEST_S2/IOTA2_Outputs/Results'`` 
 directory.
 
+.. _splitGroundTruth:
+
 splitGroundTruth
 ----------------
 
@@ -86,6 +90,8 @@ should contains two files : ``T31TCJ_seed_0_learn.sqlite`` and ``T31TCJ_seed_0_v
 As the dataBase input was not split, the two files must contain the same number of features.
 The entire dataBase is used to learn the model and to evaluate classifications. This kind 
 of feature could be used if the validation comes from an external source.
+
+.. _ratio:
 
 ratio
 -----
@@ -108,6 +114,14 @@ and ``T31TCJ_seed_0_val.sqlite`` will contain 13 features each.
 .. Note:: ``ratio:0.6`` mean ``60%`` of eligible polygons will be use to learn models 
     and 40% to evaluate classifications
 
+.. _runs:
+
+runs
+----
+
+some text
+
+.. _cloud_threshold:
 
 cloud_threshold
 ---------------
@@ -119,7 +133,7 @@ pixel is a pixel which is not under clouds, clouds' shadow or which is saturated
 Thus, usable samples are samples which are valid more than ``cloud_threshold`` times.
 
 We can observe the influence of the ``cloud_threshold`` parameter by launching the
-`configuration file <./config/config_cloudThreshold.cfg>`
+:download:`configuration file <./config/config_cloudThreshold.cfg>`
 
 First, here is the tree from the ``features`` iota² output directory
 
@@ -156,13 +170,214 @@ to the parameter ``cloud_threshold`` value (here 2) belong to a geometry in the
 vector file CloudThreshold_2.shp. Next, available polygons are the ones resulting
 from the intersection of the CloudThreshold_2.shp vector file and the dataBase input.
 
+.. _sampleSelectionTag:
 
 sampleSelection
 ---------------
 
-some text
+Once learning polygons are chosen, it is the time to select pixels by sampling 
+polygons. Many strategies are available through the use of OTB `SampleSelection <https://www.orfeo-toolbox.org/CookBook/Applications/app_SampleSelection.html>`_ 
+application, this section will detail some of them.
+
+First, we may have a look at the default strategy by using one of previous configuration
+file :download:`cfg <./config/config_ratio.cfg>`. In order to 
+visualize the influence of strategies, we can open the file ``T31TCJ_selection_merge.sqlite``
+stored in the directory named ``samplesSelection``. Files called  ``*_selection_merge.sqlite`` 
+are tiles specific and contain every points selected to learn each models and each
+seeds (random splits).
+
+.. figure:: ./Images/sampling_100percent.png
+    :scale: 50 %
+    :align: center
+    :alt: random sampling 100% polygon
+    
+    random sampling polygon at 100% rate
+
+Points represent pixel centroid selected by the strategy to learn a model. Here,
+every pixels under polygons will be dedicated to learn models. This is the default 
+strategy 
+
+.. code-block:: python
+
+    sampleSelection:
+    {
+        "sampler": "random",
+        "strategy": "all"
+    }
+
+In some case, it could be interesting to change the default strategy by one more 
+suited to a specific use-case : using High resolution remote sensor, too many polygons,
+polygons too big, class repartition is unbalanced ...
+
+Sampling randomly with a 50% rate
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+By adding the block below in the configuration file, we ask a new sampling strategy :
+select randomly pixel with a 50% rate. :download:`cfg<./config/config_select50per.cfg>`
+
+.. code-block:: python
+
+    sampleSelection :
+    {
+        "sampler":"random",
+        "strategy":"percent",
+        "strategy.percent.p":0.5
+    }
+
+.. figure:: ./Images/sampling_50percent.png
+    :scale: 50 %
+    :align: center
+    :alt: random sampling 50% polygon
+    
+    random sampling polygon at 50% rate
+
+Periodic sampling
+^^^^^^^^^^^^^^^^^
+
+By changing the sampler sampler argument from ``random`` to ``periodic`` one pixel 
+every two are selected.
+
+.. code-block:: python
+
+    sampleSelection :
+    {
+        "sampler":"periodic",
+        "strategy":"percent",
+        "strategy.percent.p":0.5
+    }
+
+.. figure:: ./Images/sampling_periodic50perc.png
+    :scale: 50 %
+    :align: center
+    :alt: periodic sampling 50% polygon
+    
+    periodic sampling polygon at 50% rate
+
+Different sampling strategy by models
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+An interesting feature is the ability of iota² to set a strategy by model.
+Obviously, many models must exist and mentionned in the configuration file.
+For instance :download:`cfg<./config/config_manyStrategies.cfg>`
+
+.. code-block:: python
+
+    sampleSelection : {"sampler":"random",
+                       "strategy":"all",
+                       "per_model":[{"target_model":2,
+                                     "sampler":"random",
+                                     "strategy":"percent",
+                                     "strategy.percent.p":0.5
+                                     }]
+                       }
+
+The aim of this strategy is to sample every polygons with a rate of 
+100% except polygons belonging to the ``model 2`` which will be sampled with 
+a 50% rate.
+
+In our case, only two models are invoked, then the strategy presented is equivalent to
+
+.. code-block:: python
+
+    sampleSelection : {"per_model":[{"target_model":1,
+                                     "sampler":"random",
+                                     "strategy":"all"
+                                    },
+                                    {"target_model":2,
+                                     "sampler":"random",
+                                     "strategy":"percent",
+                                     "strategy.percent.p":0.5
+                                    }]
+                       }
+
+The argument ``per_model`` receive a list of python's dictionnary describing a strategy
+by ``target_model``. Every keys ("sampler", "strategy") are the ones provided by 
+`SampleSelection <https://www.orfeo-toolbox.org/CookBook/Applications/app_SampleSelection.html>`_ 
+OTB's application except ``target_model`` which is specific to iota².
+
+.. Note:: The strategy ``byclass`` provided by OTB could also be useful to fix 
+    the number of samples selected by class and set 'manually' the balance in the
+    dataBase.
+
+.. _sampleAugmentationTag:
 
 sampleAugmentation
 ------------------
+
+Sample's augmentation is about to generate sythetic samples from a sample-set.
+This feature is useful to balance class in the dataBase. In order to achieve this,
+iota2 offer an interface to the OTB
+`SampleAugmentation <https://www.orfeo-toolbox.org/CookBook/Applications/app_SampleSelection.html>`_ application.
+To augment samples, users must chose between methods to perform augmentation and 
+set how many samples must be add.
+
+Methods
+^^^^^^^
+
+There are three methods to generate samples : replicate, jitter and smote.
+The documentation :doc:`here <sampleAugmentation_explain>` explains the difference between these approaches.
+
+Number of additional samples
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+There are 3 different strategies:
+
+    - minNumber
+        To set the minimum number of samples by class required
+    - balance
+        balance all classes with the same number of samples as the majority one
+    - byClass
+        augment only some of the classes
+
+Parameters related to ``minNumber`` and ``byClass`` strategies are
+
+    - samples.strategy.minNumber
+        minimum number of samples
+    - samples.strategy.byClass
+        path to a CSV file containing in first column the class's label and 
+        in the second column the minimum number of samples required.
+
+sampleAugmentation's parameters
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
++--------------------------+--------------------------+--------------+-------------------------------------------------------------------------------------------------+
+|Parameter Key             |Parameter Type            |Default value |Parameter purpose                                                                                |
++==========================+==========================+==============+=================================================================================================+
+|target_models             |list                      | Mandatory    |List containing string to target models to augment. target_models : ["all"] to augment all models|
++--------------------------+--------------------------+--------------+-------------------------------------------------------------------------------------------------+
+|strategy                  |string                    | Mandatory    |Augmentation strategy [replicate/jitter/smote]                                                   |
++--------------------------+--------------------------+--------------+-------------------------------------------------------------------------------------------------+
+|strategy.jitter.stdfactor |integer                   | 10           |Factor for dividing the standard deviation of each feature                                       |
++--------------------------+--------------------------+--------------+-------------------------------------------------------------------------------------------------+
+|strategy.smote.neighbors  |string                    | Mandatory    |Number of nearest neighbors                                                                      |
++--------------------------+--------------------------+--------------+-------------------------------------------------------------------------------------------------+
+|samples.strategy          |string                    | Mandatory    |Define how samples will be generated [minNumber/balance/byClass]                                 |
++--------------------------+--------------------------+--------------+-------------------------------------------------------------------------------------------------+
+|samples.strategy.minNumber|integer                   | Mandatory    |Minimum number of samples                                                                        |
++--------------------------+--------------------------+--------------+-------------------------------------------------------------------------------------------------+
+|samples.strategy.byClass  |string                    | Mandatory    |path to a CSV file. First column the class's label, Second column : number of samples required   |
++--------------------------+--------------------------+--------------+-------------------------------------------------------------------------------------------------+
+|activate                  |boolean                   | False        |Field into the dataBase containing labels                                                        |
++--------------------------+--------------------------+--------------+-------------------------------------------------------------------------------------------------+
+
+Set augmentation strategy in iota²
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: python
+
+    sampleAugmentation : {"target_models":["1", "2"],
+                          "strategy" : "jitter",
+                          "strategy.jitter.stdfactor" : 10,
+                          "samples.strategy" : "balance",
+                          "activate" : True
+                          }
+
+Here, class of models "1" and "2" will be raised to the the most represented
+class in the corresponding model using the jitter method.:download:`cfg<./config/config_samplesAugmentation.cfg>`
+
+.. _sampleManagement:
+
+sampleManagement
+----------------
 
 some text
