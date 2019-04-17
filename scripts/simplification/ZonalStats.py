@@ -141,6 +141,7 @@ def rasterStats(band, nbband=0, posclassmaj=None, posToRead=None):
         if not posToRead:
             data = banddata.ReadAsArray()
             img = label(data)
+            # TODO : when data is empty (else) ?
             if len(np.unique(img)) != 1 or np.unique(img)[0] != 0:
                 mean = round(np.mean(data[posclassmaj]), 2)
                 std = round(np.std(data[posclassmaj]), 2)
@@ -187,9 +188,12 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
     # rate : rate of each pixel value (classe names)
     # stats_cl : mean_cl, std_cl, max_cl, min_cl of one class
     # val : value of corresponding pixel (only for Point geom)
-    
+
+    # Features and vector file to intersect
     vector, idvals = params
 
+    # Raster resolution
+    # TODO : Check if all rasters have same extent and resolution
     res = abs(fut.getRasterResolution(rasters[0])[0])
 
     # if no vector subsetting (all features)
@@ -201,6 +205,7 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
     vectorgeomtype = vf.getGeomType(vector)
     vectorbuff = None
 
+    # Read statistics parameters
     if isinstance(paramstats, list):
         paramstats = dict([(x.split(':')[0],x.split(':')[1])  for x in paramstats])    
     
@@ -216,6 +221,7 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
             
     # Stats extraction
     else:
+        # Point geometry
         if vectorgeomtype in (1, 4, 1001, 1004):
             if vectorgeomtype == 1:
                 schema = {'geometry': 'Point', 'properties' : {}}
@@ -223,6 +229,8 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
                 schema = {'geometry': 'MultiPoint', 'properties' : {}}
             vectorbuff = vectorname + "buff.shp"
             _ = bfo.bufferPoly(vector, vectorbuff, bufferDist=bufferDist)
+
+        # Polygon geometry
         elif vectorgeomtype in (3, 6, 1003, 1006):
             if vectorgeomtype == 3:
                 schema = {'geometry': 'Polygon', 'properties' : {}}
@@ -231,6 +239,7 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
         else:
             raise Exception("Geometry type of vector file not handled")
 
+    # Vector reading
     ds = vf.openToRead(vector)
     lyr = ds.GetLayer()
     spatialRef = lyr.GetSpatialRef().ExportToProj4()
@@ -238,15 +247,20 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
     # Prepare stats DataFrame
     stats = definePandasDf(idvals, paramstats, classes)
 
-    # Iterate FID list
+    # Iterate vector's features (FID)
     for idval in idvals:        
         lyr.SetAttributeFilter("FID=" + str(idval))
         for feat in lyr:
             geom = feat.GetGeometryRef()
             if geom:
+
+                # Insert geometry in DataFrame
                 geomdf = pad.DataFrame(index=[idval], columns=["geometry"], data=[str(geom.ExportToWkt())])
-                if vectorgeomtype in (1, 4, 1001, 1004):
+
+                # Get Point coordinates (pixel value case)
+                if vectorgeomtype in (1, 4, 1001, 1004) and 'val' in paramstats.values():
                     xpt, ypt, _ = geom.GetPoint()
+                    
                 stats.update(geomdf)
 
         if vectorbuff:vector=vectorbuff
@@ -273,6 +287,7 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
             else:
                 tmpfile = os.path.join(path, 'rast_%s_%s_%s'%(vectorname, str(idval), idx))            
                 try:
+                    # TODO : test gdal version : >= 2.2.4
                     if write_ouput:
                         cmd = '%sgdalwarp -tr %s %s -tap -q -overwrite -cutline %s '\
                               '-crop_to_cutline --config GDAL_CACHEMAX %s -wm %s '\
@@ -284,7 +299,6 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
                                             cutlineWhere = "FID=%s"%(idval), format = 'MEM', warpMemoryLimit=gdalcachemax, warpOptions = [["NUM_THREADS=ALL_CPUS"],["CUTLINE_ALL_TOUCHED=YES"]])
                 
                     bands.append(tmpfile)
-
                     success = True
                 except:
                     success = False            
@@ -292,14 +306,15 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
 
         if success:
             for param in paramstats:
-                # Multi-raster / Multi-band
+                # Multi-raster / Multi-band data preparation
                 if len(rasters) != 1:
                     band = bands[int(param) - 1]
                     nbband = 1
                 else:
                     band = tmpfile
                     nbband = int(param)
-                    
+
+                # Statistics extraction
                 if band:                    
                     methodstat = paramstats[param]
 
@@ -327,14 +342,14 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
                                     bandrate = band
                                     nbbandrate = idxbdclasses - 1
                             else:
-                                raise Exception("No classification raster provided")
+                                raise Exception("No classification raster provided to check position of majority class")
                             
                             classStats, classmaj, posclassmaj = countPixelByClass(bandrate, idval, nbbandrate)
                             classStats = None
 
                         cols = ["meanmajb%s"%(int(param)), "stdmajb%s"%(int(param)), "maxmajb%s"%(int(param)), "minmajb%s"%(int(param))]
                         stats.update(pad.DataFrame(data=[rasterStats(band, nbband, posclassmaj)], index=[idval], columns = cols))
-                        
+
                     elif "stats_" in methodstat:                        
                         if "rate" in paramstats.values():
                             # get positions of class
@@ -345,7 +360,7 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
                             posclass = np.where(data==int(cl))
                             data = None                            
                         else:
-                            raise Exception("No classification raster provided")
+                            raise Exception("No classification raster provided to check position of requested class")
 
                         cols = ["meanb%sc%s"%(int(param), cl), "stdb%sc%s"%(int(param), cl), "maxb%sc%s"%(int(param), cl), "minb%sc%s"%(int(param), cl)]                        
                         stats.update(pad.DataFrame(data=[rasterStats(band, nbband, posclass)], index=[idval], columns = cols))
@@ -384,15 +399,16 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
 
     # exportation # TO TEST
     convert = False
-    if os.path.splitext(output)[1] == ".shp":
+    outformat = os.path.splitext(output)[1]
+    if outformat == ".shp":
         driver = "ESRI Shapefile"
-    elif os.path.splitext(output)[1] == ".geojson":
+    elif outformat == ".geojson":
         driver = "GeoJSON"
-    elif os.path.splitext(output)[1] == ".sqlite":
+    elif outformat == ".sqlite":
         driver = "ESRI Shapefile"
         convert = True
     else:
-        raise Exception("This outpuit format is not handled")
+        raise Exception("The output format '%s' is not handled"%(outformat[1:]))
 
     if not convert:
         statsfinal.to_file(output, driver=driver, schema=schema, encoding='utf-8')
@@ -470,6 +486,4 @@ if __name__ == "__main__":
                             help="", default="1000")
         
         args = PARSER.parse_args()
-        #zonalstats(args.path, args.inr, [args.shape, None], {1:'rate'})
-        #(path, rasters, params, output, paramstats={}, bufferDist=None, gdalpath="", write_ouput=False, gdalcachemax="9000"):
         computZonalStats(args.path, args.inr, args.shape, args.params, args.output, args.classes, args.buffer, args.gdal, args.chunk, args.cache, args.write_outputs)
