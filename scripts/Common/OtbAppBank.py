@@ -255,22 +255,34 @@ def CreateIota2FeatureExtractionApplication(OtbParameters):
         features_app.SetParameterString("indfact", OtbParameters["indfact"])
     if "nodata" in OtbParameters:
         features_app.SetParameterString("nodata", OtbParameters["nodata"])
-    if "copyinput" in OtbParameters:
+    if "copyinput" in OtbParameters and OtbParameters["copyinput"] is True:
         features_app.SetParameterValue("copyinput", OtbParameters["copyinput"])
-    if "relrefl" in OtbParameters:
-        features_app.SetParameterEmpty("relrefl", True)
+    if "relrefl" in OtbParameters and OtbParameters["relrefl"] is True:
+        features_app.SetParameterValue("relrefl", OtbParameters["relrefl"])
     if "relindex" in OtbParameters:
         features_app.SetParameterString("relindex", OtbParameters["relindex"])
-    if "keepduplicates" in OtbParameters:
-        features_app.SetParameterEmpty("keepduplicates", True)
-    if "acorfeat" in OtbParameters:
-        features_app.SetParameterEmpty("acorfeat", True)
+    if "keepduplicates" in OtbParameters and OtbParameters["keepduplicates"] is True:
+        # 'not OtbParameters["keepduplicates"]' due to oposite signification of 'keepduplicates'
+        # in iota2FeaturesExtraction
+        features_app.SetParameterValue("keepduplicates", not OtbParameters["keepduplicates"])
+    if "acorfeat" in OtbParameters and OtbParameters["acorfeat"] is True:
+        features_app.SetParameterValue("acorfeat", OtbParameters["acorfeat"])
     if "ram" in OtbParameters:
         features_app.SetParameterString("ram", OtbParameters["ram"])
     if "out" in OtbParameters:
         features_app.SetParameterString("out", OtbParameters["out"])
     if "pixType" in OtbParameters:
         features_app.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
+
+    if ("keepduplicates" in OtbParameters and OtbParameters["keepduplicates"] is True
+        and 
+        "copyinput" in OtbParameters and OtbParameters["copyinput"] is False):
+        
+        warning_msg = ("'iota2FeatureExtraction' cannot be use with the following parameters: "
+                       "'keepduplicates' : True and 'copyinput' : False. 'keepduplicates' is set"
+                       " to False")
+        logger.warning(warning_msg)
+        features_app.SetParameterValue("keepduplicates", False)
 
     return features_app
 

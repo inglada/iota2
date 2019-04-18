@@ -474,19 +474,15 @@ class Landsat_8_old(Sensor):
                                "nir": bands_avail.index("B5") + 1,
                                "swir": bands_avail.index("B6") + 1,
                                "copyinput": self.cfg_IOTA2.getParam('iota2FeatureExtraction', 'copyinput'),
+                               "relrefl": self.cfg_IOTA2.getParam('iota2FeatureExtraction', 'relrefl'),
+                               "keepduplicates": self.cfg_IOTA2.getParam('iota2FeatureExtraction', 'keepduplicates'),
+                               "acorfeat": self.cfg_IOTA2.getParam('iota2FeatureExtraction', 'acorfeat'),
                                "pixType": "int16",
                                "ram": str(ram)}
             copyinput = self.cfg_IOTA2.getParam('iota2FeatureExtraction', 'copyinput')
             rel_refl = self.cfg_IOTA2.getParam('iota2FeatureExtraction', 'relrefl')
             keep_dupl = self.cfg_IOTA2.getParam('iota2FeatureExtraction', 'keepduplicates')
-            acorfeat = self.cfg_IOTA2.getParam('iota2FeatureExtraction', 'acorfeat')
 
-            if rel_refl:
-                feat_parameters["relrefl"] = True
-            if keep_dupl:
-                feat_parameters["keepduplicates"] = True
-            if acorfeat:
-                feat_parameters["acorfeat"] = True
             features_app = CreateIota2FeatureExtractionApplication(feat_parameters)
             if copyinput is False:
                 in_stack_features_labels = []
