@@ -1,10 +1,7 @@
 iota²'s samples management
 ##########################
 
-This chapter is dedicated to explanations about how samples are managed during 
-the iota² run. First, we will see how to give iota² inputs about the dataBase location and
-some restrictions on it. Next, a focus will be done on fields dedicated to set-up 
-a sampling strategy. To finish, every strategy will be illustrated through examples.
+This chapter provides explanations about how training and validation samples are managed during the iota² run. First, we will see how to give iota² inputs about the dataBase location and some restrictions on it. Next, a focus will be done on the chain' fields related to the sampling strategy. The different strategies will be illustrated through examples.
 
 Input dataBase location and label's field
 *****************************************
@@ -14,12 +11,12 @@ Input dataBase location and label's field
 +=============+==========================+==============+==========================================+
 |groundTruth  |string                    | Mandatory    |Input dataBase                            |
 +-------------+--------------------------+--------------+------------------------------------------+
-|dataField    |string                    | Mandatory    |Field into the dataBase containing labels |
+|dataField    |string                    | Mandatory    |Field from the dataBase containing labels |
 +-------------+--------------------------+--------------+------------------------------------------+
 
 .. Note:: 
     In the downloadable `data-set <http://osr-cesbio.ups-tlse.fr/echangeswww/TheiaOSO/IOTA2_TEST_S2.tar.bz2>`_, 
-    the dataBase is the file named 'groundTruth.shp' and the field of interest (dataField) is named 'CODE'
+    the dataBase file is 'groundTruth.shp' and the dataField is named 'CODE'.
 
 Sampling strategy fields
 ************************
@@ -27,7 +24,7 @@ Sampling strategy fields
 +----------------------------+--------------------------+-----------------+---------------------------------------------------------------------------------------------------------------------------+
 |Parameter Key               |Parameter Type            |Default value    |Parameter purpose                                                                                                          |
 +============================+==========================+=================+===========================================================================================================================+
-|:ref:`ratio`                |float                     | 0.5             |Ratio in ]0;1[ range : learning samples / validation samples                                                               |
+|:ref:`ratio`                |float                     | 0.5             |Range in ]0;1[: ratio between learning samples / validation samples                                                        |
 +----------------------------+--------------------------+-----------------+---------------------------------------------------------------------------------------------------------------------------+
 |:ref:`splitGroundTruth`     |boolean                   | True            |Enable the split in learning and validation samples set                                                                    |
 +----------------------------+--------------------------+-----------------+---------------------------------------------------------------------------------------------------------------------------+
@@ -52,7 +49,7 @@ Sampling strategy fields
         "strategy": "all"
     }
 
-which means all pixels under learning polygons will be used to build models.
+which means all pixels inside learning polygons will be used to build models.
 
 *Note 2* : sampleAugmentation default value
 
@@ -77,34 +74,29 @@ directory.
 splitGroundTruth
 ----------------
 
-By default this parameter is set to ``False`` and see what happened
-if this parameter is set to ``True``. :download:`cfg <./config/config_splitGroundTruth.cfg>`
-
-In iota²'s outputs, there is a directory named ``dataAppVal`` which contains by
-tiles all learning and validation polygons. After launching iota², the dataAppVal directory
+By default this parameter is set to ``False``. In iota²'s outputs, there is a directory named ``dataAppVal`` which contains all learning and validation polygons by tiles. After a iota² run, the dataAppVal directory
 should contains two files : ``T31TCJ_seed_0_learn.sqlite`` and ``T31TCJ_seed_0_val.sqlite``.
 
-.. Note:: files T31TCJ_seed_0_*.sqlite contain polygons for each models, here 
-    discriminate thanks to the field ``region``.
+.. Note:: files T31TCJ_seed_0_*.sqlite contain polygons for each models, here discriminate thanks to the field ``region``.
 
 As the dataBase input was not split, the two files must contain the same number of features.
-The entire dataBase is used to learn the model and to evaluate classifications. This kind 
-of feature could be used if the validation comes from an external source.
+The entire dataBase is used to learn the model and to evaluate classifications. In pratice this situation should be avoided to reduce the spatial autocorrelation when computing the classification score.
+
+See what happened when this parameter is set to ``True`` in :download:`cfg <./config/config_splitGroundTruth.cfg>`
 
 .. _ratio:
 
 ratio
 -----
 
-Unlike the ``splitGroundTruth``, the ``ratio`` parameter allows users to tune the
-ratio between polygons dedicated to learn models and polygons used to evaluate 
-classifications. By launching iota² with the ratio parameter :download:`cfg <./config/config_ratio.cfg>` 
+The ``ratio`` parameter allows users to tune the ratio between polygons dedicated to learn models and polygons used to evaluate 
+classifications when the parameter ``splitGroundTruth`` is set to ``True`` . By launching iota² with the ratio parameter :download:`cfg <./config/config_ratio.cfg>` 
 we can observe the content of files ``T31TCJ_seed_0_*.sqlite`` in the iota²'s
 output directory ``dataAppVal``.
 
 The dataBase input provided ``groundTruth.shp`` contains 26 features and 13
 different class. Then by setting the ratio at ``0.5``, files ``T31TCJ_seed_0_learn.sqlite`` 
-and ``T31TCJ_seed_0_val.sqlite`` will contain 13 features each.
+and ``T31TCJ_seed_0_val.sqlite`` will contain 13 samples each.
 
 .. Warning:: the ratio is computed considering the number of polygons, not area.
     Then polygons belonging to a same class should almost cover the same surface. Also, 
@@ -119,24 +111,16 @@ and ``T31TCJ_seed_0_val.sqlite`` will contain 13 features each.
 runs
 ----
 
-The parameter run ``do not influence the strategy``. However, strategies will be 
-repeated in order to be free of bias during selection. Thanks to this parameter, 
-and if it is superior to 1, iota² can provide a confidence interval for each 
-coefficient measuring the classification's quality.
+The parameter run ``do not influence the sampling strategy``. However, sampling will be repeated in order to reduce bias during selection. When it is superior to 1, several runs with different random training/validation split are done, and the reported classification accuracy is averaged over the different runs. A confidence interval (standard deviation) for each coefficient measuring the classification's quality is then computed.
 
 .. _cloud_threshold:
 
 cloud_threshold
 ---------------
 
-This parameter allows users to clean-up the dataBase from samples which can not 
-be used to learn models or to evaluate classifications. The pixel validity is 
-used to determine if samples are usable. Considering a remote acquisition, a valid
-pixel is a pixel which is not under clouds, clouds' shadow or which is saturated.
-Thus, usable samples are samples which are valid more than ``cloud_threshold`` times.
+This parameter allows users to clean-up the dataBase from samples which can not be used to learn models or to evaluate classifications. The pixel validity is used to determine if samples are usable. Considering a remote acquisition, a valid pixel at time ``t`` is a pixel which is not flagged as clouds, clouds' shadow or saturated. Thus, usable samples are samples which are valid more than ``cloud_threshold`` times.
 
-We can observe the influence of the ``cloud_threshold`` parameter by launching iota²
-with :download:`cfg <./config/config_cloudThreshold.cfg>`
+We can observe the influence of the ``cloud_threshold`` parameter by launching iota² with :download:`cfg <./config/config_cloudThreshold.cfg>`
 
 First, here is the tree from the ``features`` iota² output directory
 
@@ -208,8 +192,7 @@ strategy
         "strategy": "all"
     }
 
-Sometimes, it could be interesting to change the default strategy by one more 
-suited to a specific use-case : using High resolution remote sensor, too many polygons,
+Sometimes, it could be interesting to change the default strategy to a more suited one (depending on the specific use-case): using High resolution remote sensor, too many polygons,
 polygons too big, class repartition is unbalanced ...
 
 Sampling randomly with a 50% rate
@@ -238,7 +221,7 @@ Periodic sampling
 ^^^^^^^^^^^^^^^^^
 
 By changing the sampler sampler argument from ``random`` to ``periodic`` one pixel 
-every two are selected.
+every two are selected for "strategy.percent.p":0.5. If "strategy.percent.p":0.1, one pixel every ten pixel would be selected.
 
 .. code-block:: python
 
@@ -307,12 +290,9 @@ OTB's application except ``target_model`` which is specific to iota².
 sampleAugmentation
 ------------------
 
-Sample's augmentation is about to generate sythetic samples from a sample-set.
-This feature is useful to balance class in the dataBase. In order to achieve this,
-iota2 offer an interface to the OTB
+Sample's augmentation is used to generate sythetic samples from a sample-set. This feature is useful to balance class in the dataBase. In order to achieve this, iota2 offer an interface to the OTB
 `SampleAugmentation <https://www.orfeo-toolbox.org/CookBook/Applications/app_SampleSelection.html>`_ application.
-To augment samples, users must chose between methods to perform augmentation and 
-set how many samples must be add.
+To augment samples, users must chose between methods to perform augmentation and set how many samples must be add.
 
 Methods
 ^^^^^^^
@@ -328,14 +308,14 @@ There are 3 different strategies:
     - minNumber
         To set the minimum number of samples by class required
     - balance
-        balance all classes with the same number of samples as the majority one
+        Samples are generated for each class until every class reach the same number of training samples as the largest one.
     - byClass
         augment only some of the classes
 
 Parameters related to ``minNumber`` and ``byClass`` strategies are
 
     - samples.strategy.minNumber
-        minimum number of samples
+        minimum number of samples per classes.
     - samples.strategy.byClass
         path to a CSV file containing in first column the class's label and 
         in the second column the minimum number of samples required.
