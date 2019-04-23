@@ -19,6 +19,7 @@ import os
 import sys
 import shutil
 import logging
+import glob
 from datetime import date
 from osgeo import gdal
 from osgeo import ogr
@@ -63,8 +64,6 @@ def split_segmentation_by_tiles(cfg, region_tiles_seed, wd):
         region_path = os.path.join(cfg.getParam('chain', 'outputPath'), "MyRegion.shp")
     region_pattern = os.path.basename(region_path).split(".")[0]
 
-    region, tiles, seed = region_tiles_seed
-
     try :
         segmentationRaster = gdal.Open(segmentation)
         if segmentationRaster is not None :
@@ -78,33 +77,40 @@ def split_segmentation_by_tiles(cfg, region_tiles_seed, wd):
             segmentationVector = segmentation
             logger.info("%s loaded as vector segmentation reference")
 
-    for tile in tiles :
-        if segmentationVector is None:
-            tileVector = os.path.join(cfg.getParam('chain', 'outputPath'), "shapeRegion", "{}_region_{}_{}.shp".format(region_pattern, region, tile))
-            tiledRasterSegmentation = os.path.join(cfg.getParam('chain', 'outputPath'), "segmentation", '{}_region_{}_seg.tif'.format(tile, region))
-            extractRoiApp = OtbAppBank.CreateExtractROIApplication({"in": segmentationRaster,
-                                                                   "mode": "fit",
-                                                                   "mode.fit.vect": tileVector,
-                                                                   "out": tiledRasterSegmentation})
-            extractRoiApp.ExecuteAndWriteOutput()
-
-            tiledVectorSegmentation = os.path.join(cfg.getParam('chain', 'outputPath'), "segmentation", '{}_region_{}_seg.shp'.format(tile, region))
-            cmd = "gdal_polygonize.py -f \"ESRI Shapefile\" %s %s" % (tiledRasterSegmentation, tiledVectorSegmentation)
+    if segmentationVector is None :
+        segmentationVector = os.path.splitext(segmentation)[0]+'.gml'
+        if os.path.exists(segmentationVector) is not True :
+            cmd = "gdal_polygonize.py -f GML %s %s" % (segmentationRaster, segmentationVector)
             os.system(cmd)
 
+    tiles = cfg.getParam('chain','listTile').split(' ')
+    output_dir = os.path.join(cfg.getParam('chain', 'outputPath'))
+    env_dir = os.path.join(output_dir,'envelope')
+    seg_dir = os.path.join(output_dir,'segmentation')
+    GridFit.generateSegVectorTiles(segmentationVector, tiles, env_dir, seg_dir)
+    field_Region = cfg.getParam('chain', 'regionField')
+    seg_ds = gdal.Open(segmentationRaster)
+    geoT = seg_ds.GetGeoTransform()
+    spx, spy = str(geoT[1]), str(geoT[5])
+    resol = min(abs(geoT[1]), abs(geoT[5]))
+    seg_ds = None
+    gsize = round(1000 * resol)
+    for tile in tiles :
+        tileShp = os.path.join(seg_dir,'{}_seg.shp'.format(tile))
+        tileRegionShps = glob.glob(os.path.join(cfg.getParam('chain', 'outputPath'), "shapeRegion", "{}_region_*_{}.shp".format(region_pattern, tile)))
+        if len(tileRegionShps) > 1 :
+            for tileRegionShp in tileRegionShps :
+                region = tileRegionShp.split('_')[-2]
+                tiledVectorSegmentation = '{}_region_{}_seg.shp'.format(tile, region)
+                intersect_shp(tileShp, tileRegionShp, seg_dir, tiledVectorSegmentation, where = "{}={}".format(field_Region, region))
+                grid_list = GridFit.generateGridBasedSubsets(os.path.join(seg_dir, tiledVectorSegmentation), tile, [gsize, gsize], epsg)
         else :
-            tileVector = os.path.join(cfg.getParam('chain', 'outputPath'), "shapeRegion", "{}_region_{}_{}.shp".format(region_pattern, region, tile))
-            outFolder = os.path.join(cfg.getParam('chain', 'outputPath'), "segmentation")
-            tiledVectorSegmentation = os.path.join(cfg.getParam('chain', 'outputPath'), "segmentation", '{}_region_{}_seg.shp'.format(tile, region))
-            intersect.intersectSqlites(segmentationVector, tileVector, outFolder, tiledVectorSegmentation, epsg, "union", [], vectformat='SQLite')
+            region = tileRegionShps[0].split('_')[-2]
+            outpath = os.path.join(seg_dir,"{}_region_{}_seg".format(tile,region))
+            tiledVectorSegmentation = '{}_region_{}_seg.shp'.format(tile, region)
+            fu.cpShapeFile(os.path.splitext(tileShp)[0], outpath, ['.shp','.shx','.dbf','.prj'])
+            grid_list = GridFit.generateGridBasedSubsets(os.path.join(seg_dir, tiledVectorSegmentation), tile, [gsize, gsize], epsg)
 
-        seg_ds = gdal.Open(tiledRasterSegmentation)
-        geoT = seg_ds.GetGeoTransform()
-        spx, spy = str(geoT[1]), str(geoT[5])
-        resol = min(abs(geoT[1]), abs(geoT[5]))
-        seg_ds = None
-        gsize = round(1000 * resol)
-        grid_list = GridFit.generateGridBasedSubsets(tiledVectorSegmentation, tile, [gsize, gsize], epsg)
     return
 
 def format_sample_to_segmentation(cfg, region_tiles_seed, wd):

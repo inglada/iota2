@@ -35,6 +35,24 @@ def launchBashCmd(bashCmd):
     #bashCmd.split(" ")
     #subprocess.check_output(bashCmd, shell=False)
 
+def queuedProcess(cmd_list,N_processes=4,shell=False,delay=0):
+
+    cmd_queue = cmd_list
+    prc_queue = []
+
+    for t in range(N_processes):
+        if len(cmd_queue) > 0:
+            prc_queue.append(subprocess.Popen(cmd_queue.pop(0), shell=shell))
+            time.sleep(delay)
+
+    while len(prc_queue) > 0:
+        for i in range(len(prc_queue)):
+            if prc_queue[i].poll() is not None:
+                prc_queue.pop(i)
+                if len(cmd_queue) > 0:
+                    prc_queue.append(subprocess.Popen(cmd_queue.pop(0), shell=shell))
+                    time.sleep(delay)
+                break
 
 def launchPythonCmd(f, *arg):
     """

@@ -25,6 +25,7 @@ from Common import FileUtils as fut
 from Common.Utils import run
 from Sensors.Sensors_container import Sensors_container
 from VectorTools import XMLStatsToShape
+from MPI.launch_tasks import queuedProcess
 
 logger = logging.getLogger(__name__)
 
@@ -102,25 +103,6 @@ def tile_samples_zonal_statistics(region_seed_tile, cfg, workingDirectory=None):
         with open(labels_out, 'w') as label_file :
             for l in labels_dbf:
                 label_file.write(str(l)+'\n')
-
-def queuedProcess(cmd_list,N_processes=6,shell=False,delay=0):
-
-    cmd_queue = cmd_list
-    prc_queue = []
-
-    for t in range(N_processes):
-        if len(cmd_queue) > 0:
-            prc_queue.append(subprocess.Popen(cmd_queue.pop(0), shell=shell))
-            time.sleep(delay)
-
-    while len(prc_queue) > 0:
-        for i in range(len(prc_queue)):
-            if prc_queue[i].poll() is not None:
-                prc_queue.pop(i)
-                if len(cmd_queue) > 0:
-                    prc_queue.append(subprocess.Popen(cmd_queue.pop(0), shell=shell))
-                    time.sleep(delay)
-                break
 
 def learning_samples_zonal_statistics(region_seed_tile, cfg, workingDirectory=None):
     """

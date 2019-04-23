@@ -139,7 +139,7 @@ def spatialFilter(vect, clipzone, clipfield, clipvalue, outvect, driverclip = "E
       print "No intersection between the two vector files"
       del lyrclip, lyrvect, dsvect, dsclip
 #--------------------------------------------------------------------
-def intersect_shp(t1,t2,out_folder,out_name,driverclip = "ESRI Shapefile", drivervect = "ESRI Shapefile", driverout = "ESRI Shapefile"):
+def intersect_shp(t1,t2,out_folder,out_name, where = None, driverclip = "ESRI Shapefile", drivervect = "ESRI Shapefile", driverout = "ESRI Shapefile"):
    dsvect = openToRead(t1, drivervect)
    dsclip = openToRead(t2, driverclip)
    lyrvect = dsvect.GetLayer()
@@ -155,6 +155,8 @@ def intersect_shp(t1,t2,out_folder,out_name,driverclip = "ESRI Shapefile", drive
       feat = lyrvect.GetFeature(i)
       geom = feat.GetGeometryRef()
       lyrclip.SetSpatialFilter(geom)
+      if where != None:
+          lyrclip.SetAttributeFilter(where)
       if lyrclip.GetFeatureCount() != 0 :
         for j in range(0,lyrclip.GetFeatureCount(1)):
           feat_clip = lyrclip.GetNextFeature()
@@ -339,7 +341,6 @@ def copyShp2(shp, outShapefile):
    """
    Creates an empty new layer based on the properties and attributs of an input file
    """
-   print outShapefile
    ds = openToRead(shp)
    layer = ds.GetLayer()
    inLayerDefn = layer.GetLayerDefn()
@@ -366,6 +367,25 @@ def copyShp2(shp, outShapefile):
    #print layer.GetFeatureCount()
    print "New file created : %s" %(outShapefile)
    return outShapefile
+#--------------------------------------------------------------------
+def cloneVectorDataStructure(ds_in, fname, ly = 0, epsg = None):
+    ds_in_ly = ds_in.GetLayer(ly)
+
+    if epsg is None:
+        srs = ds_in_ly.GetSpatialRef()
+    else:
+        srs = osr.SpatialReference()
+        srs.ImportFromEPSG(epsg)
+
+    drv = ogr.GetDriverByName('ESRI Shapefile')
+    ds_out = drv.CreateDataSource(fname)
+    ds_out_ly = ds_out.CreateLayer(os.path.splitext(os.path.basename(fname))[0],
+                                   srs=srs,
+                                   geom_type=ds_in_ly.GetLayerDefn().GetGeomType())
+    f = ds_in_ly.GetNextFeature()
+    [ds_out_ly.CreateField(f.GetFieldDefnRef(i)) for i in range(f.GetFieldCount())]
+
+    return ds_out
 #--------------------------------------------------------------------
 def CreateNewLayer(layer, outShapefile):
       """

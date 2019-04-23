@@ -201,6 +201,7 @@ def ClassificationShaping(pathClassif, pathEnvelope, pathImg, fieldEnv, N,
     outputStatistics = cfg.getParam('chain', 'outputStatistics')
     spatialResolution = cfg.getParam('chain', 'spatialResolution')
     shapeRegion = cfg.getParam('chain', 'regionPath')
+    OBIA_segmentation_path = True if cfg.getParam('chain','OBIA_segmentation_path') != None else False
     allTMPFolder = fu.fileSearchRegEx(pathTest+"/TMPFOLDER*")
     if allTMPFolder:
         for tmpFolder in allTMPFolder:
@@ -259,6 +260,11 @@ def ClassificationShaping(pathClassif, pathEnvelope, pathImg, fieldEnv, N,
             confidence[seed].append(tileConfidence)
             cloudTile = fu.FileSearch_AND(featuresPath+"/"+tile, True, "nbView.tif")[0]
             ClassifTile = TMP+"/"+tile+"_seed_"+str(seed)+".tif"
+            if OBIA_segmentation_path == True :
+                supImpCloudTile = cloudTile.replace('.','_supimp.')
+                cmd_supimp = 'otbcli_Superimpose -inr {} -inm {} -out {} -interpolator nn'.format(ClassifTile, cloudTile, supImpCloudTile)
+                run(cmd_supimp)
+                cloudTile = supImpCloudTile
             cloudTilePriority = pathTest+"/final/TMP/"+tile+"_Cloud.tif"
             cloudTilePriority_tmp = TMP+"/"+tile+"_Cloud.tif"
             cloudTilePriority_StatsOK = pathTest+"/final/TMP/"+tile+"_Cloud_StatsOK.tif"
