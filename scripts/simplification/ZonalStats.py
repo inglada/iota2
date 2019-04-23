@@ -16,19 +16,12 @@
 
 import os, sys, argparse
 from collections import OrderedDict
-from itertools import chain
-import datetime
-import time
 import csv
-from itertools import groupby
-#from osgeo.gdal import Dataset
 import osgeo
 import ogr
 import gdal
 import pandas as pad
 import geopandas as gpad
-import fiona
-from shapely import wkt
 from skimage.measure import label
 from skimage.measure import regionprops
 import numpy as np
@@ -152,7 +145,7 @@ def rasterStats(band, nbband=0, posclassmaj=None, posToRead=None):
             return np.float(banddata.ReadAsArray()[posToRead[1], posToRead[0]])
 
 
-def definePandasDf(idvals, paramstats={}, classes=""):
+def definePandasDf(geoframe, idvals, paramstats={}, classes=""):
 
     cols = []
     for param in paramstats:
@@ -173,9 +166,10 @@ def definePandasDf(idvals, paramstats={}, classes=""):
         else:
             raise Exception("The method %s is not implemented")%(paramstats[param])
 
-    cols.append('geometry')
-
-    return gpad.GeoDataFrame(np.nan, index=idvals, columns=cols)        
+    statsgpad = gpad.GeoDataFrame(np.nan, index=idvals, columns=cols)
+    geoframe = gpad.GeoDataFrame(pad.concat([geoframe, statsgpad], axis=1), geometry=geoframe['geometry'], crs=geoframe.crs)
+    
+    return geoframe
     
 def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist=None, gdalpath="", res=10, write_ouput=False, gdalcachemax="9000"):
 
@@ -190,6 +184,32 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
     
     vector, idvals = params
 
+    if isinstance(paramstats, list):
+        paramstats = dict([(x.split(':')[0],x.split(':')[1])  for x in paramstats]) 
+    
+    # check inputs integrity
+    # same extent and resolution ?
+    listres = []
+    listextent = []
+    if len(rasters) != 1:        
+        for raster in rasters:
+            listres.append(abs(fut.getRasterResolution(raster)[0]))
+            listextent.append(fut.getRasterExtent(raster))
+            
+    if listextent[1:] != listextent[:-1]:
+        raise Exception("Input rasters must have same extent")
+    
+    if listres[1:] != listres[:-1]:
+        raise Exception("Input rasters must have same spatial resolution")        
+            
+    # requested stats and band number ?
+    if len(rasters) != 1:        
+        if len(rasters) < max([int(x) for x in paramstats.keys()]):
+            raise Exception("Band ids in requested stats and number of input raster do not correspond")        
+    else:
+        if fut.getRasterNbands(rasters[0]) < max([int(x) for x in paramstats.keys()]):
+            raise Exception("Band ids in requested stats and bands number of input raster do not correspond")        
+
     res = abs(fut.getRasterResolution(rasters[0])[0])
 
     # if no vector subsetting (all features)
@@ -199,10 +219,7 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
     # vector open and iterate features and/or buffer geom
     vectorname = os.path.splitext(os.path.basename(vector))[0]
     vectorgeomtype = vf.getGeomType(vector)
-    vectorbuff = None
-
-    if isinstance(paramstats, list):
-        paramstats = dict([(x.split(':')[0],x.split(':')[1])  for x in paramstats])    
+    vectorbuff = None   
     
     # Value extraction
     if not bufferDist and vectorgeomtype in (1, 4, 1001, 1004):
@@ -231,23 +248,23 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
         else:
             raise Exception("Geometry type of vector file not handled")
 
+    vectgpad = gpad.read_file(vector)    
+    
     ds = vf.openToRead(vector)
     lyr = ds.GetLayer()
     spatialRef = lyr.GetSpatialRef().ExportToProj4()
 
     # Prepare stats DataFrame
-    stats = definePandasDf(idvals, paramstats, classes)
+    stats = definePandasDf(vectgpad, idvals, paramstats, classes)
 
     # Iterate FID list
     for idval in idvals:        
-        lyr.SetAttributeFilter("FID=" + str(idval))
-        for feat in lyr:
-            geom = feat.GetGeometryRef()
-            if geom:
-                geomdf = pad.DataFrame(index=[idval], columns=["geometry"], data=[str(geom.ExportToWkt())])
-                if vectorgeomtype in (1, 4, 1001, 1004):
+        if vectorgeomtype in (1, 4, 1001, 1004):
+            lyr.SetAttributeFilter("FID=" + str(idval))
+            for feat in lyr:
+                geom = feat.GetGeometryRef()
+                if geom:
                     xpt, ypt, _ = geom.GetPoint()
-                stats.update(geomdf)
 
         if vectorbuff:vector=vectorbuff
                 
@@ -362,10 +379,7 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
             print("gdalwarp problem for feature %s (geometry error, too small area, etc.)"%(idval))
 
     # Prepare geometry and projection
-    stats["geometry"] = stats["geometry"].apply(wkt.loads)
-    statsfinal = gpad.GeoDataFrame(stats, geometry="geometry")
-    statsfinal.fillna(0, inplace=True)
-    statsfinal.crs = {'init':'proj4:%s'%(spatialRef)}
+    stats.fillna(0, inplace=True)
 
     # change column names if rate stats expected and nomenclature file is provided
     if "rate" in paramstats and classes != "":
@@ -377,10 +391,10 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
 
         # rename columns with alias
         for col in cols:
-            statsfinal.rename(columns={col[0]:col[1].decode('utf8')}, inplace=True)
+            stats.rename(columns={col[0]:col[1].decode('utf8')}, inplace=True)
 
     # change columns type
-    schema['properties'] = OrderedDict([(x, 'float:10.2') for x in list(statsfinal.columns) if x != 'geometry'])    
+    schema['properties'] = OrderedDict([(x, 'float:10.2') for x in list(stats.columns) if x != 'geometry'])    
 
     # exportation # TO TEST
     convert = False
@@ -395,14 +409,12 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
         raise Exception("This outpuit format is not handled")
 
     if not convert:
-        statsfinal.to_file(output, driver=driver, schema=schema, encoding='utf-8')
+        stats.to_file(output, driver=driver, schema=schema, encoding='utf-8')
     else:
         outputinter = os.path.splitext(output)[0] + '.shp'
-        statsfinal.to_file(outputinter, driver=driver, schema=schema, encoding='utf-8')
+        stats.to_file(outputinter, driver=driver, schema=schema, encoding='utf-8')
         output = os.path.splitext(output)[0] + '.sqlite'        
         Utils.run('ogr2ogr -f SQLite %s %s'%(output, outputinter))
-            
-    # Export depending on columns number (shapefile, sqlite, geojson) # Check Issue on framagit
     
 def getParameters(vectorpath, chunk=1):
     
