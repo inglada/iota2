@@ -51,18 +51,35 @@ def create_dummy_rasters(missing_tiles, N, cfg):
 def compareRef(shapeRef, shapeLearn, classif, diff, footprint, workingDirectory, cfg, pathWd):
 
     minX, maxX, minY, maxY = fu.getRasterExtent(classif)
-    shapeRaster_val = workingDirectory+"/"+shapeRef.split("/")[-1].replace(".shp", ".tif")
-    shapeRaster_learn = workingDirectory+"/"+shapeLearn.split("/")[-1].replace(".shp", ".tif")
-
+    if os.path.splitext(shapeRef)[1] == '.shp':
+        shapeRaster_val = workingDirectory+"/"+shapeRef.split("/")[-1].replace(".shp", ".tif")
+        shapeRaster_learn = workingDirectory+"/"+shapeLearn.split("/")[-1].replace(".shp", ".tif")
+    elif os.path.splitext(shapeRef)[1] == '.sqlite':
+        shapeRaster_val = workingDirectory+"/"+shapeRef.split("/")[-1].replace(".sqlite", ".tif")
+        shapeRaster_learn = workingDirectory+"/"+shapeLearn.split("/")[-1].replace(".sqlite", ".tif")
+    else :
+        shapeRaster_val = workingDirectory+"/"+os.path.splitext(shapeRef.split("/")[-1])[0]
+        shapeRaster_learn = workingDirectory+"/"+os.path.splitext(shapeLearn.split("/")[-1])[0]
     dataField = cfg.getParam('chain', 'dataField')
     spatialRes = int(cfg.getParam('chain', 'spatialResolution'))
-
     #Rasterise val
     cmd = "gdal_rasterize -a "+dataField+" -init 0 -tr "+str(spatialRes)+" "+str(spatialRes)+" "+shapeRef+" "+shapeRaster_val+" -te "+str(minX)+" "+str(minY)+" "+str(maxX)+" "+str(maxY)
     run(cmd)
     #Rasterise learn
     cmd = "gdal_rasterize -a "+dataField+" -init 0 -tr "+str(spatialRes)+" "+str(spatialRes)+" "+shapeLearn+" "+shapeRaster_learn+" -te "+str(minX)+" "+str(minY)+" "+str(maxX)+" "+str(maxY)
     run(cmd)
+
+    if cfg.getParam('chain', 'OBIA_segmentation_path') != None :
+        #Superimpose val
+        supimp_shapeRaster_val = shapeRaster_val.replace('.','_supimp.')
+        cmd = "otbcli_Superimpose -inm {} -inr {} -out {} -interpolator nn".format(shapeRaster_val, classif, supimp_shapeRaster_val)
+        run(cmd)
+        shapeRaster_val = supimp_shapeRaster_val
+        #Rasterise learn
+        supimp_shapeRaster_learn = shapeRaster_learn.replace('.','_supimp.')
+        cmd = "otbcli_Superimpose -inm {} -inr {} -out {} -interpolator nn".format(shapeRaster_learn, classif, supimp_shapeRaster_learn)
+        run(cmd)
+        shapeRaster_learn = supimp_shapeRaster_learn
 
     #diff val
     diff_val = workingDirectory+"/"+diff.split("/")[-1].replace(".tif", "_val.tif")

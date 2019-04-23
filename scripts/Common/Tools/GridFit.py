@@ -18,6 +18,8 @@
 import os
 import shutil
 import argparse
+import numpy as np
+from math import log10
 from osgeo import ogr
 from osgeo import osr
 from osgeo import gdal
@@ -117,7 +119,8 @@ def createOutGrid(TileFolder, pattern, outputProjection, tileNameField, outGridP
     output.Destroy()
 
 def generateGridBasedSubsets(in_vec, tile, gridSize, epsg = None):
-    from VectorTools.vector_functions import copyShp2
+    from VectorTools.vector_functions import cloneVectorDataStructure
+    from Common.FileUtils import removeShape
     
     if os.path.exists(os.path.join(os.path.dirname(in_vec),tile)) == False:
         os.mkdir(os.path.join(os.path.dirname(in_vec),tile))
@@ -146,7 +149,60 @@ def generateGridBasedSubsets(in_vec, tile, gridSize, epsg = None):
 
     for i in range(len(rect)):
         out_list.append(os.path.join(os.path.dirname(in_vec),tile,os.path.splitext(os.path.basename(in_vec))[0] + '_' + str(i + 1).zfill(NZ) + '.shp'))
-        ds_out.append(ogr.Open(copyShp2(in_vec, out_list[i]),1))
+        ds_out.append(cloneVectorDataStructure(ds_in, out_list[i], epsg = epsg))
+
+    ds_in_ly.ResetReading()
+
+    for f in ds_in_ly:
+        i = 0
+        found = False
+        while not found:
+            if f.GetGeometryRef().Intersects(rect[i]):
+                ds_out[i].GetLayer(0).CreateFeature(f)
+                found = True
+            i += 1
+
+    for i,ds in enumerate(ds_out):
+        if ds.GetLayer(0).GetFeatureCount() == 0:
+            removeShape(os.path.splitext(out_list[i])[0], ['.shp','.shx','.dbf', '.prj'])
+    ds_out = None
+    ds_in = None
+
+    return out_list
+
+def generateSegVectorTiles(in_vec, tiles, env_dir, seg_dir):
+    from VectorTools.vector_functions import cloneVectorDataStructure
+    from VectorTools.AddField import addField
+    import glob
+
+    ds_in = ogr.Open(in_vec)
+    ds_in_ly = ds_in.GetLayer(0)
+    ext = ds_in_ly.GetExtent()
+
+    work_extents=[]
+    rect=[]
+    ds_out =[]
+    for tile in tiles:
+        tile_path = glob.glob(os.path.join(env_dir,tile+".shp"))[0]
+        tiles_name_out = os.path.join(seg_dir,tile+"_seg.shp")
+        ds_out.append(cloneVectorDataStructure(ds_in, tiles_name_out))
+        ds_tile = ogr.Open(tile_path)
+        ds_tile_ly = ds_tile.GetLayer(0)
+        tile_ext = ds_tile_ly.GetExtent()
+        work_extent=[]
+        work_extent.append(max(tile_ext[0],ext[0]))
+        work_extent.append(min(tile_ext[1],ext[1]))
+        work_extent.append(max(tile_ext[2],ext[2]))
+        work_extent.append(min(tile_ext[3],ext[3]))
+        ring = ogr.Geometry(ogr.wkbLinearRing)
+        ring.AddPoint(work_extent[0], work_extent[2])
+        ring.AddPoint(work_extent[1], work_extent[2])
+        ring.AddPoint(work_extent[1], work_extent[3])
+        ring.AddPoint(work_extent[0], work_extent[3])
+        ring.AddPoint(work_extent[0], work_extent[2])
+        poly = ogr.Geometry(ogr.wkbPolygon)
+        poly.AddGeometry(ring)
+        rect.append(poly)
 
     ds_in_ly.ResetReading()
 
@@ -162,7 +218,7 @@ def generateGridBasedSubsets(in_vec, tile, gridSize, epsg = None):
     ds_out = None
     ds_in = None
 
-    return out_list
+    return
 
 def getIntersections(outGridPath, inGridPath, tileField_first, tileField_second):
 
