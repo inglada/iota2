@@ -385,7 +385,6 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
 
     dataset = vf.openToRead(vector)
     lyr = dataset.GetLayer()
-    spatialRef = lyr.GetSpatialRef().ExportToProj4()
 
     # Prepare stats DataFrame
     stats = definePandasDf(vectgpad, idvals, paramstats, classes)
