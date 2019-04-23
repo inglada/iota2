@@ -16,7 +16,6 @@
 
 import os, sys, argparse
 from collections import OrderedDict
-import csv
 import osgeo
 import ogr
 import gdal
@@ -29,9 +28,10 @@ import numpy as np
 try:
     from VectorTools import vector_functions as vf
     from VectorTools import BufferOgr as bfo
+    from VectorTools import splitByArea as sba
     from Common import FileUtils as fut
+    from Common import Utils    
     from simplification import nomenclature
-    from Common import Utils
 except ImportError:
     raise ImportError('Iota2 not well configured / installed')
 
@@ -54,13 +54,6 @@ def getVectorsList(path):
                 listfiles.append(os.path.join(root, filein))
 
     return listfiles
-
-def getUniqueId(csvpath):
-
-    df = pad.read_csv(csvpath, header=None)
-
-    return list(set(df.groupby(0).groups))
-
 
 def countPixelByClass(databand, fid=0, band=0):
     """Compute rates of unique values of a categorical raster and store them in a Pandas DataFrame:
@@ -241,45 +234,108 @@ def definePandasDf(geoframe, idvals, paramstats={}, classes=""):
     geoframe = gpad.GeoDataFrame(pad.concat([geoframe, statsgpad], axis=1), geometry=geoframe['geometry'], crs=geoframe.crs)
     
     return geoframe
-    
-def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist=None, gdalpath="", res=10, write_ouput=False, gdalcachemax="9000"):
 
-    # issues sur frama : 1. nouveau : pour Zonal stats 2. modif : nomenclature => modification du fichier de configuration 
-    # exemple de paramétrage de statistiques
-    # paramstats = {1:"rate", 2:"statsmaj", 3:"statsmaj", 4:"stats", 2:stats_cl}
-    # stats : mean_b, std_b, max_b, min_b
-    # statsmaj : meanmaj, stdmaj, maxmaj, minmaj of majority class
-    # rate : rate of each pixel value (classe names)
-    # stats_cl : mean_cl, std_cl, max_cl, min_cl of one class
-    # val : value of corresponding pixel (only for Point geom)
-    
+def checkmethodstats(method):
+
+    if 'stats_' in method:
+        method = 'stats'
+
+    return method in ('stats', 'statsmaj', 'rate', 'val')
+
+def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist=None, gdalpath="", res=10, write_ouput=False, gdalcachemax="9000"):
+    """Compute zonal statistitics (descriptive and categorical)
+       on multi-band raster or multi-rasters
+       based on Point (buffered or not) or Polygon zonal vector
+
+    Parameters
+    ----------
+    path : string
+        working directory
+
+    rasters : list
+        list of rasters to analyse
+
+    params : list
+        list of fid list and vector file
+
+    output : vector file (sqlite, shapefile and geojson)
+        vector file to store statistitics
+
+    paramstats : list
+        list of statistics to compute (e.g. {1:'stats', 2:'rate'})
+
+            - paramstats = {1:"rate", 2:"statsmaj", 3:"statsmaj", 4:"stats", 2:stats_cl}
+            - stats : mean_b, std_b, max_b, min_b
+            - statsmaj : meanmaj, stdmaj, maxmaj, minmaj of majority class
+            - rate : rate of each pixel value (classe names)
+            - stats_cl : mean_cl, std_cl, max_cl, min_cl of one class
+            - val : value of corresponding pixel (only for Point geometry and without other stats)
+
+    classes : nomenclature file
+        nomenclature
+
+    bufferDist : int
+        in case of point zonal vector : buffer size
+
+    gdalpath : string
+        path of gdal binaries (for system execution)
+
+    write_ouput : boolean
+        if True, wrapped raster are stored in working dir
+
+    gdalcachemax : string
+        gdal cache for wrapping operation (in Mb)
+
+    """
+    # Get vector file and FID list
     vector, idvals = params
 
+    # Get bands or raster number
+    if len(rasters) != 1:
+        nbbands = len(rasters)
+    else:
+        nbbands = fut.getRasterNbands(rasters[0])
+
+    # Format requested statistics
     if isinstance(paramstats, list):
-        paramstats = dict([(x.split(':')[0],x.split(':')[1])  for x in paramstats]) 
-    
+        # List of methods (bash)
+        if ':' in paramstats[0]:
+            paramstats = dict([(x.split(':')[0], x.split(':')[1]) for x in paramstats])
+
+        # Unique method without band / raster number
+        elif len(paramstats) == 1:
+            # Build statistics method dictionary
+            tmpdict = {}
+            for idx in nbbands:
+                tmpdict[idx + 1] = str(paramstats[0])
+            paramstats = tmpdict
+
+    # Check statistics methods validity
+    for keys in paramstats:
+        if not checkmethodstats(paramstats[keys]):
+            raise Exception('The method %s is not implemented'%(paramstats[0]))
+
     # check inputs integrity
     # same extent and resolution ?
     listres = []
     listextent = []
-    if len(rasters) != 1:        
+    if len(rasters) != 1:
         for raster in rasters:
             listres.append(abs(fut.getRasterResolution(raster)[0]))
             listextent.append(fut.getRasterExtent(raster))
-            
+
     if listextent[1:] != listextent[:-1]:
         raise Exception("Input rasters must have same extent")
-    
+
     if listres[1:] != listres[:-1]:
-        raise Exception("Input rasters must have same spatial resolution")        
-            
+        raise Exception("Input rasters must have same spatial resolution")
+
     # requested stats and band number ?
-    if len(rasters) != 1:        
-        if len(rasters) < max([int(x) for x in paramstats.keys()]):
-            raise Exception("Band ids in requested stats and number of input raster do not correspond")        
-    else:
-        if fut.getRasterNbands(rasters[0]) < max([int(x) for x in paramstats.keys()]):
-            raise Exception("Band ids in requested stats and bands number of input raster do not correspond")        
+    maxband = max([int(x) for x in paramstats.keys()])
+    if len(rasters) != 1:
+        if nbbands < maxband:
+            raise Exception("Band ids in requested stats and number of input rasters "\
+                            "or bands number of input raster do not correspond")
 
     res = abs(fut.getRasterResolution(rasters[0])[0])
 
@@ -290,8 +346,8 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
     # vector open and iterate features and/or buffer geom
     vectorname = os.path.splitext(os.path.basename(vector))[0]
     vectorgeomtype = vf.getGeomType(vector)
-    vectorbuff = None   
-    
+    vectorbuff = None
+
     # Value extraction
     if not bufferDist and vectorgeomtype in (1, 4, 1001, 1004):
         if 'val' in paramstats.values():
@@ -325,17 +381,17 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
 
 
     # Vector reading
-    vectgpad = gpad.read_file(vector)    
-    
-    ds = vf.openToRead(vector)
-    lyr = ds.GetLayer()
+    vectgpad = gpad.read_file(vector)
+
+    dataset = vf.openToRead(vector)
+    lyr = dataset.GetLayer()
     spatialRef = lyr.GetSpatialRef().ExportToProj4()
 
     # Prepare stats DataFrame
     stats = definePandasDf(vectgpad, idvals, paramstats, classes)
 
     # Iterate FID list
-    for idval in idvals:        
+    for idval in idvals:
         if vectorgeomtype in (1, 4, 1001, 1004):
             lyr.SetAttributeFilter("FID=" + str(idval))
             for feat in lyr:
@@ -343,8 +399,9 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
                 if geom:
                     xpt, ypt, _ = geom.GetPoint()
 
-        if vectorbuff:vector=vectorbuff
-                
+        if vectorbuff:
+            vector = vectorbuff
+
         # creation of wrapped rasters
         if gdalpath != "" and gdalpath is not None:
             gdalpath = gdalpath + "/"
@@ -396,7 +453,6 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
                     success = True
                 except:
                     success = False
-                    pass
 
         if success:
             for param in paramstats:
@@ -411,7 +467,8 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
                 # Statistics extraction
                 if band:
                     methodstat = paramstats[param]
-
+                    
+                    ### Categorical statistics ###
                     if methodstat == 'rate':
                         classStats, classmaj, posclassmaj = countPixelByClass(band, idval, nbband)
                         stats.update(classStats)
@@ -430,6 +487,7 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
                                                    index=[idval], \
                                                    columns=cols))
 
+                    ### Descriptive statistics for majority class ###
                     elif methodstat == 'statsmaj':
                         if not classmaj:
                             if "rate" in paramstats.values():
@@ -453,26 +511,30 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
                                                    index=[idval], \
                                                    columns=cols))
 
+                    ### Descriptive statistics for one class ###
                     elif "stats_" in methodstat:
                         if "rate" in paramstats.values():
-                            # get positions of class
-                            cl = paramstats[param].split('_')[1]
+                            
+                            # get positions of class in categorical raster
+                            reqclass = paramstats[param].split('_')[1]
+                            # find index band / raster of categorical raster
                             idxbdclasses = [x for x in paramstats if paramstats[x] == "rate"][0]
+                            # get positions array
                             rastertmp = gdal.Open(bands[idxbdclasses - 1], 0)
                             data = rastertmp.ReadAsArray()
-                            posclass = np.where(data==int(cl))
+                            posclass = np.where(data == int(reqclass))
                             data = None
                         else:
                             raise Exception("No classification raster provided "\
                                             "to check position of requested class")
 
-                        cols = ["meanb%sc%s"%(int(param), cl), "stdb%sc%s"%(int(param), cl), \
-                                "maxb%sc%s"%(int(param), cl), "minb%sc%s"%(int(param), cl)]
+                        cols = ["meanb%sc%s"%(int(param), reqclass), "stdb%sc%s"%(int(param), reqclass), \
+                                "maxb%sc%s"%(int(param), reqclass), "minb%sc%s"%(int(param), reqclass)]
 
                         stats.update(pad.DataFrame(data=[rasterStats(band, nbband, posclass)], \
                                                    index=[idval], \
                                                    columns=cols))
-
+                    ### Pixel value extraction ###
                     elif "val" in methodstat:
                         colpt, rowpt = fut.geoToPix(band, xpt, ypt)
                         cols = "valb%s"%(param)
@@ -496,7 +558,6 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
     # change column names if rate stats expected and nomenclature file is provided
     if "rate" in paramstats and classes != "":
         # get multi-level nomenclature
-        # classes="/home/qt/thierionv/iota2/iota2/scripts/simplification/nomenclature17.cfg"
         nomenc = nomenclature.Iota2Nomenclature(classes, 'cfg')
         desclasses = nomenc.HierarchicalNomenclature.get_level_values(nomenc.getLevelNumber() - 1)
         cols = [(str(x), str(z)) for x, y, w, z in desclasses]
@@ -506,10 +567,10 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
             stats.rename(columns={col[0]:col[1].decode('utf8')}, inplace=True)
 
     # change columns type
-    schema['properties'] = OrderedDict([(x, 'float:10.2') for x in list(statsfinal.columns) \
+    schema['properties'] = OrderedDict([(x, 'float:10.2') for x in list(stats.columns) \
                                         if x != 'geometry'])
 
-    # exportation # TO TEST
+    # exportation
     # TODO Export format depending on columns number (shapefile, sqlite, geojson) # Check Issue on framagit
     convert = False
     outformat = os.path.splitext(output)[1]
@@ -531,7 +592,7 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
         output = os.path.splitext(output)[0] + '.sqlite'
         Utils.run('ogr2ogr -f SQLite %s %s'%(output, outputinter))
 
-def splitVectorFeatures(vectorpath, chunk=1):
+def splitVectorFeatures(vectorpath, chunk=1, byarea=False):
     """Split FID list of a list of vector files in equal groups:
 
     Parameters
@@ -541,6 +602,9 @@ def splitVectorFeatures(vectorpath, chunk=1):
 
     chunk : integer
         number of FID groups
+
+    byarea : boolean
+        split vector features where each split's sum tends to be the same
 
     Return
     ----------
@@ -553,7 +617,15 @@ def splitVectorFeatures(vectorpath, chunk=1):
         for vect in listvectors:
             listfid = getFidList(vect)
             #TODO : split in chunks with sum of feature areas quite equal
-            listfid = [listfid[i::chunk] for i in range(chunk)]
+            if byarea:
+                listid = sba.getFidArea(vect)
+                statsclasses = sba.getFeaturesFolds(listid, chunk)
+                listfid = []
+                for elt in statsclasses[0][1]:
+                    listfid.append([x[0] for x in elt])
+            else:
+                listfid = [listfid[i::chunk] for i in range(chunk)]
+                
             for fidlist in listfid:
                 params.append((vect, fidlist))
     else:
@@ -565,13 +637,12 @@ def splitVectorFeatures(vectorpath, chunk=1):
 
     return params
 
-def computZonalStats(path, inr, shape, params, output, classes="", buffer="", gdal="", chunk=1, cache="1000", write_outputs=False):
+def computZonalStats(path, inr, shape, params, output, classes="", buffer="", gdalpath="", chunk=1, cache="1000", write_outputs=False):
 
-    #TODO : optimize chunk with real-time HPC ressources
     chunks = splitVectorFeatures(shape, chunk)
 
     for block in chunks:
-        zonalstats(path, inr, block, output, params, classes, buffer, gdal, write_outputs, cache)
+        zonalstats(path, inr, block, output, params, classes, buffer, gdalpath, write_outputs, cache)
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
@@ -602,7 +673,16 @@ if __name__ == "__main__":
         PARSER.add_argument("-chunk", dest="chunk", action="store",\
                             help="number of feature groups", default=1)
         PARSER.add_argument("-params", dest="params", nargs='+',\
-                            help="", default='1:stats')
+                            help="1:rate 2:statsmaj 3:statsmaj 4:stats, 2:stats_cl"\
+                            "left side value corresponds to band or raster number"\
+                            "right side value corresponds to the type of statistics"\
+                            "stats: statistics of the band (mean_b, std_b, max_b, min_b)" \
+                            "statsmaj: statistics of the band for pixel corresponding to the majority class "\
+                            "(meanmaj, stdmaj, maxmaj, minmaj). Need to provide a categorical raster (rate statistics)" \
+                            "rate: rate of each pixel value (classe names)" \
+                            "stats_cl: statistics of the band for pixel corresponding to the required class "\
+                            "(mean_cl, std_cl, max_cl, min_cl). Need to provide a categorical raster (rate statistics)" \
+                            "val: value of corresponding pixel (only for Point geom)", default='1:stats')
         PARSER.add_argument("-classes", dest="classes", action="store",\
                             help="", default="")
         PARSER.add_argument("-buffer", dest="buffer", action="store",\
@@ -614,4 +694,3 @@ if __name__ == "__main__":
 
         args = PARSER.parse_args()
         computZonalStats(args.path, args.inr, args.shape, args.params, args.output, args.classes, args.buffer, args.gdal, args.chunk, args.cache, args.write_outputs)
-        
