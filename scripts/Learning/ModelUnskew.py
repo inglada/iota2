@@ -31,7 +31,7 @@ def launchUnskew(region_seed_tile, cfg):
     cmd_list=[]
     for region, tiles, seed in region_seed_tile :
         shp = os.path.join(lsamples_directory, "learn_samples_region_{}_seed_{}_stats.shp".format(region, seed))
-        output = os.path.join(stats_directory, "features_stats_region_{}_seed_{}_stats.xml".format(region, seed))
+        output = os.path.join(stats_directory, "features_stats_region_{}_seed_{}.xml".format(region, seed))
         ft_file = os.path.join(lsamples_directory, "learn_samples_region_{}_seed_{}_stats_label.txt".format(region, seed))
         feats = open(ft_file).read().replace('\n',' ')
         cmd = "otbcli_ComputeVectorFeaturesStatistics -io.vd {} -io.stats {} -feat {}".format(shp, output, feats)

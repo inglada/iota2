@@ -29,6 +29,7 @@ class reduceModelSkew(IOTA2Step.Step):
         self.output_path = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
         self.field_region = SCF.serviceConfigFile(self.cfg).getParam('chain', 'regionField')
         self.nb_runs = SCF.serviceConfigFile(self.cfg).getParam('chain', 'runs')
+
     def step_description(self):
         """
         function use to print a short description of the step's purpose

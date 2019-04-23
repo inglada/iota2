@@ -32,7 +32,7 @@ def buildObiaTrainCmd(sample, classif, options, dataField, out, feats, stat):
                                                           feats,
                                                           out)
     if stat != None :
-        cmd += " io.stats {}".format(stat)
+        cmd += " -io.stats {}".format(stat)
     return cmd
 
 def launchObiaTrainModel(cfg, dataField, region_seed_tile, pathToCmdTrain, out, pathWd):
@@ -48,7 +48,7 @@ def launchObiaTrainModel(cfg, dataField, region_seed_tile, pathToCmdTrain, out, 
     cmd_list = []
     for region, tiles, seed in region_seed_tile :
         sample = os.path.join(lsamples_directory, "learn_samples_region_{}_seed_{}_stats.shp".format(region, seed))
-        stat = os.path.join(stats_directory, "features_stats_region_{}_seed_{}_stats.xml".format(region, seed))
+        stat = os.path.join(stats_directory, "features_stats_region_{}_seed_{}.xml".format(region, seed))
         if os.path.exists(stat) == False:
             stat = None
         feats = open(os.path.join(lsamples_directory, "learn_samples_region_{}_seed_{}_stats_label.txt".format(region,seed))).read().replace('\n',' ')
