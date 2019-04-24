@@ -468,7 +468,6 @@ class serviceConfigFile:
         try:
             # test of variable
             self.testVarConfigFile('chain', 'outputPath', str)
-            self.testVarConfigFile('chain', 'pyAppPath', str)
             self.testVarConfigFile('chain', 'nomenclaturePath', str)
             self.testVarConfigFile('chain', 'listTile', str)
             self.testVarConfigFile('chain', 'L5Path_old', str)
