@@ -1,11 +1,11 @@
-IOTA² input parameters
+iota2 input parameters
 ######################
 
-IOTA² is fully configurable by using one file given to IOTA² at launch.
+iota2 is fully configurable by using one file given to iota2 at launch.
 This file is called the 'configuration file' throughout the documentation.
 This section is dedicated to the description of each parameter in it.
 
-IOTA² parameters are split in 4 families: ``chain``, ``argTrain``,
+iota2 parameters are split in 4 families: ``chain``, ``argTrain``,
 ``argClassification``, ``GlobChain`` and ``coregistration``. 
 
 chain available parameters
@@ -22,7 +22,7 @@ chain.outputPath
 *Example*
     outputPath : '/absolute/path/to/IOTA2_output/' 
 *Notes*
-    the target directory will be created by IOTA²
+    the target directory will be created by iota2
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -50,7 +50,7 @@ chain.nomenclaturePath
 *Example*
     nomenclaturePath : '/to/Nomenclature.csv'
 *Notes*
-    the nomenclature file is the way IOTA² establishes the link between
+    the nomenclature file is the way iota2 establishes the link between
     the verbose class name and their labels. The file contents must respect
     the following syntax:
     
@@ -237,7 +237,7 @@ chain.groundTruth
     4. No overlapping between polygons
     5. File's name must not contains special characters at first position (4Tiles.shp)
 
-    Users could check if their dataBase is compatible with IOTA²'s restrictions by using 
+    Users could check if their dataBase is compatible with iota2's restrictions by using 
     the script ``scripts/Common/Tools/checkDataBase.py``. (launch checkDataBase.py -h in
     order to know parameters)
 
@@ -271,7 +271,7 @@ chain.regionPath
 *Example*
     regionPath : '/to/my/region.shp'
 *Notes*
-    The use of this field enables IOTA² to generate one model per region.
+    The use of this field enables iota2 to generate one model per region.
     The purpose of this feaure is highlighted by the example : :ref:`two-zones`
 
     the file must respect the following rules
@@ -282,7 +282,7 @@ chain.regionPath
     4. No overlapping between polygons
     5. File's name must not contains special characters at first position (4Tiles.shp)
 
-    Users could check if their dataBase is compatible with IOTA²'s restrictions by using 
+    Users could check if their dataBase is compatible with iota2's restrictions by using 
     the script ``scripts/Common/Tools/checkDataBase.py``. (launch checkDataBase.py -h in
     order to know parameters)
 
@@ -355,7 +355,7 @@ chain.colorTable
 *Example*
     colorTable:'/path/to/MyColorFile.txt'
 *Notes*
-    The color file is the way IOTA² establishes the link between
+    The color file is the way iota2 establishes the link between
     the class label and it's color (useful for vizualisation). It must
     respect the following syntax :
     
@@ -406,7 +406,7 @@ chain.ratio
 chain.cloud_threshold
 =====================
 *Description*
-    To train models, IOTA² will use **only**, polygons (or part of them)
+    To train models, iota2 will use **only**, polygons (or part of them)
     which are "seen" at least 'cloud_treshold' times. A valid area is a
     zone which is not covered by clouds or cloud's shadows and which is 
     not saturated.
@@ -483,7 +483,7 @@ chain.merge_final_classifications_ratio
 *Example*
     merge_final_classifications_ratio:0.1
 *Notes*
-    IOTA² will extract, for each models, a percentage of samples before the
+    iota2 will extract, for each models, a percentage of samples before the
     learning/validation split.
 
     percentage must be between ``]0; 1[``
@@ -571,7 +571,7 @@ chain.fusionOfClassificationAllSamplesValidation
 chain.remove_tmp_files
 ======================
 *Description*
-    IOTA² produces a lot of data before being able to compute final 
+    iota2 produces a lot of data before being able to compute final 
     classifications. This flag is used to remove all temporary directories
     (ie : containing models, classifications...) and to keep final results only.
 *Type*
@@ -616,7 +616,7 @@ chain.enableCrossValidation
 chain.splitGroundTruth
 ======================
 *Description*
-    Flag used to allow IOTA² to split ground truth. If set to ``False`` then
+    Flag used to allow iota2 to split ground truth. If set to ``False`` then
     the chain will use all polygons to train models and for validation.
 *Type*
     bool
@@ -638,9 +638,9 @@ chain.jobsPath
 *Example*
     jobsPath : '/path/JobsDirectory'
 *Notes*
-    The directory must exists before the launch of IOTA²
+    The directory must exists before the launch of iota2
 
-    ``only available`` if IOTA² is launch using ``Iota2Cluster.py``
+    ``only available`` if iota2 is launch using ``Iota2Cluster.py``
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -655,7 +655,7 @@ chain.OTB_HOME
 *Example*
     OTB_HOME : 'MyOTBInstall'
 *Notes*
-    ``only available`` if IOTA² is run using ``Iota2Cluster.py``
+    ``only available`` if iota2 is run using ``Iota2Cluster.py``
 
 .. _tiled data storage:
 
@@ -698,7 +698,7 @@ argTrain available parameters
 argTrain.dempster_shafer_SAR_Opt_fusion
 =======================================
 *Description*
-    IOTA² can process optical and SAR data to produce land cover maps.
+    iota2 can process optical and SAR data to produce land cover maps.
     This data can be mixed together to train a single model, or one model
     per sensor.
 *Type*
@@ -708,7 +708,7 @@ argTrain.dempster_shafer_SAR_Opt_fusion
 *Example*
     dempster_shafer_SAR_Opt_fusion : True
 *Notes*
-    IOTA² implement the Dempster-Shafer fusion rule to choose labels
+    iota2 implement the Dempster-Shafer fusion rule to choose labels
     comming from SAR and optical maps.
     A fully detailed example is available :doc:`here <SAR_Opt_postClassif_fusion>`
 
@@ -765,7 +765,7 @@ argTrain.sampleAugmentation
 ===========================
 *Description*
     In supervised classification the balance between class samples is important. There are
-    many ways to manage class balancing in IOTA², using :ref:`refSampleSelection` or 
+    many ways to manage class balancing in iota2, using :ref:`refSampleSelection` or 
     the classifier's options to limit the number of samples by class.
     
     An other approch is to generate synthetic samples. It is the purpose of this
@@ -788,7 +788,7 @@ argTrain.sampleAugmentation
                               "activate" : True
                               }
 *Notes*
-    IOTA² implements an interface to the OTB `SampleAugmentation <https://www.orfeo-toolbox.org/CookBook/Applications/app_SampleSelection.html>`_ application.
+    iota2 implements an interface to the OTB `SampleAugmentation <https://www.orfeo-toolbox.org/CookBook/Applications/app_SampleSelection.html>`_ application.
     There are three methods to generate samples : replicate, jitter and smote.
     The documentation :doc:`here <sampleAugmentation_explain>` explains the difference between these approaches.
     
@@ -872,7 +872,7 @@ Sensor.write_reproject_resampled_input_dates_stack
 ==================================================
 *Description*
     Only available to Sentinel_2 / Sentinel_2_S2C / Sentinel_2_L3A sensors.
-    If set to False, then IOTA² will write date's stack on disk to improve computations.
+    If set to False, then iota2 will write date's stack on disk to improve computations.
     Else, every computation will be done in RAM, saving disk space.
 *Type*
     bool
@@ -928,7 +928,7 @@ Sensor.temporalResolution
 Sensor.additionalFeatures
 =========================
 *Description*
-    IOTA² allow adding features by dates. Format is the one provided by OTB's BandMath 
+    iota2 allow adding features by dates. Format is the one provided by OTB's BandMath 
     application.
 
 *Type*
@@ -945,7 +945,7 @@ Sensor.additionalFeatures
 Sensor.keepBands
 ================
 *Description*
-    List of bands to use in the IOTA² run.
+    List of bands to use in the iota2 run.
 *Type*
     list
 *Default value*

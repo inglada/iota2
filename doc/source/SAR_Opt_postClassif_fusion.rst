@@ -7,7 +7,7 @@ Purpose of the approach
 Goal
 ====
 
-The main goal of this feature is to allow IOTA² to perform a post-classification
+The main goal of this feature is to allow iota2 to perform a post-classification
 fusion of SAR and optical data.
 
 Issue
@@ -35,7 +35,7 @@ Fields compatibility
 
 If ``dempster_shafer_SAR_Opt_fusion`` is ``True``, then ``S1Path`` must
 be ``different from 'None'`` and an ``optical sensor has to be set``.
-If this conditions are not met, a exception is thrown and the execution of IOTA² 
+If this conditions are not met, a exception is thrown and the execution of iota2 
 is aborted.
 
 About steps
