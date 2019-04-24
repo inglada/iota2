@@ -26,9 +26,9 @@ sys.path.insert(0, os.path.abspath("../../../../../../../home/uz/vincenta/IOTA2/
 
 # -- Project information -----------------------------------------------------
 
-project = u'IOTA2'
-copyright = u'2018, Arthur VINCENT'
-author = u'Arthur VINCENT'
+project = u'iota2'
+copyright = u'2015-2019, CESBIO'
+author = u'iota2 dev teamp'
 
 # The short X.Y version
 version = u''
@@ -115,7 +115,7 @@ html_static_path = ['_static']
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'IOTA2doc'
+htmlhelp_basename = 'iota2doc'
 
 
 # -- Options for LaTeX output ------------------------------------------------
@@ -142,8 +142,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'IOTA2.tex', u'IOTA2 Documentation',
-     u'Arthur VINCENT', 'manual'),
+    (master_doc, 'IOTA2.tex', u'iota2 Documentation',
+     u'iota2 dev team', 'manual'),
 ]
 
 
@@ -152,7 +152,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'iota2', u'IOTA2 Documentation',
+    (master_doc, 'iota2', u'iota2 Documentation',
      [author], 1)
 ]
 
@@ -163,7 +163,7 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'IOTA2', u'IOTA2 Documentation',
+    (master_doc, 'IOTA2', u'iota2 Documentation',
      author, 'IOTA2', 'One line description of project.',
      'Miscellaneous'),
 ]

@@ -1,10 +1,10 @@
-Adding a new step to IOTA²
+Adding a new step to iota2
 ##########################
 
-IOTA² is based on a sequence of steps. As example, if the purpose is to achieve
+iota2 is based on a sequence of steps. As example, if the purpose is to achieve
 a supervised classification, then steps could roughly be : "prepare data",
 "learn models", "classify" then "validate classifications". Step's define
-IOTA² granularity. Each steps must have a well define goal.
+iota2 granularity. Each steps must have a well define goal.
 
 In the previous example, "prepare data" is too abstact to define a entiere step.
 We could split it until getting a coherent purpose / goal / aim by step.
@@ -13,7 +13,7 @@ We could split it until getting a coherent purpose / goal / aim by step.
 Step's definition
 *****************
 
-The pupose of a step is to achieve something. In most case in IOTA², a given step
+The pupose of a step is to achieve something. In most case in iota2, a given step
 has to be reproduce many times : on a set of tiles or by dates etc...
 In order to provide to developers a generic workflow, steps must contains lambda functions.
 
@@ -29,7 +29,7 @@ lambda functions could be use as the following :
         >>> 15
 
 In the example ``x is the lambda`` function and ``a is the variable parameter`` of x.
-The value of ``a`` is dynamically determined when ``x`` is used. In IOTA², lambda functions
+The value of ``a`` is dynamically determined when ``x`` is used. In iota2, lambda functions
 receive a function.
 
 .. code-block:: python
@@ -51,7 +51,7 @@ receive a function.
         >>> 3
 
 MyFunction could be the one dedicated to learn a model, classify tiles etc...
-In IOTA², lambda's functions returned type is not imposed unlike the
+In iota2, lambda's functions returned type is not imposed unlike the
 way of feeding the lambda.
 
 How to feed the lambda
@@ -110,13 +110,13 @@ contains the following :
 Existing steps
 ==============
 
-You could find and define every IOTA²'s steps in Step directory.
+You could find and define every iota2's steps in Step directory.
 
-Define a new step and add it to the IOTA²'s workflow
+Define a new step and add it to the iota2's workflow
 ****************************************************
 
-This section will describe the built of a new IOTA²'s step from scratch and how
-to enable it in IOTA².
+This section will describe the built of a new iota2's step from scratch and how
+to enable it in iota2.
 
 Define a new step
 =================
@@ -172,7 +172,7 @@ Define a new step
 .. Note:: The base class constructor must contains three arguments :
 
             - cfg
-                absolute path to a IOTA² configuration file
+                absolute path to a iota2 configuration file
 
             - cfg_resources_file
                 absolute path to a configuration file dedicated to resources
@@ -185,9 +185,9 @@ Define a new step
 Add it to the step's sequence
 =============================
 
-IOTA² step sequence is done in ``Iota2Builder.py`` at
+iota2 step sequence is done in ``Iota2Builder.py`` at
 `build_steps <https://framagit.org/iota2-project/iota2/blob/develop/scripts/Iota2Builder.py#L78>`_ function.
-To enable the step in IOTA², append it to the step sequence list ``s_container``.
+To enable the step in iota2, append it to the step sequence list ``s_container``.
 
 .. Note::
     You can insert the new step at the beginning, at the end or between two existing step
@@ -218,12 +218,12 @@ To enable the step in IOTA², append it to the step sequence list ``s_container`
     The ``append`` method need two arguments, a step and the step group it belong to.
 
     available groups are stored in ``self.steps_group`` class attributes.
-    It allow IOTA² to restart from a given group until a another group is reach.
+    It allow iota2 to restart from a given group until a another group is reach.
 
 About resources
 ===============
 
-As IOTA² is composed of stages, it is convenient to be able of allow resources
+As iota2 is composed of stages, it is convenient to be able of allow resources
 consumption limit by steps (cpu, RAM). This feature is very useful in HPC usage,
 where resources consumption is a hard constraint.
 
