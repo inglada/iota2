@@ -55,7 +55,7 @@ def getVectorsList(path):
 
     return listfiles
 
-def countPixelByClass(databand, fid=0, band=0):
+def countPixelByClass(databand, fid=0, band=0, nodata=0):
     """Compute rates of unique values of a categorical raster and store them in a Pandas DataFrame:
 
     Parameters
@@ -68,6 +68,9 @@ def countPixelByClass(databand, fid=0, band=0):
 
     band : int
         band number of databand input parameter
+
+    nodata : int
+        nodata value of the raster / band
 
     Return
     ------
@@ -102,12 +105,12 @@ def countPixelByClass(databand, fid=0, band=0):
         if len(np.unique(img)) != 1 or np.unique(img)[0] != 0:
             res = rastertmp.GetGeoTransform()[1]
             try:
-                dataclean = data[data != 0]
+                dataclean = data[data != nodata]
                 npcounts = np.array(np.unique(dataclean, return_counts=True)).T
                 counts = npcounts.tolist()
             except:
                 for reg in regionprops(img, data):
-                    counts.append([[x for x in np.unique(reg.intensity_image) if x != 0][0], reg.area])
+                    counts.append([[x for x in np.unique(reg.intensity_image) if x != nodata][0], reg.area])
 
             if len(counts[0]):
                 # test si counts a des valeurs !
@@ -132,7 +135,7 @@ def countPixelByClass(databand, fid=0, band=0):
 
     return classStats, classmaj, posclassmaj
 
-def rasterStats(band, nbband=0, posclassmaj=None, posToRead=None):
+def rasterStats(band, nbband=0, posclassmaj=None, posToRead=None, nodata=0):
     """Compute descriptive statistics of a numpy array or a gdal raster:
 
     Parameters
@@ -148,6 +151,9 @@ def rasterStats(band, nbband=0, posclassmaj=None, posToRead=None):
 
     posToRead : tuple
         col / row coordinates on which extract pixel value
+
+    nodata : int
+        nodata value of the raster / band
 
     Return
     ------
@@ -173,12 +179,13 @@ def rasterStats(band, nbband=0, posclassmaj=None, posToRead=None):
         if not posToRead:
             data = banddata.ReadAsArray()
             img = label(data)
-            # TODO : when data is empty (else) ?
+            # TODO : when data is empty (
             if len(np.unique(img)) != 1 or np.unique(img)[0] != 0:
-                mean = round(np.mean(data[posclassmaj]), 2)
-                std = round(np.std(data[posclassmaj]), 2)
-                maxval = round(np.max(data[posclassmaj]), 2)
-                minval = round(np.min(data[posclassmaj]), 2)
+                data = data[posclassmaj]
+                mean = round(np.mean(data[data!=nodata]), 2)
+                std = round(np.std(data[data!=nodata]), 2)
+                maxval = round(np.max(data[data!=nodata]), 2)
+                minval = round(np.min(data[data!=nodata]), 2)
 
             stats = (mean, std, maxval, minval)
         else:
@@ -242,7 +249,7 @@ def checkmethodstats(method):
 
     return method in ('stats', 'statsmaj', 'rate', 'val')
 
-def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist=None, gdalpath="", res=10, write_ouput=False, gdalcachemax="9000"):
+def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist=None, nodata=0, gdalpath="", write_ouput=False, gdalcachemax="9000"):
     """Compute zonal statistitics (descriptive and categorical)
        on multi-band raster or multi-rasters
        based on Point (buffered or not) or Polygon zonal vector
@@ -306,7 +313,7 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
         elif len(paramstats) == 1:
             # Build statistics method dictionary
             tmpdict = {}
-            for idx in nbbands:
+            for idx in range(nbbands):
                 tmpdict[idx + 1] = str(paramstats[0])
             paramstats = tmpdict
 
@@ -367,7 +374,7 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
                 schema = {'geometry': 'Point', 'properties' : {}}
             elif vectorgeomtype == 4:
                 schema = {'geometry': 'MultiPoint', 'properties' : {}}
-            vectorbuff = vectorname + "buff.shp"
+            vectorbuff = os.path.join(path, vectorname + "buff.shp")
             _ = bfo.bufferPoly(vector, vectorbuff, bufferDist=bufferDist)
 
         # Polygon geometry
@@ -409,6 +416,7 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
 
         bands = []
         success = True
+        todel = []
         for idx, raster in enumerate(rasters):
 
             # Value extraction
@@ -439,6 +447,7 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
                                                                     raster, \
                                                                     tmpfile)
                         Utils.run(cmd)
+                        todel.append(tmpfile)
                     else:
                         gdal.SetConfigOption("GDAL_CACHEMAX", gdalcachemax)
                         tmpfile = gdal.Warp('', raster, xRes=res, \
@@ -471,12 +480,12 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
                     if methodstat == 'rate':
                         classStats, classmaj, posclassmaj = countPixelByClass(band, idval, nbband)
                         stats.update(classStats)
-
+                        
                         # Add columns when pixel values are not identified in nomenclature file
                         if list(classStats.columns) != list(stats.columns):
                             newcols = list(set(list(classStats.columns)).difference(set(list(stats.columns))))
-                            pad.concat([stats, classStats[newcols]], axis=1)
-
+                            stats = pad.concat([stats, classStats[newcols]], axis=1)
+                            
                     elif methodstat == 'stats':
 
                         cols = ["meanb%s"%(int(param)), "stdb%s"%(int(param)), \
@@ -506,7 +515,7 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
 
                         cols = ["meanmajb%s"%(int(param)), "stdmajb%s"%(int(param)), \
                                 "maxmajb%s"%(int(param)), "minmajb%s"%(int(param))]
-                        stats.update(pad.DataFrame(data=[rasterStats(band, nbband, posclassmaj)], \
+                        stats.update(pad.DataFrame(data=[rasterStats(band, nbband, posclassmaj, nodata)], \
                                                    index=[idval], \
                                                    columns=cols))
 
@@ -530,7 +539,7 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
                         cols = ["meanb%sc%s"%(int(param), reqclass), "stdb%sc%s"%(int(param), reqclass), \
                                 "maxb%sc%s"%(int(param), reqclass), "minb%sc%s"%(int(param), reqclass)]
 
-                        stats.update(pad.DataFrame(data=[rasterStats(band, nbband, posclass)], \
+                        stats.update(pad.DataFrame(data=[rasterStats(band, nbband, posclass, nodata)], \
                                                    index=[idval], \
                                                    columns=cols))
                     ### Pixel value extraction ###
@@ -545,8 +554,8 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
 
                 band = None
 
-            if write_ouput:
-                os.remove(tmpfile)
+            for filtodel in todel:
+                os.remove(filtodel)
 
         else:
             print("gdalwarp problem for feature %s (geometry error, too small area, etc.)"%(idval))
@@ -603,7 +612,7 @@ def splitVectorFeatures(vectorpath, chunk=1, byarea=False):
         number of FID groups
 
     byarea : boolean
-        split vector features where each split's sum tends to be the same
+        split vector features where sum of areas of each split tends to be the same
 
     Return
     ----------
@@ -617,7 +626,11 @@ def splitVectorFeatures(vectorpath, chunk=1, byarea=False):
             listfid = getFidList(vect)
             #TODO : split in chunks with sum of feature areas quite equal
             if byarea:
-                listid = sba.getFidArea(vect)
+                vectorgeomtype = vf.getGeomType(vector)
+                if vectorgeomtype in (3, 6, 1003, 1006):                
+                    listid = sba.getFidArea(vect)
+                else:
+                    raise Exception('Geometry type is not adapted to compute features areas')
                 statsclasses = sba.getFeaturesFolds(listid, chunk)
                 listfid = []
                 for elt in statsclasses[0][1]:
@@ -636,12 +649,12 @@ def splitVectorFeatures(vectorpath, chunk=1, byarea=False):
 
     return params
 
-def computZonalStats(path, inr, shape, params, output, classes="", buffer="", gdalpath="", chunk=1, cache="1000", write_outputs=False):
+def computZonalStats(path, inr, shape, params, output, classes="", bufferdist="", nodata=0, gdalpath="", chunk=1, byarea=False, cache="1000", write_outputs=False):
 
-    chunks = splitVectorFeatures(shape, chunk)
+    chunks = splitVectorFeatures(shape, chunk, byarea)
 
     for block in chunks:
-        zonalstats(path, inr, block, output, params, classes, buffer, gdalpath, write_outputs, cache)
+        zonalstats(path, inr, block, output, params, classes, bufferdist, nodata, gdalpath, write_outputs, cache)
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
@@ -652,13 +665,15 @@ if __name__ == "__main__":
         sys.exit(-1)
     else:
         USAGE = "usage: %prog [options] "
-        PARSER = argparse.ArgumentParser(description="Extract shapefile records")
+        PARSER = argparse.ArgumentParser(description="Extract shapefile records", formatter_class=argparse.RawTextHelpFormatter)
         PARSER.add_argument("-wd", dest="path", action="store",\
                             help="working dir",\
                             required=True)
         PARSER.add_argument("-inr", dest="inr", nargs='+',\
                             help="input rasters list (classification, validity and confidence)",\
                             required=True)
+        PARSER.add_argument("-nodata", dest="nodata", action="store",\
+                            help="nodata value of input raster(s)", default=0)        
         PARSER.add_argument("-shape", dest="shape", action="store",\
                             help="shapefiles path",\
                             required=True)
@@ -671,20 +686,22 @@ if __name__ == "__main__":
                             default="")
         PARSER.add_argument("-chunk", dest="chunk", action="store",\
                             help="number of feature groups", default=1)
-        PARSER.add_argument("-params", dest="params", nargs='+',\
-                            help="1:rate 2:statsmaj 3:statsmaj 4:stats, 2:stats_cl"\
-                            "left side value corresponds to band or raster number"\
-                            "right side value corresponds to the type of statistics"\
-                            "stats: statistics of the band (mean_b, std_b, max_b, min_b)" \
-                            "statsmaj: statistics of the band for pixel corresponding to the majority class "\
-                            "(meanmaj, stdmaj, maxmaj, minmaj). Need to provide a categorical raster (rate statistics)" \
-                            "rate: rate of each pixel value (classe names)" \
-                            "stats_cl: statistics of the band for pixel corresponding to the required class "\
-                            "(mean_cl, std_cl, max_cl, min_cl). Need to provide a categorical raster (rate statistics)" \
+        PARSER.add_argument("-byarea", action='store_true',\
+                            help="split vector features where sum of areas of each split tends to be the same", default=False)
+        PARSER.add_argument("-params", dest="params", nargs='+', \
+                            help="1:rate 2:statsmaj 3:statsmaj 4:stats, 2:stats_cl \n"\
+                            "left side value corresponds to band or raster number \n"\
+                            "right side value corresponds to the type of statistics \n"\
+                            "stats: statistics of the band (mean_b, std_b, max_b, min_b) \n" \
+                            "statsmaj: statistics of the band for pixel corresponding to the majority class \n"\
+                            "(meanmaj, stdmaj, maxmaj, minmaj). Need to provide a categorical raster (rate statistics) \n" \
+                            "rate: rate of each pixel value (classe names) \n" \
+                            "stats_cl: statistics of the band for pixel corresponding to the required class \n"\
+                            "(mean_cl, std_cl, max_cl, min_cl). Need to provide a categorical raster (rate statistics) \n" \
                             "val: value of corresponding pixel (only for Point geom)", default='1:stats')
         PARSER.add_argument("-classes", dest="classes", action="store",\
                             help="", default="")
-        PARSER.add_argument("-buffer", dest="buffer", action="store",\
+        PARSER.add_argument("-buffer", dest="buff", action="store",\
                             help="", default="")
         PARSER.add_argument("-write_outputs", action='store_true',\
                             help="", default=False)
@@ -692,4 +709,4 @@ if __name__ == "__main__":
                             help="", default="1000")
 
         args = PARSER.parse_args()
-        computZonalStats(args.path, args.inr, args.shape, args.params, args.output, args.classes, args.buffer, args.gdal, args.chunk, args.cache, args.write_outputs)
+        computZonalStats(args.path, args.inr, args.shape, args.params, args.output, args.classes, args.buff, args.nodata, args.gdal, args.chunk, args.byarea, args.cache, args.write_outputs)
