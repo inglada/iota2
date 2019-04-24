@@ -360,6 +360,7 @@ class Landsat_5_old(Sensor):
             self.generate_raster_ref(sat_mask)
             dates_time_series_mask, _ = CreateSuperimposeApplication({"inr": self.ref_image,
                                                                       "inm": dates_time_series_mask,
+                                                                      "interpolator" : "nn",
                                                                       "out": times_series_mask,
                                                                       "ram": str(ram)})
 

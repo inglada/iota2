@@ -45,7 +45,7 @@ class mosaic(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
-        return [self.output_path]
+        return [os.path.join(self.output_path, "classif")]
 
     def step_execute(self):
         """
