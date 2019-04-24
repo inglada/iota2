@@ -4,12 +4,12 @@ Development recommendations
 GIT 
 ***
 
-IOTA² development uses `GIT <https://git-scm.com>`_ as source control tool.
+iota2 development uses `GIT <https://git-scm.com>`_ as source control tool.
 
 GIT-Flow
 ========
 
-There are many ways of using GIT. In IOTA² ``git-flow`` has been chosen to maintain the project (**without release branches**).
+There are many ways of using GIT. In iota2 ``git-flow`` has been chosen to maintain the project (**without release branches**).
 You can find more about it `here <https://jeffkreeftmeijer.com/git-flow/>`_.
 
 To roughly sum-up, for the development of a new feature, the developer **must** :
@@ -32,12 +32,12 @@ Branch naming conventions
 | fix a bug             | fix-*             | fix-#27_Bug                              |
 +-----------------------+-------------------+------------------------------------------+
 
-the ``#27`` in *fix-#27_Bug* should refer to an issue reported on `IOTA² GIT repository <https://framagit.org/inglada/iota2/issues>`_.
+the ``#27`` in *fix-#27_Bug* should refer to an issue reported on `iota2 GIT repository <https://framagit.org/inglada/iota2/issues>`_.
 
 FRAMAGIT
 ********
 
-IOTA² is hosted on `FramaGit <https://framagit.org/inglada/iota2>`_ .
+iota2 is hosted on `FramaGit <https://framagit.org/inglada/iota2>`_ .
 Anybody can create an account for **free** and submit merge requests. To monitor the project, 
 `issues <https://framagit.org/inglada/iota2/issues>`_ are mainly used. Developments are often started by a 
 reported issue describing a bug, a new interesting feature or a research idea.
@@ -45,7 +45,7 @@ reported issue describing a bug, a new interesting feature or a research idea.
 Issues
 ======
 
-If a developer wants to contribute to IOTA², here is the recommended workflow:
+If a developer wants to contribute to iota2, here is the recommended workflow:
 
    1. If an issue about the new feature does not exist, create a dedicated one.
    2. Assign the issue to herself.
@@ -101,7 +101,7 @@ TESTS
 Unittest
 ========
 
-IOTA² is mainly developed in Python, and the `Unittest <https://docs.python.org/2.7/library/unittest.html>`_ library has been chosen
+iota2 is mainly developed in Python, and the `Unittest <https://docs.python.org/2.7/library/unittest.html>`_ library has been chosen
 to implement our unit test framework. It is ``highly recommended`` adding tests to each new feature.
 Currently, unit tests are placed in the ``/iota2/scripts/Tests/UnitTests`` directory.
 

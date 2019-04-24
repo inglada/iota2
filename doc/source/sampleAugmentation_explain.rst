@@ -27,7 +27,7 @@ SMOTE
 
 This section summarizes the :abbr:`SMOTE (Synthetic Minority Over-sampling Technique)`
 algorithm using an illustrarion. The fully explanation about the SMOTE method used
-in IOTA² is available `here <https://jair.org/index.php/jair/article/view/10302>`_.
+in iota2 is available `here <https://jair.org/index.php/jair/article/view/10302>`_.
 
 The figure below shows the generation of ``one sample`` using ``3 neighbors``:
 

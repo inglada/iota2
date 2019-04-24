@@ -1,7 +1,7 @@
-IOTA² code architecture : main class
+iota2 code architecture : main class
 ************************************
 
-This chapter is dedicated to summary IOTA²'s class developers must know the existence.
+This chapter is dedicated to summary iota2's class developers must know the existence.
 
 iota2
 *****

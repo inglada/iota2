@@ -148,15 +148,18 @@ class User_features(Sensor):
         from Common.FileUtils import ensure_dir
         from Common.FileUtils import getRasterProjectionEPSG
         from Common.FileUtils import getRasterResolution
+        from Common.FileUtils import getRasterNbands
 
         features_dir = os.path.join(self.features_dir, "tmp")
         ensure_dir(features_dir, raise_exe=False)
         features_out = os.path.join(features_dir, self.features_names)
 
         user_features = []
+        user_features_bands = []
         for pattern in self.data_type:
             user_feature = FileSearch_AND(self.tile_directory, True, pattern)
             if user_feature:
+                user_features_bands.append(getRasterNbands(user_feature[0]))
                 user_features.append(user_feature[0])
             else :
                 msg = "WARNING : '{}' not found in {}".format(pattern, self.tile_directory)
@@ -182,5 +185,5 @@ class User_features(Sensor):
                                                                "inm": user_feat_stack,
                                                                "out": features_out,
                                                                "ram": str(ram)})
-        features_labels = [pattern for pattern in self.data_type]
+        features_labels = ["{}_band_{}".format(pattern, band_num) for pattern, nb_bands in zip(self.data_type, user_features_bands) for band_num in range(nb_bands)]
         return (user_feat_stack, app_dep), features_labels

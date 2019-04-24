@@ -1,27 +1,27 @@
-IOTA² use cases
+iota2 use cases
 ###############
 
-Assuming IOTA² is :doc:`fully operational <HowToGetIOTA2>` , this section will present some IOTA² use cases.
+Assuming iota2 is :doc:`fully operational <HowToGetIOTA2>` , this section will present some iota2 use cases.
 Users can re-produce the results presented here by using the downloadable `data-set <http://osr-cesbio.ups-tlse.fr/echangeswww/TheiaOSO/IOTA2_TEST_S2.tar.bz2>`_ .
 
-First try with IOTA²? :ref:`first-contact`
+First try with iota2? :ref:`first-contact`
 
 You have two distinct regions to classify? :ref:`two-zones`
 
 
 .. _first-contact:
 
-IOTA² first contact
+iota2 first contact
 *******************
 
-The purpose of this example is to provide to users a fully detailed step by step of how to run IOTA² on a simple data-set.
+The purpose of this example is to provide to users a fully detailed step by step of how to run iota2 on a simple data-set.
 An area that covers a full Sentinel-2 tile will be classified using ground truth containing 13 different classes.
 
 Get the data-set
 ================
 
 Download the data-set `here <http://osr-cesbio.ups-tlse.fr/echangeswww/TheiaOSO/IOTA2_TEST_S2.tar.bz2>`_ (4Go).
-This archive contains satellite imagery (two sentinel-2 dates) available on THEIA's `website <https://theia.cnes.fr/atdistrib/rocket/#/search?collection=SENTINEL2>`_ and other IOTA²'s inputs:
+This archive contains satellite imagery (two sentinel-2 dates) available on THEIA's `website <https://theia.cnes.fr/atdistrib/rocket/#/search?collection=SENTINEL2>`_ and other iota2's inputs:
 
 Archive contents:
 
@@ -78,9 +78,9 @@ Here the class **10** has the **RGB** color **255 85 0**.
 
 ``EcoRegion.shp`` : shapeFile containing two geo-referenced polygons representing a spatial stratification (eco-climatic areas, for instance).
 
-``IOTA2_Example.cfg`` : the file used to set IOTA²'s parameters such as inputs/outputs paths, classifier parameters etc.
+``IOTA2_Example.cfg`` : the file used to set iota2's parameters such as inputs/outputs paths, classifier parameters etc.
 
-Edit IOTA² configuration file
+Edit iota2 configuration file
 =============================
 
 A configuration file is a simple text file containing sections and fields.
@@ -103,14 +103,14 @@ Example :
 
 
 To be able to run the chain, you have to replace ``XXXX`` in ``IOTA2_Example.cfg`` by the path where you stored
-the provided archive. Also replace the ``MyInstall`` by the path where IOTA² is installed.
+the provided archive. Also replace the ``MyInstall`` by the path where iota2 is installed.
 
-.. Note:: ``IOTA2_Example.cfg`` is the minimal configuration file understandable by IOTA².
+.. Note:: ``IOTA2_Example.cfg`` is the minimal configuration file understandable by iota2.
 
-Run IOTA²
+Run iota2
 =========
 
-First, you have to set a list of environement variables to inform IOTA² "where OTB is".
+First, you have to set a list of environement variables to inform iota2 "where OTB is".
 The file ``prepare_env.sh`` will do it for you. Then use ``Iota2.py`` to launch the chain.
 
 .. code-block:: console
@@ -118,7 +118,7 @@ The file ``prepare_env.sh`` will do it for you. Then use ``Iota2.py`` to launch 
     source /MyInstall/iota2/scripts/install/prepare_env.sh
     python /MyInstall/iota2/scripts/Iota2.py -config /absolutePath/to/IOTA2_Example.cfg
 
-IOTA² is launched, it will print all processing steps needed to produce the maps and their validation:
+iota2 is launched, it will print all processing steps needed to produce the maps and their validation:
 
 .. code-block:: console
 
@@ -162,11 +162,11 @@ Afterwards, it will sequentially print the current step until the end of the pro
     Running step 3: compute validity mask by tile (1 tasks)
     ...
 
-**Let's have a look at IOTA²'s outputs.**
+**Let's have a look at iota2's outputs.**
 
 You will find them in the directory specified in field ``outputPath`` into the configuration file.
-IOTA² generates a lot of temporary data which helps users to analyse classification's results. 
-For example, IOTA² keeps sample's label with associated features which feed the classification model. You can find these
+iota2 generates a lot of temporary data which helps users to analyse classification's results. 
+For example, iota2 keeps sample's label with associated features which feed the classification model. You can find these
 data in the directory ``learningSamples``.
 
 Final results are stored in the ``final`` directory. In it you can find ``Classif_Seed_0.tif`` as the final map.
@@ -197,7 +197,7 @@ A possible explanation is the low number of dates used to produce it. A raster c
     
     PixelsValidity.tif Example
 
-As only two dates are used to produce the classification map, pixels are in the [0; 2] range. IOTA² also provides a confidence map: ``Confidence_Seed_0.tif`` which
+As only two dates are used to produce the classification map, pixels are in the [0; 2] range. iota2 also provides a confidence map: ``Confidence_Seed_0.tif`` which
 allows to better understand the resulting classification. This map gives for each pixel a likelihood (from 0 to 100) of the result to be correct as estimated by the classifier itself. This is not a validation, just an estimate of the confidence in the decision of the classifier.
 
 .. figure:: ./Images/confidence_example.jpg
@@ -207,9 +207,9 @@ allows to better understand the resulting classification. This map gives for eac
     
     Confidence_Seed_0.tif Example
 
-These three maps form IOTA²'s main outputs: they are the minimum outputs required to analyse and understand the results.
+These three maps form iota2's main outputs: they are the minimum outputs required to analyse and understand the results.
 
-We analyzed and produced classifications thanks to IOTA². The main objective is to get the better land cover map as 
+We analyzed and produced classifications thanks to iota2. The main objective is to get the better land cover map as 
 possible. There are many ways to achieve this purpose: researchers publish every day new methods.
 
 The simplest method to get better results can consist in using a longer time series, improving the reference data for training, etc. 
@@ -222,7 +222,7 @@ These data are zipped. Unzip them next to the ones already present in the direct
 
 .. Note:: To get less interpolated dates, you should pick-up dates near the ones already used : 2018-05-11 and 2018-05-21. **Every** date placed in ``sensor_data`` will be used.
 
-2. Re-run IOTA²
+2. Re-run iota2
 
 .. code-block:: console
 
@@ -237,7 +237,7 @@ These data are zipped. Unzip them next to the ones already present in the direct
 Expand your map
 ===============
 
-IOTA² allows the use of many tiles to produce classifications. If you want to classify more than one tile, 
+iota2 allows the use of many tiles to produce classifications. If you want to classify more than one tile, 
 you have to create a new directory by tile. One is already created in ``sensor_data`` : ``T31TDJ`` which is empty.
 As before, you can download dates and unzip them in the corresponding directory.
 
@@ -253,7 +253,7 @@ As before, you can download dates and unzip them in the corresponding directory.
 Multi regions
 *************
 
-You can give to IOTA² a shapeFile describing different regions (spatial stratification). Each polygon contains 
+You can give to iota2 a shapeFile describing different regions (spatial stratification). Each polygon contains 
 a label referencing the region it belongs to. In the archive there is the file ``EcoRegion.shp`` containing two regions.
 
 **What is it used for ?**
@@ -305,11 +305,11 @@ In order to use the region file add these fields to your configuration file :
 
 Here is the example of configuration file :download:`configuration <./config/config_MultiRegions.cfg>`
 
-IOTA²'s outputs with regions
+iota2's outputs with regions
 ============================
 
-Every IOTA² run follows the same workflow but can generate different outputs.
-In this particular run, IOTA² generated two models (in the ``model`` directory).
+Every iota2 run follows the same workflow but can generate different outputs.
+In this particular run, iota2 generated two models (in the ``model`` directory).
 Each model is used to classify its region as show below:
 
 +--------------------------------------------------+--------------------------------------------------+
