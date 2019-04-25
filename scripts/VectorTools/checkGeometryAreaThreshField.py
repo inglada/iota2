@@ -14,14 +14,20 @@ import SelectBySize
 import SimplifyPoly
 import argparse
 
-def checkGeometryAreaThreshField(shapefile, pixelArea, pix_thresh, outshape):
+def checkGeometryAreaThreshField(shapefile, pixelArea, pix_thresh, outshape = ""):
 
     tmpfile = []
 
+    if outshape == "":
+        outshape = shapefile
+        
     # Empty geometry identification
     try:
         outShapefileGeom, _ = vf.checkEmptyGeom(shapefile)
-        tmpfile.append(outShapefileGeom)        
+
+        if shapefile != outshape:
+            tmpfile.append(outShapefileGeom)        
+
         print 'Check empty geometries succeeded'
     except Exception as e:
         print 'Check empty geometries did not work for the following error :'
