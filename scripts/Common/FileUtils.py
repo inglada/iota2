@@ -30,6 +30,7 @@ import errno
 import warnings
 import numpy as np
 from config import Config, Sequence
+import osgeo
 from osgeo import gdal
 from osgeo import ogr
 from osgeo import osr
@@ -828,8 +829,12 @@ def readRaster(name, data=False, band=1):
         projection : projection of raster dataset
         transform : coordinates and pixel size of raster dataset
     """
+    
     try:
-        raster = gdal.Open(name, 0)
+        if isinstance(name, str):
+            raster = gdal.Open(name, 0)
+        elif isinstance(name, osgeo.gdal.Dataset):
+            raster = name
     except:
         print "Problem on raster file path"
         sys.exit()
@@ -1018,9 +1023,18 @@ def getRasterNbands(raster):
     """
     usage get raster's number of bands
     """
-    src_ds = gdal.Open(raster)
+    try:
+        if isinstance(raster, str):
+            src_ds = gdal.Open(raster)
+        elif isinstance(raster, osgeo.gdal.Dataset):
+            src_ds = raster
+    except:
+        print "Problem on raster file path"
+        sys.exit()        
+
     if src_ds is None:
         raise Exception(raster + " doesn't exist")
+    
     return int(src_ds.RasterCount)
 
 
