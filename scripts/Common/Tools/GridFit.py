@@ -119,6 +119,8 @@ def createOutGrid(TileFolder, pattern, outputProjection, tileNameField, outGridP
     output.Destroy()
 
 def generateGridBasedSubsets(in_vec, tile, gridSize, epsg = None):
+    # In case of "Too many files open" error, verify the max opened files setting 
+    # with 'ulimit -n' cmd and raise the limit if possible
     from VectorTools.vector_functions import cloneVectorDataStructure
     from Common.FileUtils import removeShape
     
