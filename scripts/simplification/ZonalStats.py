@@ -15,6 +15,7 @@
 # =========================================================================
 
 import os, sys, argparse
+import shutil
 from collections import OrderedDict
 import osgeo
 import ogr
@@ -81,57 +82,67 @@ def countPixelByClass(databand, fid=0, band=0, nodata=0):
         integer value of the majority class
 
     posclassmaj
-        numpy array of position of majority class
+        ndarray of position of majority class
     """
 
-    if databand:
-        if isinstance(databand, str):
-            if os.path.exists(databand):
-                rastertmp = gdal.Open(databand, 0)
-            else:
-                raise Exception('Raster file %s not exist'%(databand))
-        elif isinstance(databand, osgeo.gdal.Dataset):
-            rastertmp = databand
+    if isinstance(databand, np.ndarray):
+        if databand.size != 0:
+            data = databand
         else:
-            raise Exception('Type of raster dataset not handled')
-
-        banddata = rastertmp.GetRasterBand(band)
-        data = banddata.ReadAsArray()
-        img = label(data)
-        counts = []
-
-        col_names = ['value', 'count']
-
-        if len(np.unique(img)) != 1 or np.unique(img)[0] != 0:
-            res = rastertmp.GetGeoTransform()[1]
-            try:
-                dataclean = data[data != nodata]
-                npcounts = np.array(np.unique(dataclean, return_counts=True)).T
-                counts = npcounts.tolist()
-            except:
-                for reg in regionprops(img, data):
-                    counts.append([[x for x in np.unique(reg.intensity_image) if x != nodata][0], reg.area])
-
-            if len(counts[0]):
-                # test si counts a des valeurs !
-                listlab = pad.DataFrame(data=counts, columns=col_names)
-                # pourcentage
-                listlab['rate'] = listlab['count'] / listlab['count'].sum()
-
-                # classmaj
-                classmaj = listlab[listlab['rate'] == max(listlab['rate'])]['value']
-                classmaj = classmaj.iloc[0]
-
-                posclassmaj = np.where(data == int(classmaj))
-
-                # Transposition pour jointure directe
-                listlabT = listlab.T
-                classStats = pad.DataFrame(data=[listlabT.loc['rate'].values], index=[fid], columns=[str(int(x)) for x in listlabT.loc['value']])
-
-        listlab = listlabT = data = None
-
+            raise Exception('Empty data of wrapped raster')
+        
     else:
-        raise Exception("Raster does not exist")
+        if databand:
+            if isinstance(databand, str):
+                if os.path.exists(databand):
+                    rastertmp = gdal.Open(databand, 0)
+                else:
+                    raise Exception('Raster file %s not exist'%(databand))
+
+            elif isinstance(databand, osgeo.gdal.Dataset):
+                rastertmp = databand
+
+            else:
+                raise Exception('Type of raster dataset not handled')
+
+            banddata = rastertmp.GetRasterBand(band)            
+            data = banddata.ReadAsArray()            
+
+        else:
+            raise Exception('Empty data of wrapped raster')
+
+            
+    img = label(data)
+    counts = []
+
+    col_names = ['value', 'count']
+
+    if len(np.unique(img)) != 1 or np.unique(img)[0] != 0:
+        try:
+            dataclean = data[data != nodata]
+            npcounts = np.array(np.unique(dataclean, return_counts=True)).T
+            counts = npcounts.tolist()
+        except:
+            for reg in regionprops(img, data):
+                counts.append([[x for x in np.unique(reg.intensity_image) if x != nodata][0], reg.area])
+
+        if len(counts[0]):
+            # test si counts a des valeurs !
+            listlab = pad.DataFrame(data=counts, columns=col_names)
+            # pourcentage
+            listlab['rate'] = listlab['count'] / listlab['count'].sum()
+
+            # classmaj
+            classmaj = listlab[listlab['rate'] == max(listlab['rate'])]['value']
+            classmaj = classmaj.iloc[0]
+
+            posclassmaj = np.where(data == int(classmaj))
+
+            # Transposition pour jointure directe
+            listlabT = listlab.T
+            classStats = pad.DataFrame(data=[listlabT.loc['rate'].values], index=[fid], columns=[str(int(x)) for x in listlabT.loc['value']])
+
+    listlab = listlabT = data = None
 
     return classStats, classmaj, posclassmaj
 
@@ -146,7 +157,7 @@ def rasterStats(band, nbband=0, posclassmaj=None, posToRead=None, nodata=0):
     nbband : int
         band number of band input parameter
 
-    posclassmaj
+    posclassmaj : ndarray
         numpy array of position of majority class
 
     posToRead : tuple
@@ -163,33 +174,47 @@ def rasterStats(band, nbband=0, posclassmaj=None, posToRead=None, nodata=0):
     pixel value
         float
     """
-    if band:
-        if isinstance(band, str):
-            if os.path.exists(band):
-                rastertmp = gdal.Open(band, 0)
+
+    if isinstance(band, np.ndarray):
+        if band.size != 0:
+            data = band
+        else:
+            raise Exception('Empty data of wrapped raster')
+        
+    else:
+        if band:
+            if isinstance(band, str):
+                if os.path.exists(band):
+                    rastertmp = gdal.Open(band, 0)
+                else:
+                    raise Exception('Raster file %s not exist'%(band))
+
+            elif isinstance(band, osgeo.gdal.Dataset):
+                rastertmp = band
+
             else:
-                raise Exception('Raster file %s not exist'%(band))
-        elif isinstance(band, osgeo.gdal.Dataset):
-            rastertmp = band
+                raise Exception('Type of raster dataset not handled')
+
+            banddata = rastertmp.GetRasterBand(band)            
+            data = banddata.ReadAsArray()            
+
         else:
-            raise Exception('Type of raster dataset not handled')
+            raise Exception('Empty data of wrapped raster')
 
-        banddata = rastertmp.GetRasterBand(nbband)
 
-        if not posToRead:
-            data = banddata.ReadAsArray()
-            img = label(data)
-            # TODO : when data is empty (
-            if len(np.unique(img)) != 1 or np.unique(img)[0] != 0:
-                data = data[posclassmaj]
-                mean = round(np.mean(data[data!=nodata]), 2)
-                std = round(np.std(data[data!=nodata]), 2)
-                maxval = round(np.max(data[data!=nodata]), 2)
-                minval = round(np.min(data[data!=nodata]), 2)
+    if not posToRead:
+        img = label(data)
 
-            stats = (mean, std, maxval, minval)
-        else:
-            stats = np.float(banddata.ReadAsArray()[posToRead[1], posToRead[0]])
+        if len(np.unique(img)) != 1 or np.unique(img)[0] != 0:
+            data = data[posclassmaj]
+            mean = round(np.mean(data[data!=nodata]), 2)
+            std = round(np.std(data[data!=nodata]), 2)
+            maxval = round(np.max(data[data!=nodata]), 2)
+            minval = round(np.min(data[data!=nodata]), 2)
+
+        stats = (mean, std, maxval, minval)
+    else:
+        stats = np.float(data[posToRead[1], posToRead[0]])
 
     return stats
 
@@ -242,14 +267,561 @@ def definePandasDf(geoframe, idvals, paramstats={}, classes=""):
     
     return geoframe
 
-def checkmethodstats(method):
 
-    if 'stats_' in method:
-        method = 'stats'
+def checkmethodstats(rasters, paramstats, nbbands):
 
-    return method in ('stats', 'statsmaj', 'rate', 'val')
+    """Store list of requested statistics in dict and check validity of in put rasters
 
-def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist=None, nodata=0, gdalpath="", write_ouput=False, gdalcachemax="9000"):
+    Parameters
+    ----------
+
+    rasters : list
+        list of rasters to analyse
+
+    paramstats : list
+        list of statistics to compute (e.g. [[1,'stats'], [2, 'rate']] or ['val'])
+
+    nbbands : int
+        number of input rasters or bands of input raster
+
+    Return
+    ----------
+    paramstats : dict
+        list of statistics to compute (e.g. {1:'stats', 2:'rate'})
+
+    """    
+    
+    # Format requested statistics
+    if isinstance(paramstats, list):
+        # List of methods (bash)
+        if ':' in paramstats[0]:
+            paramstats = dict([(x.split(':')[0], x.split(':')[1]) for x in paramstats])
+
+        # Unique method without band / raster number
+        elif len(paramstats) == 1:
+            # Build statistics method dictionary
+            tmpdict = {}
+            for idx in range(nbbands):
+                tmpdict[idx + 1] = str(paramstats[0])
+            paramstats = tmpdict
+
+    # Check statistics methods validity
+    for keys in paramstats:
+        if 'stats_' in paramstats[keys]:
+            paramstats[keys] = 'stats'
+
+        if paramstats[keys] not in ('stats', 'statsmaj', 'rate', 'val'):
+            raise Exception('The method %s is not implemented'%(paramstats[0]))
+
+    # requested stats and band number ?
+    maxband = max([int(x) for x in paramstats.keys()])
+    if len(rasters) != 1:
+        if nbbands < maxband:
+            raise Exception("Band ids in requested stats and number of input rasters "\
+                            "or bands number of input raster do not correspond")
+
+    # same extent and resolution of input rasters ?    
+    listres = []
+    listextent = []
+    if len(rasters) != 1:
+        for raster in rasters:
+            listres.append(abs(fut.getRasterResolution(raster)[0]))
+            listextent.append(fut.getRasterExtent(raster))
+
+    if listextent[1:] != listextent[:-1]:
+        raise Exception("Input rasters must have same extent")
+
+    if listres[1:] != listres[:-1]:
+        raise Exception("Input rasters must have same spatial resolution")
+        
+    return paramstats
+
+def setPandasSchema(paramstats, vectorgeomtype, bufferDist=""):
+
+    """Store list of raster or multi-band raster in a ndarray
+
+    Parameters
+    ----------
+
+    paramstats : dict
+        list of statistics to compute (e.g. {1:'stats', 2:'rate'})
+
+    vectorgeomtype : int
+        Type of geometry of input/output vector (http://portal.opengeospatial.org/files/?artifact_id=25355)
+
+    bufferDist : int
+        buffer size around Point vetor geometry
+
+
+    Return
+    ----------
+    schema : dict / Fiona schema
+        schema giving geometry type 
+
+    """    
+
+    # Value extraction
+    if not bufferDist and vectorgeomtype in (1, 4, 1001, 1004):
+        if 'val' in paramstats.values():
+            if vectorgeomtype == 1:
+                schema = {'geometry': 'Point', 'properties' : {}}
+            elif vectorgeomtype == 4:
+                schema = {'geometry': 'MultiPoint', 'properties' : {}}
+        else:
+            raise Exception("Only pixel value extraction available "\
+                            "when Point geometry without buffer distance is provided")
+
+    # Stats extraction
+    else:
+        # Point geometry
+        if vectorgeomtype in (1, 4, 1001, 1004):
+            if vectorgeomtype == 1:
+                schema = {'geometry': 'Point', 'properties' : {}}
+            elif vectorgeomtype == 4:
+                schema = {'geometry': 'MultiPoint', 'properties' : {}}
+
+        # Polygon geometry
+        elif vectorgeomtype in (3, 6, 1003, 1006):
+            if vectorgeomtype == 3:
+                schema = {'geometry': 'Polygon', 'properties' : {}}
+            elif vectorgeomtype == 6:
+                schema = {'geometry': 'MultiPolygon', 'properties' : {}}
+        else:
+            raise Exception("Geometry type of vector file not handled")
+
+    return schema
+
+def storeRasterInArray(rasters):
+
+    """Store list of raster or multi-band raster in a ndarray
+
+    Parameters
+    ----------
+
+    rasters : list
+        list of rasters to analyse
+
+    Return
+    ----------
+    ndarray
+
+    """
+    
+    # get raster size with first raster file 
+    data = fut.readRaster(rasters[0], False)
+
+    # get rasters or bands number
+    if len(rasters) == 1:
+        nbbands = fut.getRasterNbands(rasters[0])
+        
+    elif len(rasters) > 1:
+        nbbands = len(rasters)        
+
+    # Set a empty ndarrays with same dimension as input rasters        
+    outdata = np.zeros([data[1], data[0], nbbands])
+
+    # Populate output ndarrays
+    if len(rasters) == 1:
+        for nbband in range(nbbands):
+            outdata[:, :, nbband] = fut.readRaster(rasters[0], True, nbband + 1)[0]
+                
+    elif len(rasters) > 1:            
+        for idx, raster in enumerate(rasters):            
+            outdata[:, :, idx] = fut.readRaster(raster, True)[0]            
+    else:        
+        raise Exception("No input raster provided to store in Numpy array")    
+
+    return outdata
+
+
+def extractRasterArray(rasters, paramstats, vector, vectorgeomtype, fid, gdalpath="", gdalcachemax="9000", systemcall=False, path=""):
+
+    """Clip raster and store in ndarrays
+
+    Parameters
+    ----------
+
+    rasters : list
+        list of rasters to analyse
+
+    paramstats : dict
+        list of statistics to compute (e.g. {1:'stats', 2:'rate'})
+
+    vector : string
+        vector file for cutline opetation
+
+    vectorgeomtype : int
+        Type of geometry of input/output vector (http://portal.opengeospatial.org/files/?artifact_id=25355)
+
+    fid : integer
+        FID value to clip raster (cwhere parameter of gdalwarp)
+
+    gdalpath : string
+        gdal binaries path
+
+    gdalcachemax : string
+        gdal cache for wrapping operation (in Mb)
+
+    systemcall : boolean
+        if True, use os system call to execute gdalwarp (usefull to control gdal binaries version - gdalpath parameter)
+
+    path : string
+        temporary path to store temporary date if systemcall is True
+
+    Return
+    ----------
+    boolean
+        if True, wrap operation well terminated    
+
+    ndarray ndarrays
+        
+    """
+    
+    bands = []
+    todel = []
+    success = True
+
+    # Get rasters resolution
+    res = abs(fut.getRasterResolution(rasters[0])[0])
+
+    # Get vector name 
+    vectorname = os.path.splitext(os.path.basename(vector))[0]
+    
+    for idx, raster in enumerate(rasters):
+
+        # Value extraction
+        if 'val' in paramstats.values():
+            if vectorgeomtype not in (1, 4, 1001, 1004):
+                raise Exception("Type of input vector %s must be "\
+                                "'Point' for pixel value extraction"%(vector))
+            else:
+                bands.append(raster)
+                todel = []
+
+        # Stats Extraction
+        else:            
+            try:
+                # TODO : test gdal version : >= 2.2.4
+                if systemcall:
+                    tmpfile = os.path.join(path, 'rast_%s_%s_%s'%(vectorname, str(fid), idx))
+                    cmd = '%sgdalwarp -tr %s %s -tap -q -overwrite -cutline %s '\
+                          '-crop_to_cutline --config GDAL_CACHEMAX %s -wm %s '\
+                          '-wo "NUM_THREADS=ALL_CPUS" -wo "CUTLINE_ALL_TOUCHED=YES" "\
+                          "-cwhere "FID=%s" %s %s -ot Float32'%(os.path.join(gdalpath, ''), \
+                                                                res, \
+                                                                res, \
+                                                                vector, \
+                                                                gdalcachemax, \
+                                                                gdalcachemax, \
+                                                                fid, \
+                                                                raster, \
+                                                                tmpfile)
+                    Utils.run(cmd)
+                    todel.append(tmpfile)
+                else:
+                    gdal.SetConfigOption("GDAL_CACHEMAX", gdalcachemax)
+                    tmpfile = gdal.Warp('', raster, xRes=res, \
+                                        yRes=res, targetAlignedPixels=True, \
+                                        cutlineDSName=vector, cropToCutline=True, \
+                                        cutlineWhere="FID=%s"%(fid), format='MEM', \
+                                        warpMemoryLimit=gdalcachemax, \
+                                        warpOptions=[["NUM_THREADS=ALL_CPUS"], ["CUTLINE_ALL_TOUCHED=YES"]])
+
+                bands.append(tmpfile)
+                todel = []
+            except:
+                success = False
+
+    # store rasters in ndarray
+    ndbands = storeRasterInArray(bands)
+
+    # Remove tmp rasters 
+    for filtodel in todel:
+        os.remove(filtodel)
+
+    return success, ndbands
+
+
+def getClassMaj(bands, methodstat, idxcatraster):
+
+    """Extract statistics on numpy array and store them on a GeoPandas / Pandas dataframe
+
+    Parameters
+    ----------
+    bands : ndarray
+        raster bands or raster files store in numpy array
+
+    methodstats : string
+        statistics method ('statsmaj' or 'stats_*')
+
+    idxcatraster : integer
+        indice of the categorical raster to find class positions
+
+    Return
+    ----------
+    ndarray or tuple of ndarrays
+        
+    """            
+    if methodstat == 'statsmaj':
+
+        # Get band of categorical raster
+        nbbandrate = int(idxcatraster - 1)
+        bandrate = bands[nbbandrate]
+
+        # Find majority class and return positions array
+        _, _, posclass = countPixelByClass(bandrate, "", nbbandrate)
+
+    elif 'stats_' in methodstat:
+
+        # get class value to check
+        reqclass = 'statsmaj'.split('_')[1]
+
+        # get positions array of the class
+        rastertmp = gdal.Open(bands[idxcatraster - 1], 0)
+        data = rastertmp.ReadAsArray()
+        posclass = np.where(data == int(reqclass))
+        data = None
+
+    return posclass
+
+
+def computeStats(bands, paramstats, dataframe, idval, nodata=0):
+
+    """Extract statistics on numpy array and store them on a GeoPandas / Pandas dataframe
+
+    Parameters
+    ----------
+    bands : ndarray
+        raster bands or raster files store in numpy array
+
+    paramstats : dict
+        list of statistics to compute (e.g. {1:'stats', 2:'rate'})
+
+    dataframe : Pandas Dataframe
+        Pandas Dataframe
+
+    idval : integer
+        index value to store in dataframe
+    
+    nodata : float
+        nodata value of input rasters
+
+    multiraster : boolean
+        True, if several input rasters, False if one input raster
+
+    Return
+    ----------
+    GeoPandas or Pandas DataFrame
+        
+    """
+    
+    for param in paramstats:
+
+        band = bands[:, :, int(param) - 1]
+        nbband = int(param)
+            
+        # Statistics extraction
+        if band.size != 0:
+            methodstat = paramstats[param]
+
+            ### Categorical statistics ###
+            if methodstat == 'rate':
+                classStats, classmaj, posclassmaj = countPixelByClass(band, idval, nbband)
+                dataframe.update(classStats)
+
+                # Add columns when pixel values are not identified in nomenclature file
+                if list(classStats.columns) != list(dataframe.columns):
+                    newcols = list(set(list(classStats.columns)).difference(set(list(dataframe.columns))))
+                    dataframe = pad.concat([dataframe, classStats[newcols]], axis=1)
+
+                dataframe.fillna(0, inplace=True)
+
+            elif methodstat == 'stats':
+
+                cols = ["meanb%s"%(int(param)), "stdb%s"%(int(param)), \
+                        "maxb%s"%(int(param)), "minb%s"%(int(param))]
+
+                dataframe.update(pad.DataFrame(data=[rasterStats(band, nbband)], \
+                                           index=[idval], \
+                                           columns=cols))
+
+            ### Descriptive statistics for majority class ###
+            elif methodstat == 'statsmaj':
+                if not classmaj:
+                    if "rate" in paramstats.values():
+                        idxbdclasses = [x for x in paramstats if paramstats[x] == "rate"][0]
+                        posclassmaj = getClassMaj(bands, methodstat, idxbdclasses)
+                    else:
+                        raise Exception("No classification raster provided "\
+                                        "to check position of majority class")                        
+                    
+                cols = ["meanmajb%s"%(int(param)), "stdmajb%s"%(int(param)), \
+                        "maxmajb%s"%(int(param)), "minmajb%s"%(int(param))]
+                
+                dataframe.update(pad.DataFrame(data=[rasterStats(band, nbband, posclassmaj, nodata)], \
+                                           index=[idval], \
+                                           columns=cols))
+
+            ### Descriptive statistics for one class ###
+            elif "stats_" in methodstat:
+                if "rate" in paramstats.values():
+                    idxbdclasses = [x for x in paramstats if paramstats[x] == "rate"][0]
+                    posclass = getClassMaj(bands, methodstat, idxbdclasses)
+                else:
+                    raise Exception("No classification raster provided "\
+                                    "to check position of majority class")
+                
+                cols = ["meanb%sc%s"%(int(param), reqclass), "stdb%sc%s"%(int(param), reqclass), \
+                        "maxb%sc%s"%(int(param), reqclass), "minb%sc%s"%(int(param), reqclass)]
+
+                dataframe.update(pad.DataFrame(data=[rasterStats(band, nbband, posclass, nodata)], \
+                                           index=[idval], \
+                                           columns=cols))
+            band = None
+
+    return dataframe
+
+def extractPixelValue(rasters, bands, paramstats, xpt, ypt, dataframe, idval=0):
+
+    """Extract pixel value and store it on a Pandas dataframe
+
+    Parameters
+    ----------
+    rasters : list
+        list of rasters to analyse
+
+    bands : ndarray
+        raster bands or raster files store in numpy array
+
+    paramstats : dict
+        list of statistics to compute (e.g. {1:'stats', 2:'rate'})
+
+    xpt : float
+        Point x coordinates 
+
+    ypt : float
+        Point y coordinates 
+
+    dataframe : Pandas Dataframe
+        Pandas Dataframe
+
+    idval : integer
+        index value to store in dataframe
+
+    Return
+    ----------
+    GeoPandas or Pandas DataFrame
+        
+    """
+
+    for param in paramstats:    
+
+        band = bands[:, :, int(param) - 1]
+        nbband = int(param)
+
+        ### Pixel value extraction ###
+        if band.size != 0:
+            methodstat = paramstats[param]            
+            if "val" in methodstat:
+                colpt, rowpt = fut.geoToPix(rasters[0], xpt, ypt)
+                cols = "valb%s"%(param)
+                dataframe.update(pad.DataFrame(data=[rasterStats(band, nbband, None, (colpt, rowpt))], \
+                                           index=[idval], \
+                                           columns=[cols]))
+
+            band = None
+
+    return dataframe
+
+
+def formatDataFrame(geodataframe, schema, categorical=False, classes="", floatdec=2, intsize=10):
+    """Format columns name and format of a GeoPandas DataFrame
+
+    Parameters
+    ----------
+    geodataframe : GeoPandas DataFrame
+        GeoPandas DataFrame
+
+    schema : dict / Fiona schema
+        schema giving colums name and format
+
+    categorical : boolean
+        if True, use a input nomenclature (Iota2Nomenclature) to use alias renaming
+
+    classes : Iota2Nomenclature
+        Nomencalture description (see nomenclature class for input)
+
+    floatdec : integer
+        length of decimal part of columns values
+
+    intsize : integer
+        length of integer part of columns values
+
+    Return
+    ----------
+    GeoPandas DataFrame
+
+    GeoPandas schema
+
+    """
+
+    # change column names if rate stats expected and nomenclature file is provided
+    if categorical:
+        # get multi-level nomenclature
+        # TODO : several type of input nomenclature (cf. nomenclature class)
+        nomenc = nomenclature.Iota2Nomenclature(classes, 'cfg')
+        desclasses = nomenc.HierarchicalNomenclature.get_level_values(nomenc.getLevelNumber() - 1)
+        cols = [(str(x), str(z)) for x, y, w, z in desclasses]
+
+        # rename columns with alias
+        for col in cols:
+            geodataframe.rename(columns={col[0]:col[1].decode('utf8')}, inplace=True)        
+
+    # change columns type
+    schema['properties'] = OrderedDict([(x, 'float:%s.%s'%(intsize, floatdec)) for x in list(geodataframe.columns) \
+                                        if x != 'geometry'])
+
+    return geodataframe, schema
+
+def dataframeExport(geodataframe, output, schema):
+    """Export a GeoPandas DataFrame as a vector file (shapefile, sqlite and geojson)
+
+    Parameters
+    ----------
+    geodataframe : GeoPandas DataFrame
+        GeoPandas DataFrame
+
+    output : string
+        output vector file
+
+    schema : dict / Fiona schema
+        schema giving colums name and format
+
+    """
+
+    # TODO Export format depending on columns number (shapefile, sqlite, geojson) # Check Issue on framagit
+    convert = False
+    outformat = os.path.splitext(output)[1]
+    if outformat == ".shp":
+        driver = "ESRI Shapefile"
+    elif outformat == ".geojson":
+        driver = "GeoJSON"
+    elif outformat == ".sqlite":
+        driver = "ESRI Shapefile"
+        convert = True
+    else:
+        raise Exception("The output format '%s' is not handled"%(outformat[1:]))
+
+    if not convert:
+        geodataframe.to_file(output, driver=driver, schema=schema, encoding='utf-8')
+    else:
+        outputinter = os.path.splitext(output)[0] + '.shp'
+        geodataframe.to_file(outputinter, driver=driver, schema=schema, encoding='utf-8')
+        output = os.path.splitext(output)[0] + '.sqlite'
+        Utils.run('ogr2ogr -f SQLite %s %s'%(output, outputinter))
+        
+
+def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist=None, nodata=0, gdalpath="", systemcall=False, gdalcachemax="9000"):
     """Compute zonal statistitics (descriptive and categorical)
        on multi-band raster or multi-rasters
        based on Point (buffered or not) or Polygon zonal vector
@@ -287,319 +859,124 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
     gdalpath : string
         path of gdal binaries (for system execution)
 
-    write_ouput : boolean
+    systemcall : boolean
         if True, wrapped raster are stored in working dir
 
     gdalcachemax : string
         gdal cache for wrapping operation (in Mb)
 
     """
-    # Get vector file and FID list
-    vector, idvals = params
 
     # Get bands or raster number
     if len(rasters) != 1:
         nbbands = len(rasters)
     else:
         nbbands = fut.getRasterNbands(rasters[0])
+    
+    # Prepare and check validity of statistics methods and input raster 
+    paramstats = checkmethodstats(rasters, paramstats, nbbands)
 
-    # Format requested statistics
-    if isinstance(paramstats, list):
-        # List of methods (bash)
-        if ':' in paramstats[0]:
-            paramstats = dict([(x.split(':')[0], x.split(':')[1]) for x in paramstats])
-
-        # Unique method without band / raster number
-        elif len(paramstats) == 1:
-            # Build statistics method dictionary
-            tmpdict = {}
-            for idx in range(nbbands):
-                tmpdict[idx + 1] = str(paramstats[0])
-            paramstats = tmpdict
-
-    # Check statistics methods validity
-    for keys in paramstats:
-        if not checkmethodstats(paramstats[keys]):
-            raise Exception('The method %s is not implemented'%(paramstats[0]))
-
-    # check inputs integrity
-    # same extent and resolution ?
-    listres = []
-    listextent = []
-    if len(rasters) != 1:
-        for raster in rasters:
-            listres.append(abs(fut.getRasterResolution(raster)[0]))
-            listextent.append(fut.getRasterExtent(raster))
-
-    if listextent[1:] != listextent[:-1]:
-        raise Exception("Input rasters must have same extent")
-
-    if listres[1:] != listres[:-1]:
-        raise Exception("Input rasters must have same spatial resolution")
-
-    # requested stats and band number ?
-    maxband = max([int(x) for x in paramstats.keys()])
-    if len(rasters) != 1:
-        if nbbands < maxband:
-            raise Exception("Band ids in requested stats and number of input rasters "\
-                            "or bands number of input raster do not correspond")
-
-    res = abs(fut.getRasterResolution(rasters[0])[0])
-
+    # Get vector file and FID list
+    vector, idvals = params
+    
     # if no vector subsetting (all features)
     if not idvals:
         idvals = getFidList(vector)
-
+    
     # vector open and iterate features and/or buffer geom
     vectorname = os.path.splitext(os.path.basename(vector))[0]
     vectorgeomtype = vf.getGeomType(vector)
     vectorbuff = None
 
-    # Value extraction
-    if not bufferDist and vectorgeomtype in (1, 4, 1001, 1004):
-        if 'val' in paramstats.values():
-            if vectorgeomtype == 1:
-                schema = {'geometry': 'Point', 'properties' : {}}
-            elif vectorgeomtype == 4:
-                schema = {'geometry': 'MultiPoint', 'properties' : {}}
-        else:
-            raise Exception("Only pixel value extraction available "\
-                            "when Point geometry without buffer distance is provided")
+    # Prepare schema of output geopandas dataframe (geometry type and columns formatting)
+    schema = setPandasSchema(paramstats, vectorgeomtype, bufferDist)
 
-    # Stats extraction
-    else:
-        # Point geometry
-        if vectorgeomtype in (1, 4, 1001, 1004):
-            if vectorgeomtype == 1:
-                schema = {'geometry': 'Point', 'properties' : {}}
-            elif vectorgeomtype == 4:
-                schema = {'geometry': 'MultiPoint', 'properties' : {}}
-            vectorbuff = os.path.join(path, vectorname + "buff.shp")
-            _ = bfo.bufferPoly(vector, vectorbuff, bufferDist=bufferDist)
-
-        # Polygon geometry
-        elif vectorgeomtype in (3, 6, 1003, 1006):
-            if vectorgeomtype == 3:
-                schema = {'geometry': 'Polygon', 'properties' : {}}
-            elif vectorgeomtype == 6:
-                schema = {'geometry': 'MultiPolygon', 'properties' : {}}
-        else:
-            raise Exception("Geometry type of vector file not handled")
-
-
-    # Vector reading
+    # Buffer Point vector file
+    if bufferDist and vectorgeomtype in (1, 4, 1001, 1004):        
+        vectorbuff = os.path.join(path, vectorname + "buff.shp")
+        _ = bfo.bufferPoly(vector, vectorbuff, bufferDist=bufferDist)
+        
+    # Store input vector in output geopandas dataframe
     vectgpad = gpad.read_file(vector)
 
+    # Prepare statistics columns of output geopandas dataframe
+    stats = definePandasDf(vectgpad, idvals, paramstats, classes)
+    
+    # Iterate FID list
     dataset = vf.openToRead(vector)
     lyr = dataset.GetLayer()
 
-    # Prepare stats DataFrame
-    stats = definePandasDf(vectgpad, idvals, paramstats, classes)
-
-    # Iterate FID list
     for idval in idvals:
         if vectorgeomtype in (1, 4, 1001, 1004):
-            lyr.SetAttributeFilter("FID=" + str(idval))
-            for feat in lyr:
-                geom = feat.GetGeometryRef()
-                if geom:
-                    xpt, ypt, _ = geom.GetPoint()
-
-        if vectorbuff:
-            vector = vectorbuff
-
-        # creation of wrapped rasters
-        if gdalpath != "" and gdalpath is not None:
-            gdalpath = gdalpath + "/"
-        else:
-            gdalpath = ""
-
-        bands = []
-        success = True
-        todel = []
-        for idx, raster in enumerate(rasters):
-
-            # Value extraction
             if 'val' in paramstats.values():
-                if vectorgeomtype not in (1, 4, 1001, 1004):
-                    raise Exception("Type of input vector %s must be "\
-                                    "'Point' for pixel value extraction"%(vector))
-                else:
-                    bands.append(raster)
-                    tmpfile = raster
+                lyr.SetAttributeFilter("FID=" + str(idval))
+                for feat in lyr:
+                    geom = feat.GetGeometryRef()
+                    if geom:
+                        xpt, ypt, _ = geom.GetPoint()
 
-            # Stats Extraction
-            else:
-                tmpfile = os.path.join(path, 'rast_%s_%s_%s'%(vectorname, str(idval), idx))
-                try:
-                    # TODO : test gdal version : >= 2.2.4
-                    if write_ouput:
-                        cmd = '%sgdalwarp -tr %s %s -tap -q -overwrite -cutline %s '\
-                              '-crop_to_cutline --config GDAL_CACHEMAX %s -wm %s '\
-                              '-wo "NUM_THREADS=ALL_CPUS" -wo "CUTLINE_ALL_TOUCHED=YES" "\
-                              "-cwhere "FID=%s" %s %s -ot Float32'%(gdalpath, \
-                                                                    res, \
-                                                                    res, \
-                                                                    vector, \
-                                                                    gdalcachemax, \
-                                                                    gdalcachemax, \
-                                                                    idval, \
-                                                                    raster, \
-                                                                    tmpfile)
-                        Utils.run(cmd)
-                        todel.append(tmpfile)
-                    else:
-                        gdal.SetConfigOption("GDAL_CACHEMAX", gdalcachemax)
-                        tmpfile = gdal.Warp('', raster, xRes=res, \
-                                            yRes=res, targetAlignedPixels=True, \
-                                            cutlineDSName=vector, cropToCutline=True, \
-                                            cutlineWhere="FID=%s"%(idval), format='MEM', \
-                                            warpMemoryLimit=gdalcachemax, \
-                                            warpOptions=[["NUM_THREADS=ALL_CPUS"], ["CUTLINE_ALL_TOUCHED=YES"]])
+            # Switch to buffered vector (Point and bufferDist)
+            if bufferDist:
+                if vectorbuff:
+                    vector = vectorbuff
 
-                    bands.append(tmpfile)
-                    success = True
-                except:
-                    success = False
+        # creation of wrapped rasters    
+        success, bands = extractRasterArray(rasters, paramstats, vector, vectorgeomtype, idval, gdalpath, gdalcachemax, systemcall, path)
 
         if success:
-            for param in paramstats:
-                # Multi-raster / Multi-band data preparation
-                if len(rasters) != 1:
-                    band = bands[int(param) - 1]
-                    nbband = 1
-                else:
-                    band = tmpfile
-                    nbband = int(param)
-
-                # Statistics extraction
-                if band:
-                    methodstat = paramstats[param]
-                    
-                    ### Categorical statistics ###
-                    if methodstat == 'rate':
-                        classStats, classmaj, posclassmaj = countPixelByClass(band, idval, nbband)
-                        stats.update(classStats)
-                        
-                        # Add columns when pixel values are not identified in nomenclature file
-                        if list(classStats.columns) != list(stats.columns):
-                            newcols = list(set(list(classStats.columns)).difference(set(list(stats.columns))))
-                            stats = pad.concat([stats, classStats[newcols]], axis=1)
-                            
-                    elif methodstat == 'stats':
-
-                        cols = ["meanb%s"%(int(param)), "stdb%s"%(int(param)), \
-                                "maxb%s"%(int(param)), "minb%s"%(int(param))]
-                        
-                        stats.update(pad.DataFrame(data=[rasterStats(band, nbband)], \
-                                                   index=[idval], \
-                                                   columns=cols))
-
-                    ### Descriptive statistics for majority class ###
-                    elif methodstat == 'statsmaj':
-                        if not classmaj:
-                            if "rate" in paramstats.values():
-                                idxbdclasses = [x for x in paramstats if paramstats[x] == "rate"][0]
-                                if len(rasters) != 1:
-                                    bandrate = bands[idxbdclasses - 1]
-                                    nbbandrate = 0
-                                else:
-                                    bandrate = band
-                                    nbbandrate = idxbdclasses - 1
-                            else:
-                                raise Exception("No classification raster provided "\
-                                                "to check position of majority class")
-
-                            classStats, classmaj, posclassmaj = countPixelByClass(bandrate, idval, nbbandrate)
-                            classStats = None
-
-                        cols = ["meanmajb%s"%(int(param)), "stdmajb%s"%(int(param)), \
-                                "maxmajb%s"%(int(param)), "minmajb%s"%(int(param))]
-                        stats.update(pad.DataFrame(data=[rasterStats(band, nbband, posclassmaj, nodata)], \
-                                                   index=[idval], \
-                                                   columns=cols))
-
-                    ### Descriptive statistics for one class ###
-                    elif "stats_" in methodstat:
-                        if "rate" in paramstats.values():
-                            
-                            # get positions of class in categorical raster
-                            reqclass = paramstats[param].split('_')[1]
-                            # find index band / raster of categorical raster
-                            idxbdclasses = [x for x in paramstats if paramstats[x] == "rate"][0]
-                            # get positions array
-                            rastertmp = gdal.Open(bands[idxbdclasses - 1], 0)
-                            data = rastertmp.ReadAsArray()
-                            posclass = np.where(data == int(reqclass))
-                            data = None
-                        else:
-                            raise Exception("No classification raster provided "\
-                                            "to check position of requested class")
-
-                        cols = ["meanb%sc%s"%(int(param), reqclass), "stdb%sc%s"%(int(param), reqclass), \
-                                "maxb%sc%s"%(int(param), reqclass), "minb%sc%s"%(int(param), reqclass)]
-
-                        stats.update(pad.DataFrame(data=[rasterStats(band, nbband, posclass, nodata)], \
-                                                   index=[idval], \
-                                                   columns=cols))
-                    ### Pixel value extraction ###
-                    elif "val" in methodstat:
-                        colpt, rowpt = fut.geoToPix(band, xpt, ypt)
-                        cols = "valb%s"%(param)
-                        stats.update(pad.DataFrame(data=[rasterStats(band, nbband, None, (colpt, rowpt))], \
-                                                   index=[idval], \
-                                                   columns=[cols]))
-                    else:
-                        print("The method %s is not implemented"%(paramstats[param]))
-
-                band = None
-
-            for filtodel in todel:
-                os.remove(filtodel)
+            if 'val' in paramstats.values():
+                stats = extractPixelValue(rasters, bands, paramstats, xpt, ypt, stats, idval)
+            else:
+                stats = computeStats(bands, paramstats, stats, idval, nodata)
 
         else:
             print("gdalwarp problem for feature %s (geometry error, too small area, etc.)"%(idval))
 
-    # replace NAN values by zero
-    stats.fillna(0, inplace=True)
-
-    # change column names if rate stats expected and nomenclature file is provided
-    if "rate" in paramstats and classes != "":
-        # get multi-level nomenclature
-        nomenc = nomenclature.Iota2Nomenclature(classes, 'cfg')
-        desclasses = nomenc.HierarchicalNomenclature.get_level_values(nomenc.getLevelNumber() - 1)
-        cols = [(str(x), str(z)) for x, y, w, z in desclasses]
-
-        # rename columns with alias
-        for col in cols:
-            stats.rename(columns={col[0]:col[1].decode('utf8')}, inplace=True)
-
-    # change columns type
-    schema['properties'] = OrderedDict([(x, 'float:10.2') for x in list(stats.columns) \
-                                        if x != 'geometry'])
+    # Prepare columns name and format of output dataframe
+    if "rate" in paramstats.values() and classes != "":
+        stats, schema = formatDataFrame(stats, schema, True, classes)
+    else:
+        stats, schema = formatDataFrame(stats, schema)
 
     # exportation
-    # TODO Export format depending on columns number (shapefile, sqlite, geojson) # Check Issue on framagit
-    convert = False
-    outformat = os.path.splitext(output)[1]
-    if outformat == ".shp":
-        driver = "ESRI Shapefile"
-    elif outformat == ".geojson":
-        driver = "GeoJSON"
-    elif outformat == ".sqlite":
-        driver = "ESRI Shapefile"
-        convert = True
-    else:
-        raise Exception("The output format '%s' is not handled"%(outformat[1:]))
+    dataframeExport(stats, output, schema)
 
-    if not convert:
-        stats.to_file(output, driver=driver, schema=schema, encoding='utf-8')
-    else:
-        outputinter = os.path.splitext(output)[0] + '.shp'
-        stats.to_file(outputinter, driver=driver, schema=schema, encoding='utf-8')
-        output = os.path.splitext(output)[0] + '.sqlite'
-        Utils.run('ogr2ogr -f SQLite %s %s'%(output, outputinter))
 
+def iota2Formatting(invector, classes, outvector=""):
+
+    '''
+    python simplification/ZonalStats.py -wd ~/tmp/ -inr /work/OT/theia/oso/vincent/testmpi/mini_SAR_pad/final/Classif_Seed_0.tif /work/OT/theia/oso/vincent/testmpi/mini_SAR_pad/final/Confidence_Seed_0.tif /work/OT/theia/oso/vincent/testmpi/mini_SAR_pad/final/PixelsValidity.tif -shape /work/OT/theia/oso/vincent/testmpi/mini_SAR_pad/final/simplification/vectors/dept_1.shp -output /work/OT/theia/oso/vincent/outstats_oso.sqlite -params 1:rate 2:statsmaj 3:statsmaj -classes simplification/nomenclature17.cfg -iota2
+    '''
+    def Sort(sub_li): 
+        sub_li.sort(key = lambda x: x[0]) 
+        return sub_li 
+
+    nomenc = nomenclature.Iota2Nomenclature(classes, 'cfg')
+    desclasses = nomenc.HierarchicalNomenclature.get_level_values(nomenc.getLevelNumber() - 1)
+    cols = [[x, str(z)] for x, y, w, z in desclasses]
+    sortalias = [x[1] for x in Sort(cols)]
+
+    exp = ""
+    for name in sortalias:
+        exp += "CAST(%s AS NUMERIC(6,2)) AS %s, "%(name.lower(), name)
+    
+    layerout = os.path.splitext(os.path.basename(invector))[0]
+
+    if outvector == "":
+        outvector = os.path.splitext(invector)[0] + '_tmp.shp'
+    
+    command = "ogr2ogr -lco ENCODING=UTF-8 -overwrite -q -f 'ESRI Shapefile' -overwrite -sql "\
+              "'SELECT CAST(class AS INTEGER(4)) AS Classe, "\
+              "CAST(meanmajb3 AS INTEGER(4)) AS Validmean, "\
+              "CAST(stdmajb3 AS NUMERIC(6,2)) AS Validstd, "\
+              "CAST(meanmajb2 AS INTEGER(4)) AS Confidence, %s"\
+              "CAST(area AS NUMERIC(10,2)) AS Aire "\
+              "FROM %s' "\
+              "%s %s"%(exp, layerout, outvector, invector)
+
+    Utils.run(command)
+
+    
 def splitVectorFeatures(vectorpath, chunk=1, byarea=False):
     """Split FID list of a list of vector files in equal groups:
 
@@ -649,12 +1026,15 @@ def splitVectorFeatures(vectorpath, chunk=1, byarea=False):
 
     return params
 
-def computZonalStats(path, inr, shape, params, output, classes="", bufferdist="", nodata=0, gdalpath="", chunk=1, byarea=False, cache="1000", write_outputs=False):
+def computZonalStats(path, inr, shape, params, output, classes="", bufferdist="", nodata=0, gdalpath="", chunk=1, byarea=False, cache="1000", systemcall=False, iota2=False):
 
     chunks = splitVectorFeatures(shape, chunk, byarea)
 
     for block in chunks:
-        zonalstats(path, inr, block, output, params, classes, bufferdist, nodata, gdalpath, write_outputs, cache)
+        zonalstats(path, inr, block, output, params, classes, bufferdist, nodata, gdalpath, systemcall, cache)
+
+    if iota2:
+        iota2Formatting(output, classes)
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
@@ -703,10 +1083,12 @@ if __name__ == "__main__":
                             help="", default="")
         PARSER.add_argument("-buffer", dest="buff", action="store",\
                             help="", default="")
-        PARSER.add_argument("-write_outputs", action='store_true',\
-                            help="", default=False)
+        PARSER.add_argument("-syscall", action='store_true',\
+                            help="If True, use system call of gdalwrap binary", default=False)
         PARSER.add_argument("-gdal_cache", dest="cache", action="store",\
                             help="", default="1000")
-
+        PARSER.add_argument("-iota2", action='store_true',\
+                            help="If True, format output vector for production", default=False)
+        
         args = PARSER.parse_args()
-        computZonalStats(args.path, args.inr, args.shape, args.params, args.output, args.classes, args.buff, args.nodata, args.gdal, args.chunk, args.byarea, args.cache, args.write_outputs)
+        computZonalStats(args.path, args.inr, args.shape, args.params, args.output, args.classes, args.buff, args.nodata, args.gdal, args.chunk, args.byarea, args.cache, args.syscall, args.iota2)
