@@ -28,9 +28,6 @@ class tilesSamplesZonalStatistics(IOTA2Step.Step):
 
         # step variables
         self.workingDirectory = workingDirectory
-        self.output_path = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
-        self.field_region = SCF.serviceConfigFile(self.cfg).getParam('chain', 'regionField')
-        self.nb_runs = SCF.serviceConfigFile(self.cfg).getParam('chain', 'runs')
 
     def step_description(self):
         """
@@ -45,8 +42,8 @@ class tilesSamplesZonalStatistics(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
-        region_seed_tile = samples_merge.get_models(os.path.join(self.output_path, "formattingVectors"), self.field_region, self.nb_runs)
-        return region_seed_tile
+        tiles = SCF.serviceConfigFile(self.cfg).getParam('chain','listTile').split(' ')
+        return tiles
 
     def step_execute(self):
         """

@@ -154,6 +154,7 @@ def format_sample_to_segmentation(cfg, region_tiles_seed, wd):
     epsg = int((cfg.getParam('GlobChain', 'proj')).split(":")[-1])
 
     tiles_samples = []
+    #intersects each segmented tile with train samples
     for tile in tiles :
         segmentationVector = os.path.join(outFolder, '{}_region_{}_seg.shp'.format(tile, region))
         tileSamplesVector = os.path.join(outFolder, "{}_learn_samples_region_{}_seed_{}.shp".format(tile, region, seed))
@@ -163,10 +164,13 @@ def format_sample_to_segmentation(cfg, region_tiles_seed, wd):
         intersect_shp(samplesVector, segmentationVector, outFolder, tileSamplesVector)
         # intersect.intersectSqlites(samplesVector, segmentationVector, outFolder, tileSamplesVector, epsg, "intersection", attributes, vectformat='ESRI Shapefile')
 
+    #merge each tiled train samples to assign an unique ID
     samplesVector = "learn_samples_region_{}_seed_{}".format(region, seed)
     fu.mergeVectors(samplesVector,outFolder,tiles_samples)
     samplesVector = os.path.join(outFolder,samplesVector+'.shp')
+    # add a unique id for each segment (needed to zonal statistic step)
     addFieldID(samplesVector)
+    # ŝplit again the new layer in tiles
     for tile in tiles:
         tileVector = os.path.join(cfg.getParam('chain', 'outputPath'), "shapeRegion", "{}_region_{}_{}.shp".format(region_pattern, region, tile))
         tileSamplesVector = "{}_learn_samples_region_{}_seed_{}.shp".format(tile, region, seed)
