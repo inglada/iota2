@@ -22,6 +22,8 @@ import sys, os, argparse, time, shutil
 import subprocess
 from osgeo import ogr
 import osgeo.ogr
+import logging
+logger = logging.getLogger(__name__)
 
 try:
     from Common import FileUtils as fut    
@@ -88,7 +90,7 @@ def init_grass(path, grasslib):
             raise Exception("Folder '%s' does not own to current user")%(gisdb)
 
 
-def getTilesFiles(zone, tiles, folder, idTileField, tileNamePrefix, localenv, fieldzone = "", valuezone = "", driver = "ESRI Shapefile"):
+def getTilesFiles(zone, tiles, folder, idTileField, tileNamePrefix, localenv, fieldzone = "", valuezone = "", driver = "ESRI Shapefile", debulvl="info", logger=logger):
 
     for ext in ['.shp', '.dbf', '.shx', '.prj']:
         shutil.copy(os.path.splitext(zone)[0] + ext, localenv)
@@ -119,87 +121,179 @@ def getTilesFiles(zone, tiles, folder, idTileField, tileNamePrefix, localenv, fi
     fieldType = vf.getFieldType(zone, fieldzone)
     if fieldType == int:
         lyrZone.SetAttributeFilter(fieldzone + " = " + str(valuezone))
-    elif fieldType == str:
+    elif fieldType == str: 
         lyrZone.SetAttributeFilter(fieldzone + " = \'%s\'"%(valuezone))
     else:
         raise Exception('Field type %s not handled'%(fieldType))
     
     if lyrZone.GetFeatureCount() != 0:
         for featZone in lyrZone:
-            geomZone = featZone.GetGeometryRef()
-        
-        nbinter = 0
-        # iterate tiles to find intersection
-        for featTile in lyrTiles:
-            geomTile = featTile.GetGeometryRef()
-            nbTile = int(featTile.GetField(idTileField))
-            if geomTile.Intersects(geomZone):
-                nbinter += 1
-                tilename = os.path.join(folder, tileNamePrefix + str(nbTile) + '.tif')
-                if os.path.exists(tilename):
-                    listFilesTiles.append(tilename)
-                else:
-                    raise Exception('Tiles folder or prefix name of classification rasters do not exist')          
 
-    if nbinter == 0:
-        raise Exception('No Tile for the given area')          
+            geomZone = featZone.GetGeometryRef()
+            nbinter = 0
+            # iterate tiles to find intersection
+            for featTile in lyrTiles:
+                geomTile = featTile.GetGeometryRef()
+                nbTile = int(featTile.GetField(idTileField))
+                if geomTile.Intersects(geomZone):
+                    nbinter += 1
+                    tilename = os.path.join(folder, tileNamePrefix + str(nbTile) + '.tif')      
+                    if os.path.exists(tilename):
+                        listFilesTiles.append(tilename)
+                    else:
+                        logger.info('Tile file %s does not exist'%(nbTile))          
     
     return listFilesTiles
 
-def mergeTileRaster(path, rasters, fieldclip, valueclip, localenv):
+def mergeTileRaster(path, clipfile, fieldclip, valueclip, tiles, tilesfolder, tileId, tileNamePrefix, out):
 
-    tomerge = []
-    for rasttile in rasters:
-        rasttiletmp = os.path.join(localenv, os.path.splitext(os.path.basename(rasttile))[0] + '_nd.tif')
-        bmappli = oa.CreateBandMathApplication({"il":rasttile, "out": rasttiletmp, "exp":'im1b1 < 223 ? im1b1 : 0'})
-        bmappli.ExecuteAndWriteOutput()
-        tomerge.append(rasttiletmp)
+    timeinit = time.time()
 
-    outraster = os.path.join(localenv, "tile_" + fieldclip + "_" + str(valueclip) + '.tif')
-    sx, sy = fut.getRasterResolution(tomerge[0])
-    fut.assembleTile_Merge(tomerge, sx, outraster, "Byte")
+    localenv = os.path.join(path, "tmp%s"%(str(valueclip)))
+    if os.path.exists(localenv):shutil.rmtree(localenv)
+    os.mkdir(localenv)
 
-    for rasttile in tomerge:
-        os.remove(rasttile)
+    # Find vector tiles concerned by the given zone
+    listTilesFiles = getTilesFiles(clipfile, tiles, tilesfolder, tileId, tileNamePrefix, localenv, fieldclip, valueclip)
 
-    return outraster
+    if len(listTilesFiles) != 0:
+        tomerge = []
+        for rasttile in listTilesFiles:
+            shutil.copy(rasttile, localenv)
+            tmptile = os.path.join(localenv, os.path.basename(rasttile))
+            rasttiletmp = os.path.join(localenv, os.path.splitext(os.path.basename(rasttile))[0] + '_nd.tif')
+            bmappli = oa.CreateBandMathApplication({"il":tmptile, "out": rasttiletmp, "exp":'im1b1 < 223 ? im1b1 : 0'})
+            bmappli.ExecuteAndWriteOutput()
+            tomerge.append(rasttiletmp)
 
-def getListValues(checkvalue, clipfile, clipfield, clipvalue=""):
+        if len(tomerge) != 0:    
+            outraster = os.path.join(localenv, "tile_" + fieldclip + "_" + str(valueclip) + '.tif')
+            sx, sy = fut.getRasterResolution(tomerge[0])
+            fut.assembleTile_Merge(tomerge, sx, outraster, "Byte")
+
+            for rasttile in tomerge:
+                os.remove(rasttile)
+
+            if os.path.exists(out):
+                if os.path.isdir(out):
+                    shutil.copy(outraster, out)
+            else:
+                logger.info('Output folder %s for mosaic storage does not exist'%(out))          
+            
+            timemerge = time.time()     
+            print " ".join([" : ".join(["Merge Tiles", str(timemerge - timeinit)]), "seconds"])        
+            
+            return outraster
+    
+    else:
+        print "No tiles or crown tile rasters does not exist for the area %s"%(os.path.basename(clipfile))        
+            
+
+def getListVectToSimplify(path):
+        
+    simplified = [os.path.splitext(x)[0].split('_')[len(os.path.splitext(x)[0].split('_')) - 2] \
+                  for x in fut.FileSearch_AND(path, True, ".shp", "douglas") \
+                  if "hermite" not in x]
+    polygonized = [[x, os.path.splitext(x)[0].split('_')[len(os.path.splitext(x)[0].split('_')) - 1]] \
+                  for x in fut.FileSearch_AND(path, True, "tile_", ".shp") \
+                  if "douglas" not in x and "hermite" not in x]
+    
+    return [os.path.join(path, x) for x,y in polygonized if y not in simplified]
+
+def getListVectToSmooth(path):
+
+    return [x for x in fut.FileSearch_AND(path, True, ".shp", "douglas") if "hermite" not in x]
+
+def getListVectToClip(path, fieldclip, vectorpath):
+
+    listtoclip = []
+    
+    #donevect = [os.path.splitext(x)[0].split('_')[len(os.path.splitext(x)[0].split('_')) - 1] for x in fut.FileSearch_AND(vectorpath, True, ".shp")]
+
+    for filetoclip in fut.FileSearch_AND(path, True, ".shp", "hermite"):
+        #if os.path.splitext(filetoclip)[0].split('_')[len(os.path.splitext(filetoclip)[0].split('_')) - 3] not in donevect:
+        listtoclip.append((filetoclip, os.path.basename(filetoclip.replace(fieldclip, '')).split('_')[2]))
+
+    return listtoclip
+
+
+def getListToPolygonize(path):
+
+    if path[len(path)-1] == "/":
+        path = path[:-1]
+
+    listmos = fut.FileSearch_AND(path, True, ".tif")
+    listVect = []
+    for root, dirs, files in os.walk(path):
+        for filename in files:
+            if ".shp" in filename and "douglas" not in filename and "hermite" not in filename:
+                fileToSearch = os.path.join(root, os.path.splitext(filename)[0] + ".tif")
+                if fileToSearch in listmos:
+                    listmos.remove(fileToSearch)
+
+    return listmos
+    
+
+def getListMosToDo(checkvalue, clipfile, outvectpath, path, prefix, clipfield, clipvalue):
+
+    listmos = []
+    listvect = getListValues(checkvalue, clipfile, clipfield, outvectpath, prefix, clipvalue)
+    for root, dirs, files in os.walk(path):
+        for filename in files:
+            if ".tif" in filename and "%s_"%(prefix) in filename and "_%s_"%(clipfield):
+                listmos.append(int(filename.split('_')[len(filename.split('_')) - 1]))
+
+    return list(set(listvect).difference(set(listmos)))
+
+def getListValues(checkvalue, clipfile, clipfield, outvectpath="", prefix="", clipvalue=""):
 
     listvalues = []
     if checkvalue:
         listvalues.append([val for val in vf.ListValueFields(clipfile, clipfield)])
     else:
         if clipvalue in vf.ListValueFields(clipfile, clipfield):
-            listvalues.append(clipvalue)
+            listvalues.append([clipvalue])
         else:
             raise Exception("Value {} does not exist in the zone file {} for field {}".format(clipvalue, clipfile, clipfield))
 
+    if outvectpath is not None:
+        for root, dirs, files in os.walk(outvectpath):
+            for filename in files:
+                if ".shp" in filename and "%s_"%(prefix) in filename:
+                    clipval = os.path.splitext(filename)[0].split("_")[1]
+                    listvalues[0].remove(clipval)
+        
     return listvalues[0]
 
 def tilesRastersMergeVectSimp(path, tiles, out, grass, mmu, \
                               fieldclass, clipfile, fieldclip, valueclip, tileId, tileNamePrefix, tilesfolder, \
                               douglas, hermite, angle):
-
+    '''
     timeinit = time.time()
 
+    print("Production of vector file %s"%(os.path.splitext(out)[0] + str(valueclip)))
+
+    mergeTileRaster(path, clipfile, fieldclip, valueclip, tiles, tilesfolder, tileId, tileNamePrefix, out)
+
+    raw_input("pause")
     # local environnement
-    localenv = os.path.join(path, "tmp%s"%(str(valueclip)))
-    os.mkdir(localenv)
+    #localenv = os.path.join(path, "tmp%s"%(str(valueclip)))
+    #if os.path.exists(localenv):shutil.rmtree(localenv)
+    #os.mkdir(localenv)
 
     # Find vector tiles concerned by the given zone
-    listTilesFiles = getTilesFiles(clipfile, tiles, tilesfolder, tileId, tileNamePrefix, localenv, fieldclip, valueclip)
+    #listTilesFiles = getTilesFiles(clipfile, tiles, tilesfolder, tileId, tileNamePrefix, localenv, fieldclip, valueclip)
     
     # Merge rasters
-    localListTilesFiles = []
-    for tile in listTilesFiles:
-        shutil.copy(tile, localenv)
-        localListTilesFiles.append(os.path.join(localenv, os.path.basename(tile))) 
+    #localListTilesFiles = []
+    #for tile in listTilesFiles:
+    #    shutil.copy(tile, localenv)
+    #    localListTilesFiles.append(os.path.join(localenv, os.path.basename(tile))) 
         
-    finalraster = mergeTileRaster(path, localListTilesFiles, fieldclip, valueclip, localenv)
+    #finalraster = mergeTileRaster(path, localListTilesFiles, fieldclip, valueclip, localenv)
 
-    timemerge = time.time()     
-    print " ".join([" : ".join(["Merge Tiles", str(timemerge - timeinit)]), "seconds"])
+    #timemerge = time.time()     
+    #print " ".join([" : ".join(["Merge Tiles", str(timemerge - timeinit)]), "seconds"])
 
     # Raster vectorization and simplification
     outvect = os.path.join(localenv, finalraster[:-4] + '.shp')
@@ -285,6 +379,7 @@ def tilesRastersMergeVectSimp(path, tiles, out, grass, mmu, \
     
     # Export shapefile
     outtmp = os.path.join(localenv, os.path.splitext(os.path.basename(out))[0] + str(valueclip) + os.path.splitext(os.path.basename(out))[1])
+
     if os.path.exists(outtmp):os.remove(outtmp)
     gscript.run_command("v.out.ogr", flags = "s", input = "cleansnap@datas", output = outtmp, format = "ESRI_Shapefile")
 
@@ -295,7 +390,8 @@ def tilesRastersMergeVectSimp(path, tiles, out, grass, mmu, \
     afa.addFieldArea(outtmp, 10000)
     
     timeprodvect = time.time()     
-    print " ".join([" : ".join(["Production of final shapefile geometry", str(timeprodvect - timeinit)]), "seconds"])
+    print " ".join([" : ".join(["Production of final shapefile geometry of %s"%(os.path.splitext(out)[0] + str(valueclip) + ext), \
+                                str(timeprodvect - timeinit)]), "seconds"])
 
     for ext in ['.shp', '.dbf', '.shx', '.prj']:
         shutil.copyfile(os.path.splitext(outtmp)[0] + ext, os.path.splitext(out)[0] + str(valueclip) + ext)
@@ -308,7 +404,7 @@ def tilesRastersMergeVectSimp(path, tiles, out, grass, mmu, \
             
     if os.path.exists(os.path.join(localenv, "grassdata")):
         shutil.rmtree(os.path.join(localenv, "grassdata"))
-
+    '''
 if __name__ == "__main__":
     if len(sys.argv) == 1:
 	prog = os.path.basename(sys.argv[0])
