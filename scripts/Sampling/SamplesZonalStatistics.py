@@ -30,7 +30,19 @@ from MPI.launch_tasks import queuedProcess
 logger = logging.getLogger(__name__)
 
 def tile_samples_zonal_statistics(tile, cfg, workingDirectory=None):
-    """
+    """ Compute zonal statistics of a tile
+
+    Parameters
+    ----------
+    tile : string
+        tile name
+    cfg : serviceConfig obj
+        configuration object for parameters
+    workingDirectory : string
+        path to the working directory
+
+    Note
+    ------
     """
     from Common import ServiceConfigFile as SCF
     #because serviceConfigFile's objects are not serializable
@@ -62,6 +74,7 @@ def tile_samples_zonal_statistics(tile, cfg, workingDirectory=None):
         labels=[]
         n_list = []
         for sensor_name, ((sensor_features, sensor_features_dep), features_labels) in sensors_features:
+            # Stack every feature
             sensor_features.Execute()
             labels+=features_labels
             for samples in samples_list :
@@ -69,6 +82,7 @@ def tile_samples_zonal_statistics(tile, cfg, workingDirectory=None):
                 n_list.append(n)
                 output_xml = os.path.join(tsamples_directory, tile, "{}_{}_tile_samples_region_{}_{}_stats.xml".format(sensor_name, tile, region, n))
                 key = "DN"
+                # Do zonal statistics
                 ZonalStatisticsApp = otb.CreateZonalStatistics({"in":sensor_features,
                                                                 "inbv": "0",
                                                                 "inzone.vector.iddatafield": key,
@@ -82,13 +96,15 @@ def tile_samples_zonal_statistics(tile, cfg, workingDirectory=None):
             outputs_list = glob.glob(os.path.join(tsamples_directory, tile, "*_{}_tile_samples_region_{}_{}_stats.xml".format(tile, region, n)))
             tile_stats_xml = os.path.join(tsamples_directory, tile, "{}_tile_samples_region_{}_{}_stats.xml".format(tile, region, n))
             if len(outputs_list)>1 :
+                # Merge xml files
                 XMLStatsToShape.merge_xml_stats(tile_stats_xml, outputs_list)
             else :
                 shutil.copy(outputs_list[0], tile_stats_xml)
                 XMLStatsToShape.clean_xml_stats(tile_stats_xml)
+            # Convert xml to csv (supported by ogr)
             csv_stats = XMLStatsToShape.convert_XML_to_CSV(tile_stats_xml,key,labels)
-            # XMLStatsToShape.add_field_from_XML(samples, tile_stats_xml, key, labels)
             logger.info("Creating output")
+            # Join features statistics on the id key
             labels_dbf = XMLStatsToShape.labels_format_to_DBF(labels)
             samples = os.path.join(seg_directory, tile, "{}_region_{}_seg_{}.shp".format(tile, region, n))
             input_fields= XMLStatsToShape.list_shp_field(samples)
@@ -112,7 +128,19 @@ def tile_samples_zonal_statistics(tile, cfg, workingDirectory=None):
                 label_file.write(str(l)+'\n')
 
 def learning_samples_zonal_statistics(region_seed_tile, cfg, workingDirectory=None):
-    """
+    """ Compute zonal statistics of a tile
+
+    Parameters
+    ----------
+    region_seed_tile : list
+        list [region, tiles, seed], cf. Sampling/SamplesMerge
+    cfg : serviceConfig obj
+        configuration object for parameters
+    workingDirectory : string
+        path to the working directory
+
+    Note
+    ------
     """
     from Common import ServiceConfigFile as SCF
     #because serviceConfigFile's objects are not serializable
@@ -150,16 +178,6 @@ def learning_samples_zonal_statistics(region_seed_tile, cfg, workingDirectory=No
                                                             "inzone.vector.iddatafield": key,
                                                             "out.xml.filename": output_xml
                                                             })
-            # ZonalStatisticsApp = otb.CreateZonalStatistics({"in":sensor_features,
-            #                                                 "inbv": "0",
-            #                                                 "inzone.vector.in": learning_samples,
-            #                                                 "inzone.vector.iddatafield": key,
-            #                                                 "params.stdev":'0',
-            #                                                 "params.min":'0',
-            #                                                 "params.max":'0',
-            #                                                 "params.statstype":0,
-            #                                                 "out.vector.filename": output_shp
-            #                                                 })
             ZonalStatisticsApp.ExecuteAndWriteOutput()
             outputs_list.append(output_xml)
 

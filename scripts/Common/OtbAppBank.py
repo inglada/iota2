@@ -1753,6 +1753,7 @@ def CreateZonalStatistics(OtbParameters):
     if "inzone.vector.in" in OtbParameters:
         ZonalStatsApp.SetParameterString("inzone", "vector")
         ZonalStatsApp.SetParameterString("inzone.vector.in", OtbParameters["inzone.vector.in"])
+        #additional parameter to add to Zonal Statistics application (see generation.shy)
         if "inzone.vector.iddatafield" in OtbParameters:
             ZonalStatsApp.SetParameterString("inzone.vector.iddatafield", OtbParameters['inzone.vector.iddatafield'])
     if "inzone.labelimage.in" in OtbParameters:

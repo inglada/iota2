@@ -36,7 +36,9 @@ def launchBashCmd(bashCmd):
     #subprocess.check_output(bashCmd, shell=False)
 
 def queuedProcess(cmd_list,N_processes=4,shell=False,delay=0):
-
+    """
+    usage : launch a list of cmd using n_processes
+    """
     cmd_queue = cmd_list
     prc_queue = []
 
