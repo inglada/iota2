@@ -33,7 +33,7 @@ from VectorTools.vector_functions import intersect_shp
 
 logger = logging.getLogger(__name__)
 
-def split_segmentation_by_tiles(cfg, region_tiles_seed, wd):
+def split_segmentation_by_tiles(cfg, segmentation, wd):
     """ Split segmentation layer into tiled segmentation
 
     Parameters
@@ -55,7 +55,6 @@ def split_segmentation_by_tiles(cfg, region_tiles_seed, wd):
         cfg = SCF.serviceConfigFile(cfg)
 
     epsg = int((cfg.getParam('GlobChain', 'proj')).split(":")[-1])
-    segmentation = cfg.getParam('chain','OBIA_segmentation_path')
     segmentationRaster = None
     segmentationVector = None
 
@@ -64,6 +63,7 @@ def split_segmentation_by_tiles(cfg, region_tiles_seed, wd):
         region_path = os.path.join(cfg.getParam('chain', 'outputPath'), "MyRegion.shp")
     region_pattern = os.path.basename(region_path).split(".")[0]
 
+    # Determine if segmentation is a raster or a vector layer
     try :
         segmentationRaster = gdal.Open(segmentation)
         if segmentationRaster is not None :
@@ -77,6 +77,7 @@ def split_segmentation_by_tiles(cfg, region_tiles_seed, wd):
             segmentationVector = segmentation
             logger.info("%s loaded as vector segmentation reference")
 
+    # If raster, then vectorize
     if segmentationVector is None :
         segmentationVector = os.path.splitext(segmentation)[0]+'.gml'
         if os.path.exists(segmentationVector) is not True :
@@ -87,6 +88,7 @@ def split_segmentation_by_tiles(cfg, region_tiles_seed, wd):
     output_dir = os.path.join(cfg.getParam('chain', 'outputPath'))
     env_dir = os.path.join(output_dir,'envelope')
     seg_dir = os.path.join(output_dir,'segmentation')
+    #Split segmentation by tiles
     GridFit.generateSegVectorTiles(segmentationVector, tiles, env_dir, seg_dir)
     field_Region = cfg.getParam('chain', 'regionField')
     seg_ds = gdal.Open(segmentationRaster)
@@ -102,19 +104,23 @@ def split_segmentation_by_tiles(cfg, region_tiles_seed, wd):
             for tileRegionShp in tileRegionShps :
                 region = tileRegionShp.split('_')[-2]
                 tiledVectorSegmentation = '{}_region_{}_seg.shp'.format(tile, region)
+                #Split tiles with regions
                 intersect_shp(tileShp, tileRegionShp, seg_dir, tiledVectorSegmentation, where = "{}={}".format(field_Region, region))
+                #Generate subtiles (quicker for zonal statistics processing)
                 grid_list = GridFit.generateGridBasedSubsets(os.path.join(seg_dir, tiledVectorSegmentation), tile, [gsize, gsize], epsg)
         else :
             region = tileRegionShps[0].split('_')[-2]
             outpath = os.path.join(seg_dir,"{}_region_{}_seg".format(tile,region))
             tiledVectorSegmentation = '{}_region_{}_seg.shp'.format(tile, region)
             fu.cpShapeFile(os.path.splitext(tileShp)[0], outpath, ['.shp','.shx','.dbf','.prj'])
+            #Generate subtiles (quicker for zonal statistics processing)
             grid_list = GridFit.generateGridBasedSubsets(os.path.join(seg_dir, tiledVectorSegmentation), tile, [gsize, gsize], epsg)
 
     return
 
 def format_sample_to_segmentation(cfg, region_tiles_seed, wd):
-    """ Split train samples with segmentation
+    """ Split train samples with one region of the segmentation,
+    through each tile of the region and for the wanted run
 
     Parameters
     ----------
@@ -148,6 +154,7 @@ def format_sample_to_segmentation(cfg, region_tiles_seed, wd):
     epsg = int((cfg.getParam('GlobChain', 'proj')).split(":")[-1])
 
     tiles_samples = []
+    #intersects each segmented tile with train samples
     for tile in tiles :
         segmentationVector = os.path.join(outFolder, '{}_region_{}_seg.shp'.format(tile, region))
         tileSamplesVector = os.path.join(outFolder, "{}_learn_samples_region_{}_seed_{}.shp".format(tile, region, seed))
@@ -157,10 +164,13 @@ def format_sample_to_segmentation(cfg, region_tiles_seed, wd):
         intersect_shp(samplesVector, segmentationVector, outFolder, tileSamplesVector)
         # intersect.intersectSqlites(samplesVector, segmentationVector, outFolder, tileSamplesVector, epsg, "intersection", attributes, vectformat='ESRI Shapefile')
 
+    #merge each tiled train samples to assign an unique ID
     samplesVector = "learn_samples_region_{}_seed_{}".format(region, seed)
     fu.mergeVectors(samplesVector,outFolder,tiles_samples)
     samplesVector = os.path.join(outFolder,samplesVector+'.shp')
+    # add a unique id for each segment (needed to zonal statistic step)
     addFieldID(samplesVector)
+    # ŝplit again the new layer in tiles
     for tile in tiles:
         tileVector = os.path.join(cfg.getParam('chain', 'outputPath'), "shapeRegion", "{}_region_{}_{}.shp".format(region_pattern, region, tile))
         tileSamplesVector = "{}_learn_samples_region_{}_seed_{}.shp".format(tile, region, seed)

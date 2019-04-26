@@ -22,6 +22,17 @@ from Common import FileUtils as fu
 from Common import ServiceConfigFile as SCF
 
 def launchUnskew(region_seed_tile, cfg):
+    """ Compute command line for features statistics (one per region and run)
+
+    Parameters
+    ----------
+    region_seed_tile : list
+        list [region, tiles, seed], cf. Sampling/SamplesMerge
+    cfg : serviceConfig obj
+        configuration object for parameters
+    Note
+    ------
+    """
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
     iota2_directory = cfg.getParam('chain', 'outputPath')
@@ -29,6 +40,7 @@ def launchUnskew(region_seed_tile, cfg):
     stats_directory = os.path.join(iota2_directory, "stats")
 
     cmd_list=[]
+    #compute feature statistics for each model
     for region, tiles, seed in region_seed_tile :
         shp = os.path.join(lsamples_directory, "learn_samples_region_{}_seed_{}_stats.shp".format(region, seed))
         output = os.path.join(stats_directory, "features_stats_region_{}_seed_{}.xml".format(region, seed))

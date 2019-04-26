@@ -140,6 +140,9 @@ def spatialFilter(vect, clipzone, clipfield, clipvalue, outvect, driverclip = "E
       del lyrclip, lyrvect, dsvect, dsclip
 #--------------------------------------------------------------------
 def intersect_shp(t1,t2,out_folder,out_name, where = None, driverclip = "ESRI Shapefile", drivervect = "ESRI Shapefile", driverout = "ESRI Shapefile"):
+   """
+   Return intersection of t1 by t2, using SpatialFilter to be quicker
+   """
    dsvect = openToRead(t1, drivervect)
    dsclip = openToRead(t2, driverclip)
    lyrvect = dsvect.GetLayer()
@@ -368,7 +371,7 @@ def copyShp2(shp, outShapefile):
    print "New file created : %s" %(outShapefile)
    return outShapefile
 #--------------------------------------------------------------------
-def cloneVectorDataStructure(ds_in, fname, ly = 0, epsg = None):
+def cloneVectorDataStructure(ds_in, out, ly = 0, epsg = None):
     ds_in_ly = ds_in.GetLayer(ly)
 
     if epsg is None:
@@ -378,8 +381,8 @@ def cloneVectorDataStructure(ds_in, fname, ly = 0, epsg = None):
         srs.ImportFromEPSG(epsg)
 
     drv = ogr.GetDriverByName('ESRI Shapefile')
-    ds_out = drv.CreateDataSource(fname)
-    ds_out_ly = ds_out.CreateLayer(os.path.splitext(os.path.basename(fname))[0],
+    ds_out = drv.CreateDataSource(out)
+    ds_out_ly = ds_out.CreateLayer(os.path.splitext(os.path.basename(out))[0],
                                    srs=srs,
                                    geom_type=ds_in_ly.GetLayerDefn().GetGeomType())
     f = ds_in_ly.GetNextFeature()

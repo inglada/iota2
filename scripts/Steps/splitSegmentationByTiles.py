@@ -28,9 +28,7 @@ class splitSegmentationByTiles(IOTA2Step.Step):
 
         # step variables
         self.workingDirectory = workingDirectory
-        self.output_path = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
-        self.field_region = SCF.serviceConfigFile(self.cfg).getParam('chain', 'regionField')
-        self.nb_runs = SCF.serviceConfigFile(self.cfg).getParam('chain', 'runs')
+        self.segmentation = SCF.serviceConfigFile(self.cfg).getParam('chain','OBIA_segmentation_path')
 
     def step_description(self):
         """
@@ -45,7 +43,9 @@ class splitSegmentationByTiles(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
-        return samples_merge.get_models(os.path.join(self.output_path, "formattingVectors"), self.field_region, self.nb_runs)
+        
+        
+        return [self.segmentation]
 
     def step_execute(self):
         """
