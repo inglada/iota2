@@ -149,6 +149,7 @@ class iota2():
                            samplesExtraction, samplesByModels,
                            learningSamplesZonalStatistics, tilesSamplesZonalStatistics,
                            obiaLearning, reduceModelSkew,
+                           obiaClassification, reassembleTileParts,
                            copySamples, genSyntheticSamples,
                            samplesDimReduction, samplesNormalization,
                            learnModel, classiCmd,
@@ -214,6 +215,12 @@ class iota2():
         step_obia_learning = obiaLearning.obiaLearning(cfg,
                                                       config_ressources,
                                                       self.workingDirectory)
+        step_obia_classification = obiaClassification.obiaClassification(cfg,
+                                                                         config_ressources,
+                                                                         self.workingDirectory)
+        step_reassembleTileParts = reassembleTileParts.reassembleTileParts(cfg,
+                                                                           config_ressources,
+                                                                           self.workingDirectory)
         step_models_samples_stats = statsSamplesModel.statsSamplesModel(cfg,
                                                                         config_ressources,
                                                                         self.workingDirectory)
@@ -387,6 +394,12 @@ class iota2():
             # learning steps
             s_container.append(step_unskew_model, "learning")
             s_container.append(step_obia_learning,"learning")
+
+            # classifications steps
+            s_container.append(step_obia_classification, "classification")
+            
+            # mosaic step
+            s_container.append(step_reassembleTileParts, "mosaic")
 
         # mosaic step
         s_container.append(step_mosaic, "mosaic")
