@@ -43,7 +43,7 @@ class iota_testSamplesAugmentationUser(unittest.TestCase):
             shutil.rmtree(self.iota2_tests_directory)
         os.mkdir(self.iota2_tests_directory)
         self.csv_path = os.path.join(IOTA2DIR, "data", "references", "dataAugmentation.csv")
-
+        
     #after launching tests
     @classmethod
     def tearDownClass(self):
@@ -80,10 +80,15 @@ class iota_testSamplesAugmentationUser(unittest.TestCase):
 
     #after launching a test, remove test's data if test succeed
     def tearDown(self):
-        result = getattr(self, '_outcomeForDoCleanups', self._resultForDoCleanups)
+        if sys.version_info > (3, 4, 0):
+            result = self.defaultTestResult()
+            self._feedErrorsToResult(result, self._outcome.errors)
+        else:
+            result = getattr(self, '_outcomeForDoCleanups', self._resultForDoCleanups)
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
         ok = not error and not failure
+
         self.all_tests_ok.append(ok)
         if ok:
             shutil.rmtree(self.test_working_directory)
@@ -124,3 +129,6 @@ class iota_testSamplesAugmentationUser(unittest.TestCase):
                  DataAugmentation.countClassInSQLite(self.vector, "CODE", "42"),
                  DataAugmentation.countClassInSQLite(self.vector, "CODE", "51")]
         self.assertTrue(all([ex == co for ex, co in zip(expected, count)]))
+
+if __name__ == '__main__':
+    unittest.main()
