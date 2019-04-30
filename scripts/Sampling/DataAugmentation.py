@@ -120,7 +120,7 @@ def getUserSamplesManagement(csv_path):
     """
     import csv
 
-    with open(csv_path, 'rb') as csvfile:
+    with open(csv_path, 'r') as csvfile:
         csv_reader = csv.reader(csvfile)
         extraction_rules = [line for line in csv_reader]
     return extraction_rules
