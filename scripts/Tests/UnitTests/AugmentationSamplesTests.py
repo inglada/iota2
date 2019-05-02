@@ -77,10 +77,15 @@ class iota_testSamplesAugmentation(unittest.TestCase):
 
     #after launching a test, remove test's data if test succeed
     def tearDown(self):
-        result = getattr(self, '_outcomeForDoCleanups', self._resultForDoCleanups)
+        if sys.version_info > (3, 4, 0):
+            result = self.defaultTestResult()
+            self._feedErrorsToResult(result, self._outcome.errors)
+        else:
+            result = getattr(self, '_outcomeForDoCleanups', self._resultForDoCleanups)
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
         ok = not error and not failure
+
         self.all_tests_ok.append(ok)
         if ok:
             shutil.rmtree(self.test_working_directory)
@@ -99,17 +104,17 @@ class iota_testSamplesAugmentation(unittest.TestCase):
         class_augmentation_balance = DataAugmentation.SamplesAugmentationCounter(self.class_count, mode="balance",
                                                                                     minNumber=None,
                                                                                     byClass=None)
-        self.assertEqual(cmp(class_augmentation_balance, balance_expected), 0)
+        self.assertTrue(class_augmentation_balance, balance_expected)
         
         class_augmentation_atLeast = DataAugmentation.SamplesAugmentationCounter(self.class_count, mode="minNumber",
                                                                                     minNumber=120,
                                                                                     byClass=None)
-        self.assertEqual(cmp(class_augmentation_atLeast, atLeast_expected), 0)
+        self.assertTrue(class_augmentation_atLeast, atLeast_expected)
         
         class_augmentation_byClass = DataAugmentation.SamplesAugmentationCounter(self.class_count, mode="byClass",
                                                                                     minNumber=None,
                                                                                     byClass=self.csvFile)
-        self.assertEqual(cmp(class_augmentation_byClass, byClass_expected), 0)
+        self.assertTrue(class_augmentation_byClass, byClass_expected)
 
     def test_iota2_augmentation(self):
         """Test data augmentation workflow
