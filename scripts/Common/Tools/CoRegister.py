@@ -136,7 +136,7 @@ def fitnessDateScore(dateVHR, datadir, datatype):
             percent = get_S2_Tile_Cloud_Cover(file)
             cover = get_S2_Tile_Coverage(file)
             fitScore = delta*percent*cover
-            if maxFitScore < fitScore or maxFitScore is None:
+            if  maxFitScore is None or maxFitScore < fitScore:
                 maxFitScore = fitScore
                 fitDate = inDate
     return fitDate
