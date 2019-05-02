@@ -275,7 +275,7 @@ def SamplesAugmentationCounter(class_count, mode, minNumber=None, byClass=None):
 
     elif mode.lower() == "byclass":
         import csv
-        with open(byClass, 'rb') as csvfile:
+        with open(byClass, 'r') as csvfile:
             csv_reader = csv.reader(csvfile)
             for class_name, class_samples in csv_reader:
                 class_name = int(class_name)
