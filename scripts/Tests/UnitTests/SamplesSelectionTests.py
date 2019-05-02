@@ -35,19 +35,6 @@ sys.path.append(IOTA2_SCRIPTS)
 
 from Common import FileUtils as fut
 
-def rename_table(vect_file, old_table_name, new_table_name="output"):
-    """
-    use in test_split_selection Test
-    """
-    import sqlite3 as lite
-
-    sql_clause = "ALTER TABLE {} RENAME TO {}".format(old_table_name, new_table_name)
-
-    conn = lite.connect(vect_file)
-    cursor = conn.cursor()
-    cursor.execute(sql_clause)
-    conn.commit()
-
 
 class iota_testSamplesSelection(unittest.TestCase):
     # before launching tests
@@ -189,6 +176,7 @@ class iota_testSamplesSelection(unittest.TestCase):
         """
         from Sampling.SamplesSelection import split_sel
         from Iota2Tests import random_update
+        from TestsUtils import rename_table
 
         # prepare test input
         test_vector_name = "samples_region_1_seed_0.sqlite"

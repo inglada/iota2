@@ -14,6 +14,19 @@
 #
 # =========================================================================
 
+def rename_table(vect_file, old_table_name, new_table_name="output"):
+    """
+    use in test_split_selection Test
+    """
+    import sqlite3 as lite
+
+    sql_clause = "ALTER TABLE {} RENAME TO {}".format(old_table_name, new_table_name)
+
+    conn = lite.connect(vect_file)
+    cursor = conn.cursor()
+    cursor.execute(sql_clause)
+    conn.commit()
+
 def cmp_xml_stat_files(xml_1, xml_2):
     """compare statistics xml files
 
