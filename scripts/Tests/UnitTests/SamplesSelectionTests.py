@@ -154,10 +154,11 @@ class iota_testSamplesSelection(unittest.TestCase):
         """
         test writing of a statistics file
         """
-        from Sampling.SamplesSelection import write_xml
-        from Sampling.SamplesSelection import merge_write_stats
         import collections
         import filecmp
+        from Sampling.SamplesSelection import write_xml
+        from Sampling.SamplesSelection import merge_write_stats
+        from TestsUtils import cmp_xml_stat_files
 
         # define inputs
         samples_per_class = collections.OrderedDict([("11", 5), ("12", 6), ("211", 5),
@@ -178,7 +179,7 @@ class iota_testSamplesSelection(unittest.TestCase):
         merge_write_stats([xml_test_1, xml_test_2], test_merge)
 
         # assert
-        self.assertTrue(filecmp.cmp(self.in_xml_merge, test_merge),
+        self.assertTrue(cmp_xml_stat_files(self.in_xml_merge, test_merge),
                         msg="merge xml statistics files failed")
 
     def test_split_selection(self):
