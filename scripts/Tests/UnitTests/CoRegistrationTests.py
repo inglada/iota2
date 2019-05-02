@@ -72,25 +72,34 @@ class iota_testCoRegistration(unittest.TestCase):
 
     # after launching a test, remove test's data if test succeed
     def tearDown(self):
-        result = getattr(self, '_outcomeForDoCleanups', self._resultForDoCleanups)
+        if sys.version_info > (3, 4, 0):
+            result = self.defaultTestResult()
+            self._feedErrorsToResult(result, self._outcome.errors)
+        else:
+            result = getattr(self, '_outcomeForDoCleanups', self._resultForDoCleanups)
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
-        test_ok = not error and not failure
-        self.all_tests_ok.append(test_ok)
+        ok = not error and not failure
+
+        self.all_tests_ok.append(ok)
+        if ok:
+            shutil.rmtree(self.test_working_directory)
 
     def test_fitnessScore_Coregister(self):
-    	"""
-    	TEST 
-    	"""
-    	expected = ['20170203', '20170223']
-    	output = [CoRegister.fitnessDateScore("20170216", os.path.join(self.datadir, "T38KPD"), 'S2'),
+        """
+        TEST 
+        """
+        expected = ['20170203', '20170223']
+        output = [CoRegister.fitnessDateScore("20170216", os.path.join(self.datadir, "T38KPD"), 'S2'),
                   CoRegister.fitnessDateScore("20170216", os.path.join(self.datadir, "T38KPE"), 'S2')]
-    	self.assertTrue(all([ex == out for ex, out in zip(expected, output)]))
+        print(expected)
+        print(output)
+        self.assertTrue(all([ex == out for ex, out in zip(expected, output)]))
 
     def test_launch_CoRegister(self):
-    	"""
-    	TEST
-    	"""
+        """
+        TEST
+        """
         from config import Config
         from Common.FileUtils import ensure_dir
 
@@ -108,16 +117,16 @@ class iota_testCoRegistration(unittest.TestCase):
         ensure_dir(os.path.join(self.test_working_directory, "features", "T38KPD"))
 
         # T38KPD's coregistration 
-    	CoRegister.launch_coregister("T38KPD", test_config, None, False)
-    	dateFolders = glob.glob(os.path.join(datadir_test, "T38KPD", "*"))
-    	geomsFiles = glob.glob(os.path.join(datadir_test, "T38KPD", "*", "*.geom"))
+        CoRegister.launch_coregister("T38KPD", test_config, None, False)
+        dateFolders = glob.glob(os.path.join(datadir_test, "T38KPD", "*"))
+        geomsFiles = glob.glob(os.path.join(datadir_test, "T38KPD", "*", "*.geom"))
         # assert
-    	self.assertTrue(len(dateFolders)==len(geomsFiles))
+        self.assertTrue(len(dateFolders)==len(geomsFiles))
 
         # T38KPE's coregistration
         ensure_dir(os.path.join(self.test_working_directory, "features", "T38KPE"))        
-    	CoRegister.launch_coregister("T38KPE", test_config, None, False)
+        CoRegister.launch_coregister("T38KPE", test_config, None, False)
         # assert
-    	dateFolders = glob.glob(os.path.join(datadir_test, "T38KPE", "*"))
-    	geomsFiles = glob.glob(os.path.join(datadir_test, "T38KPE", "*", "*.geom"))        
-    	self.assertTrue(len(dateFolders)==len(geomsFiles))
+        dateFolders = glob.glob(os.path.join(datadir_test, "T38KPE", "*"))
+        geomsFiles = glob.glob(os.path.join(datadir_test, "T38KPE", "*", "*.geom"))        
+        self.assertTrue(len(dateFolders)==len(geomsFiles))

@@ -127,6 +127,7 @@ def fitnessDateScore(dateVHR, datadir, datatype):
 
     elif datatype in ['S2','S2_S2C']:
         maxFitScore = None
+        print(datadir+os.sep+'*'+os.sep+'*_MTD_ALL.xml')
         for file in glob.glob(datadir+os.sep+'*'+os.sep+'*_MTD_ALL.xml'):
             inDate = os.path.basename(file).split("_")[1].split("-")[0]
             year = int(inDate[:4])
@@ -135,10 +136,20 @@ def fitnessDateScore(dateVHR, datadir, datatype):
             delta = 1 - min(abs((date(year,month,day) - dateVHR).days)/500,1)
             percent = get_S2_Tile_Cloud_Cover(file)
             cover = get_S2_Tile_Coverage(file)
-            fitScore = delta*percent*cover
-            if  maxFitScore is None or maxFitScore < fitScore:
+            fitScore = delta * percent * cover
+            print(fitDate)
+            print(maxFitScore)
+            print(fitScore)
+            #~ print(maxFitScore < fitScore)
+            print("----------")
+            if (maxFitScore is None) or (maxFitScore < fitScore):
                 maxFitScore = fitScore
                 fitDate = inDate
+                print(maxFitScore)
+
+            print(fitDate)
+            #~ print("date : {} maxFitScore < fitScore : {} maxFitScore : {} fitScore : {}".format(fitDate, maxFitScore < fitScore, maxFitScore, fitScore))
+            pause = input("*****************")
     return fitDate
 
 def launch_coregister(tile, cfg, workingDirectory, launch_mask=True):
