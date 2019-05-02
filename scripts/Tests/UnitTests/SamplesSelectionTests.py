@@ -260,7 +260,7 @@ class iota_testSamplesSelection(unittest.TestCase):
         from Common import IOTA2Directory
         from Common import ServiceConfigFile as SCF
         from Tests.UnitTests.Iota2Tests import compareSQLite
-
+        from Common.FileUtils import cpShapeFile
         # prepare test input
         cfg = SCF.serviceConfigFile(self.config_test)
         cfg.setParam("chain", "outputPath", os.path.join(self.test_working_directory, "samplesSelTest"))
@@ -274,9 +274,18 @@ class iota_testSamplesSelection(unittest.TestCase):
                                               "samplesSelTest",
                                               "samplesSelection",
                                               "T31TCJ_region_1_seed_0_stats.xml"))
-        # launch function
-        samples_selection(self.in_shape, cfg, self.test_working_directory)
-        # assert
+        _, in_shape_name = os.path.split(self.in_shape)
+        in_shape_dir = os.path.join(self.test_working_directory,
+                                 "samplesSelTest",
+                                 "samplesSelection")
+        in_shape = os.path.join(in_shape_dir, in_shape_name)
+        cpShapeFile(self.in_shape.replace(".shp", ""),
+                    in_shape.replace(".shp", ""),
+                    extensions=[".prj",".shp",".dbf",".shx"])
+
+        #~ # launch function
+        samples_selection(in_shape, cfg, self.test_working_directory)
+        #~ # assert
         selection_test = fut.FileSearch_AND(os.path.join(self.test_working_directory, "samplesSelTest"),
                                             True,
                                             os.path.basename(self.selection_ref))[0]
