@@ -463,6 +463,9 @@ def DoCopy(source_samples, destination_samples, class_name, dataField, extract_q
 
     proj = get_projection(destination_samples)
     conn = db.connect(destination_samples)
+    conn.enable_load_extension(True)
+    conn.load_extension("mod_spatialite")
+    
     cursor = conn.cursor()
 
     cursor.execute("ATTACH '{}' AS db_source".format(source_samples))
