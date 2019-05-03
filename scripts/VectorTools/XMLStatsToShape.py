@@ -1,4 +1,18 @@
 #!/usr/bin/python
+#-*- coding: utf-8 -*-
+
+# =========================================================================
+#   Program:   vector tools
+#
+#   Copyright (c) CESBIO. All rights reserved.
+#
+#   See LICENSE for details.
+#
+#   This software is distributed WITHOUT ANY WARRANTY; without even
+#   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#   PURPOSE.  See the above copyright notices for more information.
+#
+# =========================================================================
 
 from osgeo import ogr
 import sys, os
@@ -214,7 +228,7 @@ def clean_xml_stats(stats_file):
 
     Note
     ------
-    to discuss rm_names could bé defined as a variable
+    to discuss rm_names could be defined as a variable
     in the iota2 parameters and use as input of the function
     """
     from xml.etree import ElementTree as ET
