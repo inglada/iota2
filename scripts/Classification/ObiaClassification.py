@@ -26,8 +26,23 @@ from Common.Utils import run
 from MPI import launch_tasks
 
 
-def launchObiaClassification(run, nb_cpu, cfg, pathWd):
+def launchObiaClassification(run, nb_cpu, cfg, pathWd = None):
+    """Do classification for every model of a run
 
+    Parameters
+    ----------
+    run : int
+        number of the run
+    nb_cpu : int
+        number of cpu used for Classification
+    cfg : serviceConfig obj
+        configuration object for parameters
+    pathWd : string
+        path to the working directory
+
+    Note
+    ------
+    """
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
     cfield = cfg.getParam('chain', 'dataField')
@@ -37,6 +52,9 @@ def launchObiaClassification(run, nb_cpu, cfg, pathWd):
     model_dir = os.path.join(outputPath, "model")
     stats_dir = os.path.join(outputPath, "stats")
     classif_dir = os.path.join(outputPath, "classif")
+    wd = classif_dir
+    if pathWd != None :
+        wd = pathWd
     AllCmd = []
 
     models = glob.glob(os.path.join(model_dir, 'model_region_*_seed_{}.txt'.format(run)))
@@ -47,29 +65,46 @@ def launchObiaClassification(run, nb_cpu, cfg, pathWd):
         samples_list = glob.glob(os.path.join(tsamples_dir,"*","*_region_{}_*_stats.shp".format(region)))
         for samples in samples_list :
             tile = samples.split('/')[-2]
-            if os.path.exists(os.path.join(classif_dir,tile)) == False :
-                os.mkdir(os.path.join(classif_dir,tile))
+            if os.path.exists(os.path.join(wd,tile)) == False :
+                os.mkdir(os.path.join(wd,tile))
             part = samples.split('_')[-2]
             ft_file = os.path.join(lsamples_dir, "learn_samples_region_{}_seed_{}_stats_label.txt".format(region, run))
             feats = open(ft_file).read().replace('\n',' ')
-            out = os.path.join(classif_dir,tile,"{}_model_{}_seed_{}_part_{}.shp".format(tile,region,run,part))
+            out = os.path.join(wd,tile,"{}_model_{}_seed_{}_part_{}.shp".format(tile,region,run,part))
             cmd = "otbcli_VectorClassifier -in {} -instat {} -model {} -cfield {} -feat {} -out {} -confmap 1".format(samples,features_stats, model, cfield, feats, out)
             AllCmd.append(cmd)
     launch_tasks.queuedProcess(AllCmd,N_processes=nb_cpu,shell=True)
     return 
 
-def reassembleParts(run,nb_cpu,cfg, pathWd):
+def reassembleParts(run,nb_cpu,cfg, pathWd=None):
+    """Merge parts (resulting of SpliSegmentationByTiles step)
+
+    Parameters
+    ----------
+    run : int
+        number of the run
+    nb_cpu : int
+        number of cpu used for Classification
+    cfg : serviceConfig obj
+        configuration object for parameters
+    pathWd : string
+        path to the working directory
+
+    Note
+    ------
+    """
     from Common.Tools import ExtractROIRaster
 
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
     cfield = cfg.getParam('chain', 'dataField')
     tiles = cfg.getParam('chain', 'listTile').split(' ')
-    runs = [run for run in range(0,cfg.getParam('chain', 'runs'))]
     outputPath = cfg.getParam('chain', 'outputPath')
-    seg_dir = os.path.join(outputPath, 'segmentation')
     model_dir = os.path.join(outputPath, "model")
     classif_dir = os.path.join(outputPath, "classif")
+    wd = classif_dir
+    if pathWd != None:
+        wd = pathWd
 
     im_ref = cfg.getParam('chain', 'OBIA_segmentation_path')
     spx, spy = ExtractROIRaster.getRasterResolution(im_ref)
@@ -87,16 +122,17 @@ def reassembleParts(run,nb_cpu,cfg, pathWd):
                 out = os.path.splitext(part)[0]+'.tif'
                 p = os.path.splitext(out)[0].split('_')[-1]
                 out_parts += ' '+out
-                out_confmap = os.path.join(classif_dir,tile,"{}_model_{}_confidence_seed_{}_part_{}.tif".format(tile, region, run, p))
+                out_confmap = os.path.join(wd,tile,"{}_model_{}_confidence_seed_{}_part_{}.tif".format(tile, region, run, p))
                 out_parts_conf += ' '+out_confmap
                 cmd = 'otbcli_Rasterization -in {} -out {} -mode attribute -mode.attribute.field {} -spx {} -spy {}'.format(part, out, cfield, spx, spy)
                 AllCmd.append(cmd)
                 cmd = 'otbcli_Rasterization -in {} -out {} -mode attribute -mode.attribute.field confidence -spx {} -spy {}'.format(part, out_confmap, spx, spy)
                 AllCmd.append(cmd)
-            launch_tasks.queuedProcess(AllCmd,N_processes=nb_cpu,shell=True)
-            out_merge = os.path.join(classif_dir,"Classif_{}_model_{}_seed_{}.tif".format(tile,region,run))
-            out_conf_merge = os.path.join(classif_dir,"{}_model_{}_confidence_seed_{}.tif".format(tile,region,run))
-            cmd = 'gdal_merge.py -o {} -ot Int32 -co COMPRESS=DEFLATE -n 0 -a_nodata 0 {}'.format(out_merge,out_parts)
-            launch_tasks.launchBashCmd(cmd)
-            cmd = 'gdal_merge.py -o {} -co COMPRESS=DEFLATE -n 0 -a_nodata 0 {}'.format(out_conf_merge,out_parts_conf)
-            launch_tasks.launchBashCmd(cmd)
+            if len(AllCmd) > 0:
+                launch_tasks.queuedProcess(AllCmd,N_processes=nb_cpu,shell=True)
+                out_merge = os.path.join(wd,"Classif_{}_model_{}_seed_{}.tif".format(tile,region,run))
+                out_conf_merge = os.path.join(wd,"{}_model_{}_confidence_seed_{}.tif".format(tile,region,run))
+                cmd = 'gdal_merge.py -o {} -ot Int32 -co COMPRESS=DEFLATE -n 0 -a_nodata 0 {}'.format(out_merge,out_parts)
+                launch_tasks.launchBashCmd(cmd)
+                cmd = 'gdal_merge.py -o {} -co COMPRESS=DEFLATE -n 0 -a_nodata 0 {}'.format(out_conf_merge,out_parts_conf)
+                launch_tasks.launchBashCmd(cmd)
