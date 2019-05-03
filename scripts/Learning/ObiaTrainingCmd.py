@@ -56,7 +56,7 @@ def buildObiaTrainCmd(sample, classif, options, dataField, out, feats, stat):
         cmd += " -io.stats {}".format(stat)
     return cmd
 
-def launchObiaTrainModel(cfg, dataField, region_seed_tile, pathToCmdTrain, outfolder, pathWd):
+def launchObiaTrainModel(cfg, dataField, region_seed_tile, pathToCmdTrain, outfolder, pathWd = None):
     """ Compute command line for model creation (one per region and run)
 
     Parameters
@@ -85,6 +85,9 @@ def launchObiaTrainModel(cfg, dataField, region_seed_tile, pathToCmdTrain, outfo
     iota2_directory = cfg.getParam('chain', 'outputPath')
     lsamples_directory = os.path.join(iota2_directory, "learningSamples")
     stats_directory = os.path.join(iota2_directory, "stats")
+    wd = stats_directory
+    if pathWd != None :
+        wd = pathWd
 
     cmd_list = []
     # Construct every cmd
