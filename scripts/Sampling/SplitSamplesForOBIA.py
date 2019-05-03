@@ -33,7 +33,7 @@ from VectorTools.vector_functions import intersect_shp
 
 logger = logging.getLogger(__name__)
 
-def split_segmentation_by_tiles(cfg, segmentation, wd):
+def split_segmentation_by_tiles(cfg, segmentation, wd, size=1000):
     """ Split segmentation layer into tiled segmentation
 
     Parameters
@@ -68,14 +68,14 @@ def split_segmentation_by_tiles(cfg, segmentation, wd):
         segmentationRaster = gdal.Open(segmentation)
         if segmentationRaster is not None :
             segmentationRaster = segmentation
-            logger.info("%s loaded as raster segmentation reference")
+            logger.info("%s loaded as raster segmentation reference" % segmentationRaster)
     except :
-        logger.info("%s is not a raster input...")
+        logger.info("%s is not a raster input..." % segmentationRaster)
     if segmentationRaster is None:
         segmentationVector = ogr.Open(segmentation)
         if segmentationVector is not None :
             segmentationVector = segmentation
-            logger.info("%s loaded as vector segmentation reference")
+            logger.info("%s loaded as vector segmentation reference" % segmentationVector)
 
     # If raster, then vectorize
     if segmentationVector is None :
@@ -88,33 +88,34 @@ def split_segmentation_by_tiles(cfg, segmentation, wd):
     output_dir = os.path.join(cfg.getParam('chain', 'outputPath'))
     env_dir = os.path.join(output_dir,'envelope')
     seg_dir = os.path.join(output_dir,'segmentation')
+    wdir = seg_dir
+    if wd:
+        wdir = wd
     #Split segmentation by tiles
-    GridFit.generateSegVectorTiles(segmentationVector, tiles, env_dir, seg_dir)
+    GridFit.generateSegVectorTiles(segmentationVector, tiles, env_dir, wdir, epsg = epsg)
     field_Region = cfg.getParam('chain', 'regionField')
     seg_ds = gdal.Open(segmentationRaster)
     geoT = seg_ds.GetGeoTransform()
     spx, spy = str(geoT[1]), str(geoT[5])
     resol = min(abs(geoT[1]), abs(geoT[5]))
     seg_ds = None
-    gsize = round(1000 * resol)
+    gsize = round(size * resol)
     for tile in tiles :
-        tileShp = os.path.join(seg_dir,'{}_seg.shp'.format(tile))
+        tileShp = os.path.join(wdir,'{}_seg.shp'.format(tile))
         tileRegionShps = glob.glob(os.path.join(cfg.getParam('chain', 'outputPath'), "shapeRegion", "{}_region_*_{}.shp".format(region_pattern, tile)))
         if len(tileRegionShps) > 1 :
-            for tileRegionShp in tileRegionShps :
-                region = tileRegionShp.split('_')[-2]
-                tiledVectorSegmentation = '{}_region_{}_seg.shp'.format(tile, region)
-                #Split tiles with regions
-                intersect_shp(tileShp, tileRegionShp, seg_dir, tiledVectorSegmentation, where = "{}={}".format(field_Region, region))
-                #Generate subtiles (quicker for zonal statistics processing)
-                grid_list = GridFit.generateGridBasedSubsets(os.path.join(seg_dir, tiledVectorSegmentation), tile, [gsize, gsize], epsg)
+            #Split tiles with regions
+            out_tileRegionShps = GridFit.generateSegVectorTilesRegion(tileShp, tile, tileRegionShps, wdir, epsg = epsg)
+            #Generate subtiles (quicker for zonal statistics processing)
+            for out_tileRegionShp in out_tileRegionShps:
+                grid_list = GridFit.generateGridBasedSubsets(os.path.join(wdir, out_tileRegionShp), tile, [gsize, gsize], epsg = epsg)
         else :
             region = tileRegionShps[0].split('_')[-2]
-            outpath = os.path.join(seg_dir,"{}_region_{}_seg".format(tile,region))
+            outpath = os.path.join(wdir,"{}_region_{}_seg".format(tile,region))
             tiledVectorSegmentation = '{}_region_{}_seg.shp'.format(tile, region)
             fu.cpShapeFile(os.path.splitext(tileShp)[0], outpath, ['.shp','.shx','.dbf','.prj'])
             #Generate subtiles (quicker for zonal statistics processing)
-            grid_list = GridFit.generateGridBasedSubsets(os.path.join(seg_dir, tiledVectorSegmentation), tile, [gsize, gsize], epsg)
+            grid_list = GridFit.generateGridBasedSubsets(os.path.join(wdir, tiledVectorSegmentation), tile, [gsize, gsize], epsg = epsg)
 
     return
 
@@ -151,6 +152,8 @@ def format_sample_to_segmentation(cfg, region_tiles_seed, wd):
     regionField = (cfg.getParam('chain', 'regionField')).lower()
 
     outFolder = os.path.join(cfg.getParam('chain', 'outputPath'), "segmentation")
+    if wd != None :
+        outFolder = wd
     epsg = int((cfg.getParam('GlobChain', 'proj')).split(":")[-1])
 
     tiles_samples = []
