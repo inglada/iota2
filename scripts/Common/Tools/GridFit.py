@@ -172,7 +172,7 @@ def generateGridBasedSubsets(in_vec, tile, gridSize, epsg = None):
 
     return out_list
 
-def generateSegVectorTiles(in_vec, tiles, env_dir, seg_dir):
+def generateSegVectorTiles(in_vec, tiles, env_dir, seg_dir, epsg = None):
     from VectorTools.vector_functions import cloneVectorDataStructure
     from VectorTools.AddField import addField
     import glob
@@ -187,7 +187,7 @@ def generateSegVectorTiles(in_vec, tiles, env_dir, seg_dir):
     for tile in tiles:
         tile_path = glob.glob(os.path.join(env_dir,tile+".shp"))[0]
         tiles_name_out = os.path.join(seg_dir,tile+"_seg.shp")
-        ds_out.append(cloneVectorDataStructure(ds_in, tiles_name_out))
+        ds_out.append(cloneVectorDataStructure(ds_in, tiles_name_out, epsg=epsg))
         ds_tile = ogr.Open(tile_path)
         ds_tile_ly = ds_tile.GetLayer(0)
         tile_ext = ds_tile_ly.GetExtent()
@@ -221,6 +221,47 @@ def generateSegVectorTiles(in_vec, tiles, env_dir, seg_dir):
     ds_in = None
 
     return
+
+def generateSegVectorTilesRegion(in_vec, tile, tileRegs, wd, epsg = None):
+    from VectorTools.vector_functions import cloneVectorDataStructure
+    from VectorTools.AddField import addField
+    import glob
+    print tileRegs
+    ds_in = ogr.Open(in_vec)
+    ds_in_ly = ds_in.GetLayer(0)
+    ext = ds_in_ly.GetExtent()
+
+    list_out=[]
+    rect=[]
+    ind=[]
+    ds_out =[]
+    for i, region_path in enumerate(tileRegs):
+        reg_ind = region_path.split('_')[-2]
+        region_name_out = os.path.join(wd,tile+"_region_"+reg_ind+"_seg.shp")
+        list_out.append(os.path.basename(region_name_out))
+        ds_out.append(cloneVectorDataStructure(ds_in, region_name_out, epsg=epsg))
+        ds_region = ogr.Open(region_path)
+        ds_region_ly = ds_region.GetLayer(0)
+        for ft in ds_region_ly:
+            rect.append(ft)
+            ind.append(i)
+
+    ds_in_ly.ResetReading()
+
+    for f in ds_in_ly:
+        i = 0
+        found = False
+        while not found:
+            if f.GetGeometryRef().Intersects(rect[i].GetGeometryRef()):
+                j = ind[i]
+                ds_out[j].GetLayer(0).CreateFeature(f)
+                found = True
+            i += 1
+
+    ds_out = None
+    ds_in = None
+
+    return list_out
 
 def getIntersections(outGridPath, inGridPath, tileField_first, tileField_second):
 
