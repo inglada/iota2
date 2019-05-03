@@ -1,0 +1,112 @@
+%YAML:1.0
+---
+opencv_ml_rtrees:
+   format: 3
+   is_classifier: 1
+   var_all: 27
+   var_count: 26
+   ord_var_count: 26
+   cat_var_count: 1
+   training_params:
+      use_surrogates: 0
+      max_categories: 10
+      regression_accuracy: 0.
+      max_depth: 10
+      min_sample_count: 5
+      cross_validation_folds: 0
+      nactive_vars: 0
+   global_var_idx: 1
+   var_idx: [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+       17, 18, 19, 20, 21, 22, 23, 24, 25 ]
+   var_type: [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0, 0, 0, 0, 0, 0, 0, 1 ]
+   cat_ofs: [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
+   class_labels: [ 1, 5 ]
+   missing_subst: [ 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+       0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0. ]
+   oob_error: 0.
+   ntrees: 5
+   trees:
+      -
+         nodes:
+            -
+               depth: 0
+               value: 1.
+               norm_class_idx: 0
+               splits:
+                  - { var:5, quality:7., le:2468. }
+            -
+               depth: 1
+               value: 1.
+               norm_class_idx: 0
+            -
+               depth: 1
+               value: 5.
+               norm_class_idx: 1
+      -
+         nodes:
+            -
+               depth: 0
+               value: 1.
+               norm_class_idx: 0
+               splits:
+                  - { var:23, quality:5.5000000000000000e+00, le:52. }
+            -
+               depth: 1
+               value: 5.
+               norm_class_idx: 1
+            -
+               depth: 1
+               value: 1.
+               norm_class_idx: 0
+      -
+         nodes:
+            -
+               depth: 0
+               value: 1.
+               norm_class_idx: 0
+               splits:
+                  - { var:12, quality:5.5000000000000000e+00,
+                      le:4.7850000000000000e+02 }
+            -
+               depth: 1
+               value: 1.
+               norm_class_idx: 0
+            -
+               depth: 1
+               value: 1.
+               norm_class_idx: 0
+      -
+         nodes:
+            -
+               depth: 0
+               value: 1.
+               norm_class_idx: 0
+               splits:
+                  - { var:11, quality:7., le:6.7050000000000000e+02 }
+            -
+               depth: 1
+               value: 5.
+               norm_class_idx: 1
+            -
+               depth: 1
+               value: 1.
+               norm_class_idx: 0
+      -
+         nodes:
+            -
+               depth: 0
+               value: 1.
+               norm_class_idx: 0
+               splits:
+                  - { var:1, quality:4.5999999046325684e+00, le:689. }
+            -
+               depth: 1
+               value: 5.
+               norm_class_idx: 1
+            -
+               depth: 1
+               value: 1.
+               norm_class_idx: 0
