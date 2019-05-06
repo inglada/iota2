@@ -189,7 +189,7 @@ def keepFields(vec_in, vec_out, fields=[], proj_in=2154, proj_out=2154):
     table_in = (os.path.splitext(os.path.split(vec_in)[-1])[0]).lower()
     table_out = (os.path.splitext(os.path.split(vec_out)[-1])[0]).lower()
 
-    sql_clause = "select _ogr_geometry_,{} from {}".format(",".join(fields), table_in)
+    sql_clause = "select GEOMETRY,{} from {}".format(",".join(fields), table_in)
 
     cmd = "ogr2ogr -s_srs EPSG:{} -t_srs EPSG:{} -dialect 'SQLite' -f 'SQLite' -nln {} -sql '{}' {} {}".format(proj_in,
                                                                                                                proj_out,
