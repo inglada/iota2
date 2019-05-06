@@ -14,6 +14,96 @@
 #
 # =========================================================================
 
+def rasterToArray(InRaster):
+    """
+    convert a raster to an array
+    """
+    import gdal
+    arrayOut = None
+    ds = gdal.Open(InRaster)
+    arrayOut = ds.ReadAsArray()
+    return arrayOut
+
+def compareVectorFile(vect_1, vect_2, mode='table', typegeom='point', drivername="SQLite"):
+    """used to compare two SQLite vector files
+
+    mode=='table' is faster but does not work with connected OTB applications.
+
+    Parameters
+    ----------
+    vect_1 : string
+        path to a vector file
+    vect_2 : string
+        path to a vector file
+    mode : string
+        'table' or 'coordinates'
+        -> table : compare sqlite tables
+        -> 'coordinates' : compare features geo-referenced at the same coordinates
+    typegeom : string
+        'point' or 'polygon'
+    drivername : string
+        ogr driver's name
+
+    Return
+    ------
+    bool
+        True if vectors are the same
+    """
+    import ogr
+    from itertools import zip_longest
+    from Common import FileUtils as fu
+
+    def getFieldValue(feat,fields):
+            return dict([(currentField,feat.GetField(currentField)) for currentField in fields])
+    def priority(item):
+            return (item[0],item[1])
+    def getValuesSortedByCoordinates(vector):
+            values = []
+            driver = ogr.GetDriverByName(drivername)
+            ds = driver.Open(vector,0)
+            lyr = ds.GetLayer()
+            fields = fu.getAllFieldsInShape(vector, drivername)
+            for feature in lyr:
+                if typegeom == "point":
+                    x,y= feature.GetGeometryRef().GetX(),feature.GetGeometryRef().GetY()
+                elif typegeom == "polygon":
+                    x,y= feature.GetGeometryRef().Centroid().GetX(),feature.GetGeometryRef().Centroid().GetY()
+                fields_val = getFieldValue(feature,fields)
+                values.append((x,y,fields_val))
+
+            values = sorted(values,key=priority)
+            return values
+
+    fields_1 = fu.getAllFieldsInShape(vect_1, drivername) 
+    fields_2 = fu.getAllFieldsInShape(vect_2, drivername)
+
+    for field_1, field_2 in zip_longest(fields_1, fields_2, fillvalue=None):
+        if not field_1 == field_2:
+            return False
+    
+    if mode == 'table':
+            connection_1 = lite.connect(vect_1)
+            df_1 = pad.read_sql_query("SELECT * FROM output", connection_1)
+
+            connection_2 = lite.connect(vect_2)
+            df_2 = pad.read_sql_query("SELECT * FROM output", connection_2)
+
+            try: 
+                    table = (df_1 != df_2).any(1)
+                    if True in table.tolist():return False
+                    else:return True
+            except ValueError:
+                    return False
+
+    elif mode == 'coordinates':
+            values_1 = getValuesSortedByCoordinates(vect_1)
+            values_2 = getValuesSortedByCoordinates(vect_2)
+            sameFeat = [val_1==val_2 for val_1,val_2 in zip(values_1,values_2)]
+            if False in sameFeat:return False
+            return True
+    else:
+            raise Exception("mode parameter must be 'table' or 'coordinates'")  
+
 def rename_table(vect_file, old_table_name, new_table_name="output"):
     """
     use in test_split_selection Test
