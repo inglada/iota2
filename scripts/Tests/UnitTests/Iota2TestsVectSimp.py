@@ -35,7 +35,7 @@ iota2_script = IOTA2DIR + "/scripts"
 sys.path.append(iota2_script)
 
 from Common import FileUtils as fut
-from Tests.UnitTests import Iota2Tests as testutils
+from Tests.UnitTests import TestsUtils as testutils
 from simplification import VectAndSimp as vas
 
 class iota_testVectSimp(unittest.TestCase):
