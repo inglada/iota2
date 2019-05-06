@@ -35,7 +35,7 @@ iota2_script = IOTA2DIR + "/scripts"
 sys.path.append(iota2_script)
 
 from Common import FileUtils as fut
-from Tests.UnitTests import Iota2Tests as testutils
+from Tests.UnitTests import TestsUtils as testutils
 from simplification import searchCrownTile as sct
 from simplification import buildCrownRaster as bcr
 from simplification import GridGenerator as gridg
@@ -164,8 +164,8 @@ class iota_testSerialisation(unittest.TestCase):
         self.assertTrue(np.array_equal(outtest, outtileref))
 
         # Vectorisation test
-        mtr.tilesRastersMergeVectSimp(self.wd, self.outfileref, self.outfilevect, self.grasslib, 1000, \
-                                      "class", self.clipfile, "region", "montagne", "FID", "tile_", self.outpathtile, \
+        mtr.tilesRastersMergeVectSimp(self.wd, self.outfileref, self.outfilevect, self.grasslib, 1000,
+                                      "class", self.clipfile, "region", "montagne", "FID", "tile_", self.outpathtile,
                                       10, 10, True)
 
         self.assertTrue(testutils.compareVectorFile(self.vector, self.outfilevectname, 'coordinates', 'polygon', "ESRI Shapefile"), \
