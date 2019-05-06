@@ -130,33 +130,6 @@ def prepare_test_selection(vector, raster_ref, outputSelection, wd, dataField):
     os.remove(stats_path)
 
 
-def arrayToRaster(inArray, outRaster, output_format="int"):
-    """
-    usage : from an array, create a raster with (originX,originY) origin
-    IN
-    inArray [numpy.array] : input array
-    outRaster [string] : output raster
-    """
-    rows = inArray.shape[0]
-    cols = inArray.shape[1]
-    originX = 777225.58
-    originY = 6825084.53
-    pixSize = 30
-    driver = gdal.GetDriverByName('GTiff')
-    if output_format=='int':
-        outRaster = driver.Create(outRaster, cols, rows, 1, gdal.GDT_UInt16)
-    elif output_format=='float':
-        outRaster = driver.Create(outRaster, cols, rows, 1, gdal.GDT_Float32)
-    if not outRaster:
-        raise Exception("can not create : "+outRaster)
-    outRaster.SetGeoTransform((originX, pixSize, 0, originY, 0, pixSize))
-    outband = outRaster.GetRasterBand(1)
-    outband.WriteArray(inArray)
-    outRasterSRS = osr.SpatialReference()
-    outRasterSRS.ImportFromEPSG(2154)
-    outRaster.SetProjection(outRasterSRS.ExportToWkt())
-    outband.FlushCache()
-
 def compareVectorFile(vect_1, vect_2, mode='table', typegeom = 'point', drivername = "SQLite"):
 
         '''
