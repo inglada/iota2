@@ -99,10 +99,15 @@ class iota_testRegularisation(unittest.TestCase):
 
     # after launching a test, remove test's data if test succeed
     def tearDown(self):
-        result = getattr(self, '_outcomeForDoCleanups', self._resultForDoCleanups)
+        if sys.version_info > (3, 4, 0):
+            result = self.defaultTestResult()
+            self._feedErrorsToResult(result, self._outcome.errors)
+        else:
+            result = getattr(self, '_outcomeForDoCleanups', self._resultForDoCleanups)
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
         ok = not error and not failure
+
         self.all_tests_ok.append(ok)
         if ok:
             shutil.rmtree(self.test_working_directory)
