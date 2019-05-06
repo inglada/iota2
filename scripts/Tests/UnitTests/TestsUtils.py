@@ -21,6 +21,9 @@ def arrayToRaster(inArray, outRaster, output_format="int"):
     inArray [numpy.array] : input array
     outRaster [string] : output raster
     """
+    import gdal
+    import osr
+
     rows = inArray.shape[0]
     cols = inArray.shape[1]
     originX = 777225.58
@@ -101,13 +104,13 @@ def compareVectorFile(vect_1, vect_2, mode='table', typegeom='point', drivername
             values = sorted(values,key=priority)
             return values
 
-    fields_1 = fu.getAllFieldsInShape(vect_1, drivername) 
+    fields_1 = fu.getAllFieldsInShape(vect_1, drivername)
     fields_2 = fu.getAllFieldsInShape(vect_2, drivername)
 
     for field_1, field_2 in zip_longest(fields_1, fields_2, fillvalue=None):
         if not field_1 == field_2:
             return False
-    
+
     if mode == 'table':
             connection_1 = lite.connect(vect_1)
             df_1 = pad.read_sql_query("SELECT * FROM output", connection_1)
@@ -115,7 +118,7 @@ def compareVectorFile(vect_1, vect_2, mode='table', typegeom='point', drivername
             connection_2 = lite.connect(vect_2)
             df_2 = pad.read_sql_query("SELECT * FROM output", connection_2)
 
-            try: 
+            try:
                     table = (df_1 != df_2).any(1)
                     if True in table.tolist():return False
                     else:return True
@@ -129,7 +132,7 @@ def compareVectorFile(vect_1, vect_2, mode='table', typegeom='point', drivername
             if False in sameFeat:return False
             return True
     else:
-            raise Exception("mode parameter must be 'table' or 'coordinates'")  
+            raise Exception("mode parameter must be 'table' or 'coordinates'")
 
 def rename_table(vect_file, old_table_name, new_table_name="output"):
     """
