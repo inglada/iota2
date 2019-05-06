@@ -156,6 +156,18 @@ if [[ "$ok" == "1" ]]; then
       fi
       cd $prefix_dir/OTB/OTB/Modules/Remote/
       ln -sf ../../../../TETIS/otbPointMatchCoregistrationModel OTBPointMatchCoregistrationModel
+
+      # Add otbZonalStatistics patch
+      echo "Adding otbZonalStatistics patch ..."
+      mkdir -p $prefix_dir/TETIS
+      cd $prefix_dir/TETIS
+      if [ -d "./otbzonalstatistics_patch" ]; then
+        echo "otbzonalstatistics_patch repository already cloned. skipping."
+      else
+        echo "get otbzonalstatistics_patch"
+        git clone https://framagit.org/SPeillet/otbzonalstatistics_patch.git
+      fi
+      cp otbzonalstatistics_patch/otbZonalStatistics.cxx $prefix_dir/OTB/OTB/Modules/Applications/AppClassification/app/otbZonalStatistics.cxx
     fi
   fi
   #----------------------------------------
