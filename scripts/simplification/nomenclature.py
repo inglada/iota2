@@ -104,11 +104,11 @@ def getClassesFromVectorQML(qml):
                                 if prop.attrib["k"] == "color":
                                     nomenclature.append([classe[2].encode("utf-8"), classe[1], [int(x) for x in prop.attrib["v"].split(",")[0:3]]])
 
-    out = [[x[0], x[1], convertRGBtoHEX(tuple(x[2])), \
-            "".join(unicodedata.normalize('NFKD', \
-                                          x[0][0:11].decode("utf-8", \
-                                                            "ignore")).encode('ascii',\
-                                                                              'ignore').split())] for x in nomenclature]
+    out = [[x[0], x[1], convertRGBtoHEX(tuple(x[2])),
+            "".join(str(unicodedata.normalize('NFKD',
+                                              x[0][0:11].decode("utf-8",
+                                                                "ignore")).encode('ascii',
+                                                                                  'ignore').split()))] for x in nomenclature]
     for line in out:
         line[3] = ''.join(e for e in line[3] if e.isalnum())
 
