@@ -116,9 +116,9 @@ class iota_NomenclatureTest(unittest.TestCase):
         tabnom = nom.getClassesFromVectorQML(self.refqml)        
         nomenc = nom.Iota2Nomenclature(tabnom)
         nomenc.createRasterQML(self.qml, "classe", 1)
-        self.assertEqual(cmp(len(nomenc), 23), 0)
-        self.assertEqual(cmp(len(open(self.qml,'r').read()), len(open(self.refqmlout,'r').read())), 0)
-        self.assertEqual(cmp(nomenc.getCode(1), expected_codes), 0)
+        self.assertEqual(len(nomenc), 23)
+        self.assertEqual(len(open(self.qml,'r').read()), len(open(self.refqmlout,'r').read()))
+        self.assertEqual(nomenc.getCode(1), expected_codes)
         
         
         # remove temporary folders
