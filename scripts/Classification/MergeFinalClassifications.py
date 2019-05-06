@@ -15,6 +15,7 @@
 # =========================================================================
 import os
 import logging
+import gdal
 
 from Common import FileUtils as fut
 
@@ -141,7 +142,8 @@ def mergeFinalClassifications(iota2_dir, dataField, nom_path, colorFile,
 
     fusion_color_index = color.CreateIndexedColorImage(fusion_path,
                                                        colorFile,
-                                                       co_option=["COMPRESS=LZW"])
+                                                       co_option=["COMPRESS=LZW"],
+                                                       output_pix_type=gdal.GDT_Byte if pixType=="uint8" else gdal.GDT_UInt16)
     
     confusion_matrix = os.path.join(iota2_dir_final, "merge_final_classifications", "confusion_mat_maj_vote.csv")
     if enableCrossValidation is False:
