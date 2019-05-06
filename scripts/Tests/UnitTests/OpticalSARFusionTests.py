@@ -35,8 +35,8 @@ IOTA2_SCRIPTS = IOTA2DIR + "/scripts"
 sys.path.append(IOTA2_SCRIPTS)
 
 from Common import FileUtils as fut
-from Iota2Tests.TestsUtils import arrayToRaster
-from Iota2Tests.TestsUtils import rasterToArray
+from TestsUtils import arrayToRaster
+from TestsUtils import rasterToArray
 
 class iota_testOpticalSARFusion(unittest.TestCase):
     # before launching tests
@@ -123,12 +123,17 @@ class iota_testOpticalSARFusion(unittest.TestCase):
 
     # after launching a test, remove test's data if test succeed
     def tearDown(self):
-        result = getattr(self, '_outcomeForDoCleanups', self._resultForDoCleanups)
+        if sys.version_info > (3, 4, 0):
+            result = self.defaultTestResult()
+            self._feedErrorsToResult(result, self._outcome.errors)
+        else:
+            result = getattr(self, '_outcomeForDoCleanups', self._resultForDoCleanups)
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
-        test_ok = not error and not failure
-        self.all_tests_ok.append(test_ok)
-        if test_ok:
+        ok = not error and not failure
+
+        self.all_tests_ok.append(ok)
+        if ok:
             shutil.rmtree(self.test_working_directory)
 
     # Tests definitions
