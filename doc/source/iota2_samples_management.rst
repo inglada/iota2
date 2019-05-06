@@ -74,15 +74,15 @@ directory.
 splitGroundTruth
 ----------------
 
-By default this parameter is set to ``False``. In iota²'s outputs, there is a directory named ``dataAppVal`` which contains all learning and validation polygons by tiles. After a iota² run, the dataAppVal directory
+By default this parameter is set to ``True``. In iota²'s outputs, there is a directory named ``dataAppVal`` which contains all learning and validation polygons by tiles. After a iota² run, the dataAppVal directory
 should contains two files : ``T31TCJ_seed_0_learn.sqlite`` and ``T31TCJ_seed_0_val.sqlite``.
 
 .. Note:: files T31TCJ_seed_0_*.sqlite contain polygons for each models, here discriminate thanks to the field ``region``.
 
+See what happened when this parameter is set to ``False`` in :download:`cfg <./config/config_splitGroundTruth.cfg>`
+
 As the dataBase input was not split, the two files must contain the same number of features.
 The entire dataBase is used to learn the model and to evaluate classifications. In pratice this situation should be avoided to reduce the spatial autocorrelation when computing the classification score.
-
-See what happened when this parameter is set to ``True`` in :download:`cfg <./config/config_splitGroundTruth.cfg>`
 
 .. _ratio:
 
@@ -111,7 +111,7 @@ and ``T31TCJ_seed_0_val.sqlite`` will contain 13 samples each.
 runs
 ----
 
-The parameter run ``do not influence the sampling strategy``. However, sampling will be repeated in order to reduce bias during selection. When it is superior to 1, several runs with different random training/validation split are done, and the reported classification accuracy is averaged over the different runs. A confidence interval (standard deviation) for each coefficient measuring the classification's quality is then computed.
+The parameter run ``do not influence the sampling strategy``. However, sampling will be repeated in order to reduce bias during selection. When it is superior to 1, several runs with different random training/validation split are done, and the reported classification accuracy is averaged over the different runs. A confidence interval (`t-test <https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.stats.t.html>`_) for each coefficient measuring the classification's quality is then computed.
 
 .. _cloud_threshold:
 
@@ -220,7 +220,7 @@ select randomly pixel with a 50% rate. :download:`cfg<./config/config_select50pe
 Periodic sampling
 ^^^^^^^^^^^^^^^^^
 
-By changing the sampler sampler argument from ``random`` to ``periodic`` one pixel 
+By changing the sampler argument from ``random`` to ``periodic`` one pixel 
 every two are selected for "strategy.percent.p":0.5. If "strategy.percent.p":0.1, one pixel every ten pixel would be selected.
 
 .. code-block:: python
