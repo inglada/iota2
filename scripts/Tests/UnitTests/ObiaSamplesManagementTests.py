@@ -181,7 +181,7 @@ class iota_testObiaFormatSamples(unittest.TestCase):
         for x in region_tiles_seed:
             format_sample_to_segmentation(cfg, 
                                           x,
-                                          os.path.join(self.test_working_directory, formatLearningSamplesTest, "segmentation"))
+                                          os.path.join(self.test_working_directory, "formatLearningSamplesTest", "segmentation"))
 
         shps_to_verify = glob.glob(os.path.join(self.formatOutputFolder,'*.shp'))
         compareVector = serviceCompareVectorFile()
