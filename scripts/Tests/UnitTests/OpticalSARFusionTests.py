@@ -35,8 +35,8 @@ IOTA2_SCRIPTS = IOTA2DIR + "/scripts"
 sys.path.append(IOTA2_SCRIPTS)
 
 from Common import FileUtils as fut
-from Iota2Tests import arrayToRaster
-from Iota2Tests import rasterToArray
+from Iota2Tests.TestsUtils import arrayToRaster
+from Iota2Tests.TestsUtils import rasterToArray
 
 class iota_testOpticalSARFusion(unittest.TestCase):
     # before launching tests
