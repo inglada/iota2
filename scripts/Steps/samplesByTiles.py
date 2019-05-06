@@ -27,6 +27,7 @@ class samplesByTiles(IOTA2Step.Step):
         # step variables
         self.workingDirectory = workingDirectory
         self.output_path = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
+        self.tile_name_pos = 0
 
     def step_description(self):
         """
@@ -41,7 +42,15 @@ class samplesByTiles(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
-        tiles = SCF.serviceConfigFile(self.cfg).getParam('chain', 'listTile').split(" ")
+        from Common.FileUtils import FileSearch_AND
+        sample_sel_directory = os.path.join(SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath'),
+                                            "samplesSelection")
+        sampled_vectors = FileSearch_AND(sample_sel_directory, True, "selection.sqlite")
+        tiles = []
+        for sampled_vector in sampled_vectors:
+            tile_name = os.path.splitext(os.path.basename(sampled_vector))[0].split("_")[self.tile_name_pos]
+            if not tile_name in tiles:
+                tiles.append(tile_name)
         return tiles
 
     def step_execute(self):
