@@ -369,7 +369,7 @@ class Iota2Nomenclature():
         
         for ind, line in enumerate(nomen):
             classeslist.append([])
-            for lev in range(self.level):
+            for lev in range(int(self.level)):
                 if len(levelname) < self.level:
                     levelname.append("level%s"%(lev + 1))
                 
