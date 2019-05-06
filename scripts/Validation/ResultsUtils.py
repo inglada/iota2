@@ -629,10 +629,10 @@ def get_conf_max(conf_mat_dic, nom_dict):
 
     conf_max = {}
     for class_ref, prod in list(conf_mat_dic.items()):
-        buff = collections.OrderedDict()
+        buff_dico = collections.OrderedDict()
         for class_prod, value in list(prod.items()):
-            buff[nom_dict[class_prod]] = float(value)
-            buff = sorted(iter(list(buff.items())), key=lambda k_v: (k_v[1], k_v[0]))[::-1]
+            buff_dico[nom_dict[class_prod]] = float(value)
+            buff = sorted(iter(list(buff_dico.items())), key=lambda k_v: (k_v[1], k_v[0]))[::-1]
         conf_max[class_ref] = [class_name for class_name, value in buff]
 
     return conf_max
