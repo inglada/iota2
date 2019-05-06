@@ -36,7 +36,7 @@ iota2_script = IOTA2DIR + "/scripts"
 sys.path.append(iota2_script)
 
 from Common import FileUtils as fut
-from Tests.UnitTests import Iota2Tests as testutils
+from Tests.UnitTests import TestsUtils as testutils
 from simplification import ZonalStats as zs
 from simplification import computeStats as cs
 
@@ -130,10 +130,10 @@ class iota_testZonalStats(unittest.TestCase):
     def test_iota2_Statistics(self):
         """Test how many samples must be add to the sample set
         """
-        
         # Statistics test
         zs.computZonalStats(self.wd, [self.classif, self.confid, self.validity], self.vector, self.wd, self.gdallib)
-        self.assertTrue(filecmp.cmp(self.outfilestats, os.path.join(self.wd, "stats_classif")), "Generated shapefile vector does not fit with shapefile reference file")
+        self.assertTrue(filecmp.cmp(self.outfilestats, os.path.join(self.wd, "stats_classif")),
+                        msg="Generated shapefile vector does not fit with shapefile reference file")
 
         for ext in ['.shp', '.dbf', '.shx', '.prj']:
             shutil.copy(os.path.splitext(self.vectorfile)[0] + ext, self.wd)
@@ -143,9 +143,11 @@ class iota_testZonalStats(unittest.TestCase):
         cs.computeStats(self.wd, os.path.join(self.wd, "stats_classif"), self.wd, self.outfilevector, True)        
         os.system("unzip %s -d %s"%(self.outzipref, self.wd))
         os.system("unzip %s -d %s"%(self.outzip, self.out))
-        self.assertTrue(testutils.compareVectorFile(self.outfilevectorref, os.path.join(self.wd, "classif.shp"), 'coordinates', 'polygon', "ESRI Shapefile"), \
-                        "Generated shapefile vector does not fit with shapefile reference file")
 
+        self.assertTrue(testutils.compareVectorFile(self.outfilevectorref,
+                                                    os.path.join(self.wd, "classif.shp"),
+                                                    'coordinates', 'polygon', "ESRI Shapefile"),
+                        "Generated shapefile vector does not fit with shapefile reference file")
         # remove temporary folders
         if os.path.exists(self.wd):shutil.rmtree(self.wd, ignore_errors=True)
         if os.path.exists(self.out):shutil.rmtree(self.out, ignore_errors=True)
