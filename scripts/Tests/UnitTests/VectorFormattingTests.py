@@ -341,7 +341,7 @@ class iota_testVectorFormatting(unittest.TestCase):
         """
         from Sampling.VectorFormatting import create_tile_region_masks
         from Common.Utils import run
-        from Iota2Tests import rasterToArray
+        from Iota2Tests.TestsUtils import rasterToArray
         import numpy as np
 
         # define inputs
