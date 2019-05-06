@@ -129,15 +129,6 @@ def prepare_test_selection(vector, raster_ref, outputSelection, wd, dataField):
     sampleSel.ExecuteAndWriteOutput()
     os.remove(stats_path)
 
-def rasterToArray(InRaster):
-    """
-    convert a raster to an array
-    """
-    arrayOut = None
-    ds = gdal.Open(InRaster)
-    arrayOut = ds.ReadAsArray()
-    return arrayOut
-
 
 def arrayToRaster(inArray, outRaster, output_format="int"):
     """
