@@ -159,9 +159,11 @@ def zonalstats(path, rasters, params, gdalpath = "", res = 10):
             print("Feature with FID = %s of shapefile %s with null stats (maybe its size is too small)"%(idval, vector))
             stats.append(results_final[0])
 
+    rows = [stat for substats in stats for stat in substats]
+
     with open(csvstore, 'a') as myfile:
         writer = csv.writer(myfile)
-        writer.writerows(stats)
+        writer.writerows(rows)
 
 def getParameters(vectorpath, csvstorepath, chunk=1):    
     listvectors = getVectorsList(vectorpath)
