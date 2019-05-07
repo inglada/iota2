@@ -36,7 +36,7 @@ def importstats(csvstore, sqlite):
     cur = con.cursor()
     cur.execute("CREATE TABLE stats (idstats integer, info text, stat text, class integer, value real);")
     
-    with open(csvstore, 'rb') as f:
+    with open(csvstore, 'r') as f:
         reader = csv.reader(f)
         cur = con.cursor()
         cur.executemany("INSERT INTO stats(idstats, info, stat, class, value) VALUES (?, ?, ?, ?, ?);", reader)        
@@ -312,10 +312,10 @@ def pivotstats23(sqlite):
     
     con.commit()
     con.close()
-    
-#def joinShapeStats(shapefile, stats, tmp, outfile, nomenclature):
+
+
 def joinShapeStats(shapefile, stats, tmp, outfile):    
-    from pyspatialite import dbapi2 as db
+    import sqlite3 as db
     layer = os.path.splitext(os.path.basename(shapefile))[0]
     tmpfile = os.path.join(tmp, 'tmp_%s.sqlite'%(layer))
     Utils.run('ogr2ogr -f SQLite %s %s -nln %s'%(tmpfile, shapefile, layer))
