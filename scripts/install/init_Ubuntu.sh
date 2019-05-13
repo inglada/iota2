@@ -40,7 +40,7 @@ if [[ "$ok" == "1" ]]; then
     apt-get install -y $i
   done
 
-  LISTE="argparse config datetime osr dill mpi4py==2.0.0"
+  LISTE="argparse config datetime dill mpi4py==2.0.0"
 
   for i in $LISTE; do 
     echo $i;

@@ -40,7 +40,7 @@ if [[ "$ok" == "1" ]]; then
     yum install -y $i
   done
 
-  LISTE="argparse config datetime osr dill"
+  LISTE="argparse config datetime dill"
 
   for i in $LISTE; do
     echo $i;
