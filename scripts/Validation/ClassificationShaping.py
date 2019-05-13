@@ -344,7 +344,9 @@ def ClassificationShaping(pathClassif, pathEnvelope, pathImg, fieldEnv, N,
         if pathWd:
             shutil.copy(pathWd+"/Confidence_Seed_"+str(seed)+".tif", pathTest+"/final")
             os.remove(pathWd+"/Confidence_Seed_"+str(seed)+".tif")
-        color.CreateIndexedColorImage(pathTest+"/final/Classif_Seed_"+str(seed)+".tif",colorpath)
+        color.CreateIndexedColorImage(pathTest+"/final/Classif_Seed_"+str(seed)+".tif",
+                                      colorpath,
+                                      output_pix_type=gdal.GDT_Byte if pixType=="uint8" else gdal.GDT_UInt16)
 
         if proba_map_flag:
             proba_map_mosaic = os.path.join(assembleFolder, "ProbabilityMap_seed_{}.tif".format(seed))
