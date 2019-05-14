@@ -34,6 +34,10 @@ echo $SH_DIR
 prefix_dir=$SH_DIR
 ok=0
 
+OTB_VERSION='6.6.1'
+OTB_DEV_COMMIT='0df44b312d64d6c3890b65d3790d4a17d0fd5f23'
+
+
 if [ ! -z $CXX ]; then
   echo "Compiler used : $CXX"
 else
@@ -79,6 +83,10 @@ if [[ "$ok" == "1" ]]; then
       else
         git clone -b develop https://github.com/orfeotoolbox/OTB.git
         cd OTB
+        git checkout $OTB_DEV_COMMIT
+        # due to otb's issue https://gitlab.orfeo-toolbox.org/orfeotoolbox/otb/issues/1899
+        git revert -m 1 3df7fcd24cd75bbfd3cf68c0cab06ab25e68bbfd --strategy=recursive -Xours
+        #~ git checkout release-6.6
       fi
 
       echo "Getting Superbuild archives ..."
@@ -125,16 +133,15 @@ if [[ "$ok" == "1" ]]; then
       cd $prefix_dir/OTB
       mkdir -p build
       cd build
-      cmake -DCMAKE_CXX_COMPILER=${CXX} -DCMAKE_CXX_FLAGS:STRING=-std=c++14 -DUSE_SYSTEM_BOOST=ON -DBUILD_TESTING=OFF -DCMAKE_BUILD_TYPE=Release -DOTB_WRAP_PYTHON:BOOL=ON -DGDAL_SB_EXTRA_OPTIONS:STRING="--with-python" -DCMAKE_INSTALL_PREFIX=$prefix_dir/OTB/install/ -DDOWNLOAD_LOCATION=$prefix_dir/OTB/SuperBuild-archives/ -DOTB_USE_QT=OFF -DOTB_USE_QWT=OFF -DOTB_USE_GLEW=OFF -DOTB_USE_GLUT=OFF -DOTB_USE_OPENGL=OFF $prefix_dir/OTB/OTB/SuperBuild/
-      make --jobs=12
-#      make VERBOSE=1 -j2
+      cmake -DOTB_USE_SHARK=ON -DCMAKE_CXX_COMPILER=${CXX} -DCMAKE_CXX_FLAGS:STRING=-std=c++14 -DUSE_SYSTEM_BOOST=ON -DBUILD_TESTING=OFF -DCMAKE_BUILD_TYPE=Release -DOTB_WRAP_PYTHON:BOOL=ON -DGDAL_SB_EXTRA_OPTIONS:STRING="--with-python=/usr/bin/python3" -DCMAKE_INSTALL_PREFIX=$prefix_dir/OTB/install/ -DDOWNLOAD_LOCATION=$prefix_dir/OTB/SuperBuild-archives/ -DOTB_USE_QT=OFF -DOTB_USE_QWT=OFF -DOTB_USE_GLEW=OFF -DOTB_USE_GLUT=OFF -DOTB_USE_OPENGL=OFF $prefix_dir/OTB/OTB/SuperBuild/
+      make -j 4
     fi
     if [[ "$#" == 1 ]] || [[ "$2" == "iota2" ]]; then 
       # Building iota2
       echo "Building iota2 ..."
       cd $prefix_dir/OTB/build/OTB/build
-      cmake -DCMAKE_CXX_COMPILER=${CXX} -DCMAKE_CXX_FLAGS:STRING=-std=c++14 -DModule_IOTA2:BOOL=ON -DModule_OTBTemporalGapFilling:BOOL=ON -DModule_MultitempFiltering:BOOL=ON -DModule_OTBAppPointMatchCoregistration:BOOL=ON $prefix_dir/OTB/OTB 
-      make --jobs=12
+      cmake -DOTB_USE_SHARK=ON -DCMAKE_CXX_COMPILER=${CXX} -DCMAKE_CXX_FLAGS:STRING=-std=c++14 -DModule_IOTA2:BOOL=ON -DModule_OTBTemporalGapFilling:BOOL=ON -DModule_MultitempFiltering:BOOL=ON -DModule_OTBAppPointMatchCoregistration:BOOL=ON $prefix_dir/OTB/OTB 
+      make -j 4
       make install
     fi
   fi

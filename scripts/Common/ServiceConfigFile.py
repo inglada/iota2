@@ -129,6 +129,7 @@ class serviceConfigFile:
             self.init_section("argTrain", argTrain_default)
             #init argClassification section
             argClassification_default = {"noLabelManagement": "maxConfidence",
+                                         "enable_probability_map": False,
                                          "fusionOptions": "-nodatalabel 0 -method majorityvoting"}
             self.init_section("argClassification", argClassification_default)
             #init GlobChain section
@@ -520,6 +521,7 @@ class serviceConfigFile:
             check_sampleAugmentation()
 
             self.testVarConfigFile('argClassification', 'classifMode', str, ["separate", "fusion"])
+            self.testVarConfigFile('argClassification', 'enable_probability_map', bool)
             self.testVarConfigFile('argClassification', 'noLabelManagement', str, ["maxConfidence", "learningPriority"])
 
             self.testVarConfigFile('GlobChain', 'proj', str)
@@ -599,6 +601,10 @@ class serviceConfigFile:
                                              self.cfg.chain.groundTruth)
 
             # parameters compatibilities check
+            classier_probamap_avail = ["sharkrf"]
+            if (self.getParam("argClassification", "enable_probability_map") is True
+                and self.getParam("argTrain", "classifier").lower() not in classier_probamap_avail):
+                    raise sErr.configError("'enable_probability_map:True' only available with the 'sharkrf' classifier")
             if self.getParam("chain", "regionPath") is None and self.cfg.argClassification.classifMode == "fusion":
                 raise sErr.configError("you can't chose 'one_region' mode and ask a fusion of classifications\n")
             if self.cfg.chain.merge_final_classifications and self.cfg.chain.runs == 1:

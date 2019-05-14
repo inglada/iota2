@@ -18,7 +18,6 @@ import os
 import shutil
 
 from Common import FileUtils as fut
-from Common import OtbAppBank
 
 LOGGER = logging.getLogger(__name__)
 
@@ -330,6 +329,7 @@ def samples_selection(model, cfg, working_directory, logger=LOGGER):
     logger : logging object
         root logger
     """
+    from Common import OtbAppBank
     from Common import ServiceConfigFile as SCF
 
     # because serviceConfigFile's objects are not serializable

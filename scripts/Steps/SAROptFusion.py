@@ -28,6 +28,8 @@ class SAROptFusion(IOTA2Step.Step):
         # step variables
         self.workingDirectory = workingDirectory
         self.output_path = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
+        self.enable_proba_map = SCF.serviceConfigFile(self.cfg).getParam('argClassification',
+                                                                         'enable_probability_map')
         
     def step_description(self):
         """
@@ -56,6 +58,7 @@ class SAROptFusion(IOTA2Step.Step):
         from Classification import Fusion as FUS
         step_function = lambda x: FUS.dempster_shafer_fusion(self.output_path,
                                                              x,
+                                                             proba_map_flag=self.enable_proba_map,
                                                              workingDirectory=self.workingDirectory)
         return step_function
 

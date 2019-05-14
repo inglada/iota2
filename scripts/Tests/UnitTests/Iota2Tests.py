@@ -129,7 +129,6 @@ def prepare_test_selection(vector, raster_ref, outputSelection, wd, dataField):
     sampleSel.ExecuteAndWriteOutput()
     os.remove(stats_path)
 
-
 def delete_uselessFields(test_vector, field_to_rm="region"):
     """
     """

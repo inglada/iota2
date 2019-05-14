@@ -77,6 +77,60 @@ def unPackFirst(someListOfList):
         else:
             yield values
 
+def CreateImageClassifierApplication(OtbParameters):
+    """binding to ImageClassifier OTB's application
+    
+    Parameter
+    ---------
+
+    OtbParameters [dic] 
+        dictionnary with otb's parameter keys
+    
+    Return
+    ------
+    class 'otbApplication.Application'
+        ImageClassifier application ready to be Execute()
+    """
+    classifier = otb.Registry.CreateApplication("ImageClassifier")
+    if classifier is None:
+        raise Exception("Not possible to create 'ImageClassifier' application, \
+                         check if OTB is well configured / installed")
+    # mandatory parameters
+    if "in" not in OtbParameters:
+        raise Exception("'in' parameter not found")
+    if "model" not in OtbParameters:
+        raise Exception("'model' parameter not found")
+
+    in_img = OtbParameters["in"]
+    if isinstance(in_img, str):
+        classifier.SetParameterString("in", in_img)
+    else:
+        classifier.SetParameterInputImage("in", in_img.GetParameterOutputImage(getInputParameterOutput(in_img)))
+    if "model" in OtbParameters:
+        classifier.SetParameterString("model", OtbParameters["model"])
+
+    # optional parameters
+    if "mask" in OtbParameters:
+        classifier.SetParameterString("mask", OtbParameters["mask"])
+    if "imstat" in OtbParameters:
+        classifier.SetParameterString("imstat", OtbParameters["imstat"])
+    if "nodatalabel" in OtbParameters:
+        classifier.SetParameterString("nodatalabel", OtbParameters["nodatalabel"])
+    if "out" in OtbParameters:
+        classifier.SetParameterString("out", OtbParameters["out"])
+    if "confmap" in OtbParameters:
+        classifier.SetParameterString("confmap", OtbParameters["confmap"])
+    if "probamap" in OtbParameters:
+        classifier.SetParameterString("probamap", OtbParameters["probamap"])
+    if "ram" in OtbParameters:
+        classifier.SetParameterString("ram", str(OtbParameters["ram"]))
+    if "nbclasses" in OtbParameters:
+        classifier.SetParameterString("nbclasses", OtbParameters["nbclasses"])
+    if "pixType" in OtbParameters:
+        classifier.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
+    return classifier
+
+
 def CreateImageTimeSeriesGapFillingApplication(OtbParameters):
     """binding to ImageTimeSeriesGapFilling OTB's application
     
@@ -201,22 +255,34 @@ def CreateIota2FeatureExtractionApplication(OtbParameters):
         features_app.SetParameterString("indfact", OtbParameters["indfact"])
     if "nodata" in OtbParameters:
         features_app.SetParameterString("nodata", OtbParameters["nodata"])
-    if "copyinput" in OtbParameters:
+    if "copyinput" in OtbParameters and OtbParameters["copyinput"] is True:
         features_app.SetParameterValue("copyinput", OtbParameters["copyinput"])
-    if "relrefl" in OtbParameters:
-        features_app.EnableParameter("relrefl")
+    if "relrefl" in OtbParameters and OtbParameters["relrefl"] is True:
+        features_app.SetParameterValue("relrefl", OtbParameters["relrefl"])
     if "relindex" in OtbParameters:
         features_app.SetParameterString("relindex", OtbParameters["relindex"])
-    if "keepduplicates" in OtbParameters:
-        features_app.EnableParameter("keepduplicates")
-    if "acorfeat" in OtbParameters:
-        features_app.EnableParameter("acorfeat")
+    if "keepduplicates" in OtbParameters and OtbParameters["keepduplicates"] is True:
+        # 'not OtbParameters["keepduplicates"]' due to oposite signification of 'keepduplicates'
+        # in iota2FeaturesExtraction
+        features_app.SetParameterValue("keepduplicates", not OtbParameters["keepduplicates"])
+    if "acorfeat" in OtbParameters and OtbParameters["acorfeat"] is True:
+        features_app.SetParameterValue("acorfeat", OtbParameters["acorfeat"])
     if "ram" in OtbParameters:
         features_app.SetParameterString("ram", OtbParameters["ram"])
     if "out" in OtbParameters:
         features_app.SetParameterString("out", OtbParameters["out"])
     if "pixType" in OtbParameters:
         features_app.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
+
+    if ("keepduplicates" in OtbParameters and OtbParameters["keepduplicates"] is True
+        and 
+        "copyinput" in OtbParameters and OtbParameters["copyinput"] is False):
+        
+        warning_msg = ("'iota2FeatureExtraction' cannot be use with the following parameters: "
+                       "'keepduplicates' : True and 'copyinput' : False. 'keepduplicates' is set"
+                       " to False")
+        logger.warning(warning_msg)
+        features_app.SetParameterValue("keepduplicates", False)
 
     return features_app
 
