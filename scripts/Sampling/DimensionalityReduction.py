@@ -51,7 +51,7 @@ def GetAvailableFeatures(inputSampleFileName, firstLevel='sensor', secondLevel='
     metaDataFields = []
     for feat in featureList:
         try:
-            (sensor, band, date) = string.split(feat, '_')
+            (sensor, band, date) = feat.split('_')
             fl = sensor
             sl = band
             tl = date
