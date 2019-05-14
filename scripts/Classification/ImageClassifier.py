@@ -140,8 +140,8 @@ class iota2Classification():
                               "out": "{}?&writegeom=false".format(self.classification)}
         if self.proba_map_path:
             all_class = []
-            for model_name, dico_seed in self.models_class.items():
-                for seed_number, avail_class in dico_seed.items():
+            for model_name, dico_seed in list(self.models_class.items()):
+                for seed_number, avail_class in list(dico_seed.items()):
                     all_class += avail_class
             all_class = sorted(list(set(all_class)))
             nb_class_run = len(all_class)
