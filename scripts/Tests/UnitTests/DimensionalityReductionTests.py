@@ -131,8 +131,9 @@ class DimensionalityReductionTests(unittest.TestCase):
 
     def test_ApplyDimensionalityReduction(self):
         from Iota2Tests import compareSQLite
-        
-        outputFeatures = ['reduced_'+str(x+1) for x in range(5)]
+
+        outputFeatures = ['reduced_' + str(x) for x in range(6)]
+
         (dummy, metaDataFields) = DR.BuildFeaturesLists(self.inputSampleFileName)
         numberOfMetaDataFields = len(metaDataFields)
         inputDimensions = len(fu.getAllFieldsInShape(self.inputSampleFileName, 
@@ -208,7 +209,7 @@ class DimensionalityReductionTests(unittest.TestCase):
         modelList = [self.outputModelFileName]*len(DR.BuildChannelGroups(self.configFile))
         (app, other) = DR.ApplyDimensionalityReductionToFeatureStack(self.configFile, imageStack, 
                                                                      modelList)
-        app.SetParameterString("out","/tmp/reducedStack.tif")
+        app.SetParameterString("out", os.path.join(iota2_dataTest, "tmp", "reducedStack.tif"))
         app.ExecuteAndWriteOutput()
 
     def test_ApplyDimensionalityReductionToFeatureStackPipeline(self):
