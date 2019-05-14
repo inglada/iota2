@@ -58,7 +58,7 @@ def getUniqueId(csvpath):
     
     return list(set(df.groupby(0).groups))
 
-def zonalstats(path, rasters, params, gdalpath = "", res = 10):
+def zonalstats(path, rasters, params, gdalpath="", res=10):
     
     vector, idvals, csvstore = params
 
@@ -120,7 +120,6 @@ def zonalstats(path, rasters, params, gdalpath = "", res = 10):
                                     if elts != 0:
                                         listlab.append([elts, cptElts[idx]])
 
-
                             if len(listlab) != 0:                
                                 classmaj = [y for y in listlab if y[1] == max([x[1] for x in listlab])][0][0]
                                 posclassmaj = np.where(data==classmaj)
@@ -147,17 +146,14 @@ def zonalstats(path, rasters, params, gdalpath = "", res = 10):
                         elif idxband == 3:                        
                             results_final.append([idval, 'validity', 'mean', 0, 0])
                             results_final.append([idval, 'validity', 'std', 0, 0])
-
                     data = img = None
-
                 Utils.run("rm %s"%(band))
-
                 rastertmp = None
-                stats.append(results_final)
         else:
             results_final.append([[idval, 'classif', 'part', 0, 0], [idval, 'confidence', 'mean', 0, 0], [idval, 'validity', 'mean', 0, 0],[idval, 'validity', 'std', 0, 0]])
             print("Feature with FID = %s of shapefile %s with null stats (maybe its size is too small)"%(idval, vector))
             stats.append(results_final[0])
+        stats.append(results_final)
 
     rows = [stat for substats in stats for stat in substats]
 
@@ -188,7 +184,6 @@ def getParameters(vectorpath, csvstorepath, chunk=1):
 def computZonalStats(path, inr, shape, csvstore, gdal, chunk=1):
     #TODO : optimize chunk with real-time HPC ressources
     params = getParameters(shape, csvstore, chunk)
-
     for parameters in params:
         zonalstats(path, inr, parameters, gdal, chunk)
 
