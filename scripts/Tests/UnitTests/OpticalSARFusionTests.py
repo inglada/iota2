@@ -73,14 +73,14 @@ class iota_testOpticalSARFusion(unittest.TestCase):
         self.ds_fus_confidence_ref = np.array([[0.15969899, 0.67457902, 0.61083603],
                                                [0.65760601, 0.96213001, 0.67523998],
                                                [0.26302999, 0.258679,   0.51701897]][::-1])
-        self.parameter_ref = [{'sar_classif': '/classif/Classif_T31TCJ_model_1_seed_1_SAR.tif',
-                               'opt_model': '/dataAppVal/bymodels/model_1_seed_1.csv',
-                               'opt_classif': '/classif/Classif_T31TCJ_model_1_seed_1.tif',
-                               'sar_model': '/dataAppVal/bymodels/model_1_seed_1_SAR.csv'},
-                              {'sar_classif': '/classif/Classif_T31TCJ_model_1_seed_0_SAR.tif',
+        self.parameter_ref = [{'sar_classif': '/classif/Classif_T31TCJ_model_1_seed_0_SAR.tif',
                                'opt_model': '/dataAppVal/bymodels/model_1_seed_0.csv',
                                'opt_classif': '/classif/Classif_T31TCJ_model_1_seed_0.tif',
-                               'sar_model': '/dataAppVal/bymodels/model_1_seed_0_SAR.csv'}]
+                               'sar_model': '/dataAppVal/bymodels/model_1_seed_0_SAR.csv'}, 
+                               {'sar_classif': '/classif/Classif_T31TCJ_model_1_seed_1_SAR.tif',
+                               'opt_model': '/dataAppVal/bymodels/model_1_seed_1.csv',
+                               'opt_classif': '/classif/Classif_T31TCJ_model_1_seed_1.tif',
+                               'sar_model': '/dataAppVal/bymodels/model_1_seed_1_SAR.csv'}]
         # consts
         self.classif_seed_pos = 5
         self.classif_tile_pos = 1
@@ -182,7 +182,7 @@ class iota_testOpticalSARFusion(unittest.TestCase):
             for key, value in list(param_group.items()):
                 param_group[key] = value.replace(iota2_dir, "")
         # assert
-        self.assertTrue(all(param_group_test == param_group_ref for param_group_test, param_group_ref in zip(parameters_test, self.parameter_ref)),
+        self.assertTrue(all(param_group_test==param_group_ref for param_group_test, param_group_ref in zip(parameters_test, self.parameter_ref)),
                         msg="input parameters generation failed")
 
     def test_perform_fusion(self):
