@@ -177,10 +177,14 @@ class iota_testOpticalSARFusion(unittest.TestCase):
                 new_file.write("TEST")
 
         parameters_test = Fusion.dempster_shafer_fusion_parameters(iota2_dir)
-        # test_parameters depend of execution environement, remove local path is necessary
+        # parameters_test depend of execution environement, remove local path is necessary
         for param_group in parameters_test:
             for key, value in list(param_group.items()):
                 param_group[key] = value.replace(iota2_dir, "")
+        #reverse parameters_test if necessary
+        if "seed_1" in parameters_test[0]["sar_model"]:
+            parameters_test = parameters_test[::-1]
+
         # assert
         self.assertTrue(all(param_group_test==param_group_ref for param_group_test, param_group_ref in zip(parameters_test, self.parameter_ref)),
                         msg="input parameters generation failed")
