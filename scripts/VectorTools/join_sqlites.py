@@ -52,8 +52,8 @@ def build_fields_to_select(base_fields, fieldsnames, dfield, renaming, renaming_
     else:
         fields_as += [fn+' AS '+fn+'_'+str(renaming_index) for fn in fieldsnames]
         final_fields = ['datatojoin.'+fn+'_'+str(renaming_index) for fn in fieldsnames]
-    fields_as = string.join(fields_as,', ')
-    final_fields = base_fields+', '+string.join(final_fields, ', ')
+    fields_as = ', '.join(fields_as)
+    final_fields = base_fields+', '+', '.join(final_fields)
     return (fields_as, final_fields, renaming_index)
 
 def join_sqlites(basefile, sqlites, ofield, fieldsnames = None, dfield=None,
@@ -88,7 +88,7 @@ def join_sqlites(basefile, sqlites, ofield, fieldsnames = None, dfield=None,
             base_fields = ["[%s]."%(tablebase)+d[0] 
                            for d in 
                            cursor.execute("SELECT * FROM [%s]"%(tablebase)).description]
-            base_fields = string.join(base_fields,', ')
+            base_fields = ', '.join(base_fields)
             db_name = 'db_'+str(fid)
             fields_as = "*"
             final_fields = "*"
