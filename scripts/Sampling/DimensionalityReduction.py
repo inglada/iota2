@@ -214,7 +214,7 @@ def ApplyDimensionalityReduction(inputSampleFileName, reducedOutputFileName,
     DRApply.SetParameterString("model", modelFileName)
     DRApply.UpdateParameters()
     DRApply.SetParameterStringList("feat", inputFeatures)
-    DRApply.SetParameterStringList("featout", "list")
+    DRApply.SetParameterString("featout", "list")
     DRApply.SetParameterStringList("featout.list.names", outputFeatures)
 
     if statsFile is not None:
