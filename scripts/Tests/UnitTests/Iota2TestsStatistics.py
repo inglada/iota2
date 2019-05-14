@@ -132,8 +132,9 @@ class iota_testZonalStats(unittest.TestCase):
         """
         # Statistics test
         zs.computZonalStats(self.wd, [self.classif, self.confid, self.validity], self.vector, self.wd, self.gdallib)
+
         self.assertTrue(filecmp.cmp(self.outfilestats, os.path.join(self.wd, "stats_classif")),
-                        msg="Generated shapefile vector does not fit with shapefile reference file")
+                        msg="Statistics file does not fit the reference one")
 
         for ext in ['.shp', '.dbf', '.shx', '.prj']:
             shutil.copy(os.path.splitext(self.vectorfile)[0] + ext, self.wd)

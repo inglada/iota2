@@ -35,7 +35,7 @@ iota2_script = IOTA2DIR + "/scripts"
 sys.path.append(iota2_script)
 
 from Common import FileUtils as fut
-from Tests.UnitTests import Iota2Tests as testutils
+import TestsUtils as testutils
 from simplification import Regularization as regu
 
 class iota_testRegularisation(unittest.TestCase):
