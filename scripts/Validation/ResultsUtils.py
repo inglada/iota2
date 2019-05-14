@@ -527,8 +527,8 @@ def gen_confusion_matrix_fig(csv_in, out_png, nomenclature_path,
     merge_class : list
         list of dictionnary. 
         example : 
-            merge_class = [{"src_label":[1,2,3],
-                            "dst_label":[50],
+            merge_class = [{"src_label": [1,2,3],
+                            "dst_label": 50,
                             "dst_name" : "URBAN"},
                            {...}]
     """
