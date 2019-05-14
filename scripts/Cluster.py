@@ -172,7 +172,8 @@ def write_PBS_MPI(job_directory, log_directory, task_name, step_to_compute,
                "export LD_LIBRARY_PATH={}\n"
                "export OTB_APPLICATION_PATH={}\n"
                "export GDAL_DATA={}\n"
-               "export GEOTIFF_CSV={}\n").format(py_path, path, ld_lib_path,
+               "export GEOTIFF_CSV={}\n"
+               "\n\nexport GDAL_CACHEMAX=128\n").format(py_path, path, ld_lib_path,
                                                  otb_app_path, gdal_data, geotiff_csv
                                                  )
     
@@ -260,6 +261,7 @@ def write_PBS_JA(job_directory, log_directory, task_name, step_to_compute,
         ressources_HPC = "-config_ressources " + config_ressources_req
     
     exe = ("\nexport ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS={0}\n"
+           "\nexport GDAL_CACHEMAX=128\n"
            "\ncd {1}\n"
            "python {2}/Iota2.py -param_index $PBS_ARRAY_INDEX -config {3} "
            "-starting_step {4} -ending_step {5} {6}").format(request["cpu"],

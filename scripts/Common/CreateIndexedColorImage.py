@@ -51,7 +51,7 @@ def CreateColorTable(fileLUT, logger_=logger):
     filein.close()
     return ct
 
-def CreateIndexedColorImage(pszFilename, fileL, co_option=[]):
+def CreateIndexedColorImage(pszFilename, fileL, co_option=[], output_pix_type=gdal.GDT_Byte):
     """
         from a labeled image (pszFilename), attribute a color described by fileL and save it next to pszFilename with the suffix _ColorIndexed
         IN :
@@ -70,7 +70,7 @@ def CreateIndexedColorImage(pszFilename, fileL, co_option=[]):
     inband = indataset.GetRasterBand(1)
     gt = indataset.GetGeoTransform()
     driver = gdal.GetDriverByName("GTiff")
-    outdataset = driver.Create(outname, indataset.RasterXSize, indataset.RasterYSize, 1, gdal.GDT_Byte, options=co_option)
+    outdataset = driver.Create(outname, indataset.RasterXSize, indataset.RasterYSize, 1, output_pix_type, options=co_option)
     if gt is not None and gt != (0.0, 1.0, 0.0, 0.0, 0.0, 1.0):
         outdataset.SetGeoTransform(gt)
     prj = indataset.GetProjectionRef()

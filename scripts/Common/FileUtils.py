@@ -1642,7 +1642,7 @@ def FileSearch_AND(PathToFolder, AllPath, *names):
             - out : a list containing all file name (without extension) which are containing all name
     """
     out = []
-    for path, dirs, files in os.walk(PathToFolder):
+    for path, dirs, files in os.walk(PathToFolder, followlinks=True):
         for i in range(len(files)):
             flag = 0
             for name in names:
