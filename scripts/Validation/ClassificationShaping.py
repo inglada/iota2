@@ -199,9 +199,14 @@ def ClassificationShaping(pathClassif, pathEnvelope, pathImg, fieldEnv, N,
     pixType = fu.getOutputPixType(cfg.getParam('chain', 'nomenclaturePath'))
     featuresPath = os.path.join(pathTest, "features")
     outputStatistics = cfg.getParam('chain', 'outputStatistics')
-    spatialResolution = cfg.getParam('chain', 'spatialResolution')
+    if cfg.getParam('chain','OBIA_segmentation_path') != None :
+        OBIA_segmentation_path = cfg.getParam('chain','OBIA_segmentation_path')
+        spx,spy = fu.getRasterResolution(OBIA_segmentation_path)
+        spatialResolution = spx
+    else:
+        OBIA_segmentation_path = None
+        spatialResolution = cfg.getParam('chain', 'spatialResolution')
     shapeRegion = cfg.getParam('chain', 'regionPath')
-    OBIA_segmentation_path = True if cfg.getParam('chain','OBIA_segmentation_path') != None else False
     allTMPFolder = fu.fileSearchRegEx(pathTest+"/TMPFOLDER*")
     if allTMPFolder:
         for tmpFolder in allTMPFolder:
