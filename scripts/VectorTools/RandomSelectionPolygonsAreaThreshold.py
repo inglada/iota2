@@ -18,7 +18,7 @@ import argparse
 import sys, os, random, shutil
 import math
 from osgeo import gdal, ogr, osr
-import sqlite3 db
+import sqlite3 as db
 from VectorTools import vector_functions as vf
 from Common import FileUtils as fut
 
