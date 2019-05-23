@@ -3,6 +3,7 @@ from distutils.core import setup
 setup(
     name='iota2',
     version='',
+    py_modules = ["iota2"],
     packages=['scripts', 'scripts.MPI', 'scripts.Steps', 'scripts.Tests', 'scripts.Tests.UnitTests',
               'scripts.Tests.IntegrationTests', 'scripts.Common', 'scripts.Common.Tools', 'scripts.Sensors',
               'scripts.Sensors.SAR', 'scripts.Learning', 'scripts.Sampling', 'scripts.Validation',
