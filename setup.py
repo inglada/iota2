@@ -1,6 +1,6 @@
-from distutils.core import setup
-
-setup(
+#~ from distutils.core import setup
+import setuptools
+setuptools.setup(
     name='iota2',
     version='',
     py_modules = ["iota2"],
