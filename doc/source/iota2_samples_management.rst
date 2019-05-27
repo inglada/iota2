@@ -110,7 +110,8 @@ and ``T31TCJ_seed_0_val.sqlite`` will contain 13 samples each.
 
 runs
 ----
-This parameters is used to reduce the bias in the estimation of classification accuracy index (OA, Kappa etc...) reported in "RESULTS.txt" (cf. lien "Let's have a look at iota2's outputs"). When it is superior to 1, several runs with random training/validation samples splits are done, and the reported classification accuracies are averaged over the different runs. 95% confidence intervals for estimation of mean OA, Kappa, F-Score, precision and recall are also reported (they are computed with `t-test <https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.stats.t.html>`_).
+
+This parameters is used to reduce the bias in the estimation of classification accuracy index (OA, Kappa etc...) reported in "RESULTS.txt" (as mentionned in :ref:`iota² use case <iota2outputs>`). When it is superior to 1, several runs with random training/validation samples splits are done, and the reported classification accuracies are averaged over the different runs. 95% confidence intervals for estimation of mean OA, Kappa, F-Score, precision and recall are also reported (they are computed with `t-test <https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.stats.t.html>`_).
 
 .. _cloud_threshold:
 
