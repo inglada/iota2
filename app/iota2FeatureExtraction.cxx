@@ -48,7 +48,6 @@ private:
     SetDescription("Feature extraction for iota2.");
 
     // Documentation
-    SetDocName("Feature extraction");
     SetDocLongDescription("This application performs .");
     SetDocLimitations("None");
     SetDocAuthors("Jordi Inglada");
