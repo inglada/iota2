@@ -468,6 +468,7 @@ class serviceConfigFile:
             # test of variable
             self.testVarConfigFile('chain', 'outputPath', str)
             self.testVarConfigFile('chain', 'nomenclaturePath', str)
+            self.testVarConfigFile('chain', 'remove_outputPath', bool)
             self.testVarConfigFile('chain', 'listTile', str)
             self.testVarConfigFile('chain', 'L5Path_old', str)
             self.testVarConfigFile('chain', 'L8Path', str)
