@@ -111,7 +111,7 @@ and ``T31TCJ_seed_0_val.sqlite`` will contain 13 samples each.
 runs
 ----
 
-The parameter run ``do not influence the sampling strategy``. However, sampling will be repeated in order to reduce bias during selection. When it is superior to 1, several runs with different random training/validation split are done, and the reported classification accuracy is averaged over the different runs. A confidence interval (`t-test <https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.stats.t.html>`_) for each coefficient measuring the classification's quality is then computed.
+The parameter run ``do not influence the sampling strategy``. However, sampling will be repeated in order to reduce bias during selection. When it is superior to 1, several runs with different random training/validation split are done, and the reported classification accuracy is averaged over the different runs. Once iota²'s runs are done, a report file called ``RESULTS.txt`` is generated in the ``/final`` directory and contains the mean of confusion matrix, and the mean of derivated coefficients : Kappa, Overall-Accuracy, user/producer accuracy. These coefficients allow users to establish the classifications quality. If the ``runs`` parameter ``is superior to 1``,  coefficients are framed by a 95% (`t-test <https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.stats.t.html>`_)'s confidence interval measuring the mean's variability.
 
 .. _cloud_threshold:
 
