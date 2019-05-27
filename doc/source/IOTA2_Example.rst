@@ -162,6 +162,8 @@ Afterwards, it will sequentially print the current step until the end of the pro
     Running step 3: compute validity mask by tile (1 tasks)
     ...
 
+.. _iota2outputs:
+
 **Let's have a look at iota2's outputs.**
 
 You will find them in the directory specified in field ``outputPath`` into the configuration file.

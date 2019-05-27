@@ -609,7 +609,7 @@ def CreateSampleSelectionApplication(OtbParameters):
         sampleS.SetParameterString("sampler", OtbParameters["sampler"])
     if "sampler.periodic.jitter" in OtbParameters:
         sampleS.SetParameterString("sampler.periodic.jitter",
-                                   OtbParameters["sampler.periodic.jitter"])
+                                   str(OtbParameters["sampler.periodic.jitter"]))
     if "strategy" in OtbParameters:
         sampleS.SetParameterString("strategy", OtbParameters["strategy"])
     if "strategy.byclass.in" in OtbParameters:
