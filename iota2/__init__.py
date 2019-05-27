@@ -1,11 +1,11 @@
-import Common
-import Classification
-import Learning
-import MPI
-import Sampling
-import Sensors
-import simplification
-import Steps
-import Tests
-import Validation
-import VectorTools
+from iota2 import Common
+from iota2 import Classification
+from iota2 import Learning
+from iota2 import MPI
+from iota2 import Sampling
+from iota2 import Sensors
+from iota2 import simplification
+from iota2 import Steps
+from iota2 import Tests
+from iota2 import Validation
+from iota2 import VectorTools
