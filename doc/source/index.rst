@@ -30,5 +30,3 @@ Table of contents
 * :doc:`About samples <iota2_samples_management>`
 
 The source code for iota2 is hosted at https://framagit.org/iota2-project/iota2/
-
-  
