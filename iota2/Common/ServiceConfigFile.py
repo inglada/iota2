@@ -567,7 +567,7 @@ class serviceConfigFile:
             if self.getParam("chain", "jobsPath"):
                 self.testDirectory(self.getParam("chain", "jobsPath"))
 
-            self.testDirectory(os.path.join(get_iota2_project_dir(), "scripts"))
+            self.testDirectory(os.path.join(get_iota2_project_dir(), "iota2"))
             self.testDirectory(self.cfg.chain.nomenclaturePath)
             self.testDirectory(self.cfg.chain.groundTruth)
             self.testDirectory(self.cfg.chain.colorTable)
