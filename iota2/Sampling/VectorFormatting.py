@@ -185,12 +185,14 @@ def keepFields(vec_in, vec_out, fields=[], proj_in=2154, proj_out=2154):
     proj_out : int
         output projection
     """
+    from VectorTools.vector_functions import get_geom_column_name
 
     table_in = (os.path.splitext(os.path.split(vec_in)[-1])[0]).lower()
     table_out = (os.path.splitext(os.path.split(vec_out)[-1])[0]).lower()
-
-    sql_clause = "select GEOMETRY,{} from {}".format(",".join(fields), table_in)
-
+    geom_column_name = get_geom_column_name(vec_in, driver="SQLite")
+    sql_clause = "select {},{} from {}".format(geom_column_name, 
+                                                     ",".join(fields),
+                                                     table_in)
     cmd = "ogr2ogr -s_srs EPSG:{} -t_srs EPSG:{} -dialect 'SQLite' -f 'SQLite' -nln {} -sql '{}' {} {}".format(proj_in,
                                                                                                                proj_out,
                                                                                                                table_out,
