@@ -51,6 +51,10 @@ def get_geom_column_name(vector_file, driver="ESRI Shapefile"):
         column_name = layer.GetGeometryColumn()
     else :
         raise Exception("File not found : {}".format(vector_file))
+
+    if not column_name :
+        column_name = "GEOMETRY"
+    
     return column_name
 
 #---------------------------------------------------------------------
