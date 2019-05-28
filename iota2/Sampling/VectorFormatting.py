@@ -189,7 +189,12 @@ def keepFields(vec_in, vec_out, fields=[], proj_in=2154, proj_out=2154):
 
     table_in = (os.path.splitext(os.path.split(vec_in)[-1])[0]).lower()
     table_out = (os.path.splitext(os.path.split(vec_out)[-1])[0]).lower()
-    geom_column_name = get_geom_column_name(vec_in, driver="SQLite")
+    
+    _, ext = os.path.splitext(vec_in)
+    driver_vec_in = "ESRI Shapefile"
+    if "sqlite" in ext:
+        driver_vec_in = "SQLite"
+    geom_column_name = get_geom_column_name(vec_in, driver=driver_vec_in)
     sql_clause = "select {},{} from {}".format(geom_column_name, 
                                                      ",".join(fields),
                                                      table_in)
