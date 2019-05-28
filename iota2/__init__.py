@@ -1,11 +1,6 @@
-from iota2 import Common
-from iota2 import Classification
-from iota2 import Learning
-from iota2 import MPI
-from iota2 import Sampling
-from iota2 import Sensors
-from iota2 import simplification
-from iota2 import Steps
-from iota2 import Tests
-from iota2 import Validation
-from iota2 import VectorTools
+import sys
+import os
+
+iota2dir, _ = os.path.split(__file__)
+if not iota2dir in sys.path :
+    sys.path.append(iota2dir)
