@@ -26,6 +26,32 @@ import osgeo.ogr
 import argparse
 from shutil import copyfile
 
+def get_geom_column_name(vector_file, driver="ESRI Shapefile"):
+    """get field's name containing features' geomtries
+
+    Parameters
+    ----------
+    vector_file : string
+        input vector file
+    driver : string
+        ogr driver's name
+
+    Return
+    ------
+    string
+        geometry column's name
+    """
+    from osgeo import ogr
+    import os
+    column_name = None
+    if os.path.exists(vector_file):
+        driver = ogr.GetDriverByName(driver)
+        dataSource = driver.Open(vector_file, 0)
+        layer = dataSource.GetLayer()
+        column_name = layer.GetGeometryColumn()
+    else :
+        raise Exception("File not found : {}".format(vector_file))
+    return column_name
 
 #---------------------------------------------------------------------
 def openToRead(shapefile, driver="ESRI Shapefile"):
