@@ -30,7 +30,7 @@ if not IOTA2DIR:
 # sub-directory tests
 RM_IF_ALL_OK = True
 
-IOTA2_SCRIPTS = IOTA2DIR + "/scripts"
+IOTA2_SCRIPTS = os.path.join(IOTA2DIR, "iota2")
 sys.path.append(IOTA2_SCRIPTS)
 
 from Common import FileUtils as fut

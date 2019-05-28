@@ -31,8 +31,8 @@ if not IOTA2DIR:
 # sub-directory tests
 RM_IF_ALL_OK = True
 
-IOTA2_SCRIPTS = IOTA2DIR + "/scripts"
-sys.path.append(IOTA2_SCRIPTS)
+iota2_script = os.path.join(IOTA2DIR, "iota2")
+sys.path.append(iota2_script)
 
 from Common import FileUtils as fut
 from TestsUtils import arrayToRaster
