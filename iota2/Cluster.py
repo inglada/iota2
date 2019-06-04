@@ -318,7 +318,7 @@ def check_errors(log_path):
 def check_errors_JA(log_dir, task_name):
     """
     """
-    from .Common import FileUtils as fut
+    from Common import FileUtils as fut
 
     if os.path.isdir(log_dir):
         all_logs = fut.FileSearch_AND(log_dir, True, ".ER")
@@ -334,7 +334,7 @@ def launchChain(cfg, config_ressources=None, parallel_mode="MPI"):
     """
     create output directory and then, launch iota2 to HPC
     """
-    from . import Iota2Builder as chain
+    import Iota2Builder as chain
 
     # Check configuration file
     cfg.checkConfigParameters()
@@ -349,7 +349,7 @@ def launchChain(cfg, config_ressources=None, parallel_mode="MPI"):
     PathTEST = cfg.getParam('chain', 'outputPath')
     start_step = cfg.getParam("chain", "firstStep")
     end_step = cfg.getParam("chain", "lastStep")
-    scripts = os.path.join(fut.get_iota2_project_dir(), "scripts")
+    scripts = os.path.join(fut.get_iota2_project_dir(), "iota2")
     job_dir = cfg.getParam("chain", "jobsPath")
     log_dir = os.path.join(PathTEST, "logs")
 
@@ -398,7 +398,7 @@ def launchChain(cfg, config_ressources=None, parallel_mode="MPI"):
         process = Popen(qsub, shell=False, stdout=PIPE, stderr=STDOUT)
         process.wait()
         stdout, stderr = process.communicate()
-        job_id = stdout.strip('\n')
+        #~ job_id = stdout.strip('\n')
 
         # waiting 10sec for log copy
         time.sleep(10)

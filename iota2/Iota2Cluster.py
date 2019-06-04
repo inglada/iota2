@@ -31,7 +31,7 @@ def get_qsub_cmd(cfg, config_ressources=None, parallel_mode="MPI"):
     from Common.FileUtils import get_iota2_project_dir
 
     log_dir = os.path.join(cfg.getParam("chain", "outputPath"), "logs")
-    scripts = os.path.join(get_iota2_project_dir(), "scripts")
+    scripts = os.path.join(get_iota2_project_dir(), "iota2")
     job_dir = cfg.getParam("chain", "jobsPath")
     if job_dir is None:
         raise Exception("the parameter 'chain.jobsPath' is needed to launch IOTA2 on clusters")

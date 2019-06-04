@@ -32,7 +32,7 @@ def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
     classif = cfg.getParam('argTrain', 'classifier')
     shapeRegion = cfg.getParam('chain', 'regionPath')
     outputPath = cfg.getParam('chain', 'outputPath')
-    scriptPath = os.path.join(fu.get_iota2_project_dir(), "scripts")
+    scriptPath = os.path.join(fu.get_iota2_project_dir(), "iota2")
     classifMode = cfg.getParam('argClassification', 'classifMode')
     pixType = fu.getOutputPixType(cfg.getParam('chain', 'nomenclaturePath'))
     Stack_ind = fu.getFeatStackName(pathConf)
