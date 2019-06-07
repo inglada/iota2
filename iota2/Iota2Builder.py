@@ -133,12 +133,6 @@ class iota2():
         import os
         from MPI import ressourcesByStep as iota2Ressources
         from Common import ServiceConfigFile as SCF
-
-        if config_ressources:
-            ressourcesByStep = iota2Ressources.iota2_ressources(config_ressources)
-        else:
-            ressourcesByStep = iota2Ressources.iota2_ressources()
-
         from Steps.IOTA2Step import StepContainer
 
         from Steps import (IOTA2DirTree,
