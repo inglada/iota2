@@ -44,7 +44,7 @@ class Sentinel_2_S2C(Sensor):
 
         self.tile_name = tile_name
         self.cfg_IOTA2 = SCF.serviceConfigFile(config_path)
-        cfg_sensors = os.path.join(get_iota2_project_dir(), "config", "sensors.cfg")
+        cfg_sensors = os.path.join(get_iota2_project_dir(), "iota2", "Sensors", "sensors.cfg")
         cfg_sensors = SCF.serviceConfigFile(cfg_sensors, iota_config=False)
 
         # running attributes
