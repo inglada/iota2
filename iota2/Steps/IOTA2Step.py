@@ -118,7 +118,7 @@ class Step(object):
         default_process_max = -1
 
         cfg_resources = None
-        if os.path.exists(cfg_resources_file):
+        if cfg_resources_file and os.path.exists(cfg_resources_file):
             cfg_resources = Config(cfg_resources_file)
 
         resource = {}
