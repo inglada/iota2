@@ -117,7 +117,10 @@ class Step(object):
         default_process_min = 1
         default_process_max = -1
 
-        cfg_resources = Config(cfg_resources_file)
+        cfg_resources = None
+        if os.path.exists(cfg_resources_file):
+            cfg_resources = Config(cfg_resources_file)
+
         resource = {}
         cfg_step_resources = getattr(cfg_resources, str(step_name), {})
         resource["cpu"] = getattr(cfg_step_resources, "nb_cpu", default_cpu)
