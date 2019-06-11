@@ -27,6 +27,7 @@ class samplingLearningPolygons(IOTA2Step.Step):
         # step variables
         self.workingDirectory = workingDirectory
         self.output_path = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
+        self.enable_cross_validation = SCF.serviceConfigFile(self.cfg).getParam('chain', 'enableCrossValidation')
 
     def step_description(self):
         """
@@ -35,6 +36,10 @@ class samplingLearningPolygons(IOTA2Step.Step):
         description = ("Select pixels in learning polygons by models")
         return description
 
+    def sort_by_seed(self, item):
+        """
+        """
+        return os.path.splitext(os.path.basename(item))[0].split("_")[4]
     def step_inputs(self):
         """
         Return
@@ -42,7 +47,10 @@ class samplingLearningPolygons(IOTA2Step.Step):
             the return could be and iterable or a callable
         """
         from Common import FileUtils as fut
-        return fut.FileSearch_AND(os.path.join(self.output_path, "samplesSelection"), True, ".shp")
+        selected_polygons = fut.FileSearch_AND(os.path.join(self.output_path, "samplesSelection"), True, ".shp")
+        if self.enable_cross_validation :
+            selected_polygons = sorted(selected_polygons, key=self.sort_by_seed)[:-1]
+        return selected_polygons
 
     def step_execute(self):
         """

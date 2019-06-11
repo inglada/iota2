@@ -324,9 +324,6 @@ def confFusion(shapeIn, dataField, csv_out, txt_out, csvPath, cfg):
     enableCrossValidation = cfg.getParam('chain', 'enableCrossValidation')
     labelReplacement = int(labelReplacement)
 
-    if enableCrossValidation is True:
-        N = N - 1
-
     for seed in range(N):
         #Recherche de toute les classes possible
         AllClass = []
@@ -339,7 +336,6 @@ def confFusion(shapeIn, dataField, csv_out, txt_out, csvPath, cfg):
         csv_f = fu.sortByFirstElem(csv)
         
         confMat = fu.gen_confusionMatrix(csv_f, AllClass)
-        
         if cropMix:
             writeCSV(confMat, AllClass, csv_out+"/MatrixBeforeClassMerge_"+str(seed)+".csv")
             confMat, AllClass = replaceAnnualCropInConfMat(confMat, AllClass, annualCrop, labelReplacement)

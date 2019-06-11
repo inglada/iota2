@@ -116,7 +116,9 @@ def genConfMatrix(pathClassif, pathValid, N, dataField, pathToCmdConfusion,
         for tile in AllTiles:
             seed_val = seed
             if enableCrossValidation:
-                seed_val = N
+                seed_val = N - 1
+            if enableCrossValidation and seed == N - 1:
+                continue
             valTile = fu.FileSearch_AND(pathValid, True, tile, "_seed_"+str(seed_val)+"_val.sqlite")[0]
             learnTile = fu.FileSearch_AND(pathValid, True, tile, "_seed_"+str(seed)+"_learn.sqlite")[0]
             pathDirectory = pathTMP
@@ -132,6 +134,8 @@ def genConfMatrix(pathClassif, pathValid, N, dataField, pathToCmdConfusion,
 
     fu.writeCmds(pathToCmdConfusion+"/confusion.txt", AllCmd)
 
+    if enableCrossValidation:
+        N = N - 1
     for seed in range(N):
         AllDiff = fu.FileSearch_AND(pathTMP, True, "_seed_"+str(seed)+"_CompRef.tif")
         diff_seed = pathTest+"/final/diff_seed_"+str(seed)+".tif"
