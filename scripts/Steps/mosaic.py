@@ -29,6 +29,9 @@ class mosaic(IOTA2Step.Step):
         self.workingDirectory = workingDirectory
         self.output_path = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
         self.runs = SCF.serviceConfigFile(self.cfg).getParam('chain', 'runs')
+        self.enable_cross_validation = SCF.serviceConfigFile(self.cfg).getParam('chain', 'enableCrossValidation')
+        if self.enable_cross_validation:
+            self.runs = self.runs - 1
         self.fieldEnv = "FID"
         self.color_table = SCF.serviceConfigFile(self.cfg).getParam('chain', 'colorTable')
 
