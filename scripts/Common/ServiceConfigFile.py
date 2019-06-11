@@ -598,6 +598,8 @@ class serviceConfigFile:
                                              self.cfg.chain.groundTruth)
 
             # parameters compatibilities check
+            if self.getParam("chain", "enableCrossValidation") is True:
+                raise sErr.configError("enableCrossValidation not available, please set it to False\n")
             if self.getParam("chain", "regionPath") is None and self.cfg.argClassification.classifMode == "fusion":
                 raise sErr.configError("you can't chose 'one_region' mode and ask a fusion of classifications\n")
             if self.cfg.chain.merge_final_classifications and self.cfg.chain.runs == 1:
