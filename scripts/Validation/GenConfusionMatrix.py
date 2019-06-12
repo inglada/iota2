@@ -51,8 +51,8 @@ def create_dummy_rasters(missing_tiles, N, cfg):
 def compareRef(shapeRef, shapeLearn, classif, diff, footprint, workingDirectory, cfg, pathWd):
 
     minX, maxX, minY, maxY = fu.getRasterExtent(classif)
-    shapeRaster_val = workingDirectory+"/"+shapeRef.split("/")[-1].replace(".shp", ".tif")
-    shapeRaster_learn = workingDirectory+"/"+shapeLearn.split("/")[-1].replace(".shp", ".tif")
+    shapeRaster_val = workingDirectory+"/"+shapeRef.split("/")[-1].replace(".sqlite", ".tif")
+    shapeRaster_learn = workingDirectory+"/"+shapeLearn.split("/")[-1].replace(".sqlite", ".tif")
 
     dataField = cfg.getParam('chain', 'dataField')
     spatialRes = int(cfg.getParam('chain', 'spatialResolution'))
