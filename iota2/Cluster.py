@@ -83,7 +83,7 @@ def get_HPC_disponibility(nb_cpu, ram, process_min, process_max, nb_parameters):
     process = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
     stdout, stderr = process.communicate()
     
-    stdout = stdout.split("\n")
+    stdout = str(stdout).split("\n")
     node_dic = {}
     for node in stdout:
         if not node or node == "":
