@@ -29,6 +29,7 @@ def get_qsub_cmd(cfg, config_ressources=None, parallel_mode="MPI"):
     build qsub cmd to launch iota2 on HPC
     """
     from Common.FileUtils import get_iota2_project_dir
+    from Steps import PBS_scheduler
 
     log_dir = os.path.join(cfg.getParam("chain", "outputPath"), "logs")
     scripts = os.path.join(get_iota2_project_dir(), "iota2")
@@ -39,16 +40,16 @@ def get_qsub_cmd(cfg, config_ressources=None, parallel_mode="MPI"):
     config_path = cfg.pathConf
     iota2_main = os.path.join(job_dir, "iota2.pbs")
 
-    config_ressources_path = os.path.join(scripts, "MPI", "iota2_HPC_ressources_request.cfg")
-
+    config_ressources_path = None
     if config_ressources:
         config_ressources_path = config_ressources
 
-    cfg_resources = SCF.serviceConfigFile(config_ressources_path, iota_config=False)
-    chainName = cfg_resources.getParam("iota2_chain", "name")
-    walltime = cfg_resources.getParam("iota2_chain", "walltime")
-    cpu = cfg_resources.getParam("iota2_chain", "nb_cpu")
-    ram = cfg_resources.getParam("iota2_chain", "ram")
+    scheduler = PBS_scheduler.PBS_scheduler(config_ressources_path)
+
+    chainName = scheduler.name
+    walltime = scheduler.walltime
+    cpu = scheduler.cpu
+    ram = scheduler.RAM
 
     log_err = os.path.join(log_dir, "iota2_err.log")
     log_out = os.path.join(log_dir, "iota2_out.log")
