@@ -8,7 +8,7 @@ Licence
 is a free software under the GNU Affero General Public License v3.0. See `here <http://www.gnu.org/licenses/agpl.html>`_ 
 for details.
 
-How to install iota2?
+How to install iota2 ?
 ----------------------
 
 iota2 is only tested on some Linux distributions : Ubuntu and CentOS.
