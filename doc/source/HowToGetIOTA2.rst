@@ -12,7 +12,7 @@ How to install iota2 ?
 ----------------------
 
 iota2 is only tested on some Linux distributions : Ubuntu and CentOS.
-In order to install iota² and of its dependencies easily, it is distributed through the package management system `Conda`.
+In order to install iota² and its dependencies easily, it is distributed through the package management system `Conda`.
 In this section, steps to install iota² from scratch will be detailed.
 
 **Step 1 :** download and install Miniconda
@@ -25,7 +25,7 @@ your are not the system administrator.
 **Step 2 :** add iota²'s channel
 
 Add the iota²'s channel to inform Conda where iota²'s packages are. This information 
-has to be added in the ``.condarc`` file. To locate the file, please enter the following 
+has to be added in the ``.condarc`` file. In order to locate the file, please enter the following 
 command :
 
 .. code-block:: console
@@ -44,7 +44,7 @@ then a list of informations are printed, especially :
     conda-build version : 3.18.2
     ...
 
-Once the .condarc file is located, you must add the following in it.
+Once the ``.condarc`` file is located, you must add the following in it.
 
 .. code-block:: console
 
@@ -66,7 +66,7 @@ Once the .condarc file is located, you must add the following in it.
     conda install -c iota2 iota2 -n iota2-env
 
     
-How to test the installation
-----------------------------
+How to test the installation ?
+------------------------------
 
-You can test the installation by following the `tutorial <IOTA2_Example>`.
+You can test the installation by following the :doc:`tutorial <IOTA2_Example>`.
