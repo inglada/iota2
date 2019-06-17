@@ -115,8 +115,14 @@ The file ``prepare_env.sh`` will do it for you. Then use ``Iota2.py`` to launch 
 
 .. code-block:: console
 
-    source /MyInstall/iota2/scripts/install/prepare_env.sh
-    python /MyInstall/iota2/scripts/Iota2.py -config /absolutePath/to/IOTA2_Example.cfg
+    # activate iota2's environment
+    conda activate iota2-env
+
+    # launch iota2
+    Iota2.py -config /absolutePath/to/IOTA2_Example.cfg
+
+    # then deactive iota2's environment
+    conda deactivate
 
 iota2 is launched, it will print all processing steps needed to produce the maps and their validation:
 
