@@ -215,7 +215,7 @@ def gapFillingToSample(trainShape, workingDirectory, samples,
         return ref
 
     sampleExtr = otb.Registry.CreateApplication("SampleExtraction")
-    sampleExtr.SetParameterString("ram", str(0.9 * RAM))
+    sampleExtr.SetParameterString("ram", str(0.6 * RAM))
     sampleExtr.SetParameterString("vec", trainShape)
     sampleExtr.SetParameterInputImage("in", AllFeatures.GetParameterOutputImage("out"))
     sampleExtr.SetParameterString("out", samples)

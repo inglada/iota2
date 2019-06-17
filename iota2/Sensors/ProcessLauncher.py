@@ -135,7 +135,7 @@ def validity(tile_name, config_path, maskOut_name, view_threshold, workingDirect
     validity_app = CreateBandMathApplication({"il": merge_masks,
                                               "exp": "{}-({})".format(total_dates,
                                                                       "+".join(["im1b{}".format(i + 1) for i in range(total_dates)])),
-                                              "ram": str(RAM),
+                                              "ram": str(0.7 * RAM),
                                               "pixType": "uint8" if total_dates < 255 else "uint16",
                                               "out": validity_processing})
     if not os.path.exists(os.path.join(features_dir, validity_name)):
@@ -150,7 +150,7 @@ def validity(tile_name, config_path, maskOut_name, view_threshold, workingDirect
     
     threshold_raster = CreateBandMathApplication({"il": input_threshold,
                                                   "exp": "im1b1>={}?1:0".format(view_threshold),
-                                                  "ram": str(RAM),
+                                                  "ram": str(0.7 * RAM),
                                                   "pixType": "uint8",
                                                   "out": threshold_raster_out})
     threshold_raster.ExecuteAndWriteOutput()
