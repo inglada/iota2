@@ -25,6 +25,14 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+def executeApp(otb_application):
+    """function use to wrap otb's application.
+    
+    Usefull to purge RAM once ExecuteAndWriteOutput() is called. This function must
+    be used with multiprocessing.Process(target=executeApp, args=[my_otb_application])
+    """
+    otb_application.ExecuteAndWriteOutput()
+
 def getInputParameterOutput(otbObj):
 
     """
