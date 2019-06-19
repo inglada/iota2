@@ -29,6 +29,7 @@ from osgeo import gdal
 import otbApplication as otb
 import logging
 import time
+import multiprocessing as mp
 
 from Common import FileUtils as fu
 from Common.Utils import run
@@ -36,7 +37,8 @@ from Sampling import GenAnnualSamples as genAS
 from Common import ServiceConfigFile as SCF
 from Sampling.VectorFormatting import split_vector_by_region
 from Sampling.SamplesSelection import prepareSelection
-
+from Common.OtbAppBank import executeApp
+    
 logger = logging.getLogger(__name__)
 
 
@@ -215,7 +217,7 @@ def gapFillingToSample(trainShape, workingDirectory, samples,
         return ref
 
     sampleExtr = otb.Registry.CreateApplication("SampleExtraction")
-    sampleExtr.SetParameterString("ram", str(0.6 * RAM))
+    sampleExtr.SetParameterString("ram", str(0.7 * RAM))
     sampleExtr.SetParameterString("vec", trainShape)
     sampleExtr.SetParameterInputImage("in", AllFeatures.GetParameterOutputImage("out"))
     sampleExtr.SetParameterString("out", samples)
@@ -286,7 +288,13 @@ def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
 
     if not os.path.exists(sample_extraction_output):
         logger.info("--------> Start Sample Extraction <--------")
-        sampleExtr.ExecuteAndWriteOutput()
+        logger.info("RAM before features extraction : {} MB".format(fu.memory_usage_psutil()))
+        print("RAM before features extraction : {} MB".format(fu.memory_usage_psutil()))
+        p = mp.Process( target=executeApp, args=[sampleExtr])
+        p.start()
+        p.join()
+        print("RAM after features extraction : {} MB".format(fu.memory_usage_psutil()))
+        logger.info("RAM after features extraction : {} MB".format(fu.memory_usage_psutil()))
         logger.info("--------> END Sample Extraction <--------")
         proj = cfg.getParam('GlobChain', 'proj')
         split_vec_directory = os.path.join(outputPath, "learningSamples")
