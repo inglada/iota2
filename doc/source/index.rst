@@ -11,7 +11,7 @@ Welcome to iota2's documentation !
     developers to contribute to the project. It is not complete and most parts still in development.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contents:
 
    Get iota2 <HowToGetIOTA2>
