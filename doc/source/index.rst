@@ -14,20 +14,15 @@ Welcome to iota2's documentation !
    :maxdepth: 2
    :caption: Contents:
 
-
-
-Table of contents
-=================
-
-* :doc:`Get iota2 <HowToGetIOTA2>`
-* :doc:`iota2 Examples <IOTA2_Example>`
-* :doc:`Development recommendations <develop_reco>`
-* :doc:`iota2 code architecture : main class <main_class>`
-* :doc:`Add steps to iota2 <add_IOTA2_new_step>`
-* :doc:`Sentinel-2 Level 3A <sentinel_2_N3A>`
-* :doc:`About features <IOTA2_Play_with_features>`
-* :doc:`iota2's input parameters <IOTA2_parameters>`
-* :doc:`Probability maps <probability_maps>`
-* :doc:`About samples <iota2_samples_management>`
+   Get iota2 <HowToGetIOTA2>
+   iota2 Examples <IOTA2_Example>
+   Development recommendations <develop_reco>
+   iota2 code architecture : main class <main_class>
+   Add steps to iota2 <add_IOTA2_new_step>
+   Sentinel-2 Level 3A <sentinel_2_N3A>
+   About features <IOTA2_Play_with_features>
+   iota2's input parameters <IOTA2_parameters>
+   Probability maps <probability_maps>
+   About samples <iota2_samples_management>
 
 The source code for iota2 is hosted at https://framagit.org/iota2-project/iota2/
