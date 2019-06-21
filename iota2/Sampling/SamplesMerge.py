@@ -38,13 +38,11 @@ def get_models(formatting_vector_directory, regionField, runs):
     #the way of getting region could be improve ?
     tiles = fut.FileSearch_AND(formatting_vector_directory, True, ".shp")
     region_tile = []
-    all_regions = []
     for tile in tiles:
+        all_regions = []
         tile_name = os.path.splitext(os.path.basename(tile))[0]
-
         r_tmp = fut.getFieldElement(tile, driverName="ESRI Shapefile", field=regionField, mode="unique",
                                     elemType="str")
-
         for r_tile in r_tmp:
             if r_tile not in all_regions:
                 all_regions.append(r_tile)
