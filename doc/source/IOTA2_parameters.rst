@@ -759,6 +759,7 @@ argTrain.sampleSelection
                                          }]
                            }
 
+    where the first column of /path/to/myCSV.csv is class label (integer), second one is the required samples number (integer).
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 argTrain.sampleAugmentation

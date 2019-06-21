@@ -234,8 +234,7 @@ These data are zipped. Unzip them next to the ones already present in the direct
 
 .. code-block:: console
 
-    source /MyInstall/iota2/scripts/install/prepare_env.sh
-    python iota2/scripts/Iota2.py -config /absolutePath/to/IOTA2_Example.cfg
+    Iota2.py -config /absolutePath/to/IOTA2_Example.cfg
 
 .. Warning::
     The previous run is stored in the directory ``Results``.
