@@ -38,6 +38,7 @@ def get_models(formatting_vector_directory, regionField, runs):
     #the way of getting region could be improve ?
     tiles = fut.FileSearch_AND(formatting_vector_directory, True, ".shp")
     region_tile = []
+    all_regions_in_run = []
     for tile in tiles:
         all_regions = []
         tile_name = os.path.splitext(os.path.basename(tile))[0]
@@ -48,6 +49,8 @@ def get_models(formatting_vector_directory, regionField, runs):
                 all_regions.append(r_tile)
 
         for region in all_regions:
+            if not region in all_regions_in_run:
+                all_regions_in_run.append(region)
             region_tile.append((region, tile_name))
 
     region_tile_tmp = dict(fut.sortByFirstElem(region_tile))
@@ -55,8 +58,7 @@ def get_models(formatting_vector_directory, regionField, runs):
     for region, region_tiles in list(region_tile_tmp.items()):
         region_tile_dic[region] = list(set(region_tiles))
 
-    regions_tiles_seed = [(region, region_tile_dic[region], run) for run in range(runs) for region in all_regions]
-
+    regions_tiles_seed = [(region, region_tile_dic[region], run) for run in range(runs) for region in all_regions_in_run]
     return regions_tiles_seed
 
 def extract_POI(tile_vector, region, seed, region_field, POI, POI_val,
