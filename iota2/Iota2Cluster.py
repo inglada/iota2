@@ -125,7 +125,7 @@ if __name__ == "__main__":
     parser.add_argument("-mode", dest="parallel_mode",
                         help="parallel jobs strategy",
                         required=False,
-                        default="MPI",
+                        default="JobArray",
                         choices=["MPI", "JobArray"])
     args = parser.parse_args()
     cfg = SCF.serviceConfigFile(args.config)
