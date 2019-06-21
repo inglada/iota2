@@ -183,7 +183,14 @@ def write_PBS_MPI(job_directory, log_directory, task_name, step_to_compute,
 
     nprocs = int(MPI_process)*int(nb_chunk)
     
-    exe = ("\nmpirun -x ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS={0} -np {1} "
+    #~ exe = ("\nmpirun -x ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS={0} -np {1} "
+           #~ "python {2}/Iota2.py -config {3} "
+           #~ "-starting_step {4} -ending_step {5} {6}").format(request["cpu"], nprocs,
+                                                             #~ script_path, config_path,
+                                                             #~ step_to_compute, step_to_compute,
+                                                             #~ ressources_HPC)
+
+    exe = ("\nmpiexec -enable-x -envlist TMPDIR -env ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS {0} -np {1} "
            "python {2}/Iota2.py -config {3} "
            "-starting_step {4} -ending_step {5} {6}").format(request["cpu"], nprocs,
                                                              script_path, config_path,
