@@ -421,7 +421,10 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
                                                            Na_workingDirectory, SampleExtr_NA,
                                                            dataField, 
                                                            cfg, wMode, RAM, mode)
-        sampleExtr_NA.ExecuteAndWriteOutput()
+        #~ sampleExtr_NA.ExecuteAndWriteOutput()
+        p = mp.Process( target=executeApp, args=[sampleExtr_NA])
+        p.start()
+        p.join()
 
     if nb_feat_annu > 0:
         A_workingDirectory = workingDirectory + "/" + currentTile + "_annual"
@@ -435,7 +438,11 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
         sampleExtr_A, dep_gapSampleNA = gapFillingToSample(annual_vector_sel,
                                                            A_workingDirectory, SampleExtr_A,
                                                            dataField, Aconfig, wMode, mode=mode)
-        sampleExtr_A.ExecuteAndWriteOutput()
+        #~ sampleExtr_A.ExecuteAndWriteOutput()
+        p = mp.Process( target=executeApp, args=[sampleExtr_A])
+        p.start()
+        p.join()
+
     #if not sampleSel:
     #    os.remove(sampleSelection)
     end_extraction = time.time()
@@ -794,9 +801,11 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
     sampleExtr, dep_tmp = gapFillingToSample(sampleSelection,
                                              workingDirectory, samples,
                                              dataField, cfg, wMode, RAM, mode)
-                                            
 
-    sampleExtr.ExecuteAndWriteOutput()
+    #~ sampleExtr.ExecuteAndWriteOutput()
+    p = mp.Process( target=executeApp, args=[sampleExtr])
+    p.start()
+    p.join()
 
     split_vectors = split_vector_by_region(in_vect=samples,
                                            output_dir=workingDirectory,
