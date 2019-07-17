@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 # =========================================================================
@@ -49,7 +49,7 @@ def generateTif(vectorFile,pixSize):
 
 	minX,minY,maxX,maxY = fu.getShapeExtent(vectorFile)
 	cmd = "gdal_rasterize -te "+str(minX)+" "+str(minY)+" "+str(maxX)+" "+str(maxY)+" -a Tile -tr "+str(pixSize)+" "+str(pixSize)+" "+vectorFile+" "+vectorFile.replace(".shp",".tif")
-	print cmd
+	print(cmd)
 	os.system(cmd)
 
 def genGrid(outputDirectory,X=10,Y=10,overlap=10,size=100,raster = "True",pixSize = 100):
@@ -83,8 +83,7 @@ def genGrid(outputDirectory,X=10,Y=10,overlap=10,size=100,raster = "True",pixSiz
                 generateTif(outTile,pixSize)
                 #if os.path.exists(outTile):
                 #    driver.DeleteDataSource(outTile)
-                                
-				
+
 if __name__ == "__main__":
 
 	parser = argparse.ArgumentParser(description = "generate grid")
@@ -101,6 +100,3 @@ if __name__ == "__main__":
 	genGrid(args.outputDirectory,args.X,args.Y,args.overlap,args.size,args.raster)
 
 #python test_genGrid.py -outputDirectory /mnt/data/home/vincenta/IOTA2/test_data/test_envelope -size 100 -overlap 10 -Ygrid 10 -Xgrid 10
-
-
-

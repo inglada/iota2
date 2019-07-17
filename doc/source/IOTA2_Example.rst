@@ -115,8 +115,14 @@ The file ``prepare_env.sh`` will do it for you. Then use ``Iota2.py`` to launch 
 
 .. code-block:: console
 
-    source /MyInstall/iota2/scripts/install/prepare_env.sh
-    python /MyInstall/iota2/scripts/Iota2.py -config /absolutePath/to/IOTA2_Example.cfg
+    # activate iota2's environment
+    conda activate iota2-env
+
+    # launch iota2
+    Iota2.py -config /absolutePath/to/IOTA2_Example.cfg
+
+    # then deactive iota2's environment
+    conda deactivate
 
 iota2 is launched, it will print all processing steps needed to produce the maps and their validation:
 
@@ -161,6 +167,8 @@ Afterwards, it will sequentially print the current step until the end of the pro
     ...
     Running step 3: compute validity mask by tile (1 tasks)
     ...
+
+.. _iota2outputs:
 
 **Let's have a look at iota2's outputs.**
 
@@ -226,8 +234,7 @@ These data are zipped. Unzip them next to the ones already present in the direct
 
 .. code-block:: console
 
-    source /MyInstall/iota2/scripts/install/prepare_env.sh
-    python iota2/scripts/Iota2.py -config /absolutePath/to/IOTA2_Example.cfg
+    Iota2.py -config /absolutePath/to/IOTA2_Example.cfg
 
 .. Warning::
     The previous run is stored in the directory ``Results``.
