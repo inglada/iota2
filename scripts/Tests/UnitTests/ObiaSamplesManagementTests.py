@@ -80,7 +80,7 @@ class iota_testObiaFormatSamples(unittest.TestCase):
     # after launching all tests
     @classmethod
     def tearDownClass(self):
-        print "{} ended".format(self.group_test_name)
+        print("{} ended".format(self.group_test_name))
         if RM_IF_ALL_OK and all(self.all_tests_ok):
             shutil.rmtree(self.iota2_tests_directory)
 
