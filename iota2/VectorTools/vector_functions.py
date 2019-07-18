@@ -397,8 +397,7 @@ def copyShp2(shp, outShapefile):
       outLayer.CreateField(fieldDefn)
    # Get the output Layer's Feature Definition
    outLayerDefn = outLayer.GetLayerDefn()
-   #print layer.GetFeatureCount()
-   print "New file created : %s" %(outShapefile)
+   print ("New file created : %s") %(outShapefile)
    return outShapefile
 #--------------------------------------------------------------------
 def cloneVectorDataStructure(ds_in, out, ly = 0, epsg = None):
