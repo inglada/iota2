@@ -179,9 +179,13 @@ class Sentinel_2_S2C(Sensor):
         date_bands = []
         for band in self.stack_band_position:
             if band in ["B02", "B03", "B04", "B08"]:
-                date_bands.append(FileSearch_AND(date_dir, True, "L2A", "{}_10m.jp2".format(band))[0])
+                date_bands.append(FileSearch_AND(date_dir, True,
+                                                 "{}_".format(self.tile_name),
+                                                 "{}_10m.jp2".format(band))[0])
             elif band in ["B05", "B06", "B07", "B8A", "B11", "B12"]:
-                date_bands.append(FileSearch_AND(date_dir, True, "L2A", "{}_20m.jp2".format(band))[0])
+                date_bands.append(FileSearch_AND(date_dir, True,
+                                                 "{}_".format(self.tile_name),
+                                                 "{}_20m.jp2".format(band))[0])
         # tile reference image generation
         base_ref = date_bands[0]
         logger.info("reference image generation {} from {}".format(self.ref_image, base_ref))
