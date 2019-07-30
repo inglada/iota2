@@ -15,7 +15,7 @@
 # =========================================================================
 import os
 
-import IOTA2Step
+from Steps import IOTA2Step
 from Cluster import get_RAM
 from Common import ServiceConfigFile as SCF
 

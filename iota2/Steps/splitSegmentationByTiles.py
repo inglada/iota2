@@ -15,7 +15,7 @@
 # =========================================================================
 import os
 
-import IOTA2Step
+from Steps import IOTA2Step
 from Common import ServiceConfigFile as SCF
 from Sampling.SplitSamplesForOBIA import split_segmentation_by_tiles
 from Sampling import SamplesMerge as samples_merge

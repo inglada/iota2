@@ -17,7 +17,7 @@
 import argparse
 import os
 from config import Config
-import GetModel as GM
+from Learning import GetModel as GM
 from Common import FileUtils as fu
 from Common import ServiceConfigFile as SCF
 
