@@ -14,14 +14,34 @@
 #
 # =========================================================================
 
-def arrayToRaster(inArray, outRaster, output_format="int"):
+def compute_brightness_from_vector(input_vector):
+    """compute brightness from a vector of values
+    
+    Parameters
+    ----------
+    input_vector : list
+        input vector
+    Return
+    ------
+    brightness : float
+        output brightness
+    """
+    import math
+    brightness = None
+    brightness = math.sqrt(sum([val ** 2 for val in input_vector]))
+    return brightness
+
+
+def arrayToRaster(inArray, outRaster_path, output_format="int", output_driver="GTiff",
+                  pixSize=30, originX=777225.58, originY = 6825084.53,
+                  epsg_code=2154):
     """usage : from an array of a list of array, create a raster
 
     Parameters
     ----------
     inArray : list 
         list of numpy.array sorted by bands (fisrt array = band 1, N array = band N)
-    outRaster : string
+    outRaster_path : string
         output path
     output_format : string
         'int' or 'float'
@@ -33,14 +53,12 @@ def arrayToRaster(inArray, outRaster, output_format="int"):
     NB_BANDS = len(inArray)
     rows = inArray[0].shape[0]
     cols = inArray[0].shape[1]
-    originX = 777225.58
-    originY = 6825084.53
-    pixSize = 30
-    driver = gdal.GetDriverByName('GTiff')
+
+    driver = gdal.GetDriverByName(output_driver)
     if output_format=='int':
-        outRaster = driver.Create(outRaster, cols, rows, len(inArray), gdal.GDT_UInt16)
+        outRaster = driver.Create(outRaster_path, cols, rows, len(inArray), gdal.GDT_UInt16)
     elif output_format=='float':
-        outRaster = driver.Create(outRaster, cols, rows, len(inArray), gdal.GDT_Float32)
+        outRaster = driver.Create(outRaster_path, cols, rows, len(inArray), gdal.GDT_Float32)
     if not outRaster:
         raise Exception("can not create : "+outRaster)
     outRaster.SetGeoTransform((originX, pixSize, 0, originY, 0, pixSize))
@@ -50,7 +68,7 @@ def arrayToRaster(inArray, outRaster, output_format="int"):
         outband.WriteArray(inArray[i])
 
     outRasterSRS = osr.SpatialReference()
-    outRasterSRS.ImportFromEPSG(2154)
+    outRasterSRS.ImportFromEPSG(epsg_code)
     outRaster.SetProjection(outRasterSRS.ExportToWkt())
     outband.FlushCache()
 

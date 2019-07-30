@@ -14,6 +14,7 @@
 #
 # =========================================================================
 
+import multiprocessing as mp
 from config import Config
 import logging
 import glob
@@ -21,6 +22,7 @@ import os
 
 from Sensors.GenSensors import Sensor
 from collections import OrderedDict
+from Common.OtbAppBank import executeApp
 
 logger = logging.getLogger(__name__)
 
@@ -225,7 +227,10 @@ class Sentinel_2_L3A(Sensor):
                 same_proj = int(getRasterProjectionEPSG(out_stack)) == int(self.target_proj)
 
             if not os.path.exists(out_stack) or same_proj is False:
-                date_stack.ExecuteAndWriteOutput()
+                #~ date_stack.ExecuteAndWriteOutput()
+                p = mp.Process(target=executeApp, args=[date_stack])
+                p.start()
+                p.join()
                 if working_dir:
                     shutil.copy(out_stack_processing, out_stack)
                     os.remove(out_stack_processing)
@@ -271,7 +276,10 @@ class Sentinel_2_L3A(Sensor):
                                                   "exp": mask_exp, 
                                                   "pixType": "uint8",
                                                   "out":out_mask_processing})
-            mask_gen.ExecuteAndWriteOutput()
+            #~ mask_gen.ExecuteAndWriteOutput()
+            p = mp.Process(target=executeApp, args=[mask_gen])
+            p.start()
+            p.join()
             if working_dir:
                 shutil.copy(out_mask_processing, out_mask)
                 os.remove(out_mask_processing)

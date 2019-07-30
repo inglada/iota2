@@ -14,6 +14,7 @@
 #
 # =========================================================================
 
+import multiprocessing as mp
 from config import Config
 import logging
 import glob
@@ -21,6 +22,7 @@ import os
 
 from Sensors.GenSensors import Sensor
 from collections import OrderedDict
+from Common.OtbAppBank import executeApp
 
 logger = logging.getLogger(__name__)
 
@@ -177,9 +179,13 @@ class Sentinel_2_S2C(Sensor):
         date_bands = []
         for band in self.stack_band_position:
             if band in ["B02", "B03", "B04", "B08"]:
-                date_bands.append(FileSearch_AND(date_dir, True, "L2A", "{}_10m.jp2".format(band))[0])
+                date_bands.append(FileSearch_AND(date_dir, True,
+                                                 "{}_".format(self.tile_name),
+                                                 "{}_10m.jp2".format(band))[0])
             elif band in ["B05", "B06", "B07", "B8A", "B11", "B12"]:
-                date_bands.append(FileSearch_AND(date_dir, True, "L2A", "{}_20m.jp2".format(band))[0])
+                date_bands.append(FileSearch_AND(date_dir, True,
+                                                 "{}_".format(self.tile_name),
+                                                 "{}_20m.jp2".format(band))[0])
         # tile reference image generation
         base_ref = date_bands[0]
         logger.info("reference image generation {} from {}".format(self.ref_image, base_ref))
@@ -212,7 +218,10 @@ class Sentinel_2_S2C(Sensor):
                 same_proj = int(getRasterProjectionEPSG(out_stack)) == int(self.target_proj)
 
             if not os.path.exists(out_stack) or same_proj is False:
-                date_stack.ExecuteAndWriteOutput()
+                #~ date_stack.ExecuteAndWriteOutput()
+                p = mp.Process(target=executeApp, args=[date_stack])
+                p.start()
+                p.join()
                 if working_dir:
                     shutil.copy(out_stack_processing, out_stack)
                     os.remove(out_stack_processing)
@@ -265,7 +274,10 @@ class Sentinel_2_S2C(Sensor):
                 same_proj = int(getRasterProjectionEPSG(out_mask)) == int(self.target_proj)
 
             if not os.path.exists(out_mask) or same_proj is False:
-                superimp.ExecuteAndWriteOutput()
+                #~ superimp.ExecuteAndWriteOutput()
+                p = mp.Process(target=executeApp, args=[superimp])
+                p.start()
+                p.join()
                 if working_dir:
                     shutil.copy(out_mask_processing, out_mask)
                     os.remove(out_mask_processing)
