@@ -14,6 +14,8 @@
 #
 # =========================================================================
 
+# python -m unittest CoRegistrationTests
+
 import os
 import sys
 import shutil

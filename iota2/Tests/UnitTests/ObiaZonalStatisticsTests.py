@@ -14,7 +14,7 @@
 #
 # =========================================================================
 
-# python -m unittest splitSegmentationByTilesTests
+# python -m unittest ObiaZonalStatisticsTests
 
 import os
 import sys
@@ -30,7 +30,7 @@ if not IOTA2DIR:
 # sub-directory tests
 RM_IF_ALL_OK = True
 
-IOTA2_SCRIPTS = IOTA2DIR + "/scripts"
+IOTA2_SCRIPTS = IOTA2DIR + "/iota2"
 sys.path.append(IOTA2_SCRIPTS)
 
 from Common import FileUtils as fut
@@ -100,12 +100,17 @@ class iota_testObiaZonalStatistics(unittest.TestCase):
 
     # after launching a test, remove test's data if test succeed
     def tearDown(self):
-        result = getattr(self, '_outcomeForDoCleanups', self._resultForDoCleanups)
+        if sys.version_info > (3, 4, 0):
+            result = self.defaultTestResult()
+            self._feedErrorsToResult(result, self._outcome.errors)
+        else:
+            result = getattr(self, '_outcomeForDoCleanups', self._resultForDoCleanups)
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
-        test_ok = not error and not failure
-        self.all_tests_ok.append(test_ok)
-        if test_ok:
+        ok = not error and not failure
+
+        self.all_tests_ok.append(ok)
+        if ok:
             shutil.rmtree(self.test_working_directory)
 
     # Tests definitions
