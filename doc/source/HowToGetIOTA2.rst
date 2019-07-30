@@ -40,9 +40,11 @@ then a list of informations are printed, especially :
             shell level : 0
        user config file : /absolute/path/to/.condarc
  populated config files : /absolute/path/to/.condarc
-          conda version : 4.6.14
+          conda version : 4.7.10
     conda-build version : 3.18.2
     ...
+
+.. Note:: maintain conda up to date thanks ``conda update conda`` command
 
 Once the ``.condarc`` file is located, you must add the following in it.
 

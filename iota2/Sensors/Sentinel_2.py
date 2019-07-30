@@ -14,6 +14,7 @@
 #
 # =========================================================================
 
+import multiprocessing as mp
 from config import Config
 import logging
 import glob
@@ -21,6 +22,7 @@ import os
 
 from Sensors.GenSensors import Sensor
 from collections import OrderedDict
+from Common.OtbAppBank import executeApp
 
 logger = logging.getLogger(__name__)
 
@@ -220,7 +222,10 @@ class Sentinel_2(Sensor):
                 same_proj = int(getRasterProjectionEPSG(out_stack)) == int(self.target_proj)
 
             if not os.path.exists(out_stack) or same_proj is False:
-                date_stack.ExecuteAndWriteOutput()
+                #~ date_stack.ExecuteAndWriteOutput()
+                p = mp.Process(target=executeApp, args=[date_stack])
+                p.start()
+                p.join()
                 if working_dir:
                     shutil.copy(out_stack_processing, out_stack)
                     os.remove(out_stack_processing)
@@ -282,7 +287,10 @@ class Sentinel_2(Sensor):
                 same_proj = int(getRasterProjectionEPSG(out_mask)) == int(self.target_proj)
 
             if not os.path.exists(out_mask) or same_proj is False:
-                superimp.ExecuteAndWriteOutput()
+                #~ superimp.ExecuteAndWriteOutput()
+                p = mp.Process(target=executeApp, args=[superimp])
+                p.start()
+                p.join()
                 if working_dir:
                     shutil.copy(out_mask_processing, out_mask)
                     os.remove(out_mask_processing)
@@ -538,9 +546,14 @@ class Sentinel_2(Sensor):
             time_series_raster = time_series.GetParameterValue(getInputParameterOutput(time_series))
             masks_raster = masks.GetParameterValue(getInputParameterOutput(masks))
             if not os.path.exists(masks_raster):
-                masks.ExecuteAndWriteOutput()
+                p = mp.Process(target=executeApp, args=[masks])
+                p.start()
+                p.join()
             if not os.path.exists(time_series_raster):
-                time_series.ExecuteAndWriteOutput()
+                #~ time_series.ExecuteAndWriteOutput()
+                p = mp.Process(target=executeApp, args=[time_series])
+                p.start()
+                p.join()
             if os.path.exists(masks_raster):
                 masks = masks_raster
             if os.path.exists(time_series_raster):
@@ -609,7 +622,10 @@ class Sentinel_2(Sensor):
         else :
             in_stack_raster = in_stack.GetParameterValue(getInputParameterOutput(in_stack))
             if not os.path.exists(in_stack_raster):
-                in_stack.ExecuteAndWriteOutput()
+                #~ in_stack.ExecuteAndWriteOutput()
+                p = mp.Process(target=executeApp, args=[in_stack])
+                p.start()
+                p.join()
             if os.path.exists(in_stack_raster):
                 in_stack = in_stack_raster
         # output
