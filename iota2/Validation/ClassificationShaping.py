@@ -310,7 +310,7 @@ def ClassificationShaping(pathClassif, pathEnvelope, pathImg, fieldEnv, N,
             confidence[seed].append(tileConfidence)
             cloudTile = fu.FileSearch_AND(featuresPath+"/"+tile, True, "nbView.tif")[0]
             ClassifTile = TMP+"/"+tile+"_seed_"+str(seed)+".tif"
-            if OBIA_segmentation_path == True :
+            if OBIA_segmentation_path != None :
                 supImpCloudTile = cloudTile.replace('.','_supimp.')
                 cmd_supimp = 'otbcli_Superimpose -inr {} -inm {} -out {} -interpolator nn'.format(ClassifTile, cloudTile, supImpCloudTile)
                 run(cmd_supimp)
