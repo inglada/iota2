@@ -225,7 +225,6 @@ def generateSegVectorTilesRegion(in_vec, tile, tileRegs, wd, epsg = None):
     from VectorTools.vector_functions import cloneVectorDataStructure
     from VectorTools.AddField import addField
     import glob
-    print tileRegs
     ds_in = ogr.Open(in_vec)
     ds_in_ly = ds_in.GetLayer(0)
     ext = ds_in_ly.GetExtent()
