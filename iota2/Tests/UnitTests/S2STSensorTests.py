@@ -45,8 +45,8 @@ class iota_testS2STSensor(unittest.TestCase):
         self.config_test = os.path.join(IOTA2DIR, "config", "Config_4Tuiles_Multi_FUS_Confidence.cfg")
         
         # generate fake input data
-        self.MTD_files = ["/work/OT/theia/oso/arthur/TMP/S2ST/T31TCJ/S2B_MSIL2A_20190501T105039_N0211_R051_T31TCJ_20190501T140320.SAFE/MTD_MSIL2A.xml",
-                          "/work/OT/theia/oso/arthur/TMP/S2ST/T31TCJ/S2A_MSIL2A_20190506T105031_N0212_R051_T31TCJ_20190506T140834.SAFE/MTD_MSIL2A.xml"]
+        self.MTD_files = [os.path.join(IOTA2DIR, "data", "MTD_MSIL2A_20190506.xml"),
+                          os.path.join(IOTA2DIR, "data", "MTD_MSIL2A_20190501.xml")]
         
 
     #after launching tests
