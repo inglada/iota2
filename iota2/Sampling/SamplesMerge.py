@@ -58,6 +58,7 @@ def get_models(formatting_vector_directory, regionField, runs):
     for region, region_tiles in list(region_tile_tmp.items()):
         region_tile_dic[region] = list(set(region_tiles))
 
+    all_regions_in_run = sorted(all_regions_in_run)
     regions_tiles_seed = [(region, region_tile_dic[region], run) for run in range(runs) for region in all_regions_in_run]
     return regions_tiles_seed
 
