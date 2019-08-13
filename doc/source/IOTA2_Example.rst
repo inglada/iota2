@@ -110,8 +110,8 @@ the provided archive. Also replace the ``MyInstall`` by the path where iota2 is 
 Run iota2
 =========
 
-First, you have to set a list of environement variables to inform iota2 "where OTB is".
-The file ``prepare_env.sh`` will do it for you. Then use ``Iota2.py`` to launch the chain.
+First, you have to set a list of environment variables to inform where applications are.
+This is what is done when you activate your conda's environment. Then use ``Iota2.py`` to launch the chain.
 
 .. code-block:: console
 
