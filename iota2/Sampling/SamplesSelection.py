@@ -204,7 +204,7 @@ def get_sample_selection_param(cfg, model_name, stats, vec, working_directory):
     """
     per_model = None
     parameters = dict(cfg.getParam('argTrain', 'sampleSelection'))
-    random_seed = cfg.getParam('chain', 'seed')
+    random_seed = cfg.getParam('chain', 'random_seed')
     if random_seed:
         parameters["rand"] = random_seed
 
