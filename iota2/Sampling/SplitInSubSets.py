@@ -28,8 +28,27 @@ logger = logging.getLogger(__name__)
 
 def get_randomPoly(layer, field, classes, ratio, regionField, regions):
     """
-    usage : use to randomly split samples in learning and validation considering
-            classes in regions
+    use to randomly split samples in learning and validation considering
+    classes in regions
+
+    Parameters
+    ----------
+    layer : 
+    field : string
+        data field
+    classes : list
+    ratio : float
+        ratio number of validation polygons / number of training polygons
+    regionField : string
+        region field
+    regions : list
+        list of regions to consider
+
+    Returns
+    -------
+    tuple(sample_id_learn, sample_id_valid)
+        where sample_id_learn is a set of polygon's ID dedicated to learn models
+        where sample_id_valid is a set of polygon's ID dedicated to validate models
     """
     sample_id_learn = []
     sample_id_valid = []
