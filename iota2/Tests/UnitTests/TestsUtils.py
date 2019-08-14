@@ -13,6 +13,75 @@
 #   PURPOSE.  See the above copyright notices for more information.
 #
 # =========================================================================
+import os
+
+
+def random_ground_truth_generator(output_shape, data_field, number_of_class,
+                                  region_field=None,
+                                  min_cl_samples=10, max_cl_samples=100,
+                                  epsg_code=2154):
+    """generate a shape file with random integer values in appropriate field
+
+    Parameters
+    ----------
+    output_shape : string
+        output shapeFile
+    data_field : string
+        data field
+    number_of_class : int
+        number of class
+    region_field : string
+        region field
+    min_cl_samples : int
+        minimum samples per class
+    max_cl_samples : int
+        maximum samples per class
+    epsg_code : int
+        epsg code
+    """
+    assert  max_cl_samples > min_cl_samples, "max_cl_samples must be superior to min_cl_samples"
+
+    import random
+    import osgeo.ogr as ogr
+    import osgeo.osr as osr
+
+    label_number = []
+    for class_label in range(number_of_class):
+        label_number.append((class_label + 1,
+                             random.randrange(min_cl_samples, max_cl_samples)))
+                             
+    driver = ogr.GetDriverByName("ESRI Shapefile")
+    if os.path.exists(output_shape):
+        driver.DeleteDataSource(output_shape)
+
+    data_source = driver.CreateDataSource(output_shape)
+
+    srs = osr.SpatialReference()
+    srs.ImportFromEPSG(epsg_code)
+
+    layer_name, _ = os.path.splitext(os.path.basename(output_shape))
+    layer = data_source.CreateLayer(layer_name, srs, geom_type=ogr.wkbPolygon)
+    data_field_name = ogr.FieldDefn(data_field, ogr.OFTInteger)
+    data_field_name.SetWidth(10)
+    layer.CreateField(data_field_name)
+    if region_field:
+        region_field_name = ogr.FieldDefn(region_field, ogr.OFTString)
+        region_field_name.SetWidth(10)
+        layer.CreateField(region_field_name)
+
+    for class_label, features_num in label_number:
+        for feat_cpt in range(features_num):
+            feature = ogr.Feature(layer.GetLayerDefn())
+            feature.SetField(data_field, class_label)
+            if region_field:
+                feature.SetField(region_field, "1")
+            wkt = "POLYGON ((1 2, 2 2, 2 1, 1 1, 1 2))"
+            point = ogr.CreateGeometryFromWkt(wkt)
+            feature.SetGeometry(point)
+            layer.CreateFeature(feature)
+            feature = None
+    data_source = None
+
 
 def compute_brightness_from_vector(input_vector):
     """compute brightness from a vector of values
