@@ -318,6 +318,21 @@ chain.runs
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+chain.random_seed
+=================
+*Description*
+    allow iota² to reproduce random splits between validation and learning sample-set
+*Type*
+    int
+*Default value*
+    None
+*Example*
+    random_seed : 1
+*Notes*
+    must be an integer greater than 0
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 chain.logFileLevel
 ==================
 *Description*
