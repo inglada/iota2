@@ -422,6 +422,7 @@ def VectorFormatting(cfg, tile_name, workingDirectory=None, logger=logger):
     cloud_vec = os.path.join(features_directory, tile_name, "CloudThreshold_" + str(cloud_threshold) + ".shp")
     tileEnv_vec = os.path.join(cfg.getParam('chain', 'outputPath'), "envelope", tile_name + ".shp")
     ratio = cfg.getParam('chain', 'ratio')
+    random_seed = cfg.getParam('chain', 'random_seed')
     enableCrossValidation = cfg.getParam('chain', 'enableCrossValidation')
     enableSplitGroundTruth = cfg.getParam('chain', 'splitGroundTruth')
     fusionMergeAllValidation = cfg.getParam('chain', 'fusionOfClassificationAllSamplesValidation')
@@ -518,7 +519,8 @@ def VectorFormatting(cfg, tile_name, workingDirectory=None, logger=logger):
     subset.splitInSubSets(output, dataField, regionField, ratio, seeds,
                           output_driver,
                           crossValidation=enableCrossValidation,
-                          splitGroundTruth=enableSplitGroundTruth)
+                          splitGroundTruth=enableSplitGroundTruth,
+                          random_seed=random_seed)
 
     addField(output, tile_field, tile_name, valueType=str, driver_name=output_driver)
 
