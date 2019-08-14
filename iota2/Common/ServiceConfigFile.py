@@ -73,6 +73,7 @@ class serviceConfigFile:
                              "cloud_threshold": 0,
                              "splitGroundTruth":True,
                              "ratio": 0.5,
+                             "seed": None,
                              "firstStep": "init",
                              "lastStep": "validation",
                              "logFileLevel": "INFO",
@@ -560,6 +561,9 @@ class serviceConfigFile:
                 #S2 variable check
                 self.testVarConfigFile('Sentinel_2', 'temporalResolution', int)
                 self.testVarConfigFile('Sentinel_2', 'keepBands', Sequence)
+            
+            if self.cfg.chain.seed != None:
+                self.testVarConfigFile('chain', 'seed', int)
 
             nbTile = len(self.cfg.chain.listTile.split(" "))
 
