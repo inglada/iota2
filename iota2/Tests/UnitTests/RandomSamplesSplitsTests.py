@@ -42,12 +42,12 @@ class iota_testSamplesSplits(unittest.TestCase):
         os.mkdir(self.iota2_tests_directory)
 
         self.random_splits = 10
-        
+
         # generate fake input data
-        
+
         self.data_field = "code"
         self.region_field = "region"
-        
+
 
     #after launching tests
     @classmethod
@@ -102,9 +102,9 @@ class iota_testSamplesSplits(unittest.TestCase):
         vector_file_to_split = os.path.join(self.test_working_directory, "test_NoSeed.shp")
         numbler_of_class = 23
         random_ground_truth_generator(vector_file_to_split, self.data_field, numbler_of_class, self.region_field)
-        
+
         random_seed = None
-        
+
         # first run
         vector_file_first = os.path.join(self.test_working_directory, "test_NoSeed_first.shp")
         cpShapeFile(vector_file_to_split.replace(".shp",""), vector_file_first.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
@@ -135,7 +135,7 @@ class iota_testSamplesSplits(unittest.TestCase):
             seeds_second.append(tuple(getFieldElement(vector_file_second, driverName="ESRI Shapefile",
                                                       field="seed_{}".format(seed), mode="all",
                                                       elemType="str")))
-            
+
             seeds_runs.append(seeds_first[seed] != seeds_second[seed])
 
         #~ seeds between runs must be different
@@ -166,9 +166,9 @@ class iota_testSamplesSplits(unittest.TestCase):
         vector_file_to_split = os.path.join(self.test_working_directory, "test_Seed.shp")
         numbler_of_class = 23
         random_ground_truth_generator(vector_file_to_split, self.data_field, numbler_of_class, self.region_field)
-        
+
         random_seed = 1
-        
+
         # first run
         vector_file_first = os.path.join(self.test_working_directory, "test_NoSeed_first.shp")
         cpShapeFile(vector_file_to_split.replace(".shp",""), vector_file_first.replace(".shp",""),[".prj",".shp",".dbf",".shx"])
@@ -199,7 +199,7 @@ class iota_testSamplesSplits(unittest.TestCase):
             seeds_second.append(tuple(getFieldElement(vector_file_second, driverName="ESRI Shapefile",
                                                       field="seed_{}".format(seed), mode="all",
                                                       elemType="str")))
-            
+
             seeds_runs.append(seeds_first[seed] == seeds_second[seed])
 
         #~ seeds between runs must be the same
