@@ -26,7 +26,7 @@ from Common import FileUtils as fut
 
 logger = logging.getLogger(__name__)
 
-def get_randomPoly(layer, field, classes, ratio, regionField, regions):
+def get_randomPoly(layer, field, classes, ratio, regionField, regions, seed=None):
     """
     use to randomly split samples in learning and validation considering
     classes in regions
@@ -43,7 +43,8 @@ def get_randomPoly(layer, field, classes, ratio, regionField, regions):
         region field
     regions : list
         list of regions to consider
-
+    seed : int
+        random seed (default = None)
     Returns
     -------
     tuple(sample_id_learn, sample_id_valid)
@@ -78,7 +79,9 @@ def get_randomPoly(layer, field, classes, ratio, regionField, regions):
                     listid.append(_id)
                     listid.sort()
 
-                sample_id_learn += [fid for fid in random.sample(listid, int(polbysel))]
+                random.seed(seed)
+                random_id_learn = random.sample(listid, int(polbysel))
+                sample_id_learn += [fid for fid in random_id_learn]
                 sample_id_valid += [currentFid for currentFid in listid if currentFid not in sample_id_learn]
 
     sample_id_learn.sort()
@@ -133,7 +136,7 @@ def splitInSubSets(vectoFile, dataField, regionField,
                    ratio=0.5, seeds=1, driver_name="SQLite", 
                    learningFlag="learn", validationFlag="validation",
                    unusedFlag="unused", crossValidation=False,
-                   splitGroundTruth=True):
+                   splitGroundTruth=True, seed=None):
     """
     This function is dedicated to split a shape into N subsets
     of training and validations samples by adding a new field
@@ -164,6 +167,8 @@ def splitInSubSets(vectoFile, dataField, regionField,
         enable cross validation split
     splitGroundTruth
         enable the ground truth split
+    seed : int
+        random seed
     """
     driver = ogr.GetDriverByName(driver_name)
     source = driver.Open(vectoFile, 1)
@@ -196,7 +201,7 @@ def splitInSubSets(vectoFile, dataField, regionField,
         if crossValidation is False:
             id_learn, id_val = get_randomPoly(layer, dataField,
                                               class_avail, ratio,
-                                              regionField, region_avail)
+                                              regionField, region_avail, seed)
         else:
             id_learn = id_CrossVal[seed]
 

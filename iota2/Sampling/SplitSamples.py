@@ -197,7 +197,8 @@ def transform_to_shape(sqlite_vectors, formatting_vectors_dir):
 
 def update_learningValination_sets(new_regions_shapes, dataAppVal_dir,
                                    dataField, regionField, ratio,
-                                   seeds, epsg, enableCrossValidation):
+                                   seeds, epsg, enableCrossValidation,
+                                   seed_number):
     """
     """
     from Sampling.VectorFormatting import splitbySets
@@ -210,7 +211,8 @@ def update_learningValination_sets(new_regions_shapes, dataAppVal_dir,
         #remove seeds fields
         subset.splitInSubSets(new_region_shape, dataField, regionField,
                               ratio, seeds, "ESRI Shapefile",
-                              crossValidation=enableCrossValidation)
+                              crossValidation=enableCrossValidation, seed=seed_number)
+
         output_splits = splitbySets(new_region_shape, seeds, dataAppVal_dir,
                                     epsg, epsg, tile_name,
                                     crossValid=enableCrossValidation)
@@ -232,6 +234,7 @@ def splitSamples(cfg, workingDirectory=None, logger=logger):
     formatting_vectors_dir = os.path.join(iota2_dir, "formattingVectors")
     shape_region_dir = os.path.join(iota2_dir, "shapeRegion")
     ratio = float(cfg.getParam('chain', 'ratio'))
+    seed_number = cfg.getParam('chain', 'seed')
     seeds = int(cfg.getParam('chain', 'runs'))
     epsg = int((cfg.getParam('GlobChain', 'proj')).split(":")[-1])
     vectors = fut.FileSearch_AND(formatting_vectors_dir, True, ".shp")
@@ -261,4 +264,5 @@ def splitSamples(cfg, workingDirectory=None, logger=logger):
 
     dataAppVal_dir = os.path.join(iota2_dir, "dataAppVal")
     update_learningValination_sets(new_regions_shapes, dataAppVal_dir, dataField,
-                                   region_field, ratio, seeds, epsg, enableCrossValidation)
+                                   region_field, ratio, seeds, epsg, enableCrossValidation,
+                                   seed_number)
