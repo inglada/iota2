@@ -30,6 +30,8 @@ Sampling strategy fields
 +----------------------------+--------------------------+-----------------+---------------------------------------------------------------------------------------------------------------------------+
 |:ref:`runs`                 |integer                   | 1               |Number of random splits between learning samples and validation samples                                                    |
 +----------------------------+--------------------------+-----------------+---------------------------------------------------------------------------------------------------------------------------+
+|random_seed                 |integer                   | None            |Random seed : allow iota² to reproduce random splits between validation and learning sample-set                            |
++----------------------------+--------------------------+-----------------+---------------------------------------------------------------------------------------------------------------------------+
 |:ref:`cloud_threshold`      |integer                   | 1               |Threshold neeeded to pick-up learning samples. Every samples which are valid > cloud_threshold could be use to learn models|
 +----------------------------+--------------------------+-----------------+---------------------------------------------------------------------------------------------------------------------------+
 |:ref:`sampleSelectionTag`   |python's dictionnary      | cf Note 1       |Sampling strategy in learning polygons                                                                                     |
