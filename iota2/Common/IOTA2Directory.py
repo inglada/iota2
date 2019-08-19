@@ -22,6 +22,7 @@ def GenerateDirectories(cfg):
     """
     generate IOTA2 output directories
     """
+    from Common.FileUtils import ensure_dir
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
 
@@ -31,7 +32,7 @@ def GenerateDirectories(cfg):
 
     if os.path.exists(root) and root != "/" and rm_PathTEST and start_step == "init":
         shutil.rmtree(root,ignore_errors=False)
-    os.mkdir(root)
+    ensure_dir(root)
     if os.path.exists(root+"/logs"):
         shutil.rmtree(root+"/logs")
     os.mkdir(root+"/logs")
