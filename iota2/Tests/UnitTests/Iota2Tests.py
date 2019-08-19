@@ -2662,7 +2662,7 @@ class iota_testSplitSamples(unittest.TestCase):
         self.assertEqual(self.dataAppValDir, os.path.abspath(dataAppVal_dir))
         enableCrossValidation = False
         SplitSamples.update_learningValination_sets(new_regions_shapes, dataAppVal_dir, dataField,
-                                                    region_field, ratio, seeds, epsg, enableCrossValidation)
+                                                    region_field, ratio, seeds, epsg, enableCrossValidation, random_seed=None)
 
 
 class iota_testVectorSplits(unittest.TestCase):
