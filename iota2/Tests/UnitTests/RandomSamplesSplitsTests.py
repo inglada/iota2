@@ -92,7 +92,7 @@ class iota_testSamplesSplits(unittest.TestCase):
     #Tests definitions
     def test_NoSeed(self):
         """considering 2 iota's run with no random seed provided, check if the
-        two runs generate 2 times 5 independant sample-set.
+        two runs generate 2 times 10 independant sample-set.
         """
         from Sampling.SplitInSubSets import splitInSubSets
         from TestsUtils import random_ground_truth_generator
@@ -156,7 +156,7 @@ class iota_testSamplesSplits(unittest.TestCase):
 
     def test_Seed(self):
         """considering 2 iota's run with no random seed provided, check if the
-        two runs generate 2 times the same 5 independant sample-set.
+        two runs generate 2 times the same 10 independant sample-set.
         """
         from Sampling.SplitInSubSets import splitInSubSets
         from TestsUtils import random_ground_truth_generator
