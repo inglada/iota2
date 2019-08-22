@@ -56,12 +56,14 @@ def compareRef(shapeRef, shapeLearn, classif, diff, footprint, workingDirectory,
     spatialRes = int(cfg.getParam('chain', 'spatialResolution'))
 
     #Rasterise val
-    cmd = "gdal_rasterize -a "+dataField+" -init 0 -tr "+str(spatialRes)+" "+str(spatialRes)+" "+shapeRef+" "+shapeRaster_val+" -te "+str(minX)+" "+str(minY)+" "+str(maxX)+" "+str(maxY)
+    shapeRef_table_name = os.path.splitext(os.path.split(shapeRef)[-1])[0].lower()
+    cmd = "gdal_rasterize -l "+ shapeRef_table_name +" -a "+dataField+" -init 0 -tr "+str(spatialRes)+" "+str(spatialRes)+" "+shapeRef+" "+shapeRaster_val+" -te "+str(minX)+" "+str(minY)+" "+str(maxX)+" "+str(maxY)
     run(cmd)
     #Rasterise learn
-    cmd = "gdal_rasterize -a "+dataField+" -init 0 -tr "+str(spatialRes)+" "+str(spatialRes)+" "+shapeLearn+" "+shapeRaster_learn+" -te "+str(minX)+" "+str(minY)+" "+str(maxX)+" "+str(maxY)
+    shapeLearn_table_name = os.path.splitext(os.path.split(shapeLearn)[-1])[0].lower()
+    cmd = "gdal_rasterize -l "+ shapeLearn_table_name +" -a "+dataField+" -init 0 -tr "+str(spatialRes)+" "+str(spatialRes)+" "+shapeLearn+" "+shapeRaster_learn+" -te "+str(minX)+" "+str(minY)+" "+str(maxX)+" "+str(maxY)
     run(cmd)
-
+    
     #diff val
     diff_val = workingDirectory+"/"+diff.split("/")[-1].replace(".tif", "_val.tif")
     cmd_val = 'otbcli_BandMath -il '+shapeRaster_val+' '+classif+' -out '+diff_val+' uint8 -exp "im1b1==0?0:im1b1==im2b1?2:1"'#reference identique -> 2  | reference != -> 1 | pas de reference -> 0
