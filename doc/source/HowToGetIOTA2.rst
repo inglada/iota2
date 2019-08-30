@@ -54,6 +54,7 @@ Once the ``.condarc`` file is located, you must add the following in it.
     channels:
         - iota2
         - conda-forge
+        - defaults
         ...
     ...
 
