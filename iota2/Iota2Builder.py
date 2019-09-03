@@ -155,7 +155,7 @@ class iota2():
                            sensorsPreprocess, Coregistration, Regularization,
                            Clump, Grid, crownSearch, crownBuild,
                            largeVectorization, VectSimplification,
-                           zonalStatistics, joinStatistics)
+                           zonalStatistics, joinStatistics, slicSegmentation)
 
         # will contains all IOTA² steps
         s_container = StepContainer()
@@ -289,9 +289,13 @@ class iota2():
         step_join_stats = joinStatistics.joinStatistics(cfg,
                                                         config_ressources,
                                                         self.workingDirectory)
+        step_SLIC_seg = slicSegmentation.slicSegmentation(cfg,
+                                                          config_ressources,
+                                                          self.workingDirectory)
         
         # control variable
         Sentinel1 = SCF.serviceConfigFile(cfg).getParam('chain', 'S1Path')
+        enable_autoContext = SCF.serviceConfigFile(cfg).getParam('chain', 'enable_autoContext')
         shapeRegion = SCF.serviceConfigFile(cfg).getParam('chain', 'regionPath')
         classif_mode = SCF.serviceConfigFile(cfg).getParam('argClassification', 'classifMode')
         sampleManagement = SCF.serviceConfigFile(cfg).getParam('argTrain', 'sampleManagement')
@@ -314,9 +318,10 @@ class iota2():
         s_container.append(step_PreProcess, "init")
         if not "none" in VHR.lower():
             s_container.append(step_coregistration, "init")
-
         s_container.append(step_CommonMasks, "init")       
         s_container.append(step_pixVal, "init")
+        if enable_autoContext:
+            s_container.append(step_SLIC_seg, "init")
 
         # sampling steps
         s_container.append(step_env, "sampling")
