@@ -57,7 +57,7 @@ class slicSegmentation(IOTA2Step.Step):
         """
         from Segmentation import segmentation
         
-        step_function = lambda x: segmentation.slicSegmentation(x, self.cfg)
+        step_function = lambda x: segmentation.slicSegmentation(x, self.cfg, self.RAM, self.workingDirectory)
         return step_function
 
     def step_outputs(self):
