@@ -85,6 +85,62 @@ def unPackFirst(someListOfList):
         else:
             yield values
 
+def CreateSLICApplication(OtbParameters):
+    """binding to SLIC OTB's application
+    
+    Parameter
+    ---------
+
+    OtbParameters [dic] 
+        dictionnary with otb's parameter keys
+    
+    Return
+    ------
+    class 'otbApplication.Application'
+        SLIC application ready to be Execute()
+    """
+    SLIC = otb.Registry.CreateApplication("SLIC")
+    if SLIC is None:
+        raise Exception("Not possible to create 'SLIC' application,\
+                         check if OTB is well configured / installed")
+    #~ check mandatory parameters
+    if "in" not in OtbParameters:
+        raise Exception("'in' parameter not found")
+    if "tmpdir" not in OtbParameters:
+        raise Exception("'tmpdir' parameter not found")
+
+    SLIC.SetParameterString("tmpdir", OtbParameters["tmpdir"])
+
+    in_img = OtbParameters["in"]
+    if isinstance(in_img, str):
+        SLIC.SetParameterString("in", in_img)
+    else:
+        SLIC.SetParameterInputImage("in", in_img.GetParameterOutputImage(getInputParameterOutput(in_img)))
+    
+    #~ add optional parameters
+    if "out" in OtbParameters:
+        SLIC.SetParameterString("out", str(OtbParameters["out"]))
+    if "spw" in OtbParameters:
+        SLIC.SetParameterString("spw", str(OtbParameters["spw"]))
+    if "dw" in OtbParameters:
+        SLIC.SetParameterString("dw", str(OtbParameters["dw"]))
+    if "maxit" in OtbParameters:
+        SLIC.SetParameterString("maxit", str(OtbParameters["maxit"]))
+    if "thresh" in OtbParameters:
+        SLIC.SetParameterString("thresh", str(OtbParameters["thresh"]))
+    if "margin" in OtbParameters:
+        SLIC.SetParameterString("margin", str(OtbParameters["margin"]))
+    if "tiling" in OtbParameters:
+        SLIC.SetParameterString("tiling", str(OtbParameters["tiling"]))
+    if "tiling.auto.ram" in OtbParameters:
+        SLIC.SetParameterString("tiling.auto.ram", str(OtbParameters["tiling.auto.ram"]))
+    if "tiling.manual.nx" in OtbParameters:
+        SLIC.SetParameterString("tiling.manual.nx", str(OtbParameters["tiling.manual.nx"]))
+    if "tiling.manual.ny" in OtbParameters:
+        SLIC.SetParameterString("tiling.manual.ny", str(OtbParameters["tiling.manual.ny"]))
+
+    return SLIC
+
 def CreateImageClassifierApplication(OtbParameters):
     """binding to ImageClassifier OTB's application
     
