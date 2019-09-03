@@ -91,6 +91,7 @@ class serviceConfigFile:
                              "dempstershafer_mob": "precision",
                              "merge_final_classifications_ratio": 0.1,
                              "keep_runs_results": True,
+                             "enable_autoContext": False, 
                              "remove_tmp_files": False}
             self.init_section("chain", chain_default)
             #init coregistration section
@@ -496,6 +497,7 @@ class serviceConfigFile:
             self.testVarConfigFile('chain', 'colorTable', str)
             self.testVarConfigFile('chain', 'mode_outside_RegionSplit', float)
             self.testVarConfigFile('chain', 'merge_final_classifications', bool)
+            self.testVarConfigFile('chain', 'enable_autoContext', bool)
             if self.getParam("chain", "merge_final_classifications"):
                 self.testVarConfigFile('chain', 'merge_final_classifications_undecidedlabel', int)
                 self.testVarConfigFile('chain', 'merge_final_classifications_ratio', float)
@@ -561,10 +563,10 @@ class serviceConfigFile:
                 #S2 variable check
                 self.testVarConfigFile('Sentinel_2', 'temporalResolution', int)
                 self.testVarConfigFile('Sentinel_2', 'keepBands', Sequence)
-            
+
             if self.cfg.chain.random_seed != None:
                 self.testVarConfigFile('chain', 'random_seed', int)
-
+                
             nbTile = len(self.cfg.chain.listTile.split(" "))
 
             # directory tests
