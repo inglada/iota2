@@ -334,15 +334,17 @@ class iota2():
         s_container.append(step_models_samples_stats, "sampling")
         s_container.append(step_samples_selection, "sampling")
         s_container.append(step_prepare_selection, "sampling")
-        s_container.append(step_generate_learning_samples, "sampling")
-        s_container.append(step_merge_learning_samples, "sampling")
-        if sampleManagement and sampleManagement.lower() != 'none':
-            s_container.append(step_copy_sample_between_models, "sampling")
-        if sample_augmentation_flag:
-            s_container.append(step_generate_samples, "sampling")
-        if dimred:
-            s_container.append(step_dimRed, "sampling")
-
+        
+        if enable_autoContext is False:
+            s_container.append(step_generate_learning_samples, "sampling")
+            s_container.append(step_merge_learning_samples, "sampling")
+            if sampleManagement and sampleManagement.lower() != 'none':
+                s_container.append(step_copy_sample_between_models, "sampling")
+            if sample_augmentation_flag:
+                s_container.append(step_generate_samples, "sampling")
+            if dimred:
+                s_container.append(step_dimRed, "sampling")
+        
         # learning step
         s_container.append(step_learning, "learning")
 

@@ -85,6 +85,71 @@ def unPackFirst(someListOfList):
         else:
             yield values
 
+def CreateTrainAutoContext(OtbParameters):
+    """binding to TrainAutoContext OTB's application
+    
+    Parameter
+    ---------
+
+    OtbParameters [dic] 
+        dictionnary with otb's parameter keys
+    
+    Return
+    ------
+    class 'otbApplication.Application'
+        SLIC application ready to be Execute()
+    """
+    train_autoContext = otb.Registry.CreateApplication("TrainAutoContext")
+    if train_autoContext is None:
+        raise Exception("Not possible to create 'TrainAutoContext' application,\
+                         check if OTB is well configured / installed")
+    #~ check mandatory parameters
+    if "il" not in OtbParameters:
+        raise Exception("'il' parameter not found")
+    if "inseg" not in OtbParameters:
+        raise Exception("'inseg' parameter not found")
+    if "refdata" not in OtbParameters:
+        raise Exception("'refdata' parameter not found")
+    if "field" not in OtbParameters:
+        raise Exception("'refdata' parameter not found")        
+    if "tmpdir" not in OtbParameters:
+        raise Exception("'tmpdir' parameter not found")
+    if "out" not in OtbParameters:
+        raise Exception("'out' parameter not found")
+
+    train_autoContext.SetParameterString("tmpdir", OtbParameters["tmpdir"])
+    train_autoContext.SetParameterStringList("inseg", OtbParameters["inseg"])
+    train_autoContext.SetParameterStringList("refdata", OtbParameters["refdata"])
+    train_autoContext.SetParameterString("field", OtbParameters["field"])
+    train_autoContext.SetParameterString("out", OtbParameters["out"])
+
+    imagesList = OtbParameters["il"]
+    if not isinstance(imagesList, list):
+        imagesList = [imagesList]
+
+    if isinstance(imagesList[0], str):
+        train_autoContext.SetParameterStringList("il", imagesList)
+    elif isinstance(imagesList[0], otb.Application):
+        for currentObj in imagesList:
+            inOutParam = getInputParameterOutput(currentObj)
+            train_autoContext.AddImageToParameterInputImageList("il",
+                                                       currentObj.GetParameterOutputImage(inOutParam))
+    elif isinstance(imagesList[0], tuple):
+        for currentObj in unPackFirst(imagesList):
+            inOutParam = getInputParameterOutput(currentObj)
+            train_autoContext.AddImageToParameterInputImageList("il",
+                                                       currentObj.GetParameterOutputImage(inOutParam))
+    else:
+        raise Exception(type(imagesList[0]) + " not available to TrainAutoContext function")
+    
+    #~ add optional parameters
+    if "nit" in OtbParameters:
+        train_autoContext.SetParameterString("nit", str(OtbParameters["nit"]))
+    if "ram" in OtbParameters:
+        train_autoContext.SetParameterString("ram", str(OtbParameters["ram"]))
+
+    return train_autoContext
+
 def CreateSLICApplication(OtbParameters):
     """binding to SLIC OTB's application
     
