@@ -72,8 +72,11 @@ def slicSegmentation(tile_name, config_path, ram=128, working_dir=None, LOGGER=l
                        "tiling.auto.ram": ram,
                        "out": slic_seg_path}
     SLIC_seg = CreateSLICApplication(slic_parameters)
-    LOGGER.info("Processing SLIC segmentation : {}\n\t\t\
+    
+    if not os.path.exists(slic_seg_path):
+        LOGGER.info("Processing SLIC segmentation : {}\n\t\t\
                  with parameters : {}".format(tile_name, slic_parameters))
-    SLIC_seg.ExecuteAndWriteOutput()
+        SLIC_seg.ExecuteAndWriteOutput()
+
     if working_dir is None:
         shutil.rmtree(tmp_dir)
