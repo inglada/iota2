@@ -20,13 +20,14 @@ logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
 
 
-def train_autoContext_parameters(iota2_directory):
+def train_autoContext_parameters(iota2_directory, regionField):
     """
     Parameters
     ----------
     iota2_directory : string
         path to iota²'s running directory
-
+    regionField : string
+        region's field
     Return
     ------
     parameters : list
@@ -34,6 +35,14 @@ def train_autoContext_parameters(iota2_directory):
     from collections import OrderedDict
     from Common.FileUtils import FileSearch_AND
     from Common.FileUtils import sortByFirstElem
+    from Common.FileUtils import sortByFirstElem
+    from Learning.TrainingCmd import config_model
+
+    pathToModelConfig = os.path.join(iota2_directory, "config_model", "configModel.cfg")
+    configModel = config_model(iota2_directory, regionField)
+    if not os.path.exists(pathToModelConfig):
+        with open(pathToModelConfig, "w") as configFile:
+            configFile.write(configModel)
 
     sample_selection_directory = os.path.join(iota2_directory, "samplesSelection")
     

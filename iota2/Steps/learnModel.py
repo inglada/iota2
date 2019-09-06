@@ -29,6 +29,7 @@ class learnModel(IOTA2Step.Step):
         self.workingDirectory = workingDirectory
         self.output_path = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
         self.data_field = SCF.serviceConfigFile(self.cfg).getParam('chain', 'dataField')
+        self.regionField = SCF.serviceConfigFile(self.cfg).getParam('chain', 'regionField')
         self.runs = SCF.serviceConfigFile(self.cfg).getParam('chain', 'runs')
         self.enable_autoContext = SCF.serviceConfigFile(self.cfg).getParam('chain', 'enable_autoContext')
         self.RAM = 1024.0 * get_RAM(self.resources["ram"])
@@ -49,7 +50,8 @@ class learnModel(IOTA2Step.Step):
         from Learning import TrainingCmd as TC
         from Learning.trainAutoContext import train_autoContext_parameters
         if self.enable_autoContext:
-            parameter_list = train_autoContext_parameters(self.output_path)
+            parameter_list = train_autoContext_parameters(self.output_path, 
+                                                          self.regionField)
         else:
             parameter_list = TC.launchTraining(self.cfg,
                                                self.data_field,
