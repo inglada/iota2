@@ -349,7 +349,8 @@ class iota2():
         s_container.append(step_learning, "learning")
 
         # classifications steps
-        s_container.append(step_classiCmd, "classification")
+        if enable_autoContext is False:
+            s_container.append(step_classiCmd, "classification")
         s_container.append(step_classification, "classification")
         if ds_sar_opt:
             s_container.append(step_confusion_sar_opt, "classification")
