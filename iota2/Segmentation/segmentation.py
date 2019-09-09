@@ -69,7 +69,7 @@ def slicSegmentation(tile_name, config_path, ram=128, working_dir=None, LOGGER=l
     slic_parameters = {"in": all_features,
                        "tmpdir": tmp_dir,
                        "spw": int(spx),
-                       "tiling.auto.ram": ram,
+                       "tiling.auto.ram": str(0.1 * ram),
                        "out": slic_seg_path}
     SLIC_seg = CreateSLICApplication(slic_parameters)
     
