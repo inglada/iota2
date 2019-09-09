@@ -85,6 +85,54 @@ def unPackFirst(someListOfList):
         else:
             yield values
 
+
+def CreateClassifyAutoContext(OtbParameters):
+    """binding to TrainAutoContext OTB's application
+    
+    Parameter
+    ---------
+
+    OtbParameters [dic] 
+        dictionnary with otb's parameter keys
+    
+    Return
+    ------
+    class 'otbApplication.Application'
+        SLIC application ready to be Execute()
+    """
+    classify_autoContext = otb.Registry.CreateApplication("ClassifyAutoContext")
+    if classify_autoContext is None:
+        raise Exception("Not possible to create 'ClassifyAutoContext' application,\
+                         check if OTB is well configured / installed")
+    #~ check mandatory parameters
+    if "in" not in OtbParameters:
+        raise Exception("'in' parameter not found")
+    if "inseg" not in OtbParameters:
+        raise Exception("'inseg' parameter not found")
+    if "lablist" not in OtbParameters:
+        raise Exception("'refdata' parameter not found")
+    if "tmpdir" not in OtbParameters:
+        raise Exception("'tmpdir' parameter not found")
+    if "out" not in OtbParameters:
+        raise Exception("'out' parameter not found")
+
+    in_img = OtbParameters["in"]
+    if isinstance(in_img, str):
+        classify_autoContext.SetParameterString("in", in_img)
+    else:
+        classify_autoContext.SetParameterInputImage("in", in_img.GetParameterOutputImage(getInputParameterOutput(in_img)))
+
+    classify_autoContext.SetParameterString("inseg", OtbParameters["inseg"])
+    classify_autoContext.SetParameterStringList("models", OtbParameters["models"])
+    classify_autoContext.SetParameterStringList("lablist", OtbParameters["lablist"])
+    classify_autoContext.SetParameterString("tmpdir", OtbParameters["tmpdir"])
+    classify_autoContext.SetParameterString("out", OtbParameters["out"])
+    if "ram" in OtbParameters:
+        classify_autoContext.SetParameterString("ram", str(OtbParameters["ram"]))
+
+    return classify_autoContext
+
+
 def CreateTrainAutoContext(OtbParameters):
     """binding to TrainAutoContext OTB's application
     
