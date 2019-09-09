@@ -32,9 +32,7 @@ def train_autoContext_parameters(iota2_directory, regionField):
     ------
     parameters : list
     """
-    from collections import OrderedDict
     from Common.FileUtils import FileSearch_AND
-    from Common.FileUtils import sortByFirstElem
     from Common.FileUtils import sortByFirstElem
     from Learning.TrainingCmd import config_model
 
