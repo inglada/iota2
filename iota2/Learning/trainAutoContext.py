@@ -116,7 +116,7 @@ def train_autoContext(parameter_dict, config_path, RAM=128, WORKING_DIR=None, LO
                                                 "refdata": data_ref,
                                                 "field": field,
                                                 "out": "{}/".format(model_path),
-                                                "ram": RAM})
+                                                "ram": str(0.1 * RAM)})
     LOGGER.info("Start training autoContext, produce model {}, seed {}".format(model_name, seed_num))
     train_autoContext.ExecuteAndWriteOutput()
     LOGGER.info("training autoContext DONE")
