@@ -127,6 +127,9 @@ def CreateClassifyAutoContext(OtbParameters):
     classify_autoContext.SetParameterStringList("lablist", OtbParameters["lablist"])
     classify_autoContext.SetParameterString("tmpdir", OtbParameters["tmpdir"])
     classify_autoContext.SetParameterString("out", OtbParameters["out"])
+
+    if "confmap" in OtbParameters:
+        classify_autoContext.SetParameterString("confmap", str(OtbParameters["confmap"]))
     if "ram" in OtbParameters:
         classify_autoContext.SetParameterString("ram", str(OtbParameters["ram"]))
 
