@@ -34,13 +34,14 @@ def slicSegmentation(tile_name, config_path, ram=128, working_dir=None, LOGGER=l
     LOGGER : logging
         root logger
     """
+    import math
     import shutil
     from Common.GenerateFeatures import generateFeatures
     from Common import ServiceConfigFile as SCF
     from Common.OtbAppBank import CreateSLICApplication
     from Common.OtbAppBank import getInputParameterOutput
     from Common.FileUtils import ensure_dir
-    
+
     SLIC_NAME = "SLIC_{}.tif".format(tile_name)
 
     cfg = SCF.serviceConfigFile(config_path)
@@ -66,10 +67,17 @@ def slicSegmentation(tile_name, config_path, ram=128, working_dir=None, LOGGER=l
                                  tile_name,
                                  "tmp",
                                  SLIC_NAME)
+
+    features_ram_estimation = all_features.PropagateRequestedRegion(key="out",
+                                                                    region=all_features.GetImageRequestedRegion("out"))
+    # increase estimation...
+    features_ram_estimation = features_ram_estimation * 1.5
+    xy_tiles = math.ceil(math.sqrt(float(features_ram_estimation)/(float(ram)*1024**2)))
     slic_parameters = {"in": all_features,
                        "tmpdir": tmp_dir,
                        "spw": int(spx),
-                       "tiling.auto.ram": str(0.1 * ram),
+                       "tiling.manual.ny": int(xy_tiles),
+                       "tiling.manual.nx": int(xy_tiles),
                        "out": slic_seg_path}
     SLIC_seg = CreateSLICApplication(slic_parameters)
     
