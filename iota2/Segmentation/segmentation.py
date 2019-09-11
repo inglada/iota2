@@ -18,7 +18,7 @@ import logging
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
 
-def slicSegmentation(tile_name, config_path, ram=128, working_dir=None, LOGGER=logger):
+def slicSegmentation(tile_name, config_path, ram=128, working_dir=None, force_spw=None, LOGGER=logger):
     """generate segmentation using SLIC algorithm
 
     Parameters
@@ -75,7 +75,8 @@ def slicSegmentation(tile_name, config_path, ram=128, working_dir=None, LOGGER=l
     xy_tiles = math.ceil(math.sqrt(float(features_ram_estimation)/(float(ram)*1024**2)))
     slic_parameters = {"in": all_features,
                        "tmpdir": tmp_dir,
-                       "spw": int(spx),
+                       "spw": force_spw if force_spw else int(spx),
+                       "tiling": "manual",
                        "tiling.manual.ny": int(xy_tiles),
                        "tiling.manual.nx": int(xy_tiles),
                        "out": slic_seg_path}
