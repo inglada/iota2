@@ -39,6 +39,10 @@ class iota_testAutoContext(unittest.TestCase):
         self.group_test_name = "iota_testAutoContext"
         self.iota2_tests_directory = os.path.join(IOTA2DIR, "data", self.group_test_name)
         self.config_test = os.path.join(IOTA2DIR, "config", "Config_4Tuiles_Multi_FUS_Confidence.cfg")
+        self.ref_data = os.path.join(IOTA2DIR, "data", "references",
+                                     "formatting_vectors", "Input",
+                                     "formattingVectors", "T31TCJ.shp")
+        self.tile_name = "T31TCJ"
         self.all_tests_ok = []
         self.test_working_directory = None
         if os.path.exists(self.iota2_tests_directory):
@@ -88,26 +92,14 @@ class iota_testAutoContext(unittest.TestCase):
         if ok:
             shutil.rmtree(self.test_working_directory)
 
-    #Tests definitions
-    def test_SLIC(self):
-        """non-regression test, check if SLIC could be performed
+    def generate_cfg_file(self, ref_cfg, test_cfg):
+        """
         """
         from config import Config
-        from Common import IOTA2Directory
-        from Common import ServiceConfigFile as SCF
-        from Segmentation import segmentation
-        from Sensors.Sensors_container import Sensors_container
-        from Common.FileUtils import FileSearch_AND
-        
-        tile_name = "T31TCJ"
+        shutil.copy(ref_cfg, test_cfg)
 
-        # config file
-        config_path_test = os.path.join(self.test_working_directory, "Config_TEST.cfg")
-        shutil.copy(self.config_test, config_path_test)
-
-        S2ST_data = self.test_working_directory
         testPath = os.path.join(self.test_working_directory, "RUN")
-        cfg_test = Config(open(config_path_test))
+        cfg_test = Config(open(test_cfg))
         cfg_test.chain.outputPath = testPath
         cfg_test.chain.listTile = "T31TCJ"
         cfg_test.chain.L8Path_old = "None"
@@ -122,28 +114,85 @@ class iota_testAutoContext(unittest.TestCase):
         cfg_test.argTrain.annualClassesExtractionSource = None
         cfg_test.GlobChain.useAdditionalFeatures = False
         cfg_test.GlobChain.writeOutputs = False
-        cfg_test.save(open(config_path_test, 'w'))
+        cfg_test.save(open(test_cfg, 'w'))
+        return testPath
 
+    def prepare_autoContext_data_ref(self):
+        """
+        """
+        from Common.FileUtils import FileSearch_AND
+        from Common.OtbAppBank import CreateSampleSelectionApplication
+        from Common.OtbAppBank import CreatePolygonClassStatisticsApplication
+        
+        raster_ref = FileSearch_AND(self.fake_data_dir, True, ".tif")[0]
+        CreatePolygonClassStatisticsApplication({"in": raster_ref,
+                                                 "vec": self.ref_data,
+                                                 "field": "CODE",
+                                                 "out": os.path.join(self.test_working_directory, "stats.xml")}).ExecuteAndWriteOutput()
+        ref_sampled = os.path.join(self.test_working_directory, "ref_selection.sqlite")
+        CreateSampleSelectionApplication({"in": raster_ref,
+                                          "vec": self.ref_data,
+                                          "field": "CODE",
+                                          "strategy": "all",
+                                          "instats": os.path.join(self.test_working_directory, "stats.xml"),
+                                          "out": ref_sampled}).ExecuteAndWriteOutput()
+        os.remove(os.path.join(self.test_working_directory, "stats.xml"))
+        return ref_sampled
+
+    #Tests definitions
+    def test_slic(self):
+        """non-regression test, check if SLIC could be performed
+        """
+        from Common import IOTA2Directory
+        from Common import ServiceConfigFile as SCF
+        from Segmentation import segmentation
+        from Common.FileUtils import FileSearch_AND
+        from Sensors.Sensors_container import Sensors_container
+        
+        # config file
+        config_path_test = os.path.join(self.test_working_directory, "Config_TEST.cfg")
+        testPath = self.generate_cfg_file(self.config_test, config_path_test)
         cfg = SCF.serviceConfigFile(config_path_test)
         IOTA2Directory.GenerateDirectories(cfg)
         slic_working_dir = os.path.join(self.test_working_directory, "slic_tmp")
-        sensors = Sensors_container(config_path_test, tile_name, None)
+        sensors = Sensors_container(config_path_test, self.tile_name, None)
         sensors.sensors_preprocess()
 
         # Launch test
-        segmentation.slicSegmentation(tile_name, config_path_test, ram=128, working_dir=slic_working_dir, force_spw=1)
+        segmentation.slicSegmentation(self.tile_name, config_path_test, ram=128, working_dir=slic_working_dir, force_spw=1)
         
         # as SLIC algorithm contains random variables, the raster's content could
         # not be tested
         self.assertTrue(len(FileSearch_AND(os.path.join(testPath,
                                                         "features",
-                                                        tile_name,
+                                                        self.tile_name,
                                                         "tmp"),
                                            True,
-                                           "SLIC_{}".format(tile_name)))==1,
+                                           "SLIC_{}".format(self.tile_name)))==1,
                         msg="SLIC algorithm failed")
-    
+
     def test_train(self):
+        """test autoContext training
         """
-        """
-        #~ /home/uz/vincenta/IOTA2/data/references/formatting_vectors/Input/formattingVectors/T31TCJ.shp
+        from Common import IOTA2Directory
+        from Common import ServiceConfigFile as SCF
+        from Segmentation import segmentation
+        from Common.FileUtils import FileSearch_AND
+        from Sensors.Sensors_container import Sensors_container
+        
+        # config file
+        config_path_test = os.path.join(self.test_working_directory, "Config_TEST.cfg")
+        testPath = self.generate_cfg_file(self.config_test, config_path_test)
+        cfg = SCF.serviceConfigFile(config_path_test)
+        IOTA2Directory.GenerateDirectories(cfg)
+        autoContext_working_dir = os.path.join(self.test_working_directory, "autoContext_tmp")
+        slic_working_dir = os.path.join(self.test_working_directory, "autoContext_tmp")
+        sensors = Sensors_container(config_path_test, self.tile_name, None)
+        sensors.sensors_preprocess()
+        
+        segmentation.slicSegmentation(self.tile_name, config_path_test, ram=128, working_dir=slic_working_dir, force_spw=1)
+        print(self.prepare_autoContext_data_ref())
+        
+        # launch test
+        #~ train_autoContext(parameter_dict, config_path_test, RAM=128, WORKING_DIR=autoContext_working_dir, LOGGER=logger)
+        self.assertTrue(False)
