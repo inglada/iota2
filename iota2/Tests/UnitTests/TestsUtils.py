@@ -16,6 +16,34 @@
 import os
 
 
+def test_raster_unique_value(raster_path, value, band_num=-1):
+    """test if a raster contains an unique value
+
+    Parameters
+    ----------
+    raster_path : string
+        raster path
+    value : int
+        value to check
+    band_num : int
+        raster band to verify, from 1 to N (default=-1, mean all bands)
+
+    Return
+    ------
+    bool
+        True if the raster contains an unique value, else False
+    """
+    import numpy as np
+    np_array = rasterToArray(raster_path)
+    if band_num != -1:
+        #bands start at index 0
+        band_num -= 1
+        np_array = np_array[band_num]
+    unique, counts = np.unique(np_array, return_counts=True)
+
+    print(len(unique==1) and value==unique[0])
+    pause = input("check")
+
 def random_ground_truth_generator(output_shape, data_field, number_of_class,
                                   region_field=None,
                                   min_cl_samples=10, max_cl_samples=100,
