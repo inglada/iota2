@@ -41,8 +41,7 @@ def test_raster_unique_value(raster_path, value, band_num=-1):
         np_array = np_array[band_num]
     unique, counts = np.unique(np_array, return_counts=True)
 
-    print(len(unique==1) and value==unique[0])
-    pause = input("check")
+    return (len(unique==1) and value==unique[0])
 
 def random_ground_truth_generator(output_shape, data_field, number_of_class,
                                   region_field=None,
@@ -152,6 +151,7 @@ def generate_fake_s2_data(root_directory, tile_name, dates):
     masks_of_interest = ["BINARY_MASK", "CLM_R1", "EDG_R1", "SAT_R1"]
     originX = 566380.1
     originY = 6283811.1
+    array_name = "iota2_binary"
     for date in dates:
         date_dir = os.path.join(tile_dir,
                                 "SENTINEL2B_{}-000000-000_L2A_{}_D_V1-7".format(date, tile_name))
@@ -164,13 +164,13 @@ def generate_fake_s2_data(root_directory, tile_name, dates):
             new_mask = os.path.join(mask_date_dir,
                                     "SENTINEL2B_{}-000000-000_L2A_{}_D_V1-7_FRE_{}.tif".format(date, tile_name, mask))
             
-            arrayToRaster(fun_array("iota2_binary")[::-1] * cpt % 2, new_mask,
+            arrayToRaster(fun_array(array_name)[::-1] * cpt % 2, new_mask,
                           originX=originX, originY=originY)
         for band in band_of_interest:
             new_band = os.path.join(date_dir,
                                     "SENTINEL2B_{}-000000-000_L2A_{}_D_V1-7_FRE_{}.tif".format(date, tile_name, band))
             all_bands.append(new_band)
-            array = fun_array("iota2_binary")[::-1]
+            array = fun_array(array_name)[::-1]
             random_array = []
             for y in array:
                 y_tmp = []
