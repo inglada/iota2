@@ -86,8 +86,8 @@ def unPackFirst(someListOfList):
             yield values
 
 
-def CreateClassifyAutoContext(OtbParameters):
-    """binding to TrainAutoContext OTB's application
+def CreateClassificationMapRegularization(OtbParameters):
+    """binding to ClassificationMapRegularization OTB's application
     
     Parameter
     ---------
@@ -98,7 +98,56 @@ def CreateClassifyAutoContext(OtbParameters):
     Return
     ------
     class 'otbApplication.Application'
-        SLIC application ready to be Execute()
+        ClassificationMapRegularization application ready to be Execute()
+    """
+    map_reg = otb.Registry.CreateApplication("ClassificationMapRegularization")
+    if map_reg is None:
+        raise Exception("Not possible to create 'ClassificationMapRegularization' application,\
+                         check if OTB is well configured / installed")
+    #~ check mandatory parameters
+    if "io.in" not in OtbParameters:
+        raise Exception("'io.in' parameter not found")
+
+    in_img = OtbParameters["io.in"]
+    if isinstance(in_img, str):
+        map_reg.SetParameterString("io.in", in_img)
+    else:
+        map_reg.SetParameterInputImage("io.in", in_img.GetParameterOutputImage(getInputParameterOutput(in_img)))
+
+    if "io.out" in OtbParameters:
+        map_reg.SetParameterString("io.out", str(OtbParameters["io.out"]))
+    if "ip.radius" in OtbParameters:
+        map_reg.SetParameterString("ip.radius", str(OtbParameters["ip.radius"]))
+    if "ip.suvbool" in OtbParameters:
+        map_reg.SetParameterString("ip.suvbool", str(OtbParameters["ip.suvbool"]))
+    if "ip.nodatalabel" in OtbParameters:
+        map_reg.SetParameterString("ip.nodatalabel", str(OtbParameters["ip.nodatalabel"]))
+    if "ip.undecidedlabel" in OtbParameters:
+        map_reg.SetParameterString("ip.undecidedlabel", str(OtbParameters["ip.undecidedlabel"]))
+    if "ip.onlyisolatedpixels" in OtbParameters:
+        map_reg.SetParameterString("ip.onlyisolatedpixels", str(OtbParameters["ip.onlyisolatedpixels"]))
+    if "ip.isolatedthreshold" in OtbParameters:
+        map_reg.SetParameterString("ip.isolatedthreshold", str(OtbParameters["ip.isolatedthreshold"]))
+    if "ram" in OtbParameters:
+        map_reg.SetParameterString("ram", str(OtbParameters["ram"]))
+    if "pixType" in OtbParameters:
+        map_reg.SetParameterOutputImagePixelType("io.out", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
+    return map_reg
+
+
+def CreateClassifyAutoContext(OtbParameters):
+    """binding to ClassifyAutoContext OTB's application
+    
+    Parameter
+    ---------
+
+    OtbParameters [dic] 
+        dictionnary with otb's parameter keys
+    
+    Return
+    ------
+    class 'otbApplication.Application'
+        ClassifyAutoContext application ready to be Execute()
     """
     classify_autoContext = otb.Registry.CreateApplication("ClassifyAutoContext")
     if classify_autoContext is None:
