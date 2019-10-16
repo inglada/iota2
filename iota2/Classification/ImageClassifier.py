@@ -191,14 +191,14 @@ class iota2Classification():
         if self.working_directory:
             shutil.copy(self.classification, os.path.join(self.output_directory,
                                                           os.path.split(self.classification)[-1]))
-            os.remove(self.classification)
+            #~ os.remove(self.classification)
             shutil.copy(self.confidence, os.path.join(self.output_directory,
                                                           os.path.split(self.confidence)[-1]))
-            os.remove(self.confidence)
+            #~ os.remove(self.confidence)
             if self.proba_map_path:
                 shutil.copy(self.proba_map_path, os.path.join(self.output_directory,
                                                               os.path.split(self.proba_map_path)[-1]))
-                os.remove(self.proba_map_path)
+                #~ os.remove(self.proba_map_path)
 
     def reorder_proba_map(self, proba_map_path_in, proba_map_path_out, class_model, all_class):
         """reorder the probability map
@@ -243,7 +243,18 @@ class iota2Classification():
                                                   "out": proba_map_path_out})
         reorder_app.ExecuteAndWriteOutput()
 
-def get_class_by_models(iota2_samples_dir, data_field):
+
+def get_model_dictionnary(model):
+    classes = []
+    with open(model) as modelfile:
+        line = next(modelfile)
+        if "#" in line and "with_dictionary" in line:
+            classes = next(modelfile).split(" ")[1:-1]
+            classes = [int(x) for x in classes]
+    return classes
+    
+    
+def get_class_by_models(iota2_samples_dir, data_field, model=None) :
     """ inform which class will be used to by models
 
     Parameters
@@ -253,7 +264,9 @@ def get_class_by_models(iota2_samples_dir, data_field):
 
     data_field : string
         field which contains labels in vector file
-
+    
+    model : string
+        path to model for correct number of classes in proba map
     Return 
     ------
     dic[model][seed]
@@ -266,19 +279,30 @@ def get_class_by_models(iota2_samples_dir, data_field):
     """
     from Common.FileUtils import FileSearch_AND
     from Common.FileUtils import getFieldElement
-    
-    samples_files =  FileSearch_AND(iota2_samples_dir, True,
-                                    "Samples_region_", "_seed", "_learn.sqlite")
     class_models = {}
-    for samples_file in samples_files:
-        model_name = os.path.splitext(os.path.basename(samples_file))[0].split("_")[2]
-        class_models[model_name] = {}
-    for samples_file in samples_files:
-        model_name = os.path.splitext(os.path.basename(samples_file))[0].split("_")[2]
-        seed_number = int(os.path.splitext(os.path.basename(samples_file))[0].split("_")[3].replace("seed", ""))
-        class_models[model_name][seed_number] = sorted(getFieldElement(samples_file, driverName="SQLite",
-                                                                       field=data_field.lower(), mode="unique",
-                                                                       elemType="int"))
+    if model is not None:
+        modelpath = os.path.dirname(model)
+        models_files = FileSearch_AND(modelpath, True, "model","seed",".txt")
+        
+        for model_file in models_files:
+            model_name = os.path.splitext(os.path.basename(model_file))[0].split("_")[1]
+            class_models[model_name] = {}
+            seed_number = int(os.path.splitext(os.path.basename(model_file))[0].split("_")[3].replace(".txt", ""))
+            classes = get_model_dictionnary(model_file)
+            class_models[model_name][seed_number] = classes
+    else:
+        samples_files =  FileSearch_AND(iota2_samples_dir, True,
+                                    "Samples_region_", "_seed", "_learn.sqlite")
+  
+        for samples_file in samples_files:
+            model_name = os.path.splitext(os.path.basename(samples_file))[0].split("_")[2]
+            class_models[model_name] = {}
+        for samples_file in samples_files:
+            model_name = os.path.splitext(os.path.basename(samples_file))[0].split("_")[2]
+            seed_number = int(os.path.splitext(os.path.basename(samples_file))[0].split("_")[3].replace("seed", ""))
+            class_models[model_name][seed_number] = sorted(getFieldElement(samples_file, driverName="SQLite",
+                                                                           field=data_field.lower(), mode="unique",
+                                                                           elemType="int"))
     return class_models
 
 def launchClassification(tempFolderSerie, Classifmask, model, stats,
@@ -352,8 +376,7 @@ def launchClassification(tempFolderSerie, Classifmask, model, stats,
     iota2_samples_dir = os.path.join(cfg.getParam('chain', 'outputPath'),
                                      "learningSamples")
     data_field = cfg.getParam('chain', 'dataField')
-    models_class = get_class_by_models(iota2_samples_dir, data_field)
-
+    models_class = get_class_by_models(iota2_samples_dir, data_field, model=model if proba_map_expected else None)
     classif = iota2Classification(cfg, ClassifInput, classifier_type, model, tile, output_directory,
                                   models_class, proba_map=proba_map_expected, working_directory=pathWd,
                                   classif_mask=Classifmask, pixType=pixType, stat_norm=stats, RAM=RAM,
