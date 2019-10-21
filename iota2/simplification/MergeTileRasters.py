@@ -383,3 +383,4 @@ if __name__ == "__main__":
                                   args.douglas, args.hermite, args.angle)
 
 #python chaineIOTA/iota2/scripts/simplification/MergeTileRasters.py -wd $TMPDIR -grass /work/OT/theia/oso/OTB/GRASS/grass7.2.1svn-x86_64-pc-linux-gnu-13_03_2017 -listTiles /work/OT/theia/oso/classifications/Simplification/2017/production/out/oso2017_grid.shp -out /work/OT/theia/oso/classifications/Simplification/2017/production/out/departements/departement_8.shp -mmu 1000 -extract /work/OT/theia/oso/classifications/Simplification/FranceEntiere/otb/FranceDepartements.shp -field CODE_DEPT -value "08" -fieldclass cat -tileId FID -prefix tile_ -tileFolder /work/OT/theia/oso/classifications/Simplification/2017/production/out/voisins -douglas 10 -hermite 10 -angle
+
