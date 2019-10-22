@@ -46,7 +46,7 @@ then a list of informations are printed, especially :
 
 .. Note:: maintain conda up to date thanks ``conda update conda`` command
 
-Once the ``.condarc`` file is located, you must add the following in it.
+Once the ``.condarc`` file is located (create it if not exists), you must add the following in it.
 
 .. code-block:: console
 
@@ -55,8 +55,7 @@ Once the ``.condarc`` file is located, you must add the following in it.
         - iota2
         - conda-forge
         - defaults
-        ...
-    ...
+
 
 **Step 3 :** get iota²'s package and install it
 
