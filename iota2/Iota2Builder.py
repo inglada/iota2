@@ -153,8 +153,8 @@ class iota2():
                            reportGeneration, mergeSeedClassifications,
                            additionalStatistics, additionalStatisticsMerge,
                            sensorsPreprocess, Coregistration, Regularization,
-                           Clump, Grid, crownSearch, crownBuild,
-                           largeVectorization, VectSimplification,
+                           Clump, Grid, crownSearch, crownBuild, mosaicTilesVectorization,
+                           largeVectorization, largeSimplification, largeSmoothing,
                            zonalStatistics, joinStatistics)
 
         # will contains all IOTA² steps
@@ -277,12 +277,18 @@ class iota2():
         step_crown_build = crownBuild.crownBuild(cfg,
                                                  config_ressources,
                                                  self.workingDirectory)
+        step_mosaic = mosaicTilesVectorization.mosaicTilesVectorization(cfg,
+                                                                        config_ressources,
+                                                                        self.workingDirectory)        
         step_large_vecto = largeVectorization.largeVectorization(cfg,
                                                                  config_ressources,
                                                                  self.workingDirectory)
-        step_simplification = VectSimplification.simplification(cfg,
-                                                                config_ressources,
-                                                                self.workingDirectory)
+        step_large_simp = largeSimplification.largeSimplification(cfg,
+                                                                 config_ressources,
+                                                                 self.workingDirectory)        
+        step_large_smoothing = largeSmoothing.largeSmoothing(cfg,
+                                                             config_ressources,
+                                                             self.workingDirectory)        
         step_zonal_stats = zonalStatistics.zonalStatistics(cfg,
                                                            config_ressources,
                                                            self.workingDirectory)
@@ -376,6 +382,8 @@ class iota2():
             s_container.append(step_crown_build, "crown")
             # vectorization step
             s_container.append(step_large_vecto, "vectorisation")
+            s_container.append(step_large_simp, "vectorisation")
+            s_container.append(step_large_smoothing, "vectorisation")            
         else:
             # vectorization step
             s_container.append(step_simplification, "vectorisation")
