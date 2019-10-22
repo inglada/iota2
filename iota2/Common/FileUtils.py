@@ -1043,7 +1043,7 @@ def getRasterNbands(raster):
         elif isinstance(raster, osgeo.gdal.Dataset):
             src_ds = raster
     except:
-        print "Problem on raster file path"
+        print("Problem on raster file path")
         sys.exit()        
 
     if src_ds is None:
