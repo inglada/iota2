@@ -19,9 +19,27 @@ import datetime
 import subprocess
 import sys
 import logging
+from typing import List
 from timeit import default_timer as timer
 
 logger = logging.getLogger(__name__)
+
+class remove_in_string_list(object):
+    """decorator use to remove element in return list according to strings
+    """
+    def __init__(self, *args: List[str]):
+        self.pattern_list = args
+
+    def __call__(self, f):
+        def wrapped_f(*args):
+            results = f(*args)
+            results_filtered = []
+            for pattern in self.pattern_list:
+                for elem in results:
+                    if pattern not in elem:
+                        results_filtered.append(elem)
+            return results_filtered
+        return wrapped_f
 
 def run(cmd, desc=None, env=os.environ, logger=logger):
 

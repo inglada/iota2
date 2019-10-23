@@ -36,7 +36,7 @@ from osgeo import osr
 from osgeo.gdalconst import *
 #~ import otbApplication as otb
 from Common.Utils import run
-
+from Common.Utils import remove_in_string_list
 
 def get_iota2_project_dir():
     """
@@ -1539,6 +1539,7 @@ def getListTileFromModel(modelIN, pathToConfig):
             return model.tilesList.split("_")
 
 
+@remove_in_string_list(".aux.xml", ".sqlite-journal")
 def fileSearchRegEx(Pathfile):
     """
     get files by regEx
@@ -1629,7 +1630,7 @@ def cpShapeFile(inpath, outpath, extensions, spe=False):
         else:
             shutil.copy(inpath + ext, outpath)
 
-
+@remove_in_string_list(".aux.xml", ".sqlite-journal")
 def FileSearch_AND(PathToFolder, AllPath, *names):
 
     """
@@ -1648,7 +1649,7 @@ def FileSearch_AND(PathToFolder, AllPath, *names):
         for i in range(len(files)):
             flag = 0
             for name in names:
-                if files[i].count(name) != 0 and files[i].count(".aux.xml") == 0:
+                if files[i].count(name) != 0:
                     flag += 1
             if flag == len(names):
                 if not AllPath:
