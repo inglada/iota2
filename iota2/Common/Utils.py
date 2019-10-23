@@ -37,7 +37,8 @@ class remove_in_string_list(object):
             for pattern in self.pattern_list:
                 for elem in results:
                     if pattern not in elem:
-                        results_filtered.append(elem)
+                        if elem not in results_filtered:
+                            results_filtered.append(elem)
             return results_filtered
         return wrapped_f
 
