@@ -119,7 +119,7 @@ def split_superpixels_and_reference(vector_file: str,
     #~ df = geopd.GeoDataFrame.from_postgis(sql, conn, geom_col="geometry")
     #~ conn_out = sqlite3.connect(vector_file.replace(".sqlite", "_V3.sqlite"))
     #~ df.to_sql(table_name, conn_out)
-
+    return vector_file, os.path.join(vectors_dir, os.path.split(superpix_db)[-1])
     
 def get_regions_area(vectors, regions, formatting_vectors_dir,
                      workingDirectory, region_field):
