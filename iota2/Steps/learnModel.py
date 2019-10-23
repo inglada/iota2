@@ -33,7 +33,7 @@ class learnModel(IOTA2Step.Step):
         self.runs = SCF.serviceConfigFile(self.cfg).getParam('chain', 'runs')
         self.enable_autoContext = SCF.serviceConfigFile(self.cfg).getParam('chain', 'enable_autoContext')
         self.RAM = 1024.0 * get_RAM(self.resources["ram"])
-
+        self.superpix_data_field = "superpix"
     def step_description(self):
         """
         function use to print a short description of the step's purpose
@@ -72,7 +72,11 @@ class learnModel(IOTA2Step.Step):
         """
         if self.enable_autoContext:
             from Learning.trainAutoContext import train_autoContext
-            step_function = lambda x: train_autoContext(x, self.cfg, self.RAM, self.workingDirectory)
+            step_function = lambda x: train_autoContext(x,
+                                                        self.cfg,
+                                                        self.superpix_data_field,
+                                                        self.RAM,
+                                                        self.workingDirectory)
         else:
             from MPI import launch_tasks as tLauncher
             bashLauncherFunction = tLauncher.launchBashCmd
