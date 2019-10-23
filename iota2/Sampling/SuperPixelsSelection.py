@@ -67,10 +67,25 @@ def SP_geo_coordinates_with_value(coordinates: Tuple[y_coords, x_coords],
                                   x_size: float, y_size: float) -> Generator[float, float, float]:
     """generator
     convert tabular coordinates to geographical
-    
+
+    Parameters
+    ----------
+    coordinates: tuple
+        tuple of coordinates (lists) to convert
+    SP_array: np.array
+        numpy array to extract value
+    x_origin: float
+        x origin
+    y_origin: float
+        y origin
+    x_size: float
+        x size
+    y_size: float
+        y size
+
     Return
     ------
-    tuple(y_geo_coordinates, x_geo_coordinates, super_pixel_label)
+    tuple(y_geo_coordinates, x_geo_coordinates, array_value)
     """
     offset_y = y_size / 2.0
     offset_x = x_size / 2.0
@@ -223,7 +238,16 @@ def geo_to_tab(x_coord,
     return math.floor(x_tab), math.floor(y_tab)
 
 def add_SP_labels(reference: str, SLIC: str, SP_FIELD_NAME: str) -> None:
-    """
+    """Add new column to a database and add raster's value in it
+
+    Parameters
+    ----------
+    reference : str
+        database path
+    SLIC : str
+        raster path
+    SP_FIELD_NAME : str
+        database field to add raster's value
     """
     import gdal
     from osgeo import ogr
@@ -262,7 +286,23 @@ def merge_ref_super_pix(data: Param,
                         REGION_FIELD_NAME: str,
                         workingDirectory: Optional[str] = None,
                         ram: Optional[int] = 128):
-    """add superPixels points to reference data 
+    """add superPixels points to reference data
+
+    Parameters
+    ----------
+    data : dict
+        {"selection_samples": "/path/to/pointsDataBase.sqlite",
+         "SLIC": "/path/to/segmentedRaster.tif"}
+    SP_FIELD_NAME : str
+        field added in database representing segment labels
+    SP_BELONG_FIELD_NAME : str
+        field added in database discriminating original samples from new samples
+    REGION_FIELD_NAME : str
+        region field in database
+    workingDirectory : str
+        path to store temporary files
+    ram : int
+        available ram
     """
     import shutil
     reference = data["selection_samples"]
