@@ -38,6 +38,7 @@ class superPixPos(IOTA2Step.Step):
         self.superPix_field = "superpix"
         self.superPix_belong_field = "is_super_pix"
         self.region_field = SCF.serviceConfigFile(self.cfg).getParam('chain', 'regionField')
+        self.data_field = SCF.serviceConfigFile(self.cfg).getParam('chain', 'dataField')
         self.ram = 1024.0 * get_RAM(self.resources["ram"])
 
     def step_description(self):
@@ -65,7 +66,9 @@ class superPixPos(IOTA2Step.Step):
             must be a lambda function.
         """
         from Sampling.SuperPixelsSelection import merge_ref_super_pix
+
         step_function = lambda x: merge_ref_super_pix(x,
+                                                      self.data_field,
                                                       self.superPix_field,
                                                       self.superPix_belong_field,
                                                       self.region_field,

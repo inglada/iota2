@@ -237,7 +237,7 @@ def geo_to_tab(x_coord,
     x_tab = (x_coord - x_origin) / x_size
     return math.floor(x_tab), math.floor(y_tab)
 
-def add_SP_labels(reference: str, SLIC: str, SP_FIELD_NAME: str) -> None:
+def add_SP_labels(reference: str, SLIC: str, DATAREF_FIELD_NAME: str, SP_FIELD_NAME: str, ram: Optional[int]) -> None:
     """Add new column to a database and add raster's value in it
 
     Parameters
@@ -246,41 +246,26 @@ def add_SP_labels(reference: str, SLIC: str, SP_FIELD_NAME: str) -> None:
         database path
     SLIC : str
         raster path
+    DATAREF_FIELD_NAME : str
+        database labels field name
     SP_FIELD_NAME : str
         database field to add raster's value
+    ram : int
+        available ram
     """
-    import gdal
-    from osgeo import ogr
-    from VectorTools.AddField import addField
-    from Common.FileUtils import getAllFieldsInShape
-    from Common.FileUtils import readRaster
+    from Common.OtbAppBank import CreateSampleExtractionApplication
+    
+    extraction = CreateSampleExtractionApplication({"in": SLIC,
+                                                    "vec": reference,
+                                                    "outfield": "list",
+                                                    "field":DATAREF_FIELD_NAME,
+                                                    "ram" : ram,
+                                                    "outfield.list.names": [SP_FIELD_NAME]})
+    extraction.ExecuteAndWriteOutput()
 
-    DRIVER = "SQLite"
-    if SP_FIELD_NAME not in getAllFieldsInShape(reference, "SQLite"):
-        addField(reference, SP_FIELD_NAME, valueField=0, valueType="int64", driver_name=DRIVER)
-    seg_ds = gdal.Open(SLIC, 0)
-    slic_array = seg_ds.GetRasterBand(1).ReadAsArray()
-    driver = ogr.GetDriverByName(DRIVER)
-
-    data_source = driver.Open(reference, 1)
-    layer = data_source.GetLayer()
-    _, _, projection, transform = readRaster(SLIC)
-    x_min, spacing_x, _, y_max, _, spacing_y = transform
-    for feature in layer:
-        geom = feature.GetGeometryRef()
-        x_coord = geom.GetX()
-        y_coord = geom.GetY()
-        x_tab, y_tab = geo_to_tab(x_coord,
-                                  y_coord,
-                                  x_origin=x_min,
-                                  y_origin=y_max,
-                                  x_size=spacing_x,
-                                  y_size=spacing_y)
-        feature.SetField(SP_FIELD_NAME, int(slic_array[y_tab][x_tab]))
-        layer.SetFeature(feature)
-    data_source = layer = None
 
 def merge_ref_super_pix(data: Param,
+                        DATAREF_FIELD_NAME: str,
                         SP_FIELD_NAME: str,
                         SP_BELONG_FIELD_NAME: str,
                         REGION_FIELD_NAME: str,
@@ -293,6 +278,8 @@ def merge_ref_super_pix(data: Param,
     data : dict
         {"selection_samples": "/path/to/pointsDataBase.sqlite",
          "SLIC": "/path/to/segmentedRaster.tif"}
+    DATAREF_FIELD_NAME : str
+        database labels field name
     SP_FIELD_NAME : str
         field added in database representing segment labels
     SP_BELONG_FIELD_NAME : str
@@ -310,10 +297,10 @@ def merge_ref_super_pix(data: Param,
 
     if workingDirectory:
         shutil.copy(reference, workingDirectory)
-        _, reference_name = os.path.split(reference)[-1]
+        _, reference_name = os.path.split(reference)
         reference = os.path.join(workingDirectory, reference_name)
         
-    add_SP_labels(reference, SLIC, SP_FIELD_NAME)
+    add_SP_labels(reference, SLIC, DATAREF_FIELD_NAME.lower(), SP_FIELD_NAME, ram)
 
     sp_coords_val = super_pixels_coordinates(reference, SLIC)
 
