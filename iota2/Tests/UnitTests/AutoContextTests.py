@@ -117,27 +117,58 @@ class iota_testAutoContext(unittest.TestCase):
         cfg_test.save(open(test_cfg, 'w'))
         return testPath
 
-    def prepare_autoContext_data_ref(self):
+    def prepare_autoContext_data_ref(self, slic_seg, config_path_test):
         """
         """
+        from VectorTools.AddField import addField
+        from Sampling.SuperPixelsSelection import merge_ref_super_pix
+        from Sampling.SplitSamples import split_superpixels_and_reference
         from Common.FileUtils import FileSearch_AND
         from Common.OtbAppBank import CreateSampleSelectionApplication
         from Common.OtbAppBank import CreatePolygonClassStatisticsApplication
+        from Common.OtbAppBank import CreateSampleExtractionApplication
+        from Common.GenerateFeatures import generateFeatures
+        from Common import ServiceConfigFile as SCF
         
         raster_ref = FileSearch_AND(self.fake_data_dir, True, ".tif")[0]
         CreatePolygonClassStatisticsApplication({"in": raster_ref,
                                                  "vec": self.ref_data,
                                                  "field": "CODE",
                                                  "out": os.path.join(self.test_working_directory, "stats.xml")}).ExecuteAndWriteOutput()
-        ref_sampled = os.path.join(self.test_working_directory, "ref_selection.sqlite")
+        ref_sampled = os.path.join(self.test_working_directory, "T31TCJ_samples_region_1_seed_0_selection.sqlite")
         CreateSampleSelectionApplication({"in": raster_ref,
                                           "vec": self.ref_data,
                                           "field": "CODE",
                                           "strategy": "all",
                                           "instats": os.path.join(self.test_working_directory, "stats.xml"),
                                           "out": ref_sampled}).ExecuteAndWriteOutput()
+                                          
+        cfg = SCF.serviceConfigFile(config_path_test)
+        features, feat_labels, dep = generateFeatures(None, "T31TCJ", cfg)
+        extraction = CreateSampleExtractionApplication({"in": features,
+                                                        "vec": ref_sampled,
+                                                        "field":"code",
+                                                        "outfield.list.names": feat_labels,
+                                                        "outfield": "list"})
+        extraction.ExecuteAndWriteOutput()
+
+        addField(ref_sampled, "newregion", valueField="1", valueType=str, driver_name="SQLite")
         os.remove(os.path.join(self.test_working_directory, "stats.xml"))
-        return ref_sampled
+
+        merge_ref_super_pix({"selection_samples": ref_sampled,
+                             "SLIC": slic_seg},
+                             "code",
+                             "superpix",
+                             "is_superpix",
+                             "newregion")
+
+        learning_vector = os.path.join(self.test_working_directory,
+                                       "T31TCJ_region_1_seed0_Samples_learn.sqlite")
+        shutil.move(ref_sampled, learning_vector)
+
+        ref, superpix = split_superpixels_and_reference(learning_vector, superpix_column="is_superpix")
+
+        return learning_vector, superpix
 
     #Tests definitions
     def test_slic(self):
@@ -185,7 +216,7 @@ class iota_testAutoContext(unittest.TestCase):
         from Sensors.Sensors_container import Sensors_container
         from Common.OtbAppBank import CreateBandMathApplication
         from TestsUtils import test_raster_unique_value
-
+        
         # config file
         config_path_test = os.path.join(self.test_working_directory, "Config_TEST.cfg")
         testPath = self.generate_cfg_file(self.config_test, config_path_test)
@@ -202,13 +233,14 @@ class iota_testAutoContext(unittest.TestCase):
                                   True,
                                   "SLIC_{}".format(self.tile_name))[0]
                                            
-        train_auto_data_ref = self.prepare_autoContext_data_ref()
-        
-        parameter_dict = {"list_tiles":[self.tile_name],
-                          "model_name":"1",
-                          "seed":0,
-                          "list_slic":[slic_seg],
-                          "list_selection":[train_auto_data_ref]}
+        train_auto_data_ref, superpix_data = self.prepare_autoContext_data_ref(slic_seg, config_path_test)
+
+        parameter_dict  = {"model_name": "1",
+                           "seed": "0",
+                           "list_learning_samples": [train_auto_data_ref],
+                           "list_superPixel_samples": [superpix_data],
+                           "list_tiles": ["T31TCJ"],
+                           "list_slic": [slic_seg]}
         # launch tests
         
         #~ training
@@ -217,6 +249,7 @@ class iota_testAutoContext(unittest.TestCase):
             train_autoContext(parameter_dict, config_path_test, RAM=128, WORKING_DIR=autoContext_working_dir)
         except Exception as e:
             print(e)
+
         #~ Asserts training
         self.assertTrue(e is None, msg="train_autoContext failed")
         
