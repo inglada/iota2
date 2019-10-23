@@ -16,12 +16,16 @@
 
 import os
 import logging
+from typing import List, Dict, Union, Optional
+
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
 
+Param = Dict[str, Union[str, List[str], int]]
 
-def train_autoContext_parameters(iota2_directory, regionField):
-    """
+def train_autoContext_parameters(iota2_directory: str, regionField: str) -> List[Param]:
+    """feed train_autoContext function
+
     Parameters
     ----------
     iota2_directory : string
@@ -31,10 +35,13 @@ def train_autoContext_parameters(iota2_directory, regionField):
     Return
     ------
     parameters : list
+        dictionary describing input parameters
     """
     from Common.FileUtils import FileSearch_AND
     from Common.FileUtils import sortByFirstElem
     from Learning.TrainingCmd import config_model
+
+    parameters = []
 
     pathToModelConfig = os.path.join(iota2_directory, "config_model", "configModel.cfg")
     configModel = config_model(iota2_directory, regionField)
@@ -42,33 +49,41 @@ def train_autoContext_parameters(iota2_directory, regionField):
         with open(pathToModelConfig, "w") as configFile:
             configFile.write(configModel)
 
-    sample_selection_directory = os.path.join(iota2_directory, "samplesSelection")
-
+    learningSamples_directory = os.path.join(iota2_directory, "learningSamples")
     tile_position = 0
-    model_position = 3
-    seed_position = 5
+    model_position = 2
+    seed_position = 3
 
-    parameters = []
+    learning_samples = FileSearch_AND(learningSamples_directory, False, "_Samples_learn.sqlite")
 
-    sample_sel_content = FileSearch_AND(sample_selection_directory, False, "_samples_region_", "selection.sqlite")
-    selection_models = [((c_file.split("_")[model_position],
-                          int(c_file.split("_")[seed_position])),
-                          c_file) for c_file in sample_sel_content]
-    selection_models = sortByFirstElem(selection_models)
+    learning_models = [((c_file.split("_")[model_position],
+                         int(c_file.split("_")[seed_position].replace("seed", ""))),
+                         c_file) for c_file in learning_samples]
 
-    for (model_name, seed_num), selection_files in selection_models:
-        tiles = [selection_file.split("_")[tile_position] for selection_file in selection_files]
+    learning_models = sortByFirstElem(learning_models)
 
-        assert len(set(tiles)) == len(selection_files)
+    for (model_name, seed_num), learning_files in learning_models:
+        tiles = [learning_file.split("_")[tile_position] for learning_file in learning_files]
+
+        assert len(set(tiles)) == len(learning_files)
 
         tiles_slic = []
         for tile in tiles :
             tiles_slic.append(FileSearch_AND(os.path.join(iota2_directory,
                                              "features", tile, "tmp"),
                                              True, "SLIC", ".tif")[0])
+        learning_files_path = ["{}.sqlite".format(os.path.join(learningSamples_directory, learning_file)) for learning_file in learning_files]
+        SP_files_path = []
+        for learning_file_path in learning_files_path:
+            SP_file = learning_file_path.replace("learn.sqlite", "SP.sqlite")
+            if not os.path.exists(SP_file):
+                raise FileNotFoundError("{} not found".format(SP_file))
+            SP_files_path.append(SP_file)
+
         parameters.append({"model_name": model_name,
                            "seed": seed_num,
-                           "list_selection": ["{}.sqlite".format(os.path.join(sample_selection_directory, selection_file)) for selection_file in selection_files],
+                           "list_learning_samples": learning_files_path,
+                           "list_superPixel_samples": SP_files_path,
                            "list_tiles": tiles,
                            "list_slic":tiles_slic})
     return parameters
@@ -124,10 +139,8 @@ def choosable_annual_pixels(classification_raster, validity_raster, region_mask,
                                        "exp": "im1b1>{}?im2b1:0".format(validity_threshold)})
     valid.Execute()
     choosable = CreateBandMathApplication({"il": [valid, mask_dummy],
-                                           "out" : "/work/OT/theia/oso/arthur/TMP/val_mask.tif",
                                            "exp": "im1b1*(im2b1>=1?1:0)"})
     choosable.Execute()
-    choosable.ExecuteAndWriteOutput()
     oy, ox = choosable.GetImageOrigin("out")
     spx, spy = choosable.GetImageSpacing("out")
     return choosable.GetImageAsNumpyArray("out"), (ox, oy, spx, spy)
@@ -212,7 +225,10 @@ def move_annual_samples_position(samples_position, dataField, annual_labels,
         else:
             continue
 
-def train_autoContext(parameter_dict, config_path, RAM=128, WORKING_DIR=None, LOGGER=logger):
+def train_autoContext(parameter_dict: Param, config_path: str,
+                      superpix_data_field: Optional[str] = "superpix",
+                      RAM: Optional[int] = 128, WORKING_DIR: Optional[str] = None,
+                      logger: Optional[logging.Logger] = logger):
     """launch autoContext training
 
     Parameters
@@ -230,7 +246,7 @@ def train_autoContext(parameter_dict, config_path, RAM=128, WORKING_DIR=None, LO
         available ram
     WORKING_DIR : string
         path to store temporary data
-    LOGGER : logging
+    logger : logging
         root logger
     """
     import shutil
@@ -247,20 +263,13 @@ def train_autoContext(parameter_dict, config_path, RAM=128, WORKING_DIR=None, LO
     model_name = parameter_dict["model_name"]
     seed_num = parameter_dict["seed"]
     slic = parameter_dict["list_slic"]
-    data_ref = parameter_dict["list_selection"]
+    data_ref = parameter_dict["list_learning_samples"]
+    data_segmented = parameter_dict["list_superPixel_samples"]
     field = cfg.getParam("chain", "dataField").lower()
     iota2_run = cfg.getParam("chain", "outputPath")
 
     dataField = cfg.getParam("chain", "dataField")
     annual_labels = cfg.getParam("argTrain", "annualCrop")
-
-    features = []
-    dependencies = []
-    for tile in tiles :
-       features_tile, feat_labels, dep = generateFeatures(WORKING_DIR, tile, cfg)
-       features_tile.Execute()
-       features.append(features_tile)
-       dependencies.append(dep)
 
     models_path = os.path.join(iota2_run, "model")
     model_path = os.path.join(models_path, "model_{}_seed_{}".format(model_name, seed_num))
@@ -272,29 +281,33 @@ def train_autoContext(parameter_dict, config_path, RAM=128, WORKING_DIR=None, LO
         tmp_dir = os.path.join(WORKING_DIR, "model_{}_seed_{}_tmp".format(model_name, seed_num))
     ensure_dir(tmp_dir)
 
-    #~ cropMix sampling
-    if cfg.getParam("argTrain", "cropMix") and cfg.getParam("argTrain", "samplesClassifMix"):
-        source_dir = cfg.getParam("argTrain", "annualClassesExtractionSource")
-        val_threshold = cfg.getParam("argTrain", "validityThreshold")
-        classification_raster = FileSearch_AND(os.path.join(source_dir, "final"),
-                                                   True, "Classif_Seed_0.tif")[0]
-        validity_raster = FileSearch_AND(os.path.join(source_dir, "final"),
-                                         True, "PixelsValidity.tif")[0]
-        for tile, ref in zip(tiles, data_ref):
-            region_mask = FileSearch_AND(os.path.join(iota2_run, "shapeRegion"),
-                                         True, "region_{}_{}.tif".format(model_name.split("f")[0], tile))[0]
-            move_annual_samples_position(ref, dataField, annual_labels,
-                                         classification_raster, validity_raster,
-                                         region_mask, val_threshold)
+    _, feat_labels, _ = generateFeatures(WORKING_DIR, tiles[0], cfg)
 
-    train_autoContext = CreateTrainAutoContext({"il" : features,
-                                                "inseg": slic,
-                                                "tmpdir": "{}/".format(tmp_dir),
-                                                "refdata": data_ref,
-                                                "field": field,
-                                                "out": "{}/".format(model_path),
-                                                "ram": str(0.1 * RAM)})
-    LOGGER.info("Start training autoContext, produce model {}, seed {}".format(model_name, seed_num))
+    feat_labels = [elem.lower() for elem in feat_labels]
+
+    #~ cropMix sampling
+    #~ if cfg.getParam("argTrain", "cropMix") and cfg.getParam("argTrain", "samplesClassifMix"):
+        #~ source_dir = cfg.getParam("argTrain", "annualClassesExtractionSource")
+        #~ val_threshold = cfg.getParam("argTrain", "validityThreshold")
+        #~ classification_raster = FileSearch_AND(os.path.join(source_dir, "final"),
+                                                   #~ True, "Classif_Seed_0.tif")[0]
+        #~ validity_raster = FileSearch_AND(os.path.join(source_dir, "final"),
+                                         #~ True, "PixelsValidity.tif")[0]
+        #~ for tile, ref in zip(tiles, data_ref):
+            #~ region_mask = FileSearch_AND(os.path.join(iota2_run, "shapeRegion"),
+                                         #~ True, "region_{}_{}.tif".format(model_name.split("f")[0], tile))[0]
+            #~ move_annual_samples_position(ref, dataField, annual_labels,
+                                         #~ classification_raster, validity_raster,
+                                         #~ region_mask, val_threshold)
+
+    train_autoContext = CreateTrainAutoContext({"refdata" : data_ref,
+                                                "reffield": field,
+                                                "superpixdata": data_segmented,
+                                                "superpixdatafield": superpix_data_field,
+                                                "feat": feat_labels,
+                                                "out": "{}/".format(model_path)
+                                                })
+    logger.info("Start training autoContext, produce model {}, seed {}".format(model_name, seed_num))
     train_autoContext.ExecuteAndWriteOutput()
-    LOGGER.info("training autoContext DONE")
+    logger.info("training autoContext DONE")
     shutil.rmtree(tmp_dir)
