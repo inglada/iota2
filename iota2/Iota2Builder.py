@@ -82,11 +82,12 @@ class iota2():
         for step_place, step in enumerate(self.steps):
             self.steps_group[step.step_group][step_place + 1] = step.step_description()
 
-    def print_step_summarize(self, start, end):
+    def print_step_summarize(self, start, end, show_resources=False):
         """
         print iota2 steps that will be run
         """
         summarize = "Full processing include the following steps (checked steps will be run):\n"
+        step_position = 0
         for group in list(self.steps_group.keys()):
             if len(self.steps_group[group]) > 0:
                 summarize += "Group {}:\n".format(group)
@@ -94,8 +95,18 @@ class iota2():
                 highlight = "[ ]"
                 if key >= start and key<=end:
                     highlight="[x]"
-                summarize += "\t {} Step {}: {}\n".format(highlight, key ,
-                                                          self.steps_group[group][key])
+                summarize += "\t {} Step {}: {}".format(highlight, key ,
+                                                        self.steps_group[group][key])
+                if show_resources:
+                    cpu = self.steps[step_position].resources["cpu"]
+                    ram = self.steps[step_position].resources["ram"]
+                    walltime = self.steps[step_position].resources["walltime"]
+                    resource_block_name = self.steps[step_position].resources["resource_block_name"]
+                    resource_block_found = self.steps[step_position].resources["resource_block_found"]
+                    resource_miss = "" if resource_block_found else " -> MISSING"
+                    summarize += "\n\t\t\tresources block name : {}{}\n\t\t\tcpu : {}\n\t\t\tram : {}\n\t\t\twalltime : {}".format(resource_block_name, resource_miss, cpu, ram, walltime)
+                summarize += "\n"
+                step_position += 1
         summarize += "\n"
         return summarize
 
@@ -155,7 +166,8 @@ class iota2():
                            sensorsPreprocess, Coregistration, Regularization,
                            Clump, Grid, crownSearch, crownBuild,
                            largeVectorization, VectSimplification,
-                           zonalStatistics, joinStatistics, slicSegmentation)
+                           zonalStatistics, joinStatistics, slicSegmentation,
+                           superPixPos, superPixSplit)
 
         # will contains all IOTA² steps
         s_container = StepContainer()
@@ -292,7 +304,12 @@ class iota2():
         step_SLIC_seg = slicSegmentation.slicSegmentation(cfg,
                                                           config_ressources,
                                                           self.workingDirectory)
-        
+        step_add_superPix_pos = superPixPos.superPixPos(cfg,
+                                                        config_ressources,
+                                                        self.workingDirectory)
+        step_split_superPix_ref = superPixSplit.superPixSplit(cfg,
+                                                              config_ressources,
+                                                              self.workingDirectory)
         # control variable
         Sentinel1 = SCF.serviceConfigFile(cfg).getParam('chain', 'S1Path')
         enable_autoContext = SCF.serviceConfigFile(cfg).getParam('chain', 'enable_autoContext')
@@ -333,10 +350,15 @@ class iota2():
         s_container.append(step_merge_samples, "sampling")
         s_container.append(step_models_samples_stats, "sampling")
         s_container.append(step_samples_selection, "sampling")
+
+        if enable_autoContext is True:
+            s_container.append(step_add_superPix_pos, "sampling")
+
         s_container.append(step_prepare_selection, "sampling")
-        
+
+        s_container.append(step_generate_learning_samples, "sampling")
+
         if enable_autoContext is False:
-            s_container.append(step_generate_learning_samples, "sampling")
             s_container.append(step_merge_learning_samples, "sampling")
             if sampleManagement and sampleManagement.lower() != 'none':
                 s_container.append(step_copy_sample_between_models, "sampling")
@@ -345,10 +367,13 @@ class iota2():
             if dimred:
                 s_container.append(step_dimRed, "sampling")
         
-        # learning step
+        if enable_autoContext is True:
+            s_container.append(step_split_superPix_ref, "sampling")
+
+        #~ # learning step
         s_container.append(step_learning, "learning")
 
-        # classifications steps
+        #~ # classifications steps
         if enable_autoContext is False:
             s_container.append(step_classiCmd, "classification")
         s_container.append(step_classification, "classification")
