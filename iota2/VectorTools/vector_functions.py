@@ -25,6 +25,7 @@ from osgeo.gdalconst import  GDT_Int16, GDT_Float64, GDT_Float32
 import osgeo.ogr
 import argparse
 from shutil import copyfile
+from typing import Set, Tuple, Optional
 
 def get_geom_column_name(vector_file, driver="ESRI Shapefile"):
     """get field's name containing features' geomtries
