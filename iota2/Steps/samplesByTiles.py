@@ -49,8 +49,9 @@ class samplesByTiles(IOTA2Step.Step):
         tiles = []
         for sampled_vector in sampled_vectors:
             tile_name = os.path.splitext(os.path.basename(sampled_vector))[0].split("_")[self.tile_name_pos]
-            if not tile_name in tiles:
+            if not tile_name in tiles and tile_name != "samples":
                 tiles.append(tile_name)
+        tiles = sorted(tiles)
         return tiles
 
     def step_execute(self):
