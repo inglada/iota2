@@ -204,43 +204,25 @@ def CreateTrainAutoContext(OtbParameters):
         raise Exception("Not possible to create 'TrainAutoContext' application,\
                          check if OTB is well configured / installed")
     #~ check mandatory parameters
-    if "il" not in OtbParameters:
-        raise Exception("'il' parameter not found")
-    if "inseg" not in OtbParameters:
-        raise Exception("'inseg' parameter not found")
     if "refdata" not in OtbParameters:
         raise Exception("'refdata' parameter not found")
-    if "field" not in OtbParameters:
-        raise Exception("'refdata' parameter not found")        
-    if "tmpdir" not in OtbParameters:
-        raise Exception("'tmpdir' parameter not found")
+    if "reffield" not in OtbParameters:
+        raise Exception("'reffield' parameter not found")        
+    if "superpixdata" not in OtbParameters:
+        raise Exception("'superpixdata' parameter not found")        
+    if "superpixdatafield" not in OtbParameters:
+        raise Exception("'superpixdatafield' parameter not found")
+    if "feat" not in OtbParameters:
+        raise Exception("'feat' parameter not found")
     if "out" not in OtbParameters:
         raise Exception("'out' parameter not found")
 
-    train_autoContext.SetParameterString("tmpdir", OtbParameters["tmpdir"])
-    train_autoContext.SetParameterStringList("inseg", OtbParameters["inseg"])
     train_autoContext.SetParameterStringList("refdata", OtbParameters["refdata"])
-    train_autoContext.SetParameterString("field", OtbParameters["field"])
+    train_autoContext.SetParameterString("reffield", OtbParameters["reffield"])
+    train_autoContext.SetParameterStringList("superpixdata", OtbParameters["superpixdata"])
+    train_autoContext.SetParameterString("superpixdatafield", OtbParameters["superpixdatafield"])
+    train_autoContext.SetParameterStringList("feat", OtbParameters["feat"])
     train_autoContext.SetParameterString("out", OtbParameters["out"])
-
-    imagesList = OtbParameters["il"]
-    if not isinstance(imagesList, list):
-        imagesList = [imagesList]
-
-    if isinstance(imagesList[0], str):
-        train_autoContext.SetParameterStringList("il", imagesList)
-    elif isinstance(imagesList[0], otb.Application):
-        for currentObj in imagesList:
-            inOutParam = getInputParameterOutput(currentObj)
-            train_autoContext.AddImageToParameterInputImageList("il",
-                                                       currentObj.GetParameterOutputImage(inOutParam))
-    elif isinstance(imagesList[0], tuple):
-        for currentObj in unPackFirst(imagesList):
-            inOutParam = getInputParameterOutput(currentObj)
-            train_autoContext.AddImageToParameterInputImageList("il",
-                                                       currentObj.GetParameterOutputImage(inOutParam))
-    else:
-        raise Exception(type(imagesList[0]) + " not available to TrainAutoContext function")
     
     #~ add optional parameters
     if "nit" in OtbParameters:
