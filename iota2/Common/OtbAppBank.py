@@ -870,8 +870,6 @@ def CreateSampleExtractionApplication(OtbParameters):
     sampleE = otb.Registry.CreateApplication("SampleExtraction")
     if "in" not in OtbParameters:
         raise Exception("'in' parameter not found")
-    if "out" not in OtbParameters:
-        raise Exception("'out' parameter not found")
     if "vec" not in OtbParameters:
         raise Exception("'vec' parameter not found")
 
@@ -889,9 +887,11 @@ def CreateSampleExtractionApplication(OtbParameters):
     else:
         raise Exception("input image not recognize")
 
-    sampleE.SetParameterString("out", OtbParameters["out"])
+    
     sampleE.SetParameterString("vec", OtbParameters["vec"])
     sampleE.UpdateParameters()
+    if "out" in OtbParameters:
+        sampleE.SetParameterString("out", OtbParameters["out"])
     if "outfield" in OtbParameters:
         sampleE.SetParameterString("outfield", OtbParameters["outfield"])
     if "outfield.prefix.name" in OtbParameters:
