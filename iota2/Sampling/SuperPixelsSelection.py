@@ -102,13 +102,14 @@ def choosable_annual_pixels(classification_raster: str, validity_raster: str,
                                                  "inm": validity_raster,
                                                  "interpolator": "nn"})
     roi_validity.Execute()
-    classif_reg = CreateClassificationMapRegularization({"io.in": roi_classif,
-                                                         "ip.undecidedlabel": 0})
-    classif_reg.Execute()
+    #~ classif_reg = CreateClassificationMapRegularization({"io.in": roi_classif,
+                                                         #~ "ip.undecidedlabel": 0})
+    #~ classif_reg.Execute()
     mask_dummy = CreateBandMathApplication({"il": [region_mask],
                                             "exp": "im1b1"})
     mask_dummy.Execute()
-    valid = CreateBandMathApplication({"il": [roi_validity, classif_reg],
+    #~ valid = CreateBandMathApplication({"il": [roi_validity, classif_reg],
+    valid = CreateBandMathApplication({"il": [roi_validity, roi_classif],
                                        "exp": "im1b1>{}?im2b1:0".format(validity_threshold)})
     valid.Execute()
     choosable = CreateBandMathApplication({"il": [valid, mask_dummy],
@@ -131,6 +132,7 @@ def move_annual_samples_from_array(samples_position, target_label, dataField,
     from osgeo import ogr
 
     x_coords, y_coords = np.where(array==target_label)
+    #~ y_coords, x_coords = np.where(array==target_label)
     samples_number = samples_number if len(y_coords) > samples_number else len(y_coords)
 
     geo_coordinates = []
@@ -158,6 +160,7 @@ def move_annual_samples_from_array(samples_position, target_label, dataField,
         feature.SetField(region_field_value[0], region_field_value[1])
 
         point = ogr.CreateGeometryFromWkt("POINT({} {})".format(y_geo, x_geo))
+        #~ point = ogr.CreateGeometryFromWkt("POINT({} {})".format(y_geo, x_geo))
         feature.SetGeometry(point)
         layer.CreateFeature(feature)
         feature = None
