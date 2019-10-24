@@ -201,14 +201,6 @@ class iota_testAutoContext(unittest.TestCase):
         from Sampling.SuperPixelsSelection import move_annual_samples_position
         import TestsUtils
         
-        #considérant 2 classes annuelles (31,12), tester avec les cas suivants
-        #~ - 31 et 12 présentent dans la classification
-        #~ - uniquement 31 présent dans la classif
-        #~ - uniquement 32 présent dans la classif
-        #~ - ni 31 et 12 présents dans la classif
-        #~ même schéma avec la donnée vecteur
-
-        
         mask_array = TestsUtils.fun_array("iota2_binary")
         random_classif_mask_path = os.path.join(self.test_working_directory, "Classif_Seed_0.tif")
         
@@ -234,7 +226,6 @@ class iota_testAutoContext(unittest.TestCase):
         random_classif_array_mask = random_classif_array * mask_array
         TestsUtils.arrayToRaster(random_classif_array_mask, random_classif_mask_path,
                                  pixSize=10, originX=self.originX, originY=self.originY)
-
         move_annual_samples_position(samples_position=ref_data_sampled,
                                      dataField="code",
                                      annual_labels=annual_labels,
