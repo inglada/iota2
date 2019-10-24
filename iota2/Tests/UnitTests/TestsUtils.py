@@ -14,7 +14,27 @@
 #
 # =========================================================================
 import os
+from typing import List
 
+def compare_vector_raster(in_vec: str, vec_field: str, field_values: List[int], in_img: str) -> List[int]:
+    """return img values at vector positions where field is equal to a given values
+    """
+    import numpy as np
+    from Common.OtbAppBank import CreateRasterizationApplication
+
+    rasterization = CreateRasterizationApplication({"in": in_vec,
+                                                    "im": in_img,
+                                                    "mode": "attribute",
+                                                    "mode.attribute.field": vec_field})
+    rasterization.Execute()
+
+    vec_array = rasterization.GetImageAsNumpyArray("out")
+    y_coords, x_coords = np.where(np.isin(vec_array, field_values))
+    classif_array = rasterToArray(in_img)
+    values = []
+    for y_coord, x_coord in zip(y_coords, x_coords):
+        values.append(classif_array[y_coord][x_coord])
+    return values
 
 def test_raster_unique_value(raster_path, value, band_num=-1):
     """test if a raster contains an unique value
@@ -241,7 +261,7 @@ def arrayToRaster(inArray, outRaster_path, output_format="int", output_driver="G
         outRaster = driver.Create(outRaster_path, cols, rows, len(inArray), gdal.GDT_Float32)
     if not outRaster:
         raise Exception("can not create : "+outRaster)
-    outRaster.SetGeoTransform((originX, pixSize, 0, originY, 0, pixSize))
+    outRaster.SetGeoTransform((originX, pixSize, 0, originY, 0, -pixSize))
 
     for i in range(NB_BANDS):
         outband = outRaster.GetRasterBand(i + 1)

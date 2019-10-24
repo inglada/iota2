@@ -36,6 +36,8 @@ class iota_testAutoContext(unittest.TestCase):
         from TestsUtils import generate_fake_s2_data
 
         # definition of local variables
+        self.originX = 566377
+        self.originY = 6284029
         self.group_test_name = "iota_testAutoContext"
         self.iota2_tests_directory = os.path.join(IOTA2DIR, "data", self.group_test_name)
         self.config_test = os.path.join(IOTA2DIR, "config", "Config_4Tuiles_Multi_FUS_Confidence.cfg")
@@ -117,6 +119,25 @@ class iota_testAutoContext(unittest.TestCase):
         cfg_test.save(open(test_cfg, 'w'))
         return testPath
 
+    def prepapre_data_ref(self, in_vector, out_vector, ref_img):
+        """
+        """
+        from Common.OtbAppBank import CreateSampleSelectionApplication
+        from Common.OtbAppBank import CreatePolygonClassStatisticsApplication
+        
+        stat = out_vector.replace(".sqlite", ".xml")
+        CreatePolygonClassStatisticsApplication({"in": ref_img,
+                                                 "vec": in_vector,
+                                                 "field": "CODE",
+                                                 "out": stat}).ExecuteAndWriteOutput()
+        CreateSampleSelectionApplication({"in": ref_img,
+                                          "vec": in_vector,
+                                          "field": "CODE",
+                                          "strategy": "all",
+                                          "instats": stat,
+                                          "out": out_vector}).ExecuteAndWriteOutput()
+        os.remove(stat)
+
     def prepare_autoContext_data_ref(self, slic_seg, config_path_test):
         """
         """
@@ -171,6 +192,123 @@ class iota_testAutoContext(unittest.TestCase):
         return learning_vector, superpix
 
     #Tests definitions
+    def test_sampling_features_from_raster(self):
+        """non-regression test, check the ability of adding features in database
+        by sampling classification raster
+        """
+        import numpy as np
+        from collections import Counter
+        from Sampling.SuperPixelsSelection import move_annual_samples_position
+        import TestsUtils
+        
+        #considérant 2 classes annuelles (31,12), tester avec les cas suivants
+        #~ - 31 et 12 présentent dans la classification
+        #~ - uniquement 31 présent dans la classif
+        #~ - uniquement 32 présent dans la classif
+        #~ - ni 31 et 12 présents dans la classif
+        #~ même schéma avec la donnée vecteur
+
+        
+        mask_array = TestsUtils.fun_array("iota2_binary")
+        random_classif_mask_path = os.path.join(self.test_working_directory, "Classif_Seed_0.tif")
+        
+        validity_array = np.full(mask_array.shape, 1)
+        validity_path = os.path.join(self.test_working_directory, "PixelsValidity.tif")
+        region_path = os.path.join(self.test_working_directory, "mask_region.tif")
+        TestsUtils.arrayToRaster(validity_array, validity_path,
+                                 pixSize=10, originX=self.originX, originY=self.originY)
+        TestsUtils.arrayToRaster(validity_array, region_path,
+                                 pixSize=10, originX=self.originX, originY=self.originY)
+        
+        ref_data_sampled = os.path.join(self.test_working_directory, "dataBase.sqlite")
+        
+        self.prepapre_data_ref(in_vector=self.ref_data,
+                               out_vector=ref_data_sampled,
+                               ref_img=region_path)
+
+        # test : all annual labels are in dataBase and classifications
+        labels = [12, 31, 32, 41, 211, 222]
+        annual_labels = ["12", "31"]
+        annual_labels_int = [int(elem) for elem in annual_labels]
+        random_classif_array = np.random.choice(labels, size=mask_array.shape, replace=True)
+        random_classif_array_mask = random_classif_array * mask_array
+        TestsUtils.arrayToRaster(random_classif_array_mask, random_classif_mask_path,
+                                 pixSize=10, originX=self.originX, originY=self.originY)
+
+        move_annual_samples_position(samples_position=ref_data_sampled,
+                                     dataField="code",
+                                     annual_labels=annual_labels,
+                                     classification_raster=random_classif_mask_path,
+                                     validity_raster=validity_path,
+                                     region_mask=region_path,
+                                     validity_threshold=0,
+                                     tile_origin_field_value=("tile_o", "T31TCJ"),
+                                     seed_field_value=("seed_0", "learn"),
+                                     region_field_value=("region", "1"))
+        # assert
+        raster_values = TestsUtils.compare_vector_raster(in_vec=ref_data_sampled,
+                                                         vec_field="code",
+                                                         field_values=annual_labels_int,
+                                                         in_img=random_classif_mask_path)
+        values_counter = Counter(raster_values)
+        exist_in_annual = [value in annual_labels_int for value in values_counter.keys()]
+        self.assertTrue(all(exist_in_annual))
+
+        # test : only one annual label in dataBase
+        labels = [12, 31, 32, 41, 211, 222]
+        annual_labels = ["12"]
+        annual_labels_int = [int(elem) for elem in annual_labels]
+        random_classif_array = np.random.choice(labels, size=mask_array.shape, replace=True)
+        random_classif_array_mask = random_classif_array * mask_array
+        TestsUtils.arrayToRaster(random_classif_array_mask, random_classif_mask_path,
+                                 pixSize=10, originX=self.originX, originY=self.originY)
+
+        move_annual_samples_position(samples_position=ref_data_sampled,
+                                     dataField="code",
+                                     annual_labels=annual_labels,
+                                     classification_raster=random_classif_mask_path,
+                                     validity_raster=validity_path,
+                                     region_mask=region_path,
+                                     validity_threshold=0,
+                                     tile_origin_field_value=("tile_o", "T31TCJ"),
+                                     seed_field_value=("seed_0", "learn"),
+                                     region_field_value=("region", "1"))
+        # assert
+        raster_values = TestsUtils.compare_vector_raster(in_vec=ref_data_sampled,
+                                                         vec_field="code",
+                                                         field_values=annual_labels_int,
+                                                         in_img=random_classif_mask_path)
+        values_counter = Counter(raster_values)
+        exist_in_annual = [value in annual_labels_int for value in values_counter.keys()]
+        self.assertTrue(all(exist_in_annual))
+
+        # test : no annual labels in classifications
+        labels = [12, 31, 32, 41, 211, 222]
+        annual_labels = ["111", "112"]
+        annual_labels_int = [int(elem) for elem in annual_labels]
+        random_classif_array = np.random.choice(labels, size=mask_array.shape, replace=True)
+        random_classif_array_mask = random_classif_array * mask_array
+        TestsUtils.arrayToRaster(random_classif_array_mask, random_classif_mask_path,
+                                 pixSize=10, originX=self.originX, originY=self.originY)
+
+        move_annual_samples_position(samples_position=ref_data_sampled,
+                                     dataField="code",
+                                     annual_labels=annual_labels,
+                                     classification_raster=random_classif_mask_path,
+                                     validity_raster=validity_path,
+                                     region_mask=region_path,
+                                     validity_threshold=0,
+                                     tile_origin_field_value=("tile_o", "T31TCJ"),
+                                     seed_field_value=("seed_0", "learn"),
+                                     region_field_value=("region", "1"))
+        # assert
+        raster_values = TestsUtils.compare_vector_raster(in_vec=ref_data_sampled,
+                                                         vec_field="code",
+                                                         field_values=annual_labels_int,
+                                                         in_img=random_classif_mask_path)
+        values_counter = Counter(raster_values)
+        self.assertTrue(len(values_counter)==0)
+
     def test_slic(self):
         """non-regression test, check if SLIC could be performed
         """
