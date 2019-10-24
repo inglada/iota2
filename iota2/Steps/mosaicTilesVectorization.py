@@ -37,7 +37,8 @@ class mosaicTilesVectorization(IOTA2Step.Step):
         self.outserial = os.path.join(self.outputPath, 'final', 'simplification', 'tiles') 
         self.outfilegrid = os.path.join(self.outputPath, 'final', 'simplification', 'grid.shp')
         self.outmos = os.path.join(self.outputPath, 'final', 'simplification', 'mosaic')
-
+        self.outfilevect = os.path.join(self.outputPath, 'final', 'simplification', 'vectors')
+            
         if self.workingDirectory is None:
             self.tmpdir = os.path.join(self.outputPath, 'final', 'simplification', 'tmp')
         else:
@@ -90,15 +91,15 @@ class mosaicTilesVectorization(IOTA2Step.Step):
         if self.workingDirectory:
             self.tmpdir = self.workingDirectory 
 
-        step_function = lambda x: mtr.tilesRastersMergeVectSimp(self.tmpdir,
-                                                                self.clipfile,
-                                                                self.clipfield,
-                                                                x,                                                                
-                                                                self.outfilegrid,
-                                                                self.outserial,
-                                                                "FID",
-                                                                "tile_",
-                                                                self.outmos)
+        step_function = lambda x: mtr.mergeTileRaster(self.tmpdir,
+                                                      self.clipfile,
+                                                      self.clipfield,
+                                                      x,                                                                
+                                                      self.outfilegrid,
+                                                      self.outserial,
+                                                      "FID",
+                                                      "tile_",
+                                                      self.outmos)
         return step_function
 
     def step_outputs(self):

@@ -30,6 +30,7 @@ try:
     from VectorTools import vector_functions as vf
     from VectorTools import BufferOgr as bfo
     from VectorTools import splitByArea as sba
+    from VectorTools import MergeFiles as mf
     from Common import FileUtils as fut
     from Common import Utils    
     from simplification import nomenclature
@@ -245,9 +246,9 @@ def definePandasDf(geoframe, idvals, paramstats={}, classes=""):
     cols = []
     for param in paramstats:
         if paramstats[param] == "rate":
-            if classes != "":
+            if classes != "" or classes is not None:
                 nomenc = nomenclature.Iota2Nomenclature(classes, 'cfg')
-                desclasses = nomenc.HierarchicalNomenclature.get_level_values(nomenc.getLevelNumber() - 1)
+                desclasses = nomenc.HierarchicalNomenclature.get_level_values(int(nomenc.getLevelNumber() - 1))
                 [cols.append(str(x)) for x, y, w, z in desclasses]
         elif paramstats[param] == "stats":
             [cols.append(x) for x in ["meanb%s"%(param), "stdb%s"%(param), "maxb%s"%(param), "minb%s"%(param)]]
@@ -264,7 +265,7 @@ def definePandasDf(geoframe, idvals, paramstats={}, classes=""):
 
     statsgpad = gpad.GeoDataFrame(np.nan, index=idvals, columns=cols)
     geoframe = gpad.GeoDataFrame(pad.concat([geoframe, statsgpad], axis=1), geometry=geoframe['geometry'], crs=geoframe.crs)
-    
+
     return geoframe
 
 
@@ -634,8 +635,8 @@ def computeStats(bands, paramstats, dataframe, idval, nodata=0):
                     newcols = list(set(list(classStats.columns)).difference(set(list(dataframe.columns))))
                     dataframe = pad.concat([dataframe, classStats[newcols]], axis=1)
 
-                dataframe.fillna(0, inplace=True)
-
+                dataframe.fillna(np.nan, inplace=True)
+                
             elif methodstat == 'stats':
 
                 cols = ["meanb%s"%(int(param)), "stdb%s"%(int(param)), \
@@ -770,12 +771,13 @@ def formatDataFrame(geodataframe, schema, categorical=False, classes="", floatde
         # get multi-level nomenclature
         # TODO : several type of input nomenclature (cf. nomenclature class)
         nomenc = nomenclature.Iota2Nomenclature(classes, 'cfg')
-        desclasses = nomenc.HierarchicalNomenclature.get_level_values(nomenc.getLevelNumber() - 1)
+        desclasses = nomenc.HierarchicalNomenclature.get_level_values(int(nomenc.getLevelNumber() - 1))
         cols = [(str(x), str(z)) for x, y, w, z in desclasses]
 
         # rename columns with alias
         for col in cols:
-            geodataframe.rename(columns={col[0]:col[1].decode('utf8')}, inplace=True)        
+            #geodataframe.rename(columns={col[0]:col[1].decode('utf8')}, inplace=True)
+            geodataframe.rename(columns={col[0]:col[1]}, inplace=True)                    
 
     # change columns type
     schema['properties'] = OrderedDict([(x, 'float:%s.%s'%(intsize, floatdec)) for x in list(geodataframe.columns) \
@@ -866,7 +868,9 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
         gdal cache for wrapping operation (in Mb)
 
     """
-
+    if os.path.exists(output):
+        return
+    
     # Get bands or raster number
     if len(rasters) != 1:
         nbbands = len(rasters)
@@ -952,32 +956,34 @@ def iota2Formatting(invector, classes, outvector=""):
         return sub_li 
 
     nomenc = nomenclature.Iota2Nomenclature(classes, 'cfg')
-    desclasses = nomenc.HierarchicalNomenclature.get_level_values(nomenc.getLevelNumber() - 1)
+    desclasses = nomenc.HierarchicalNomenclature.get_level_values(int(nomenc.getLevelNumber() - 1))
     cols = [[x, str(z)] for x, y, w, z in desclasses]
     sortalias = [x[1] for x in Sort(cols)]
 
     exp = ""
     for name in sortalias:
-        exp += "CAST(%s AS NUMERIC(6,2)) AS %s, "%(name.lower(), name)
-    
-    layerout = os.path.splitext(os.path.basename(invector))[0]
+        exp += "CAST(%s AS NUMERIC(6,2)) AS %s, "%(name, name)
+
 
     if outvector == "":
+        layerout = os.path.splitext(os.path.basename(invector))[0]        
         outvector = os.path.splitext(invector)[0] + '_tmp.shp'
-    
-    command = "ogr2ogr -lco ENCODING=UTF-8 -overwrite -q -f 'ESRI Shapefile' -overwrite -sql "\
-              "'SELECT CAST(class AS INTEGER(4)) AS Classe, "\
+    else:
+        layerout = os.path.splitext(os.path.basename(outvector))[0]
+
+    command = "ogr2ogr -lco ENCODING=UTF-8 -overwrite -q -f 'ESRI Shapefile' -nln %s -sql "\
+              "'SELECT CAST(cat AS INTEGER(4)) AS Classe, "\
               "CAST(meanmajb3 AS INTEGER(4)) AS Validmean, "\
               "CAST(stdmajb3 AS NUMERIC(6,2)) AS Validstd, "\
               "CAST(meanmajb2 AS INTEGER(4)) AS Confidence, %s"\
               "CAST(area AS NUMERIC(10,2)) AS Aire "\
               "FROM %s' "\
-              "%s %s"%(exp, layerout, outvector, invector)
+              "%s %s"%(layerout, exp, layerout, outvector, invector)
 
     Utils.run(command)
 
     
-def splitVectorFeatures(vectorpath, chunk=1, byarea=False):
+def splitVectorFeatures(vectorpath, outputPath, chunk=4, byarea=False):
     """Split FID list of a list of vector files in equal groups:
 
     Parameters
@@ -1015,9 +1021,11 @@ def splitVectorFeatures(vectorpath, chunk=1, byarea=False):
                     listfid.append([x[0] for x in elt])
             else:
                 listfid = [listfid[i::chunk] for i in range(chunk)]
-                
-            for fidlist in listfid:
-                params.append((vect, fidlist))
+                listfid = list(filter(None, listfid))
+
+            for idchunk, fidlist in enumerate(listfid):
+                outfile = os.path.splitext(os.path.basename(vect))[0] + '_chk' + str(idchunk) + ".shp"
+                params.append((vect, fidlist, os.path.join(outputPath, outfile)))
 
     else:
         vect = vectorpath
@@ -1028,9 +1036,9 @@ def splitVectorFeatures(vectorpath, chunk=1, byarea=False):
 
     return params
 
-def computZonalStats(path, inr, shape, params, output, classes="", bufferdist="", nodata=0, gdalpath="", chunk=1, byarea=False, cache="1000", systemcall=False, iota2=False):
+def computZonalStats(path, inr, shape, params, outputpath, classes="", bufferdist="", nodata=0, gdalpath="", chunk=1, byarea=False, cache="1000", systemcall=False, iota2=False):
 
-    chunks = splitVectorFeatures(shape, chunk, byarea)
+    chunks = splitVectorFeatures(shape, outputpath, chunk, byarea)
 
     for block in chunks:
         zonalstats(path, inr, block, output, params, classes, bufferdist, nodata, gdalpath, systemcall, cache)
@@ -1038,13 +1046,24 @@ def computZonalStats(path, inr, shape, params, output, classes="", bufferdist=""
     if iota2:
         iota2Formatting(output, classes)
 
+def mergeSubVector(inpath, classes="", inbase="dept_", outbase="departement_"):
+        
+    listout = fut.FileSearch_AND(inpath, True, inbase, ".shp", "chk")
+    listofchkofzones = fut.sortByFirstElem([("_".join(x.split('_')[0:len(x.split('_'))-1]), x) for x in listout])
+
+
+    for zone in listofchkofzones:
+        zoneval = zone[0].split('_')[len(zone[0].split('_'))-1:len(zone[0].split('_'))]
+        outfile = os.path.join(inpath, outbase + zoneval[0] + '.shp')
+        mf.mergeVectors(zone[1], outfile)
+        iota2Formatting(outfile, classes, outfile)
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         PROG = os.path.basename(sys.argv[0])
-        print('      '+sys.argv[0]+' [options]'))
-        print("     Help : ", PROG, " --help"))
-        print("        or : ", PROG, " -h"))
+        print('      '+sys.argv[0]+' [options]')
+        print("     Help : ", PROG, " --help")
+        print("        or : ", PROG, " -h")
         sys.exit(-1)
     else:
         USAGE = "usage: %prog [options] "
