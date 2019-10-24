@@ -28,6 +28,8 @@ class superPixPos(IOTA2Step.Step):
                  workingDirectory: Optional[str] = None) -> None:
         """set up the step
         """
+        from Common.FileUtils import FileSearch_AND
+
         # heritage init
         resources_block_name = "superPixPos"
         super(superPixPos, self).__init__(cfg, cfg_resources_file, resources_block_name)
@@ -40,6 +42,24 @@ class superPixPos(IOTA2Step.Step):
         self.region_field = SCF.serviceConfigFile(self.cfg).getParam('chain', 'regionField')
         self.data_field = SCF.serviceConfigFile(self.cfg).getParam('chain', 'dataField')
         self.ram = 1024.0 * get_RAM(self.resources["ram"])
+        
+        self.sampling_labels_from_raster = {}
+        if (SCF.serviceConfigFile(self.cfg).getParam('argTrain', 'cropMix')
+            and SCF.serviceConfigFile(self.cfg).getParam('argTrain', 'samplesClassifMix')):
+            source_dir = SCF.serviceConfigFile(self.cfg).getParam('argTrain', 'annualClassesExtractionSource')
+            
+            annual_labels = SCF.serviceConfigFile(self.cfg).getParam('argTrain', 'annualCrop')
+            classification_raster = FileSearch_AND(os.path.join(source_dir, "final"),
+                                                   True, "Classif_Seed_0.tif")[0]
+            validity_raster = FileSearch_AND(os.path.join(source_dir, "final"),
+                                             True, "PixelsValidity.tif")[0]
+            val_thresh = SCF.serviceConfigFile(self.cfg).getParam('argTrain', 'validityThreshold')
+            region_mask_dir = os.path.join(self.execution_dir, "shapeRegion")
+            self.sampling_labels_from_raster = {"annual_labels": annual_labels,
+                                                "classification_raster": classification_raster,
+                                                "validity_raster": validity_raster,
+                                                "region_mask_directory": region_mask_dir,
+                                                "val_threshold": val_thresh}
 
     def step_description(self):
         """
@@ -72,6 +92,7 @@ class superPixPos(IOTA2Step.Step):
                                                       self.superPix_field,
                                                       self.superPix_belong_field,
                                                       self.region_field,
+                                                      self.sampling_labels_from_raster,
                                                       self.workingDirectory,
                                                       self.ram)
         return step_function
