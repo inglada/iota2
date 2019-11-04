@@ -47,7 +47,12 @@ class largeVectorization(IOTA2Step.Step):
             the return could be and iterable or a callable
         """
         from simplification import MergeTileRasters as mtr
-        return mtr.getListToPolygonize(self.outmos)
+        params = mtr.getListToPolygonize(self.outmos)
+
+        if not params:
+            raise FileNotFoundError("Vectorisation : no tile found to polygonise")
+        
+        return params 
 
     def step_execute(self):
         """
