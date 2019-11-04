@@ -40,7 +40,7 @@ class clipVectors(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Douglas-Peucker simplification (Serialisation strategy)")
+        description = ("Clip vector files for each feature of clipfile parameters")
         return description
 
     def step_inputs(self):
