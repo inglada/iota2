@@ -85,7 +85,6 @@ class zonalStatistics(IOTA2Step.Step):
         tmpdir = os.path.join(self.outputPath, 'final', 'simplification', 'tmp')
         if self.workingDirectory:
             tmpdir = self.workingDirectory
-        print()
 
         step_function = lambda x: zs.zonalstats(tmpdir,
                                                 [self.rastclass, self.rastconf, self.rastval],

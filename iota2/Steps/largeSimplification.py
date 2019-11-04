@@ -47,7 +47,7 @@ class largeSimplification(IOTA2Step.Step):
             the return could be and iterable or a callable
         """
         from simplification import MergeTileRasters as mtr
-        print(mtr.getListVectToSimplify(self.outmos))
+
         return mtr.getListVectToSimplify(self.outmos)
 
     def step_execute(self):
