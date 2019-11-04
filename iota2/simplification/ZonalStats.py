@@ -142,6 +142,10 @@ def countPixelByClass(databand, fid=0, band=0, nodata=0):
             # Transposition pour jointure directe
             listlabT = listlab.T
             classStats = pad.DataFrame(data=[listlabT.loc['rate'].values], index=[fid], columns=[str(int(x)) for x in listlabT.loc['value']])
+    else:
+        classStats = pad.DataFrame(index=[fid], columns=[])
+        classmaj = 0
+        posclassmaj = 0 
 
     listlab = listlabT = data = None
 
@@ -212,8 +216,11 @@ def rasterStats(band, nbband=0, posclassmaj=None, posToRead=None, nodata=0):
             std = round(np.std(data[data!=nodata]), 2)
             maxval = round(np.max(data[data!=nodata]), 2)
             minval = round(np.min(data[data!=nodata]), 2)
+            
+            stats = (mean, std, maxval, minval)
+        else:
+            stats = (0, 0, 0, 0)
 
-        stats = (mean, std, maxval, minval)
     else:
         stats = np.float(data[posToRead[1], posToRead[0]])
 
@@ -435,7 +442,7 @@ def storeRasterInArray(rasters):
     return outdata
 
 
-def extractRasterArray(rasters, paramstats, vector, vectorgeomtype, fid, gdalpath="", gdalcachemax="9000", systemcall=False, path=""):
+def extractRasterArray(rasters, paramstats, vector, vectorgeomtype, fid, gdalpath="", gdalcachemax="9000", systemcall=True, path=""):
 
     """Clip raster and store in ndarrays
 
@@ -484,10 +491,9 @@ def extractRasterArray(rasters, paramstats, vector, vectorgeomtype, fid, gdalpat
 
     # Get rasters resolution
     res = abs(fut.getRasterResolution(rasters[0])[0])
-
+    print(fid)
     # Get vector name 
     vectorname = os.path.splitext(os.path.basename(vector))[0]
-    
     for idx, raster in enumerate(rasters):
 
         # Value extraction
@@ -507,8 +513,8 @@ def extractRasterArray(rasters, paramstats, vector, vectorgeomtype, fid, gdalpat
                     tmpfile = os.path.join(path, 'rast_%s_%s_%s'%(vectorname, str(fid), idx))
                     cmd = '%sgdalwarp -tr %s %s -tap -q -overwrite -cutline %s '\
                           '-crop_to_cutline --config GDAL_CACHEMAX %s -wm %s '\
-                          '-wo "NUM_THREADS=ALL_CPUS" -wo "CUTLINE_ALL_TOUCHED=YES" "\
-                          "-cwhere "FID=%s" %s %s -ot Float32'%(os.path.join(gdalpath, ''), \
+                          '-wo "NUM_THREADS=ALL_CPUS" -wo "CUTLINE_ALL_TOUCHED=YES" '\
+                          '-cwhere "FID=%s" %s %s -ot Float32'%(os.path.join(gdalpath, ''), \
                                                                 res, \
                                                                 res, \
                                                                 vector, \
@@ -528,19 +534,26 @@ def extractRasterArray(rasters, paramstats, vector, vectorgeomtype, fid, gdalpat
                                         warpMemoryLimit=gdalcachemax, \
                                         warpOptions=[["NUM_THREADS=ALL_CPUS"], ["CUTLINE_ALL_TOUCHED=YES"]])
 
+
                 bands.append(tmpfile)
                 todel = []
+                
+                # store rasters in ndarray
+                ndbands = storeRasterInArray(bands)
+                
             except:
                 success = False
-
-    # store rasters in ndarray
-    ndbands = storeRasterInArray(bands)
+                
 
     # Remove tmp rasters 
     for filtodel in todel:
         os.remove(filtodel)
 
+    if not success:
+        nbbands = None
+
     return success, ndbands
+
 
 
 def getClassMaj(bands, methodstat, idxcatraster):
@@ -823,7 +836,7 @@ def dataframeExport(geodataframe, output, schema):
         Utils.run('ogr2ogr -f SQLite %s %s'%(output, outputinter))
         
 
-def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist=None, nodata=0, gdalpath="", systemcall=False, gdalcachemax="9000"):
+def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist=None, nodata=0, gdalpath="", systemcall=True, gdalcachemax="9000"):
     """Compute zonal statistitics (descriptive and categorical)
        on multi-band raster or multi-rasters
        based on Point (buffered or not) or Polygon zonal vector
@@ -983,7 +996,7 @@ def iota2Formatting(invector, classes, outvector=""):
     Utils.run(command)
 
     
-def splitVectorFeatures(vectorpath, outputPath, chunk=4, byarea=False):
+def splitVectorFeatures(vectorpath, outputPath, chunk=1, byarea=False):
     """Split FID list of a list of vector files in equal groups:
 
     Parameters
@@ -1036,9 +1049,9 @@ def splitVectorFeatures(vectorpath, outputPath, chunk=4, byarea=False):
 
     return params
 
-def computZonalStats(path, inr, shape, params, outputpath, classes="", bufferdist="", nodata=0, gdalpath="", chunk=1, byarea=False, cache="1000", systemcall=False, iota2=False):
+def computZonalStats(path, inr, shape, params, outputpath, classes="", bufferdist="", nodata=0, gdalpath="", chunk=1, byarea=False, cache="1000", systemcall=True, iota2=False):
 
-    chunks = splitVectorFeatures(shape, outputpath, chunk, byarea)
+    chunks = splitVectorFeatures(shape, path, chunk, byarea)
 
     for block in chunks:
         zonalstats(path, inr, block, output, params, classes, bufferdist, nodata, gdalpath, systemcall, cache)
