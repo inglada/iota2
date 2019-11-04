@@ -15,7 +15,7 @@ try:
     from VectorTools import DeleteDuplicateGeometriesSqlite as ddg
     from VectorTools import vector_functions as vf
     from VectorTools import AddFieldArea as afa
-    
+    from VectorTools import DeleteField as df   
 except ImportError:
     raise ImportError('Vector tools not well configured / installed')
 
@@ -106,7 +106,7 @@ def topologicalPolygonize(path, grasslib, raster, angle, out="", outformat = "ES
             gscript.run_command("r.to.vect", flags = "v", input = "tile@datas", output="vectile", type="area", overwrite=True)
 
             
-        gscript.run_command("v.edit", map = "vectile", tool = "delete", where = "cat > 250 or cat < 1")
+        #gscript.run_command("v.edit", map = "vectile", tool = "delete", where = "cat > 250 or cat < 1")
         
         timevect = time.time()     
         logger.info(" ".join([" : ".join(["Classification vectorization", str(timevect - timeimport)]), "seconds"]))
@@ -124,7 +124,7 @@ def topologicalPolygonize(path, grasslib, raster, angle, out="", outformat = "ES
     
     return out
 
-def generalizeVector(path, grasslib, vector, paramgene, method, mmu="", ncolumns=["cat"], out="", outformat = "ESRI_Shapefile", debulvl="info", logger=logger):
+def generalizeVector(path, grasslib, vector, paramgene, method, mmu="", ncolumns="cat", out="", outformat = "ESRI_Shapefile", debulvl="info", logger=logger):
 
 
     timeinit = time.time()
@@ -141,9 +141,12 @@ def generalizeVector(path, grasslib, vector, paramgene, method, mmu="", ncolumns
         os.mkdir(localenv)
         init_grass(localenv, grasslib,  debulvl)
 
-        gscript.run_command("v.in.ogr", flags="e", input=vector, output=layer, columns=ncolumns, key=ncolumns[0], overwrite=True)
-        
-        gscript.run_command("v.edit", map = "%s@datas"%(layer), tool = "delete", where = "cat > 250 or cat < 1")
+        # remove non "cat" fields
+        for field in vf.getFields(vector):
+            if field != 'cat':
+                df.deleteField(vector, field)
+
+        gscript.run_command("v.in.ogr", flags="e", input=vector, output=layer, columns=["id", ncolumns], overwrite=True)
         
         try:            
             gscript.run_command("v.generalize", \
@@ -153,7 +156,7 @@ def generalizeVector(path, grasslib, vector, paramgene, method, mmu="", ncolumns
                                 output="generalize",
                                 overwrite=True)
         except:
-            raise Exception("Something goes wrong with generalization parameters (method or input data)")
+            raise Exception("Something goes wrong with generalization parameters (method '%s' or input data)"%(method))
 
         if mmu != "":
             gscript.run_command("v.clean", input = "generalize", output="cleanarea", tool="rmarea", thres=mmu, type="area")                
@@ -183,6 +186,7 @@ def clipVectorfile(path, vector, clipfile, clipfield="", clipvalue="", outpath="
     if not os.path.exists(out):
         if clipfile is not None:
             logger.info('Clip vector file %s with %s (%s == %s)'%(os.path.basename(vector), os.path.basename(clipfile), clipfield, clipvalue))
+
             # local environnement
             localenv = os.path.join(path, "tmp%s"%(str(clipvalue)))
             if os.path.exists(localenv):shutil.rmtree(localenv)
@@ -211,6 +215,7 @@ def clipVectorfile(path, vector, clipfile, clipfield="", clipvalue="", outpath="
                                                                                        clipvalue, \
                                                                                        clip, \
                                                                                        clipfile)
+
                     Utils.run(command)             
                 else:
                     raise Exception('Field type %s not handled'%(fieldType))
@@ -221,11 +226,10 @@ def clipVectorfile(path, vector, clipfile, clipfield="", clipvalue="", outpath="
             # clip
             clipped = os.path.join(localenv, "clipped.shp")
 
-            layervect = os.path.splitext(os.path.basename(vector))[0]
-            command = "ogr2ogr -sql 'select * from %s where cat >= 1 and cat <= 250' -select cat -clipsrc %s %s %s"%(layervect, \
-                                                                                                                     clip, \
-                                                                                                                     clipped, \
-                                                                                                                     vector)
+            command = "ogr2ogr -select cat -clipsrc %s %s %s"%(clip, \
+                                                               clipped, \
+                                                               vector)
+
             Utils.run(command)
 
         else:
