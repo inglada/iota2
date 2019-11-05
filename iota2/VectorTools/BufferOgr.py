@@ -6,7 +6,7 @@ import argparse
 from osgeo import ogr
 from VectorTools import vector_functions as vf
 
-def bufferPoly(inputfn, outputBufferfn, bufferDist):
+def bufferPoly(inputfn, outputBufferfn="", bufferDist=0):
 
     try :
         bufferDist=float(bufferDist)
@@ -39,7 +39,8 @@ def bufferPoly(inputfn, outputBufferfn, bufferDist):
                 bufferlyr.CreateFeature(outFeature)
 
     except : return False    
-    return True
+
+    return bufferlyr
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:

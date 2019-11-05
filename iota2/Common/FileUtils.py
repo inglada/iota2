@@ -30,6 +30,7 @@ import errno
 import warnings
 import numpy as np
 from config import Config, Sequence
+import osgeo
 from osgeo import gdal
 from osgeo import ogr
 from osgeo import osr
@@ -839,8 +840,12 @@ def readRaster(name, data=False, band=1):
         projection : projection of raster dataset
         transform : coordinates and pixel size of raster dataset
     """
+    
     try:
-        raster = gdal.Open(name, 0)
+        if isinstance(name, str):
+            raster = gdal.Open(name, 0)
+        elif isinstance(name, osgeo.gdal.Dataset):
+            raster = name
     except:
         print("Problem on raster file path")
         sys.exit()
@@ -860,6 +865,25 @@ def readRaster(name, data=False, band=1):
     else:
         return xsize, ysize, projection, transform
 
+def arraytoRaster(array, output, model, driver='GTiff'):
+
+    driver = gdal.GetDriverByName(driver)
+
+    modelfile = readRaster(model, False)
+    cols = modelfile[0]
+    rows = modelfile[1]
+    outRaster = driver.Create(output, cols, rows, 1, gdal.GDT_Byte)
+    outRaster.SetGeoTransform((modelfile[3][0], \
+                               modelfile[3][1], 0, \
+                               modelfile[3][3], 0, \
+                               modelfile[3][5]))
+    outband = outRaster.GetRasterBand(1)
+    outband.WriteArray(array)
+    outRasterSRS = osr.SpatialReference()
+    outRasterSRS.ImportFromWkt(modelfile[2])
+    outRaster.SetProjection(outRasterSRS.ExportToWkt())
+    outband.FlushCache()
+    
 
 def getRasterResolution(rasterIn):
     """
@@ -982,6 +1006,22 @@ def getGroundSpacing(pathToFeat, ImgInfo):
     return spx, spy
 
 
+def str2bool(v):
+    """
+    usage : use in argParse as function to parse options
+
+    IN:
+    v [string]
+    out [bool]
+    """
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
+
+
 def getRasterProjectionEPSG(FileName):
     """
     usage get raster EPSG projection code
@@ -997,9 +1037,18 @@ def getRasterNbands(raster):
     """
     usage get raster's number of bands
     """
-    src_ds = gdal.Open(raster)
+    try:
+        if isinstance(raster, str):
+            src_ds = gdal.Open(raster)
+        elif isinstance(raster, osgeo.gdal.Dataset):
+            src_ds = raster
+    except:
+        print("Problem on raster file path")
+        sys.exit()        
+
     if src_ds is None:
         raise Exception(raster + " doesn't exist")
+    
     return int(src_ds.RasterCount)
 
 
@@ -1294,36 +1343,79 @@ def mergeVectors(outname, opath, files, ext="shp", out_Tbl_name=None):
 
 def getRasterExtent(raster_in):
     """
-    Get raster extent of raster_in from GetGeoTransform()
-    ARGs:
-    INPUT:
-        - raster_in: input raster
-    OUTPUT
-        - ex: extent with [minX,maxX,minY,maxY]
+        Get raster extent of raster_in from GetGeoTransform()
+        ARGs:
+            INPUT:
+                - raster_in: input raster
+            OUTPUT
+                - ex: extent with [minX,maxX,minY,maxY]
     """
-    
-    retour = []
     if not os.path.isfile(raster_in):
-        pass
-    else:
-        raster = gdal.Open(raster_in, GA_ReadOnly)
-        if raster is None:
-            pass
-        else:
-            geotransform = raster.GetGeoTransform()
-            originX = geotransform[0]
-            originY = geotransform[3]
-            spacingX = geotransform[1]
-            spacingY = geotransform[5]
-            r, c = raster.RasterYSize, raster.RasterXSize
+        return []
+    raster = gdal.Open(raster_in, GA_ReadOnly)
+    if raster is None:
+        return []
+    geotransform = raster.GetGeoTransform()
+    originX = geotransform[0]
+    originY = geotransform[3]
+    spacingX = geotransform[1]
+    spacingY = geotransform[5]
+    r, c = raster.RasterYSize, raster.RasterXSize
+    
+    minX = originX
+    maxY = originY
+    maxX = minX + c*spacingX
+    minY = maxY + r*spacingY
+    
+    return [minX,maxX,minY,maxY]
+
+def matchGrid(coordinate, grid):
+    """
+    """
+    interval_list = []
+    pix_coordinate = None
+    for cpt, value in enumerate(grid[:-1]):
+        interval_list.append((value, grid[cpt + 1]))
+    for index, (inf, sup) in enumerate(interval_list):
+        if (coordinate > inf and coordinate < sup) or (coordinate < inf and coordinate > sup):
+            pix_coordinate = index
+    return pix_coordinate
+
+def geoToPix(raster, geoX, geoY, disp=False):
+    """conver geographical coordinates to pixels
+
+    Parameters
+    ----------
+    raster : string
+        absolute path to an image
+    geoX : float
+        X geographic coordinate
+    geoY : float
+        Y geographic coordinate
+    disp : bool
+        flag to print coordinates
+    """
+    minXe,maxXe,minYe,maxYe = getRasterExtent(raster)
+    spacingX, spacingY = getRasterResolution(raster)
+    stepX = spacingX
+    Xgrid = np.arange(minXe, maxXe + spacingX, spacingX)
+    Ygrid = np.arange(maxYe, minYe + spacingY, spacingY)
+
+    pixY = matchGrid(geoY, Ygrid)
+    pixX = matchGrid(geoX, Xgrid)
+
+    coordinates = pixX, pixY
+    
+    if pixX is None or pixY is None:
+        coordinates = None
         
-            minX = originX
-            maxY = originY
-            maxX = minX + c * spacingX
-            minY = maxY + r * spacingY
+    if disp:
+        disp_msg = "X : {}\nY : {}".format(pixX, pixY)
+        if coordinates is None:
+            disp_msg = "out of bounds"
+        print(disp_msg)
         
-            retour = [minX, maxX, minY, maxY]
-    return retour
+    return coordinates
 
 
 def ResizeImage(imgIn, imout, spx, spy, imref, proj, pixType):

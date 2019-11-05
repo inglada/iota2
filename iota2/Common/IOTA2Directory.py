@@ -62,7 +62,8 @@ def GenerateDirectories(cfg):
     os.mkdir(root+"/final")
     os.mkdir(root+"/final/simplification")
     os.mkdir(root+"/final/simplification/tiles")
-    os.mkdir(root+"/final/simplification/vectors")    
+    os.mkdir(root+"/final/simplification/vectors")
+    os.mkdir(root+"/final/simplification/mosaic")    
     os.mkdir(root+"/final/simplification/tmp")
     if os.path.exists(root+"/features"):
         shutil.rmtree(root+"/features")

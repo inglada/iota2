@@ -43,7 +43,11 @@ class iota2():
         self.steps_group["validation"] = OrderedDict()
         self.steps_group["regularisation"] = OrderedDict()
         self.steps_group["crown"] = OrderedDict()
+        self.steps_group["mosaictiles"] = OrderedDict()        
         self.steps_group["vectorisation"] = OrderedDict()
+        self.steps_group["simplification"] = OrderedDict()
+        self.steps_group["smoothing"] = OrderedDict()
+        self.steps_group["clipvectors"] = OrderedDict()                
         self.steps_group["lcstatistics"] = OrderedDict()
 
         #build steps
@@ -165,9 +169,9 @@ class iota2():
                            reportGeneration, mergeSeedClassifications,
                            additionalStatistics, additionalStatisticsMerge,
                            sensorsPreprocess, Coregistration, Regularization,
-                           Clump, Grid, crownSearch, crownBuild,
-                           largeVectorization, VectSimplification,
-                           zonalStatistics, joinStatistics)
+                           Clump, Grid, crownSearch, crownBuild, mosaicTilesVectorization,
+                           largeVectorization, largeSimplification, largeSmoothing,
+                           clipVectors, zonalStatistics)
 
         # will contains all IOTA² steps
         s_container = StepContainer()
@@ -253,6 +257,7 @@ class iota2():
         step_mosaic = mosaic.mosaic(cfg,
                                     config_ressources,
                                     self.workingDirectory)
+        
         step_confusions_cmd = confusionCmd.confusionCmd(cfg,
                                                         config_ressources,
                                                         self.workingDirectory)
@@ -289,18 +294,25 @@ class iota2():
         step_crown_build = crownBuild.crownBuild(cfg,
                                                  config_ressources,
                                                  self.workingDirectory)
+        step_mosaic_tiles = mosaicTilesVectorization.mosaicTilesVectorization(cfg,
+                                                                              config_ressources,
+                                                                              self.workingDirectory)        
         step_large_vecto = largeVectorization.largeVectorization(cfg,
                                                                  config_ressources,
                                                                  self.workingDirectory)
-        step_simplification = VectSimplification.simplification(cfg,
-                                                                config_ressources,
-                                                                self.workingDirectory)
+        step_large_simp = largeSimplification.largeSimplification(cfg,
+                                                                  config_ressources,
+                                                                  self.workingDirectory)        
+        step_large_smoothing = largeSmoothing.largeSmoothing(cfg,
+                                                             config_ressources,
+                                                             self.workingDirectory)
+        step_clip_vectors = clipVectors.clipVectors(cfg,
+                                                    config_ressources,
+                                                    self.workingDirectory)
+        
         step_zonal_stats = zonalStatistics.zonalStatistics(cfg,
                                                            config_ressources,
                                                            self.workingDirectory)
-        step_join_stats = joinStatistics.joinStatistics(cfg,
-                                                        config_ressources,
-                                                        self.workingDirectory)
         
         # control variable
         Sentinel1 = SCF.serviceConfigFile(cfg).getParam('chain', 'S1Path')
@@ -386,11 +398,15 @@ class iota2():
             s_container.append(step_grid, "crown")
             s_container.append(step_crown_search, "crown")
             s_container.append(step_crown_build, "crown")
+            # mosaic step
+            s_container.append(step_mosaic_tiles, "mosaictiles")
             # vectorization step
             s_container.append(step_large_vecto, "vectorisation")
+            s_container.append(step_large_simp, "simplification")
+            s_container.append(step_large_smoothing, "smoothing")
+            s_container.append(step_clip_vectors, "clipvectors")            
         else:
             # vectorization step
             s_container.append(step_simplification, "vectorisation")
         s_container.append(step_zonal_stats, "lcstatistics")
-        s_container.append(step_join_stats, "lcstatistics")
         return s_container

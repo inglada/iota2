@@ -138,6 +138,9 @@ def ExtentEntitiesTile(tileId, Params, xsize, ysize, neighbors=False):
             geographical extent of tile entities
     """
     subParams = {x:Params[x] for x in tileId}
+    #print subParams
+    #print(subParams.values())
+    #print("prout")
     valsExtents = list(subParams.values())
 
     minCol = min([y for x, y, z, w in valsExtents])
