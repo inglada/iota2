@@ -24,7 +24,7 @@ import time
 import logging
 logger = logging.getLogger(__name__)
 import numpy as np
-from simplification import AdaptRegul
+from simplification import AdaptRegul23
 
 try:
     from Common import Utils
