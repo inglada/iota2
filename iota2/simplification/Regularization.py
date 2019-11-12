@@ -24,11 +24,14 @@ import time
 import logging
 logger = logging.getLogger(__name__)
 import numpy as np
+import multiprocessing as mp
 from simplification import AdaptRegul23
 
 try:
     from Common import Utils
     from Common import OtbAppBank
+    from Common.OtbAppBank import executeApp
+    
 except ImportError:
     raise ImportError('Iota2 not well configured / installed')
 
@@ -62,10 +65,13 @@ def rastToVectRecode(path, classif, vector, outputName, ram = "10000", dtype = "
     # Empty raster
     bmapp = OtbAppBank.CreateBandMathApplication({"il": classif,
                                                 "exp": "im1b1*0",
-                                                "ram": str(0.2 * float(ram)),
+                                                "ram": str(1 * float(ram)),
                                                 "pixType": dtype,
                                                 "out": os.path.join(path, 'temp.tif')})
-    bmapp.ExecuteAndWriteOutput()
+    #bandMathAppli.ExecuteAndWriteOutput()
+    p = mp.Process(target=executeApp, args=[bmapp])
+    p.start()
+    p.join()
 
     # Burn
     tifMasqueMerRecode = os.path.join(path, 'masque_mer_recode.tif')
@@ -74,15 +80,22 @@ def rastToVectRecode(path, classif, vector, outputName, ram = "10000", dtype = "
                                                        "background": 1,
                                                        "out": tifMasqueMerRecode})
 
-    rastApp.ExecuteAndWriteOutput()
+    #bandMathAppli.ExecuteAndWriteOutput()
+    p = mp.Process(target=executeApp, args=[rastApp])
+    p.start()
+    p.join()
 
     # Differenciate inland water and sea water
     bandMathAppli = OtbAppBank.CreateBandMathApplication({"il": [classif, tifMasqueMerRecode],
                                                           "exp": "(im2b1=={})?im1b1:{}".format(valvect, valrastout),
-                                                          "ram": str(0.2 * float(ram)),
+                                                          "ram": str(1 * float(ram)),
                                                           "pixType": dtype,
                                                           "out": outputName})
-    bandMathAppli.ExecuteAndWriteOutput()
+
+    #bandMathAppli.ExecuteAndWriteOutput()
+    p = mp.Process(target=executeApp, args=[bandMathAppli])
+    p.start()
+    p.join()
     os.remove(tifMasqueMerRecode)
 
 
@@ -92,7 +105,7 @@ def OSORegularization(classif, umc1, core, path, output, ram = "10000", noSeaVec
     os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = str(core)
 
     # first regularization
-    regulClassif, time_regul1 = AdaptRegul.regularisation(classif, umc1, core, path, ram)
+    regulClassif, time_regul1 = AdaptRegul23.regularisation(classif, umc1, core, path, ram)
 
     logger.info(" ".join([" : ".join(["First regularization", str(time_regul1)]), "seconds"]))
 
@@ -110,7 +123,7 @@ def OSORegularization(classif, umc1, core, path, output, ram = "10000", noSeaVec
             Utils.run(command)
             logger.info(" ".join([" : ".join(["Resample", str(time.time() - time_regul1)]), "seconds"]))
 
-        regulClassif, time_regul2 = AdaptRegul.regularisation(os.path.join(path, "reechantillonnee.tif"), umc2, core, path, ram)
+        regulClassif, time_regul2 = AdaptRegul23.regularisation(os.path.join(path, "reechantillonnee.tif"), umc2, core, path, ram)
         os.remove(os.path.join(path, "reechantillonnee.tif"))
         logger.info(" ".join([" : ".join(["Second regularization", str(time_regul2)]), "seconds"]))
 
