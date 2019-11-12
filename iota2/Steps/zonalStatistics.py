@@ -35,6 +35,7 @@ class zonalStatistics(IOTA2Step.Step):
         self.rastval = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'validity')
         self.seed = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'seed')
         self.bingdal = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'bingdal')
+        self.chunk = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'chunk')        
         self.statslist = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'statslist')
         self.nomenclature = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'nomenclature')
         
@@ -69,7 +70,7 @@ class zonalStatistics(IOTA2Step.Step):
         """
         from simplification import ZonalStats as zs
 
-        return zs.splitVectorFeatures(self.outfilesvectpath, self.outfilesvectpath)
+        return zs.splitVectorFeatures(self.outfilesvectpath, self.outfilesvectpath, self.chunk)
 
 
     def step_execute(self):
