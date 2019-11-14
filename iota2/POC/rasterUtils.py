@@ -16,66 +16,73 @@
 import os
 import gdal
 
+import rasterio
+from rasterio.transform import Affine
+from rasterio.io import MemoryFile
+from rasterio.merge import merge
+
+import numpy as np
 
 def apply_function(OTB_pipeline, labels, working_dir, function, output_path, chunck_size_x=10, chunck_size_y=10, ram=128):
     """
+    Parameters
+    ----------
     function : partial function
+    
+    Return
+    ------
+    tuple
+        (np.array, new_labels)
     """
-    from iota2.Common.FileUtils import assembleTile_Merge
     new_array = new_labels = None
 
-    ROI_rasters = split_raster(OTB_pipeline=OTB_pipeline,
-                               chunk_size=(chunck_size_x, chunck_size_y),
-                               ram_per_chunk=ram,
-                               working_dir=working_dir) 
+    ROI_rasters, epsg_code = split_raster(OTB_pipeline=OTB_pipeline,
+                                          chunk_size=(chunck_size_x, chunck_size_y),
+                                          ram_per_chunk=ram,
+                                          working_dir=working_dir) 
     new_arrays = []
     for index, ROI_raster in enumerate(ROI_rasters):
         ROI_array, proj_geotransform = process_function(ROI_raster, function=function)
         new_arrays.append((ROI_array, proj_geotransform))
 
-        if index == 0:
-            spacing_x, _ = ROI_raster.GetImageSpacing("out")
-        
-    # TODO : ROI_tmp_*.tif must not be written on disk ()
-    tmp_rasters = []
-    for index, new_array in enumerate(new_arrays):
-        tmp_raster = os.path.join(working_dir, "ROI_tmp_{}.tif".format(index))
-        write_array(array_proj=new_array, num=index, output_path=tmp_raster)
-        tmp_rasters.append(tmp_raster)
+    all_data_sets = get_rasterio_datasets(new_arrays)
+    mosaic, out_trans = merge(all_data_sets)
 
-    assembleTile_Merge(tmp_rasters, spacing_x, output_path)
-
-    for tmp_raster in tmp_rasters:
-        os.remove(tmp_raster)
-
-    ds = gdal.Open(output_path)
-    arrayOut = ds.ReadAsArray()
-    ds = None
+    with rasterio.open(output_path, "w", driver='GTiff',
+                       height=mosaic.shape[1], width=mosaic.shape[2], count=mosaic.shape[0],crs="EPSG:{}".format(epsg_code),
+                       transform=out_trans, dtype=mosaic.dtype) as dest:
+        dest.write(mosaic)
 
     # TODO : new_labels definition
-    return new_array, new_labels
+    return mosaic, new_labels
 
 
-def write_array(array_proj, num, output_path, dtype=gdal.GDT_Float32):
+def get_rasterio_datasets(array_proj):
     """
     """
-    array = array_proj[0]
-    proj = array_proj[-1]["projection"]
-    geo_transform = array_proj[-1]["geo_transform"]
-    
-    y_size, x_size, z_size = array.shape
-    
-    driver = gdal.GetDriverByName("GTiff")
-    
-    ds = driver.Create(output_path, x_size, y_size, z_size, dtype)
+    all_data_sets = []
+    for index, new_array in enumerate(array_proj):
+        
+        array = new_array[0]
+        proj = new_array[-1]["projection"]
+        geo_transform = new_array[-1]["geo_transform"]
+        
+        if index==0:
+            epsg_code = proj.GetAttrValue("AUTHORITY", 1)
 
-    for i in range(z_size):
-        outband = ds.GetRasterBand(i + 1)
-        outband.WriteArray(array[:,:,i])
-
-    ds.SetProjection(proj.ExportToWkt())
-    ds.SetGeoTransform(geo_transform)
-    ds.FlushCache()
+        transform = Affine.from_gdal(*geo_transform)
+        array_ordered = np.moveaxis(array, -1, 0)
+        with MemoryFile() as memfile:
+            with memfile.open(driver='GTiff',
+                               height=array_ordered.shape[1],
+                               width=array_ordered.shape[2],
+                               count=array_ordered.shape[0],
+                               dtype=array.dtype,
+                               crs="EPSG:{}".format(epsg_code),
+                               transform=transform) as dataset:
+                dataset.write(array_ordered)
+            all_data_sets.append(memfile.open())
+    return all_data_sets
 
 
 def process_function(OTB_pipeline, function):
@@ -119,9 +126,18 @@ def get_chunks_boundaries(chunk_size, shape):
 def split_raster(OTB_pipeline, chunk_size, ram_per_chunk, working_dir):
     """
     """
+    import osr
     from iota2.Common.OtbAppBank import CreateExtractROIApplication
     
     OTB_pipeline.Execute()
+    
+    proj = OTB_pipeline.GetImageProjection("out")    
+    projection = osr.SpatialReference()
+    projection.ImportFromWkt(proj)
+    origin_x, origin_y = OTB_pipeline.GetImageOrigin("out")
+    xres, yres = OTB_pipeline.GetImageSpacing("out")
+    # gdal offset
+    geo_transform_origin = [origin_x - xres / 2.0, xres, 0, origin_y - yres / 2.0, 0, yres]
     
     y_size, x_size = OTB_pipeline.GetImageSize("out")# check if (y_size, x_size) or (x_size, y_size)
 
@@ -139,4 +155,4 @@ def split_raster(OTB_pipeline, chunk_size, ram_per_chunk, working_dir):
                                            "sizey": boundary["sizey"],
                                            "out": os.path.join(working_dir, "ROI_{}.tif".format(index))})
         independant_raster.append(ROI)
-    return independant_raster
+    return independant_raster, projection.GetAttrValue("AUTHORITY", 1)

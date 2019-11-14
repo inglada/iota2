@@ -54,7 +54,7 @@ def compute_features(config_path, output_raster, tile_name, working_dir, functio
     feat_stack, feat_labels, _ = generateFeatures(working_dir, tile_name, cfg)
 
     # Then compute new features
-    function = partial(function, increment=2)
+    function = partial(function, increment=1)
     feat_stack_array, feat_labels = rasterUtils.apply_function(feat_stack,
                                                                feat_labels,
                                                                working_dir,
