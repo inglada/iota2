@@ -23,7 +23,7 @@ from rasterio.merge import merge
 
 import numpy as np
 
-def apply_function(OTB_pipeline, labels, working_dir, function, output_path, chunck_size_x=10, chunck_size_y=10, ram=128):
+def apply_function(OTB_pipeline, labels, working_dir, function, output_path=None, chunck_size_x=10, chunck_size_y=10, ram=128):
     """
     Parameters
     ----------
@@ -47,11 +47,11 @@ def apply_function(OTB_pipeline, labels, working_dir, function, output_path, chu
 
     all_data_sets = get_rasterio_datasets(new_arrays)
     mosaic, out_trans = merge(all_data_sets)
-
-    with rasterio.open(output_path, "w", driver='GTiff',
-                       height=mosaic.shape[1], width=mosaic.shape[2], count=mosaic.shape[0],crs="EPSG:{}".format(epsg_code),
-                       transform=out_trans, dtype=mosaic.dtype) as dest:
-        dest.write(mosaic)
+    if output_path:
+        with rasterio.open(output_path, "w", driver='GTiff',
+                           height=mosaic.shape[1], width=mosaic.shape[2], count=mosaic.shape[0],crs="EPSG:{}".format(epsg_code),
+                           transform=out_trans, dtype=mosaic.dtype) as dest:
+            dest.write(mosaic)
 
     # TODO : new_labels definition
     return mosaic, new_labels
