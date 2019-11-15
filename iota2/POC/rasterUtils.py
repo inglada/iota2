@@ -139,7 +139,7 @@ def split_raster(OTB_pipeline, chunk_size, ram_per_chunk, working_dir):
     # gdal offset
     geo_transform_origin = [origin_x - xres / 2.0, xres, 0, origin_y - yres / 2.0, 0, yres]
     
-    y_size, x_size = OTB_pipeline.GetImageSize("out")# check if (y_size, x_size) or (x_size, y_size)
+    x_size, y_size = OTB_pipeline.GetImageSize("out")
 
     # TODO : ram_estimation could be useful if chunck_size == "auto"
     ram_estimation = OTB_pipeline.PropagateRequestedRegion(key="out",
@@ -155,4 +155,5 @@ def split_raster(OTB_pipeline, chunk_size, ram_per_chunk, working_dir):
                                            "sizey": boundary["sizey"],
                                            "out": os.path.join(working_dir, "ROI_{}.tif".format(index))})
         independant_raster.append(ROI)
+
     return independant_raster, projection.GetAttrValue("AUTHORITY", 1)
