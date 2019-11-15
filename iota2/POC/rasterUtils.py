@@ -22,7 +22,7 @@ from rasterio.io import MemoryFile
 from rasterio.merge import merge
 import numpy as np
 
-from typing import List, Dict, Union, Optional, Tuple
+from typing import List, Dict, Union, Optional, Tuple, Type, Generic
 
 #Only for typing
 import otbApplication
@@ -171,12 +171,12 @@ def get_chunks_boundaries(chunk_size: Tuple[int, int],
                                "sizey": chunk_size_y})
     return boundaries
 
-otbChunks = List[otbApplication]
+otbChunk = Tuple[type(otbApplication), int]
 
 def split_raster(OTB_pipeline: otbApplication,
                  chunk_size: Tuple[int, int],
                  ram_per_chunk: int,
-                 working_dir: str) -> otbChunks:
+                 working_dir: str) -> List[otbChunk]:
     """extract regions of interest over the otbApplication
 
     Parameters
