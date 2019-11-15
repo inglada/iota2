@@ -20,14 +20,34 @@ import rasterio
 from rasterio.transform import Affine
 from rasterio.io import MemoryFile
 from rasterio.merge import merge
-
 import numpy as np
 
-def apply_function(OTB_pipeline, labels, working_dir, function, output_path=None, chunck_size_x=10, chunck_size_y=10, ram=128):
+from typing import List, Dict, Union, Optional, Tuple
+
+#Only for typing
+import otbApplication
+from functools import partial
+
+
+def apply_function(OTB_pipeline: otbApplication,
+                   labels: List[str],
+                   working_dir: str,
+                   function: partial,
+                   output_path: Optional[str] = None,
+                   chunck_size_x: Optional[int] = 10,
+                   chunck_size_y: Optional[int] = 10,
+                   ram: Optional[int] = 128) -> Tuple[np.ndarray, List[str]]:
     """
     Parameters
     ----------
-    function : partial function
+    OTB_pipeline: otbApplication
+    labels: List[str]
+    working_dir: str
+    function: partial
+    output_path: str
+    chunck_size_x: int
+    chunck_size_y: int
+    ram: int
     
     Return
     ------
@@ -57,8 +77,8 @@ def apply_function(OTB_pipeline, labels, working_dir, function, output_path=None
     return mosaic, new_labels
 
 
-def get_rasterio_datasets(array_proj):
-    """
+def get_rasterio_datasets(array_proj: List[Tuple[np.ndarray, Dict]]) -> List[rasterio.io.DatasetReader]:
+    """transform numpy arrays (containing projection data) to rasterio datasets
     """
     all_data_sets = []
     for index, new_array in enumerate(array_proj):
@@ -85,8 +105,21 @@ def get_rasterio_datasets(array_proj):
     return all_data_sets
 
 
-def process_function(OTB_pipeline, function):
-    """
+def process_function(OTB_pipeline: otbApplication,
+                     function: partial) -> Tuple[np.ndarray, Dict]:
+    """apply python function to the output of an otbApplication
+
+    Parameters
+    ----------
+    OTB_pipeline : otbApplication
+        otb application ready to be Execute()
+    function : itertools.partial
+        function manipulating numpy array
+
+    Return
+    ------
+    tuple
+        (np.ndarray, dict)
     """
     import osr
     OTB_pipeline.Execute()
@@ -105,8 +138,24 @@ def process_function(OTB_pipeline, function):
     return function(array), {"projection": projection, "geo_transform": geo_transform}
 
 
-def get_chunks_boundaries(chunk_size, shape):
-    """
+def get_chunks_boundaries(chunk_size: Tuple[int, int],
+                          shape: Tuple[int, int]) -> List[Dict[str, int]]:
+    """from numpy array shape, return chunks boundaries (Extract ROI coordinates)
+    
+    Parameters
+    ----------
+    chunk_size : tuple
+        tuple(chunk_size_x, chunk_size_y)
+    shape : tuple
+        tuple(size_x, size_y)
+
+    Return
+    ------
+    dict
+        {"startx": int,
+         "sizex" : int,
+         "starty": int,
+         "sizey" : int}
     """
     import numpy as np
     chunk_size_x, chunk_size_y = chunk_size[0], chunk_size[1]
@@ -122,9 +171,24 @@ def get_chunks_boundaries(chunk_size, shape):
                                "sizey": chunk_size_y})
     return boundaries
 
+otbChunks = List[otbApplication]
 
-def split_raster(OTB_pipeline, chunk_size, ram_per_chunk, working_dir):
-    """
+def split_raster(OTB_pipeline: otbApplication,
+                 chunk_size: Tuple[int, int],
+                 ram_per_chunk: int,
+                 working_dir: str) -> otbChunks:
+    """extract regions of interest over the otbApplication
+
+    Parameters
+    ----------
+    OTB_pipeline : otbApplication
+        otb application 
+    chunk_size : tuple
+        tuple(chunk_size_x, chunk_size_y)
+    ram_per_chunk : int
+        otb's pipeline size (Mo)
+    working_dir : str
+        working directory
     """
     import osr
     from iota2.Common.OtbAppBank import CreateExtractROIApplication
