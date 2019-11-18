@@ -136,4 +136,59 @@ class iota_testNumpyFeatures(unittest.TestCase):
 
         # purposely not implemented
         self.assertTrue(new_labels is None)
+
+    def test_machine_learning(self):
+        """use sci-kit learn machine learning algorithm
+        """
+        from functools import partial
+        from sklearn.ensemble import RandomForestClassifier
+        from iota2.POC import rasterUtils as RU
+        from iota2.Common.OtbAppBank import CreateBandMathXApplication
         
+        def do_predict(array, model):
+            """
+            """
+            # ~ TODO : make apply_along_axis work...
+            # ~ np.apply_along_axis(func1d=model.predict, axis=-1, arr=array)
+            no_prediction_label = -1
+            raws, cols = array.shape[0], array.shape[1]
+            
+            # by the use of rasterio, we must use 3D array
+            predicted_array = np.full((raws, cols, 1), no_prediction_label, dtype=np.int32)
+            
+            for y in range(array.shape[0]):
+                for x in range(array.shape[1]):
+                    predicted_array[y][x][0] = model.predict([array[y, x, :]])
+            return predicted_array
+                    
+        # build data to learn RF model
+        from sklearn.datasets import make_classification
+        X, y = make_classification(n_samples=1000, n_features=2,
+                                   n_informative=2, n_redundant=0,
+                                   random_state=0, shuffle=True)
+        # learning
+        clf = RandomForestClassifier(n_estimators=100, max_depth=2,
+                                     random_state=0)
+        clf.fit(X, y)
+        
+        # create some data on disk in order to predict them
+        dummy_raster_path = os.path.join(self.test_working_directory, "DUMMY.tif")
+        array_to_rasterize = TU.fun_array("iota2_binary")
+        TU.arrayToRaster(array_to_rasterize, dummy_raster_path)
+        
+        # Get it in a otbApplication (simulating full iota2 features pipeline)
+        bandMath = CreateBandMathXApplication({"il": [dummy_raster_path],
+                                               "exp": "im1b1;im1b1"})
+        # prediction
+        function_partial = partial(do_predict, model=clf)
+        prediction_path = os.path.join(self.test_working_directory, "Classif_test.tif")
+        test_array, new_labels = RU.apply_function(OTB_pipeline=bandMath,
+                                                   labels=[""],
+                                                   working_dir=self.test_working_directory,
+                                                   function=function_partial,
+                                                   output_path=prediction_path,
+                                                   chunck_size_x=5,
+                                                   chunck_size_y=5,
+                                                   ram=128)
+        self.assertTrue(os.path.exists(prediction_path))
+        self.assertTrue(test_array.shape==(1, 16, 86))
