@@ -79,6 +79,7 @@ def apply_function(OTB_pipeline: otbApplication,
 
 def get_rasterio_datasets(array_proj: List[Tuple[np.ndarray, Dict]]) -> List[rasterio.io.DatasetReader]:
     """transform numpy arrays (containing projection data) to rasterio datasets
+        it works only with 2D and 3D arrays
     """
     all_data_sets = []
     for index, new_array in enumerate(array_proj):
@@ -92,11 +93,19 @@ def get_rasterio_datasets(array_proj: List[Tuple[np.ndarray, Dict]]) -> List[ras
 
         transform = Affine.from_gdal(*geo_transform)
         array_ordered = np.moveaxis(array, -1, 0)
+        array_ordered_shape = array_ordered.shape
+
+        if len(array_ordered_shape)!=3:
+            raise ValueError("array's must be 3D")
+        else:
+            height = array_ordered_shape[1]
+            width = array_ordered_shape[2]
+            count = array_ordered_shape[0]
         with MemoryFile() as memfile:
             with memfile.open(driver='GTiff',
-                               height=array_ordered.shape[1],
-                               width=array_ordered.shape[2],
-                               count=array_ordered.shape[0],
+                               height=height,
+                               width=width,
+                               count=count,
                                dtype=array.dtype,
                                crs="EPSG:{}".format(epsg_code),
                                transform=transform) as dataset:
