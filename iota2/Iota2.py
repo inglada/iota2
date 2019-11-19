@@ -302,8 +302,6 @@ if __name__ == "__main__":
         print(chain_to_process.print_step_summarize(args.start,
                                                     args.end,
                                                     args.config_ressources is not None))
-
-
     if args.launchChain is False:
         sys.exit()
     

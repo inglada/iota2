@@ -110,6 +110,7 @@ class iota2():
         summarize += "\n"
         return summarize
 
+
     def get_dir(self):
         """
         usage : return iota2_directories
