@@ -953,7 +953,7 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
                 stats = computeStats(bands, paramstats, stats, idval, nodata)
 
         else:
-            print("gdalwarp problem for feature %s (geometry error, too small area, etc.)"%(idval))
+            print("gdalwarp problem for feature %s (geometry error, too small area, gdal version, etc.) : No statistic computed"%(idval))
 
     # Prepare columns name and format of output dataframe
     if "rate" in list(paramstats.values()) and classes != "":
@@ -1002,13 +1002,16 @@ def iota2Formatting(invector, classes, outvector=""):
     Utils.run(command)
 
     
-def splitVectorFeatures(vectorpath, outputPath, chunk=0, byarea=False):
+def splitVectorFeatures(vectorpath, outputPath, chunk=1, byarea=False):
     """Split FID list of a list of vector files in equal groups:
 
     Parameters
     ----------
     vectorpath : string
         vector file or folder of vector files
+
+    outputPath : string
+        path to chunked vector files
 
     chunk : integer
         number of FID groups
@@ -1042,9 +1045,13 @@ def splitVectorFeatures(vectorpath, outputPath, chunk=0, byarea=False):
                 listfid = [listfid[i::chunk] for i in range(chunk)]
                 listfid = list(filter(None, listfid))
 
-            for idchunk, fidlist in enumerate(listfid):
-                outfile = os.path.splitext(os.path.basename(vect))[0] + '_chk' + str(idchunk) + ".shp"
-                params.append((vect, fidlist, os.path.join(outputPath, outfile)))
+            if len(listfild) == 1:
+                outfile = os.path.splitext(os.path.basename(vect))[0] "_stats.shp"
+                params.append((vect, listfild[0], os.path.join(outputPath, outfile)))
+            else:
+                for idchunk, fidlist in enumerate(listfid):
+                    outfile = os.path.splitext(os.path.basename(vect))[0] + '_chk' + str(idchunk) + ".shp"                
+                    params.append((vect, fidlist, os.path.join(outputPath, outfile)))
 
     else:
         vect = vectorpath
@@ -1055,7 +1062,7 @@ def splitVectorFeatures(vectorpath, outputPath, chunk=0, byarea=False):
 
     return params
 
-def computZonalStats(path, inr, shape, params, output, classes="", bufferdist="", nodata=0, gdalpath="", chunk=0, byarea=False, cache="1000", systemcall=True, iota2=False):
+def computZonalStats(path, inr, shape, params, output, classes="", bufferdist="", nodata=0, gdalpath="", chunk=1, byarea=False, cache="1000", systemcall=True, iota2=False):
 
     chunks = splitVectorFeatures(shape, path, chunk, byarea)    
     
@@ -1067,7 +1074,7 @@ def computZonalStats(path, inr, shape, params, output, classes="", bufferdist=""
 
 
 
-def mergeSubVector(inpath, classes="", inbase="dept_", outbase="departement_", outzip=True):
+def mergeSubVector(inpath, outpath, classes="", inbase="dept_", outbase="departement_", outzip=True):
         
     listout = fut.FileSearch_AND(inpath, True, inbase, ".shp", "chk")
     listofchkofzones = fut.sortByFirstElem([("_".join(x.split('_')[0:len(x.split('_'))-1]), x) for x in listout])
@@ -1075,12 +1082,12 @@ def mergeSubVector(inpath, classes="", inbase="dept_", outbase="departement_", o
 
     for zone in listofchkofzones:
         zoneval = zone[0].split('_')[len(zone[0].split('_'))-1:len(zone[0].split('_'))]
-        outfile = os.path.join(inpath, outbase + zoneval[0] + '.shp')
+        outfile = os.path.join(outpath, outbase + zoneval[0] + '.shp')
         mf.mergeVectors(zone[1], outfile)
         iota2Formatting(outfile, classes, outfile)
 
     if outzip:
-        outzip = os.path.splitext(output)[0] + '.zip'
+        outzip = os.path.splitext(outfile)[0] + '.zip'
         compressShape(output, outzip)        
 
 def compressShape(shapefile, outzip):
@@ -1118,7 +1125,7 @@ if __name__ == "__main__":
                             "(problem of very small features with lower gdal version)", \
                             default="")
         PARSER.add_argument("-chunk", dest="chunk", action="store",\
-                            help="number of feature groups", default=0)
+                            help="number of feature groups", default=1)
         PARSER.add_argument("-byarea", action='store_true',\
                             help="split vector features where sum of areas of each split tends to be the same", default=False)
         PARSER.add_argument("-params", dest="params", nargs='+', \
