@@ -138,6 +138,25 @@ def getGeomTypeFromFeat(shapefile, driver="ESRI Shapefile"):
    return geometry.GetGeometryName()
 
 #--------------------------------------------------------------------
+def getFIDSpatialFilter(shapefile, shapefileToIntesect, field=None, driver="ESRI Shapefile"):
+
+    ds = openToRead(shapefile, driver)
+    lyr = ds.GetLayer()
+    dsinter = openToRead(shapefileToIntesect, driver)
+    lyrinter = dsinter.GetLayer()
+    
+    lyr.SetSpatialFilterRect(lyrinter.GetExtent()[0],lyrinter.GetExtent()[2], lyrinter.GetExtent()[1], lyrinter.GetExtent()[3])
+    fidlist = []
+    for feat in lyr:
+        if field is None:
+            fidlist.append(feat.GetFID())
+        else:
+            fidlist.append(feat.GetField(field))
+
+    return fidlist
+        
+
+#--------------------------------------------------------------------
 def spatialFilter(vect, clipzone, clipfield, clipvalue, outvect, driverclip = "ESRI Shapefile", drivervect = "ESRI Shapefile", driverout = "ESRI Shapefile"):
    """
    Return features of a vector file  which are intersected by a feature of another vector file
@@ -286,7 +305,7 @@ def ListValueFields(shp, field):
       if not feat.GetField(field) in values:
          values.append(feat.GetField(field))
 
-   return values
+   return sorted(values)
 
 #--------------------------------------------------------------------
 
