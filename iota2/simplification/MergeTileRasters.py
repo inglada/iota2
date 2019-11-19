@@ -147,46 +147,57 @@ def getTilesFiles(zone, tiles, folder, idTileField, tileNamePrefix, localenv, fi
 
 def mergeTileRaster(path, clipfile, fieldclip, valueclip, tiles, tilesfolder, tileId, tileNamePrefix, out):
 
-    timeinit = time.time()
+    if not os.path.exists(os.path.join(out, "tile_" + fieldclip + "_" + str(valueclip) + '.tif')):
 
-    localenv = os.path.join(path, "tmp%s"%(str(valueclip)))
-    if os.path.exists(localenv):shutil.rmtree(localenv)
-    os.mkdir(localenv)
+        timeinit = time.time()
 
-    # Find vector tiles concerned by the given zone
-    listTilesFiles = getTilesFiles(clipfile, tiles, tilesfolder, tileId, tileNamePrefix, localenv, fieldclip, valueclip)
+        localenv = os.path.join(path, "tmp%s"%(str(valueclip)))
+        if os.path.exists(localenv):shutil.rmtree(localenv)
+        os.mkdir(localenv)
 
-    if len(listTilesFiles) != 0:
-        tomerge = []
-        for rasttile in listTilesFiles:
-            shutil.copy(rasttile, localenv)
-            tmptile = os.path.join(localenv, os.path.basename(rasttile))
-            rasttiletmp = os.path.join(localenv, os.path.splitext(os.path.basename(rasttile))[0] + '_nd.tif')
-            bmappli = oa.CreateBandMathApplication({"il":tmptile, "out": rasttiletmp, "exp":'im1b1 < 223 ? im1b1 : 0'})
-            bmappli.ExecuteAndWriteOutput()
-            tomerge.append(rasttiletmp)
+        # Find vector tiles concerned by the given zone
+        listTilesFiles = getTilesFiles(clipfile, tiles, tilesfolder, tileId, tileNamePrefix, localenv, fieldclip, valueclip)
+        print(listTilesFiles)
 
-        if len(tomerge) != 0:    
-            outraster = os.path.join(localenv, "tile_" + fieldclip + "_" + str(valueclip) + '.tif')
-            sx, sy = fut.getRasterResolution(tomerge[0])
-            fut.assembleTile_Merge(tomerge, sx, outraster, "Byte")
+        outraster = os.path.join(localenv, "tile_" + fieldclip + "_" + str(valueclip) + '.tif')
+        logger.info('Raster mosaic of zone %s'%(str(valueclip)))
+        print('Raster mosaic of zone %s'%(str(valueclip)))    
 
-            for rasttile in tomerge:
-                os.remove(rasttile)
+        if len(listTilesFiles) != 0:
+            tomerge = []
+            for rasttile in listTilesFiles:
+                shutil.copy(rasttile, localenv)
+                tmptile = os.path.join(localenv, os.path.basename(rasttile))
+                rasttiletmp = os.path.join(localenv, os.path.splitext(os.path.basename(rasttile))[0] + '_nd.tif')
+                bmappli = oa.CreateBandMathApplication({"il":tmptile, "out": rasttiletmp, "exp":'im1b1 < 223 ? im1b1 : 0'})
+                bmappli.ExecuteAndWriteOutput()
+                tomerge.append(rasttiletmp)
 
-            if os.path.exists(out):
-                if os.path.isdir(out):
-                    shutil.copy(outraster, out)
-            else:
-                logger.info('Output folder %s for mosaic storage does not exist'%(out))          
-            
-            timemerge = time.time()     
-            print(" ".join([" : ".join(["Merge Tiles", str(timemerge - timeinit)]), "seconds"]))
-            
-            return outraster
-    
+            if len(tomerge) != 0:    
+                sx, sy = fut.getRasterResolution(tomerge[0])
+                fut.assembleTile_Merge(tomerge, sx, outraster, "Byte")
+
+                logger.info('Raster mosaic "%s" done for zone %s'%(outraster, str(valueclip)))
+
+                for rasttile in tomerge:
+                    os.remove(rasttile)
+
+                if os.path.exists(out):
+                    if os.path.isdir(out):
+                        shutil.copy(outraster, out)
+                else:
+                    logger.info('Output folder %s for mosaic storage does not exist'%(out))          
+
+                timemerge = time.time()     
+                print(" ".join([" : ".join(["Merge Tiles", str(timemerge - timeinit)]), "seconds"]))
+
+                return outraster
+
+        else:
+            print("No tiles or crown tile rasters does not exist for the area %s of the clip file %s"%(valueclip, os.path.basename(clipfile)))
     else:
-        print("No tiles or crown tile rasters does not exist for the area %s"%(os.path.basename(clipfile)))
+        logger.info('Raster mosaic "%s" already exists'%(str(valueclip)))
+        print('Raster mosaic "%s" already exists'%(str(valueclip)))        
 
 def getListVectToSimplify(path):
         
@@ -209,7 +220,6 @@ def getListVectToClip(path, fieldclip, vectorpath):
     listtoclip = []
 
     for filetoclip in fut.FileSearch_AND(path, True, ".shp", "hermite"):
-        print(fieldclip)
         listtoclip.append((filetoclip, os.path.basename(filetoclip.replace(fieldclip, '')).split('_')[2]))
 
     return listtoclip
@@ -229,6 +239,8 @@ def getListToPolygonize(path):
                 if fileToSearch in listmos:
                     listmos.remove(fileToSearch)
 
+    print(listmos)
+    input("payse")
     return listmos
     
 
@@ -241,7 +253,7 @@ def getListMosToDo(checkvalue, clipfile, outvectpath, path, prefix, clipfield, c
             if ".tif" in filename and "%s_"%(prefix) in filename and "_%s_"%(clipfield):
                 listmos.append(int(filename.split('_')[len(filename.split('_')) - 1]))
 
-    return list(set(listvect).difference(set(listmos)))
+    return sorted(list(set(listvect).difference(set(listmos))))
 
         
 def getListValues(checkvalue, clipfile, clipfield, outvectpath="", prefix="", clipvalue=""):
