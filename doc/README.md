@@ -7,12 +7,12 @@ pip install Sphinx==1.7.6 sphinxcontrib-napoleon sphinx_rtd_theme numpydoc
 
 2 - Create the sphinx environnement
 ```bash
-# in order to get the environment variable IOTA2DIR
-source iota2/scripts/install/prepare_env.sh
+# clone the iota2 repository
+git clone https://framagit.org/iota2-project/iota2.git -b develop
 
 # documentation will be generate in MyIOTA2Doc
-MyIOTA2Doc=$IOTA2DIR/doc/MyIOTA2Doc
-mkdir -p $MyIOTA2Doc && cd $MyIOTA2Doc
+mkdir iota2/doc/MyIOTA2Doc
+cd iota2/doc/MyIOTA2Doc
 sphinx-quickstart
 ```
 
