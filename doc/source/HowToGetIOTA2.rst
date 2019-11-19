@@ -22,6 +22,8 @@ Otherwise, you can download and install Miniconda thanks to the
 `bash installer <https://conda.io/en/latest/miniconda.html>`_ (2 minutes) even if 
 your are not the system administrator.
 
+.. Note:: If the installation is inside a virtual environment, please do not use a shared directory as iota² output directory.
+
 **Step 2 :** add iota²'s channel
 
 Add the iota²'s channel to inform Conda where iota²'s packages are. This information 
@@ -46,7 +48,7 @@ then a list of informations are printed, especially :
 
 .. Note:: maintain conda up to date thanks ``conda update conda`` command
 
-Once the ``.condarc`` file is located, you must add the following in it.
+Once the ``.condarc`` file is located (create it if not exists), you must add the following in it.
 
 .. code-block:: console
 
@@ -55,8 +57,7 @@ Once the ``.condarc`` file is located, you must add the following in it.
         - iota2
         - conda-forge
         - defaults
-        ...
-    ...
+
 
 **Step 3 :** get iota²'s package and install it
 
