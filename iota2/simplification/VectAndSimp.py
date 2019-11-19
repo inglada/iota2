@@ -78,8 +78,9 @@ def topologicalPolygonize(path, grasslib, raster, angle, out="", outformat = "ES
     
     if out == "":
         out = os.path.splitext(raster)[0] + '.shp'
-    
-    if not os.path.exists(out):
+
+    if not os.path.exists(out) and os.path.exists(raster):
+        print('Polygonize of raster file %s'%(os.path.basename(raster)))
         logger.info('Polygonize of raster file %s'%(os.path.basename(raster)))
         # local environnement
         localenv = os.path.join(path, "tmp%s"%(os.path.basename(os.path.splitext(raster)[0])))
@@ -120,19 +121,19 @@ def topologicalPolygonize(path, grasslib, raster, angle, out="", outformat = "ES
         shutil.rmtree(localenv)
 
     else:        
-        logger.info("Output vector file already exists"%(os.path.basename(out)))
+        logger.info("Output vector %s file already exists"%(os.path.basename(out)))
     
     return out
 
 def generalizeVector(path, grasslib, vector, paramgene, method, mmu="", ncolumns="cat", out="", outformat = "ESRI_Shapefile", debulvl="info", logger=logger):
-
 
     timeinit = time.time()
     
     if out == "":
         out = os.path.splitext(vector)[0] + '_%s.shp'%(method)    
 
-    if not os.path.exists(out):
+    if not os.path.exists(out) and os.path.exists(vector):
+        
         logger.info('Generalize (%s) of vector file %s'%(method, os.path.basename(vector)))
         # local environnement
         layer = os.path.basename(os.path.splitext(vector)[0])
