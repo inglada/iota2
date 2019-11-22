@@ -145,21 +145,14 @@ class iota_testNumpyFeatures(unittest.TestCase):
         from iota2.POC import rasterUtils as RU
         from iota2.Common.OtbAppBank import CreateBandMathXApplication
         
-        def do_predict(array, model):
+        def do_predict(array, model, dtype="int32"):
             """
             """
-            # ~ TODO : make apply_along_axis work...
-            # ~ np.apply_along_axis(func1d=model.predict, axis=-1, arr=array)
-            no_prediction_label = -1
-            raws, cols = array.shape[0], array.shape[1]
-            
-            # by the use of rasterio, we must use 3D array
-            predicted_array = np.full((raws, cols, 1), no_prediction_label, dtype=np.int32)
-            
-            for y in range(array.shape[0]):
-                for x in range(array.shape[1]):
-                    predicted_array[y][x][0] = model.predict([array[y, x, :]])
-            return predicted_array
+            # ~ TODO : is there a more effective way to invoke model.predict ?
+            def wrapper(*args, **kwargs):
+                return(model.predict([args[0]]))
+            predicted_array = np.apply_along_axis(func1d=wrapper, axis=-1, arr=array)
+            return predicted_array.astype(dtype) 
                     
         # build data to learn RF model
         from sklearn.datasets import make_classification
