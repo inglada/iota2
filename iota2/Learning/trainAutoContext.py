@@ -91,6 +91,7 @@ def train_autoContext_parameters(iota2_directory: str, regionField: str) -> List
 
 def train_autoContext(parameter_dict: Param, config_path: str,
                       superpix_data_field: Optional[str] = "superpix",
+                      iterations: Optional[int] = 3,
                       RAM: Optional[int] = 128, WORKING_DIR: Optional[str] = None,
                       logger: Optional[logging.Logger] = logger):
     """launch autoContext training
@@ -106,6 +107,8 @@ def train_autoContext(parameter_dict: Param, config_path: str,
          "list_slic": list}
     config_path : string
         path to the configuration file
+    iterations : int
+        number of auto-context iterations
     RAM : integer
         available ram
     WORKING_DIR : string
@@ -154,6 +157,7 @@ def train_autoContext(parameter_dict: Param, config_path: str,
                                                 "superpixdata": data_segmented,
                                                 "superpixdatafield": superpix_data_field,
                                                 "feat": feat_labels,
+                                                "nit": iterations,
                                                 "out": "{}/".format(model_path)
                                                 })
     logger.info("Start training autoContext, produce model {}, seed {}".format(model_name, seed_num))

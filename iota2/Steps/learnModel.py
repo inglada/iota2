@@ -31,7 +31,9 @@ class learnModel(IOTA2Step.Step):
         self.data_field = SCF.serviceConfigFile(self.cfg).getParam('chain', 'dataField')
         self.regionField = SCF.serviceConfigFile(self.cfg).getParam('chain', 'regionField')
         self.runs = SCF.serviceConfigFile(self.cfg).getParam('chain', 'runs')
+        
         self.enable_autoContext = SCF.serviceConfigFile(self.cfg).getParam('chain', 'enable_autoContext')
+        self.autoContext_iterations = SCF.serviceConfigFile(self.cfg).getParam('chain', 'autoContext_iterations')
         self.RAM = 1024.0 * get_RAM(self.resources["ram"])
         self.superpix_data_field = "superpix"
     def step_description(self):
@@ -75,6 +77,7 @@ class learnModel(IOTA2Step.Step):
             step_function = lambda x: train_autoContext(x,
                                                         self.cfg,
                                                         self.superpix_data_field,
+                                                        self.autoContext_iterations,
                                                         self.RAM,
                                                         self.workingDirectory)
         else:

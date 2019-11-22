@@ -91,7 +91,8 @@ class serviceConfigFile:
                              "dempstershafer_mob": "precision",
                              "merge_final_classifications_ratio": 0.1,
                              "keep_runs_results": True,
-                             "enable_autoContext": False, 
+                             "enable_autoContext": False,
+                             "autoContext_iterations": 3,
                              "remove_tmp_files": False}
             self.init_section("chain", chain_default)
             #init coregistration section
@@ -498,6 +499,7 @@ class serviceConfigFile:
             self.testVarConfigFile('chain', 'mode_outside_RegionSplit', float)
             self.testVarConfigFile('chain', 'merge_final_classifications', bool)
             self.testVarConfigFile('chain', 'enable_autoContext', bool)
+            self.testVarConfigFile('chain', 'autoContext_iterations', int)
             if self.getParam("chain", "merge_final_classifications"):
                 self.testVarConfigFile('chain', 'merge_final_classifications_undecidedlabel', int)
                 self.testVarConfigFile('chain', 'merge_final_classifications_ratio', float)
