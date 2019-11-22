@@ -200,7 +200,7 @@ def splitInSubSets(vectoFile, dataField, regionField,
             layer.CreateField(seed_field)
         if crossValidation is False:
             random_seed_number = None
-            if random_seed:
+            if random_seedis not None:
                 random_seed_number = random_seed + seed
             id_learn, id_val = get_randomPoly(layer, dataField,
                                               class_avail, ratio,
