@@ -82,7 +82,7 @@ class iota2():
         for step_place, step in enumerate(self.steps):
             self.steps_group[step.step_group][step_place + 1] = step.step_description()
 
-    def print_step_summarize(self, start, end, show_resources=False):
+    def print_step_summarize(self, start, end, show_resources=False, checked="x"):
         """
         print iota2 steps that will be run
         """
@@ -94,7 +94,7 @@ class iota2():
             for key in self.steps_group[group]:
                 highlight = "[ ]"
                 if key >= start and key<=end:
-                    highlight="[x]"
+                    highlight="[{}]".format(checked)
                 summarize += "\t {} Step {}: {}".format(highlight, key ,
                                                         self.steps_group[group][key])
                 if show_resources:
