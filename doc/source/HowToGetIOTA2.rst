@@ -8,66 +8,69 @@ Licence
 is a free software under the GNU Affero General Public License v3.0. See `here <http://www.gnu.org/licenses/agpl.html>`_ 
 for details.
 
-How to install iota2?
+How to install iota2 ?
 ----------------------
 
 iota2 is only tested on some Linux distributions : Ubuntu and CentOS.
-In this section, steps to install iota2 from scratch will be detailed.
+In order to install iota² and its dependencies easily, it is distributed through the package management system `Conda`.
+In this section, steps to install iota² from scratch will be detailed.
 
-We assume that installation will be done in the directory: ``MyInstall``
+**Step 1 :** download and install Miniconda
 
-**Step 1 :** download iota2
+If Miniconda or Anaconda is already install on your system, you can skip this step. 
+Otherwise, you can download and install Miniconda thanks to the 
+`bash installer <https://conda.io/en/latest/miniconda.html>`_ (2 minutes) even if 
+your are not the system administrator.
+
+.. Note:: If the installation is inside a virtual environment, please do not use a shared directory as iota² output directory.
+
+**Step 2 :** add iota²'s channel
+
+Add the iota²'s channel to inform Conda where iota²'s packages are. This information 
+has to be added in the ``.condarc`` file. In order to locate the file, please enter the following 
+command :
 
 .. code-block:: console
 
-    cd MyInstall
-    git clone -b develop https://framagit.org/iota2-project/iota2
+    conda info
 
-Now you have the directory ``iota2`` in ``MyInstall`` which contains all iota2 source code.
-
-**Step 2 :** get iota2 light dependencies
-
-if you are using Ubuntu :
+then a list of informations are printed, especially :
 
 .. code-block:: console
 
-     sudo ./MyInstall/iota2/install/init_Ubuntu.sh
+    active environment : None
+            shell level : 0
+       user config file : /absolute/path/to/.condarc
+ populated config files : /absolute/path/to/.condarc
+          conda version : 4.7.10
+    conda-build version : 3.18.2
+    ...
+
+.. Note:: maintain conda up to date thanks ``conda update conda`` command
+
+Once the ``.condarc`` file is located (create it if not exists), you must add the following in it.
+
+.. code-block:: console
+
+    channel_priority: true
+    channels:
+        - iota2
+        - conda-forge
+        - defaults
+
+
+**Step 3 :** get iota²'s package and install it
+
+.. code-block:: console
+
+    # create an empty conda environment : iota2-env
+    conda create --name iota2-env
+
+    # install iota2 in iota2-env (it could take a few hours)
+    conda install -c iota2 iota2 -n iota2-env
+
     
-if you are using CentOS :
+How to test the installation ?
+------------------------------
 
-.. code-block:: console
-
-     sudo ./MyInstall/iota2/install/init_CentOS.sh
-
-**Step 3 :** get OTB
-
-.. code-block:: console
-
-     sudo ./MyInstall/iota2/install/generation.sh --all
-
-Then OTB ant its dependencies will be downloaded (around 5Gb) and installed. If you only want to download or install OTB, you could use options ``--update`` or ``--compil`` instead of ``--all``.
-This step can be long (up to several hours depending on your hardware).
-
-How to test the installation
-----------------------------
-
-iota2 tests are implemented using the unittest framework which is a well known Python library.
-To check your iota2 install you should launch the commands below:
-
-.. code-block:: console
-
-    source /MyInstall/iota2/scripts/install/prepare_env.sh
-    cd /MyInstall/iota2/scripts/Tests/UnitTests
-    python -m unittest Iota2Tests
-
-At the end, a short summary of the success/fail status of the tests is printed to the console. If everything is ok you will get something similar to this:
-
-.. code-block:: console
-
-    Ran 42 tests in 46.632s
-
-    OK
-
-In order to run iota2 to produce land cover maps you could follow one of these :doc:`examples. <IOTA2_Example>`
-
-        
+You can test the installation by following the :doc:`tutorial <IOTA2_Example>`.

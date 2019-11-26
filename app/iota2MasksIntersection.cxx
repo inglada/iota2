@@ -100,7 +100,6 @@ private:
     SetDescription("Performs intersection of several input masks");
 
     // Documentation
-    SetDocName("Masks intersection");
     SetDocLongDescription("This application performs intersection of several input masks from Landsat or Sentinel2 products. Output can be retrieved as a raster or vector file.");
     SetDocLimitations("None");
     SetDocAuthors("Julien Michel");
