@@ -111,7 +111,7 @@ class iota_testNumpyFeatures(unittest.TestCase):
 
         labels_features_name = ["NDVI_20200101"]
         new_features_path = os.path.join(self.test_working_directory, "DUMMY_test.tif")
-        test_array, new_labels = RU.apply_function(OTB_pipeline=bandMath,
+        test_array, new_labels = RU.apply_function(otb_pipeline=bandMath,
                                                    labels=labels_features_name,
                                                    working_dir=self.test_working_directory,
                                                    function=function_partial,
@@ -175,7 +175,7 @@ class iota_testNumpyFeatures(unittest.TestCase):
         # prediction
         function_partial = partial(do_predict, model=clf)
         prediction_path = os.path.join(self.test_working_directory, "Classif_test.tif")
-        test_array, new_labels = RU.apply_function(OTB_pipeline=bandMath,
+        test_array, new_labels = RU.apply_function(otb_pipeline=bandMath,
                                                    labels=[""],
                                                    working_dir=self.test_working_directory,
                                                    function=function_partial,

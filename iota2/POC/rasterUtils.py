@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -14,7 +14,6 @@
 #
 # =========================================================================
 import os
-import gdal
 
 import rasterio
 from rasterio.transform import Affine
@@ -22,14 +21,14 @@ from rasterio.io import MemoryFile
 from rasterio.merge import merge
 import numpy as np
 
-from typing import List, Dict, Union, Optional, Tuple, Type, Generic
+from typing import List, Dict, Optional, Tuple
 
-#Only for typing
+# Only for typing
 import otbApplication
 from functools import partial
 
 
-def apply_function(OTB_pipeline: otbApplication,
+def apply_function(otb_pipeline: otbApplication,
                    labels: List[str],
                    working_dir: str,
                    function: partial,
@@ -40,7 +39,7 @@ def apply_function(OTB_pipeline: otbApplication,
     """
     Parameters
     ----------
-    OTB_pipeline: otbApplication
+    otb_pipeline: otbApplication
     labels: List[str]
     working_dir: str
     function: partial
@@ -48,29 +47,37 @@ def apply_function(OTB_pipeline: otbApplication,
     chunck_size_x: int
     chunck_size_y: int
     ram: int
-    
+
     Return
     ------
     tuple
         (np.array, new_labels)
     """
-    new_array = new_labels = None
+    mosaic = new_labels = None
 
-    ROI_rasters, epsg_code = split_raster(OTB_pipeline=OTB_pipeline,
-                                          chunk_size=(chunck_size_x, chunck_size_y),
+    roi_rasters, epsg_code = split_raster(otb_pipeline=otb_pipeline,
+                                          chunk_size=(chunck_size_x,
+                                                      chunck_size_y),
                                           ram_per_chunk=ram,
-                                          working_dir=working_dir) 
+                                          working_dir=working_dir)
     new_arrays = []
-    for index, ROI_raster in enumerate(ROI_rasters):
-        ROI_array, proj_geotransform = process_function(ROI_raster, function=function)
-        new_arrays.append((ROI_array, proj_geotransform))
+    for index, roi_raster in enumerate(roi_rasters):
+        roi_array, proj_geotransform = process_function(roi_raster,
+                                                        function=function)
+        new_arrays.append((roi_array, proj_geotransform))
 
     all_data_sets = get_rasterio_datasets(new_arrays)
     mosaic, out_trans = merge(all_data_sets)
     if output_path:
-        with rasterio.open(output_path, "w", driver='GTiff',
-                           height=mosaic.shape[1], width=mosaic.shape[2], count=mosaic.shape[0],crs="EPSG:{}".format(epsg_code),
-                           transform=out_trans, dtype=mosaic.dtype) as dest:
+        with rasterio.open(output_path,
+                           "w",
+                           driver='GTiff',
+                           height=mosaic.shape[1],
+                           width=mosaic.shape[2],
+                           count=mosaic.shape[0],
+                           crs="EPSG:{}".format(epsg_code),
+                           transform=out_trans,
+                           dtype=mosaic.dtype) as dest:
             dest.write(mosaic)
 
     # TODO : new_labels definition
@@ -83,19 +90,19 @@ def get_rasterio_datasets(array_proj: List[Tuple[np.ndarray, Dict]]) -> List[ras
     """
     all_data_sets = []
     for index, new_array in enumerate(array_proj):
-        
+
         array = new_array[0]
         proj = new_array[-1]["projection"]
         geo_transform = new_array[-1]["geo_transform"]
-        
-        if index==0:
+
+        if index == 0:
             epsg_code = proj.GetAttrValue("AUTHORITY", 1)
 
         transform = Affine.from_gdal(*geo_transform)
         array_ordered = np.moveaxis(array, -1, 0)
         array_ordered_shape = array_ordered.shape
 
-        if len(array_ordered_shape)!=3:
+        if len(array_ordered_shape) != 3:
             raise ValueError("array's must be 3D")
         else:
             height = array_ordered_shape[1]
@@ -103,24 +110,24 @@ def get_rasterio_datasets(array_proj: List[Tuple[np.ndarray, Dict]]) -> List[ras
             count = array_ordered_shape[0]
         with MemoryFile() as memfile:
             with memfile.open(driver='GTiff',
-                               height=height,
-                               width=width,
-                               count=count,
-                               dtype=array.dtype,
-                               crs="EPSG:{}".format(epsg_code),
-                               transform=transform) as dataset:
+                              height=height,
+                              width=width,
+                              count=count,
+                              dtype=array.dtype,
+                              crs="EPSG:{}".format(epsg_code),
+                              transform=transform) as dataset:
                 dataset.write(array_ordered)
             all_data_sets.append(memfile.open())
     return all_data_sets
 
 
-def process_function(OTB_pipeline: otbApplication,
+def process_function(otb_pipeline: otbApplication,
                      function: partial) -> Tuple[np.ndarray, Dict]:
     """apply python function to the output of an otbApplication
 
     Parameters
     ----------
-    OTB_pipeline : otbApplication
+    otb_pipeline : otbApplication
         otb application ready to be Execute()
     function : itertools.partial
         function manipulating numpy array
@@ -131,26 +138,32 @@ def process_function(OTB_pipeline: otbApplication,
         (np.ndarray, dict)
     """
     import osr
-    OTB_pipeline.Execute()
+    otb_pipeline.Execute()
 
-    array = OTB_pipeline.GetVectorImageAsNumpyArray("out")
+    array = otb_pipeline.GetVectorImageAsNumpyArray("out")
 
-    proj = OTB_pipeline.GetImageProjection("out")    
+    proj = otb_pipeline.GetImageProjection("out")
     projection = osr.SpatialReference()
     projection.ImportFromWkt(proj)
-    origin_x, origin_y = OTB_pipeline.GetImageOrigin("out")
-    xres, yres = OTB_pipeline.GetImageSpacing("out")
+    origin_x, origin_y = otb_pipeline.GetImageOrigin("out")
+    xres, yres = otb_pipeline.GetImageSpacing("out")
 
     # gdal offset
-    geo_transform = [origin_x - xres / 2.0, xres, 0, origin_y - yres / 2.0, 0, yres]
-    
-    return function(array), {"projection": projection, "geo_transform": geo_transform}
+    geo_transform = [origin_x - xres / 2.0,
+                     xres,
+                     0,
+                     origin_y - yres / 2.0,
+                     0,
+                     yres]
+
+    return (function(array),
+            {"projection": projection, "geo_transform": geo_transform})
 
 
 def get_chunks_boundaries(chunk_size: Tuple[int, int],
                           shape: Tuple[int, int]) -> List[Dict[str, int]]:
     """from numpy array shape, return chunks boundaries (Extract ROI coordinates)
-    
+
     Parameters
     ----------
     chunk_size : tuple
@@ -180,18 +193,20 @@ def get_chunks_boundaries(chunk_size: Tuple[int, int],
                                "sizey": chunk_size_y})
     return boundaries
 
-otbChunk = Tuple[type(otbApplication), int]
 
-def split_raster(OTB_pipeline: otbApplication,
+OTB_CHUNK = Tuple[type(otbApplication), int]
+
+
+def split_raster(otb_pipeline: otbApplication,
                  chunk_size: Tuple[int, int],
                  ram_per_chunk: int,
-                 working_dir: str) -> List[otbChunk]:
+                 working_dir: str) -> List[OTB_CHUNK]:
     """extract regions of interest over the otbApplication
 
     Parameters
     ----------
-    OTB_pipeline : otbApplication
-        otb application 
+    otb_pipeline : otbApplication
+        otb application
     chunk_size : tuple
         tuple(chunk_size_x, chunk_size_y)
     ram_per_chunk : int
@@ -201,32 +216,43 @@ def split_raster(OTB_pipeline: otbApplication,
     """
     import osr
     from iota2.Common.OtbAppBank import CreateExtractROIApplication
-    
-    OTB_pipeline.Execute()
-    
-    proj = OTB_pipeline.GetImageProjection("out")    
+
+    otb_pipeline.Execute()
+
+    proj = otb_pipeline.GetImageProjection("out")
     projection = osr.SpatialReference()
     projection.ImportFromWkt(proj)
-    origin_x, origin_y = OTB_pipeline.GetImageOrigin("out")
-    xres, yres = OTB_pipeline.GetImageSpacing("out")
-    # gdal offset
-    geo_transform_origin = [origin_x - xres / 2.0, xres, 0, origin_y - yres / 2.0, 0, yres]
-    
-    x_size, y_size = OTB_pipeline.GetImageSize("out")
+    origin_x, origin_y = otb_pipeline.GetImageOrigin("out")
+    xres, yres = otb_pipeline.GetImageSpacing("out")
+    x_size, y_size = otb_pipeline.GetImageSize("out")
 
     # TODO : ram_estimation could be useful if chunck_size == "auto"
-    ram_estimation = OTB_pipeline.PropagateRequestedRegion(key="out",
-                                                           region=OTB_pipeline.GetImageRequestedRegion("out"))
-    
+    # ~ ram_estimation = otb_pipeline.PropagateRequestedRegion(key="out",
+    # ~ region=otb_pipeline.GetImageRequestedRegion("out"))
+
+    if 1:
+        if 1:
+            pass
+            if 1:
+                pass
+            if 1:
+                pass
+        if 2:
+            pass
+        if 3:
+            if 4:
+                pass
+            pass
+        pass
     independant_raster = []
     boundaries = get_chunks_boundaries(chunk_size, shape=(x_size, y_size))
     for index, boundary in enumerate(boundaries):
-        ROI = CreateExtractROIApplication({"in": OTB_pipeline,
+        roi = CreateExtractROIApplication({"in": otb_pipeline,
                                            "startx": boundary["startx"],
                                            "sizex": boundary["sizex"],
                                            "starty": boundary["starty"],
                                            "sizey": boundary["sizey"],
-                                           "out": os.path.join(working_dir, "ROI_{}.tif".format(index))})
-        independant_raster.append(ROI)
-
+                                           "out": os.path.join(working_dir,
+                                                               "ROI_{}.tif".format(index))})
+        independant_raster.append(roi)
     return independant_raster, projection.GetAttrValue("AUTHORITY", 1)
