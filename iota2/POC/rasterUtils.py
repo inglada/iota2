@@ -230,20 +230,6 @@ def split_raster(otb_pipeline: otbApplication,
     # ~ ram_estimation = otb_pipeline.PropagateRequestedRegion(key="out",
     # ~ region=otb_pipeline.GetImageRequestedRegion("out"))
 
-    if 1:
-        if 1:
-            pass
-            if 1:
-                pass
-            if 1:
-                pass
-        if 2:
-            pass
-        if 3:
-            if 4:
-                pass
-            pass
-        pass
     independant_raster = []
     boundaries = get_chunks_boundaries(chunk_size, shape=(x_size, y_size))
     for index, boundary in enumerate(boundaries):
