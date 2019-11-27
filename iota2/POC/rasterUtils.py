@@ -231,7 +231,7 @@ def split_raster(otb_pipeline: otbApplication,
     # ~ ram_estimation = otb_pipeline.PropagateRequestedRegion(key="out",
     # ~ region=otb_pipeline.GetImageRequestedRegion("out"))
 
-    independant_raster = []
+    independent_raster = []
     boundaries = get_chunks_boundaries(chunk_size, shape=(x_size, y_size))
     for index, boundary in enumerate(boundaries):
         roi = CreateExtractROIApplication({"in": otb_pipeline,
@@ -242,5 +242,5 @@ def split_raster(otb_pipeline: otbApplication,
                                            "out": os.path.join(working_dir,
                                                                "ROI_{}.tif".
                                                                format(index))})
-        independant_raster.append(roi)
-    return independant_raster, projection.GetAttrValue("AUTHORITY", 1)
+        independent_raster.append(roi)
+    return independent_raster, projection.GetAttrValue("AUTHORITY", 1)
