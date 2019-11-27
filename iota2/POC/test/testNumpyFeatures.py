@@ -138,7 +138,7 @@ class Iota2TestNumpyFeatures(unittest.TestCase):
                           pipeline_shape[1])
         self.assertTrue(pipeline_shape == test_array.shape)
 
-        # check if the input function is well apply
+        # check if the input function is well applied
         pipeline_array = band_math.GetVectorImageAsNumpyArray("out")
         self.assertTrue(np.allclose(np.moveaxis(custom_features(pipeline_array),
                                                 -1, 0), test_array))
