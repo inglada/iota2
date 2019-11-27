@@ -84,7 +84,8 @@ def apply_function(otb_pipeline: otbApplication,
     return mosaic, new_labels
 
 
-def get_rasterio_datasets(array_proj: List[Tuple[np.ndarray, Dict]]) -> List[rasterio.io.DatasetReader]:
+def get_rasterio_datasets(array_proj: List[Tuple[np.ndarray, Dict]]) -> \
+                          List[rasterio.io.DatasetReader]:
     """transform numpy arrays (containing projection data) to rasterio datasets
         it works only with 2D and 3D arrays
     """
@@ -239,6 +240,7 @@ def split_raster(otb_pipeline: otbApplication,
                                            "starty": boundary["starty"],
                                            "sizey": boundary["sizey"],
                                            "out": os.path.join(working_dir,
-                                                               "ROI_{}.tif".format(index))})
+                                                               "ROI_{}.tif".
+                                                               format(index))})
         independant_raster.append(roi)
     return independant_raster, projection.GetAttrValue("AUTHORITY", 1)
