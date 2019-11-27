@@ -49,7 +49,6 @@ def compute_features(config_path, output_raster, tile_name, working_dir,
 
     # first, generate the full iota2 stack.
     IOTA2Directory.GenerateDirectories(config_path)
-    sensors = Sensors_container(config_path, tile_name, working_dir)
     cfg = SCF.serviceConfigFile(config_path)
 
     feat_stack, feat_labels, _ = generateFeatures(working_dir, tile_name, cfg)
