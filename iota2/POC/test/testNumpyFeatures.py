@@ -103,7 +103,8 @@ class Iota2TestNumpyFeatures(unittest.TestCase):
             return array + array
 
         # First create some dummy data on disk
-        dummy_raster_path = os.path.join(self.test_working_directory, "DUMMY.tif")
+        dummy_raster_path = os.path.join(self.test_working_directory,
+                                         "DUMMY.tif")
         array_to_rasterize = TestsUtils.fun_array("iota2_binary")
         TestsUtils.arrayToRaster(array_to_rasterize, dummy_raster_path)
 
@@ -114,7 +115,8 @@ class Iota2TestNumpyFeatures(unittest.TestCase):
         function_partial = partial(custom_features)
 
         labels_features_name = ["NDVI_20200101"]
-        new_features_path = os.path.join(self.test_working_directory, "DUMMY_test.tif")
+        new_features_path = os.path.join(self.test_working_directory,
+                                         "DUMMY_test.tif")
         test_array, new_labels = rasterU.apply_function(otb_pipeline=band_math,
                                                         labels=labels_features_name,
                                                         working_dir=self.test_working_directory,
@@ -126,18 +128,20 @@ class Iota2TestNumpyFeatures(unittest.TestCase):
         # asserts
 
         # check array' shape consistency
-        # concerning np.array there is different convention between OTB(GDAL?) and rasterio
+        # concerning np.array there is different convention between OTB(GDAL?)
+        # and rasterio
         # OTB : [row, cols, bands]
         # rasterio : [bands, row, cols]
         band_math.Execute()
         pipeline_shape = band_math.GetVectorImageAsNumpyArray("out").shape
-        pipeline_shape = (pipeline_shape[2], pipeline_shape[0], pipeline_shape[1])
+        pipeline_shape = (pipeline_shape[2], pipeline_shape[0],
+                          pipeline_shape[1])
         self.assertTrue(pipeline_shape == test_array.shape)
 
         # check if the input function is well apply
         pipeline_array = band_math.GetVectorImageAsNumpyArray("out")
-        self.assertTrue(np.allclose(np.moveaxis(custom_features(pipeline_array), -1, 0),
-                                    test_array))
+        self.assertTrue(np.allclose(np.moveaxis(custom_features(pipeline_array),
+                                                -1, 0), test_array))
 
         # purposely not implemented
         self.assertTrue(new_labels is None)
@@ -157,7 +161,8 @@ class Iota2TestNumpyFeatures(unittest.TestCase):
             # ~ TODO : is there a more effective way to invoke model.predict ?
             def wrapper(*args, **kwargs):
                 return(model.predict([args[0]]))
-            predicted_array = np.apply_along_axis(func1d=wrapper, axis=-1, arr=array)
+            predicted_array = np.apply_along_axis(func1d=wrapper, axis=-1,
+                                                  arr=array)
             return predicted_array.astype(dtype)
 
         # build data to learn RF model
@@ -171,7 +176,8 @@ class Iota2TestNumpyFeatures(unittest.TestCase):
         clf.fit(X, y)
 
         # create some data on disk in order to predict them
-        dummy_raster_path = os.path.join(self.test_working_directory, "DUMMY.tif")
+        dummy_raster_path = os.path.join(self.test_working_directory,
+                                         "DUMMY.tif")
         array_to_rasterize = TestsUtils.fun_array("iota2_binary")
         TestsUtils.arrayToRaster(array_to_rasterize, dummy_raster_path)
 
@@ -180,7 +186,8 @@ class Iota2TestNumpyFeatures(unittest.TestCase):
                                                 "exp": "im1b1;im1b1"})
         # prediction
         function_partial = partial(do_predict, model=clf)
-        prediction_path = os.path.join(self.test_working_directory, "Classif_test.tif")
+        prediction_path = os.path.join(self.test_working_directory,
+                                       "Classif_test.tif")
         test_array, new_labels = rasterU.apply_function(otb_pipeline=band_math,
                                                         labels=[""],
                                                         working_dir=self.test_working_directory,
