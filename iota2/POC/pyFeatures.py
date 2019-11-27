@@ -14,8 +14,6 @@
 #
 # =========================================================================
 
-import os
-import sys
 from functools import partial
 import argparse
 
@@ -26,12 +24,15 @@ from iota2.Common import IOTA2Directory
 
 import rasterUtils
 
+
 def smart_scientific_function(array, increment, *args, **kwargs):
     """do important scientific stuff, publishing in progress
     """
     return array + increment
 
-def compute_features(config_path, output_raster, tile_name, working_dir, function=smart_scientific_function) -> None:
+
+def compute_features(config_path, output_raster, tile_name, working_dir,
+                     function=smart_scientific_function) -> None:
     """Use a python function to generate features through the use of numpy arrays
 
     Parameters
@@ -63,12 +64,15 @@ def compute_features(config_path, output_raster, tile_name, working_dir, functio
                                                                chunck_size_x=10,
                                                                chunck_size_y=10,
                                                                ram=128)
+
+
 if __name__ == "__main__":
-    description=("Use a python function to generate new features, "
-                 "through the use of numpy arrays")
+    description = ("Use a python function to generate new features, "
+                   "through the use of numpy arrays")
     parser = argparse.ArgumentParser(description=description)
-    parser.add_argument("-config", dest="config", help="configuration file path",
-                        default=None, required=True)
+    parser.add_argument("-config", dest="config",
+                        help="configuration file path", default=None,
+                        required=True)
     parser.add_argument("-output", dest="output", help="output raster",
                         default=None, required=True)
     parser.add_argument("-tile", dest="tile_name", help="tile's name",
@@ -77,4 +81,5 @@ if __name__ == "__main__":
                         default=None, required=True)
     args = parser.parse_args()
 
-    compute_features(args.config, args.output, args.tile_name, args.working_dir)
+    compute_features(args.config, args.output, args.tile_name,
+                     args.working_dir)
