@@ -35,7 +35,7 @@ def apply_function(otb_pipeline: otbApplication,
                    output_path: Optional[str] = None,
                    chunck_size_x: Optional[int] = 10,
                    chunck_size_y: Optional[int] = 10,
-                   ram: Optional[int] = 128) -> Tuple[np.ndarray, List[str]]:
+                   ram: Optional[int] = 128) -> Tuple[np.ndarray, List[str], Affine, int]:
     """
     Parameters
     ----------
@@ -51,7 +51,7 @@ def apply_function(otb_pipeline: otbApplication,
     Return
     ------
     tuple
-        (np.array, new_labels)
+        (np.array, new_labels, affine transform, epsg code)
     """
     mosaic = new_labels = None
 
@@ -80,8 +80,9 @@ def apply_function(otb_pipeline: otbApplication,
                            dtype=mosaic.dtype) as dest:
             dest.write(mosaic)
 
+
     # TODO : new_labels definition
-    return mosaic, new_labels
+    return mosaic, new_labels, out_trans, epsg_code
 
 
 def get_rasterio_datasets(array_proj: List[Tuple[np.ndarray, Dict]]) -> List[rasterio.io.DatasetReader]:
@@ -155,7 +156,6 @@ def process_function(otb_pipeline: otbApplication,
                      origin_y - yres / 2.0,
                      0,
                      yres]
-
     return (function(array),
             {"projection": projection, "geo_transform": geo_transform})
 
