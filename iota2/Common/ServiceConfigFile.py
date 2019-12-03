@@ -191,6 +191,8 @@ class serviceConfigFile:
             userFeat =  {"arbo": "/*",
                          "patterns":"ALT,ASP,SLP"}
 
+            sklearn_default = {"model_type": None}
+                                      
             self.init_section("Landsat5_old", Landsat5_old_default)
             self.init_section("Landsat8", Landsat8_default)
             self.init_section("Landsat8_old", Landsat8_old_default)
@@ -198,6 +200,7 @@ class serviceConfigFile:
             self.init_section("Sentinel_2_S2C", Sentinel_2_S2C_default)
             self.init_section("Sentinel_2_L3A", Sentinel_2_L3A_default)
             self.init_section("userFeat", userFeat)
+            self.init_section("scikit_models_parameters", sklearn_default)
 
             simp_default = {"classification": None,
                             "confidence": None,
@@ -644,6 +647,14 @@ class serviceConfigFile:
         :return: list of available section
         """
         return [section for section in list(self.cfg.keys())]
+
+    def getSection(self, section):
+        """
+        """
+        if not hasattr(self.cfg, section):
+            # not an osoError class because it should NEVER happened
+            raise Exception("Section {} is not in the configuration file ".format(section))
+        return getattr(self.cfg, section)
 
     def getParam(self, section, variable):
         """
