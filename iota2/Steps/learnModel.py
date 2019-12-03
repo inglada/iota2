@@ -17,6 +17,8 @@ import os
 
 from Steps import IOTA2Step
 from Common import ServiceConfigFile as SCF
+from Learning.TrainingCmd import config_model
+from iota2.Common.GenerateFeatures import generateFeatures
 
 class learnModel(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
@@ -28,7 +30,14 @@ class learnModel(IOTA2Step.Step):
         self.workingDirectory = workingDirectory
         self.output_path = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
         self.data_field = SCF.serviceConfigFile(self.cfg).getParam('chain', 'dataField')
+        self.region_field = SCF.serviceConfigFile(self.cfg).getParam('chain', 'regionField')
         self.runs = SCF.serviceConfigFile(self.cfg).getParam('chain', 'runs')
+        self.tiles = SCF.serviceConfigFile(self.cfg).getParam('chain', 'listTile').split("_")
+        
+        self.use_scikitlearn = SCF.serviceConfigFile(self.cfg).getParam('scikit_models_parameters', 'model_type') is not None
+
+        _, self.feat_labels, _ = generateFeatures(workingDirectory, self.tiles[0], SCF.serviceConfigFile(self.cfg))
+        self.model_directory = os.path.join(self.output_path, "model")
 
     def step_description(self):
         """
@@ -44,13 +53,27 @@ class learnModel(IOTA2Step.Step):
             the return could be and iterable or a callable
         """
         from Learning import TrainingCmd as TC
-        return TC.launchTraining(self.cfg,
-                                 self.data_field,
-                                 os.path.join(self.output_path + "stats"),
-                                 self.runs,
-                                 os.path.join(self.output_path, "cmd", "train"),
-                                 os.path.join(self.output_path, "model"),
-                                 self.workingDirectory)
+        from Learning import TrainSkLearn
+        parameters = []
+
+        pathToModelConfig = os.path.join(self.output_path, "config_model", "configModel.cfg")
+        configModel = config_model(self.output_path, self.region_field)
+        if not os.path.exists(pathToModelConfig):
+            with open(pathToModelConfig, "w") as configFile:
+                configFile.write(configModel)
+
+        if self.use_scikitlearn:
+            parameters = TrainSkLearn.get_learning_samples(os.path.join(self.output_path,
+                                                           "learningSamples"))
+        else:
+            parameters = TC.launchTraining(self.cfg,
+                                           self.data_field,
+                                           os.path.join(self.output_path + "stats"),
+                                           self.runs,
+                                           os.path.join(self.output_path, "cmd", "train"),
+                                           os.path.join(self.output_path, "model"),
+                                           self.workingDirectory)
+        return parameters
 
     def step_execute(self):
         """
@@ -61,8 +84,18 @@ class learnModel(IOTA2Step.Step):
             must be a lambda function.
         """
         from MPI import launch_tasks as tLauncher
+        from Learning import TrainSkLearn
+
         bashLauncherFunction = tLauncher.launchBashCmd
-        step_function = lambda x: bashLauncherFunction(x)
+        
+        if self.use_scikitlearn:
+            step_function = lambda x: TrainSkLearn.sk_learn(x,
+                                                            self.data_field,
+                                                            self.feat_labels, 
+                                                            self.model_directory,
+                                                            **SCF.serviceConfigFile(self.cfg).getSection("scikit_models_parameters"))
+        else:
+            step_function = lambda x: bashLauncherFunction(x)
         return step_function
 
     def step_outputs(self):
