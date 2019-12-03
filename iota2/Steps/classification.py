@@ -27,6 +27,8 @@ class classification(IOTA2Step.Step):
         # step variables
         self.workingDirectory = workingDirectory
         self.output_path = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
+        
+        self.use_scikitlearn = SCF.serviceConfigFile(self.cfg).getParam('scikit_models_parameters', 'model_type') is not None
 
     def step_description(self):
         """
@@ -42,7 +44,19 @@ class classification(IOTA2Step.Step):
             the return could be and iterable or a callable
         """
         from Common import FileUtils as fut
-        return fut.parseClassifCmd(os.path.join(self.output_path, "cmd", "cla", "class.txt"))
+        parameters = fut.parseClassifCmd(os.path.join(self.output_path, "cmd", "cla", "class.txt"))
+        if self.use_scikitlearn:
+            parameters = [{"mask": param[1],
+                           "model": param[2],
+                           "stat": param[3],
+                           "out_classif": param[4],
+                           "out_confidence": param[5],
+                           "out_proba": None,
+                           "working_dir": param[6],
+                           "configuration_file": param[7],
+                           "pixel_type": param[8],
+                           "ram": param[10]} for param in parameters]
+        return parameters
 
     def step_execute(self):
         """
@@ -53,10 +67,14 @@ class classification(IOTA2Step.Step):
             must be a lambda function.
         """
         from Classification import ImageClassifier as imageClassifier
+        from Classification import skClassifier
+
         from MPI import launch_tasks as tLauncher
 
         launchPythonCmd = tLauncher.launchPythonCmd
         step_function = lambda x: launchPythonCmd(imageClassifier.launchClassification, *x)
+        if self.use_scikitlearn:
+            step_function = lambda x: skClassifier.predict(**x)
         return step_function
 
     def step_outputs(self):
