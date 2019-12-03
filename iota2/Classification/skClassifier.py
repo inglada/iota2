@@ -46,7 +46,7 @@ def get_class(*args, **kwargs):
     import numpy as np
     return kwargs["labels"][np.argmax(args)]
 
-
+@time_it
 def proba_to_label(proba_map: np.ndarray,
                    out_classif: str,
                    labels: List[int],
