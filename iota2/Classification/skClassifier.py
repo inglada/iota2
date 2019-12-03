@@ -127,12 +127,10 @@ def predict(mask: str, model: str, stat: str, out_classif: str, out_confidence: 
     feat_stack, feat_labels, _ = generateFeatures(working_dir, tile_name, cfg)
 
     logger.info("producing {}".format(out_classif))
-    # ~ TODO :
+
     # ~ sk-learn provide only methods 'predict' and 'predict_proba', no proba_max.
     # ~ Then we have to compute the full probability vector to get the maximum
-    # ~ confidence and generate the maximum confidence map
-
-    out_proba=out_confidence.replace(".tif", "_PROBA.tif")
+    # ~ confidence and generate the confidence map
 
     predicted_proba, _, transform, epsg = rasterU.apply_function(feat_stack,
                                                                  feat_labels,
@@ -149,7 +147,8 @@ def predict(mask: str, model: str, stat: str, out_classif: str, out_confidence: 
     if working_dir:
         shutil.copy(out_classif, classification_dir)
         shutil.copy(out_confidence, classification_dir)
-        shutil.copy(out_proba, classification_dir)
         os.remove(out_classif)
         os.remove(out_confidence)
-        os.remove(out_proba)
+        if out_proba:
+            shutil.copy(out_proba, classification_dir)
+            os.remove(out_proba)
