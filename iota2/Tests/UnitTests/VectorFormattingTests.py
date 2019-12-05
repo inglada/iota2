@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -16,6 +16,7 @@
 
 # python -m unittest SamplesSelectionsTests
 
+from Common import FileUtils as fut
 import os
 import sys
 import shutil
@@ -33,8 +34,6 @@ RM_IF_ALL_OK = True
 IOTA2_SCRIPTS = os.path.join(IOTA2DIR, "iota2")
 sys.path.append(IOTA2_SCRIPTS)
 
-from Common import FileUtils as fut
-
 
 class iota_testVectorFormatting(unittest.TestCase):
     # before launching tests
@@ -42,7 +41,8 @@ class iota_testVectorFormatting(unittest.TestCase):
     def setUpClass(self):
         # definition of local variables
         self.group_test_name = "iota_testVectorFormatting"
-        self.iota2_tests_directory = os.path.join(IOTA2DIR, "data", self.group_test_name)
+        self.iota2_tests_directory = os.path.join(
+            IOTA2DIR, "data", self.group_test_name)
         self.in_vector = os.path.join(IOTA2DIR, "data", "references",
                                       "formatting_vectors", "Input",
                                       "formattingVectors", "T31TCJ.shp")
@@ -51,13 +51,14 @@ class iota_testVectorFormatting(unittest.TestCase):
                                     "features", "T31TCJ", "tmp",
                                     "MaskCommunSL.tif")
         self.ref_region = os.path.join(IOTA2DIR, "data", "references",
-                                    "genResults", "Input", "classif",
-                                    "MASK","Myregion_region_1_T31TCJ.shp")
+                                       "genResults", "Input", "classif",
+                                       "MASK", "Myregion_region_1_T31TCJ.shp")
 
         self.all_tests_ok = []
 
         # References
-        self.config_test = os.path.join(IOTA2DIR, "config", "Config_4Tuiles_Multi_FUS_Confidence.cfg")
+        self.config_test = os.path.join(
+            IOTA2DIR, "config", "Config_4Tuiles_Multi_FUS_Confidence.cfg")
 
         # Tests directory
         self.test_working_directory = None
@@ -81,7 +82,8 @@ class iota_testVectorFormatting(unittest.TestCase):
         # it changes for each tests
 
         test_name = self.id().split(".")[-1]
-        self.test_working_directory = os.path.join(self.iota2_tests_directory, test_name)
+        self.test_working_directory = os.path.join(
+            self.iota2_tests_directory, test_name)
         if os.path.exists(self.test_working_directory):
             shutil.rmtree(self.test_working_directory)
         os.mkdir(self.test_working_directory)
@@ -96,7 +98,10 @@ class iota_testVectorFormatting(unittest.TestCase):
             result = self.defaultTestResult()
             self._feedErrorsToResult(result, self._outcome.errors)
         else:
-            result = getattr(self, '_outcomeForDoCleanups', self._resultForDoCleanups)
+            result = getattr(
+                self,
+                '_outcomeForDoCleanups',
+                self._resultForDoCleanups)
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
         ok = not error and not failure
@@ -157,18 +162,18 @@ class iota_testVectorFormatting(unittest.TestCase):
         envelope_path = os.path.join(self.test_working_directory,
                                      "IOTA2_dir_VectorFormatting",
                                      "envelope", envelope_name)
-        fut.cpShapeFile(self.ref_region.replace(".shp",""),
-                        envelope_path.replace(".shp",""),
-                        [".prj",".shp",".dbf",".shx"])
+        fut.cpShapeFile(self.ref_region.replace(".shp", ""),
+                        envelope_path.replace(".shp", ""),
+                        [".prj", ".shp", ".dbf", ".shx"])
         changeName(envelope_path, "region", "FID")
         # prepare cloud mask
         cloud_name = "CloudThreshold_0.shp"
         cloud_path = os.path.join(self.test_working_directory,
                                   "IOTA2_dir_VectorFormatting",
                                   "features", "T31TCJ", cloud_name)
-        fut.cpShapeFile(self.ref_region.replace(".shp",""),
-                        cloud_path.replace(".shp",""),
-                        [".prj",".shp",".dbf",".shx"])
+        fut.cpShapeFile(self.ref_region.replace(".shp", ""),
+                        cloud_path.replace(".shp", ""),
+                        [".prj", ".shp", ".dbf", ".shx"])
         changeName(cloud_path, "region", "cloud")
 
         # launch function
@@ -176,9 +181,9 @@ class iota_testVectorFormatting(unittest.TestCase):
 
         # assert
         nb_features_origin = len(fut.getFieldElement(ground_truth,
-                                                    driverName="ESRI Shapefile",
-                                                    field="code", mode="all",
-                                                    elemType="str"))
+                                                     driverName="ESRI Shapefile",
+                                                     field="code", mode="all",
+                                                     elemType="str"))
         test_vector = fut.FileSearch_AND(os.path.join(test_output, "formattingVectors"),
                                          True, "T31TCJ.shp")[0]
         nb_features_test = len(fut.getFieldElement(test_vector,
@@ -195,9 +200,8 @@ class iota_testVectorFormatting(unittest.TestCase):
 
         new_fields = ['region', 'originfid', 'seed_0', 'seed_1', 'tile_o']
         expected_fields = origin_fields + new_fields
-        self.assertTrue(len(expected_fields)==len(test_fields))
+        self.assertTrue(len(expected_fields) == len(test_fields))
         self.assertTrue(all(field in test_fields for field in expected_fields))
-
 
     def test_extract_maj_vote_samples(self):
         """
@@ -213,8 +217,8 @@ class iota_testVectorFormatting(unittest.TestCase):
                                  in_vector_name)
         extracted_vector = os.path.join(self.test_working_directory,
                                         extracted_vector_name)
-        fut.cpShapeFile(self.in_vector.replace(".shp",""),
-                        in_vector.replace(".shp",""), [".prj",".shp",".dbf",".shx"])
+        fut.cpShapeFile(self.in_vector.replace(".shp", ""),
+                        in_vector.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"])
 
         # launch function
         dataField = "code"
@@ -243,15 +247,17 @@ class iota_testVectorFormatting(unittest.TestCase):
 
         buff = []
         for class_name, class_count in list(by_class_origin.items()):
-            buff.append(by_class_in_vector[class_name] == extraction_ratio * class_count)
+            buff.append(
+                by_class_in_vector[class_name] == extraction_ratio *
+                class_count)
 
         self.assertTrue(all(buff), msg="extraction of samples failed")
 
     def test_BuiltWhereSQL_exp(self):
         """
-        test the sql clause generation. There is a random part in 
+        test the sql clause generation. There is a random part in
         the function BuiltWhereSQL_exp, the returned string value can
-        not be compare to a reference. That is the reason why we check 
+        not be compare to a reference. That is the reason why we check
         the number of 'OR' which must be the rest of nb_id / 1000.0
         """
         from Sampling.VectorFormatting import BuiltWhereSQL_exp
@@ -305,7 +311,7 @@ class iota_testVectorFormatting(unittest.TestCase):
                                                   driverName="SQLite",
                                                   field="region", mode="all",
                                                   elemType="str"))
-        
+
         self.assertTrue(seed_0_learn_test == seed_0_learn_ref,
                         msg="wrong number of learning samples in seed 0")
         self.assertTrue(seed_1_learn_test == seed_1_learn_ref,
@@ -324,13 +330,16 @@ class iota_testVectorFormatting(unittest.TestCase):
         # define inputs
         fields_to_keep = ["region", "code"]
         test_vector_name = "test_vector.sqlite"
-        test_vector = os.path.join(self.test_working_directory, test_vector_name)
+        test_vector = os.path.join(
+            self.test_working_directory,
+            test_vector_name)
 
         # launch function
         keepFields(self.in_vector, test_vector, fields=fields_to_keep)
 
         # assert
-        test_vector_fields = fut.getAllFieldsInShape(test_vector, driver='SQLite')
+        test_vector_fields = fut.getAllFieldsInShape(
+            test_vector, driver='SQLite')
         self.assertTrue(all(current_field in fields_to_keep for current_field in test_vector_fields),
                         msg="remove fields failed")
 
@@ -346,15 +355,19 @@ class iota_testVectorFormatting(unittest.TestCase):
 
         # define inputs
         test_vector_name = "T31TCJ.sqlite"
-        test_vector = os.path.join(self.test_working_directory, test_vector_name)
-        cmd = "ogr2ogr -nln t31tcj -f SQLite {} {}".format(test_vector, self.ref_region)
+        test_vector = os.path.join(
+            self.test_working_directory,
+            test_vector_name)
+        cmd = "ogr2ogr -nln t31tcj -f SQLite {} {}".format(
+            test_vector, self.ref_region)
         run(cmd)
 
         # launch function
         create_tile_region_masks(test_vector, "region", "T31TCJ", self.test_working_directory,
                                  "MyRegion", self.ref_img)
         # assert
-        raster_region = fut.FileSearch_AND(self.test_working_directory, True, "MyRegion", ".tif")[0]
+        raster_region = fut.FileSearch_AND(
+            self.test_working_directory, True, "MyRegion", ".tif")[0]
         raster_region_arr = rasterToArray(raster_region)
 
         ref_array = np.ones((50, 50))
@@ -377,8 +390,11 @@ class iota_testVectorFormatting(unittest.TestCase):
                                                      elemType="str"))
         nb_features_new_region = 5
         test_vector_name = "T31TCJ_Samples.sqlite"
-        test_vector = os.path.join(self.test_working_directory, test_vector_name)
-        cmd = "ogr2ogr -nln output -f SQLite {} {}".format(test_vector, self.in_vector)
+        test_vector = os.path.join(
+            self.test_working_directory,
+            test_vector_name)
+        cmd = "ogr2ogr -nln output -f SQLite {} {}".format(
+            test_vector, self.in_vector)
         run(cmd)
 
         random_update(test_vector, "output",
@@ -394,8 +410,10 @@ class iota_testVectorFormatting(unittest.TestCase):
                                region_field, runs=1,
                                driver="SQLite")
         # assert
-        vector_reg_1 = fut.FileSearch_AND(self.test_working_directory, True, "region_1")[0]
-        vector_reg_2 = fut.FileSearch_AND(self.test_working_directory, True, "region_2")[0]
+        vector_reg_1 = fut.FileSearch_AND(
+            self.test_working_directory, True, "region_1")[0]
+        vector_reg_2 = fut.FileSearch_AND(
+            self.test_working_directory, True, "region_2")[0]
 
         feat_vect_reg_1 = len(fut.getFieldElement(vector_reg_1,
                                                   driverName="SQLite",
@@ -407,4 +425,6 @@ class iota_testVectorFormatting(unittest.TestCase):
                                                   elemType="str"))
 
         self.assertTrue(nb_features_new_region == feat_vect_reg_2)
-        self.assertTrue(nb_features_origin == feat_vect_reg_1 + feat_vect_reg_2)
+        self.assertTrue(
+            nb_features_origin == feat_vect_reg_1 +
+            feat_vect_reg_2)

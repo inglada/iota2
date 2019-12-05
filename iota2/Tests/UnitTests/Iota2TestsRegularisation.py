@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -16,6 +16,9 @@
 
 # python -m unittest Iota2TestsRegularisation
 
+from simplification import Regularization as regu
+import TestsUtils as testutils
+from Common import FileUtils as fut
 import os
 import sys
 import shutil
@@ -25,7 +28,7 @@ import unittest
 IOTA2DIR = os.environ.get('IOTA2DIR')
 
 if IOTA2DIR is None:
-    raise Exception ("IOTA2DIR environment variable must be set")
+    raise Exception("IOTA2DIR environment variable must be set")
 
 # if all tests pass, remove 'iota2_tests_directory' which contains all
 # sub-directory tests
@@ -34,9 +37,6 @@ RM_IF_ALL_OK = True
 iota2_script = os.path.join(IOTA2DIR, "iota2")
 sys.path.append(iota2_script)
 
-from Common import FileUtils as fut
-import TestsUtils as testutils
-from simplification import Regularization as regu
 
 class iota_testRegularisation(unittest.TestCase):
     # before launching tests
@@ -44,7 +44,8 @@ class iota_testRegularisation(unittest.TestCase):
     def setUpClass(self):
         # definition of local variables
         self.group_test_name = "iota_testRegularisation"
-        self.iota2_tests_directory = os.path.join(IOTA2DIR, "data", self.group_test_name)
+        self.iota2_tests_directory = os.path.join(
+            IOTA2DIR, "data", self.group_test_name)
         self.all_tests_ok = []
 
         # Tests directory
@@ -53,12 +54,18 @@ class iota_testRegularisation(unittest.TestCase):
             shutil.rmtree(self.iota2_tests_directory)
         os.mkdir(self.iota2_tests_directory)
 
-        self.raster10m = os.path.join(IOTA2DIR, "data", "references/sampler/final/Classif_Seed_0.tif")
-        self.rasterreg20m = os.path.join(IOTA2DIR, "data", "references/posttreat/classif_regul_20m.tif")
+        self.raster10m = os.path.join(
+            IOTA2DIR, "data", "references/sampler/final/Classif_Seed_0.tif")
+        self.rasterreg20m = os.path.join(
+            IOTA2DIR, "data", "references/posttreat/classif_regul_20m.tif")
         self.wd = os.path.join(self.iota2_tests_directory, "wd")
         self.out = os.path.join(self.iota2_tests_directory, "out")
-        self.outfile = os.path.join(self.iota2_tests_directory, self.out, "classif_regul_20m.tif")
-        self.inland = os.path.join(IOTA2DIR, "data", "references/posttreat/masque_mer.shp")
+        self.outfile = os.path.join(
+            self.iota2_tests_directory,
+            self.out,
+            "classif_regul_20m.tif")
+        self.inland = os.path.join(
+            IOTA2DIR, "data", "references/posttreat/masque_mer.shp")
 
     # after launching all tests
     @classmethod
@@ -76,7 +83,8 @@ class iota_testRegularisation(unittest.TestCase):
         # it changes for each tests
 
         test_name = self.id().split(".")[-1]
-        self.test_working_directory = os.path.join(self.iota2_tests_directory, test_name)
+        self.test_working_directory = os.path.join(
+            self.iota2_tests_directory, test_name)
         if os.path.exists(self.test_working_directory):
             shutil.rmtree(self.test_working_directory)
         os.mkdir(self.test_working_directory)
@@ -91,7 +99,7 @@ class iota_testRegularisation(unittest.TestCase):
             shutil.rmtree(self.out, ignore_errors=True)
             os.mkdir(self.out)
         else:
-            os.mkdir(self.out)   
+            os.mkdir(self.out)
 
     def list2reason(self, exc_list):
         if exc_list and exc_list[-1][0] is self:
@@ -103,7 +111,10 @@ class iota_testRegularisation(unittest.TestCase):
             result = self.defaultTestResult()
             self._feedErrorsToResult(result, self._outcome.errors)
         else:
-            result = getattr(self, '_outcomeForDoCleanups', self._resultForDoCleanups)
+            result = getattr(
+                self,
+                '_outcomeForDoCleanups',
+                self._resultForDoCleanups)
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
         ok = not error and not failure
@@ -117,16 +128,24 @@ class iota_testRegularisation(unittest.TestCase):
         """Test how many samples must be add to the sample set
         """
 
-        regu.OSORegularization(self.raster10m, 10, 2, self.wd, self.outfile, "1000", self.inland, 20, 3)
+        regu.OSORegularization(
+            self.raster10m,
+            10,
+            2,
+            self.wd,
+            self.outfile,
+            "1000",
+            self.inland,
+            20,
+            3)
 
         # test
         outtest = testutils.rasterToArray(self.outfile)
-        outref = testutils.rasterToArray(self.rasterreg20m)        
+        outref = testutils.rasterToArray(self.rasterreg20m)
         self.assertTrue(np.array_equal(outtest, outref))
 
         # remove temporary folders
-        if os.path.exists(self.wd):shutil.rmtree(self.wd, ignore_errors=True)
-        if os.path.exists(self.out):shutil.rmtree(self.out, ignore_errors=True)
-
-
-
+        if os.path.exists(self.wd):
+            shutil.rmtree(self.wd, ignore_errors=True)
+        if os.path.exists(self.out):
+            shutil.rmtree(self.out, ignore_errors=True)

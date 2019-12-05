@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -16,6 +16,10 @@
 
 # python -m unittest Iota2TestsStatistics
 
+from simplification import computeStats as cs
+from simplification import ZonalStats as zs
+from Tests.UnitTests import TestsUtils as testutils
+from Common import FileUtils as fut
 import os
 import sys
 import shutil
@@ -26,7 +30,7 @@ import unittest
 IOTA2DIR = os.environ.get('IOTA2DIR')
 
 if IOTA2DIR is None:
-    raise Exception ("IOTA2DIR environment variable must be set")
+    raise Exception("IOTA2DIR environment variable must be set")
 
 # if all tests pass, remove 'iota2_tests_directory' which contains all
 # sub-directory tests
@@ -35,10 +39,6 @@ RM_IF_ALL_OK = True
 iota2_script = os.path.join(IOTA2DIR, "iota2")
 sys.path.append(iota2_script)
 
-from Common import FileUtils as fut
-from Tests.UnitTests import TestsUtils as testutils
-from simplification import ZonalStats as zs
-from simplification import computeStats as cs
 
 class iota_testZonalStats(unittest.TestCase):
     # before launching tests
@@ -46,7 +46,8 @@ class iota_testZonalStats(unittest.TestCase):
     def setUpClass(self):
         # definition of local variables
         self.group_test_name = "iota_testZonalStats"
-        self.iota2_tests_directory = os.path.join(IOTA2DIR, "data", self.group_test_name)
+        self.iota2_tests_directory = os.path.join(
+            IOTA2DIR, "data", self.group_test_name)
         self.all_tests_ok = []
 
         # Tests directory
@@ -57,22 +58,30 @@ class iota_testZonalStats(unittest.TestCase):
 
         self.wd = os.path.join(self.iota2_tests_directory, "wd/")
         self.out = os.path.join(self.iota2_tests_directory, "out/")
-        self.classif = os.path.join(IOTA2DIR, "data", "references/sampler/final/Classif_Seed_0.tif")
-        self.validity = os.path.join(IOTA2DIR, "data", "references/sampler/final/PixelsValidity.tif")
-        self.confid = os.path.join(IOTA2DIR, "data", "references/sampler/final/PixelsValidity.tif")
-        self.vector = os.path.join(IOTA2DIR, "data", "references/posttreat/vectors/")
-        self.nomenclature = os.path.join(IOTA2DIR, "data", "references/posttreat/nomenclature.txt")
+        self.classif = os.path.join(
+            IOTA2DIR, "data", "references/sampler/final/Classif_Seed_0.tif")
+        self.validity = os.path.join(
+            IOTA2DIR, "data", "references/sampler/final/PixelsValidity.tif")
+        self.confid = os.path.join(
+            IOTA2DIR, "data", "references/sampler/final/PixelsValidity.tif")
+        self.vector = os.path.join(
+            IOTA2DIR, "data", "references/posttreat/vectors/")
+        self.nomenclature = os.path.join(
+            IOTA2DIR, "data", "references/posttreat/nomenclature.txt")
         self.vectorfile = os.path.join(self.vector, "classif.shp")
-        self.outfilestats = os.path.join(IOTA2DIR, "data", "references/posttreat/stats_classif")
-        self.outfilevector = os.path.join(self.iota2_tests_directory, self.wd, "final.shp")
-        self.outfilevectorref = os.path.join(self.vector, "classifjoin.shp")        
-        self.outzip = os.path.join(self.iota2_tests_directory, self.wd, "classif.zip")       
+        self.outfilestats = os.path.join(
+            IOTA2DIR, "data", "references/posttreat/stats_classif")
+        self.outfilevector = os.path.join(
+            self.iota2_tests_directory, self.wd, "final.shp")
+        self.outfilevectorref = os.path.join(self.vector, "classifjoin.shp")
+        self.outzip = os.path.join(
+            self.iota2_tests_directory, self.wd, "classif.zip")
         self.outzipref = os.path.join(self.vector, "classif.zip")
         self.gdallib = os.environ.get('GDAL224DIR')
 
         if self.gdallib is None:
-            raise Exception("GDAL224DIR not initialized (Version of gdal greater or equal to 2.2.4")
-
+            raise Exception(
+                "GDAL224DIR not initialized (Version of gdal greater or equal to 2.2.4")
 
     # after launching all tests
     @classmethod
@@ -90,7 +99,8 @@ class iota_testZonalStats(unittest.TestCase):
         # it changes for each tests
 
         test_name = self.id().split(".")[-1]
-        self.test_working_directory = os.path.join(self.iota2_tests_directory, test_name)
+        self.test_working_directory = os.path.join(
+            self.iota2_tests_directory, test_name)
         if os.path.exists(self.test_working_directory):
             shutil.rmtree(self.test_working_directory)
         os.mkdir(self.test_working_directory)
@@ -105,7 +115,7 @@ class iota_testZonalStats(unittest.TestCase):
             shutil.rmtree(self.out, ignore_errors=True)
             os.mkdir(self.out)
         else:
-            os.mkdir(self.out)   
+            os.mkdir(self.out)
 
     def list2reason(self, exc_list):
         if exc_list and exc_list[-1][0] is self:
@@ -117,7 +127,10 @@ class iota_testZonalStats(unittest.TestCase):
             result = self.defaultTestResult()
             self._feedErrorsToResult(result, self._outcome.errors)
         else:
-            result = getattr(self, '_outcomeForDoCleanups', self._resultForDoCleanups)
+            result = getattr(
+                self,
+                '_outcomeForDoCleanups',
+                self._resultForDoCleanups)
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
         ok = not error and not failure
@@ -131,7 +144,13 @@ class iota_testZonalStats(unittest.TestCase):
         """Test how many samples must be add to the sample set
         """
         # Statistics test
-        zs.computZonalStats(self.wd, [self.classif, self.confid, self.validity], self.vector, self.wd, self.gdallib)
+        zs.computZonalStats(self.wd,
+                            [self.classif,
+                             self.confid,
+                             self.validity],
+                            self.vector,
+                            self.wd,
+                            self.gdallib)
 
         self.assertTrue(filecmp.cmp(self.outfilestats, os.path.join(self.wd, "stats_classif")),
                         msg="Statistics file does not fit the reference one")
@@ -141,14 +160,24 @@ class iota_testZonalStats(unittest.TestCase):
 
         # Final integration test
         #cs.computeStats(self.wd, os.path.join(self.wd, "stats_classif"), self.nomenclature, self.wd, self.outfilevector, True)
-        cs.computeStats(self.wd, os.path.join(self.wd, "stats_classif"), self.wd, self.outfilevector, True)        
-        os.system("unzip %s -d %s"%(self.outzipref, self.wd))
-        os.system("unzip %s -d %s"%(self.outzip, self.out))
+        cs.computeStats(
+            self.wd,
+            os.path.join(
+                self.wd,
+                "stats_classif"),
+            self.wd,
+            self.outfilevector,
+            True)
+        os.system("unzip %s -d %s" % (self.outzipref, self.wd))
+        os.system("unzip %s -d %s" % (self.outzip, self.out))
 
         self.assertTrue(testutils.compareVectorFile(self.outfilevectorref,
-                                                    os.path.join(self.wd, "classif.shp"),
+                                                    os.path.join(
+                                                        self.wd, "classif.shp"),
                                                     'coordinates', 'polygon', "ESRI Shapefile"),
                         "Generated shapefile vector does not fit with shapefile reference file")
         # remove temporary folders
-        if os.path.exists(self.wd):shutil.rmtree(self.wd, ignore_errors=True)
-        if os.path.exists(self.out):shutil.rmtree(self.out, ignore_errors=True)
+        if os.path.exists(self.wd):
+            shutil.rmtree(self.wd, ignore_errors=True)
+        if os.path.exists(self.out):
+            shutil.rmtree(self.out, ignore_errors=True)

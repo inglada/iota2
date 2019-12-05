@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -16,6 +16,12 @@
 
 # python -m unittest Iota2TestsSerialisation
 
+from simplification import MergeTileRasters as mtr
+from simplification import GridGenerator as gridg
+from simplification import buildCrownRaster as bcr
+from simplification import searchCrownTile as sct
+from Tests.UnitTests import TestsUtils as testutils
+from Common import FileUtils as fut
 import os
 import sys
 import shutil
@@ -25,7 +31,7 @@ import unittest
 IOTA2DIR = os.environ.get('IOTA2DIR')
 
 if IOTA2DIR is None:
-    raise Exception ("IOTA2DIR environment variable must be set")
+    raise Exception("IOTA2DIR environment variable must be set")
 
 # if all tests pass, remove 'iota2_tests_directory' which contains all
 # sub-directory tests
@@ -34,13 +40,6 @@ RM_IF_ALL_OK = True
 iota2_script = os.path.join(IOTA2DIR, "iota2")
 sys.path.append(iota2_script)
 
-from Common import FileUtils as fut
-from Tests.UnitTests import TestsUtils as testutils
-from simplification import searchCrownTile as sct
-from simplification import buildCrownRaster as bcr
-from simplification import GridGenerator as gridg
-from simplification import MergeTileRasters as mtr
-
 
 class iota_testSerialisation(unittest.TestCase):
     # before launching tests
@@ -48,7 +47,8 @@ class iota_testSerialisation(unittest.TestCase):
     def setUpClass(self):
         # definition of local variables
         self.group_test_name = "iota_testSerialisation"
-        self.iota2_tests_directory = os.path.join(IOTA2DIR, "data", self.group_test_name)
+        self.iota2_tests_directory = os.path.join(
+            IOTA2DIR, "data", self.group_test_name)
         self.all_tests_ok = []
 
         # Tests directory
@@ -57,29 +57,68 @@ class iota_testSerialisation(unittest.TestCase):
             shutil.rmtree(self.iota2_tests_directory)
         os.mkdir(self.iota2_tests_directory)
 
-        self.rasterclump = os.path.join(os.path.join(IOTA2DIR, "data", "references/posttreat/clump32bits.tif"))
-        self.raster = os.path.join(os.path.join(IOTA2DIR, "data", "references/posttreat/classif_clump.tif"))        
+        self.rasterclump = os.path.join(
+            os.path.join(
+                IOTA2DIR,
+                "data",
+                "references/posttreat/clump32bits.tif"))
+        self.raster = os.path.join(
+            os.path.join(
+                IOTA2DIR,
+                "data",
+                "references/posttreat/classif_clump.tif"))
         self.wd = os.path.join(self.iota2_tests_directory, "wd")
         self.out = os.path.join(self.iota2_tests_directory, "out")
-        self.outpathtile = os.path.join(self.iota2_tests_directory, self.out, "tiles")
-        self.outfile = os.path.join(self.iota2_tests_directory, self.out, "grid.shp")
-        self.outfileref = os.path.join(os.path.join(IOTA2DIR, "data", "references/posttreat/grid.shp"))
-        self.outseria = os.path.join(self.iota2_tests_directory, self.out, "tiles/crown_0.tif")
-        self.outtile = os.path.join(self.iota2_tests_directory, self.out, "tiles/tile_0.tif")
-        self.outseriaref = os.path.join(os.path.join(IOTA2DIR, "data", "references/posttreat/tiles/crown_0.tif"))
-        self.outtileref = os.path.join(os.path.join(IOTA2DIR, "data", "references/posttreat/tiles/tile_0.tif"))        
-        self.outfilevect = os.path.join(self.iota2_tests_directory, self.out, "classif.shp")
-        self.outfilevectname = os.path.join(self.iota2_tests_directory, self.out, "classifmontagne.shp")        
-        self.vector = os.path.join(os.path.join(IOTA2DIR, "data", "references/posttreat/classifmontagne.shp"))
-        self.clipfile = os.path.join(os.path.join(IOTA2DIR, "data", "references/posttreat/region.shp"))
+        self.outpathtile = os.path.join(
+            self.iota2_tests_directory, self.out, "tiles")
+        self.outfile = os.path.join(
+            self.iota2_tests_directory, self.out, "grid.shp")
+        self.outfileref = os.path.join(
+            os.path.join(
+                IOTA2DIR,
+                "data",
+                "references/posttreat/grid.shp"))
+        self.outseria = os.path.join(
+            self.iota2_tests_directory,
+            self.out,
+            "tiles/crown_0.tif")
+        self.outtile = os.path.join(
+            self.iota2_tests_directory,
+            self.out,
+            "tiles/tile_0.tif")
+        self.outseriaref = os.path.join(
+            os.path.join(
+                IOTA2DIR,
+                "data",
+                "references/posttreat/tiles/crown_0.tif"))
+        self.outtileref = os.path.join(
+            os.path.join(
+                IOTA2DIR,
+                "data",
+                "references/posttreat/tiles/tile_0.tif"))
+        self.outfilevect = os.path.join(
+            self.iota2_tests_directory, self.out, "classif.shp")
+        self.outfilevectname = os.path.join(
+            self.iota2_tests_directory, self.out, "classifmontagne.shp")
+        self.vector = os.path.join(
+            os.path.join(
+                IOTA2DIR,
+                "data",
+                "references/posttreat/classifmontagne.shp"))
+        self.clipfile = os.path.join(
+            os.path.join(
+                IOTA2DIR,
+                "data",
+                "references/posttreat/region.shp"))
         self.grasslib = os.environ.get('GRASSDIR')
 
         if self.grasslib is None:
             raise Exception("GRASSDIR not initialized")
 
         if not os.path.exists(os.path.join(self.grasslib, 'bin')):
-            raise Exception("GRASSDIR '%s' not well initialized"%(self.grasslib))
-
+            raise Exception(
+                "GRASSDIR '%s' not well initialized" %
+                (self.grasslib))
 
     # after launching all tests
     @classmethod
@@ -97,7 +136,8 @@ class iota_testSerialisation(unittest.TestCase):
         # it changes for each tests
 
         test_name = self.id().split(".")[-1]
-        self.test_working_directory = os.path.join(self.iota2_tests_directory, test_name)
+        self.test_working_directory = os.path.join(
+            self.iota2_tests_directory, test_name)
         if os.path.exists(self.test_working_directory):
             shutil.rmtree(self.test_working_directory)
         os.mkdir(self.test_working_directory)
@@ -112,13 +152,13 @@ class iota_testSerialisation(unittest.TestCase):
             shutil.rmtree(self.out, ignore_errors=True)
             os.mkdir(self.out)
         else:
-            os.mkdir(self.out)   
+            os.mkdir(self.out)
 
         if os.path.exists(self.outpathtile):
             shutil.rmtree(self.outpathtile, ignore_errors=True)
             os.mkdir(self.outpathtile)
         else:
-            os.mkdir(self.outpathtile)   
+            os.mkdir(self.outpathtile)
 
     def list2reason(self, exc_list):
         if exc_list and exc_list[-1][0] is self:
@@ -130,7 +170,10 @@ class iota_testSerialisation(unittest.TestCase):
             result = self.defaultTestResult()
             self._feedErrorsToResult(result, self._outcome.errors)
         else:
-            result = getattr(self, '_outcomeForDoCleanups', self._resultForDoCleanups)
+            result = getattr(
+                self,
+                '_outcomeForDoCleanups',
+                self._resultForDoCleanups)
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
         ok = not error and not failure
@@ -146,19 +189,33 @@ class iota_testSerialisation(unittest.TestCase):
 
         # Grid generation test
         gridg.grid_generate(self.outfile, 2, 2154, self.rasterclump)
-        self.assertTrue(testutils.compareVectorFile(self.outfile, self.outfileref, 'coordinates', 'polygon', "ESRI Shapefile"), \
+        self.assertTrue(testutils.compareVectorFile(self.outfile, self.outfileref, 'coordinates', 'polygon', "ESRI Shapefile"),
                         "Generated grid shapefile vector does not fit with reference file")
 
         # Crown entities test
-        sct.searchCrownTile(self.wd, self.raster, self.rasterclump, 128, self.outfileref, self.outpathtile, 1, 0)
+        sct.searchCrownTile(
+            self.wd,
+            self.raster,
+            self.rasterclump,
+            128,
+            self.outfileref,
+            self.outpathtile,
+            1,
+            0)
 
         outtest = testutils.rasterToArray(self.outseria)
-        outref = testutils.rasterToArray(self.outseriaref)        
-        self.assertTrue(np.array_equal(outtest, outref))        
+        outref = testutils.rasterToArray(self.outseriaref)
+        self.assertTrue(np.array_equal(outtest, outref))
 
-        # Crown building test        
-        bcr.manageBlocks(self.outpathtile, 0, 20, self.wd, self.outpathtile, 128)
-        
+        # Crown building test
+        bcr.manageBlocks(
+            self.outpathtile,
+            0,
+            20,
+            self.wd,
+            self.outpathtile,
+            128)
+
         outtest = testutils.rasterToArray(self.outtile)
         outtileref = testutils.rasterToArray(self.outtileref)
         self.assertTrue(np.array_equal(outtest, outtileref))
@@ -168,11 +225,11 @@ class iota_testSerialisation(unittest.TestCase):
                                       "class", self.clipfile, "region", "montagne", "FID", "tile_", self.outpathtile,
                                       10, 10, True)
 
-        self.assertTrue(testutils.compareVectorFile(self.vector, self.outfilevectname, 'coordinates', 'polygon', "ESRI Shapefile"), \
+        self.assertTrue(testutils.compareVectorFile(self.vector, self.outfilevectname, 'coordinates', 'polygon', "ESRI Shapefile"),
                         "Generated shapefile vector does not fit with shapefile reference file")
 
         # remove temporary folders
-        if os.path.exists(self.wd):shutil.rmtree(self.wd, ignore_errors=True)
-        if os.path.exists(self.out):shutil.rmtree(self.out, ignore_errors=True)
-
-
+        if os.path.exists(self.wd):
+            shutil.rmtree(self.wd, ignore_errors=True)
+        if os.path.exists(self.out):
+            shutil.rmtree(self.out, ignore_errors=True)

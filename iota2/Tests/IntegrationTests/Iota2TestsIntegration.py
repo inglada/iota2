@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -14,6 +14,24 @@
 #
 # =========================================================================
 
+iota2dir = os.environ.get('IOTA2DIR')
+iota2_script = os.path.join(iota2dir, "iota2")
+iota2_script_tests = iota2dir + "/data/test_scripts"
+sys.path.append(iota2_script)
+sys.path.append(iota2_script_tests)
+
+from VectorTools.AddField import addField
+from VectorTools.DeleteField import deleteField
+from Common import ServiceLogger as sLog
+from Common.Utils import run
+from Common import ServiceConfigFile as SCF
+import otbApplication as otb
+from Sensors import Sensors
+from Sampling import TileEnvelope
+import test_genGrid as test_genGrid
+from Common import FileUtils as fu
+from Common import IOTA2Directory as osoD
+from Sampling import VectorSampler
 import sys
 import os
 import unittest
@@ -31,30 +49,12 @@ import ogr
 from gdalconst import *
 from osgeo import gdal
 
-iota2dir = os.environ.get('IOTA2DIR')
-iota2_script = os.path.join(iota2dir, "iota2")
-iota2_script_tests = iota2dir + "/data/test_scripts"
-sys.path.append(iota2_script)
-sys.path.append(iota2_script_tests)
-
-from Sampling import VectorSampler
-from Common import IOTA2Directory as osoD
-from Common import FileUtils as fu
-import test_genGrid as test_genGrid
-from Sampling import TileEnvelope
-from Sensors import Sensors
-import otbApplication as otb
-from Common import ServiceConfigFile as SCF
-from Common.Utils import run
-from Common import ServiceLogger as sLog
-from VectorTools.DeleteField import deleteField
-from VectorTools.AddField import addField
-
 iota2_dataTest = os.environ.get('IOTA2DIR') + "/data/"
 
 # Init of logging service
 # We need an instance of serviceConfigFile
-cfg = SCF.serviceConfigFile(iota2_dataTest + "/config/test_config_serviceConfigFile.cfg")
+cfg = SCF.serviceConfigFile(iota2_dataTest +
+                            "/config/test_config_serviceConfigFile.cfg")
 # We force the logFile value
 cfg.setParam('chain', 'logFile', iota2_dataTest + "/OSOlogFile.log")
 # We call the serviceLogger
@@ -68,19 +68,24 @@ def shapeReferenceVector(refVector, outputName):
     """
 
     path, name = os.path.split(refVector)
-    
-    tmp = path+"/"+outputName+"_TMP"
-    fu.cpShapeFile(refVector.replace(".shp", ""), tmp, [".prj", ".shp", ".dbf", ".shx"])
-    addField(tmp+".shp", "region", "1", str)
-    addField(tmp+".shp", "seed_0", "learn", str)
-    cmd = "ogr2ogr -dialect 'SQLite' -sql 'select GEOMETRY,seed_0, region, CODE as code from "+outputName+"_TMP' " + path+"/"+outputName+".shp "+tmp+".shp"
+
+    tmp = path + "/" + outputName + "_TMP"
+    fu.cpShapeFile(
+        refVector.replace(
+            ".shp", ""), tmp, [
+            ".prj", ".shp", ".dbf", ".shx"])
+    addField(tmp + ".shp", "region", "1", str)
+    addField(tmp + ".shp", "seed_0", "learn", str)
+    cmd = "ogr2ogr -dialect 'SQLite' -sql 'select GEOMETRY,seed_0, region, CODE as code from " + \
+        outputName + "_TMP' " + path + "/" + outputName + ".shp " + tmp + ".shp"
     run(cmd)
-    
-    os.remove(tmp+".shp")
-    os.remove(tmp+".shx")
-    os.remove(tmp+".prj")
-    os.remove(tmp+".dbf")
-    return path+"/"+outputName+".shp"
+
+    os.remove(tmp + ".shp")
+    os.remove(tmp + ".shx")
+    os.remove(tmp + ".prj")
+    os.remove(tmp + ".dbf")
+    return path + "/" + outputName + ".shp"
+
 
 def prepare_test_selection(vector, raster_ref, outputSelection, wd, dataField):
     """
@@ -95,9 +100,9 @@ def prepare_test_selection(vector, raster_ref, outputSelection, wd, dataField):
                                                          "out": stats_path})
     stats.ExecuteAndWriteOutput()
     sampleSel = otb.CreateSampleSelectionApplication({"in": raster_ref,
-                                                      "vec":vector, 
-                                                      "out":outputSelection,
-                                                      "instats":stats_path,
+                                                      "vec": vector,
+                                                      "out": outputSelection,
+                                                      "instats": stats_path,
                                                       "sampler": "random",
                                                       "strategy": "all",
                                                       "field": dataField})
@@ -105,6 +110,7 @@ def prepare_test_selection(vector, raster_ref, outputSelection, wd, dataField):
         os.remove(outputSelection)
     sampleSel.ExecuteAndWriteOutput()
     os.remove(stats_path)
+
 
 def rasterToArray(InRaster):
     """
@@ -131,7 +137,7 @@ def arrayToRaster(inArray, outRaster):
     driver = gdal.GetDriverByName('GTiff')
     outRaster = driver.Create(outRaster, cols, rows, 1, gdal.GDT_UInt16)
     if not outRaster:
-        raise Exception("can not create : "+outRaster)
+        raise Exception("can not create : " + outRaster)
     outRaster.SetGeoTransform((originX, pixSize, 0, originY, 0, pixSize))
     outband = outRaster.GetRasterBand(1)
     outband.WriteArray(inArray)
@@ -144,12 +150,12 @@ def arrayToRaster(inArray, outRaster):
 def delete_uselessFields(test_vector, field_to_rm="region"):
     """
     """
-    #const
-    
+    # const
+
     fields = fu.getAllFieldsInShape(test_vector, driver='SQLite')
-    
+
     rm_field = [field for field in fields if field_to_rm in field]
-    
+
     for rm in rm_field:
         deleteField(test_vector, rm)
 
@@ -170,7 +176,6 @@ def generateRandomString(size):
 
 
 def checkSameFile(files, patterns=["res_ref", "res_test"]):
-
     """
     usage : check if input files are the equivalent, after replacing all
     patters by XXXX
@@ -185,7 +190,7 @@ def checkSameFile(files, patterns=["res_ref", "res_test"]):
 
     Alltmp = []
     for file_ in files:
-        file_tmp = file_.split(".")[0]+"_tmp."+file_.split(".")[-1]
+        file_tmp = file_.split(".")[0] + "_tmp." + file_.split(".")[-1]
         if os.path.exists(file_tmp):
             os.remove(file_tmp)
         Alltmp.append(file_tmp)
@@ -232,12 +237,11 @@ def prepareAnnualFeatures(workingDirectory, referenceDirectory, pattern):
     shutil.copytree(referenceDirectory, workingDirectory)
     rastersPath = fu.FileSearch_AND(workingDirectory, True, pattern)
     for raster in rastersPath:
-        cmd = 'otbcli_BandMathX -il '+raster+' -out '+raster+' -exp "im1+im1"'
+        cmd = 'otbcli_BandMathX -il ' + raster + ' -out ' + raster + ' -exp "im1+im1"'
         run(cmd)
 
 
 def compareSQLite(vect_1, vect_2, CmpMode='table', ignored_fields=[]):
-
     """
     compare SQLite, table mode is faster but does not work with
     connected OTB applications.
@@ -258,7 +262,8 @@ def compareSQLite(vect_1, vect_2, CmpMode='table', ignored_fields=[]):
         OUT
         [dict] : values by fields
         """
-        return OrderedDict([(currentField, feat.GetField(currentField)) for currentField in fields])
+        return OrderedDict([(currentField, feat.GetField(currentField))
+                            for currentField in fields])
 
     def priority(item):
         """
@@ -319,7 +324,8 @@ def compareSQLite(vect_1, vect_2, CmpMode='table', ignored_fields=[]):
         values_2 = getValuesSortedByCoordinates(vect_2)
         sameFeat = []
         for val_1, val_2 in zip(values_1, values_2):
-            for (k1, v1), (k2, v2) in zip(list(val_1[2].items()), list(val_2[2].items())):
+            for (k1, v1), (k2, v2) in zip(
+                    list(val_1[2].items()), list(val_2[2].items())):
                 if not k1 in ignored_fields and k2 in ignored_fields:
                     sameFeat.append(cmp(v1, v2) == 0)
         if False in sameFeat:
@@ -329,48 +335,50 @@ def compareSQLite(vect_1, vect_2, CmpMode='table', ignored_fields=[]):
         raise Exception("CmpMode parameter must be 'table' or 'coordinates'")
 
 
-
 class iota_testFeatures(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        #Unzip
+        # Unzip
         self.largeScaleDir = "/work/OT/theia/oso/dataTest/test_LargeScale"
         #self.largeScaleDir = "/mnt/data/home/vincenta/test_LargeScale"
-        self.SARDirectory = self.largeScaleDir+"/SAR_directory"
+        self.SARDirectory = self.largeScaleDir + "/SAR_directory"
 
-        self.test_vector = iota2_dataTest+"/test_vector"
-        self.RefConfig = iota2dir+"/config/Config_4Tuiles_Multi_FUS_Confidence.cfg"
-        self.TestConfig = iota2_dataTest+"/test_vector/ConfigurationFile_Test.cfg"
-        self.referenceShape = iota2_dataTest+"/references/sampler/D0005H0002_polygons_To_Sample.shp"
+        self.test_vector = iota2_dataTest + "/test_vector"
+        self.RefConfig = iota2dir + "/config/Config_4Tuiles_Multi_FUS_Confidence.cfg"
+        self.TestConfig = iota2_dataTest + "/test_vector/ConfigurationFile_Test.cfg"
+        self.referenceShape = iota2_dataTest + \
+            "/references/sampler/D0005H0002_polygons_To_Sample.shp"
 
         #self.S2_largeScale = "/work/OT/theia/oso/dataTest/test_LargeScale/S2"
-        self.S2_largeScale = self.largeScaleDir+"/S2_50x50"
+        self.S2_largeScale = self.largeScaleDir + "/S2_50x50"
 
-        self.RefSARconfig = iota2dir+"/config/SARconfig.cfg"
-        self.RefSARconfigTest = iota2_dataTest+"/test_vector/ConfigurationFile_SAR_Test.cfg"
-        self.SARfeaturesPath = self.test_vector+"/checkOnlySarFeatures_features_SAR"
+        self.RefSARconfig = iota2dir + "/config/SARconfig.cfg"
+        self.RefSARconfigTest = iota2_dataTest + \
+            "/test_vector/ConfigurationFile_SAR_Test.cfg"
+        self.SARfeaturesPath = self.test_vector + "/checkOnlySarFeatures_features_SAR"
 
-        self.SARdata = self.SARDirectory+"/raw_data"
-        
-        self.SRTM = self.SARDirectory+"/SRTM"
-        self.geoid = self.SARDirectory+"/egm96.grd"
-        self.tilesShape = self.SARDirectory+"/Features.shp"
-        self.srtmShape = self.SARDirectory+"/srtm.shp"
+        self.SARdata = self.SARDirectory + "/raw_data"
 
-        self.vectorRef = iota2dir+"/data/references/sampler/SARfeaturesProdRef.sqlite"
+        self.SRTM = self.SARDirectory + "/SRTM"
+        self.geoid = self.SARDirectory + "/egm96.grd"
+        self.tilesShape = self.SARDirectory + "/Features.shp"
+        self.srtmShape = self.SARDirectory + "/srtm.shp"
 
-        self.testPath = self.test_vector+"/checkOnlySarFeatures"
-        self.featuresPath = self.test_vector+"/checkOnlySarFeatures_features"
-        
+        self.vectorRef = iota2dir + "/data/references/sampler/SARfeaturesProdRef.sqlite"
+
+        self.testPath = self.test_vector + "/checkOnlySarFeatures"
+        self.featuresPath = self.test_vector + "/checkOnlySarFeatures_features"
+
         # instanciation of serviceConfigFile class
         SCF.clearConfig()
         self.cfg = SCF.serviceConfigFile(self.RefConfig)
-        
+
     """
     TEST : Compute SAR features, from raw Sentinel-1 data
     and generate sample points
     """
+
     def test_checkOnlySarFeatures(self):
 
         from Sensors.ProcessLauncher import commonMasks
@@ -393,20 +401,19 @@ class iota_testFeatures(unittest.TestCase):
             with open(self.RefSARconfigTest, "w+") as configFile:
                 parser.write(configFile)
 
-
         if os.path.exists(self.featuresPath):
             shutil.rmtree(self.featuresPath)
         os.mkdir(self.featuresPath)
-        if os.path.exists(self.featuresPath+"/T31TCJ"):
-            shutil.rmtree(self.featuresPath+"/T31TCJ")
-        os.mkdir(self.featuresPath+"/T31TCJ")
-        if os.path.exists(self.featuresPath+"/T31TCJ/tmp"):
-            shutil.rmtree(self.featuresPath+"/T31TCJ/tmp")
-        os.mkdir(self.featuresPath+"/T31TCJ/tmp")
+        if os.path.exists(self.featuresPath + "/T31TCJ"):
+            shutil.rmtree(self.featuresPath + "/T31TCJ")
+        os.mkdir(self.featuresPath + "/T31TCJ")
+        if os.path.exists(self.featuresPath + "/T31TCJ/tmp"):
+            shutil.rmtree(self.featuresPath + "/T31TCJ/tmp")
+        os.mkdir(self.featuresPath + "/T31TCJ/tmp")
         if os.path.exists(self.SARfeaturesPath):
             shutil.rmtree(self.SARfeaturesPath)
         os.mkdir(self.SARfeaturesPath)
-        
+
         prepareSARconfig()
 
         config_path = os.path.join(iota2dir, "config",
@@ -427,24 +434,33 @@ class iota_testFeatures(unittest.TestCase):
         cfg_test.save(open(config_path_test, 'w'))
         config_test = SCF.serviceConfigFile(config_path_test)
 
-        referenceShape_test = shapeReferenceVector(self.referenceShape, "T31TCJ")
+        referenceShape_test = shapeReferenceVector(
+            self.referenceShape, "T31TCJ")
         preprocess("T31TCJ", config_path_test)
         commonMasks("T31TCJ", config_path_test)
         selection_test = os.path.join(self.testPath, "T31TCJ.sqlite")
         featuresPath = os.path.join(self.testPath, "features")
         raster_ref = fu.FileSearch_AND(featuresPath, True, ".tif")[0]
-        prepare_test_selection(referenceShape_test, raster_ref, selection_test, self.testPath, "code")
+        prepare_test_selection(
+            referenceShape_test,
+            raster_ref,
+            selection_test,
+            self.testPath,
+            "code")
 
         TileEnvelope.GenerateShapeTile(["T31TCJ"], featuresPath,
-                                       self.testPath+"/envelope",
+                                       self.testPath + "/envelope",
                                        None, config_test)
-        VectorSampler.generateSamples({"usually":referenceShape_test},
+        VectorSampler.generateSamples({"usually": referenceShape_test},
                                       None, config_test, sampleSelection=selection_test)
 
-        test_vector = fu.FileSearch_AND(self.testPath+"/learningSamples",
+        test_vector = fu.FileSearch_AND(self.testPath + "/learningSamples",
                                         True, ".sqlite")[0]
         delete_uselessFields(test_vector)
-        compare = compareSQLite(test_vector, self.vectorRef, CmpMode='coordinates')
+        compare = compareSQLite(
+            test_vector,
+            self.vectorRef,
+            CmpMode='coordinates')
         self.assertTrue(compare)
 
 
@@ -460,6 +476,7 @@ if __name__ == "__main__":
     loader = unittest.TestLoader()
 
     largeScaleTests = [iota_testFeatures]
-    testsToRun = unittest.TestSuite([loader.loadTestsFromTestCase(cTest)for cTest in largeScaleTests])
+    testsToRun = unittest.TestSuite(
+        [loader.loadTestsFromTestCase(cTest)for cTest in largeScaleTests])
     runner = unittest.TextTestRunner()
     results = runner.run(testsToRun)
