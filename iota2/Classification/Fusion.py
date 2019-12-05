@@ -224,7 +224,7 @@ def compute_fusion_choice(iota2_dir, fusion_dic, fusion_class,
     if not os.path.exists(ds_choice_dir):
         try:
             os.mkdir(ds_choice_dir)
-        except:
+        except BaseException:
             pass
     ds_choice = os.path.join(ds_choice_dir, ds_choice_name)
     if workingDirectory:
@@ -548,7 +548,7 @@ def fusion(pathClassif, cfg, pathWd):
         classification_suffix_pattern = "_DS"
     if region_vec:
         AllClassif = fu.fileSearchRegEx(
-            pathClassif+"/Classif_*_model_*f*_seed_*" + classification_suffix_pattern + ".tif")
+            pathClassif + "/Classif_*_model_*f*_seed_*" + classification_suffix_pattern + ".tif")
         allTiles = []
         models = []
         for classif in AllClassif:
@@ -562,25 +562,25 @@ def fusion(pathClassif, cfg, pathWd):
     for seed in range(N):
         for tile in allTiles:
             directoryOut = pathClassif
-            if pathWd != None:
+            if pathWd is not None:
                 directoryOut = "$TMPDIR"
             if region_vec is None:
                 classifPath = fu.FileSearch_AND(
-                    pathClassif, True, "Classif_"+tile, "seed_"+str(seed)+classification_suffix_pattern+".tif")
+                    pathClassif, True, "Classif_" + tile, "seed_" + str(seed) + classification_suffix_pattern + ".tif")
                 allPathFusion = " ".join(classifPath)
-                cmd = "otbcli_FusionOfClassifications -il "+allPathFusion+" "+fusionOptions + \
-                    " -out "+directoryOut+"/"+tile + \
-                    "_FUSION_seed_"+str(seed)+".tif"
+                cmd = "otbcli_FusionOfClassifications -il " + allPathFusion + " " + fusionOptions + \
+                    " -out " + directoryOut + "/" + tile + \
+                    "_FUSION_seed_" + str(seed) + ".tif"
                 AllCmd.append(cmd)
             else:
                 for mod in models:
                     classifPath = fu.fileSearchRegEx(
-                        pathClassif+"/Classif_"+tile+"_model_"+mod+"f*_seed_"+str(seed) + classification_suffix_pattern + ".tif")
+                        pathClassif + "/Classif_" + tile + "_model_" + mod + "f*_seed_" + str(seed) + classification_suffix_pattern + ".tif")
                     if len(classifPath) != 0:
                         allPathFusion = " ".join(classifPath)
-                        cmd = "otbcli_FusionOfClassifications -il "+allPathFusion+" "+fusionOptions+" -out " + \
-                            directoryOut+"/"+tile+"_FUSION_model_" + \
-                            mod+"_seed_"+str(seed)+".tif "+pixType
+                        cmd = "otbcli_FusionOfClassifications -il " + allPathFusion + " " + fusionOptions + " -out " + \
+                            directoryOut + "/" + tile + "_FUSION_model_" + \
+                            mod + "_seed_" + str(seed) + ".tif " + pixType
                         AllCmd.append(cmd)
 
     tmp = pathClassif.split("/")
@@ -588,7 +588,7 @@ def fusion(pathClassif, cfg, pathWd):
         del tmp[-1]
     tmp[-1] = "cmd/fusion"
     pathToCmdFusion = "/".join(tmp)
-    fu.writeCmds(pathToCmdFusion+"/fusion.txt", AllCmd)
+    fu.writeCmds(pathToCmdFusion + "/fusion.txt", AllCmd)
 
     return AllCmd
 

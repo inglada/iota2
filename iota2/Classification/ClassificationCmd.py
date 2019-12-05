@@ -42,9 +42,9 @@ def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
     allTiles_s = cfg.getParam('chain', 'listTile')
     allTiles = allTiles_s.split(" ")
 
-    maskFiles = pathOut+"/MASK"
+    maskFiles = pathOut + "/MASK"
     if not os.path.exists(maskFiles):
-        run("mkdir "+maskFiles)
+        run("mkdir " + maskFiles)
 
     if pathToRegion is None:
         pathToRegion = os.path.join(cfg.getParam("chain", "outputPath"),
@@ -53,7 +53,7 @@ def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
     shpRName = pathToRegion.split("/")[-1].replace(".shp", "")
 
     AllModel_tmp = fu.FileSearch_AND(model, True, "model", ".txt")
-    AllModel = fu.fileSearchRegEx(model+"/*model*.txt")
+    AllModel = fu.fileSearchRegEx(model + "/*model*.txt")
 
     for currentFile in AllModel_tmp:
         if currentFile not in AllModel:
@@ -62,7 +62,7 @@ def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
     for path in AllModel:
         model = path.split("/")[-1].split("_")[1]
         tiles = fu.getListTileFromModel(
-            model, outputPath+"/config_model/configModel.cfg")
+            model, outputPath + "/config_model/configModel.cfg")
         model_Mask = model
         if re.search('model_.*f.*_', path.split("/")[-1]):
             model_Mask = path.split("/")[-1].split("_")[1].split("f")[0]
@@ -73,14 +73,16 @@ def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
             suffix = "_SAR"
         tilesToEvaluate = tiles
 
-        if ("fusion" in classifMode and shapeRegion is None) or (shapeRegion is None):
+        if ("fusion" in classifMode and shapeRegion is None) or (
+                shapeRegion is None):
             tilesToEvaluate = allTiles
         # construction du string de sortie
         for tile in tilesToEvaluate:
             pathToFeat = fu.FileSearch_AND(
-                pathToImg+"/"+tile+"/tmp/", True, fu.getCommonMaskName(pathConf), ".tif")[0]
-            maskSHP = pathToRT+"/"+shpRName+"_region_"+model_Mask+"_"+tile+".shp"
-            maskTif = shpRName+"_region_"+model_Mask+"_"+tile+".tif"
+                pathToImg + "/" + tile + "/tmp/", True, fu.getCommonMaskName(pathConf), ".tif")[0]
+            maskSHP = pathToRT + "/" + shpRName + \
+                "_region_" + model_Mask + "_" + tile + ".shp"
+            maskTif = shpRName + "_region_" + model_Mask + "_" + tile + ".tif"
             CmdConfidenceMap = ""
             confidenceMap = ""
             if "fusion" in classifMode:
@@ -90,47 +92,49 @@ def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
                         del tmp[-1]
                     tmp[-1] = "envelope"
                     pathToEnvelope = "/".join(tmp)
-                    maskSHP = pathToEnvelope+"/"+tile+".shp"
+                    maskSHP = pathToEnvelope + "/" + tile + ".shp"
 
             confidenceMap_name = "{}_model_{}_confidence_seed_{}{}.tif".format(
                 tile, model, seed, suffix)
             CmdConfidenceMap = " -confmap " + \
                 os.path.join(pathOut, confidenceMap_name)
 
-            if not os.path.exists(maskFiles+"/"+maskTif):
-                pathToMaskCommun = pathToImg+"/"+tile+"/tmp/" + \
-                    fu.getCommonMaskName(pathConf)+".shp"
+            if not os.path.exists(maskFiles + "/" + maskTif):
+                pathToMaskCommun = pathToImg + "/" + tile + "/tmp/" + \
+                    fu.getCommonMaskName(pathConf) + ".shp"
                 # cas cluster
-                if pathWd != None:
+                if pathWd is not None:
                     maskFiles = pathWd
                 nameOut = fu.ClipVectorData(
                     maskSHP, pathToMaskCommun, maskFiles, maskTif.replace(".tif", ""))
-                cmdRaster = "otbcli_Rasterization -in "+nameOut+" -mode attribute -mode.attribute.field " +\
-                    fieldRegion+" -im "+pathToFeat+" -out "+maskFiles+"/"+maskTif
+                cmdRaster = "otbcli_Rasterization -in " + nameOut + " -mode attribute -mode.attribute.field " +\
+                    fieldRegion + " -im " + pathToFeat + " -out " + maskFiles + "/" + maskTif
                 if "fusion" in classifMode:
-                    cmdRaster = "otbcli_Rasterization -in "+nameOut+" -mode binary -mode.binary.foreground 1 -im " +\
-                                pathToFeat+" -out "+maskFiles+"/"+maskTif
+                    cmdRaster = "otbcli_Rasterization -in " + nameOut + " -mode binary -mode.binary.foreground 1 -im " +\
+                                pathToFeat + " -out " + maskFiles + "/" + maskTif
                 run(cmdRaster)
-                if pathWd != None:
-                    run("cp "+pathWd+"/"+maskTif+" "+pathOut+"/MASK")
-                    os.remove(pathWd+"/"+maskTif)
+                if pathWd is not None:
+                    run("cp " + pathWd + "/" + maskTif + " " + pathOut + "/MASK")
+                    os.remove(pathWd + "/" + maskTif)
 
-            out = pathOut+"/Classif_"+tile+"_model_"+model+"_seed_"+seed+suffix+".tif"
+            out = pathOut + "/Classif_" + tile + "_model_" + \
+                model + "_seed_" + seed + suffix + ".tif"
 
             cmdcpy = ""
             # hpc case
-            if pathWd != None:
-                out = "$TMPDIR/Classif_"+tile+"_model_"+model+"_seed_"+seed+suffix+".tif"
-                CmdConfidenceMap = " -confmap $TMPDIR/"+confidenceMap_name
+            if pathWd is not None:
+                out = "$TMPDIR/Classif_" + tile + "_model_" + \
+                    model + "_seed_" + seed + suffix + ".tif"
+                CmdConfidenceMap = " -confmap $TMPDIR/" + confidenceMap_name
 
             appli = "python " + scriptPath + \
-                "/Classification/ImageClassifier.py -conf "+pathConf+" "
-            pixType_cmd = " -pixType "+pixType
-            if pathWd != None:
-                pixType_cmd = pixType_cmd+" --wd $TMPDIR "
+                "/Classification/ImageClassifier.py -conf " + pathConf + " "
+            pixType_cmd = " -pixType " + pixType
+            if pathWd is not None:
+                pixType_cmd = pixType_cmd + " --wd $TMPDIR "
             cmdcpy = ""
-            cmd = appli+" -in "+pathToFeat+" -model "+path+" -mask "+pathOut+"/MASK/" + \
-                maskTif+" -out "+out+" "+pixType_cmd + \
+            cmd = appli + " -in " + pathToFeat + " -model " + path + " -mask " + pathOut + "/MASK/" + \
+                maskTif + " -out " + out + " " + pixType_cmd + \
                 " -ram " + str(RAM) + " " + CmdConfidenceMap
 
             # add stats if svm
@@ -139,7 +143,7 @@ def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
                     stat, "Model_{}_seed_{}.xml".format(model, seed))
                 cmd = "{} -imstat {}".format(cmd, model_statistics)
             AllCmd.append(cmd)
-    fu.writeCmds(pathToCmdClassif+"/class.txt", AllCmd)
+    fu.writeCmds(pathToCmdClassif + "/class.txt", AllCmd)
     return AllCmd
 
 

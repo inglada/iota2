@@ -79,7 +79,8 @@ class iota2Classification():
                                                  tile, proba_map, proba_map_name)
         self.working_directory = working_directory
 
-    def get_proba_map(self, classifier_type, output_directory, model, tile, gen_proba, proba_map_name):
+    def get_proba_map(self, classifier_type, output_directory,
+                      model, tile, gen_proba, proba_map_name):
         """get probability map absolute path
 
         Parameters
@@ -178,7 +179,7 @@ class iota2Classification():
             mask_filter.ExecuteAndWriteOutput()
             if self.proba_map_path:
                 expr = "im2b1>=1?im1:{}".format(
-                    "{"+";".join(["0"] * nb_class_run)+"}")
+                    "{" + ";".join(["0"] * nb_class_run) + "}")
                 mask_filter = CreateBandMathXApplication({"il": [self.proba_map_path,
                                                                  self.classif_mask],
                                                           "ram": str(self.RAM),
@@ -207,10 +208,11 @@ class iota2Classification():
                                                               os.path.split(self.proba_map_path)[-1]))
                 #~ os.remove(self.proba_map_path)
 
-    def reorder_proba_map(self, proba_map_path_in, proba_map_path_out, class_model, all_class):
+    def reorder_proba_map(self, proba_map_path_in,
+                          proba_map_path_out, class_model, all_class):
         """reorder the probability map
 
-        in order to merge proability raster containing a different number of effective 
+        in order to merge proability raster containing a different number of effective
         class it is needed to reorder them according to a reference
 
         Parameters
@@ -220,7 +222,7 @@ class iota2Classification():
         proba_map_path_out : string
             output probability map
         class_model : list
-            list containing labels in the model used to classify 
+            list containing labels in the model used to classify
         all_class : list
             list containing all possible labels
         """
@@ -275,7 +277,7 @@ def get_class_by_models(iota2_samples_dir, data_field, model=None):
 
     model : string
         path to model for correct number of classes in proba map
-    Return 
+    Return
     ------
     dic[model][seed]
 
@@ -350,7 +352,7 @@ def launchClassification(tempFolderSerie, Classifmask, model, stats,
 
     try:
         useGapFilling = cfg.getParam('GlobChain', 'useGapFilling')
-    except:
+    except BaseException:
         useGapFilling = True
     wd = os.path.join(featuresPath, tile)
 
@@ -359,7 +361,7 @@ def launchClassification(tempFolderSerie, Classifmask, model, stats,
         if not os.path.exists(wd):
             try:
                 os.mkdir(wd)
-            except:
+            except BaseException:
                 logger.warning(wd + "Allready exists")
 
     mode = "usually"

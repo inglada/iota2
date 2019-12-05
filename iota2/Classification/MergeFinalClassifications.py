@@ -36,10 +36,9 @@ def compute_fusion_options(iota2_dir_final, final_classifications, method,
                    "pixType": pixType,
                    "out": fusion_path}
     else:
-        confusionSeed = [fut.FileSearch_AND(os.path.join(iota2_dir_final, "TMP"),
-                                            True,
-                                            "Classif_Seed_{}.csv".format(run))[0] for run in range(len(final_classifications))]
-        confusionSeed.sort()
+        confusionSeed = sorted([fut.FileSearch_AND(os.path.join(iota2_dir_final, "TMP"),
+                                                   True,
+                                                   "Classif_Seed_{}.csv".format(run))[0] for run in range(len(final_classifications))])
         final_classifications.sort()
         options = {"il": final_classifications,
                    "method": "dempstershafer",
