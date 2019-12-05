@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -18,8 +18,10 @@ import os
 from Steps import IOTA2Step
 from Cluster import get_RAM
 
+
 def awesome_function(arg1, arg2):
-    print ("My variable parameter : {} const parameter : {}".format(arg1, arg2))
+    print("My variable parameter : {} const parameter : {}".format(arg1, arg2))
+
 
 class ThirdStep(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file):
@@ -27,7 +29,6 @@ class ThirdStep(IOTA2Step.Step):
         super(ThirdStep, self).__init__(cfg, cfg_resources_file)
 
         # init
-
 
     def step_description(self):
         """
@@ -48,11 +49,11 @@ class ThirdStep(IOTA2Step.Step):
             the function to execute as a lambda function. The returned object
             must be a lambda function.
         """
-        step_function = lambda x: awesome_function(x, "TUILE")
+        def step_function(x): return awesome_function(x, "TUILE")
         return step_function
 
     def step_outputs(self):
-        print ("no outputs")
+        print("no outputs")
 
     def step_clean(self):
         """

@@ -1,16 +1,19 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 from osgeo import ogr
 import os
 import sys
 import argparse
 
+
 def addFieldPerimeter(filein):
     source = ogr.Open(filein, 1)
     layer = source.GetLayer()
     layer_defn = layer.GetLayerDefn()
-    field_names = [layer_defn.GetFieldDefn(i).GetName() for i in range(layer_defn.GetFieldCount())]
+    field_names = [
+        layer_defn.GetFieldDefn(i).GetName() for i in range(
+            layer_defn.GetFieldCount())]
     if 'Perimeter' in field_names or 'perimeter' in field_names:
         if 'Perimeter' in field_names:
             i = field_names.index('Perimeter')
@@ -31,19 +34,20 @@ def addFieldPerimeter(filein):
 
     return 0
 
+
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         prog = os.path.basename(sys.argv[0])
-        print('      '+sys.argv[0]+' [options]') 
+        print('      ' + sys.argv[0] + ' [options]')
         print("     Help : ", prog, " --help")
         print("        or : ", prog, " -h")
-        sys.exit(-1)  
+        sys.exit(-1)
     else:
         usage = "usage: %prog [options] "
-        parser = argparse.ArgumentParser(description = "Add a perimeter field " \
-        "of an input shapefile")
-        parser.add_argument("-s", dest="shapefile", action="store", \
-                            help="Input shapefile", required = True)
+        parser = argparse.ArgumentParser(description="Add a perimeter field "
+                                         "of an input shapefile")
+        parser.add_argument("-s", dest="shapefile", action="store",
+                            help="Input shapefile", required=True)
         args = parser.parse_args()
         if addFieldPerimeter(args.shapefile) == 0:
             print('Add of field perimeter succeeded!')

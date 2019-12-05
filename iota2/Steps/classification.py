@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -18,15 +18,23 @@ import os
 from Steps import IOTA2Step
 from Common import ServiceConfigFile as SCF
 
+
 class classification(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "classifications"
-        super(classification, self).__init__(cfg, cfg_resources_file, resources_block_name)
+        super(
+            classification,
+            self).__init__(
+            cfg,
+            cfg_resources_file,
+            resources_block_name)
 
         # step variables
         self.workingDirectory = workingDirectory
-        self.output_path = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
+        self.output_path = SCF.serviceConfigFile(
+            self.cfg).getParam(
+            'chain', 'outputPath')
 
     def step_description(self):
         """
@@ -42,7 +50,8 @@ class classification(IOTA2Step.Step):
             the return could be and iterable or a callable
         """
         from Common import FileUtils as fut
-        return fut.parseClassifCmd(os.path.join(self.output_path, "cmd", "cla", "class.txt"))
+        return fut.parseClassifCmd(os.path.join(
+            self.output_path, "cmd", "cla", "class.txt"))
 
     def step_execute(self):
         """
@@ -56,7 +65,8 @@ class classification(IOTA2Step.Step):
         from MPI import launch_tasks as tLauncher
 
         launchPythonCmd = tLauncher.launchPythonCmd
-        step_function = lambda x: launchPythonCmd(imageClassifier.launchClassification, *x)
+        def step_function(x): return launchPythonCmd(
+            imageClassifier.launchClassification, *x)
         return step_function
 
     def step_outputs(self):

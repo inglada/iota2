@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 import os.path
 import sys
@@ -18,7 +18,9 @@ from VectorTools import SelectBySize
 from VectorTools import checkGeometryAreaThreshField
 from VectorTools import SimplifyPoly
 
-def traitEchantillons(shapefile, outfile, outpath, areapix, pix_thresh, tmp, fieldout, bufferdist = 0, tolerance = None, csvfile = 1, delimiter = 1, fieldin = 1):
+
+def traitEchantillons(shapefile, outfile, outpath, areapix, pix_thresh, tmp,
+                      fieldout, bufferdist=0, tolerance=None, csvfile=1, delimiter=1, fieldin=1):
 
     # copy input shapefile into the outpath folder
     basefile = os.path.splitext(os.path.basename(shapefile))[0]
@@ -32,7 +34,12 @@ def traitEchantillons(shapefile, outfile, outpath, areapix, pix_thresh, tmp, fie
 
     if csvfile != 1:
         # manage nomenclature (field CODE)
-        nh.harmonisationCodeIota(newshapefile, csvfile, delimiter, fieldin, fieldout)
+        nh.harmonisationCodeIota(
+            newshapefile,
+            csvfile,
+            delimiter,
+            fieldin,
+            fieldout)
 
     # Refresh Id and Area fields, keep landcover field and delete other ones
     manageFieldShapefile(newshapefile, fieldout, areapix)
@@ -58,13 +65,15 @@ def traitEchantillons(shapefile, outfile, outpath, areapix, pix_thresh, tmp, fie
         print(e)
 
     # Duplicate geometries
-    DeleteDuplicateGeometriesSqlite.deleteDuplicateGeometriesSqlite(outShapefile)
-    
+    DeleteDuplicateGeometriesSqlite.deleteDuplicateGeometriesSqlite(
+        outShapefile)
+
     intermediate.append(outShapefile)
 
     # Apply erosion (negative buffer)
     if bufferdist is not None:
-        outbuffer = os.path.splitext(outShapefile)[0] + '_buff{}'.format(bufferdist) + '.shp'
+        outbuffer = os.path.splitext(outShapefile)[
+            0] + '_buff{}'.format(bufferdist) + '.shp'
         #outbuffer = "/home/vthierion/tmp/test.shp"
         intermediate.append(outbuffer)
         try:
@@ -77,7 +86,8 @@ def traitEchantillons(shapefile, outfile, outpath, areapix, pix_thresh, tmp, fie
         outbuffer = outShapefile
 
     outfile = os.path.dirname(shapefile) + '/' + outfile
-    checkGeometryAreaThreshField.checkGeometryAreaThreshField(outbuffer, areapix, pix_thresh, outfile)
+    checkGeometryAreaThreshField.checkGeometryAreaThreshField(
+        outbuffer, areapix, pix_thresh, outfile)
 
     print('Samples vector file "{}" for classification are now ready'.format(outfile))
 
@@ -88,14 +98,16 @@ def traitEchantillons(shapefile, outfile, outpath, areapix, pix_thresh, tmp, fie
                 driver.DeleteDataSource(fileinter)
                 print('Intermediate file {} deleted'.format(fileinter))
     else:
-        print('Intermediate files are preserved in folder {}'.format(os.path.dirname(os.path.realpath(intermediate[0]))))
+        print('Intermediate files are preserved in folder {}'.format(
+            os.path.dirname(os.path.realpath(intermediate[0]))))
+
 
 def manageFieldShapefile(shapefile, fieldout, areapix):
 
     # existing fields
     fieldList = vf.getFields(shapefile)
     #fieldList = [x.lower() for x in fieldList]
-    #fieldList.remove(fieldout.lower())
+    # fieldList.remove(fieldout.lower())
     fieldList.remove(fieldout)
 
     print(fieldList)
@@ -121,46 +133,52 @@ def manageFieldShapefile(shapefile, fieldout, areapix):
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         prog = os.path.basename(sys.argv[0])
-        print('      '+sys.argv[0]+' [options]') 
+        print('      ' + sys.argv[0] + ' [options]')
         print("     Help : ", prog, " --help")
         print("        or : ", prog, " -h")
-        sys.exit(-1)  
+        sys.exit(-1)
     else:
         usage = "usage: %prog [options] "
-        parser = argparse.ArgumentParser(description = "This function treats input vector file (-s)" \
-                                         "to use it for training / validation samples of classification" \
-                                         "proccess. Output vector file (-o) will be stored in the same folder"\
+        parser = argparse.ArgumentParser(description="This function treats input vector file (-s)"
+                                         "to use it for training / validation samples of classification"
+                                         "proccess. Output vector file (-o) will be stored in the same folder"
                                          "than input vector file and intermediate files in a specified folder (-tmppath)")
-        parser.add_argument("-s", dest="shapefile", action="store", \
-                            help="Input shapefile", required = True)
-        parser.add_argument("-o", dest="output", action="store", \
-                            help="Output shapefile name (store in the same folder than input shapefile)", required = True)
-        parser.add_argument("-tmppath", dest="tmppath", action="store", \
-                            help="path to store intermediate layers", required = True)
-        parser.add_argument("-csv", dest="csv", action="store", \
+        parser.add_argument("-s", dest="shapefile", action="store",
+                            help="Input shapefile", required=True)
+        parser.add_argument("-o", dest="output", action="store",
+                            help="Output shapefile name (store in the same folder than input shapefile)", required=True)
+        parser.add_argument("-tmppath", dest="tmppath", action="store",
+                            help="path to store intermediate layers", required=True)
+        parser.add_argument("-csv", dest="csv", action="store",
                             help="CSV or recode rules")
-        parser.add_argument("-d", dest="delimiter", action="store", \
+        parser.add_argument("-d", dest="delimiter", action="store",
                             help="CSV delimiter")
-        parser.add_argument("-if", dest="ifield", action="store", \
-                            help="Existing field for rules condition") 
-        parser.add_argument("-of", dest="ofield", action="store", \
-                            help="Field to create and populate / Field storing landcover code", required = True)
-        parser.add_argument("-areapix", dest="areapix", action="store", \
-                            help="Pixel area of the image used for classification", required = True)
-        parser.add_argument("-areat", dest="pixthresh", action="store", \
-                            help="Area threshold to select available polygons (in pixel)", required = True)
-        parser.add_argument("-buffer", dest="buffer", action="store", \
-                            help="Buffer distance to erode polygon (negative value)", required = False)
-        parser.add_argument("-simplify", dest="simplify", action="store", \
-                            help="Simplification tolerance (m)", required = False)        
-        parser.add_argument("-recode", action='store_true', help="Harmonisation of nomenclature with specific classes codes" \
-                            "(please provide CSV recode rules, CSV delimiter, Existing field and Field to create)", default = False)
-        parser.add_argument("-notmp", action='store_true', help="No Keeping intermediate files", default = False)
+        parser.add_argument("-if", dest="ifield", action="store",
+                            help="Existing field for rules condition")
+        parser.add_argument("-of", dest="ofield", action="store",
+                            help="Field to create and populate / Field storing landcover code", required=True)
+        parser.add_argument("-areapix", dest="areapix", action="store",
+                            help="Pixel area of the image used for classification", required=True)
+        parser.add_argument("-areat", dest="pixthresh", action="store",
+                            help="Area threshold to select available polygons (in pixel)", required=True)
+        parser.add_argument("-buffer", dest="buffer", action="store",
+                            help="Buffer distance to erode polygon (negative value)", required=False)
+        parser.add_argument("-simplify", dest="simplify", action="store",
+                            help="Simplification tolerance (m)", required=False)
+        parser.add_argument("-recode", action='store_true', help="Harmonisation of nomenclature with specific classes codes"
+                            "(please provide CSV recode rules, CSV delimiter, Existing field and Field to create)", default=False)
+        parser.add_argument(
+            "-notmp",
+            action='store_true',
+            help="No Keeping intermediate files",
+            default=False)
         args = parser.parse_args()
 
         if args.recode:
-            if (args.csv is None) or (args.delimiter is None) or (args.ofield is None):
-                print('Please provide CSV recode rules (-csv), CSV delimiter (-d) and Field to populate (-of)')
+            if (args.csv is None) or (
+                    args.delimiter is None) or (args.ofield is None):
+                print(
+                    'Please provide CSV recode rules (-csv), CSV delimiter (-d) and Field to populate (-of)')
                 sys.exit(-1)
             else:
                 if args.buffer is not None:
@@ -169,10 +187,19 @@ if __name__ == "__main__":
                         print("Buffer distance must be negative")
                         sys.exit(-1)
                     else:
-                        traitEchantillons(args.shapefile, args.output, args.tmppath, args.areapix, args.pixthresh, args.notmp, \
+                        traitEchantillons(args.shapefile, args.output, args.tmppath, args.areapix, args.pixthresh, args.notmp,
                                           args.ofield, args.buffer, args.simplify, args.csv, args.delimiter, args.ifield)
                 else:
-                    traitEchantillons(args.shapefile, args.output, args.tmppath, args.areapix, args.pixthresh, args.notmp, \
+                    traitEchantillons(args.shapefile, args.output, args.tmppath, args.areapix, args.pixthresh, args.notmp,
                                       args.ofield, args.buffer, args.simplify, args.csv, args.delimiter, args.ifield)
         else:
-            traitEchantillons(args.shapefile, args.output, args.tmppath, args.areapix, args.pixthresh, args.notmp, args.ofield, args.buffer, args.simplify)
+            traitEchantillons(
+                args.shapefile,
+                args.output,
+                args.tmppath,
+                args.areapix,
+                args.pixthresh,
+                args.notmp,
+                args.ofield,
+                args.buffer,
+                args.simplify)

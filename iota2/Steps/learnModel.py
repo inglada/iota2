@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -18,16 +18,26 @@ import os
 from Steps import IOTA2Step
 from Common import ServiceConfigFile as SCF
 
+
 class learnModel(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "training"
-        super(learnModel, self).__init__(cfg, cfg_resources_file, resources_block_name)
+        super(
+            learnModel,
+            self).__init__(
+            cfg,
+            cfg_resources_file,
+            resources_block_name)
 
         # step variables
         self.workingDirectory = workingDirectory
-        self.output_path = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
-        self.data_field = SCF.serviceConfigFile(self.cfg).getParam('chain', 'dataField')
+        self.output_path = SCF.serviceConfigFile(
+            self.cfg).getParam(
+            'chain', 'outputPath')
+        self.data_field = SCF.serviceConfigFile(
+            self.cfg).getParam(
+            'chain', 'dataField')
         self.runs = SCF.serviceConfigFile(self.cfg).getParam('chain', 'runs')
 
     def step_description(self):
@@ -48,7 +58,8 @@ class learnModel(IOTA2Step.Step):
                                  self.data_field,
                                  os.path.join(self.output_path + "stats"),
                                  self.runs,
-                                 os.path.join(self.output_path, "cmd", "train"),
+                                 os.path.join(
+                                     self.output_path, "cmd", "train"),
                                  os.path.join(self.output_path, "model"),
                                  self.workingDirectory)
 
@@ -62,7 +73,7 @@ class learnModel(IOTA2Step.Step):
         """
         from MPI import launch_tasks as tLauncher
         bashLauncherFunction = tLauncher.launchBashCmd
-        step_function = lambda x: bashLauncherFunction(x)
+        def step_function(x): return bashLauncherFunction(x)
         return step_function
 
     def step_outputs(self):

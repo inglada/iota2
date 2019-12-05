@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -19,19 +19,31 @@ from Steps import IOTA2Step
 from Cluster import get_RAM
 from Common import ServiceConfigFile as SCF
 
+
 class joinStatistics(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "join"
-        super(joinStatistics, self).__init__(cfg, cfg_resources_file, resources_block_name)
+        super(
+            joinStatistics,
+            self).__init__(
+            cfg,
+            cfg_resources_file,
+            resources_block_name)
 
         # step variables
         self.RAM = 1024.0 * get_RAM(self.resources["ram"])
         self.CPU = self.resources["cpu"]
         self.workingDirectory = workingDirectory
-        self.outputPath = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
-        self.outprefix = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'outprefix')
-        self.dozip = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'dozip')
+        self.outputPath = SCF.serviceConfigFile(
+            self.cfg).getParam(
+            'chain', 'outputPath')
+        self.outprefix = SCF.serviceConfigFile(
+            self.cfg).getParam(
+            'Simplification', 'outprefix')
+        self.dozip = SCF.serviceConfigFile(
+            self.cfg).getParam(
+            'Simplification', 'dozip')
 
     def step_description(self):
         """
@@ -66,11 +78,12 @@ class joinStatistics(IOTA2Step.Step):
             tmpdir = os.path.join(self.outputPath, 'final', 'simplification',
                                   'tmp')
         outfilevecttojoin = os.path.join(self.outputPath, 'final', 'simplification',
-                                         'vectors', '%s_.shp'%(self.outprefix))
-        step_function = lambda x: cs.computeStats(outfilevecttojoin,
-                                                  x,
-                                                  tmpdir,
-                                                  self.dozip)
+                                         'vectors', '%s_.shp' % (self.outprefix))
+
+        def step_function(x): return cs.computeStats(outfilevecttojoin,
+                                                     x,
+                                                     tmpdir,
+                                                     self.dozip)
         return step_function
 
     def step_outputs(self):

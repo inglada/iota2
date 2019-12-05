@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -18,17 +18,29 @@ import os
 from Steps import IOTA2Step
 from Common import ServiceConfigFile as SCF
 
+
 class samplesDimReduction(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "dimensionalityReduction"
-        super(samplesDimReduction, self).__init__(cfg, cfg_resources_file, resources_block_name)
+        super(
+            samplesDimReduction,
+            self).__init__(
+            cfg,
+            cfg_resources_file,
+            resources_block_name)
 
         # step variables
         self.workingDirectory = workingDirectory
-        self.output_path = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
-        self.targetDimension = SCF.serviceConfigFile(self.cfg).getParam('dimRed', 'targetDimension')
-        self.reductionMode = SCF.serviceConfigFile(self.cfg).getParam('dimRed', 'reductionMode')
+        self.output_path = SCF.serviceConfigFile(
+            self.cfg).getParam(
+            'chain', 'outputPath')
+        self.targetDimension = SCF.serviceConfigFile(
+            self.cfg).getParam(
+            'dimRed', 'targetDimension')
+        self.reductionMode = SCF.serviceConfigFile(
+            self.cfg).getParam(
+            'dimRed', 'reductionMode')
 
     def step_description(self):
         """
@@ -55,10 +67,11 @@ class samplesDimReduction(IOTA2Step.Step):
             must be a lambda function.
         """
         from Sampling import DimensionalityReduction as DR
-        step_function = lambda x: DR.SampleDimensionalityReduction(x,
-                                                                   self.output_path,
-                                                                   self.targetDimension,
-                                                                   self.reductionMode)
+
+        def step_function(x): return DR.SampleDimensionalityReduction(x,
+                                                                      self.output_path,
+                                                                      self.targetDimension,
+                                                                      self.reductionMode)
         return step_function
 
     def step_outputs(self):

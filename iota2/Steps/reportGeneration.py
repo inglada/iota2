@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -23,12 +23,21 @@ class reportGeneration(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "reportGen"
-        super(reportGeneration, self).__init__(cfg, cfg_resources_file, resources_block_name)
+        super(
+            reportGeneration,
+            self).__init__(
+            cfg,
+            cfg_resources_file,
+            resources_block_name)
 
         # step variables
         self.workingDirectory = workingDirectory
-        self.output_path = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
-        self.nomenclature = SCF.serviceConfigFile(self.cfg).getParam('chain', 'nomenclaturePath')
+        self.output_path = SCF.serviceConfigFile(
+            self.cfg).getParam(
+            'chain', 'outputPath')
+        self.nomenclature = SCF.serviceConfigFile(
+            self.cfg).getParam(
+            'chain', 'nomenclaturePath')
 
     def step_description(self):
         """
@@ -54,8 +63,8 @@ class reportGeneration(IOTA2Step.Step):
             must be a lambda function.
         """
         from Validation import GenResults as GR
-        step_function = lambda x: GR.genResults(x,
-                                                self.nomenclature)
+        def step_function(x): return GR.genResults(x,
+                                                   self.nomenclature)
         return step_function
 
     def step_outputs(self):

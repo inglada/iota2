@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
-import gdal, ogr, osr, numpy
+import gdal
+import ogr
+import osr
+import numpy
 import sys
 from sys import argv
 from scipy.stats import mode
+
 
 def zonal_stats(feat, input_zone_polygon, input_value_raster):
 
@@ -24,9 +28,9 @@ def zonal_stats(feat, input_zone_polygon, input_value_raster):
     sourceSR = lyr.GetSpatialRef()
     targetSR = osr.SpatialReference()
     targetSR.ImportFromWkt(raster.GetProjectionRef())
-    coordTrans = osr.CoordinateTransformation(sourceSR,targetSR)
+    coordTrans = osr.CoordinateTransformation(sourceSR, targetSR)
     #feat = lyr.GetNextFeature()
-    lyr.SetAttributeFilter('FID = '+str(feat.GetFID()))
+    lyr.SetAttributeFilter('FID = ' + str(feat.GetFID()))
     geom = feat.GetGeometryRef()
     geom.Transform(coordTrans)
 
@@ -34,24 +38,26 @@ def zonal_stats(feat, input_zone_polygon, input_value_raster):
     geom = feat.GetGeometryRef()
     if (geom.GetGeometryName() == 'MULTIPOLYGON'):
         count = 0
-        pointsX = []; pointsY = []
+        pointsX = []
+        pointsY = []
         for polygon in geom:
             geomInner = geom.GetGeometryRef(count)
             ring = geomInner.GetGeometryRef(0)
             numpoints = ring.GetPointCount()
             for p in range(numpoints):
-                    lon, lat, z = ring.GetPoint(p)
-                    pointsX.append(lon)
-                    pointsY.append(lat)
+                lon, lat, z = ring.GetPoint(p)
+                pointsX.append(lon)
+                pointsY.append(lat)
             count += 1
     elif (geom.GetGeometryName() == 'POLYGON'):
         ring = geom.GetGeometryRef(0)
         numpoints = ring.GetPointCount()
-        pointsX = []; pointsY = []
+        pointsX = []
+        pointsY = []
         for p in range(numpoints):
-                lon, lat, z = ring.GetPoint(p)
-                pointsX.append(lon)
-                pointsY.append(lat)
+            lon, lat, z = ring.GetPoint(p)
+            pointsX.append(lon)
+            pointsY.append(lat)
 
     else:
         sys.exit("ERROR: Geometry needs to be either Polygon or Multipolygon")
@@ -62,15 +68,16 @@ def zonal_stats(feat, input_zone_polygon, input_value_raster):
     ymax = max(pointsY)
 
     # Specify offset and rows and columns to read
-    xoff = int((xmin - xOrigin)/pixelWidth)
-    yoff = int((yOrigin - ymax)/pixelWidth)
-    xcount = int((xmax - xmin)/pixelWidth)+1
-    ycount = int((ymax - ymin)/pixelWidth)+1
+    xoff = int((xmin - xOrigin) / pixelWidth)
+    yoff = int((yOrigin - ymax) / pixelWidth)
+    xcount = int((xmax - xmin) / pixelWidth) + 1
+    ycount = int((ymax - ymin) / pixelWidth) + 1
 
-    #print xmin, xmax, ymin, ymax, xoff, yoff, xcount, ycount
+    # print xmin, xmax, ymin, ymax, xoff, yoff, xcount, ycount
 
     # Create memory target raster
-    target_ds = gdal.GetDriverByName('GTiff').Create('test.tif', xcount, ycount, gdal.GDT_Byte)
+    target_ds = gdal.GetDriverByName('GTiff').Create(
+        'test.tif', xcount, ycount, gdal.GDT_Byte)
     target_ds.SetGeoTransform((
         xmin, pixelWidth, 0,
         ymax, 0, pixelHeight,
@@ -86,49 +93,56 @@ def zonal_stats(feat, input_zone_polygon, input_value_raster):
 
     # Read raster as arrays
     banddataraster = raster.GetRasterBand(1)
-    dataraster = banddataraster.ReadAsArray(xoff, yoff, xcount, ycount).astype(numpy.int)
+    dataraster = banddataraster.ReadAsArray(
+        xoff, yoff, xcount, ycount).astype(
+        numpy.int)
 
     bandmask = target_ds.GetRasterBand(1)
     datamask = bandmask.ReadAsArray(0, 0, xcount, ycount).astype(numpy.float)
 
     # Mask zone of raster
-    zoneraster = numpy.ma.masked_array(dataraster,  numpy.logical_not(datamask))
+    zoneraster = numpy.ma.masked_array(dataraster, numpy.logical_not(datamask))
 
     # Calculate statistics of zonal raster
     u, indices = numpy.unique(zoneraster, return_inverse=True)
     count = numpy.bincount(zoneraster.ravel())
-    mat = numpy.zeros(223,dtype = int)
+    mat = numpy.zeros(223, dtype=int)
     if len(count) != 223:
-        zer = numpy.zeros(223-len(count), dtype = int)
+        zer = numpy.zeros(223 - len(count), dtype=int)
         new = numpy.append(count, zer)
         return new
-    else: return count
+    else:
+        return count
+
 
 def loop_zonal_stats(input_zone_polygon, input_value_raster):
 
-    shp = ogr.Open(input_zone_polygon,0)
+    shp = ogr.Open(input_zone_polygon, 0)
     lyr = shp.GetLayer()
     featList = list(range(lyr.GetFeatureCount()))
     statDict = {}
-    FinalStat = numpy.zeros(223,dtype = int)
+    FinalStat = numpy.zeros(223, dtype=int)
 
     for i in lyr:
         ide = i.GetFID()
         feat = lyr.GetFeature(ide)
         if feat.GetGeometryRef():
-            statValue = zonal_stats(feat, input_zone_polygon, input_value_raster)
-            FinalStat = FinalStat+statValue
-    for i in range(0,len(FinalStat)):
+            statValue = zonal_stats(
+                feat, input_zone_polygon, input_value_raster)
+            FinalStat = FinalStat + statValue
+    for i in range(0, len(FinalStat)):
         if FinalStat[i] != 0:
             statDict[i] = FinalStat[i]
     return statDict
 
+
 def main(input_zone_polygon, input_value_raster):
     return loop_zonal_stats(input_zone_polygon, input_value_raster)
+
 
 if __name__ == "__main__":
 
     if len(sys.argv) != 3:
         print("[ ERROR ] you must supply two arguments: input-zone-shapefile-name.shp input-value-raster-name.tif ")
-        sys.exit( 1 )
-    print(main( sys.argv[1], sys.argv[2] ))
+        sys.exit(1)
+    print(main(sys.argv[1], sys.argv[2]))

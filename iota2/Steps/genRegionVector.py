@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -18,15 +18,23 @@ import os
 from Steps import IOTA2Step
 from Common import ServiceConfigFile as SCF
 
+
 class genRegionVector(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "regionShape"
-        super(genRegionVector, self).__init__(cfg, cfg_resources_file, resources_block_name)
+        super(
+            genRegionVector,
+            self).__init__(
+            cfg,
+            cfg_resources_file,
+            resources_block_name)
 
         # step variables
         self.workingDirectory = workingDirectory
-        self.outputPath = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
+        self.outputPath = SCF.serviceConfigFile(
+            self.cfg).getParam(
+            'chain', 'outputPath')
 
     def step_description(self):
         """
@@ -41,7 +49,9 @@ class genRegionVector(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
-        shapeRegion = SCF.serviceConfigFile(self.cfg).getParam('chain', 'regionPath')
+        shapeRegion = SCF.serviceConfigFile(
+            self.cfg).getParam(
+            'chain', 'regionPath')
         return [shapeRegion]
 
     def step_execute(self):
@@ -56,16 +66,17 @@ class genRegionVector(IOTA2Step.Step):
 
         pathEnvelope = os.path.join(self.outputPath, "envelope")
         model = SCF.serviceConfigFile(self.cfg).getParam('chain', 'model')
-        field_Region = SCF.serviceConfigFile(self.cfg).getParam('chain', 'regionField')
+        field_Region = SCF.serviceConfigFile(
+            self.cfg).getParam(
+            'chain', 'regionField')
 
-        step_function = lambda x: area.generateRegionShape(pathEnvelope,
-                                                           model, x,
-                                                           field_Region, self.cfg,
-                                                           self.workingDirectory)
+        def step_function(x): return area.generateRegionShape(pathEnvelope,
+                                                              model, x,
+                                                              field_Region, self.cfg,
+                                                              self.workingDirectory)
         return step_function
 
     def step_outputs(self):
         """
         """
         pass
-        

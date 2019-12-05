@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -18,15 +18,23 @@ import os
 from Steps import IOTA2Step
 from Common import ServiceConfigFile as SCF
 
+
 class Envelope(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "envelope"
-        super(Envelope, self).__init__(cfg, cfg_resources_file, resources_block_name)
+        super(
+            Envelope,
+            self).__init__(
+            cfg,
+            cfg_resources_file,
+            resources_block_name)
 
         # step variables
         self.workingDirectory = workingDirectory
-        self.outputPath = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
+        self.outputPath = SCF.serviceConfigFile(
+            self.cfg).getParam(
+            'chain', 'outputPath')
 
     def step_description(self):
         """
@@ -54,16 +62,17 @@ class Envelope(IOTA2Step.Step):
         """
         from Sampling import TileEnvelope as env
 
-        tiles = SCF.serviceConfigFile(self.cfg).getParam('chain', 'listTile').split(" ")
+        tiles = SCF.serviceConfigFile(
+            self.cfg).getParam(
+            'chain', 'listTile').split(" ")
         pathTilesFeat = os.path.join(self.outputPath, "features")
 
-        step_function = lambda x: env.GenerateShapeTile(tiles, pathTilesFeat,
-                                                        x, self.workingDirectory,
-                                                        self.cfg)
+        def step_function(x): return env.GenerateShapeTile(tiles, pathTilesFeat,
+                                                           x, self.workingDirectory,
+                                                           self.cfg)
         return step_function
 
     def step_outputs(self):
         """
         """
         pass
-        

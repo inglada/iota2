@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -19,23 +19,44 @@ from Steps import IOTA2Step
 from Cluster import get_RAM
 from Common import ServiceConfigFile as SCF
 
+
 class Regularization(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "regularisation"
-        super(Regularization, self).__init__(cfg, cfg_resources_file, resources_block_name)
+        super(
+            Regularization,
+            self).__init__(
+            cfg,
+            cfg_resources_file,
+            resources_block_name)
 
         # step variables
         self.RAM = 1024.0 * get_RAM(self.resources["ram"])
         self.CPU = self.resources["cpu"]
         self.workingDirectory = workingDirectory
-        self.outputPath = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
-        self.rastclass = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'classification')
-        self.seed = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'seed')
-        self.umc1 = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'umc1')
-        self.inland = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'inland')
-        self.rssize = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'rssize')
-        self.umc2 = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'umc2')
+        self.outputPath = SCF.serviceConfigFile(
+            self.cfg).getParam(
+            'chain', 'outputPath')
+        self.rastclass = SCF.serviceConfigFile(
+            self.cfg).getParam(
+            'Simplification',
+            'classification')
+        self.seed = SCF.serviceConfigFile(
+            self.cfg).getParam(
+            'Simplification', 'seed')
+        self.umc1 = SCF.serviceConfigFile(
+            self.cfg).getParam(
+            'Simplification', 'umc1')
+        self.inland = SCF.serviceConfigFile(
+            self.cfg).getParam(
+            'Simplification', 'inland')
+        self.rssize = SCF.serviceConfigFile(
+            self.cfg).getParam(
+            'Simplification', 'rssize')
+        self.umc2 = SCF.serviceConfigFile(
+            self.cfg).getParam(
+            'Simplification', 'umc2')
 
     def step_description(self):
         """
@@ -53,12 +74,16 @@ class Regularization(IOTA2Step.Step):
         rastclass = self.rastclass
         if rastclass is None:
             if self.seed is not None:
-                rastclass = os.path.join(self.outputPath, 'final', 'Classif_Seed_{}.tif'.format(seed))
+                rastclass = os.path.join(
+                    self.outputPath, 'final', 'Classif_Seed_{}.tif'.format(seed))
             else:
-                if os.path.exists(os.path.join(self.outputPath, 'final', 'Classifications_fusion.tif')):
-                    rastclass = os.path.join(self.outputPath, 'final', 'Classifications_fusion.tif')
+                if os.path.exists(os.path.join(
+                        self.outputPath, 'final', 'Classifications_fusion.tif')):
+                    rastclass = os.path.join(
+                        self.outputPath, 'final', 'Classifications_fusion.tif')
                 else:
-                    rastclass = os.path.join(self.outputPath, 'final', 'Classif_Seed_0.tif')
+                    rastclass = os.path.join(
+                        self.outputPath, 'final', 'Classif_Seed_0.tif')
 
         return [rastclass]
 
@@ -78,15 +103,16 @@ class Regularization(IOTA2Step.Step):
                                   'tmp')
         outfilereg = os.path.join(self.outputPath, 'final', 'simplification',
                                   'classif_regul.tif')
-        step_function = lambda x: regul.OSORegularization(x,
-                                                          self.umc1,
-                                                          self.CPU,
-                                                          tmpdir,
-                                                          outfilereg,
-                                                          str(self.RAM),
-                                                          self.inland,
-                                                          self.rssize,
-                                                          self.umc2)
+
+        def step_function(x): return regul.OSORegularization(x,
+                                                             self.umc1,
+                                                             self.CPU,
+                                                             tmpdir,
+                                                             outfilereg,
+                                                             str(self.RAM),
+                                                             self.inland,
+                                                             self.rssize,
+                                                             self.umc2)
         return step_function
 
     def step_outputs(self):

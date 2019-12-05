@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -19,18 +19,30 @@ from Steps import IOTA2Step
 from Cluster import get_RAM
 from Common import ServiceConfigFile as SCF
 
+
 class classiCmd(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "cmdClassifications"
-        super(classiCmd, self).__init__(cfg, cfg_resources_file, resources_block_name)
+        super(
+            classiCmd,
+            self).__init__(
+            cfg,
+            cfg_resources_file,
+            resources_block_name)
 
         # step variables
         self.workingDirectory = workingDirectory
-        self.output_path = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
-        self.field_region = SCF.serviceConfigFile(self.cfg).getParam('chain', 'regionField')
+        self.output_path = SCF.serviceConfigFile(
+            self.cfg).getParam(
+            'chain', 'outputPath')
+        self.field_region = SCF.serviceConfigFile(
+            self.cfg).getParam(
+            'chain', 'regionField')
         self.runs = SCF.serviceConfigFile(self.cfg).getParam('chain', 'runs')
-        self.region_path = SCF.serviceConfigFile(self.cfg).getParam('chain', 'regionPath')
+        self.region_path = SCF.serviceConfigFile(
+            self.cfg).getParam(
+            'chain', 'regionPath')
         self.ram_classification = 1024.0 * get_RAM(self.resources["ram"])
 
     def step_description(self):
@@ -58,18 +70,24 @@ class classiCmd(IOTA2Step.Step):
             must be a lambda function.
         """
         from Classification import ClassificationCmd as CC
-        step_function = lambda x: CC.launchClassification(os.path.join(self.output_path, "model"),
-                                                          self.cfg,
-                                                          os.path.join(self.output_path, "stats"),
-                                                          os.path.join(self.output_path, "shapeRegion"),
-                                                          os.path.join(self.output_path, "features"),
-                                                          self.region_path,
-                                                          x,
-                                                          self.runs,
-                                                          os.path.join(self.output_path, "cmd", "cla"),
-                                                          os.path.join(self.output_path, "classif"),
-                                                          self.ram_classification,
-                                                          self.workingDirectory)
+
+        def step_function(x): return CC.launchClassification(os.path.join(self.output_path, "model"),
+                                                             self.cfg,
+                                                             os.path.join(
+            self.output_path, "stats"),
+            os.path.join(
+            self.output_path, "shapeRegion"),
+            os.path.join(
+            self.output_path, "features"),
+            self.region_path,
+            x,
+            self.runs,
+            os.path.join(
+            self.output_path, "cmd", "cla"),
+            os.path.join(
+            self.output_path, "classif"),
+            self.ram_classification,
+            self.workingDirectory)
         return step_function
 
     def step_outputs(self):

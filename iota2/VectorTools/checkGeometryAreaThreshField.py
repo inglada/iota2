@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 from VectorTools import vector_functions as vf
 import sys
@@ -14,6 +14,7 @@ from VectorTools import SelectBySize
 from VectorTools import SimplifyPoly
 import argparse
 
+
 def checkGeometryAreaThreshField(shapefile, pixelArea, pix_thresh, outshape):
 
     tmpfile = []
@@ -21,14 +22,15 @@ def checkGeometryAreaThreshField(shapefile, pixelArea, pix_thresh, outshape):
     # Empty geometry identification
     try:
         outShapefileGeom, _ = vf.checkEmptyGeom(shapefile)
-        tmpfile.append(outShapefileGeom)        
+        tmpfile.append(outShapefileGeom)
         print('Check empty geometries succeeded')
     except Exception as e:
         print('Check empty geometries did not work for the following error :')
-        print(e)  
+        print(e)
 
     # suppression des doubles géométries
-    DeleteDuplicateGeometriesSqlite.deleteDuplicateGeometriesSqlite(outShapefileGeom)
+    DeleteDuplicateGeometriesSqlite.deleteDuplicateGeometriesSqlite(
+        outShapefileGeom)
 
     # Suppression des multipolygons
     shapefileNoDupspoly = outShapefileGeom[:-4] + 'spoly' + '.shp'
@@ -42,7 +44,7 @@ def checkGeometryAreaThreshField(shapefile, pixelArea, pix_thresh, outshape):
 
     # recalcul des superficies
     try:
-        AddFieldArea.addFieldArea(shapefileNoDupspoly, pixelArea)       
+        AddFieldArea.addFieldArea(shapefileNoDupspoly, pixelArea)
     except Exception as e:
         print('Add an Area field did not work for the following error :')
         print(e)
@@ -57,7 +59,11 @@ def checkGeometryAreaThreshField(shapefile, pixelArea, pix_thresh, outshape):
 
     # Filter by Area
     try:
-        SelectBySize.selectBySize(shapefileNoDupspoly, 'Area', pix_thresh, outshape)
+        SelectBySize.selectBySize(
+            shapefileNoDupspoly,
+            'Area',
+            pix_thresh,
+            outshape)
         print('Selection by size upper {} pixel(s) succeeded'.format(pix_thresh))
     except Exception as e:
         print('Selection by size did not work for the following error :')
@@ -71,29 +77,34 @@ def checkGeometryAreaThreshField(shapefile, pixelArea, pix_thresh, outshape):
         basefile = os.path.splitext(fileDel)[0]
         os.system('rm {}.*'.format(basefile))
 
+
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         prog = os.path.basename(sys.argv[0])
-        print('      '+sys.argv[0]+' [options]') 
+        print('      ' + sys.argv[0] + ' [options]')
         print("     Help : ", prog, " --help")
         print("        or : ", prog, " -h")
-        sys.exit(-1)  
+        sys.exit(-1)
     else:
         usage = "usage: %prog [options] "
-        parser = argparse.ArgumentParser(description = "Manage shapefile : " \
-        "1. Check geometry, "
-        "2. Delete Duplicate geometries, "
-        "3. Calulate Area, "
-        "4. Harmonize ID field, "
-        "5. Delete MultiPolygons")
-        parser.add_argument("-s", dest="shapefile", action="store", \
-                            help="Input shapefile", required = True)
-        parser.add_argument("-p", dest="pixelSize", action="store", \
-                            help="Pixel size", required = True)
-        parser.add_argument("-at", dest="area", action="store", \
-                            help="Area threshold in pixel unit", required = True)        
-        parser.add_argument("-o", dest="outpath", action="store", \
-                            help="ESRI Shapefile output filename and path", required = True)
+        parser = argparse.ArgumentParser(description="Manage shapefile : "
+                                         "1. Check geometry, "
+                                         "2. Delete Duplicate geometries, "
+                                         "3. Calulate Area, "
+                                         "4. Harmonize ID field, "
+                                         "5. Delete MultiPolygons")
+        parser.add_argument("-s", dest="shapefile", action="store",
+                            help="Input shapefile", required=True)
+        parser.add_argument("-p", dest="pixelSize", action="store",
+                            help="Pixel size", required=True)
+        parser.add_argument("-at", dest="area", action="store",
+                            help="Area threshold in pixel unit", required=True)
+        parser.add_argument("-o", dest="outpath", action="store",
+                            help="ESRI Shapefile output filename and path", required=True)
         args = parser.parse_args()
 
-        checkGeometryAreaThreshField(args.shapefile, args.pixelSize, args.area, args.outpath)
+        checkGeometryAreaThreshField(
+            args.shapefile,
+            args.pixelSize,
+            args.area,
+            args.outpath)

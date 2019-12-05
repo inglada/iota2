@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -19,17 +19,27 @@ from Steps import IOTA2Step
 from Cluster import get_RAM
 from Common import ServiceConfigFile as SCF
 
+
 class Clump(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "clump"
-        super(Clump, self).__init__(cfg, cfg_resources_file, resources_block_name)
+        super(
+            Clump,
+            self).__init__(
+            cfg,
+            cfg_resources_file,
+            resources_block_name)
 
         # step variables
         self.RAM = 1024.0 * get_RAM(self.resources["ram"])
         self.workingDirectory = workingDirectory
-        self.outputPath = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
-        self.lib64bit = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'lib64bit')
+        self.outputPath = SCF.serviceConfigFile(
+            self.cfg).getParam(
+            'chain', 'outputPath')
+        self.lib64bit = SCF.serviceConfigFile(
+            self.cfg).getParam(
+            'Simplification', 'lib64bit')
 
     def step_description(self):
         """
@@ -59,16 +69,21 @@ class Clump(IOTA2Step.Step):
         from simplification import ClumpClassif as clump
         outfileclp = os.path.join(self.outputPath, 'final', 'simplification',
                                   'classif_regul_clump.tif')
-        tmpdir = os.path.join(self.outputPath, 'final', 'simplification', 'tmp')
+        tmpdir = os.path.join(
+            self.outputPath,
+            'final',
+            'simplification',
+            'tmp')
         if self.workingDirectory:
             tmpdir = self.workingDirectory
         use64bit = False if self.lib64bit is not None else False
-        step_function = lambda x: clump.clumpAndStackClassif(tmpdir,
-                                                             x,
-                                                             outfileclp,
-                                                             str(self.RAM),
-                                                             use64bit,
-                                                             self.lib64bit)
+
+        def step_function(x): return clump.clumpAndStackClassif(tmpdir,
+                                                                x,
+                                                                outfileclp,
+                                                                str(self.RAM),
+                                                                use64bit,
+                                                                self.lib64bit)
         return step_function
 
     def step_outputs(self):

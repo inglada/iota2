@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -23,15 +23,25 @@ class fusionsIndecisions(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "noData"
-        super(fusionsIndecisions, self).__init__(cfg, cfg_resources_file, resources_block_name)
+        super(
+            fusionsIndecisions,
+            self).__init__(
+            cfg,
+            cfg_resources_file,
+            resources_block_name)
 
         # step variables
         self.workingDirectory = workingDirectory
-        self.output_path = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
-        self.field_Region = SCF.serviceConfigFile(self.cfg).getParam('chain', 'regionField')
-        self.shape_region = SCF.serviceConfigFile(self.cfg).getParam('chain', 'regionPath')
+        self.output_path = SCF.serviceConfigFile(
+            self.cfg).getParam(
+            'chain', 'outputPath')
+        self.field_Region = SCF.serviceConfigFile(
+            self.cfg).getParam(
+            'chain', 'regionField')
+        self.shape_region = SCF.serviceConfigFile(
+            self.cfg).getParam('chain', 'regionPath')
         self.runs = SCF.serviceConfigFile(self.cfg).getParam('chain', 'runs')
-        
+
     def step_description(self):
         """
         function use to print a short description of the step's purpose
@@ -46,7 +56,8 @@ class fusionsIndecisions(IOTA2Step.Step):
             the return could be and iterable or a callable
         """
         from Common import FileUtils as fut
-        return fut.FileSearch_AND(os.path.join(self.output_path, "classif"), True, "_FUSION_")
+        return fut.FileSearch_AND(os.path.join(
+            self.output_path, "classif"), True, "_FUSION_")
 
     def step_execute(self):
         """
@@ -57,14 +68,16 @@ class fusionsIndecisions(IOTA2Step.Step):
             must be a lambda function.
         """
         from Classification import NoData as ND
-        step_function = lambda x: ND.noData(self.output_path,
-                                            x,
-                                            self.field_Region,
-                                            os.path.join(self.output_path, "features"),
-                                            self.shape_region,
-                                            self.runs,
-                                            self.cfg,
-                                            self.workingDirectory)
+
+        def step_function(x): return ND.noData(self.output_path,
+                                               x,
+                                               self.field_Region,
+                                               os.path.join(
+                                                   self.output_path, "features"),
+                                               self.shape_region,
+                                               self.runs,
+                                               self.cfg,
+                                               self.workingDirectory)
         return step_function
 
     def step_outputs(self):

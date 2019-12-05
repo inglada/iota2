@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -23,14 +23,22 @@ class confusionCmd(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "gen_confusionMatrix"
-        super(confusionCmd, self).__init__(cfg, cfg_resources_file, resources_block_name)
+        super(
+            confusionCmd,
+            self).__init__(
+            cfg,
+            cfg_resources_file,
+            resources_block_name)
 
         # step variables
         self.workingDirectory = workingDirectory
-        self.output_path = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
+        self.output_path = SCF.serviceConfigFile(
+            self.cfg).getParam(
+            'chain', 'outputPath')
         self.runs = SCF.serviceConfigFile(self.cfg).getParam('chain', 'runs')
-        self.data_field = SCF.serviceConfigFile(self.cfg).getParam('chain', 'dataField')
-
+        self.data_field = SCF.serviceConfigFile(
+            self.cfg).getParam(
+            'chain', 'dataField')
 
     def step_description(self):
         """
@@ -56,13 +64,16 @@ class confusionCmd(IOTA2Step.Step):
             must be a lambda function.
         """
         from Validation import GenConfusionMatrix as GCM
-        step_function = lambda x: GCM.genConfMatrix(x,
-                                                    os.path.join(self.output_path, "dataAppVal"),
-                                                    self.runs,
-                                                    self.data_field,
-                                                    os.path.join(self.output_path, "cmd", "confusion"),
-                                                    self.cfg,
-                                                    self.workingDirectory)
+
+        def step_function(x): return GCM.genConfMatrix(x,
+                                                       os.path.join(
+                                                           self.output_path, "dataAppVal"),
+                                                       self.runs,
+                                                       self.data_field,
+                                                       os.path.join(
+                                                           self.output_path, "cmd", "confusion"),
+                                                       self.cfg,
+                                                       self.workingDirectory)
         return step_function
 
     def step_outputs(self):

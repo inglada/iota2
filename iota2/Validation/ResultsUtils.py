@@ -14,6 +14,7 @@
 #
 # =========================================================================
 
+
 def remove_undecidedlabel(conf_mat_dic, undecidedlabel):
     """
     usage : use to remove samples with the undecidedlabel label from the confusion matrix
@@ -26,6 +27,7 @@ def remove_undecidedlabel(conf_mat_dic, undecidedlabel):
     conf_mat_dic.pop(undecidedlabel, None)
 
     return conf_mat_dic
+
 
 def parse_csv(csv_in):
     """
@@ -65,9 +67,14 @@ def parse_csv(csv_in):
 
     with open(csv_in, 'r') as csvfile:
         csv_reader = csv.reader(csvfile)
-        ref_lab = [elem.replace("#Reference labels (rows):", "") for elem in next(csv_reader)]
-        prod_lab = [elem.replace("#Produced labels (columns):", "") for elem in next(csv_reader)]
-        all_labels = sorted([int(label) for label in list(set(ref_lab + prod_lab))])
+        ref_lab = [elem.replace("#Reference labels (rows):", "")
+                   for elem in next(csv_reader)]
+        prod_lab = [
+            elem.replace(
+                "#Produced labels (columns):",
+                "") for elem in next(csv_reader)]
+        all_labels = sorted([int(label)
+                             for label in list(set(ref_lab + prod_lab))])
 
         # construct confusion matrix structure and init it at 0
         matrix = collections.OrderedDict()
@@ -85,6 +92,7 @@ def parse_csv(csv_in):
                 matrix[ref][prod] += float(value)
 
     return matrix
+
 
 def get_coeff(matrix):
     """
@@ -117,8 +125,10 @@ def get_coeff(matrix):
     nan = -1000
     classes_labels = list(matrix.keys())
 
-    oacc_nom = sum([matrix[class_name][class_name] for class_name in list(matrix.keys())])
-    nb_samples = sum([matrix[ref_class_name][prod_class_name] for ref_class_name in list(matrix.keys()) for prod_class_name in list(matrix.keys())])
+    oacc_nom = sum([matrix[class_name][class_name]
+                    for class_name in list(matrix.keys())])
+    nb_samples = sum([matrix[ref_class_name][prod_class_name] for ref_class_name in list(
+        matrix.keys()) for prod_class_name in list(matrix.keys())])
 
     # compute overall accuracy
     if nb_samples != 0.0:
@@ -161,6 +171,7 @@ def get_coeff(matrix):
 
     return kappa, oacc, p_dic, r_dic, f_dic
 
+
 def get_nomenclature(nom_path):
     """
     usage parse nomenclature file
@@ -186,6 +197,7 @@ def get_nomenclature(nom_path):
             nom_dict[int(label)] = class_name
     return nom_dict
 
+
 def get_rgb_mat(norm_conf, diag_cmap, not_diag_cmap):
     """
     usage convert normalise confusion matrix to a RGB image
@@ -201,6 +213,7 @@ def get_rgb_mat(norm_conf, diag_cmap, not_diag_cmap):
         rgb_list.append(rgb_list_row)
     return rgb_list
 
+
 def get_rgb_pre(pre_val, coeff_cmap):
     """
     convert values to a RGB code thanks to a colormap
@@ -212,6 +225,7 @@ def get_rgb_pre(pre_val, coeff_cmap):
             raw_rgb.append(coeff_cmap(val))
         rgb_list.append(raw_rgb)
     return rgb_list
+
 
 def get_rgb_rec(coeff, coeff_cmap):
     """
@@ -227,6 +241,7 @@ def get_rgb_rec(coeff, coeff_cmap):
                 raw_rgb.append((0, 0, 0, 0))
         rgb_list.append(raw_rgb)
     return rgb_list
+
 
 def normalize_conf(conf_mat_array, norm="ref"):
     """
@@ -266,6 +281,7 @@ def normalize_conf(conf_mat_array, norm="ref"):
     if norm.lower() == "prod":
         norm_conf = np.transpose(norm_conf)
     return norm_conf
+
 
 def fig_conf_mat(conf_mat_dic, nom_dict, kappa, oacc, p_dic, r_dic, f_dic,
                  out_png, dpi=900, write_conf_score=True,
@@ -315,11 +331,14 @@ def fig_conf_mat(conf_mat_dic, nom_dict, kappa, oacc, p_dic, r_dic, f_dic,
     from decimal import Decimal
 
     labels_ref = [nom_dict[lab] for lab in list(conf_mat_dic.keys())]
-    labels_prod = [nom_dict[lab] for lab in list(conf_mat_dic[list(conf_mat_dic.keys())[0]].keys())]
+    labels_prod = [nom_dict[lab] for lab in list(
+        conf_mat_dic[list(conf_mat_dic.keys())[0]].keys())]
     nb_labels = len(set(labels_prod + labels_ref))
 
     # convert conf_mat_dic to a list of lists
-    conf_mat_array = np.array([[v for __, v in list(prod_dict.items())] for _, prod_dict in list(conf_mat_dic.items())])
+    conf_mat_array = np.array([[v for __,
+                                v in list(prod_dict.items())] for _,
+                               prod_dict in list(conf_mat_dic.items())])
 
     color_map_coeff = plt.cm.RdYlGn
     diag_cmap = plt.cm.RdYlGn
@@ -342,7 +361,12 @@ def fig_conf_mat(conf_mat_dic, nom_dict, kappa, oacc, p_dic, r_dic, f_dic,
     if grid_conf:
         axe.set_xticks(np.arange(-.5, len(labels_prod), 1), minor=True)
         axe.set_yticks(np.arange(-.5, len(labels_ref), 1), minor=True)
-        axe.grid(which='minor', color='gray', linestyle='-', linewidth=1, alpha=0.5)
+        axe.grid(
+            which='minor',
+            color='gray',
+            linestyle='-',
+            linewidth=1,
+            alpha=0.5)
 
     maxtrix = norm_conf
     axe.imshow(rgb_matrix,
@@ -355,7 +379,7 @@ def fig_conf_mat(conf_mat_dic, nom_dict, kappa, oacc, p_dic, r_dic, f_dic,
                 val_percentage = norm_conf[x_coord][y_coord] * 100.0
                 if conf_score.lower() == "count":
                     val_to_print = str(int(conf_mat_array[x_coord][y_coord]))
-                elif conf_score.lower() == "count_sci" :
+                elif conf_score.lower() == "count_sci":
                     conf_value = conf_mat_array[x_coord][y_coord]
                     if conf_value > 999.0:
                         val_to_print = "{:.2E}".format(Decimal(conf_value))
@@ -433,9 +457,17 @@ def fig_conf_mat(conf_mat_dic, nom_dict, kappa, oacc, p_dic, r_dic, f_dic,
                      verticalalignment='center',
                      fontsize='xx-small')
     # Kappa and oacc
-    fig.text(0, 1, 'KAPPA : {:.3f} OA : {:.3f}'.format(kappa, oacc), ha='center', va='center')
+    fig.text(
+        0,
+        1,
+        'KAPPA : {:.3f} OA : {:.3f}'.format(
+            kappa,
+            oacc),
+        ha='center',
+        va='center')
 
     plt.savefig(out_png, format='png', dpi=dpi, bbox_inches='tight')
+
 
 def merge_class_matrix(conf_mat_dic, merge_class):
     """
@@ -444,8 +476,8 @@ def merge_class_matrix(conf_mat_dic, merge_class):
     conf_mat_dic : collections.OrderedDict
         a confusion matrix (index represent row reference)
     merge_class : list
-        list of dictionnary. 
-        example : 
+        list of dictionnary.
+        example :
             merge_class = [{"src_label":[1,2,3],
                             "dst_label": 50,
                             "dst_name" : "URBAN"},
@@ -453,7 +485,8 @@ def merge_class_matrix(conf_mat_dic, merge_class):
     """
     import collections
     labels_ref = list(conf_mat_dic.keys())
-    labels_prod = [lab for lab in list(conf_mat_dic[list(conf_mat_dic.keys())[0]].keys())]
+    labels_prod = [lab for lab in list(
+        conf_mat_dic[list(conf_mat_dic.keys())[0]].keys())]
 
     # input labels
     input_labels = list(set(labels_ref + labels_prod))
@@ -466,7 +499,7 @@ def merge_class_matrix(conf_mat_dic, merge_class):
         for sub_label in merge_rule["src_label"]:
             all_labels.remove(sub_label)
     all_labels.sort()
- 
+
     # matching label dictionnary
     dico_match = {}
     for input_label in input_labels:
@@ -482,11 +515,12 @@ def merge_class_matrix(conf_mat_dic, merge_class):
         for lab_prod in all_labels:
             matrix[lab_ref][lab_prod] = 0
 
-    # fill-up output merged matrix 
+    # fill-up output merged matrix
     for ref_label, prod_dict in list(conf_mat_dic.items()):
         for prod_label, prod_val in list(prod_dict.items()):
             matrix[dico_match[ref_label]][dico_match[prod_label]] += prod_val
     return matrix
+
 
 def gen_confusion_matrix_fig(csv_in, out_png, nomenclature_path,
                              undecidedlabel=None, dpi=900,
@@ -525,8 +559,8 @@ def gen_confusion_matrix_fig(csv_in, out_png, nomenclature_path,
     threshold : float
         display confusion > threshold (in percentage of confusion)
     merge_class : list
-        list of dictionnary. 
-        example : 
+        list of dictionnary.
+        example :
             merge_class = [{"src_label": [1,2,3],
                             "dst_label": 50,
                             "dst_name" : "URBAN"},
@@ -545,9 +579,9 @@ def gen_confusion_matrix_fig(csv_in, out_png, nomenclature_path,
     if undecidedlabel:
         conf_mat_dic = remove_undecidedlabel(conf_mat_dic, undecidedlabel)
 
-    
     labels_ref = list(conf_mat_dic.keys())
-    labels_prod = [lab for lab in list(conf_mat_dic[list(conf_mat_dic.keys())[0]].keys())]
+    labels_prod = [lab for lab in list(
+        conf_mat_dic[list(conf_mat_dic.keys())[0]].keys())]
     all_labels = labels_ref + labels_prod
 
     conf_mat_dic_order = conf_mat_dic
@@ -555,14 +589,18 @@ def gen_confusion_matrix_fig(csv_in, out_png, nomenclature_path,
     # re-odrer classes
     if class_order:
         # check if input's labels correspond to labels detected in csv file
-        check_in_order = all([label_in in all_labels for label_in in class_order])
-        check_in_csv = all([label_csv in class_order for label_csv in all_labels])
+        check_in_order = all(
+            [label_in in all_labels for label_in in class_order])
+        check_in_csv = all(
+            [label_csv in class_order for label_csv in all_labels])
         if not check_in_order or not check_in_csv:
             if not merge_class:
                 if not check_in_order:
-                    raise Exception("'class_order' parameter contains classes not in input csv file")
+                    raise Exception(
+                        "'class_order' parameter contains classes not in input csv file")
                 elif not check_in_csv:
-                    raise Exception("missing classes in 'class_order' parameter")
+                    raise Exception(
+                        "missing classes in 'class_order' parameter")
         conf_mat_dic_order = collections.OrderedDict()
         for class_number_ref in class_order:
             conf_mat_dic_prod = collections.OrderedDict()
@@ -575,6 +613,7 @@ def gen_confusion_matrix_fig(csv_in, out_png, nomenclature_path,
     fig_conf_mat(conf_mat_dic_order, nom_dict, kappa, oacc, p_dic, r_dic, f_dic,
                  out_png, dpi, write_conf_score, grid_conf, conf_score,
                  point_of_view, threshold)
+
 
 def get_max_labels(conf_mat_dic, nom_dict):
     """
@@ -595,10 +634,12 @@ def get_max_labels(conf_mat_dic, nom_dict):
         maximum len of all labels
     """
     labels_ref = [nom_dict[lab] for lab in list(conf_mat_dic.keys())]
-    labels_prod = [nom_dict[lab] for lab in list(conf_mat_dic[list(conf_mat_dic.keys())[0]].keys())]
+    labels_prod = [nom_dict[lab] for lab in list(
+        conf_mat_dic[list(conf_mat_dic.keys())[0]].keys())]
 
     labels = set(labels_prod + labels_ref)
     return max([len(lab) for lab in labels]), labels_prod, labels_ref
+
 
 def get_conf_max(conf_mat_dic, nom_dict):
     """
@@ -632,10 +673,16 @@ def get_conf_max(conf_mat_dic, nom_dict):
         buff_dico = collections.OrderedDict()
         for class_prod, value in list(prod.items()):
             buff_dico[nom_dict[class_prod]] = float(value)
-            buff = sorted(iter(list(buff_dico.items())), key=lambda k_v: (k_v[1], k_v[0]))[::-1]
+            buff = sorted(
+                iter(
+                    list(
+                        buff_dico.items())), key=lambda k_v: (
+                    k_v[1], k_v[0]))[
+                ::-1]
         conf_max[class_ref] = [class_name for class_name, value in buff]
 
     return conf_max
+
 
 def compute_interest_matrix(all_matrix, f_interest="mean"):
     """
@@ -655,7 +702,9 @@ def compute_interest_matrix(all_matrix, f_interest="mean"):
     prod_labels = []
     for c_matrix in all_matrix:
         ref_labels += [ref for ref, _ in list(c_matrix.items())]
-        prod_labels += [prod_label for _, prod in list(c_matrix.items()) for prod_label, _ in list(prod.items())]
+        prod_labels += [prod_label for _,
+                        prod in list(c_matrix.items()) for prod_label,
+                        _ in list(prod.items())]
 
     ref_labels = sorted(list(set(ref_labels)))
     prod_labels = sorted(list(set(prod_labels)))
@@ -679,9 +728,11 @@ def compute_interest_matrix(all_matrix, f_interest="mean"):
     for ref_lab, prod in list(matrix.items()):
         for prod_lab, prod_val in list(prod.items()):
             if f_interest.lower() == "mean":
-                output_matrix[ref_lab][prod_lab] = "{0:.2f}".format(np.mean(matrix[ref_lab][prod_lab]))
+                output_matrix[ref_lab][prod_lab] = "{0:.2f}".format(
+                    np.mean(matrix[ref_lab][prod_lab]))
 
     return output_matrix
+
 
 def get_interest_coeff(runs_coeff, nb_lab, f_interest="mean"):
     """
@@ -725,10 +776,12 @@ def get_interest_coeff(runs_coeff, nb_lab, f_interest="mean"):
                                         loc=np.mean(values),
                                         scale=stats.sem(values))
             if nb_run > 1:
-                coeff_out[label] = "{:.3f} +- {:.3f}".format(mean, b_sup - mean)
+                coeff_out[label] = "{:.3f} +- {:.3f}".format(
+                    mean, b_sup - mean)
             elif nb_run == 1:
                 coeff_out[label] = "{:.3f}".format(mean)
     return coeff_out
+
 
 def stats_report(csv_in, nomenclature_path, out_report, undecidedlabel=None):
     """
@@ -772,24 +825,41 @@ def stats_report(csv_in, nomenclature_path, out_report, undecidedlabel=None):
     conf_mat_dic = compute_interest_matrix(all_matrix, f_interest="mean")
     nom_dict = get_nomenclature(nomenclature_path)
     size_max, labels_prod, labels_ref = get_max_labels(conf_mat_dic, nom_dict)
-    p_mean = get_interest_coeff(all_p, nb_lab=len(labels_ref), f_interest="mean")
-    r_mean = get_interest_coeff(all_r, nb_lab=len(labels_ref), f_interest="mean")
-    f_mean = get_interest_coeff(all_f, nb_lab=len(labels_ref), f_interest="mean")
+    p_mean = get_interest_coeff(
+        all_p,
+        nb_lab=len(labels_ref),
+        f_interest="mean")
+    r_mean = get_interest_coeff(
+        all_r,
+        nb_lab=len(labels_ref),
+        f_interest="mean")
+    f_mean = get_interest_coeff(
+        all_f,
+        nb_lab=len(labels_ref),
+        f_interest="mean")
 
     confusion_max = get_conf_max(conf_mat_dic, nom_dict)
 
-    coeff_summarize_lab = ["Classes", "Precision mean", "Rappel mean", "F-score mean", "Confusion max"]
+    coeff_summarize_lab = [
+        "Classes",
+        "Precision mean",
+        "Rappel mean",
+        "F-score mean",
+        "Confusion max"]
     label_size_max = max([len(c_title) for c_title in coeff_summarize_lab])
     label_size_max_p = max([len(coeff) for lab, coeff in list(p_mean.items())])
     label_size_max_r = max([len(coeff) for lab, coeff in list(r_mean.items())])
     label_size_max_f = max([len(coeff) for lab, coeff in list(f_mean.items())])
-    label_size_max = max([label_size_max, label_size_max_p, label_size_max_r, label_size_max_f, size_max])
+    label_size_max = max([label_size_max, label_size_max_p,
+                          label_size_max_r, label_size_max_f, size_max])
 
     with open(out_report, "w") as res_file:
-        res_file.write("#row = reference\n#col = production\n\n*********** Matrice de confusion ***********\n\n")
+        res_file.write(
+            "#row = reference\n#col = production\n\n*********** Matrice de confusion ***********\n\n")
 
         # Confusion Matrix
-        prod_ref_labels = "".join([" " for _ in range(size_max)]) + "|" + "|".join(label.center(size_max) for label in labels_prod) + "\n"
+        prod_ref_labels = "".join([" " for _ in range(
+            size_max)]) + "|" + "|".join(label.center(size_max) for label in labels_prod) + "\n"
         res_file.write(prod_ref_labels)
         for lab_ref, prod_conf in list(conf_mat_dic.items()):
             prod = ""
@@ -806,10 +876,14 @@ def stats_report(csv_in, nomenclature_path, out_report, undecidedlabel=None):
         kappa = "\nKAPPA : {:.3f}\n".format(kappa_mean)
         oacc = "OA : {:.3f}\n\n".format(oacc_mean)
         if nb_seed > 1:
-            _, k_sup = stats.t.interval(0.95, len(labels_ref) - 1, loc=np.mean(all_k), scale=stats.sem(all_k))
-            kappa = "\nKAPPA : {:.3f} +- {:.3f}\n".format(kappa_mean, k_sup - kappa_mean)
-            _, oa_sup = stats.t.interval(0.95, len(labels_ref) - 1, loc=np.mean(all_oa), scale=stats.sem(all_oa))
-            oacc = "OA : {:.3f} +- {:.3f}\n\n".format(oacc_mean, oa_sup - oacc_mean)
+            _, k_sup = stats.t.interval(
+                0.95, len(labels_ref) - 1, loc=np.mean(all_k), scale=stats.sem(all_k))
+            kappa = "\nKAPPA : {:.3f} +- {:.3f}\n".format(
+                kappa_mean, k_sup - kappa_mean)
+            _, oa_sup = stats.t.interval(
+                0.95, len(labels_ref) - 1, loc=np.mean(all_oa), scale=stats.sem(all_oa))
+            oacc = "OA : {:.3f} +- {:.3f}\n\n".format(
+                oacc_mean, oa_sup - oacc_mean)
         res_file.write(kappa)
         res_file.write(oacc)
 
@@ -823,7 +897,8 @@ def stats_report(csv_in, nomenclature_path, out_report, undecidedlabel=None):
         res_file.write(sum_head)
         res_file.write(sep + "\n")
         for label in list(p_dic.keys()):
-            confusion_labels = ", ".join([conf_label for conf_label in confusion_max[label]][0:3])
+            confusion_labels = ", ".join(
+                [conf_label for conf_label in confusion_max[label]][0:3])
             class_sum = [nom_dict[label].center(label_size_max),
                          p_mean[label].center(label_size_max),
                          r_mean[label].center(label_size_max),

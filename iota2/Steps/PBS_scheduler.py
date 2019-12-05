@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -18,11 +18,13 @@ import os
 from Steps import IOTA2Step
 from Common import ServiceConfigFile as SCF
 
+
 class PBS_scheduler():
     def __init__(self, cfg_resources_file):
 
         resources_block_name = "iota2_chain"
-        self.resources = self.parse_resource_file(resources_block_name, cfg_resources_file)
+        self.resources = self.parse_resource_file(
+            resources_block_name, cfg_resources_file)
 
         self.RAM = self.resources["ram"]
         self.cpu = self.resources["cpu"]
@@ -59,8 +61,11 @@ class PBS_scheduler():
         resource["name"] = getattr(cfg_step_resources, "name", default_name)
         resource["cpu"] = getattr(cfg_step_resources, "nb_cpu", default_cpu)
         resource["ram"] = getattr(cfg_step_resources, "ram", default_ram)
-        resource["walltime"] = getattr(cfg_step_resources, "walltime", default_walltime)
-        resource["process_min"] = getattr(cfg_step_resources, "process_min", default_process_min)
-        resource["process_max"] = getattr(cfg_step_resources, "process_max", default_process_max)
+        resource["walltime"] = getattr(
+            cfg_step_resources, "walltime", default_walltime)
+        resource["process_min"] = getattr(
+            cfg_step_resources, "process_min", default_process_min)
+        resource["process_max"] = getattr(
+            cfg_step_resources, "process_max", default_process_max)
 
         return resource

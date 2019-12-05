@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -23,14 +23,21 @@ class SAROptFusion(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "SAROptFusion"
-        super(SAROptFusion, self).__init__(cfg, cfg_resources_file, resources_block_name)
+        super(
+            SAROptFusion,
+            self).__init__(
+            cfg,
+            cfg_resources_file,
+            resources_block_name)
 
         # step variables
         self.workingDirectory = workingDirectory
-        self.output_path = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
+        self.output_path = SCF.serviceConfigFile(
+            self.cfg).getParam(
+            'chain', 'outputPath')
         self.enable_proba_map = SCF.serviceConfigFile(self.cfg).getParam('argClassification',
                                                                          'enable_probability_map')
-        
+
     def step_description(self):
         """
         function use to print a short description of the step's purpose
@@ -56,10 +63,11 @@ class SAROptFusion(IOTA2Step.Step):
             must be a lambda function.
         """
         from Classification import Fusion as FUS
-        step_function = lambda x: FUS.dempster_shafer_fusion(self.output_path,
-                                                             x,
-                                                             proba_map_flag=self.enable_proba_map,
-                                                             workingDirectory=self.workingDirectory)
+
+        def step_function(x): return FUS.dempster_shafer_fusion(self.output_path,
+                                                                x,
+                                                                proba_map_flag=self.enable_proba_map,
+                                                                workingDirectory=self.workingDirectory)
         return step_function
 
     def step_outputs(self):

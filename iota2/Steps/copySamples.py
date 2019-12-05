@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -18,17 +18,29 @@ import os
 from Steps import IOTA2Step
 from Common import ServiceConfigFile as SCF
 
+
 class copySamples(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "samplesManagement"
-        super(copySamples, self).__init__(cfg, cfg_resources_file, resources_block_name)
+        super(
+            copySamples,
+            self).__init__(
+            cfg,
+            cfg_resources_file,
+            resources_block_name)
 
         # step variables
         self.workingDirectory = workingDirectory
-        self.output_path = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
-        self.dataField = SCF.serviceConfigFile(self.cfg).getParam('chain', 'dataField')
-        self.sampleManagement = SCF.serviceConfigFile(self.cfg).getParam('argTrain', 'sampleManagement')
+        self.output_path = SCF.serviceConfigFile(
+            self.cfg).getParam(
+            'chain', 'outputPath')
+        self.dataField = SCF.serviceConfigFile(
+            self.cfg).getParam(
+            'chain', 'dataField')
+        self.sampleManagement = SCF.serviceConfigFile(
+            self.cfg).getParam(
+            'argTrain', 'sampleManagement')
 
     def step_description(self):
         """
@@ -44,7 +56,8 @@ class copySamples(IOTA2Step.Step):
             the return could be and iterable or a callable
         """
         from Sampling import DataAugmentation
-        return DataAugmentation.GetDataAugmentationByCopyParameters(os.path.join(self.output_path, "learningSamples"))
+        return DataAugmentation.GetDataAugmentationByCopyParameters(
+            os.path.join(self.output_path, "learningSamples"))
 
     def step_execute(self):
         """
@@ -55,9 +68,10 @@ class copySamples(IOTA2Step.Step):
             must be a lambda function.
         """
         from Sampling import DataAugmentation
-        step_function = lambda x: DataAugmentation.DataAugmentationByCopy(self.dataField.lower(),
-                                                                          self.sampleManagement,
-                                                                          x, self.workingDirectory)
+
+        def step_function(x): return DataAugmentation.DataAugmentationByCopy(self.dataField.lower(),
+                                                                             self.sampleManagement,
+                                                                             x, self.workingDirectory)
         return step_function
 
     def step_outputs(self):
