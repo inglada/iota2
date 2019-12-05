@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -43,21 +43,21 @@ def CreateCommonZone_bindings(opath, borderMasks):
     """
     from Common import OtbAppBank
     from Common.Utils import run
-    shpMask = opath+"/MaskCommunSL.shp"
-    exp = "*".join(["im"+str(i+1)+"b1" for i in range(len(borderMasks))])
-    outputRaster = opath+"/MaskCommunSL.tif"
+    shpMask = opath + "/MaskCommunSL.shp"
+    exp = "*".join(["im" + str(i + 1) + "b1" for i in range(len(borderMasks))])
+    outputRaster = opath + "/MaskCommunSL.tif"
     commonMask = OtbAppBank.CreateBandMathApplication({"il": borderMasks,
-                                                     "exp": exp,
-                                                     "pixType": 'uint8',
-                                                     "out": outputRaster})
+                                                       "exp": exp,
+                                                       "pixType": 'uint8',
+                                                       "out": outputRaster})
 
-    if not os.path.exists(opath+"/MaskCommunSL.tif"):
+    if not os.path.exists(opath + "/MaskCommunSL.tif"):
         commonMask.ExecuteAndWriteOutput()
 
-    VectorMask = "gdal_polygonize.py -f \"ESRI Shapefile\" -mask "+\
-                opath+"/MaskCommunSL.tif "+opath+"/MaskCommunSL.tif "+\
-                opath+"/MaskCommunSL.shp MaskCommunSL MC"
-    if not os.path.exists(opath+"/MaskCommunSL.shp"):
+    VectorMask = "gdal_polygonize.py -f \"ESRI Shapefile\" -mask " +\
+        opath + "/MaskCommunSL.tif " + opath + "/MaskCommunSL.tif " +\
+        opath + "/MaskCommunSL.shp MaskCommunSL MC"
+    if not os.path.exists(opath + "/MaskCommunSL.shp"):
         run(VectorMask)
     return outputRaster
 
@@ -66,6 +66,7 @@ class MonException(Exception):
     """
     Exception class
     """
+
     def __init__(self, raison):
         self.raison = raison
 
@@ -101,7 +102,6 @@ class Sensor(object):
         self.indices = []
         self.posDate = None
 
-
     def setDatesVoulues(self, path):
         self.DatesVoulues = path
 
@@ -115,22 +115,23 @@ class Sensor(object):
 
         fList = []
 
-        for image in glob.glob(self.path+self.struct_path+self.imType):
+        for image in glob.glob(self.path + self.struct_path + self.imType):
             imagePath = image.split("/")
             imageName = imagePath[-1].split("_")
             imageList.append(imageName)
 
-        #Organize the names by date
+        # Organize the names by date
         imageList.sort(key=lambda x: x[self.posDate])
 
         dates = []
-        for imSorted  in imageList:
+        for imSorted in imageList:
             date = imSorted[self.posDate].split("-")[0].split("T")[0]
             dates.append(date)
 
         outputDateFile = self.fdates
         if opath:
-            outputDateFile = os.path.join(opath, os.path.split(self.fdates)[-1])
+            outputDateFile = os.path.join(
+                opath, os.path.split(self.fdates)[-1])
 
         with open(outputDateFile, "w") as filedate:
             filedate.write("\n".join(dates))
@@ -142,20 +143,25 @@ class Sensor(object):
         count = 0
         imageList = []
         fList = []
-        glob_path = (self.path+self.struct_path+self.imType).replace("[", "[[]")
+        glob_path = (
+            self.path +
+            self.struct_path +
+            self.imType).replace(
+            "[",
+            "[[]")
         for image in glob.glob(glob_path):
             imagePath = image.split("/")
             imageName = imagePath[-1].split("_")
             imageList.append(imageName)
 
-        #Organize the names by date
+        # Organize the names by date
         imageList.sort(key=lambda x: x[self.posDate])
-        #Write all the images in chronological order in a text file
-        for imSorted  in imageList:
+        # Write all the images in chronological order in a text file
+        for imSorted in imageList:
             s = "_"
             nameIm = s.join(imSorted)
-            name = self.struct_path+nameIm
-            for im in glob.glob((self.path+"/"+name).replace("[", "[[]")):
+            name = self.struct_path + nameIm
+            for im in glob.glob((self.path + "/" + name).replace("[", "[[]")):
                 fileImage.write(im)
                 fileImage.write('\n')
                 fList.append(im)
@@ -163,7 +169,6 @@ class Sensor(object):
         fileImage.close()
 
         return fList
-
 
     def sortMask(self, liste):
         imageList = []
@@ -174,37 +179,60 @@ class Sensor(object):
 
         imageList.sort(key=lambda x: x[self.posDate])
         liste_Sort = []
-        for imSorted  in imageList:
+        for imSorted in imageList:
             s = "_"
             nameIm = s.join(imSorted)
-            liste_Sort.append(glob.glob((self.pathmask+nameIm).replace("[", "[[]"))[0])
+            liste_Sort.append(
+                glob.glob(
+                    (self.pathmask +
+                     nameIm).replace(
+                        "[",
+                        "[[]"))[0])
         return liste_Sort
 
     def getList_NoDataMask(self):
-        liste_nodata = glob.glob((self.pathmask+"/*"+self.nodata).replace("[", "[[]"))
+        liste_nodata = glob.glob(
+            (self.pathmask +
+             "/*" +
+             self.nodata).replace(
+                "[",
+                "[[]"))
         liste = self.sortMask(liste_nodata)
         return liste
 
-
     def getList_CloudMask(self):
-        liste_cloud = glob.glob((self.pathmask+"/*"+self.nuages).replace("[", "[[]"))
+        liste_cloud = glob.glob(
+            (self.pathmask +
+             "/*" +
+             self.nuages).replace(
+                "[",
+                "[[]"))
         liste = self.sortMask(liste_cloud)
         return liste
 
-
     def getList_SatMask(self):
-        liste_sat = glob.glob((self.pathmask+"/*"+self.saturation).replace("[", "[[]"))
+        liste_sat = glob.glob(
+            (self.pathmask +
+             "/*" +
+             self.saturation).replace(
+                "[",
+                "[[]"))
         liste = self.sortMask(liste_sat)
         return liste
 
-
     def getList_DivMask(self, logger=logger):
         logger = logging.getLogger(__name__)
-        logger.debug("Search path for masks: {}".format(self.pathmask+"/*"+self.div))
-        liste_div = glob.glob((self.pathmask+"/*"+self.div).replace("[", "[[]"))
+        logger.debug(
+            "Search path for masks: {}".format(
+                self.pathmask + "/*" + self.div))
+        liste_div = glob.glob(
+            (self.pathmask +
+             "/*" +
+             self.div).replace(
+                "[",
+                "[[]"))
         liste = self.sortMask(liste_div)
         return liste
-
 
     def CreateBorderMask_bindings(self, opath, wMode=False):
 
@@ -215,7 +243,7 @@ class Sensor(object):
         else:
             mlist = self.getList_DivMask()
 
-        #Builds the individual binary masks
+        # Builds the individual binary masks
         listMaskch = ""
         listMask = []
 
@@ -229,23 +257,24 @@ class Sensor(object):
             for i in range(len(mlist)):
                 name = os.path.split(mlist[i])[-1]
                 outputDirectory = opath.opathT
-                bandMath = OtbAppBank.CreateBandMathApplication({"il" : mlist[i],
-                                                               "exp" : expr,
-                                                               "pixType" : 'uint8',
-                                                               "out" : outputDirectory+"/"+name})
+                bandMath = OtbAppBank.CreateBandMathApplication({"il": mlist[i],
+                                                                 "exp": expr,
+                                                                 "pixType": 'uint8',
+                                                                 "out": outputDirectory + "/" + name})
                 if wMode:
                     bandMath.ExecuteAndWriteOutput()
                 else:
                     bandMath.Execute()
                 indBinary.append(bandMath)
 
-        #Builds the complete binary mask
+        # Builds the complete binary mask
         if self.name != 'Sentinel2':
             expr = "0"
             for i in range(len(mlist)):
-                expr += "+im"+str(i+1)+"b1"
+                expr += "+im" + str(i + 1) + "b1"
         else:
-            expr = "+".join(["(1-im"+str(i+1)+"b1)" for i in range(len(mlist))])
+            expr = "+".join(["(1-im" + str(i + 1) +
+                             "b1)" for i in range(len(mlist))])
 
         listMask_s = indBinary
         if self.name == 'Sentinel2':
@@ -268,8 +297,8 @@ class Sensor(object):
         self.borderMask = self.borderMaskN
         return maskBin, indBinary, maskSum
 
-
-    def createMaskSeries_bindings(self, opath, maskC, wMode=False, logger=logger):
+    def createMaskSeries_bindings(
+            self, opath, maskC, wMode=False, logger=logger):
         """
         Builds one multitemporal binary mask of SPOT images
 
@@ -295,7 +324,7 @@ class Sensor(object):
         for im in range(0, len(imlist)):
             impath = imlist[im].split('/')
             imname = impath[-1].split('.')
-            name = opath+'/'+imname[0]+'_MASK.TIF'
+            name = opath + '/' + imname[0] + '_MASK.TIF'
             #chain = [maskC,clist[im],slist[im],dlist[im]]
             chain = " ".join([maskC, clist[im], slist[im], dlist[im]])
             dateMask = OtbAppBank.CreateBandMathApplication({"il": [maskC, clist[im], slist[im], dlist[im]],
@@ -307,9 +336,9 @@ class Sensor(object):
                 dateMask.ExecuteAndWriteOutput()
             else:
                 dateMask.Execute()
-        masksSeries = OtbAppBank.CreateConcatenateImagesApplication({"il" : datesMasks,
-                                                                     "pixType" : 'uint8',
-                                                                     "out" : self.serieTempMask})
+        masksSeries = OtbAppBank.CreateConcatenateImagesApplication({"il": datesMasks,
+                                                                     "pixType": 'uint8',
+                                                                     "out": self.serieTempMask})
         return masksSeries, datesMasks
 
     def createSerie_bindings(self, opath, logger=logger):
@@ -324,9 +353,10 @@ class Sensor(object):
         """
         logger.info("temporal series generation : " + self.serieTemp)
         imlist = self.getImages(opath)
-        sep = " "*47
-        logger.debug("temporal series generation using dates (chrono sorted): \n"+ sep + ("\n"+sep).join(imlist))
-        temporalSerie = OtbAppBank.CreateConcatenateImagesApplication({"il" : imlist,
-                                                                       "pixType" : 'int16',
-                                                                       "out" : self.serieTemp})
+        sep = " " * 47
+        logger.debug("temporal series generation using dates (chrono sorted): \n" +
+                     sep + ("\n" + sep).join(imlist))
+        temporalSerie = OtbAppBank.CreateConcatenateImagesApplication({"il": imlist,
+                                                                       "pixType": 'int16',
+                                                                       "out": self.serieTemp})
         return temporalSerie

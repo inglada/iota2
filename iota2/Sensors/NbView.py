@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -29,13 +29,14 @@ from Sampling.VectorSampler import gapFillingToSample
 
 logger = logging.getLogger(__name__)
 
+
 def buildExpression_cloud(Path_Mask):
 
     ds = gdal.Open(Path_Mask, GA_ReadOnly)
     bands = ds.RasterCount
 
-    exp = "-".join(["im1b"+str(band+1) for band in range(bands)])
-    return str(bands)+"-"+exp
+    exp = "-".join(["im1b" + str(band + 1) for band in range(bands)])
+    return str(bands) + "-" + exp
 
 
 def getLineNumberInFiles(fileList):
@@ -48,34 +49,48 @@ def getLineNumberInFiles(fileList):
     return nbLine
 
 
-def nbViewOptical(tile, workingDirectory, cfg, outputRaster, tilePath, logger=logger):
-    
+def nbViewOptical(tile, workingDirectory, cfg,
+                  outputRaster, tilePath, logger=logger):
+
     logger.info("Computing pixel validity by tile")
 
-    tilesStackDirectory = workingDirectory+"/"+tile
+    tilesStackDirectory = workingDirectory + "/" + tile
     if not os.path.exists(tilesStackDirectory):
         os.mkdir(tilesStackDirectory)
     AllRefl, AllMask, datesInterp, realDates = gapFillingToSample(tile,
                                                                   tilesStackDirectory, "samples",
                                                                   "dataField", cfg, wMode=False, onlySensorsMasks=True)
-    if not os.path.exists(tilePath+"/tmp"):
-        os.mkdir(tilePath+"/tmp")
-        fu.updateDirectory(tilesStackDirectory+"/"+tile+"/tmp", tilePath+"/tmp")
-    if not os.path.exists(tilePath+"/Final"):
-        os.mkdir(tilePath+"/Final")
-        fu.updateDirectory(tilesStackDirectory+"/"+tile+"/Final", tilePath+"/Final")
+    if not os.path.exists(tilePath + "/tmp"):
+        os.mkdir(tilePath + "/tmp")
+        fu.updateDirectory(
+            tilesStackDirectory +
+            "/" +
+            tile +
+            "/tmp",
+            tilePath +
+            "/tmp")
+    if not os.path.exists(tilePath + "/Final"):
+        os.mkdir(tilePath + "/Final")
+        fu.updateDirectory(
+            tilesStackDirectory +
+            "/" +
+            tile +
+            "/Final",
+            tilePath +
+            "/Final")
 
     for currentMask in AllMask:
         currentMask[0].Execute()
 
-    concat = OtbAppBank.CreateConcatenateImagesApplication({"il" : AllMask,
-                                                            "pixType" : 'uint8',
-                                                            "out" : ""})
+    concat = OtbAppBank.CreateConcatenateImagesApplication({"il": AllMask,
+                                                            "pixType": 'uint8',
+                                                            "out": ""})
     concat.Execute()
 
     nbRealDates = getLineNumberInFiles(realDates)
-    print("Number of real dates : "+str(nbRealDates))
-    expr = str(nbRealDates)+"-"+"-".join(["im1b"+str(band+1) for band in range(nbRealDates)])
+    print("Number of real dates : " + str(nbRealDates))
+    expr = str(nbRealDates) + "-" + \
+        "-".join(["im1b" + str(band + 1) for band in range(nbRealDates)])
     print(expr)
 
     nbView = OtbAppBank.CreateBandMathApplication({"il": (concat, AllMask),
@@ -87,16 +102,24 @@ def nbViewOptical(tile, workingDirectory, cfg, outputRaster, tilePath, logger=lo
     dep = [AllRefl, AllMask, datesInterp, realDates, concat]
     return nbView, tilesStackDirectory, dep
 
+
 def nbViewSAR(tile, cfg, outputRaster, workingDirectory):
 
     S1Data = cfg.getParam('chain', 'S1Path')
     allTiles = (cfg.getParam('chain', 'listTile')).split()
-    featuresPath = os.path.join(cfg.getParam('chain', 'outputPath'), "features")
+    featuresPath = os.path.join(
+        cfg.getParam(
+            'chain',
+            'outputPath'),
+        "features")
 
-    #launch SAR masks generation
-    a, SARmasks, c, d = OtbAppBank.getSARstack(S1Data, tile, allTiles, featuresPath)
-    flatMasks = list(set([CCSARmasks for CSARmasks in SARmasks for CCSARmasks in CSARmasks]))
-    bmExp = str(len(flatMasks))+"-"+"-".join(["im"+str(date+1)+"b1" for date in range(len(flatMasks))])
+    # launch SAR masks generation
+    a, SARmasks, c, d = OtbAppBank.getSARstack(
+        S1Data, tile, allTiles, featuresPath)
+    flatMasks = list(
+        set([CCSARmasks for CSARmasks in SARmasks for CCSARmasks in CSARmasks]))
+    bmExp = str(len(flatMasks)) + "-" + \
+        "-".join(["im" + str(date + 1) + "b1" for date in range(len(flatMasks))])
     nbView = OtbAppBank.CreateBandMathApplication({"il": flatMasks,
                                                    "exp": bmExp,
                                                    "ram": '2500',
@@ -105,8 +128,8 @@ def nbViewSAR(tile, cfg, outputRaster, workingDirectory):
     dep = [a, c, d]
     return nbView, dep
 
-def nbViewOpticalAndSAR(tile, workingDirectory, cfg, outputRaster, tilePath):
 
+def nbViewOpticalAndSAR(tile, workingDirectory, cfg, outputRaster, tilePath):
 
     sarView, sar_ = nbViewSAR(tile, cfg, outputRaster, workingDirectory)
     sarView.Execute()
@@ -115,7 +138,7 @@ def nbViewOpticalAndSAR(tile, workingDirectory, cfg, outputRaster, tilePath):
     nbViewOpt.Execute()
 
     nbViewSarOpt = OtbAppBank.CreateBandMathApplication({"il": [(nbViewOpt, opt_), (sarView, sar_)],
-                                                         "exp" :"im1b1+im2b1",
+                                                         "exp": "im1b1+im2b1",
                                                          "ram": '2500',
                                                          "pixType": 'uint8',
                                                          "out": outputRaster})
@@ -125,12 +148,12 @@ def nbViewOpticalAndSAR(tile, workingDirectory, cfg, outputRaster, tilePath):
 
 def nbViewUserFeatures(tile, cfg):
     """Compute user features validity raster
-    
+
     pixels values are the number of user patterns
-    
+
     Parameters
     ----------
-    
+
     tile : string
         the tile to compute
     cfg : serviceConfig Object
@@ -144,12 +167,13 @@ def nbViewUserFeatures(tile, cfg):
 
     nbBands = 0
     for dir_user in os.listdir(userFeatPath):
-        if tile in dir_user and os.path.isdir(os.path.join(userFeatPath, dir_user)):
+        if tile in dir_user and os.path.isdir(
+                os.path.join(userFeatPath, dir_user)):
             for cpattern in userFeat_patterns:
                 ref_raster = fu.FileSearch_AND(os.path.join(userFeatPath, dir_user),
-                                               True, cpattern.replace(" ",""))[0]
+                                               True, cpattern.replace(" ", ""))[0]
                 nbBands = nbBands + fu.getRasterNbands(ref_raster)
-                                        
+
     nbView_out = os.path.join(featuresPath, tile, "nbView.tif")
     nbView = OtbAppBank.CreateBandMathApplication({"il": ref_raster,
                                                    "out": nbView_out,
@@ -157,10 +181,11 @@ def nbViewUserFeatures(tile, cfg):
                                                    "pixType": "uint16"})
     return nbView
 
+
 def computeNbView(tile, workingDirectory, cfg, outputRaster, tilePath):
 
     print("Computing pixel validity by tile")
-    
+
     sensorList = fu.sensorUserList(cfg)
 
     if not sensorList:
@@ -182,6 +207,7 @@ def computeNbView(tile, workingDirectory, cfg, outputRaster, tilePath):
         sarView.ExecuteAndWriteOutput()
         return None
 
+
 def genNbView(TilePath, maskOut_name, nbview, cfg, workingDirectory=None):
     """
     """
@@ -200,36 +226,66 @@ def genNbView(TilePath, maskOut_name, nbview, cfg, workingDirectory=None):
         if not os.path.exists(wd):
             os.mkdir(wd)
 
-    tilePixVal = wd+"/"+nameNbView
+    tilePixVal = wd + "/" + nameNbView
     if not os.path.exists(TilePath):
         os.mkdir(TilePath)
 
-    if not os.path.exists(TilePath+"/"+nameNbView):
+    if not os.path.exists(TilePath + "/" + nameNbView):
         tmp2 = maskOut.replace(".shp", "_tmp_2.tif").replace(TilePath, wd)
-        tilesStackDirectory = computeNbView(tile, wd, cfg, tilePixVal, TilePath)
-        cmd = 'otbcli_BandMath -il '+tilePixVal+' -out '+tmp2+' -exp "im1b1>='+str(nbview)+'?1:0"'
+        tilesStackDirectory = computeNbView(
+            tile, wd, cfg, tilePixVal, TilePath)
+        cmd = 'otbcli_BandMath -il ' + tilePixVal + ' -out ' + \
+            tmp2 + ' -exp "im1b1>=' + str(nbview) + '?1:0"'
         run(cmd)
         maskOut_tmp = maskOut.replace(".shp", "_tmp.shp").replace(TilePath, wd)
         maskOut_tmp_name = os.path.split(maskOut_tmp)[-1].split(".")[0]
-        cmd = "gdal_polygonize.py -mask "+tmp2+" "+tmp2+" -f \"ESRI Shapefile\" "+maskOut_tmp + " " + maskOut_tmp_name + " cloud"
+        cmd = "gdal_polygonize.py -mask " + tmp2 + " " + tmp2 + \
+            " -f \"ESRI Shapefile\" " + maskOut_tmp + " " + maskOut_tmp_name + " cloud"
         run(cmd)
-        fu.erodeShapeFile(maskOut_tmp, wd+"/"+maskOut.split("/")[-1], 0.1)
+        fu.erodeShapeFile(maskOut_tmp, wd + "/" + maskOut.split("/")[-1], 0.1)
         os.remove(tmp2)
-        fu.removeShape(maskOut_tmp.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"])
+        fu.removeShape(
+            maskOut_tmp.replace(
+                ".shp", ""), [
+                ".prj", ".shp", ".dbf", ".shx"])
         if workingDirectory:
             shutil.copy(tilePixVal, TilePath)
-            fu.cpShapeFile(wd+"/"+maskOut.split("/")[-1].replace(".shp", ""), TilePath, [".prj", ".shp", ".dbf", ".shx"], spe=True)
+            fu.cpShapeFile(wd + "/" + maskOut.split("/")[-1].replace(
+                ".shp", ""), TilePath, [".prj", ".shp", ".dbf", ".shx"], spe=True)
         if tilesStackDirectory:
             shutil.rmtree(tilesStackDirectory)
 
+
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description="This funtion compute a shapeFile which is the representation of availaible pixels")
-    parser.add_argument("-path.features", help="path to the folder which contains features (mandatory)", dest="tileMaskPath", required=True)
-    parser.add_argument("-out", help="output shapeFile", dest="maskOut", required=True)
-    parser.add_argument("-nbview", help="nbview threshold", dest="nbview", required=True)
-    parser.add_argument("-conf", help="path to the configuration file", dest="pathConf", required=False)
-    parser.add_argument("--wd", dest="workingDirectory", help="path to the working directory", default=None, required=False)
+    parser = argparse.ArgumentParser(
+        description="This funtion compute a shapeFile which is the representation of availaible pixels")
+    parser.add_argument(
+        "-path.features",
+        help="path to the folder which contains features (mandatory)",
+        dest="tileMaskPath",
+        required=True)
+    parser.add_argument(
+        "-out",
+        help="output shapeFile",
+        dest="maskOut",
+        required=True)
+    parser.add_argument(
+        "-nbview",
+        help="nbview threshold",
+        dest="nbview",
+        required=True)
+    parser.add_argument(
+        "-conf",
+        help="path to the configuration file",
+        dest="pathConf",
+        required=False)
+    parser.add_argument(
+        "--wd",
+        dest="workingDirectory",
+        help="path to the working directory",
+        default=None,
+        required=False)
     args = parser.parse_args()
 
     # load configuration file

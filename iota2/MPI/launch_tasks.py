@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -26,14 +26,16 @@ import datetime
 import sys
 import subprocess
 
+
 def launchBashCmd(bashCmd):
     """
     usage : function use to launch bashCmd
     """
-    #using subprocess will be better.
+    # using subprocess will be better.
     os.system(bashCmd)
     #bashCmd.split(" ")
     #subprocess.check_output(bashCmd, shell=False)
+
 
 def launchPythonCmd(f, *arg):
     """
@@ -41,10 +43,12 @@ def launchPythonCmd(f, *arg):
     """
     f(*arg)
 
+
 class Tasks():
     """
     Class tasks definition : this class launch MPI process
     """
+
     def __init__(self, tasks, ressources, iota2_config):
         """
         :param tasks [tuple] first element must be lambda function
@@ -60,4 +64,3 @@ class Tasks():
         self.logFile = os.path.join(iota2_config.getParam('chain', 'outputPath'),
                                     "logs",
                                     self.TaskName + "_log.log")
-

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -24,8 +24,9 @@ from collections import OrderedDict
 
 logger = logging.getLogger(__name__)
 
-#in order to avoid issue 'No handlers could be found for logger...'
+# in order to avoid issue 'No handlers could be found for logger...'
 logger.addHandler(logging.NullHandler())
+
 
 class User_features(Sensor):
 
@@ -39,16 +40,26 @@ class User_features(Sensor):
         self.tile_name = tile_name
         self.cfg_IOTA2 = SCF.serviceConfigFile(config_path)
         self.user_feat_data = self.cfg_IOTA2.getParam("chain", "userFeatPath")
-        tile_dir_name = [dir_name for dir_name in os.listdir(self.user_feat_data) if tile_name in dir_name][0]
+        tile_dir_name = [dir_name for dir_name in os.listdir(
+            self.user_feat_data) if tile_name in dir_name][0]
 
         # run attributes
         self.tile_directory = os.path.join(self.user_feat_data, tile_dir_name)
         self.features_dir = os.path.join(self.cfg_IOTA2.getParam("chain", "outputPath"),
                                          "features", tile_name)
-        self.target_proj = int(self.cfg_IOTA2.getParam("GlobChain", "proj").lower().replace(" ","").replace("epsg:",""))
-        
+        self.target_proj = int(
+            self.cfg_IOTA2.getParam(
+                "GlobChain",
+                "proj").lower().replace(
+                " ",
+                "").replace(
+                "epsg:",
+                ""))
+
         # sensors attributes
-        self.data_type = self.cfg_IOTA2.getParam("userFeat", "patterns").replace(" ","").split(",")
+        self.data_type = self.cfg_IOTA2.getParam(
+            "userFeat", "patterns").replace(
+            " ", "").split(",")
 
         # output's names
         self.time_series_masks_name = "{}_{}_MASKS.tif".format(self.__class__.name,
@@ -58,7 +69,7 @@ class User_features(Sensor):
         self.footprint_name = "{}_{}_footprint.tif".format(self.__class__.name,
                                                            tile_name)
         ref_image_name = "{}_{}_reference.tif".format(self.__class__.name,
-                                                           tile_name)
+                                                      tile_name)
         self.ref_image = os.path.join(self.cfg_IOTA2.getParam("chain", "outputPath"),
                                       "features",
                                       tile_name,
@@ -69,7 +80,7 @@ class User_features(Sensor):
         """
         """
         from gdal import Warp
-        from osgeo.gdalconst import  GDT_Byte
+        from osgeo.gdalconst import GDT_Byte
         from Common.FileUtils import FileSearch_AND
         from Common.OtbAppBank import CreateBandMathApplication
         from Common.FileUtils import ensure_dir
@@ -77,30 +88,35 @@ class User_features(Sensor):
         from Common.FileUtils import getRasterResolution
 
         footprint_dir = os.path.join(self.features_dir, "tmp")
-        ensure_dir(footprint_dir,raise_exe=False)
+        ensure_dir(footprint_dir, raise_exe=False)
         footprint_out = os.path.join(footprint_dir, self.footprint_name)
 
-        user_feature = FileSearch_AND(self.tile_directory, True, self.data_type[0])
+        user_feature = FileSearch_AND(
+            self.tile_directory, True, self.data_type[0])
 
         # tile reference image generation
         base_ref = user_feature[0]
-        logger.info("reference image generation {} from {}".format(self.ref_image, base_ref))
+        logger.info(
+            "reference image generation {} from {}".format(
+                self.ref_image, base_ref))
         ensure_dir(os.path.dirname(self.ref_image), raise_exe=False)
         base_ref_projection = getRasterProjectionEPSG(base_ref)
         base_ref_res_x, _ = getRasterResolution(base_ref)
         if not os.path.exists(self.ref_image):
             ds = Warp(self.ref_image, base_ref, multithread=True,
                       format="GTiff", xRes=base_ref_res_x, yRes=base_ref_res_x,
-                      outputType=GDT_Byte, srcSRS="EPSG:{}".format(base_ref_projection),
+                      outputType=GDT_Byte, srcSRS="EPSG:{}".format(
+                          base_ref_projection),
                       dstSRS="EPSG:{}".format(self.target_proj))
 
-        # user features must not contains NODATA -> "exp" : 'data_value' mean every data available
+        # user features must not contains NODATA -> "exp" : 'data_value' mean
+        # every data available
         footprint = CreateBandMathApplication({"il": self.ref_image,
                                                "out": footprint_out,
-                                               "exp" : str(data_value),
-                                               "pixType":"uint8",
+                                               "exp": str(data_value),
+                                               "pixType": "uint8",
                                                "ram": str(ram)})
-        
+
         # needed to travel throught iota2's library
         app_dep = []
 
@@ -115,13 +131,15 @@ class User_features(Sensor):
 
         time_series_dir = os.path.join(self.features_dir, "tmp")
         ensure_dir(time_series_dir, raise_exe=False)
-        times_series_mask = os.path.join(time_series_dir, self.time_series_masks_name)
-        
+        times_series_mask = os.path.join(
+            time_series_dir, self.time_series_masks_name)
+
         # check patterns
         for pattern in self.data_type:
             user_feature = FileSearch_AND(self.tile_directory, True, pattern)
             if not user_feature:
-                msg = "WARNING : '{}' not found in {}".format(pattern, self.tile_directory)
+                msg = "WARNING : '{}' not found in {}".format(
+                    pattern, self.tile_directory)
                 logger.error(msg)
                 raise Exception(msg)
         nb_patterns = len(self.data_type)
@@ -135,14 +153,14 @@ class User_features(Sensor):
         masks_stack = CreateConcatenateImagesApplication({"il": masks,
                                                           "out": times_series_mask,
                                                           "ram": str(ram)})
-        
+
         return masks_stack, app_dep, nb_patterns
 
     def get_features(self, ram=128, logger=logger):
         """
         """
         from gdal import Warp
-        from osgeo.gdalconst import  GDT_Byte
+        from osgeo.gdalconst import GDT_Byte
         from Common.OtbAppBank import CreateConcatenateImagesApplication
         from Common.OtbAppBank import CreateSuperimposeApplication
         from Common.FileUtils import FileSearch_AND
@@ -162,8 +180,9 @@ class User_features(Sensor):
             if user_feature:
                 user_features_bands.append(getRasterNbands(user_feature[0]))
                 user_features.append(user_feature[0])
-            else :
-                msg = "WARNING : '{}' not found in {}".format(pattern, self.tile_directory)
+            else:
+                msg = "WARNING : '{}' not found in {}".format(
+                    pattern, self.tile_directory)
                 logger.error(msg)
                 raise Exception(msg)
 
@@ -176,7 +195,8 @@ class User_features(Sensor):
             base_ref_res_x, _ = getRasterResolution(base_ref)
             ds = Warp(self.ref_image, base_ref, multithread=True,
                       format="GTiff", xRes=base_ref_res_x, yRes=base_ref_res_x,
-                      outputType=GDT_Byte, srcSRS="EPSG:{}".format(base_ref_projection),
+                      outputType=GDT_Byte, srcSRS="EPSG:{}".format(
+                          base_ref_projection),
                       dstSRS="EPSG:{}".format(self.target_proj))
         app_dep = []
         if int(base_ref_projection) != (self.target_proj):
@@ -186,5 +206,8 @@ class User_features(Sensor):
                                                                "inm": user_feat_stack,
                                                                "out": features_out,
                                                                "ram": str(ram)})
-        features_labels = ["{}_band_{}".format(pattern, band_num) for pattern, nb_bands in zip(self.data_type, user_features_bands) for band_num in range(nb_bands)]
+        features_labels = [
+            "{}_band_{}".format(
+                pattern, band_num) for pattern, nb_bands in zip(
+                self.data_type, user_features_bands) for band_num in range(nb_bands)]
         return (user_feat_stack, app_dep), features_labels

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -26,14 +26,16 @@ from Common import FileUtils as fut
 
 logger = logging.getLogger(__name__)
 
-def get_randomPoly(layer, field, classes, ratio, regionField, regions, random_seed=None):
+
+def get_randomPoly(layer, field, classes, ratio,
+                   regionField, regions, random_seed=None):
     """
     use to randomly split samples in learning and validation considering
     classes in regions
 
     Parameters
     ----------
-    layer : 
+    layer :
     field : string
         data field
     classes : list
@@ -58,7 +60,8 @@ def get_randomPoly(layer, field, classes, ratio, regionField, regions, random_se
         for cl in classes:
             listid = []
             layer.SetAttributeFilter(None)
-            attrib_filter = "{}={} AND {}='{}'".format(field, cl, regionField, region)
+            attrib_filter = "{}={} AND {}='{}'".format(
+                field, cl, regionField, region)
             layer.SetAttributeFilter(attrib_filter)
             featureCount = float(layer.GetFeatureCount())
             if featureCount == 1:
@@ -82,7 +85,8 @@ def get_randomPoly(layer, field, classes, ratio, regionField, regions, random_se
                 random.seed(random_seed)
                 random_id_learn = random.sample(listid, int(polbysel))
                 sample_id_learn += [fid for fid in random_id_learn]
-                sample_id_valid += [currentFid for currentFid in listid if currentFid not in sample_id_learn]
+                sample_id_valid += [
+                    currentFid for currentFid in listid if currentFid not in sample_id_learn]
 
     sample_id_learn.sort()
     sample_id_valid.sort()
@@ -90,11 +94,12 @@ def get_randomPoly(layer, field, classes, ratio, regionField, regions, random_se
     layer.SetAttributeFilter(None)
     return set(sample_id_learn), set(sample_id_valid)
 
+
 def get_CrossValId(layer, dataField, classes, seeds, regionField,
-                     regions):
+                   regions):
     """
     use to split samples in 'seeds' folds in order to perform cross-validation methods
-    
+
     Parameters
     ----------
     layer : OGR layer
@@ -102,14 +107,14 @@ def get_CrossValId(layer, dataField, classes, seeds, regionField,
     dataField : string
         data field name
     classes : list
-        list containing all available class (as int) in the layer 
+        list containing all available class (as int) in the layer
     regionField : string
         region field name
     region_avail : list
-        list containing all available regions (as string) in the layer 
+        list containing all available regions (as string) in the layer
     seeds : int
         number of folds
-    
+
     Return
     ------
     list
@@ -123,17 +128,20 @@ def get_CrossValId(layer, dataField, classes, seeds, regionField,
         for cl in classes:
             listid = []
             layer.SetAttributeFilter(None)
-            attrib_filter = "{}={} AND {}='{}'".format(dataField, cl, regionField, region)
+            attrib_filter = "{}={} AND {}='{}'".format(
+                dataField, cl, regionField, region)
             layer.SetAttributeFilter(attrib_filter)
-            fid_area = [(f.GetFID(), f.GetGeometryRef().GetArea()) for f in layer]
+            fid_area = [(f.GetFID(), f.GetGeometryRef().GetArea())
+                        for f in layer]
             region_class_id, _ = splitByArea.splitByArea(fid_area, seeds)
             for fold_num, fold in enumerate(region_class_id):
                 id_sets[fold_num] += [cFID for cFID, cArea in fold]
     layer.SetAttributeFilter(None)
     return id_sets
 
-def splitInSubSets(vectoFile, dataField, regionField, 
-                   ratio=0.5, seeds=1, driver_name="SQLite", 
+
+def splitInSubSets(vectoFile, dataField, regionField,
+                   ratio=0.5, seeds=1, driver_name="SQLite",
                    learningFlag="learn", validationFlag="validation",
                    unusedFlag="unused", crossValidation=False,
                    splitGroundTruth=True, random_seed=None):
@@ -144,7 +152,7 @@ def splitInSubSets(vectoFile, dataField, regionField,
 
     Parameters
     ----------
-    
+
     vectoFile : string
         input vector file
     dataField : string
@@ -185,7 +193,7 @@ def splitInSubSets(vectoFile, dataField, regionField,
 
     id_learn = []
     id_val = []
-    if crossValidation :
+    if crossValidation:
         id_CrossVal = get_CrossValId(layer, dataField,
                                      class_avail, seeds,
                                      regionField, region_avail)
@@ -195,7 +203,7 @@ def splitInSubSets(vectoFile, dataField, regionField,
 
         seed_field_name = "seed_" + str(seed)
         seed_field = ogr.FieldDefn(seed_field_name, ogr.OFTString)
-        
+
         if seed_field_name not in all_fields:
             layer.CreateField(seed_field)
         if crossValidation is False:
@@ -225,6 +233,7 @@ def splitInSubSets(vectoFile, dataField, regionField,
             feat.SetField(seed_field_name, flag)
             layer.SetFeature(feat)
         i = layer = None
+
 
 if __name__ == "__main__":
     func_description = "This function is dedicated to split a shape into N subsets\

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -22,6 +22,7 @@ from Common import FileUtils as fut
 
 logger = logging.getLogger(__name__)
 
+
 def get_models(formatting_vector_directory, regionField, runs):
     """
     usage :
@@ -35,7 +36,7 @@ def get_models(formatting_vector_directory, regionField, runs):
     regions_tiles_seed = [('1', ['T1', 'T2'], 0), ('1', ['T1', T2], 1), ('2', ['T2', 'T3], 0), ('2', ['T2', 'T3], 1)]
     mean the region '1' is present in tiles 'T1' and 'T2' in run 0 and 1 and region '2' in 'T2', 'T3' in runs 0 and 1
     """
-    #the way of getting region could be improve ?
+    # the way of getting region could be improve ?
     tiles = fut.FileSearch_AND(formatting_vector_directory, True, ".shp")
     region_tile = []
     all_regions_in_run = []
@@ -59,8 +60,10 @@ def get_models(formatting_vector_directory, regionField, runs):
         region_tile_dic[region] = list(set(region_tiles))
 
     all_regions_in_run = sorted(all_regions_in_run)
-    regions_tiles_seed = [(region, region_tile_dic[region], run) for run in range(runs) for region in all_regions_in_run]
+    regions_tiles_seed = [(region, region_tile_dic[region], run)
+                          for run in range(runs) for region in all_regions_in_run]
     return regions_tiles_seed
+
 
 def extract_POI(tile_vector, region, seed, region_field, POI, POI_val,
                 force_seed_field=None):
@@ -79,10 +82,11 @@ def extract_POI(tile_vector, region, seed, region_field, POI, POI_val,
         if force_seed_field:
             seed_field = force_seed_field
         cmd = "ogr2ogr -where \"{}='{}' AND {}='{}'\" {} {}".format(region_field,
-                                                                         region, seed_field,
-                                                                         validation_flag,
-                                                                         POI_val, tile_vector)
+                                                                    region, seed_field,
+                                                                    validation_flag,
+                                                                    POI_val, tile_vector)
         run(cmd)
+
 
 def samples_merge(region_tiles_seed, cfg, workingDirectory):
     """
@@ -91,7 +95,7 @@ def samples_merge(region_tiles_seed, cfg, workingDirectory):
     """
     from Common import ServiceConfigFile as SCF
 
-    #because serviceConfigFile's objects are not serializable
+    # because serviceConfigFile's objects are not serializable
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
 
@@ -110,7 +114,7 @@ def samples_merge(region_tiles_seed, cfg, workingDirectory):
     if not os.path.exists(by_models_val):
         try:
             os.mkdir(by_models_val)
-        except:
+        except BaseException:
             pass
     wd_val = by_models_val
     wd = samples_selection_dir
@@ -126,14 +130,17 @@ def samples_merge(region_tiles_seed, cfg, workingDirectory):
     vector_region = []
     vector_region_val = []
     for tile in tiles:
-        vector_tile = fut.FileSearch_AND(formatting_vec_dir, True, tile, ".shp")[0]
-        POI_name = "{}_region_{}_seed_{}_samples.shp".format(tile, region, seed)
+        vector_tile = fut.FileSearch_AND(
+            formatting_vec_dir, True, tile, ".shp")[0]
+        POI_name = "{}_region_{}_seed_{}_samples.shp".format(
+            tile, region, seed)
         POI_learn = os.path.join(wd, POI_name)
         POI_val = None
         # if SAR and Optical post-classification fusion extract validation
         # samples
         if ds_sar_opt:
-            POI_val_name = "{}_region_{}_seed_{}_samples_val.shp".format(tile, region, seed)
+            POI_val_name = "{}_region_{}_seed_{}_samples_val.shp".format(
+                tile, region, seed)
             POI_val = os.path.join(wd_val, POI_val_name)
             vector_region_val.append(POI_val)
         extract_POI(vector_tile, region, seed, region_field, POI_learn,
@@ -144,11 +151,20 @@ def samples_merge(region_tiles_seed, cfg, workingDirectory):
     merged_POI = fut.mergeVectors(merged_POI_name, wd, vector_region)
 
     for vector_r in vector_region:
-        fut.removeShape(vector_r.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"])
+        fut.removeShape(
+            vector_r.replace(
+                ".shp", ""), [
+                ".prj", ".shp", ".dbf", ".shx"])
 
     if workingDirectory:
-        fut.cpShapeFile(merged_POI.replace(".shp", ""), samples_selection_dir, [".prj", ".shp", ".dbf", ".shx"], spe=True)
+        fut.cpShapeFile(
+            merged_POI.replace(
+                ".shp", ""), samples_selection_dir, [
+                ".prj", ".shp", ".dbf", ".shx"], spe=True)
         if ds_sar_opt:
             for vector_validation in vector_region_val:
                 if os.path.exists(vector_validation):
-                    fut.cpShapeFile(vector_validation.replace(".shp", ""), by_models_val, [".prj", ".shp", ".dbf", ".shx"], spe=True)
+                    fut.cpShapeFile(
+                        vector_validation.replace(
+                            ".shp", ""), by_models_val, [
+                            ".prj", ".shp", ".dbf", ".shx"], spe=True)
