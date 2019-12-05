@@ -56,7 +56,8 @@ def FileSearch_fast(PathToFolder, AllPath, *names):
         for i in range(len(files)):
             flag = 0
             for name in names:
-                if files[i].count(name) != 0 and files[i].count(".aux.xml") == 0:
+                if files[i].count(name) != 0 and files[i].count(
+                        ".aux.xml") == 0:
                     flag += 1
             if flag == len(names):
                 # if not AllPath:
@@ -65,7 +66,7 @@ def FileSearch_fast(PathToFolder, AllPath, *names):
                 #    return path+'/'+files[i]
                 retour = files[i].split(".")[0]
                 if AllPath:
-                    retour = path+'/'+files[i]
+                    retour = path + '/' + files[i]
                 return retour
 
 
@@ -108,7 +109,7 @@ def getTileSameDate(folder):
     content = os.listdir(folder)
     for currentContent in content:
         date = currentContent.split("_")[2].split("-")[0]
-        buf.append((date, folder+"/"+currentContent))
+        buf.append((date, folder + "/" + currentContent))
     buf = fu.sortByFirstElem(buf)
     out = [currentList for date, currentList in buf if len(currentList) > 1]
     return out
@@ -116,29 +117,30 @@ def getTileSameDate(folder):
 
 def addLineToFile(inputFile, line):
     svgFile = open(inputFile, "a")
-    svgFile.write(line+"\n")
+    svgFile.write(line + "\n")
     svgFile.close()
 
 
-def launchFit(noDataM, noDataR, tileFolder, currentTile, sensorName, S2Folder, S2Bands, masks):
-    S2Bands = S2Bands+masks
+def launchFit(noDataM, noDataR, tileFolder, currentTile,
+              sensorName, S2Folder, S2Bands, masks):
+    S2Bands = S2Bands + masks
     noDataM = dict(list(zip(masks, noDataM)))
     try:
         workingDirectory = os.environ["TMPDIR"]
-    except:
+    except BaseException:
         workingDirectory = None
 
     content = os.listdir(tileFolder)
     AllCmd = []
 
-    if os.path.isdir(tileFolder+"/"+currentTile):
-        folder = tileFolder+"/"+currentTile
+    if os.path.isdir(tileFolder + "/" + currentTile):
+        folder = tileFolder + "/" + currentTile
         sameDateFolder = getTileSameDate(folder)
     for currentSameDate in sameDateFolder:
         buf = []
         cpt = 0
         for currentBand in S2Bands:
-            print("Current Band : "+currentBand)
+            print("Current Band : " + currentBand)
             buf.append([])
             AllTiles = []
             for currentFolder in currentSameDate:
@@ -158,14 +160,15 @@ def launchFit(noDataM, noDataR, tileFolder, currentTile, sensorName, S2Folder, S
                 if t not in AllTiles:
                     AllTiles.append(t)
 
-            outFolder = tileFolder+"/"+currentDestTile+"/"+sensorName + \
-                "_"+currentDestTile+"_"+currentDate+"_"+"_".join(AllTiles)
+            outFolder = tileFolder + "/" + currentDestTile + "/" + sensorName + \
+                "_" + currentDestTile + "_" + \
+                currentDate + "_" + "_".join(AllTiles)
             initVal = noDataR
             if currentBand in masks:
-                outFolder = outFolder+"/MASKS"
+                outFolder = outFolder + "/MASKS"
                 initVal = noDataM[currentBand]
             outName = "_".join(buf[cpt][0][0].split(
-                "/")[-1].split("_")[0:-1])+"_"+"_".join(AllTiles)+".tif"
+                "/")[-1].split("_")[0:-1]) + "_" + "_".join(AllTiles) + ".tif"
             # case 2 acquisitions same day -> remove hours information
             tmp = []
             tmpList = outName.split("_")
@@ -180,23 +183,23 @@ def launchFit(noDataM, noDataR, tileFolder, currentTile, sensorName, S2Folder, S
                 os.mkdir(outFolder)
             priorityPaths = " ".join(
                 [currentPath for currentPath, X, Y in sortTiles(buf[cpt])])
-            if not os.path.exists(outFolder+"/"+outName):
+            if not os.path.exists(outFolder + "/" + outName):
                 workingFolder = outFolder
                 if workingDirectory:
                     workingFolder = workingDirectory
                 cmd = "gdal_merge.py -init " + \
-                    str(initVal)+" -n "+str(initVal)+" -o " + \
-                    workingFolder+"/"+outName+" "+priorityPaths
-                cmd2 = "gdal_merge.py -init "+str(initVal)+" -n "+str(
-                    initVal)+" -o "+workingFolder+"/"+outName+" "+priorityPaths+" | "+outFolder+"/"+outName
+                    str(initVal) + " -n " + str(initVal) + " -o " + \
+                    workingFolder + "/" + outName + " " + priorityPaths
+                cmd2 = "gdal_merge.py -init " + str(initVal) + " -n " + str(
+                    initVal) + " -o " + workingFolder + "/" + outName + " " + priorityPaths + " | " + outFolder + "/" + outName
                 AllCmd.append(cmd)
                 addLineToFile(cmdPath, cmd2)
 
                 run(cmd)
                 if workingDirectory:
-                    shutil.copy(workingFolder+"/"+outName,
-                                outFolder+"/"+outName)
-                    os.remove(workingFolder+"/"+outName)
+                    shutil.copy(workingFolder + "/" + outName,
+                                outFolder + "/" + outName)
+                    os.remove(workingFolder + "/" + outName)
             cpt += 1
     #fu.writeCmds(cmdPath1, AllCmd, mode="w")
 
@@ -229,4 +232,7 @@ if __name__ == "__main__":
 
     launchFit(args.noDataM, args.noDataR, args.tileFolder, args.currentTile,
               args.sensorName, args.S2Folder, args.S2Bands, args.masks)
-    # python mosaicSameS2DatesL8.py -date.position 1 -cmd.path /cmd -masks.noData 0 1 0 -bands.noData -10000 -raster.masks CLM_R1 EDG_R1 SAT_R1 -raster.bands B2 B3 B4 B5 B6 B7 B8 B8A B11 -raw.folder raw -sensor.name S2 -current.tile D4H4 -tiles.folder here
+    # python mosaicSameS2DatesL8.py -date.position 1 -cmd.path /cmd
+    # -masks.noData 0 1 0 -bands.noData -10000 -raster.masks CLM_R1 EDG_R1
+    # SAT_R1 -raster.bands B2 B3 B4 B5 B6 B7 B8 B8A B11 -raw.folder raw
+    # -sensor.name S2 -current.tile D4H4 -tiles.folder here

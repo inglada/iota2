@@ -49,7 +49,7 @@ def getLandsatRedBand(l8ImageIn, l8RedBandOut, channel=4):
     extractApp.SetParameterOutputImagePixelType(
         "out", otb.ImagePixelType_int16)
     extractApp.UpdateParameters()
-    extractApp.SetParameterStringList("cl", ["Channel"+str(channel)])
+    extractApp.SetParameterStringList("cl", ["Channel" + str(channel)])
     extractApp.ExecuteAndWriteOutput()
 
 
@@ -80,8 +80,8 @@ def filterDisparityMap(dmIn, dmComponentOut, metricThreshold=0.90,
     compStr = "im1b1"
     if dmComponent == "y":
         compStr = "im1b2"
-    expression = "im1b3>"+str(metricThreshold)+"?" + \
-        compStr+":"+str(outputInvalidValue)
+    expression = "im1b3>" + str(metricThreshold) + "?" + \
+        compStr + ":" + str(outputInvalidValue)
     bmApp = otb.Registry.CreateApplication("BandMath")
     bmApp.SetParameterStringList("il", [dmIn])
     bmApp.SetParameterString("out", dmComponentOut)
@@ -111,11 +111,11 @@ def estimateMeanShiftAndStdFromDisparityMap(dmComponentIn, backgroundValue=-100,
 def estimateMeanShiftAndStd(l8ImageIn, s2ImageIn, removeTemporaryFiles=True,
                             workingDir="/tmp", s2SubsamplingRate=3, l8RedChannel=4):
     """Estimates the mean shift in X and Y together with standard deviations"""
-    lowResS2 = workingDir+"/lrs2.tif"
-    redl8 = workingDir+"/redl8.tif"
-    disparityMap = workingDir+"/dm.tif"
-    disparityMapX = workingDir+"/dmx.tif"
-    disparityMapY = workingDir+"/dmy.tif"
+    lowResS2 = workingDir + "/lrs2.tif"
+    redl8 = workingDir + "/redl8.tif"
+    disparityMap = workingDir + "/dm.tif"
+    disparityMapX = workingDir + "/dmx.tif"
+    disparityMapY = workingDir + "/dmy.tif"
     filesToRemove = [lowResS2, redl8, disparityMap, disparityMapX,
                      disparityMapY]
     subsampleS2(s2ImageIn, lowResS2, l8ImageIn)
@@ -134,12 +134,12 @@ def estimateMeanShiftAndStd(l8ImageIn, s2ImageIn, removeTemporaryFiles=True,
 def shiftImage(l8ImageIn, dx, dy, backupOriginalImage=True):
     """Modify the image meta-data to apply a global shift"""
     if backupOriginalImage:
-        shutil.copy2(l8ImageIn, l8ImageIn+".original")
+        shutil.copy2(l8ImageIn, l8ImageIn + ".original")
     ds = gdal.Open(l8ImageIn, GA_Update)
     val = ds.ReadAsArray()
     proj = ds.GetProjection()
     gt = ds.GetGeoTransform()
-    gt2 = (gt[0]+dx, gt[1], gt[2], gt[3]+dy, gt[4], gt[5])
+    gt2 = (gt[0] + dx, gt[1], gt[2], gt[3] + dy, gt[4], gt[5])
     ds.SetGeoTransform(gt2)
 
 
@@ -151,19 +151,19 @@ def landsatShift(l8ImageIn, s2ImageIn, removeTemporaryFiles=True,
                                                    workingDir, s2SubsamplingRate,
                                                    l8RedChannel)
     print("Estimated shift")
-    print("dx (std) = ", str(dx)+"("+str(stdx)+")")
-    print("dy (std) = ", str(dy)+"("+str(stdy)+")")
+    print("dx (std) = ", str(dx) + "(" + str(stdx) + ")")
+    print("dy (std) = ", str(dy) + "(" + str(stdy) + ")")
     # A test on std could be included here
     shiftImage(l8ImageIn, -dx, -dy)
-    shutil.copy2(l8ImageIn, "tmp_"+l8ImageIn)
-    superimpose("tmp_"+l8ImageIn, s2ImageIn, l8ImageIn)
-    os.remove("tmp_"+l8ImageIn)
+    shutil.copy2(l8ImageIn, "tmp_" + l8ImageIn)
+    superimpose("tmp_" + l8ImageIn, s2ImageIn, l8ImageIn)
+    os.remove("tmp_" + l8ImageIn)
 
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         prog = os.path.basename(sys.argv[0])
-        print('      '+sys.argv[0]+' [options]')
+        print('      ' + sys.argv[0] + ' [options]')
         print("     Help : ", prog, " --help")
         print("        or : ", prog, " -h")
         sys.exit(-1)

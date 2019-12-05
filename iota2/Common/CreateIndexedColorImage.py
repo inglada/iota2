@@ -46,7 +46,7 @@ def CreateColorTable(fileLUT, logger_=logger):
         codeColor = [int(i) for i in (classID[1:4])]
         try:
             ct.SetColorEntry(int(classID[0]), tuple(codeColor))
-        except:
+        except BaseException:
             logger_.warning(
                 "a color entry was not recognize, default value set. Class label 0, RGB code : 255, 255, 255")
             ct.SetColorEntry(0, (255, 255, 255))
@@ -54,7 +54,8 @@ def CreateColorTable(fileLUT, logger_=logger):
     return ct
 
 
-def CreateIndexedColorImage(pszFilename, fileL, co_option=[], output_pix_type=gdal.GDT_Byte):
+def CreateIndexedColorImage(
+        pszFilename, fileL, co_option=[], output_pix_type=gdal.GDT_Byte):
     """
         from a labeled image (pszFilename), attribute a color described by fileL and save it next to pszFilename with the suffix _ColorIndexed
         IN :
@@ -63,14 +64,15 @@ def CreateIndexedColorImage(pszFilename, fileL, co_option=[], output_pix_type=gd
     """
     indataset = gdal.Open(pszFilename, gdal.GA_ReadOnly)
     if indataset is None:
-        print('Could not open '+pszFilename)
+        print('Could not open ' + pszFilename)
         sys.exit(1)
     outpath = pszFilename.split('/')
     if len(outpath) == 1:
-        outname = os.getcwd()+'/'+outpath[0].split('.')[0]+'_ColorIndexed.tif'
+        outname = os.getcwd() + '/' + \
+            outpath[0].split('.')[0] + '_ColorIndexed.tif'
     else:
-        outname = '/'.join(outpath[0:-1])+'/' + \
-            outpath[-1].split('.')[0]+'_ColorIndexed.tif'
+        outname = '/'.join(outpath[0:-1]) + '/' + \
+            outpath[-1].split('.')[0] + '_ColorIndexed.tif'
     inband = indataset.GetRasterBand(1)
     gt = indataset.GetGeoTransform()
     driver = gdal.GetDriverByName("GTiff")
@@ -86,7 +88,7 @@ def CreateIndexedColorImage(pszFilename, fileL, co_option=[], output_pix_type=gd
     outband = outdataset.GetRasterBand(1)
     outband.SetColorTable(ct)
     outband.WriteArray(inarray)
-    print('The file '+outname+' has been created')
+    print('The file ' + outname + ' has been created')
     return outname
 
 

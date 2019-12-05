@@ -80,13 +80,13 @@ def stop_workers(mpi_service):
     :param mpi_service
     """
     for i in range(1, mpi_service.size):
-        print("Worker process with rank {}/{} stopped".format(i, mpi_service.size-1))
+        print("Worker process with rank {}/{} stopped".format(i, mpi_service.size - 1))
         mpi_service.comm.send(None, dest=i, tag=1)
 
 
 def launchTask(function, parameter, logger, mpi_services=None):
     """
-    usage : 
+    usage :
     IN
     OUT
     """
@@ -106,7 +106,7 @@ def launchTask(function, parameter, logger, mpi_services=None):
         logger.root.log(51, "parameter : '" + str(parameter) + "' : ended")
     except KeyboardInterrupt:
         raise
-    except:
+    except BaseException:
         traceback.print_exc()
         parameter_success = False
         logger.root.log(51, "parameter : '" + str(parameter) + "' : failed")
@@ -185,7 +185,7 @@ def mpi_schedule(iota2_step, param_array_origin, mpi_service=MPIService(), logPa
                 parameters_success.append(success)
     except KeyboardInterrupt:
         raise
-    except:
+    except BaseException:
         if mpi_service.rank == 0 and mpi_service.size > 1:
             print("Something went wrong, we should log errors.")
             traceback.print_exc()
@@ -204,7 +204,7 @@ def start_workers(mpi_service):
         # Sending started signal
         mpi_service.comm.send(mpi_service.rank, dest=0, tag=0)
         mpi_status = MPI.Status()
-        while 1:
+        while True:
             # waiting sending works by master
             task = mpi_service.comm.recv(
                 source=0, tag=MPI.ANY_TAG, status=mpi_status)
@@ -223,10 +223,10 @@ def start_workers(mpi_service):
                                   start_date, end_date, worker_complete_log, returned_data, success]], dest=0, tag=0)
     else:
         nb_started_workers = 0
-        while nb_started_workers < mpi_service.size-1:
+        while nb_started_workers < mpi_service.size - 1:
             rank = mpi_service.comm.recv(source=MPI.ANY_SOURCE, tag=0)
             print(
-                "Worker process with rank {}/{} started".format(rank, mpi_service.size-1))
+                "Worker process with rank {}/{} started".format(rank, mpi_service.size - 1))
             nb_started_workers += 1
 
 
@@ -300,7 +300,7 @@ if __name__ == "__main__":
     param_index = args.param_index
     try:
         rm_tmp = cfg.getParam('chain', 'remove_tmp_files')
-    except:
+    except BaseException:
         rm_tmp = False
 
     if args.start == args.end == 0:
@@ -327,8 +327,8 @@ if __name__ == "__main__":
     # Start worker processes
     start_workers(mpi_service)
 
-    for step in np.arange(args.start, args.end+1):
-        params = steps[step-1].step_inputs()
+    for step in np.arange(args.start, args.end + 1):
+        params = steps[step - 1].step_inputs()
         param_array = []
         if callable(params):
             param_array = params()
@@ -346,20 +346,20 @@ if __name__ == "__main__":
             params = param_array
         # ~ if steps[step-1].previous_step:
             # ~ print "Etape précédente : {}".format(steps[step-1].previous_step.step_status)
-        steps[step-1].step_status = "running"
-        logFile = steps[step-1].logFile
+        steps[step - 1].step_status = "running"
+        logFile = steps[step - 1].logFile
         if param_index is not None:
             params = [params[param_index]]
-            logFile = (steps[step-1].logFile).replace(".log",
-                                                      "_{}.log".format(param_index))
-        _, step_completed = mpi_schedule(steps[step-1], params,
+            logFile = (steps[step - 1].logFile).replace(".log",
+                                                        "_{}.log".format(param_index))
+        _, step_completed = mpi_schedule(steps[step - 1], params,
                                          mpi_service, logFile,
                                          logger_lvl)
         if not step_completed:
-            steps[step-1].step_status = "fail"
+            steps[step - 1].step_status = "fail"
             break
         else:
-            steps[step-1].step_status = "success"
+            steps[step - 1].step_status = "success"
         if rm_tmp and param_index is None:
             remove_tmp_files(cfg, current_step=step, chain=chain_to_process)
     #~ chain_to_process.save_chain()

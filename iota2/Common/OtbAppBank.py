@@ -92,7 +92,7 @@ def CreateImageClassifierApplication(OtbParameters):
     Parameter
     ---------
 
-    OtbParameters [dic] 
+    OtbParameters [dic]
         dictionnary with otb's parameter keys
 
     Return
@@ -149,7 +149,7 @@ def CreateImageTimeSeriesGapFillingApplication(OtbParameters):
     Parameter
     ---------
 
-    OtbParameters [dic] 
+    OtbParameters [dic]
         dictionnary with otb's parameter keys
 
     Return
@@ -228,7 +228,7 @@ def CreateIota2FeatureExtractionApplication(OtbParameters):
     Parameter
     ---------
 
-    OtbParameters [dic] 
+    OtbParameters [dic]
         dictionnary with otb's parameter keys
 
     Return
@@ -315,7 +315,7 @@ def CreateSampleAugmentationApplication(OtbParameters):
     Parameter
     ---------
 
-    OtbParameters [dic] 
+    OtbParameters [dic]
         dictionnary with otb's parameter keys
 
     Return
@@ -1922,7 +1922,7 @@ def computeUserFeatures(stack, Dates, nbComponent, expressions):
                         stringDigit += expr[j]
                         if cpt == len(expr) - 1:
                             container.append(stringDigit)
-                    except:
+                    except BaseException:
                         container.append(stringDigit)
                         break
             cpt += 1
@@ -2084,7 +2084,8 @@ def sortS1Masks(masksList):
     return sortedMasks
 
 
-def getSARstack(sarConfig, tileName, allTiles, featuresPath, workingDirectory=None):
+def getSARstack(sarConfig, tileName, allTiles,
+                featuresPath, workingDirectory=None):
     """
     function use to compute interpolation files
     """
@@ -2114,28 +2115,28 @@ def getSARstack(sarConfig, tileName, allTiles, featuresPath, workingDirectory=No
             outputDirectory, tileName[1:]), True, "S1_vv_ASC_dates.txt")[0]
         writeInputDateFile(inDateFiles_s1_vv_ASC,
                            inDateFiles_s1_vv_ASC.replace(".txt", "_input.txt"))
-    except:
+    except BaseException:
         inDateFiles_s1_vv_ASC = []
     try:
         inDateFiles_s1_vh_ASC = fut.FileSearch_AND(os.path.join(
             outputDirectory, tileName[1:]), True, "S1_vh_ASC_dates.txt")[0]
         writeInputDateFile(inDateFiles_s1_vh_ASC,
                            inDateFiles_s1_vh_ASC.replace(".txt", "_input.txt"))
-    except:
+    except BaseException:
         inDateFiles_s1_vh_ASC = []
     try:
         inDateFiles_s1_vv_DES = fut.FileSearch_AND(os.path.join(
             outputDirectory, tileName[1:]), True, "S1_vv_DES_dates.txt")[0]
         writeInputDateFile(inDateFiles_s1_vv_DES,
                            inDateFiles_s1_vv_DES.replace(".txt", "_input.txt"))
-    except:
+    except BaseException:
         inDateFiles_s1_vv_DES = []
     try:
         inDateFiles_s1_vh_DES = fut.FileSearch_AND(os.path.join(
             outputDirectory, tileName[1:]), True, "S1_vh_DES_dates.txt")[0]
         writeInputDateFile(inDateFiles_s1_vh_DES,
                            inDateFiles_s1_vh_DES.replace(".txt", "_input.txt"))
-    except:
+    except BaseException:
         inDateFiles_s1_vh_DES = []
 
     # Input dates all tiles
@@ -2210,7 +2211,7 @@ def generateSARFeat_dates(sar_expressions, SAR_dict, output_raster=None):
         input_features = [SAR_dict["asc"]["vv"]["App"],
                           SAR_dict["asc"]["vh"]["App"]]
         expr = [elem for featuresDates in ASC_features_exp for elem in featuresDates]
-        SAR_labels = ["sentinel1_asc_userfeature{}_{}".format(i+1, date) for i in range(
+        SAR_labels = ["sentinel1_asc_userfeature{}_{}".format(i + 1, date) for i in range(
             len(ASC_features_exp)) for date in SAR_dict["asc"]["vv"]["availDates"]]
     if DES:
         DES_features_exp = computeSARFeatures_dates_expressions(sar_expressions,
@@ -2218,7 +2219,7 @@ def generateSARFeat_dates(sar_expressions, SAR_dict, output_raster=None):
         input_features = [SAR_dict["des"]["vv"]["App"],
                           SAR_dict["des"]["vh"]["App"]]
         expr = [elem for featuresDates in DES_features_exp for elem in featuresDates]
-        SAR_labels = ["sentinel1_des_userfeature{}_{}".format(i+1, date) for i in range(
+        SAR_labels = ["sentinel1_des_userfeature{}_{}".format(i + 1, date) for i in range(
             len(ASC_features_exp)) for date in SAR_dict["des"]["vv"]["availDates"]]
     if ASC and DES:
         DES_features_exp_tmp = [elem for elem in DES_features_exp]
@@ -2259,7 +2260,7 @@ def computeSARFeatures_dates_expressions(sar_expressions, nb_dates):
     sar_expressions : list
         list containing string features expression
     nb_dates : dict
-        dictionnary containing by mode (ASC or DES) the number of 
+        dictionnary containing by mode (ASC or DES) the number of
         available dates
 
     Return
@@ -2270,12 +2271,13 @@ def computeSARFeatures_dates_expressions(sar_expressions, nb_dates):
     for sar_expr in sar_expressions:
         sar_expr = sar_expr.lower().replace(" ", "")
         sar_date = [sar_expr.replace("vv", "im1b{}".format(
-            i+1)).replace("vh", "im2b{}".format(i+1)) for i in range(nb_dates)]
+            i + 1)).replace("vh", "im2b{}".format(i + 1)) for i in range(nb_dates)]
         out_expressions.append(sar_date)
     return out_expressions
 
 
-def computeSARfeatures(sarConfig, tileToCompute, allTiles, featuresPath, logger=logger):
+def computeSARfeatures(sarConfig, tileToCompute,
+                       allTiles, featuresPath, logger=logger):
     """
     IN:
     sarConfig [string] : path to SAR configuration file
@@ -2293,7 +2295,7 @@ def computeSARfeatures(sarConfig, tileToCompute, allTiles, featuresPath, logger=
     try:
         interpolation_mode = config.get('Processing',
                                         'gapFilling_interpolation')
-    except:
+    except BaseException:
         logger.info(
             "Processing.gapFilling_interpolation not found, 'linear' mode is set")
         interpolation_mode = "linear"
@@ -2323,7 +2325,8 @@ def computeSARfeatures(sarConfig, tileToCompute, allTiles, featuresPath, logger=
                           "vh": {"App": None,
                                  "availDates": None}}}
 
-    for currentSarStack, CSARmasks, interpDate, inputDate in zip(SARstack, SARmasks, interpDateFiles, inputDateFiles):
+    for currentSarStack, CSARmasks, interpDate, inputDate in zip(
+            SARstack, SARmasks, interpDateFiles, inputDateFiles):
         outName = currentSarStack.GetParameterValue("outputstack")
         if not isinstance(CSARmasks, list):
             CSARmasks = [CSARmasks]
@@ -2397,7 +2400,8 @@ def computeSARfeatures(sarConfig, tileToCompute, allTiles, featuresPath, logger=
                                                            "ram": '5000',
                                                            "pixType": "float"})
 
-    return stackSARFeatures, fields_names, [stackMask, SARstack, Dep, userSAR_features]
+    return stackSARFeatures, fields_names, [
+        stackMask, SARstack, Dep, userSAR_features]
 
 
 def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
@@ -2492,7 +2496,8 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
 
     # add SAR features
     SARdep = None
-    if (S1Data and (mode == "usually" and ds_sar_opt_fus is False)) or (S1Data and (mode != "usually" and ds_sar_opt_fus is True)) or fut.onlySAR(cfg):
+    if (S1Data and (mode == "usually" and ds_sar_opt_fus is False)) or (
+            S1Data and (mode != "usually" and ds_sar_opt_fus is True)) or fut.onlySAR(cfg):
         SARfeatures, SAR_fields, SARdep = computeSARfeatures(
             S1Data, tile, allTiles, featurepath)
         AllFeatures.append(SARfeatures)
@@ -2501,7 +2506,8 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
 
     # add optical features
     if mode == "usually":
-        for gapFilling, dates, c_datesFile_sensor in zip(stack_dates, nbDates, datesFile_sensor):
+        for gapFilling, dates, c_datesFile_sensor in zip(
+                stack_dates, nbDates, datesFile_sensor):
             outFeatures = gapFilling.GetParameterValue("out")
             outFeatures = outFeatures.replace(".tif", "_Features.tif")
             featExtr = otb.Registry.CreateApplication("iota2FeatureExtraction")
@@ -2613,7 +2619,7 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
     all_fields_sensors = [
         feat_name for cFeat in all_fields_sens for feat_name in cFeat]
 
-    sep = " "*63
+    sep = " " * 63
     logger.debug("Features labels : %s" %
                  (("\n" + sep).join(all_fields_sensors)))
 

@@ -302,7 +302,8 @@ class iota_test_Basic(unittest.TestCase):
             ref_field_list = [line.rstrip() for line in f]
 
         # check outputs
-        # condition : the difference between ref_field_list and test_field_list must be 'originfid'
+        # condition : the difference between ref_field_list and test_field_list
+        # must be 'originfid'
         condition = len(set(ref_field_list) - set(test_field_list)) == 1 and list(
             set(ref_field_list) - set(test_field_list))[0] == "originfid"
         self.assertTrue(condition)

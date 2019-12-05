@@ -31,7 +31,7 @@ def extractStats(vectorIn, pathConf, wD=None):
     tileToCompute = vectorIn.split("/")[-1].split("_")[0]
     modelToCompute = vectorIn.split("/")[-1].split("_")[2].split("f")[0]
     seed = vectorIn.split("/")[-1].split("_")[3].replace("seed", "")
-    workingDirectory = iota2Folder+"/final/TMP"
+    workingDirectory = iota2Folder + "/final/TMP"
     shapeMode = vectorIn.split(
         "/")[-1].split("_")[-1].split(".")[0]  # 'learn' or 'val'
     if wD:
@@ -39,30 +39,30 @@ def extractStats(vectorIn, pathConf, wD=None):
 
     try:
         refImg = fut.FileSearch_AND(
-            iota2Folder+"/final/TMP", True, tileToCompute, ".tif")[0]
-    except:
+            iota2Folder + "/final/TMP", True, tileToCompute, ".tif")[0]
+    except BaseException:
         raise Exception("reference image can not be found in " +
-                        iota2Folder+"/final/TMP")
+                        iota2Folder + "/final/TMP")
 
-    statsFile = workingDirectory+"/"+tileToCompute + \
-        "_stats_model_"+modelToCompute+".xml"
+    statsFile = workingDirectory + "/" + tileToCompute + \
+        "_stats_model_" + modelToCompute + ".xml"
     stats = otbApp.CreatePolygonClassStatisticsApplication({"in": refImg, "vec": vectorIn,
                                                             "out": statsFile, "field": dataField})
     stats.ExecuteAndWriteOutput()
 
-    selVector = workingDirectory+"/"+tileToCompute + \
-        "_selection_model_"+modelToCompute+".sqlite"
+    selVector = workingDirectory + "/" + tileToCompute + \
+        "_selection_model_" + modelToCompute + ".sqlite"
     sampleS = otbApp.CreateSampleSelectionApplication({"in": refImg, "vec": vectorIn, "out": selVector,
                                                        "instats": statsFile, "strategy": "all",
                                                        "field": dataField})
     sampleS.ExecuteAndWriteOutput()
 
     classificationRaster = fut.FileSearch_AND(
-        iota2Folder+"/final/TMP", True, tileToCompute+"_seed_"+seed+".tif")[0]
+        iota2Folder + "/final/TMP", True, tileToCompute + "_seed_" + seed + ".tif")[0]
     validity = fut.FileSearch_AND(
-        iota2Folder+"/final/TMP", True, tileToCompute+"_Cloud.tif")[0]
+        iota2Folder + "/final/TMP", True, tileToCompute + "_Cloud.tif")[0]
     confiance = fut.FileSearch_AND(
-        iota2Folder+"/final/TMP", True, tileToCompute+"_GlobalConfidence_seed_"+seed+".tif")[0]
+        iota2Folder + "/final/TMP", True, tileToCompute + "_GlobalConfidence_seed_" + seed + ".tif")[0]
 
     stack = [classificationRaster, validity, confiance]
     dataStack = otbApp.CreateConcatenateImagesApplication({"il": stack,
@@ -71,8 +71,8 @@ def extractStats(vectorIn, pathConf, wD=None):
                                                            "out": ""})
     dataStack.Execute()
 
-    outSampleExtraction = workingDirectory+"/"+tileToCompute + \
-        "_extraction_model_"+modelToCompute+"_"+shapeMode+".sqlite"
+    outSampleExtraction = workingDirectory + "/" + tileToCompute + \
+        "_extraction_model_" + modelToCompute + "_" + shapeMode + ".sqlite"
 
     extraction = otbApp.CreateSampleExtractionApplication({"in": dataStack, "vec": selVector,
                                                            "field": dataField, " out": outSampleExtraction,
@@ -84,12 +84,12 @@ def extractStats(vectorIn, pathConf, wD=None):
     cursor = conn.cursor()
     SQL = "alter table output add column TILE TEXT"
     cursor.execute(SQL)
-    SQL = "update output set TILE='"+tileToCompute+"'"
+    SQL = "update output set TILE='" + tileToCompute + "'"
     cursor.execute(SQL)
 
     SQL = "alter table output add column MODEL TEXT"
     cursor.execute(SQL)
-    SQL = "update output set MODEL='"+modelToCompute+"'"
+    SQL = "update output set MODEL='" + modelToCompute + "'"
     cursor.execute(SQL)
 
     conn.commit()
@@ -97,7 +97,7 @@ def extractStats(vectorIn, pathConf, wD=None):
     os.remove(statsFile)
     os.remove(selVector)
     if wD:
-        shutil.copy(outSampleExtraction, iota2Folder+"/final/TMP")
+        shutil.copy(outSampleExtraction, iota2Folder + "/final/TMP")
 
 
 if __name__ == "__main__":

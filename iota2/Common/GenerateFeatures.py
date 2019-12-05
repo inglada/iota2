@@ -75,7 +75,8 @@ def generateFeatures(pathWd, tile, cfg, writeFeatures=False,
     if mode == "usually" and sar_optical_post_fusion is False:
         sensors_features = sensor_tile_container.get_sensors_features(
             available_ram=1000)
-        for sensor_name, ((sensor_features, sensor_features_dep), features_labels) in sensors_features:
+        for sensor_name, ((sensor_features, sensor_features_dep),
+                          features_labels) in sensors_features:
             sensor_features.Execute()
             feat_app.append(sensor_features)
             dep.append(sensor_features_dep)
@@ -84,7 +85,8 @@ def generateFeatures(pathWd, tile, cfg, writeFeatures=False,
         sensor_tile_container.remove_sensor("Sentinel1")
         sensors_features = sensor_tile_container.get_sensors_features(
             available_ram=1000)
-        for sensor_name, ((sensor_features, sensor_features_dep), features_labels) in sensors_features:
+        for sensor_name, ((sensor_features, sensor_features_dep),
+                          features_labels) in sensors_features:
             sensor_features.Execute()
             feat_app.append(sensor_features)
             dep.append(sensor_features_dep)

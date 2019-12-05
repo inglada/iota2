@@ -27,7 +27,7 @@ from Common.Utils import run
 def getRasterResolution(rasterIn):
     raster = gdal.Open(rasterIn, GA_ReadOnly)
     if raster is None:
-        raise Exception("can't open "+rasterIn)
+        raise Exception("can't open " + rasterIn)
     geotransform = raster.GetGeoTransform()
     spacingX = geotransform[1]
     spacingY = geotransform[5]
@@ -61,8 +61,8 @@ def getRasterExtent(raster_in):
 
             minX = originX
             maxY = originY
-            maxX = minX + c*spacingX
-            minY = maxY + r*spacingY
+            maxX = minX + c * spacingX
+            minY = maxY + r * spacingY
             retour = [minX, maxX, minY, maxY]
 
     # On renvoie la liste en fonction des cas
@@ -76,7 +76,7 @@ def getFieldType(layer, field):
     fieldList = []
     for i in range(layerDefinition.GetFieldCount()):
         fieldName = layerDefinition.GetFieldDefn(i).GetName()
-        fieldList.append('"'+fieldName+'"')
+        fieldList.append('"' + fieldName + '"')
         fieldTypeCode = layerDefinition.GetFieldDefn(i).GetType()
         fieldType = layerDefinition.GetFieldDefn(
             i).GetFieldTypeName(fieldTypeCode)
@@ -88,9 +88,9 @@ def getFieldType(layer, field):
     retour = None
     try:
         retour = fieldDef[field]
-    except:
-        raise Exception('Field : "'+field +
-                        '" not in field\'s list : '+' , '.join(fieldList))
+    except BaseException:
+        raise Exception('Field : "' + field +
+                        '" not in field\'s list : ' + ' , '.join(fieldList))
     return retour
 
 
@@ -110,7 +110,7 @@ def getAllGeom(layer, field, valField):
 
 
 def matchGrid(val, grid):
-    return min(grid, key=lambda x: abs(x-val))
+    return min(grid, key=lambda x: abs(x - val))
 
 
 def getBBox(raster_in, allGeom):
@@ -123,8 +123,8 @@ def getBBox(raster_in, allGeom):
     spacingX, spacingY = getRasterResolution(raster_in)
 
     # match polygon's envelope and raster grid
-    Xgrid = np.arange(minXe, maxXe+spacingX)
-    Ygrid = np.arange(minYe, maxYe-spacingY)
+    Xgrid = np.arange(minXe, maxXe + spacingX)
+    Ygrid = np.arange(minYe, maxYe - spacingY)
 
     minX = matchGrid(minX, Xgrid)
     maxX = matchGrid(maxX, Xgrid)
@@ -134,14 +134,15 @@ def getBBox(raster_in, allGeom):
     return minX, maxX, minY, maxY
 
 
-def generateRaster(raster_path, features_path, driver, field, valField, output, epsg):
+def generateRaster(raster_path, features_path, driver,
+                   field, valField, output, epsg):
     """
     """
 
     driver = ogr.GetDriverByName(driver)
     features = driver.Open(features_path, 0)
     if features is None:
-        raise Exception("Could not open "+features_path)
+        raise Exception("Could not open " + features_path)
     lyr = features.GetLayer()
     allGeom = getAllGeom(lyr, field, valField)
     minX, maxX, minY, maxY = getBBox(raster_path, allGeom)
@@ -151,15 +152,15 @@ def generateRaster(raster_path, features_path, driver, field, valField, output, 
     sep = ""
     if not isinstance(fieldType, int):
         sep = "'"
-    valField = ["("+field+"="+sep+currentValToKeep+sep +
+    valField = ["(" + field + "=" + sep + currentValToKeep + sep +
                 ")" for currentValToKeep in valField]
     csql = " OR ".join(valField)
 
     sizeX, sizeY = getRasterResolution(raster_path)
-    cmd = "gdalwarp -overwrite -t_srs EPSG:"+str(epsg)+" -tr "+str(sizeX)+" "+str(sizeX)+" -of GTiff -cl "+layerName+" -csql \"SELECT * FROM "+layerName + \
-        " WHERE ("+csql+")\" -ot Byte -te "+str(minX)+" "+str(minY)+" "+str(maxX)+" " + \
-        str(maxY)+" -cutline "+features_path + \
-        " -crop_to_cutline "+raster_path+" "+output
+    cmd = "gdalwarp -overwrite -t_srs EPSG:" + str(epsg) + " -tr " + str(sizeX) + " " + str(sizeX) + " -of GTiff -cl " + layerName + " -csql \"SELECT * FROM " + layerName + \
+        " WHERE (" + csql + ")\" -ot Byte -te " + str(minX) + " " + str(minY) + " " + str(maxX) + " " + \
+        str(maxY) + " -cutline " + features_path + \
+        " -crop_to_cutline " + raster_path + " " + output
     run(cmd)
 
     ds = gdal.Open(output, GA_Update)

@@ -32,7 +32,8 @@ this.cfg = None
 
 def clearConfig():
     if this.pathConf is not None:
-        # also in local function scope. no scope specifier like global is needed
+        # also in local function scope. no scope specifier like global is
+        # needed
         this.pathConf = None
         this.cfg = None
 
@@ -274,7 +275,8 @@ class serviceConfigFile:
             raise sErr.configError("the file '{}' is containing a non-ascii letter at first position in it's name : {}".format(input_vector,
                                                                                                                                first_character))
 
-    def testVarConfigFile(self, section, variable, varType, valeurs="", valDefaut=""):
+    def testVarConfigFile(self, section, variable,
+                          varType, valeurs="", valDefaut=""):
         """
             This function check if variable is in obj
             and if it has varType type.
@@ -359,7 +361,8 @@ class serviceConfigFile:
                             "strategy.smote.neighbors must be an integer")
                 if "samples.strategy" in sampleAug:
                     samples_strategy = sampleAug["samples.strategy"]
-                    if samples_strategy not in ["minNumber", "balance", "byClass"]:
+                    if samples_strategy not in [
+                            "minNumber", "balance", "byClass"]:
                         raise sErr.configError(
                             "augmentation strategy must be 'minNumber', 'balance' or 'byClass'")
                 if "samples.strategy.minNumber" in sampleAug:
@@ -600,7 +603,7 @@ class serviceConfigFile:
                 self.testVarConfigFile('Sentinel_2', 'temporalResolution', int)
                 self.testVarConfigFile('Sentinel_2', 'keepBands', Sequence)
 
-            if self.cfg.chain.random_seed != None:
+            if self.cfg.chain.random_seed is not None:
                 self.testVarConfigFile('chain', 'random_seed', int)
 
             nbTile = len(self.cfg.chain.listTile.split(" "))
@@ -652,7 +655,8 @@ class serviceConfigFile:
             if self.getParam("chain", "enableCrossValidation") is True:
                 raise sErr.configError(
                     "enableCrossValidation not available, please set it to False\n")
-            if self.getParam("chain", "regionPath") is None and self.cfg.argClassification.classifMode == "fusion":
+            if self.getParam(
+                    "chain", "regionPath") is None and self.cfg.argClassification.classifMode == "fusion":
                 raise sErr.configError(
                     "you can't chose 'one_region' mode and ask a fusion of classifications\n")
             if self.cfg.chain.merge_final_classifications and self.cfg.chain.runs == 1:

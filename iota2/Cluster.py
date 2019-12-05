@@ -39,11 +39,12 @@ def get_RAM(ram):
     if "gb" in ram:
         ram = float(ram.split("gb")[0])
     elif "mb" in ram:
-        ram = float(ram.split("mb")[0])/1024
+        ram = float(ram.split("mb")[0]) / 1024
     return ram
 
 
-def get_HPC_disponibility(nb_cpu, ram, process_min, process_max, nb_parameters):
+def get_HPC_disponibility(nb_cpu, ram, process_min,
+                          process_max, nb_parameters):
     """
     usage : function use to predict ressources request by iota2 tasks
 
@@ -66,7 +67,8 @@ def get_HPC_disponibility(nb_cpu, ram, process_min, process_max, nb_parameters):
     import math
     from collections import Counter
 
-    # HPC hardware by nodes : cpu_HPC -> number of cpus ram_HPC -> RAM (gb) avail
+    # HPC hardware by nodes : cpu_HPC -> number of cpus ram_HPC -> RAM (gb)
+    # avail
     cpu_HPC = 24
     ram_HPC = 120
 
@@ -77,10 +79,10 @@ def get_HPC_disponibility(nb_cpu, ram, process_min, process_max, nb_parameters):
         "(\d+[\s\d]?)/(\d+[\s\d]?)/(\d+[\s\d]?)/(\d+[\s\d]?)")
 
     # RegEx to find available cpu
-    regEx_ram = re.compile("([\s\d]?[\s\d]?\d+)+/(\d+\d+\d+)+")
+    regEx_ram = re.compile(r"([\s\d]?[\s\d]?\d+)+/(\d+\d+\d+)+")
 
     # RegEx to find node's name
-    regEx_node = re.compile("node+\d+\d+\d+")
+    regEx_node = re.compile(r"node+\d+\d+\d+")
 
     process = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
     stdout, stderr = process.communicate()
@@ -99,8 +101,8 @@ def get_HPC_disponibility(nb_cpu, ram, process_min, process_max, nb_parameters):
         ram_avail = int(ram_HPC) - int(ram_busy)
 
         if float(cpu_avail) > float(nb_cpu) and float(ram_avail) > ram:
-            nb_process = min(int(float(cpu_avail)/float(nb_cpu)),
-                             int(float(ram_avail)/float(ram)))
+            nb_process = min(int(float(cpu_avail) / float(nb_cpu)),
+                             int(float(ram_avail) / float(ram)))
             node_dic[node_name] = nb_process
 
     import operator
@@ -187,7 +189,7 @@ def write_PBS_MPI(job_directory, log_directory, task_name, step_to_compute,
     if config_ressources_req:
         ressources_HPC = "-config_ressources " + config_ressources_req
 
-    nprocs = int(MPI_process)*int(nb_chunk)
+    nprocs = int(MPI_process) * int(nb_chunk)
 
     exe = ("\nmpirun -x ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS={0} -np {1} "
            "python {2}/Iota2.py -config {3} "
@@ -396,13 +398,13 @@ def launchChain(cfg, config_ressources=None, parallel_mode="MPI"):
 
         if parallel_mode == "MPI":
             pbs, log_err = write_PBS_MPI(job_directory=job_dir, log_directory=log_dir,
-                                         task_name=steps[step_num].step_name, step_to_compute=step_num+1,
+                                         task_name=steps[step_num].step_name, step_to_compute=step_num + 1,
                                          nb_parameters=nbParameter, request=ressources,
                                          script_path=scripts, config_path=config_path,
                                          config_ressources_req=config_ressources)
         elif parallel_mode == "JobArray":
             pbs, log_err = write_PBS_JA(job_directory=job_dir, log_directory=log_dir,
-                                        task_name=steps[step_num].step_name, step_to_compute=step_num+1,
+                                        task_name=steps[step_num].step_name, step_to_compute=step_num + 1,
                                         nb_parameters=nbParameter, request=ressources,
                                         script_path=scripts, config_path=config_path,
                                         config_ressources_req=config_ressources)

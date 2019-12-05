@@ -82,7 +82,7 @@ def get_S2_Tile_Coverage(file):
                 if res == 0 and array[i][j] != 'NaN':
                     res = 1
             res_tab.append(res)
-    coverage_percent = float(sum(res_tab))/float(len(res_tab))
+    coverage_percent = float(sum(res_tab)) / float(len(res_tab))
     return coverage_percent
 
 
@@ -91,7 +91,7 @@ def get_S2_Tile_Cloud_Cover(file):
         for line in f:
             if 'name="CloudPercent"' in line:
                 cloud = float(line.split("</")[0].split('>')[1])
-                percent = 1-cloud/100
+                percent = 1 - cloud / 100
     return percent
 
 
@@ -100,7 +100,7 @@ def get_L8_Tile_Cloud_Cover(file):
         for line in f:
             if 'CLOUD_COVER ' in line:
                 cloud = float(line.split(' = ')[1])
-                percent = 1-cloud / 100
+                percent = 1 - cloud / 100
     return percent
 
 
@@ -121,31 +121,32 @@ def fitnessDateScore(dateVHR, datadir, datatype):
     max_pixel = None
     if datatype in ['L5', 'L8']:
         maxFitScore = None
-        for file in glob.glob(datadir+os.sep+'*'+os.sep+'*_MTL.txt'):
+        for file in glob.glob(datadir + os.sep + '*' + os.sep + '*_MTL.txt'):
             inDate = os.path.basename(file).split("_")[3]
             year = int(inDate[:4])
             month = int(inDate[4:6])
             day = int(inDate[6:8])
             delta = 1 - \
-                min(abs((date(year, month, day) - dateVHR).days)/500, 1)
+                min(abs((date(year, month, day) - dateVHR).days) / 500, 1)
             percent = get_L8_Tile_Cloud_Cover(file)
-            fitScore = delta*percent
+            fitScore = delta * percent
             if maxFitScore < fitScore or maxFitScore is None:
                 maxFitScore = fitScore
                 fitDate = inDate
 
     elif datatype in ['S2', 'S2_S2C']:
         maxFitScore = None
-        for file in glob.glob(datadir+os.sep+'*'+os.sep+'*_MTD_ALL.xml'):
+        for file in glob.glob(datadir + os.sep + '*' +
+                              os.sep + '*_MTD_ALL.xml'):
             inDate = os.path.basename(file).split("_")[1].split("-")[0]
             year = int(inDate[:4])
             month = int(inDate[4:6])
             day = int(inDate[6:8])
             delta = 1 - \
-                min(int(abs((date(year, month, day) - dateVHR).days)/500), 1)
+                min(int(abs((date(year, month, day) - dateVHR).days) / 500), 1)
             percent = get_S2_Tile_Cloud_Cover(file)
             cover = get_S2_Tile_Coverage(file)
-            fitScore = delta*percent*cover
+            fitScore = delta * percent * cover
             if maxFitScore is None or maxFitScore < fitScore:
                 maxFitScore = fitScore
                 fitDate = inDate
@@ -196,7 +197,8 @@ def launch_coregister(tile, cfg, workingDirectory, launch_mask=True):
         datatype = 'S2'
         pattern = "*STACK.tif"
     ipathS2_S2C = cfg.getParam('chain', 'S2_S2C_Path')
-    if ipathS2_S2C != "None" and os.path.exists(os.path.join(ipathS2_S2C, tile)):
+    if ipathS2_S2C != "None" and os.path.exists(
+            os.path.join(ipathS2_S2C, tile)):
         datadir = os.path.join(ipathS2_S2C, tile)
         datatype = 'S2_S2C'
         pattern = "*STACK.tif"
@@ -224,7 +226,13 @@ def launch_coregister(tile, cfg, workingDirectory, launch_mask=True):
                 "No dateVHR in configuration file, please fill dateVHR value")
         else:
             dateSrc = fitnessDateScore(dateVHR, datadir, datatype)
-    insrc = glob.glob(os.path.join(datadir, '*'+str(dateSrc)+'*', pattern))[0]
+    insrc = glob.glob(
+        os.path.join(
+            datadir,
+            '*' +
+            str(dateSrc) +
+            '*',
+            pattern))[0]
     bandsrc = cfg.getParam('coregistration', 'bandSrc')
     bandref = cfg.getParam('coregistration', 'bandRef')
     resample = cfg.getParam('coregistration', 'resample')
@@ -234,7 +242,7 @@ def launch_coregister(tile, cfg, workingDirectory, launch_mask=True):
     iterate = cfg.getParam('coregistration', 'iterate')
     prec = cfg.getParam('coregistration', 'prec')
     mode = int(cfg.getParam('coregistration', 'mode'))
-    if workingDirectory != None:
+    if workingDirectory is not None:
         workingDirectory = os.path.join(workingDirectory, tile)
 
     coregister(insrc, inref, bandsrc, bandref, resample, step, minstep,
@@ -245,7 +253,8 @@ def launch_coregister(tile, cfg, workingDirectory, launch_mask=True):
         commonMasks(tile, cfg.pathConf)
 
 
-def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, minsiftpoints=40, iterate=1, prec=3, mode=2, datadir=None, pattern='*STACK.tif', datatype='S2', writeFeatures=False, workingDirectory=None):
+def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, minsiftpoints=40, iterate=1, prec=3,
+               mode=2, datadir=None, pattern='*STACK.tif', datatype='S2', writeFeatures=False, workingDirectory=None):
     """ register an image / a time series on a reference image
 
     Parameters
@@ -418,9 +427,9 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
             clean_dates = [ref_date]
             for date in reversed(dates[:ref_date_ind]):
                 inref = glob.glob(os.path.join(
-                    datadir, '*'+clean_dates[-1]+'*', pattern))[0]
+                    datadir, '*' + clean_dates[-1] + '*', pattern))[0]
                 insrc = glob.glob(os.path.join(
-                    datadir, '*'+date+'*', pattern))[0]
+                    datadir, '*' + date + '*', pattern))[0]
                 srcClip = os.path.join(pathWd, 'srcClip.tif')
                 extractROIApp = OtbAppBank.CreateExtractROIApplication({"in": insrc,
                                                                         "mode": "fit",
@@ -568,11 +577,11 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                         clean_dates.append(date)
 
             clean_dates = [ref_date]
-            for date in dates[ref_date_ind+1:]:
+            for date in dates[ref_date_ind + 1:]:
                 inref = glob.glob(os.path.join(
-                    datadir, '*'+clean_dates[-1]+'*', pattern))[0]
+                    datadir, '*' + clean_dates[-1] + '*', pattern))[0]
                 insrc = glob.glob(os.path.join(
-                    datadir, '*'+date+'*', pattern))[0]
+                    datadir, '*' + date + '*', pattern))[0]
                 srcClip = os.path.join(pathWd, 'srcClip.tif')
                 extractROIApp = OtbAppBank.CreateExtractROIApplication({"in": insrc,
                                                                         "mode": "fit",

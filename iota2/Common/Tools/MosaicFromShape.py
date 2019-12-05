@@ -177,7 +177,8 @@ def mosaicFromShape(rasters, shape, rasterOut, workingDir=None):
         tmp_files_raster.append(clip_raster)
         tmp_files_vec.append(clip)
 
-    # mosaic using gdal_merge.py, the last image will be copied over earlier ones
+    # mosaic using gdal_merge.py, the last image will be copied over earlier
+    # ones
     rasters_clip = " ".join(tmp_files_raster[::-1])
     cmd = "gdal_merge.py -o " + rasterOut + " -n 0 " + rasters_clip
     run(cmd)

@@ -42,7 +42,7 @@ def run(cmd, desc=None, env=os.environ, logger=logger):
 
     # Log outputs
     logger.debug("out/err: {}".format(out.rstrip()))
-    logger.debug("Done in {} seconds".format(stop-start))
+    logger.debug("Done in {} seconds".format(stop - start))
 
     # Log error code
     if rc != 0:
@@ -60,8 +60,8 @@ class Opath(object):
         """
 
         self.opath = opath
-        self.opathT = opath+"/tmp"
-        self.opathF = opath+"/Final"
+        self.opathT = opath + "/tmp"
+        self.opathF = opath + "/Final"
         if create:
             if not os.path.exists(self.opath):
                 try:
@@ -75,11 +75,11 @@ class Opath(object):
                 except OSError:
                     logger.debug(self.opathT + "allready exists")
 
-            if not os.path.exists(self.opathT+"/REFL"):
+            if not os.path.exists(self.opathT + "/REFL"):
                 try:
-                    os.mkdir(self.opathT+"/REFL")
+                    os.mkdir(self.opathT + "/REFL")
                 except OSError:
-                    logger.debug(self.opathT+"/REFL" + "allready exists")
+                    logger.debug(self.opathT + "/REFL" + "allready exists")
 
             if not os.path.exists(self.opathF):
                 try:

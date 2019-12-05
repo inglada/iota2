@@ -24,7 +24,8 @@ from osgeo import osr
 from Common import FileUtils as fu
 
 
-def extraction(shapeE, DriverE, field, field_val, nb_extrac, shapeS, fieldo, DriverS):
+def extraction(shapeE, DriverE, field, field_val,
+               nb_extrac, shapeS, fieldo, DriverS):
 
     driver = ogr.GetDriverByName(DriverE)
     dataSource = driver.Open(shapeE, 0)
@@ -58,7 +59,7 @@ def extraction(shapeE, DriverE, field, field_val, nb_extrac, shapeS, fieldo, Dri
     i = 0
     fid_ind = layerS
     for val in field_val:
-        print("fill up "+str(val)+" values")
+        print("fill up " + str(val) + " values")
         # list of Fid of the current landcover type (val)
         listFid = [x[1] for x in All_FID if x[0] == val][0]
         # Random selection
@@ -66,16 +67,17 @@ def extraction(shapeE, DriverE, field, field_val, nb_extrac, shapeS, fieldo, Dri
         nbExtraction = nb_extrac[i]
         if nbExtraction > len(listFid):
             nbExtraction = len(listFid)
-            print("Warning : class "+str(val) +
-                  " extraction set to "+str(nbExtraction))
+            print("Warning : class " + str(val) +
+                  " extraction set to " + str(nbExtraction))
             sublistFid = random.sample(listFid, nbExtraction)
 
-        chunkSublistFID = fu.splitList(sublistFid, 1+int(len(sublistFid)/1000))
+        chunkSublistFID = fu.splitList(
+            sublistFid, 1 + int(len(sublistFid) / 1000))
         filterFID = []
         for chunk in chunkSublistFID:
             # Filter input shapefile
             filterFID.append(
-                "("+" OR ".join([layer.GetFIDColumn()+"="+str(currentFID) for currentFID in chunk])+")")
+                "(" + " OR ".join([layer.GetFIDColumn() + "=" + str(currentFID) for currentFID in chunk]) + ")")
 
         ffilter = " OR ".join(filterFID)
         layer.SetAttributeFilter(ffilter)
@@ -125,4 +127,9 @@ if __name__ == "__main__":
     extraction(args.shapeE, args.DriverE, args.field, args.field_val,
                args.nbextract, args.shapeS, args.fieldo, args.DriverS)
 
-# python extractSample.py -in.PopDriver SQLite -in.field.value.nbExtract 100 -in.field.value 42 -in.field CODE -in.extract /mnt/data/home/vincenta/tmp/testSampleExtraction/France_2014_1CA_T31TCJ_SamplesSel_5p.sqlite -in.extractDriver SQLite -in.extract.select /mnt/data/home/vincenta/tmp/testSampleExtraction/France_2014_1CA_T31TCJ_SamplesSel_20p.sqlite -in.field.pop code
+# python extractSample.py -in.PopDriver SQLite -in.field.value.nbExtract
+# 100 -in.field.value 42 -in.field CODE -in.extract
+# /mnt/data/home/vincenta/tmp/testSampleExtraction/France_2014_1CA_T31TCJ_SamplesSel_5p.sqlite
+# -in.extractDriver SQLite -in.extract.select
+# /mnt/data/home/vincenta/tmp/testSampleExtraction/France_2014_1CA_T31TCJ_SamplesSel_20p.sqlite
+# -in.field.pop code

@@ -35,7 +35,7 @@ def get_randomPoly(dataSource, field, classes, ratio, logger=logger):
     for cl in classes:
         listid = []
         layer = dataSource.GetLayer()
-        layer.SetAttributeFilter(field+" = "+str(cl))
+        layer.SetAttributeFilter(field + " = " + str(cl))
         featureCount = float(layer.GetFeatureCount())
         if featureCount == 1:
             for feat in layer:
@@ -43,7 +43,7 @@ def get_randomPoly(dataSource, field, classes, ratio, logger=logger):
                 listallid.append(_id)
                 listValid.append(_id)
         else:
-            polbysel = round(featureCount*float(ratio))
+            polbysel = round(featureCount * float(ratio))
             if polbysel <= 1:
                 polbysel = 1
             for feat in layer:
@@ -100,7 +100,7 @@ def RandomInSitu(vectorFile, field, nbdraws, opath, name,
         ch = ""
         listFid = []
         for fid in listallid:
-            listFid.append("FID="+str(fid))
+            listFid.append("FID=" + str(fid))
         resultA = []
         for e in listFid:
             resultA.append(e)
@@ -120,7 +120,7 @@ def RandomInSitu(vectorFile, field, nbdraws, opath, name,
                 "_seed" + str(tirage) + "_learn.shp"
             fu.CreateNewLayer(layer, outShapefile, AllFields)
             fu.cpShapeFile(outShapefile.replace(".shp", ""), opath + "/" + name +
-                           "_seed"+str(tirage)+"_learn", [".prj", ".shp", ".dbf", ".shx"])
+                           "_seed" + str(tirage) + "_learn", [".prj", ".shp", ".dbf", ".shx"])
 
         for i in allFID:
             if i not in listallid:
@@ -129,7 +129,7 @@ def RandomInSitu(vectorFile, field, nbdraws, opath, name,
         chV = ""
         listFidV = []
         for fid in listValid:
-            listFidV.append("FID="+str(fid))
+            listFidV.append("FID=" + str(fid))
 
         resultV = []
         for e in listFidV:
@@ -139,15 +139,18 @@ def RandomInSitu(vectorFile, field, nbdraws, opath, name,
 
         chV = ''.join(resultV)
         layer.SetAttributeFilter(chV)
-        validationShape = opath+"/"+name+"_seed"+str(tirage) + "_val.shp"
+        validationShape = opath + "/" + name + \
+            "_seed" + str(tirage) + "_val.shp"
         if pathWd is None:
-            outShapefile2 = opath+"/"+name+"_seed"+str(tirage) + "_val.shp"
+            outShapefile2 = opath + "/" + name + \
+                "_seed" + str(tirage) + "_val.shp"
             fu.CreateNewLayer(layer, outShapefile2, AllFields)
         else:
-            outShapefile2 = pathWd+"/"+name+"_seed"+str(tirage) + "_val.shp"
+            outShapefile2 = pathWd + "/" + name + \
+                "_seed" + str(tirage) + "_val.shp"
             fu.CreateNewLayer(layer, outShapefile2, AllFields)
             fu.cpShapeFile(outShapefile2.replace(".shp", ""), opath + "/" + name +
-                           "_seed" + str(tirage)+"_val", [".prj", ".shp", ".dbf", ".shx"])
+                           "_seed" + str(tirage) + "_val", [".prj", ".shp", ".dbf", ".shx"])
         AllTrain.append(learningShape)
         AllValid.append(validationShape)
     return AllTrain, AllValid
@@ -173,7 +176,7 @@ def RandomInSituByTile(path_mod_tile, dataField, N, pathOut, ratio,
     dataSource = driver.Open(path_mod_tile, 0)
     # Check to see if shapefile is found.
     if dataSource is None:
-        raise Exception("Could not open "+path_mod_tile)
+        raise Exception("Could not open " + path_mod_tile)
     else:
         layer = dataSource.GetLayer()
         featureCount = layer.GetFeatureCount()

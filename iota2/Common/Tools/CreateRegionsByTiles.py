@@ -44,7 +44,7 @@ def splitVectorLayer(shp_in, attribute, attribute_type, field_vals, pathOut):
     if attribute_type == "string":
         for val in field_vals:
             if val != "None":
-                shp_out = pathOut+"/"+name+"_region_"+str(val)+".shp"
+                shp_out = pathOut + "/" + name + "_region_" + str(val) + ".shp"
                 if (not os.path.isfile(shp_out)):
                     cmd = "ogr2ogr "
                     cmd += "-where '" + attribute + ' = "' + val + '"' + "' "
@@ -55,7 +55,7 @@ def splitVectorLayer(shp_in, attribute, attribute_type, field_vals, pathOut):
 
     elif attribute_type == "int":
         for val in field_vals:
-            shp_out = pathOut+"/"+name+"_region_"+str(val)+".shp"
+            shp_out = pathOut + "/" + name + "_region_" + str(val) + ".shp"
 
             if (not os.path.isfile(shp_out)):
                 cmd = "ogr2ogr "
@@ -83,7 +83,7 @@ def createRegionsByTiles(shapeRegion, field_Region, pathToEnv, pathOut, pathWd,
         - pathWd : path to working directory (not mandatory, due to cluster's architecture default = None)
     """
     pathName = pathWd
-    if pathWd == None:
+    if pathWd is None:
         # sequential case
         pathName = pathOut
 
@@ -102,15 +102,15 @@ def createRegionsByTiles(shapeRegion, field_Region, pathToEnv, pathOut, pathWd,
 
     if pathWd:
         for clip in AllClip:
-            cmd = "cp "+clip.replace(".shp", "*")+" "+pathOut
+            cmd = "cp " + clip.replace(".shp", "*") + " " + pathOut
             run(cmd)
     else:
         for shp in shpRegionList:
             path = shp.replace(".shp", "")
-            os.remove(path+".shp")
-            os.remove(path+".shx")
-            os.remove(path+".dbf")
-            os.remove(path+".prj")
+            os.remove(path + ".shp")
+            os.remove(path + ".shx")
+            os.remove(path + ".dbf")
+            os.remove(path + ".prj")
 
     return AllClip
 

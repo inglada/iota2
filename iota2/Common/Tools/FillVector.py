@@ -24,7 +24,8 @@ from osgeo import ogr
 from Common import FileUtils as fu
 
 
-def extraction(vectorFill, vectorSource, field, field_val, driversFill, driversSource):
+def extraction(vectorFill, vectorSource, field,
+               field_val, driversFill, driversSource):
 
     ogrDriversFill = [ogr.GetDriverByName(
         currentDriver) for currentDriver in driversFill]
@@ -56,16 +57,17 @@ def extraction(vectorFill, vectorSource, field, field_val, driversFill, driversS
     for currentClass, FID in All_FID:
         splits = fu.splitList(FID, len(vectorFill))
         i = 0
-        for currentSplit, layerToFill, fidMax in zip(splits, layerFill, FIDMAX):
+        for currentSplit, layerToFill, fidMax in zip(
+                splits, layerFill, FIDMAX):
 
             chunkSublistFID = fu.splitList(
-                currentSplit, 1+int(len(currentSplit)/1000))
-            filterFID = "("+" OR ".join(["("+" OR ".join([FIDColumn+"="+str(currentFID)
-                                                          for currentFID in chunk])+")" for chunk in chunkSublistFID])+")"
+                currentSplit, 1 + int(len(currentSplit) / 1000))
+            filterFID = "(" + " OR ".join(["(" + " OR ".join([FIDColumn + "=" + str(currentFID)
+                                                              for currentFID in chunk]) + ")" for chunk in chunkSublistFID]) + ")"
             layerSource.SetAttributeFilter(filterFID)
             newfid = fidMax
-            print("Ajout de "+str(currentClass)+" dans " +
-                  vectorFill[i]+" filter : "+filterFID)
+            print("Ajout de " + str(currentClass) + " dans " +
+                  vectorFill[i] + " filter : " + filterFID)
             for feature in layerSource:
                 geom = feature.GetGeometryRef()
                 print(geom)
@@ -110,4 +112,8 @@ if __name__ == "__main__":
     extraction(args.vectorFill, args.vectorSource, args.field,
                args.field_val, args.driversFill, args.driversSource)
 
-# python fillVector.py -vectorSource.driver "ESRI Shapefile" -vectorToFill.driver "ESRI Shapefile" "ESRI Shapefile" -field.value 1 -field code -vectorSource /mnt/sdb1/Data/corse/test_sansForet.shp -vectorToFill /mnt/sdb1/Data/corse/test_avecForet_1.shp /mnt/sdb1/Data/corse/test_avecForet_2.shp
+# python fillVector.py -vectorSource.driver "ESRI Shapefile"
+# -vectorToFill.driver "ESRI Shapefile" "ESRI Shapefile" -field.value 1
+# -field code -vectorSource /mnt/sdb1/Data/corse/test_sansForet.shp
+# -vectorToFill /mnt/sdb1/Data/corse/test_avecForet_1.shp
+# /mnt/sdb1/Data/corse/test_avecForet_2.shp

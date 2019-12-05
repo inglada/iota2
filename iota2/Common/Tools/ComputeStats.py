@@ -57,7 +57,7 @@ class StdevFunc:
     def finalize(self):
         if self.k < 3:
             return None
-        return math.sqrt(self.S / (self.k-2))
+        return math.sqrt(self.S / (self.k - 2))
 
 
 class spearmanrFunc:
@@ -84,9 +84,9 @@ def computeStatistics(finalDataBasePath, dataField):
     conn.create_aggregate("spearmanr", 2, spearmanrFunc)
     cursor = conn.cursor()
 
-    SQL = "SELECT "+dataField+",avg(validity),stdev(validity),avg(confidence),\
+    SQL = "SELECT " + dataField + ",avg(validity),stdev(validity),avg(confidence),\
            stdev(confidence),spearmanr(validity,confidence)\
-           FROM "+tableName+" GROUP BY "+dataField+";"
+           FROM " + tableName + " GROUP BY " + dataField + ";"
 
     cursor.execute(SQL)
     statistics = cursor.fetchall()
@@ -160,10 +160,10 @@ def plotRelation(finalDataBasePath, dataField, seed, iota2Folder):
     for cClass in valuesByClass:
         y = [cX for cX, cY in valuesByClass[cClass]]
         x = [cY for cX, cY in valuesByClass[cClass]]
-        outputPath = iota2Folder+"/final/TMP/" + \
+        outputPath = iota2Folder + "/final/TMP/" + \
             nomenclature[cClass].replace(
-                " ", "_")+"_confFValid_Seed_"+str(seed)+".png"
-        print("Creating : "+outputPath)
+                " ", "_") + "_confFValid_Seed_" + str(seed) + ".png"
+        print("Creating : " + outputPath)
         #title="Confidence = f( Validity ) : Class :"+nomenclature[cClass]
         parametres = correlation.Parametres()
         parametres.xlims = [minVal, maxVal]
@@ -181,7 +181,7 @@ def computeStats(pathConf, wD=None):
     dataField = Config(open(pathConf)).chain.dataField
     iota2Folder = Config(open(pathConf)).chain.outputPath
     runs = Config(open(pathConf)).chain.runs
-    workingDirectory = iota2Folder+"/final/TMP"
+    workingDirectory = iota2Folder + "/final/TMP"
     if wD:
         workingDirectory = wD
 
@@ -190,11 +190,11 @@ def computeStats(pathConf, wD=None):
         # Get sqlites
         # stats only on learnt polygons
         dataBase = fut.FileSearch_AND(
-            iota2Folder+"/final/TMP", True, ".sqlite", "extraction", "learn")
+            iota2Folder + "/final/TMP", True, ".sqlite", "extraction", "learn")
         #dataBase = fut.FileSearch_AND("/work/OT/theia/oso/TMP/sampleExtraction", True, ".sqlite", "extraction")
         finalDataBaseName = "statsDataBase_run_" + \
-            str(seed)+".sqlite"  # will contain all data base
-        finalDataBasePath = workingDirectory+"/"+finalDataBaseName
+            str(seed) + ".sqlite"  # will contain all data base
+        finalDataBasePath = workingDirectory + "/" + finalDataBaseName
 
         if os.path.exists(finalDataBasePath):
             os.remove(finalDataBasePath)
@@ -215,8 +215,8 @@ def computeStats(pathConf, wD=None):
             print(("Add dataBase : {}".format(currentDataBase)))
             cursor.execute("ATTACH '%s' as db2;" % (currentDataBase))
             cursor.execute("CREATE TABLE output2 AS SELECT * FROM db2.output;")
-            cursor.execute("INSERT INTO "+tableName +
-                           "("+fields+") SELECT "+fields+" FROM output2;")
+            cursor.execute("INSERT INTO " + tableName +
+                           "(" + fields + ") SELECT " + fields + " FROM output2;")
             conn.commit()
             conn = cursor = None
             conn = lite.connect(finalDataBasePath)

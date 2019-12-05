@@ -107,7 +107,7 @@ def memory_usage_psutil(unit="MB"):
     if unit == "MB":
         coeff = 1000.0
     elif unit == "GB":
-        coeff = 1000.0*1000.0
+        coeff = 1000.0 * 1000.0
     mem = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / coeff
     # print 'Memory usage: %s (MB)' % (mem)
     return mem
@@ -234,7 +234,8 @@ def commonMaskUserFeatures(cfg, tile, cMaskName):
     userFeat_patterns = (cfg.getParam('userFeat', 'patterns')).split(",")
 
     for dir_user in os.listdir(userFeatPath):
-        if tile in dir_user and os.path.isdir(os.path.join(userFeatPath, dir_user)):
+        if tile in dir_user and os.path.isdir(
+                os.path.join(userFeatPath, dir_user)):
             ref_raster = FileSearch_AND(os.path.join(userFeatPath, dir_user),
                                         True, userFeat_patterns[0].replace(" ", ""))[0]
     ref_raster_out = os.path.join(
@@ -386,7 +387,8 @@ def onlySAR(cfg):
     from Common import ServiceConfigFile as SCF
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
-    # TODO refactoring de la fonction à faire : gestion des erreurs en particulier
+    # TODO refactoring de la fonction à faire : gestion des erreurs en
+    # particulier
     L5Path = cfg.getParam('chain', 'L5Path')
     L8Path = cfg.getParam('chain', 'L8Path')
     S2Path = cfg.getParam('chain', 'S2Path')
@@ -496,7 +498,8 @@ def getDateLandsat(pathLandsat, tiles, sensor="Landsat8"):
         # ~ folder = os.listdir(pathLandsat + "/" + sensor + "_" + tile)
         folder = os.listdir(pathLandsat + "/" + tile)
         for i in range(len(folder)):
-            if folder[i].count(".tgz") == 0 and folder[i].count(".jpg") == 0 and folder[i].count(".xml") == 0:
+            if folder[i].count(".tgz") == 0 and folder[i].count(
+                    ".jpg") == 0 and folder[i].count(".xml") == 0:
                 # ~ contenu = os.listdir(pathLandsat + "/" + sensor + "_" + tile + "/" + folder[i])
                 contenu = os.listdir(pathLandsat + "/" +
                                      tile + "/" + folder[i])
@@ -530,7 +533,8 @@ def getDateS2(pathS2, tiles):
     for tile in tiles:
         folder = os.listdir(pathS2 + "/" + tile)
         for i in range(len(folder)):
-            if folder[i].count(".tgz") == 0 and folder[i].count(".jpg") == 0 and folder[i].count(".xml") == 0:
+            if folder[i].count(".tgz") == 0 and folder[i].count(
+                    ".jpg") == 0 and folder[i].count(".xml") == 0:
                 Date = int(folder[i].split("_")[datePos].split("-")[0])
                 if Date > dateMax:
                     dateMax = Date
@@ -549,7 +553,8 @@ def getDateS2_S2C(pathS2, tiles):
     for tile in tiles:
         folder = os.listdir(pathS2 + "/" + tile)
         for i in range(len(folder)):
-            if folder[i].count(".tgz") == 0 and folder[i].count(".jpg") == 0 and folder[i].count(".xml") == 0:
+            if folder[i].count(".tgz") == 0 and folder[i].count(
+                    ".jpg") == 0 and folder[i].count(".xml") == 0:
                 Date = int(folder[i].split("_")[datePos].split("T")[0])
                 if Date > dateMax:
                     dateMax = Date
@@ -591,7 +596,7 @@ def commonPixTypeToOTB(string):
             "uint8": otb.ImagePixelType_uint8}
     try:
         return dico[string]
-    except:
+    except BaseException:
         raise Exception("Error in commonPixTypeToOTB function input parameter : " + string + " not available, choices are :"
                         "'complexDouble','complexFloat','double','float','int16','int32','uint16','uint32','uint8'")
 
@@ -668,7 +673,7 @@ def getIndex(listOfTuple, keyVal):
     retour = None
     try:
         retour = [item for key, item in listOfTuple].index(keyVal) + 1
-    except:
+    except BaseException:
         print(keyVal + " not in list of bands")
         retour = []
     return retour
@@ -685,7 +690,7 @@ def ExtractInterestBands(stack, nbDates, SPbandsList, comp, ram=128):
 
     if isinstance(stack, str):
         extract.SetParameterString("in", stack)
-    elif type(stack) == otb.Application:
+    elif isinstance(stack, otb.Application):
         extract.SetParameterInputImage(
             "in", stack.GetParameterOutputImage("out"))
 
@@ -756,7 +761,8 @@ def findCurrentTileInString(string, allTiles):
     if there is a unique occurence of a string in allTiles, return this occurence. else, return Exception
     """
     # must contain same element
-    tileList = [currentTile for currentTile in allTiles if currentTile in string]
+    tileList = [
+        currentTile for currentTile in allTiles if currentTile in string]
     if len(set(tileList)) == 1:
         return tileList[0]
     else:
@@ -774,7 +780,7 @@ def getUserFeatInTile(userFeat_path, tile, userFeat_arbo, userFeat_pattern):
 
     OUT :
 
-    allFeat : list 
+    allFeat : list
         all features finding in userFeat_path/tile
 
     """
@@ -867,7 +873,7 @@ def readRaster(name, data=False, band=1):
     """
     try:
         raster = gdal.Open(name, 0)
-    except:
+    except BaseException:
         print("Problem on raster file path")
         sys.exit()
 
@@ -954,7 +960,8 @@ def getVectorFeatures(ground_truth, region_field, InputShape):
     AllFeat = []
     for i in range(layerDefinition.GetFieldCount()):
         field_name = layerDefinition.GetFieldDefn(i).GetName()
-        if field_name not in input_fields and field_name not in [input_field.lower() for input_field in input_fields]:
+        if field_name not in input_fields and field_name not in [
+                input_field.lower() for input_field in input_fields]:
             AllFeat.append(layerDefinition.GetFieldDefn(i).GetName())
     return AllFeat
 
@@ -988,7 +995,7 @@ def getNbDateInTile(dateInFile, display=True, raw_dates=False):
                     print(validDate)
             except ValueError:
                 raise Exception("unvalid date in : " +
-                                dateInFile+" -> '"+str(vardate)+"'")
+                                dateInFile + " -> '" + str(vardate) + "'")
     if raw_dates:
         output = allDates
     else:
@@ -997,7 +1004,7 @@ def getNbDateInTile(dateInFile, display=True, raw_dates=False):
 
 
 def getGroundSpacing(pathToFeat, ImgInfo):
-    run("otbcli_ReadImageInfo -in "+pathToFeat+">"+ImgInfo)
+    run("otbcli_ReadImageInfo -in " + pathToFeat + ">" + ImgInfo)
     info = open(ImgInfo, "r")
     while True:
         data = info.readline().rstrip('\n\r')
@@ -1099,7 +1106,8 @@ def getAllFieldsInShape(vector, driver='ESRI Shapefile'):
         raise Exception("Could not open " + vector)
     layer = dataSource.GetLayer()
     layerDefinition = layer.GetLayerDefn()
-    return [layerDefinition.GetFieldDefn(i).GetName() for i in range(layerDefinition.GetFieldCount())]
+    return [layerDefinition.GetFieldDefn(i).GetName(
+    ) for i in range(layerDefinition.GetFieldCount())]
 
 
 def multiPolyToPoly(shpMulti, shpSingle):
@@ -1234,17 +1242,17 @@ def getAllModels(PathconfigModels):
 
 
 def mergeSQLite(outname, opath, files):
-    filefusion = opath+"/"+outname+".sqlite"
+    filefusion = opath + "/" + outname + ".sqlite"
     if os.path.exists(filefusion):
         os.remove(filefusion)
     if len(files) > 1:
         first = files[0]
-        cmd = 'ogr2ogr -f SQLite '+filefusion+' '+first
+        cmd = 'ogr2ogr -f SQLite ' + filefusion + ' ' + first
         run(cmd)
         if len(files) > 1:
             for f in range(1, len(files)):
                 fusion = 'ogr2ogr -f SQLite -update -append ' + \
-                    filefusion+' '+files[f]
+                    filefusion + ' ' + files[f]
                 print(fusion)
                 run(fusion)
     else:
@@ -1289,7 +1297,7 @@ def mergeSqlite(vectorList, outputVector):
         for cpt, currentVector in enumerate(vectorList_cpy):
             cursor.execute("ATTACH '%s' as db%s;" % (currentVector, str(cpt)))
             cursor.execute(
-                "CREATE TABLE output2 AS SELECT * FROM db"+str(cpt)+".output;")
+                "CREATE TABLE output2 AS SELECT * FROM db" + str(cpt) + ".output;")
             cursor.execute("INSERT INTO output SELECT * FROM output2;")
             conn.commit()
             cleanSqliteDatabase(outputVector, "output2")
@@ -1314,13 +1322,14 @@ def mergeVectors(outname, opath, files, ext="shp", out_Tbl_name=None):
     table_name = outname
     if out_Tbl_name:
         table_name = out_Tbl_name
-    fusion = 'ogr2ogr '+filefusion+' '+file1+' '+outType+' -nln '+table_name
+    fusion = 'ogr2ogr ' + filefusion + ' ' + \
+        file1 + ' ' + outType + ' -nln ' + table_name
     run(fusion)
 
     done.append(file1)
     for f in range(1, nbfiles):
-        fusion = 'ogr2ogr -update -append '+filefusion + \
-            ' '+files[f]+' -nln '+table_name+' '+outType
+        fusion = 'ogr2ogr -update -append ' + filefusion + \
+            ' ' + files[f] + ' -nln ' + table_name + ' ' + outType
         run(fusion)
         done.append(files[f])
 
@@ -1368,9 +1377,9 @@ def ResizeImage(imgIn, imout, spx, spy, imref, proj, pixType):
     minX, maxX, minY, maxY = getRasterExtent(imref)
 
     #Resize = 'gdalwarp -of GTiff -r cubic -tr '+spx+' '+spy+' -te '+str(minX)+' '+str(minY)+' '+str(maxX)+' '+str(maxY)+' -t_srs "EPSG:'+proj+'" '+imgIn+' '+imout
-    Resize = 'gdalwarp -of GTiff -tr '+spx+' '+spy+' -te ' + \
-        str(minX)+' '+str(minY)+' '+str(maxX)+' '+str(maxY) + \
-        ' -t_srs "EPSG:'+proj+'" '+imgIn+' '+imout
+    Resize = 'gdalwarp -of GTiff -tr ' + spx + ' ' + spy + ' -te ' + \
+        str(minX) + ' ' + str(minY) + ' ' + str(maxX) + ' ' + str(maxY) + \
+        ' -t_srs "EPSG:' + proj + '" ' + imgIn + ' ' + imout
     run(Resize)
 
 
@@ -1388,7 +1397,8 @@ def gen_confusionMatrix(csv_f, AllClass):
     confMat = np.asarray(confMat)
     row = 0
     for classRef in AllClass:
-        # in order to manage the case "this reference label was never classified"
+        # in order to manage the case "this reference label was never
+        # classified"
         flag = 0
         for classRef_csv in csv_f:
             if classRef_csv[0] == classRef:
@@ -1431,7 +1441,7 @@ def confCoordinatesCSV(csvPaths):
     for csvPath in csvPaths:
         cpty = 0
         FileMat = open(csvPath, "r")
-        while 1:
+        while True:
             data = FileMat.readline().rstrip('\n\r')
             if data == "":
                 FileMat.close()
@@ -1531,7 +1541,7 @@ def erodeOrDilateShapeFile(infile, outfile, buffdist):
             feat.SetGeometry(geom.Buffer(float(buffdist)))
             lyr.CreateFeature(feat)
         ds.Destroy()
-    except:
+    except BaseException:
         retour = False
     return retour
 
@@ -1687,7 +1697,8 @@ def FileSearch_AND(PathToFolder, AllPath, *names):
         for i in range(len(files)):
             flag = 0
             for name in names:
-                if files[i].count(name) != 0 and files[i].count(".aux.xml") == 0:
+                if files[i].count(name) != 0 and files[i].count(
+                        ".aux.xml") == 0:
                     flag += 1
             if flag == len(names):
                 if not AllPath:
@@ -1701,17 +1712,17 @@ def FileSearch_AND(PathToFolder, AllPath, *names):
 def renameShapefile(inpath, filename, old_suffix, new_suffix, outpath=None):
     if not outpath:
         outpath = inpath
-    run("cp "+inpath+"/"+filename+old_suffix +
-        ".shp "+outpath+"/"+filename+new_suffix+".shp")
-    run("cp "+inpath+"/"+filename+old_suffix +
-        ".shx "+outpath+"/"+filename+new_suffix+".shx")
-    run("cp "+inpath+"/"+filename+old_suffix +
-        ".dbf "+outpath+"/"+filename+new_suffix+".dbf")
-    run("cp "+inpath+"/"+filename+old_suffix +
-        ".prj "+outpath+"/"+filename+new_suffix+".prj")
-    return outpath+"/"+filename+new_suffix+".shp"
+    run("cp " + inpath + "/" + filename + old_suffix +
+        ".shp " + outpath + "/" + filename + new_suffix + ".shp")
+    run("cp " + inpath + "/" + filename + old_suffix +
+        ".shx " + outpath + "/" + filename + new_suffix + ".shx")
+    run("cp " + inpath + "/" + filename + old_suffix +
+        ".dbf " + outpath + "/" + filename + new_suffix + ".dbf")
+    run("cp " + inpath + "/" + filename + old_suffix +
+        ".prj " + outpath + "/" + filename + new_suffix + ".prj")
+    return outpath + "/" + filename + new_suffix + ".shp"
 
-    return outpath+"/"+filename+new_suffix+".shp"
+    return outpath + "/" + filename + new_suffix + ".shp"
 
 
 def ClipVectorData(vectorFile, cutFile, opath, nameOut=None):
@@ -1734,7 +1745,8 @@ def ClipVectorData(vectorFile, cutFile, opath, nameOut=None):
     if os.path.exists(outname):
         os.remove(outname)
 
-    Clip = "ogr2ogr -clipsrc "+cutFile+" "+outname+" "+vectorFile+" -progress"
+    Clip = "ogr2ogr -clipsrc " + cutFile + " " + \
+        outname + " " + vectorFile + " -progress"
     run(Clip)
     return outname
 
@@ -1774,7 +1786,8 @@ def GetSerieList(*SerieList):
     return ch
 
 
-def ConcatenateAllData(opath, pathConf, workingDirectory, wOut, name, *SerieList):
+def ConcatenateAllData(opath, pathConf, workingDirectory,
+                       wOut, name, *SerieList):
     """
     Concatenates all data: Reflectances, NDVI, NDWI, Brightness
     ARGs:
@@ -1786,8 +1799,9 @@ def ConcatenateAllData(opath, pathConf, workingDirectory, wOut, name, *SerieList
     """
     pixelo = "int16"
     ch = GetSerieList(*SerieList)
-    ConcFile = opath+"/"+name
-    Concatenation = "otbcli_ConcatenateImages -il "+ch+" -out "+ConcFile+" "+pixelo
+    ConcFile = opath + "/" + name
+    Concatenation = "otbcli_ConcatenateImages -il " + \
+        ch + " -out " + ConcFile + " " + pixelo
     run(Concatenation)
 
 
@@ -2006,11 +2020,11 @@ class serviceCompareImageFile:
         """
         try:
             os.stat(file1)
-        except:
+        except BaseException:
             raise Exception("Could not open " + file1)
         try:
             os.stat(file2)
-        except:
+        except BaseException:
             raise Exception("Could not open " + file2)
 
         file1_gdal = gdal.Open(file1)
@@ -2116,7 +2130,7 @@ class serviceCompareVectorFile:
         except DifferenceError:
             # DifferenceError : retour set to false
             retour = False
-        except:
+        except BaseException:
             # other error : retour set to false and raise
             retour = False
             raise

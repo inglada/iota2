@@ -99,7 +99,8 @@ def get_qsub_cmd(cfg, config_ressources=None, parallel_mode="MPI"):
     return qsub
 
 
-def launchChain(cfg, config_ressources=None, parallel_mode="MPI", only_summary=False):
+def launchChain(cfg, config_ressources=None,
+                parallel_mode="MPI", only_summary=False):
     """
     launch iota2 to HPC
     """

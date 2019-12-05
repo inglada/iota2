@@ -84,7 +84,8 @@ class iota2():
             self.steps_group[step.step_group][step_place +
                                               1] = step.step_description()
 
-    def print_step_summarize(self, start, end, show_resources=False, checked="x"):
+    def print_step_summarize(
+            self, start, end, show_resources=False, checked="x"):
         """
         print iota2 steps that will be run
         """
@@ -135,7 +136,7 @@ class iota2():
         end_ind = list(self.steps_group.keys()).index(end)
 
         steps = []
-        for key in list(self.steps_group.keys())[start_ind:end_ind+1]:
+        for key in list(self.steps_group.keys())[start_ind:end_ind + 1]:
             steps.append(self.steps_group[key])
         step_to_compute = [step for step_group in steps for step in step_group]
         return step_to_compute
