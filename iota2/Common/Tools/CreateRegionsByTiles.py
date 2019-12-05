@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -24,6 +24,7 @@ from Common import FileUtils as fu
 from Common.Utils import run
 
 logger = logging.getLogger(__name__)
+
 
 def splitVectorLayer(shp_in, attribute, attribute_type, field_vals, pathOut):
     """
@@ -64,14 +65,14 @@ def splitVectorLayer(shp_in, attribute, attribute_type, field_vals, pathOut):
                 run(cmd)
             shp_out_list.append(shp_out)
     else:
-        raise Exception("Error for attribute_type ", attribute_type, '! Should be "string" or "int"')
+        raise Exception("Error for attribute_type ",
+                        attribute_type, '! Should be "string" or "int"')
 
     return shp_out_list
 
 
 def createRegionsByTiles(shapeRegion, field_Region, pathToEnv, pathOut, pathWd,
                          logger_=logger):
-
     """
     create a shapeFile into tile's envelope for each regions in shapeRegion and for each tiles
     IN :
@@ -83,20 +84,22 @@ def createRegionsByTiles(shapeRegion, field_Region, pathToEnv, pathOut, pathWd,
     """
     pathName = pathWd
     if pathWd == None:
-        #sequential case
+        # sequential case
         pathName = pathOut
 
-    #getAllTiles
+    # getAllTiles
     AllTiles = fu.FileSearch_AND(pathToEnv, True, ".shp")
-    regionList = fu.getFieldElement(shapeRegion, "ESRI Shapefile", field_Region, "unique")
-    shpRegionList = splitVectorLayer(shapeRegion, field_Region, "int", regionList, pathName)
+    regionList = fu.getFieldElement(
+        shapeRegion, "ESRI Shapefile", field_Region, "unique")
+    shpRegionList = splitVectorLayer(
+        shapeRegion, field_Region, "int", regionList, pathName)
     AllClip = []
     for shp in shpRegionList:
         for tile in AllTiles:
             logger_.info("Extract %s in %s", shp, tile)
             pathToClip = fu.ClipVectorData(shp, tile, pathName)
             AllClip.append(pathToClip)
-        
+
     if pathWd:
         for clip in AllClip:
             cmd = "cp "+clip.replace(".shp", "*")+" "+pathOut
@@ -110,31 +113,24 @@ def createRegionsByTiles(shapeRegion, field_Region, pathToEnv, pathOut, pathWd,
             os.remove(path+".prj")
 
     return AllClip
-	
+
+
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description="This function allow you to create a region per tile")
+    parser = argparse.ArgumentParser(
+        description="This function allow you to create a region per tile")
 
-    parser.add_argument("-region.shape", help="path to the region shape (mandatory)", dest="region", required=True)
-    parser.add_argument("-region.field", dest="regionField", help="region's field into shapeFile, must be an integer field (mandatory)", required=True)
-    parser.add_argument("-tiles.envelope", dest="pathToEnv", help="path where tile's Envelope are stored (mandatory)", required=True)
-    parser.add_argument("-out", dest="pathOut", help="path where to store all shapes by tiles (mandatory)", required=True)
-    parser.add_argument("--wd", dest="pathWd", help="path to the working directory", default=None, required=True)
+    parser.add_argument(
+        "-region.shape", help="path to the region shape (mandatory)", dest="region", required=True)
+    parser.add_argument("-region.field", dest="regionField",
+                        help="region's field into shapeFile, must be an integer field (mandatory)", required=True)
+    parser.add_argument("-tiles.envelope", dest="pathToEnv",
+                        help="path where tile's Envelope are stored (mandatory)", required=True)
+    parser.add_argument("-out", dest="pathOut",
+                        help="path where to store all shapes by tiles (mandatory)", required=True)
+    parser.add_argument("--wd", dest="pathWd",
+                        help="path to the working directory", default=None, required=True)
     args = parser.parse_args()
 
-    createRegionsByTiles(args.region, args.regionField, args.pathToEnv, args.pathOut, args.pathWd)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    createRegionsByTiles(args.region, args.regionField,
+                         args.pathToEnv, args.pathOut, args.pathWd)

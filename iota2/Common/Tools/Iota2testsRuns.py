@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -26,18 +26,18 @@ import shutil
 import traceback
 from Common import ServiceConfigFile as SCF
 
-#TODO add tests using different sensors ?
+# TODO add tests using different sensors ?
 
-#export IOTA2DIR=/mnt/data/home/vincenta/IOTA2/theia_oso
-#python -m unittest iota2tests_runs
+# export IOTA2DIR=/mnt/data/home/vincenta/IOTA2/theia_oso
+# python -m unittest iota2tests_runs
+
 
 class iota2_run(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        
-        
-        #class const variables
+
+        # class const variables
         self.iota2_directory = os.environ.get('IOTA2DIR')
         self.config_path = os.path.join(self.iota2_directory, "config",
                                         "Config_4Tuiles_Multi_FUS_Confidence.cfg")
@@ -56,49 +56,54 @@ class iota2_run(unittest.TestCase):
         """
         create test environement (directories)
         """
-        #clear configuration object
+        # clear configuration object
         SCF.clearConfig()
-        
-        #create directories
+
+        # create directories
         test_name = self.id().split(".")[-1]
-        self.test_working_directory = os.path.join(self.iota2_tests_directory, test_name)
-        self.test_working_directory_tmp = os.path.join(self.iota2_tests_directory, test_name + "_TMP")
+        self.test_working_directory = os.path.join(
+            self.iota2_tests_directory, test_name)
+        self.test_working_directory_tmp = os.path.join(
+            self.iota2_tests_directory, test_name + "_TMP")
         if os.path.exists(self.test_working_directory):
             shutil.rmtree(self.test_working_directory)
         if not os.path.exists(self.test_working_directory_tmp):
             os.mkdir(self.test_working_directory_tmp)
-        self.config_path_test = os.path.join(self.test_working_directory_tmp, test_name + ".cfg")
+        self.config_path_test = os.path.join(
+            self.test_working_directory_tmp, test_name + ".cfg")
         shutil.copy(self.config_path, self.config_path_test)
 
     def tearDown(self):
-        result = getattr(self, '_outcomeForDoCleanups', self._resultForDoCleanups)
+        result = getattr(self, '_outcomeForDoCleanups',
+                         self._resultForDoCleanups)
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
         ok = not error and not failure
-        
+
         if ok:
             shutil.rmtree(self.test_working_directory)
             shutil.rmtree(self.test_working_directory_tmp)
-        
+
     def list2reason(self, exc_list):
         if exc_list and exc_list[-1][0] is self:
             return exc_list[-1][1]
 
     def test_scenario_1(self):
-        
-        #Test one region mode
-        #L8 sensor
-        
+
+        # Test one region mode
+        # L8 sensor
+
         from config import Config
-        
-        #prepare configuration file
+
+        # prepare configuration file
         cfg = Config(open(self.config_path_test))
         cfg.chain.outputPath = self.test_working_directory
         cfg.chain.listTile = 'D0005H0002'
         cfg.chain.L8Path = os.path.join(self.iota2_directory, "data/L8_50x50")
         cfg.chain.featuresPath = self.test_working_directory_tmp
         cfg.chain.userFeatPath = 'None'
-        cfg.chain.regionPath = os.path.join(self.test_working_directory_tmp, "MyTestRegion.shp")
+        cfg.chain.regionPath = os.path.join(
+            self.test_working_directory_tmp, "MyTestRegion.shp")
         cfg.chain.mode = 'one_region'
         cfg.chain.groundTruth = os.path.join(self.iota2_directory,
                                              "data/references/sampler/D0005H0002_polygons_To_Sample.shp")
@@ -122,11 +127,12 @@ class iota2_run(unittest.TestCase):
         try:
             launchChain.launchChain(self.config_path_test)
         except Exception as e:
-            print (e)
+            print(e)
             traceback.print_exc()
-            
-            #should something else
+
+            # should something else
             self.assertTrue(False)
+
 
 if __name__ == '__main__':
     unittest.main()

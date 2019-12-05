@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -23,6 +23,7 @@ from osgeo import ogr
 from osgeo import osr
 from Common import FileUtils as fu
 
+
 def extraction(shapeE, DriverE, field, field_val, nb_extrac, shapeS, fieldo, DriverS):
 
     driver = ogr.GetDriverByName(DriverE)
@@ -34,7 +35,8 @@ def extraction(shapeE, DriverE, field, field_val, nb_extrac, shapeS, fieldo, Dri
     layerS = dataSourceS.GetLayer()
 
     print("checking FID")
-    All_FID = [(currentFeat.GetField(field), currentFeat.GetFID()) for currentFeat in layer if currentFeat.GetField(field) in field_val]
+    All_FID = [(currentFeat.GetField(field), currentFeat.GetFID())
+               for currentFeat in layer if currentFeat.GetField(field) in field_val]
     All_FID = fu.sortByFirstElem(All_FID)
     print("FIDs found")
     # get Fieldo index
@@ -64,14 +66,16 @@ def extraction(shapeE, DriverE, field, field_val, nb_extrac, shapeS, fieldo, Dri
         nbExtraction = nb_extrac[i]
         if nbExtraction > len(listFid):
             nbExtraction = len(listFid)
-            print("Warning : class "+str(val)+" extraction set to "+str(nbExtraction))
+            print("Warning : class "+str(val) +
+                  " extraction set to "+str(nbExtraction))
             sublistFid = random.sample(listFid, nbExtraction)
 
         chunkSublistFID = fu.splitList(sublistFid, 1+int(len(sublistFid)/1000))
         filterFID = []
         for chunk in chunkSublistFID:
             # Filter input shapefile
-            filterFID.append("("+" OR ".join([layer.GetFIDColumn()+"="+str(currentFID) for currentFID in chunk])+")")
+            filterFID.append(
+                "("+" OR ".join([layer.GetFIDColumn()+"="+str(currentFID) for currentFID in chunk])+")")
 
         ffilter = " OR ".join(filterFID)
         layer.SetAttributeFilter(ffilter)
@@ -85,7 +89,8 @@ def extraction(shapeE, DriverE, field, field_val, nb_extrac, shapeS, fieldo, Dri
             newfid += 1
             indIn = 0
             while indIn < len(listFieldIn):
-                dstfeature.SetField(listFieldOut[indIn], feature.GetField(listFieldIn[indIn]))
+                dstfeature.SetField(
+                    listFieldOut[indIn], feature.GetField(listFieldIn[indIn]))
                 indIn += 1
             layerS.CreateFeature(dstfeature)
             dstfeature.Destroy()
@@ -95,19 +100,29 @@ def extraction(shapeE, DriverE, field, field_val, nb_extrac, shapeS, fieldo, Dri
 
     print("DONE")
 
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="")
-    parser.add_argument("-in.extract", dest="shapeE", help="path to the folder which contains samples", default=None, required=True)
-    parser.add_argument("-in.extractDriver", dest="DriverE", help="driver", default=None, required=True)
-    parser.add_argument("-in.field", dest="field", help="data's field", default=None, required=True)
-    parser.add_argument("-in.field.value", dest="field_val", help="field's value", default=None, type=int, required=True, nargs='+')
-    parser.add_argument("-in.field.value.nbExtract", dest="nbextract", help="field's value", default=None, type=int, required=True, nargs='+')
-    parser.add_argument("-in.extract.select", dest="shapeS", help="path to the shapefile in which store samples", default=None, required=True)
-    parser.add_argument("-in.field.pop", dest="fieldo", help="Field of the storage shapefile to populate", default=None, required=True)
-    parser.add_argument("-in.PopDriver", dest="DriverS", help="driver", default=None, required=True)
+    parser.add_argument("-in.extract", dest="shapeE",
+                        help="path to the folder which contains samples", default=None, required=True)
+    parser.add_argument("-in.extractDriver", dest="DriverE",
+                        help="driver", default=None, required=True)
+    parser.add_argument("-in.field", dest="field",
+                        help="data's field", default=None, required=True)
+    parser.add_argument("-in.field.value", dest="field_val",
+                        help="field's value", default=None, type=int, required=True, nargs='+')
+    parser.add_argument("-in.field.value.nbExtract", dest="nbextract",
+                        help="field's value", default=None, type=int, required=True, nargs='+')
+    parser.add_argument("-in.extract.select", dest="shapeS",
+                        help="path to the shapefile in which store samples", default=None, required=True)
+    parser.add_argument("-in.field.pop", dest="fieldo",
+                        help="Field of the storage shapefile to populate", default=None, required=True)
+    parser.add_argument("-in.PopDriver", dest="DriverS",
+                        help="driver", default=None, required=True)
     args = parser.parse_args()
 
-    extraction(args.shapeE, args.DriverE, args.field, args.field_val, args.nbextract, args.shapeS, args.fieldo, args.DriverS)
+    extraction(args.shapeE, args.DriverE, args.field, args.field_val,
+               args.nbextract, args.shapeS, args.fieldo, args.DriverS)
 
-#python extractSample.py -in.PopDriver SQLite -in.field.value.nbExtract 100 -in.field.value 42 -in.field CODE -in.extract /mnt/data/home/vincenta/tmp/testSampleExtraction/France_2014_1CA_T31TCJ_SamplesSel_5p.sqlite -in.extractDriver SQLite -in.extract.select /mnt/data/home/vincenta/tmp/testSampleExtraction/France_2014_1CA_T31TCJ_SamplesSel_20p.sqlite -in.field.pop code
+# python extractSample.py -in.PopDriver SQLite -in.field.value.nbExtract 100 -in.field.value 42 -in.field CODE -in.extract /mnt/data/home/vincenta/tmp/testSampleExtraction/France_2014_1CA_T31TCJ_SamplesSel_5p.sqlite -in.extractDriver SQLite -in.extract.select /mnt/data/home/vincenta/tmp/testSampleExtraction/France_2014_1CA_T31TCJ_SamplesSel_20p.sqlite -in.field.pop code

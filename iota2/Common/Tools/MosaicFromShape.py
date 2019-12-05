@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -24,6 +24,7 @@ import random
 from Common.Utils import run
 import shutil
 
+
 def genRasterEnvelope(raster, outputShape):
     """
     raster [string]
@@ -39,13 +40,14 @@ def genRasterEnvelope(raster, outputShape):
     srs = osr.SpatialReference()
     srs.ImportFromEPSG(int(epsg))
 
-    out_lyr = data_source.CreateLayer(rasterName, srs, geom_type=ogr.wkbPolygon)
+    out_lyr = data_source.CreateLayer(
+        rasterName, srs, geom_type=ogr.wkbPolygon)
 
     field_ext = ogr.FieldDefn("ext", ogr.OFTString)
     field_ext.SetWidth(24)
     out_lyr.CreateField(field_ext)
 
-    #geom
+    # geom
     ul = (minX, maxY)
     ur = (maxX, maxY)
     lr = (maxX, minY)
@@ -80,7 +82,7 @@ def genIntersectionShape(vector1, vector2, vector_out):
     intersection area
     """
 
-    #V1
+    # V1
     driver1 = ogr.GetDriverByName('ESRI Shapefile')
     dataSource1 = driver1.Open(vector1, 0)
     layer1 = dataSource1.GetLayer()
@@ -88,7 +90,7 @@ def genIntersectionShape(vector1, vector2, vector_out):
     for feature in layer1:
         geom1 = feature.GetGeometryRef()
 
-    #V2
+    # V2
     driver2 = ogr.GetDriverByName('ESRI Shapefile')
     dataSource2 = driver2.Open(vector2, 0)
     layer2 = dataSource2.GetLayer()
@@ -101,7 +103,8 @@ def genIntersectionShape(vector1, vector2, vector_out):
     vector_out_name = os.path.splitext(os.path.split(vector_out)[-1])[0]
     driver = ogr.GetDriverByName("ESRI Shapefile")
     data_source = driver.CreateDataSource(vector_out)
-    out_lyr = data_source.CreateLayer(vector_out_name, spatialRef, geom_type=ogr.wkbPolygon)
+    out_lyr = data_source.CreateLayer(
+        vector_out_name, spatialRef, geom_type=ogr.wkbPolygon)
 
     field_inter = ogr.FieldDefn("inters", ogr.OFTString)
     field_inter.SetWidth(24)
@@ -117,13 +120,15 @@ def genIntersectionShape(vector1, vector2, vector_out):
         return True
     return False
 
+
 def upperLeft(item):
     """
     function use to sort a list
     item[1] = minX, maxX, minY, maxY
     """
-    #upperLeft
+    # upperLeft
     return item[1][2], item[1][1]
+
 
 def mosaicFromShape(rasters, shape, rasterOut, workingDir=None):
     """
@@ -138,8 +143,9 @@ def mosaicFromShape(rasters, shape, rasterOut, workingDir=None):
     OUT
     """
 
-    #sort input raster by origin (upperLeft)
-    rasters_p = sorted([(raster, fut.getRasterExtent(raster)) for raster in rasters], key=upperLeft)[::-1]
+    # sort input raster by origin (upperLeft)
+    rasters_p = sorted([(raster, fut.getRasterExtent(raster))
+                        for raster in rasters], key=upperLeft)[::-1]
 
     outputDirectory = os.path.split(rasterOut)[0]
     wDir = outputDirectory
@@ -154,9 +160,10 @@ def mosaicFromShape(rasters, shape, rasterOut, workingDir=None):
         raster_footPrint = os.path.join(wDir, rasterName + ".shp")
         if os.path.exists(raster_footPrint):
             while os.path.exists(raster_footPrint):
-                raster_footPrint = raster_footPrint.replace(".shp", "_" + str(random.randint(1, 1000)) + ".shp")
+                raster_footPrint = raster_footPrint.replace(
+                    ".shp", "_" + str(random.randint(1, 1000)) + ".shp")
 
-        #raster footPrint
+        # raster footPrint
         genRasterEnvelope(raster, raster_footPrint)
         tmp_files_vec.append(raster_footPrint)
 
@@ -164,28 +171,32 @@ def mosaicFromShape(rasters, shape, rasterOut, workingDir=None):
         clip_raster = raster_footPrint.replace(".shp", "_Clip.tif")
         inter = genIntersectionShape(raster_footPrint, shape, clip)
 
-        cmd = "gdalwarp -crop_to_cutline -cutline " + clip + " " + raster + " " + clip_raster
+        cmd = "gdalwarp -crop_to_cutline -cutline " + \
+            clip + " " + raster + " " + clip_raster
         run(cmd)
         tmp_files_raster.append(clip_raster)
         tmp_files_vec.append(clip)
 
-    #mosaic using gdal_merge.py, the last image will be copied over earlier ones
+    # mosaic using gdal_merge.py, the last image will be copied over earlier ones
     rasters_clip = " ".join(tmp_files_raster[::-1])
     cmd = "gdal_merge.py -o " + rasterOut + " -n 0 " + rasters_clip
     run(cmd)
 
-    #clean tmp files
+    # clean tmp files
     for vec in tmp_files_vec:
-        fut.removeShape(vec.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"])
+        fut.removeShape(vec.replace(".shp", ""), [
+                        ".prj", ".shp", ".dbf", ".shx"])
     for img in tmp_files_raster:
         os.remove(img)
 
     if workingDir:
         shutil.copy(rasterOut, outputDirectory)
 
+
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description="This function allow you to mosaic rasters thanks to shape extent")
+    parser = argparse.ArgumentParser(
+        description="This function allow you to mosaic rasters thanks to shape extent")
     parser.add_argument("-rasters", help="path to rasters to clip (mandatory)",
                         dest="rasters", required=True, nargs='+')
     parser.add_argument("-shape", help="path to the shape use to clip rasters. It must contain only one geometry (mandatory)",

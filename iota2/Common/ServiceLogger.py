@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -17,12 +17,14 @@
 import logging
 from io import StringIO
 
+
 class serviceLogger(logging.getLoggerClass()):
     """
     The class serviceLogger defines all logging parameter.
     It's an interface to python logging class.
     """
     instance = None
+
     def __new__(cls, cfg, name):
         if cls.instance is None:
             cls.instance = object.__new__(cls)
@@ -34,11 +36,13 @@ class serviceLogger(logging.getLoggerClass()):
             :param cfg: class serviceConfigFile
         """
 
-        log_lvl_dic = {"CRITICAL":50, "ERROR":40, "WARNING":30, "INFO":20, "DEBUG":10, "NOTSET":0}
+        log_lvl_dic = {"CRITICAL": 50, "ERROR": 40,
+                       "WARNING": 30, "INFO": 20, "DEBUG": 10, "NOTSET": 0}
         log_level_code = log_lvl_dic[cfg.getParam('chain', 'logFileLevel')]
 
         # logging format
-        logFormatter = logging.Formatter("%(asctime)s [%(name)s] [%(levelname)s] - %(message)s")
+        logFormatter = logging.Formatter(
+            "%(asctime)s [%(name)s] [%(levelname)s] - %(message)s")
 
         rootLogger = logging.getLogger()
         # set the logging level
@@ -47,7 +51,8 @@ class serviceLogger(logging.getLoggerClass()):
             # First call to serviceLogger
             self.first = True
             # create a log file
-            self.fileHandler = logging.FileHandler(cfg.getParam('chain', 'logFile'), mode='w')
+            self.fileHandler = logging.FileHandler(
+                cfg.getParam('chain', 'logFile'), mode='w')
             self.fileHandler.setFormatter(logFormatter)
             self.fileHandler.setLevel(cfg.getParam('chain', 'logFileLevel'))
             rootLogger.addHandler(self.fileHandler)
@@ -56,8 +61,10 @@ class serviceLogger(logging.getLoggerClass()):
                 # logging in console
                 self.consoleHandler = logging.StreamHandler()
                 self.consoleHandler.setFormatter(logFormatter)
-                self.consoleHandler.setLevel(cfg.getParam('chain', 'logConsoleLevel'))
+                self.consoleHandler.setLevel(
+                    cfg.getParam('chain', 'logConsoleLevel'))
                 rootLogger.addHandler(self.consoleHandler)
+
 
 class Log_task(logging.getLoggerClass()):
 
@@ -68,19 +75,20 @@ class Log_task(logging.getLoggerClass()):
                                            or "ERROR" or "CRITICAL"
         """
 
-        #logging format
-        self.logFormatter = logging.Formatter("%(asctime)s [%(name)s] [%(levelname)s] - %(message)s")
+        # logging format
+        self.logFormatter = logging.Formatter(
+            "%(asctime)s [%(name)s] [%(levelname)s] - %(message)s")
 
-        #rootLogger
+        # rootLogger
         rootLogger = logging.getLogger()
 
-        #reset handlers
+        # reset handlers
         rootLogger.handlers = []
 
-        #set the logging level
+        # set the logging level
         rootLogger.setLevel(log_level)
 
-        #create a log string
+        # create a log string
         self.stream = StringIO()
         self.handler = logging.StreamHandler(self.stream)
         self.handler.setFormatter(self.logFormatter)

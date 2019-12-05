@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 # =========================================================================
 #   Program:   iota2
 #
@@ -35,7 +35,8 @@ def get_qsub_cmd(cfg, config_ressources=None, parallel_mode="MPI"):
     scripts = os.path.join(get_iota2_project_dir(), "iota2")
     job_dir = cfg.getParam("chain", "jobsPath")
     if job_dir is None:
-        raise Exception("the parameter 'chain.jobsPath' is needed to launch IOTA2 on clusters")
+        raise Exception(
+            "the parameter 'chain.jobsPath' is needed to launch IOTA2 on clusters")
 
     config_path = cfg.pathConf
     iota2_main = os.path.join(job_dir, "iota2.pbs")
@@ -122,7 +123,8 @@ def launchChain(cfg, config_ressources=None, parallel_mode="MPI", only_summary=F
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description="This function allows you launch the chain according to a configuration file")
+    parser = argparse.ArgumentParser(
+        description="This function allows you launch the chain according to a configuration file")
     parser.add_argument("-config", dest="config",
                         help="path to IOTA2 configuration file", required=True)
     parser.add_argument("-config_ressources", dest="config_ressources",
@@ -142,13 +144,14 @@ if __name__ == "__main__":
     cfg = SCF.serviceConfigFile(args.config)
 
     try:
-        launchChain(cfg, args.config_ressources, args.parallel_mode, args.launchChain)
+        launchChain(cfg, args.config_ressources,
+                    args.parallel_mode, args.launchChain)
     # Exception manage by the chain
     # We only print the error message
     except sErr.osoError as e:
-        print (e)
+        print(e)
     # Exception not manage (bug)
     # print error message + all stack
     except Exception as e:
-        print (e)
+        print(e)
         raise

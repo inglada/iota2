@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -23,6 +23,7 @@ from osgeo import osr
 from osgeo.gdalconst import *
 from Common.Utils import run
 
+
 def getRasterResolution(rasterIn):
     raster = gdal.Open(rasterIn, GA_ReadOnly)
     if raster is None:
@@ -32,10 +33,11 @@ def getRasterResolution(rasterIn):
     spacingY = geotransform[5]
     return spacingX, spacingY
 
+
 def getRasterExtent(raster_in):
     """
         Get raster extent of raster_in from GetGeoTransform()
-		ARGs:
+                ARGs:
               INPUT:
                   - raster_in: input raster
               OUTPUT
@@ -66,6 +68,7 @@ def getRasterExtent(raster_in):
     # On renvoie la liste en fonction des cas
     return retour
 
+
 def getFieldType(layer, field):
 
     layerDefinition = layer.GetLayerDefn()
@@ -75,16 +78,21 @@ def getFieldType(layer, field):
         fieldName = layerDefinition.GetFieldDefn(i).GetName()
         fieldList.append('"'+fieldName+'"')
         fieldTypeCode = layerDefinition.GetFieldDefn(i).GetType()
-        fieldType = layerDefinition.GetFieldDefn(i).GetFieldTypeName(fieldTypeCode)
-        if fieldType == "Integer": fieldDef[fieldName] = int
-        elif fieldType == "String": fieldDef[fieldName] = str
+        fieldType = layerDefinition.GetFieldDefn(
+            i).GetFieldTypeName(fieldTypeCode)
+        if fieldType == "Integer":
+            fieldDef[fieldName] = int
+        elif fieldType == "String":
+            fieldDef[fieldName] = str
 
     retour = None
     try:
         retour = fieldDef[field]
     except:
-        raise Exception('Field : "'+field+'" not in field\'s list : '+' , '.join(fieldList))
+        raise Exception('Field : "'+field +
+                        '" not in field\'s list : '+' , '.join(fieldList))
     return retour
+
 
 def getAllGeom(layer, field, valField):
     fieldType = getFieldType(layer, field)
@@ -100,8 +108,10 @@ def getAllGeom(layer, field, valField):
                     allGeom.append(geom.Clone())
     return allGeom
 
+
 def matchGrid(val, grid):
     return min(grid, key=lambda x: abs(x-val))
+
 
 def getBBox(raster_in, allGeom):
 
@@ -112,7 +122,7 @@ def getBBox(raster_in, allGeom):
     minXe, maxXe, minYe, maxYe = getRasterExtent(raster_in)
     spacingX, spacingY = getRasterResolution(raster_in)
 
-    #match polygon's envelope and raster grid
+    # match polygon's envelope and raster grid
     Xgrid = np.arange(minXe, maxXe+spacingX)
     Ygrid = np.arange(minYe, maxYe-spacingY)
 
@@ -123,13 +133,14 @@ def getBBox(raster_in, allGeom):
 
     return minX, maxX, minY, maxY
 
+
 def generateRaster(raster_path, features_path, driver, field, valField, output, epsg):
     """
     """
 
     driver = ogr.GetDriverByName(driver)
     features = driver.Open(features_path, 0)
-    if features is None: 
+    if features is None:
         raise Exception("Could not open "+features_path)
     lyr = features.GetLayer()
     allGeom = getAllGeom(lyr, field, valField)
@@ -138,12 +149,17 @@ def generateRaster(raster_path, features_path, driver, field, valField, output, 
     layerName = features_path.split("/")[-1].split(".")[0]
     fieldType = getFieldType(lyr, field)
     sep = ""
-    if not isinstance(fieldType, int): sep = "'"
-    valField = ["("+field+"="+sep+currentValToKeep+sep+")" for currentValToKeep in valField]
+    if not isinstance(fieldType, int):
+        sep = "'"
+    valField = ["("+field+"="+sep+currentValToKeep+sep +
+                ")" for currentValToKeep in valField]
     csql = " OR ".join(valField)
 
     sizeX, sizeY = getRasterResolution(raster_path)
-    cmd = "gdalwarp -overwrite -t_srs EPSG:"+str(epsg)+" -tr "+str(sizeX)+" "+str(sizeX)+" -of GTiff -cl "+layerName+" -csql \"SELECT * FROM "+layerName+" WHERE ("+csql+")\" -ot Byte -te "+str(minX)+" "+str(minY)+" "+str(maxX)+" "+str(maxY)+" -cutline "+features_path+" -crop_to_cutline "+raster_path+" "+output
+    cmd = "gdalwarp -overwrite -t_srs EPSG:"+str(epsg)+" -tr "+str(sizeX)+" "+str(sizeX)+" -of GTiff -cl "+layerName+" -csql \"SELECT * FROM "+layerName + \
+        " WHERE ("+csql+")\" -ot Byte -te "+str(minX)+" "+str(minY)+" "+str(maxX)+" " + \
+        str(maxY)+" -cutline "+features_path + \
+        " -crop_to_cutline "+raster_path+" "+output
     run(cmd)
 
     ds = gdal.Open(output, GA_Update)
@@ -153,16 +169,26 @@ def generateRaster(raster_path, features_path, driver, field, valField, output, 
 
     ds.SetGeoTransform(gt2)
 
+
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description="extract ROI in raster defined by a shapeFile")
-    parser.add_argument("-in.raster", dest="raster_path", help="path to the classification.tif", default=None, required=True)
-    parser.add_argument("-in.vector", dest="features_path", help="vector's path", default=None, required=True)
-    parser.add_argument("-in.vector.type", dest="driver", help="vector's type", choices=["ESRI Shapefile", "SQLite"], required=True)
-    parser.add_argument("-in.vector.dataField", dest="field", help="data's field", default=None, required=True)
-    parser.add_argument("-in.vector.dataField.values", dest="valField", help="features to consider", default=None, required=True, nargs='+')
-    parser.add_argument("--out.EPSG.code", dest="epsg", help="epsg code, default : 2154", type=int, default=2154, required=False)
-    parser.add_argument("-out", dest="output", help="output raster", default=None, required=True)
+    parser = argparse.ArgumentParser(
+        description="extract ROI in raster defined by a shapeFile")
+    parser.add_argument("-in.raster", dest="raster_path",
+                        help="path to the classification.tif", default=None, required=True)
+    parser.add_argument("-in.vector", dest="features_path",
+                        help="vector's path", default=None, required=True)
+    parser.add_argument("-in.vector.type", dest="driver", help="vector's type",
+                        choices=["ESRI Shapefile", "SQLite"], required=True)
+    parser.add_argument("-in.vector.dataField", dest="field",
+                        help="data's field", default=None, required=True)
+    parser.add_argument("-in.vector.dataField.values", dest="valField",
+                        help="features to consider", default=None, required=True, nargs='+')
+    parser.add_argument("--out.EPSG.code", dest="epsg",
+                        help="epsg code, default : 2154", type=int, default=2154, required=False)
+    parser.add_argument("-out", dest="output",
+                        help="output raster", default=None, required=True)
     args = parser.parse_args()
 
-    generateRaster(args.raster_path, args.features_path, args.driver, args.field, args.valField, args.output, args.epsg)
+    generateRaster(args.raster_path, args.features_path, args.driver,
+                   args.field, args.valField, args.output, args.epsg)

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -25,6 +25,7 @@ from Common import ServiceConfigFile as SCF
 
 logger = logging.getLogger(__name__)
 
+
 def str2bool(v):
     if v.lower() not in ('yes', 'true', 't', 'y', '1', 'no', 'false', 'f', 'n', '0'):
         raise argparse.ArgumentTypeError('Boolean value expected.')
@@ -34,8 +35,9 @@ def str2bool(v):
         retour = False
     return retour
 
+
 class iota2Classification():
-    def __init__(self, cfg, features_stack, classifier_type, model, tile, output_directory, models_class, 
+    def __init__(self, cfg, features_stack, classifier_type, model, tile, output_directory, models_class,
                  confidence=True, proba_map=False, classif_mask=None, pixType="uint8",
                  working_directory=None, stat_norm=None, RAM=128, logger=logger, mode="usually"):
         """
@@ -63,7 +65,8 @@ class iota2Classification():
                                                                    self.model_name,
                                                                    self.seed)
         if mode == "SAR":
-            classification_name = classification_name.replace(".tif", "_SAR.tif")
+            classification_name = classification_name.replace(
+                ".tif", "_SAR.tif")
             confidence_name = confidence_name.replace(".tif", "_SAR.tif")
             proba_map_name = proba_map_name.replace(".tif", "_SAR.tif")
         self.classification = os.path.join(output_directory,
@@ -75,7 +78,7 @@ class iota2Classification():
                                                  model,
                                                  tile, proba_map, proba_map_name)
         self.working_directory = working_directory
-    
+
     def get_proba_map(self, classifier_type, output_directory, model, tile, gen_proba, proba_map_name):
         """get probability map absolute path
 
@@ -95,7 +98,7 @@ class iota2Classification():
         ------
         string
             absolute path to the probality map
-        
+
         """
         model_name = self.get_model_name(model)
         seed = self.get_model_seed(model)
@@ -118,7 +121,7 @@ class iota2Classification():
         """
         """
         return os.path.splitext(os.path.basename(model))[0].split("_")[3]
-        
+
     def generate(self):
         """
         """
@@ -148,7 +151,8 @@ class iota2Classification():
             if self.working_directory:
                 self.proba_map_path = os.path.join(self.working_directory,
                                                    os.path.split(self.proba_map_path)[-1])
-            classifier_options["probamap"] = "{}?&writegeom=false".format(self.proba_map_path)
+            classifier_options["probamap"] = "{}?&writegeom=false".format(
+                self.proba_map_path)
             classifier_options["nbclasses"] = str(nb_class_run)
 
         if self.stats:
@@ -173,7 +177,8 @@ class iota2Classification():
                                                      "exp": "im2b1>=1?im1b1:0"})
             mask_filter.ExecuteAndWriteOutput()
             if self.proba_map_path:
-                expr = "im2b1>=1?im1:{}".format("{"+";".join(["0"] * nb_class_run)+"}")
+                expr = "im2b1>=1?im1:{}".format(
+                    "{"+";".join(["0"] * nb_class_run)+"}")
                 mask_filter = CreateBandMathXApplication({"il": [self.proba_map_path,
                                                                  self.classif_mask],
                                                           "ram": str(self.RAM),
@@ -183,17 +188,19 @@ class iota2Classification():
                 mask_filter.ExecuteAndWriteOutput()
 
         if self.proba_map_path:
-            class_model = self.models_class[self.model_name][int(self.seed)]            
+            class_model = self.models_class[self.model_name][int(self.seed)]
             if len(class_model) != len(all_class):
-                logger.info("reordering the probability map : '{}'".format(self.proba_map_path))
-                self.reorder_proba_map(self.proba_map_path, self.proba_map_path, class_model, all_class)
+                logger.info("reordering the probability map : '{}'".format(
+                    self.proba_map_path))
+                self.reorder_proba_map(
+                    self.proba_map_path, self.proba_map_path, class_model, all_class)
 
         if self.working_directory:
             shutil.copy(self.classification, os.path.join(self.output_directory,
                                                           os.path.split(self.classification)[-1]))
             #~ os.remove(self.classification)
             shutil.copy(self.confidence, os.path.join(self.output_directory,
-                                                          os.path.split(self.confidence)[-1]))
+                                                      os.path.split(self.confidence)[-1]))
             #~ os.remove(self.confidence)
             if self.proba_map_path:
                 shutil.copy(self.proba_map_path, os.path.join(self.output_directory,
@@ -236,7 +243,8 @@ class iota2Classification():
             else:
                 idx = NODATA_LABEL_idx
             index_vector.append(idx)
-        exp = "bands(im1, {})".format("{" + ",".join(map(str, index_vector)) + "}")
+        exp = "bands(im1, {})".format(
+            "{" + ",".join(map(str, index_vector)) + "}")
         reorder_app = CreateBandMathXApplication({"il": proba_map_path_in,
                                                   "ram": str(self.RAM),
                                                   "exp": exp,
@@ -252,9 +260,9 @@ def get_model_dictionnary(model):
             classes = next(modelfile).split(" ")[1:-1]
             classes = [int(x) for x in classes]
     return classes
-    
-    
-def get_class_by_models(iota2_samples_dir, data_field, model=None) :
+
+
+def get_class_by_models(iota2_samples_dir, data_field, model=None):
     """ inform which class will be used to by models
 
     Parameters
@@ -264,7 +272,7 @@ def get_class_by_models(iota2_samples_dir, data_field, model=None) :
 
     data_field : string
         field which contains labels in vector file
-    
+
     model : string
         path to model for correct number of classes in proba map
     Return 
@@ -282,28 +290,34 @@ def get_class_by_models(iota2_samples_dir, data_field, model=None) :
     class_models = {}
     if model is not None:
         modelpath = os.path.dirname(model)
-        models_files = FileSearch_AND(modelpath, True, "model","seed",".txt")
-        
+        models_files = FileSearch_AND(modelpath, True, "model", "seed", ".txt")
+
         for model_file in models_files:
-            model_name = os.path.splitext(os.path.basename(model_file))[0].split("_")[1]
+            model_name = os.path.splitext(os.path.basename(model_file))[
+                0].split("_")[1]
             class_models[model_name] = {}
-            seed_number = int(os.path.splitext(os.path.basename(model_file))[0].split("_")[3].replace(".txt", ""))
+            seed_number = int(os.path.splitext(os.path.basename(model_file))[
+                              0].split("_")[3].replace(".txt", ""))
             classes = get_model_dictionnary(model_file)
             class_models[model_name][seed_number] = classes
     else:
-        samples_files =  FileSearch_AND(iota2_samples_dir, True,
-                                    "Samples_region_", "_seed", "_learn.sqlite")
-  
+        samples_files = FileSearch_AND(iota2_samples_dir, True,
+                                       "Samples_region_", "_seed", "_learn.sqlite")
+
         for samples_file in samples_files:
-            model_name = os.path.splitext(os.path.basename(samples_file))[0].split("_")[2]
+            model_name = os.path.splitext(os.path.basename(samples_file))[
+                0].split("_")[2]
             class_models[model_name] = {}
         for samples_file in samples_files:
-            model_name = os.path.splitext(os.path.basename(samples_file))[0].split("_")[2]
-            seed_number = int(os.path.splitext(os.path.basename(samples_file))[0].split("_")[3].replace("seed", ""))
+            model_name = os.path.splitext(os.path.basename(samples_file))[
+                0].split("_")[2]
+            seed_number = int(os.path.splitext(os.path.basename(samples_file))[
+                              0].split("_")[3].replace("seed", ""))
             class_models[model_name][seed_number] = sorted(getFieldElement(samples_file, driverName="SQLite",
                                                                            field=data_field.lower(), mode="unique",
                                                                            elemType="int"))
     return class_models
+
 
 def launchClassification(tempFolderSerie, Classifmask, model, stats,
                          outputClassif, confmap, pathWd, cfg, pixType,
@@ -319,17 +333,19 @@ def launchClassification(tempFolderSerie, Classifmask, model, stats,
         cfg = SCF.serviceConfigFile(cfg)
 
     classifier_type = cfg.getParam('argTrain', 'classifier')
-    output_directory = os.path.join(cfg.getParam('chain', 'outputPath'), "classif")
+    output_directory = os.path.join(
+        cfg.getParam('chain', 'outputPath'), "classif")
     tiles = (cfg.getParam('chain', 'listTile')).split()
     tile = fu.findCurrentTileInString(Classifmask, tiles)
-    
+
     wMode = cfg.getParam('GlobChain', 'writeOutputs')
     outputPath = cfg.getParam('chain', 'outputPath')
     featuresPath = os.path.join(outputPath, "features")
     dimred = cfg.getParam('dimRed', 'dimRed')
-    proba_map_expected = cfg.getParam('argClassification', 'enable_probability_map')
+    proba_map_expected = cfg.getParam(
+        'argClassification', 'enable_probability_map')
     wd = pathWd
-    if not pathWd: 
+    if not pathWd:
         wd = featuresPath
 
     try:
@@ -349,10 +365,12 @@ def launchClassification(tempFolderSerie, Classifmask, model, stats,
     mode = "usually"
     if "SAR.tif" in outputClassif:
         mode = "SAR"
-    
-    AllFeatures, feat_labels, dep_features = genFeatures.generateFeatures(wd, tile, cfg, mode=mode)
-    
-    feature_raster = AllFeatures.GetParameterValue(getInputParameterOutput(AllFeatures))
+
+    AllFeatures, feat_labels, dep_features = genFeatures.generateFeatures(
+        wd, tile, cfg, mode=mode)
+
+    feature_raster = AllFeatures.GetParameterValue(
+        getInputParameterOutput(AllFeatures))
     if wMode:
         if not os.path.exists(feature_raster):
             AllFeatures.ExecuteAndWriteOutput()
@@ -366,17 +384,18 @@ def launchClassification(tempFolderSerie, Classifmask, model, stats,
         logger.debug("Classification model : {}".format(model))
         dimRedModelList = DR.GetDimRedModelsFromClassificationModel(model)
         logger.debug("Dim red models : {}".format(dimRedModelList))
-        [ClassifInput, other] = DR.ApplyDimensionalityReductionToFeatureStack(cfg,AllFeatures,
+        [ClassifInput, other] = DR.ApplyDimensionalityReductionToFeatureStack(cfg, AllFeatures,
                                                                               dimRedModelList)
         if wMode:
             ClassifInput.ExecuteAndWriteOutput()
         else:
             ClassifInput.Execute()
-    
+
     iota2_samples_dir = os.path.join(cfg.getParam('chain', 'outputPath'),
                                      "learningSamples")
     data_field = cfg.getParam('chain', 'dataField')
-    models_class = get_class_by_models(iota2_samples_dir, data_field, model=model if proba_map_expected else None)
+    models_class = get_class_by_models(
+        iota2_samples_dir, data_field, model=model if proba_map_expected else None)
     classif = iota2Classification(cfg, ClassifInput, classifier_type, model, tile, output_directory,
                                   models_class, proba_map=proba_map_expected, working_directory=pathWd,
                                   classif_mask=Classifmask, pixType=pixType, stat_norm=stats, RAM=RAM,
@@ -386,17 +405,28 @@ def launchClassification(tempFolderSerie, Classifmask, model, stats,
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description="Performs a classification of the input image (compute in RAM) according to a model file, ")
-    parser.add_argument("-in", dest="tempFolderSerie", help="path to the folder which contains temporal series", default=None, required=True)
-    parser.add_argument("-mask", dest="mask", help="path to classification's mask", default=None, required=True)
-    parser.add_argument("-pixType", dest="pixType", help="pixel format", default=None, required=True)
-    parser.add_argument("-model", dest="model", help="path to the model", default=None, required=True)
-    parser.add_argument("-imstat", dest="stats", help="path to statistics", default=None, required=False)
-    parser.add_argument("-out", dest="outputClassif", help="output classification's path", default=None, required=True)
-    parser.add_argument("-confmap", dest="confmap", help="output classification confidence map", default=None, required=True)
-    parser.add_argument("-ram", dest="ram", help="pipeline's size", default=128, required=False)
-    parser.add_argument("--wd", dest="pathWd", help="path to the working directory", default=None, required=False)
-    parser.add_argument("-conf", help="path to the configuration file (mandatory)", dest="pathConf", required=True)
+    parser = argparse.ArgumentParser(
+        description="Performs a classification of the input image (compute in RAM) according to a model file, ")
+    parser.add_argument("-in", dest="tempFolderSerie",
+                        help="path to the folder which contains temporal series", default=None, required=True)
+    parser.add_argument(
+        "-mask", dest="mask", help="path to classification's mask", default=None, required=True)
+    parser.add_argument("-pixType", dest="pixType",
+                        help="pixel format", default=None, required=True)
+    parser.add_argument("-model", dest="model",
+                        help="path to the model", default=None, required=True)
+    parser.add_argument("-imstat", dest="stats",
+                        help="path to statistics", default=None, required=False)
+    parser.add_argument("-out", dest="outputClassif",
+                        help="output classification's path", default=None, required=True)
+    parser.add_argument("-confmap", dest="confmap",
+                        help="output classification confidence map", default=None, required=True)
+    parser.add_argument("-ram", dest="ram",
+                        help="pipeline's size", default=128, required=False)
+    parser.add_argument("--wd", dest="pathWd",
+                        help="path to the working directory", default=None, required=False)
+    parser.add_argument(
+        "-conf", help="path to the configuration file (mandatory)", dest="pathConf", required=True)
     parser.add_argument("-maxCPU", help="True : Class all the image and after apply mask",
                         dest="MaximizeCPU", default="False", choices=["True", "False"], required=False)
     args = parser.parse_args()

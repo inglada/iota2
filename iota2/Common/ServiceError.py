@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -14,19 +14,24 @@
 #
 # =========================================================================
 
+
 class osoError(Exception):
     """ Base class for exceptions in oso chain"""
     pass
 
 # Error class definition configFileError inherits the osoError class
+
+
 class configFileError(osoError):
     """ Base subclass for exception in the configuration file
         IN :
             msg [string] : explanation of the error
     """
+
     def __init__(self, msg):
         osoError.__init__(self, msg)
         self.msg = msg
+
     def __str__(self):
         return repr(self.msg)
 
@@ -34,28 +39,36 @@ class configFileError(osoError):
 # List of error class definition for the configuration file,
 # inherits the configFileError class
 ####################################################################
+
+
 class parameterError(configFileError):
     """ Exception raised for errors in a parameter in the configuration file
         (like absence of a mandatory variable)
         IN :
             msg [string] : explanation of the error
     """
+
     def __init__(self, section, msg):
         self.section = section
         self.msg = msg
+
     def __str__(self):
         return "Error: In section " + repr(self.section) + ", " + self.msg
+
 
 class dirError(configFileError):
     """ Exception raised for errors in mandatory directory
         IN :
             directory [string] : name of the directory
     """
+
     def __init__(self, directory):
         self.directory = directory
+
     def __str__(self):
         self.msg = "Error: " + repr(self.directory) + " doesn't exist"
         return self.msg
+
 
 class configError(configFileError):
     """ Exception raised for configuration errors in the configuration file
@@ -63,10 +76,13 @@ class configError(configFileError):
         IN :
             msg [string] : explanation of the error
     """
+
     def __init__(self, msg):
         self.msg = msg
+
     def __str__(self):
         return "Error: " + repr(self.msg)
+
 
 class fileError(configFileError):
     """ Exception raised for errors inside an input file
@@ -74,8 +90,10 @@ class fileError(configFileError):
         IN :
             msg [string] : explanation of the error
     """
+
     def __init__(self, msg):
         self.msg = msg
+
     def __str__(self):
         return "Error: " + repr(self.msg)
 

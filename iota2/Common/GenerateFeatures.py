@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -26,6 +26,7 @@ from Common import ServiceConfigFile as SCF
 
 logger = logging.getLogger(__name__)
 
+
 def str2bool(v):
     """
     usage : use in argParse as function to parse options
@@ -40,6 +41,7 @@ def str2bool(v):
         return False
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')
+
 
 def generateFeatures(pathWd, tile, cfg, writeFeatures=False,
                      mode="usually"):
@@ -60,8 +62,9 @@ def generateFeatures(pathWd, tile, cfg, writeFeatures=False,
 
     logger.info("prepare features for tile : " + tile)
     wMode = cfg.getParam('GlobChain', 'writeOutputs')
-    sar_optical_post_fusion = cfg.getParam('argTrain', 'dempster_shafer_SAR_Opt_fusion')
-    
+    sar_optical_post_fusion = cfg.getParam(
+        'argTrain', 'dempster_shafer_SAR_Opt_fusion')
+
     config_path = cfg.pathConf
     sensor_tile_container = Sensors_container(config_path,
                                               tile,
@@ -70,7 +73,8 @@ def generateFeatures(pathWd, tile, cfg, writeFeatures=False,
     dep = []
     feat_app = []
     if mode == "usually" and sar_optical_post_fusion is False:
-        sensors_features = sensor_tile_container.get_sensors_features(available_ram=1000)
+        sensors_features = sensor_tile_container.get_sensors_features(
+            available_ram=1000)
         for sensor_name, ((sensor_features, sensor_features_dep), features_labels) in sensors_features:
             sensor_features.Execute()
             feat_app.append(sensor_features)
@@ -78,7 +82,8 @@ def generateFeatures(pathWd, tile, cfg, writeFeatures=False,
             feat_labels = feat_labels + features_labels
     elif mode == "usually" and sar_optical_post_fusion is True:
         sensor_tile_container.remove_sensor("Sentinel1")
-        sensors_features = sensor_tile_container.get_sensors_features(available_ram=1000)
+        sensors_features = sensor_tile_container.get_sensors_features(
+            available_ram=1000)
         for sensor_name, ((sensor_features, sensor_features_dep), features_labels) in sensors_features:
             sensor_features.Execute()
             feat_app.append(sensor_features)
@@ -92,7 +97,7 @@ def generateFeatures(pathWd, tile, cfg, writeFeatures=False,
         dep.append(sensor_features_dep)
 
     dep.append(feat_app)
-    
+
     features_name = "{}_Features.tif".format(tile)
     features_dir = os.path.join(cfg.getParam("chain", "outputPath"),
                                 "features", tile, "tmp")
@@ -107,12 +112,17 @@ def generateFeatures(pathWd, tile, cfg, writeFeatures=False,
         AllFeatures.SetParameterString(output_param_name, features_raster)
     return AllFeatures, feat_labels, dep
 
+
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description="Computes a time series of features")
-    parser.add_argument("-wd", dest="pathWd", help="path to the working directory", default=None, required=False)
-    parser.add_argument("-tile", dest="tile", help="tile to be processed", required=True)
-    parser.add_argument("-conf", dest="pathConf", help="path to the configuration file (mandatory)", required=True)
+    parser = argparse.ArgumentParser(
+        description="Computes a time series of features")
+    parser.add_argument(
+        "-wd", dest="pathWd", help="path to the working directory", default=None, required=False)
+    parser.add_argument("-tile", dest="tile",
+                        help="tile to be processed", required=True)
+    parser.add_argument("-conf", dest="pathConf",
+                        help="path to the configuration file (mandatory)", required=True)
     parser.add_argument("-writeFeatures", type=str2bool, dest="writeFeatures",
                         Shelp="path to the working directory", default=False, required=False)
     args = parser.parse_args()

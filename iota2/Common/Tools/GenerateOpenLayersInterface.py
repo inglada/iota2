@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -16,7 +16,9 @@
 
 import sys
 
-#---------------------------------------------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------------------------------------------
+
+
 def getStringBetween(string, ch1, ch2):
     out = ""
     for i in range(len(string)):
@@ -28,21 +30,23 @@ def getStringBetween(string, ch1, ch2):
                     out = out+string[j]
             break
     return out
-#---------------------------------------------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------------------------------------------
+
+
 def generate(listClassif, colorFile, pathOut, urlserveur):
 
     panelHeight = str(5+5*len(listClassif))
 
-    #Recherche du nom le plus long pour une classif
+    # Recherche du nom le plus long pour une classif
     Size = len("List of Classifications")
     for i in range(len(listClassif)):
         if len(listClassif[i][0]) > Size:
             Size = int(len(listClassif[i][0]))
     Size = 0.95*Size
-    #loop over classifications and their results
+    # loop over classifications and their results
     for classifName, results in listClassif:
-        #Read classification's results
-        classifRes = []#[(ClassNumber,FScore),...]
+        # Read classification's results
+        classifRes = []  # [(ClassNumber,FScore),...]
         resFile = open(results, "r")
         while 1:
             data = resFile.readline().rstrip('\n\r')
@@ -161,39 +165,46 @@ font-weight: bold;\n\
 						<th scope="col" class="org-right">FScore</th>\n\
 						</tr>\n\
 					</thead>\n\
-					<tbody >\n'%(Size, panelHeight))
+					<tbody >\n' % (Size, panelHeight))
 
-        #Read the color's file and write into the html file
+        # Read the color's file and write into the html file
         color = open(colorFile, "r")
-        lineData = []#[(ClassNumber,ClassName,r,g,b,Fscore),[...],...]
+        lineData = []  # [(ClassNumber,ClassName,r,g,b,Fscore),[...],...]
         while 1:
             data = color.readline().rstrip('\n\r')
             if data.count('</qgis>') != 0:
                 break
             elif data.count("colorRampEntry") != 0:
 
-                #Get the red value
+                # Get the red value
                 ind = data.index("red")
-                redVal = int(getStringBetween(data[ind+len("red"):ind+len("red")+7], '"', '"'))
-                #Get the green value
+                redVal = int(getStringBetween(
+                    data[ind+len("red"):ind+len("red")+7], '"', '"'))
+                # Get the green value
                 ind = data.index("green")
-                greenVal = int(getStringBetween(data[ind+len("green"):ind+len("green")+7], '"', '"'))
-                #Get the blue value
+                greenVal = int(getStringBetween(
+                    data[ind+len("green"):ind+len("green")+7], '"', '"'))
+                # Get the blue value
                 ind = data.index("blue")
-                blueVal = int(getStringBetween(data[ind+len("blue"):ind+len("blue")+7], '"', '"'))
-                #Get the Class Name
+                blueVal = int(getStringBetween(
+                    data[ind+len("blue"):ind+len("blue")+7], '"', '"'))
+                # Get the Class Name
                 ind = data.index("label")
-                ClassName = getStringBetween(data[ind+len("label"):ind+len(data)], '"', '"')
-                #Get the Class Number
+                ClassName = getStringBetween(
+                    data[ind+len("label"):ind+len(data)], '"', '"')
+                # Get the Class Number
                 ind = data.index("value")
-                ClassNum = getStringBetween(data[ind+len("value"):ind+len(data)], '"', '"').split(".")[0]
+                ClassNum = getStringBetween(
+                    data[ind+len("value"):ind+len(data)], '"', '"').split(".")[0]
 
-                #get the FScore
+                # get the FScore
                 for ClassNumber, FScore in classifRes:
                     if ClassNumber == ClassNum:
-                        lineData.append((ClassNum, ClassName, redVal, greenVal, blueVal, FScore))
+                        lineData.append(
+                            (ClassNum, ClassName, redVal, greenVal, blueVal, FScore))
                 if ClassName == "autres":
-                    lineData.append((ClassNum, ClassName, redVal, greenVal, blueVal))
+                    lineData.append(
+                        (ClassNum, ClassName, redVal, greenVal, blueVal))
 
         color.close()
         for i in range(len(lineData)):
@@ -202,15 +213,15 @@ font-weight: bold;\n\
 					<tr>\n\
 					<td class="org-left"><FONT style="BACKGROUND-COLOR: rgb(%d,%d,%d)"> %s: %s</FONT></td>\n\
 					<td class="org-right">%f</td>\n\
-					</tr>'%(lineData[i][2], lineData[i][3], lineData[i][4], lineData[i][0], lineData[i][1], lineData[i][5]))
+					</tr>' % (lineData[i][2], lineData[i][3], lineData[i][4], lineData[i][0], lineData[i][1], lineData[i][5]))
             else:
                 """
-				#pour respecter ce qui est dans le fichier de couleurs
-				htmlFile.write('\n\
-					<tr>\n\
-					<td class="org-left"><FONT style="BACKGROUND-COLOR: rgb(%d,%d,%d)"> %d: %s</FONT></td>\n\
-					<td class="org-right">&#xa0;</td>\n\
-					</tr>'%(lineData[i][2],lineData[i][3],lineData[i][4],lineData[i][0],lineData[i][1]))
+                                #pour respecter ce qui est dans le fichier de couleurs
+                                htmlFile.write('\n\
+                                        <tr>\n\
+                                        <td class="org-left"><FONT style="BACKGROUND-COLOR: rgb(%d,%d,%d)"> %d: %s</FONT></td>\n\
+                                        <td class="org-right">&#xa0;</td>\n\
+                                        </tr>'%(lineData[i][2],lineData[i][3],lineData[i][4],lineData[i][0],lineData[i][1]))
                 """
                 htmlFile.write('\n\
 					<tr>\n\
@@ -256,15 +267,15 @@ font-weight: bold;\n\
 </div>\n\
 <div id="left-panel"  style="color: #FFF">\n\
 	<div align = "right"><b>></b></div>\n\
-	<p><b>List of classifications :</b></p>'%(OA))
+	<p><b>List of classifications :</b></p>' % (OA))
         for classifName2, results in listClassif:
             pathHref = pathOut+"/"+classifName2+".html"
             if classifName2 == classifName:
                 htmlFile.write('\n\
-	<p><a href="%s" style="color: #FFF">%s</a> <b><</b> </p>'%(pathHref, classifName2))
+	<p><a href="%s" style="color: #FFF">%s</a> <b><</b> </p>' % (pathHref, classifName2))
             else:
                 htmlFile.write('\n\
-	<p><a href="%s" style="color: #FFF">%s</a></p>'%(pathHref, classifName2))
+	<p><a href="%s" style="color: #FFF">%s</a></p>' % (pathHref, classifName2))
         htmlFile.write('\n\
 </div>\n\
 <script type="text/javascript">\n\
@@ -379,16 +390,20 @@ map.addLayer(classif)\n\
 \n\
 </script>\n\
 </body>\n\
-</html>'%(urlserveur, classifName))
+</html>' % (urlserveur, classifName))
         htmlFile.close()
+
 
 if __name__ == "__main__":
     if len(sys.argv) < 6:
-        print("Usage: "+sys.argv[0]+" server_url style_file output_path classif_1 metrics_1 [classif_12 metrics_2 ... classif_n metrics_n]")
-        print("Example: python "+sys.argv[0]+" \"http://cyan.ups-tlse.fr:8080/geoserver/SudOuest/wms?\" FR_ALLCLASSES.qml /tmp/html \"SudOuest:OSOV1\" MetricsV1.txt \"SudOuest:OSOV2\" MetricsV2.txt ")
+        print(
+            "Usage: "+sys.argv[0]+" server_url style_file output_path classif_1 metrics_1 [classif_12 metrics_2 ... classif_n metrics_n]")
+        print("Example: python " +
+              sys.argv[0]+" \"http://cyan.ups-tlse.fr:8080/geoserver/SudOuest/wms?\" FR_ALLCLASSES.qml /tmp/html \"SudOuest:OSOV1\" MetricsV1.txt \"SudOuest:OSOV2\" MetricsV2.txt ")
     else:
         urlserveur = sys.argv[1]
         colorFile = sys.argv[2]
         pathOut = sys.argv[3]
-        listClassif = [(sys.argv[i], sys.argv[i+1]) for i in range(4, len(sys.argv), 2)]
+        listClassif = [(sys.argv[i], sys.argv[i+1])
+                       for i in range(4, len(sys.argv), 2)]
         generate(listClassif, colorFile, pathOut, urlserveur)

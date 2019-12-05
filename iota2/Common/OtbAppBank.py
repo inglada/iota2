@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -25,16 +25,17 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 def executeApp(otb_application):
     """function use to wrap otb's application.
-    
+
     Usefull to purge RAM once ExecuteAndWriteOutput() is called. This function must
     be used with multiprocessing.Process(target=executeApp, args=[my_otb_application])
     """
     otb_application.ExecuteAndWriteOutput()
 
-def getInputParameterOutput(otbObj):
 
+def getInputParameterOutput(otbObj):
     """
     IN :
     otbObj [otb object]
@@ -50,13 +51,13 @@ def getInputParameterOutput(otbObj):
     /!\ this function is not complete, it must be fill up...
     """
     listParam = otbObj.GetParametersKeys()
-    #check out
+    # check out
     if "out" in listParam:
         return "out"
-    #check io.out
+    # check io.out
     elif "io.out" in listParam:
         return "io.out"
-    #check mode.raster.out
+    # check mode.raster.out
     elif "mode.raster.out" in listParam:
         return "mode.raster.out"
     elif "outputstack" in listParam:
@@ -66,7 +67,6 @@ def getInputParameterOutput(otbObj):
 
 
 def unPackFirst(someListOfList):
-
     """
     python generator
     return first element of a list of list
@@ -85,15 +85,16 @@ def unPackFirst(someListOfList):
         else:
             yield values
 
+
 def CreateImageClassifierApplication(OtbParameters):
     """binding to ImageClassifier OTB's application
-    
+
     Parameter
     ---------
 
     OtbParameters [dic] 
         dictionnary with otb's parameter keys
-    
+
     Return
     ------
     class 'otbApplication.Application'
@@ -113,7 +114,8 @@ def CreateImageClassifierApplication(OtbParameters):
     if isinstance(in_img, str):
         classifier.SetParameterString("in", in_img)
     else:
-        classifier.SetParameterInputImage("in", in_img.GetParameterOutputImage(getInputParameterOutput(in_img)))
+        classifier.SetParameterInputImage(
+            "in", in_img.GetParameterOutputImage(getInputParameterOutput(in_img)))
     if "model" in OtbParameters:
         classifier.SetParameterString("model", OtbParameters["model"])
 
@@ -123,7 +125,8 @@ def CreateImageClassifierApplication(OtbParameters):
     if "imstat" in OtbParameters:
         classifier.SetParameterString("imstat", OtbParameters["imstat"])
     if "nodatalabel" in OtbParameters:
-        classifier.SetParameterString("nodatalabel", OtbParameters["nodatalabel"])
+        classifier.SetParameterString(
+            "nodatalabel", OtbParameters["nodatalabel"])
     if "out" in OtbParameters:
         classifier.SetParameterString("out", OtbParameters["out"])
     if "confmap" in OtbParameters:
@@ -135,29 +138,31 @@ def CreateImageClassifierApplication(OtbParameters):
     if "nbclasses" in OtbParameters:
         classifier.SetParameterString("nbclasses", OtbParameters["nbclasses"])
     if "pixType" in OtbParameters:
-        classifier.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
+        classifier.SetParameterOutputImagePixelType(
+            "out", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
     return classifier
 
 
 def CreateImageTimeSeriesGapFillingApplication(OtbParameters):
     """binding to ImageTimeSeriesGapFilling OTB's application
-    
+
     Parameter
     ---------
 
     OtbParameters [dic] 
         dictionnary with otb's parameter keys
-    
+
     Return
     ------
     class 'otbApplication.Application'
         ImageTimeSeriesGapFilling application ready to be Execute()
-    
+
     Note
     ----
     `Complete documentation <http://tully.ups-tlse.fr/jordi/temporalgapfilling/tree/master>`
     """
-    gapfilling_app = otb.Registry.CreateApplication("ImageTimeSeriesGapFilling")
+    gapfilling_app = otb.Registry.CreateApplication(
+        "ImageTimeSeriesGapFilling")
     if gapfilling_app is None:
         raise Exception("Not possible to create 'ImageTimeSeriesGapFilling' application, \
                          check if OTB is well configured / installed")
@@ -170,16 +175,18 @@ def CreateImageTimeSeriesGapFillingApplication(OtbParameters):
         raise Exception("'comp' parameter not found")
     if "it" not in OtbParameters:
         raise Exception("'it' parameter not found")
-    
+
     in_img = OtbParameters["in"]
     # input image / temporal series
     if isinstance(in_img, str):
         gapfilling_app.SetParameterString("in", in_img)
     elif isinstance(in_img, otb.Application):
         inOutParam = getInputParameterOutput(in_img)
-        gapfilling_app.SetParameterInputImage("in", in_img.GetParameterOutputImage(inOutParam))
+        gapfilling_app.SetParameterInputImage(
+            "in", in_img.GetParameterOutputImage(inOutParam))
     elif isinstance(in_img, tuple):
-        gapfilling_app.SetParameterInputImage("in", in_img[0].GetParameterOutputImage(getInputParameterOutput(in_img[0])))
+        gapfilling_app.SetParameterInputImage(
+            "in", in_img[0].GetParameterOutputImage(getInputParameterOutput(in_img[0])))
     else:
         raise Exception("input image not recognize")
 
@@ -189,12 +196,14 @@ def CreateImageTimeSeriesGapFillingApplication(OtbParameters):
         gapfilling_app.SetParameterString("mask", in_mask)
     elif isinstance(in_mask, otb.Application):
         inOutParam = getInputParameterOutput(in_mask)
-        gapfilling_app.SetParameterInputImage("mask", in_mask.GetParameterOutputImage(inOutParam))
+        gapfilling_app.SetParameterInputImage(
+            "mask", in_mask.GetParameterOutputImage(inOutParam))
     elif isinstance(in_mask, tuple):
-        gapfilling_app.SetParameterInputImage("mask", in_mask[0].GetParameterOutputImage(getInputParameterOutput(in_mask[0])))
+        gapfilling_app.SetParameterInputImage(
+            "mask", in_mask[0].GetParameterOutputImage(getInputParameterOutput(in_mask[0])))
     else:
         raise Exception("input mask not recognize")
-    
+
     gapfilling_app.SetParameterString("it", OtbParameters["it"])
     gapfilling_app.SetParameterString("comp", OtbParameters["comp"])
 
@@ -208,19 +217,20 @@ def CreateImageTimeSeriesGapFillingApplication(OtbParameters):
     if "ram" in OtbParameters:
         gapfilling_app.SetParameterString("ram", OtbParameters["ram"])
     if "pixType" in OtbParameters:
-        gapfilling_app.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
+        gapfilling_app.SetParameterOutputImagePixelType(
+            "out", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
     return gapfilling_app
 
 
 def CreateIota2FeatureExtractionApplication(OtbParameters):
     """binding to iota2FeatureExtraction OTB's application
-    
+
     Parameter
     ---------
 
     OtbParameters [dic] 
         dictionnary with otb's parameter keys
-    
+
     Return
     ------
     class 'otbApplication.Application'
@@ -248,9 +258,11 @@ def CreateIota2FeatureExtractionApplication(OtbParameters):
         features_app.SetParameterString("in", in_img)
     elif isinstance(in_img, otb.Application):
         inOutParam = getInputParameterOutput(in_img)
-        features_app.SetParameterInputImage("in", in_img.GetParameterOutputImage(inOutParam))
+        features_app.SetParameterInputImage(
+            "in", in_img.GetParameterOutputImage(inOutParam))
     elif isinstance(in_img, tuple):
-        features_app.SetParameterInputImage("in", in_img[0].GetParameterOutputImage(getInputParameterOutput(in_img[0])))
+        features_app.SetParameterInputImage(
+            "in", in_img[0].GetParameterOutputImage(getInputParameterOutput(in_img[0])))
     else:
         raise Exception("input image not recognize")
 
@@ -272,7 +284,8 @@ def CreateIota2FeatureExtractionApplication(OtbParameters):
     if "keepduplicates" in OtbParameters and OtbParameters["keepduplicates"] is True:
         # 'not OtbParameters["keepduplicates"]' due to oposite signification of 'keepduplicates'
         # in iota2FeaturesExtraction
-        features_app.SetParameterValue("keepduplicates", not OtbParameters["keepduplicates"])
+        features_app.SetParameterValue(
+            "keepduplicates", not OtbParameters["keepduplicates"])
     if "acorfeat" in OtbParameters and OtbParameters["acorfeat"] is True:
         features_app.SetParameterValue("acorfeat", OtbParameters["acorfeat"])
     if "ram" in OtbParameters:
@@ -280,12 +293,13 @@ def CreateIota2FeatureExtractionApplication(OtbParameters):
     if "out" in OtbParameters:
         features_app.SetParameterString("out", OtbParameters["out"])
     if "pixType" in OtbParameters:
-        features_app.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
+        features_app.SetParameterOutputImagePixelType(
+            "out", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
 
     if ("keepduplicates" in OtbParameters and OtbParameters["keepduplicates"] is True
-        and 
-        "copyinput" in OtbParameters and OtbParameters["copyinput"] is False):
-        
+        and
+            "copyinput" in OtbParameters and OtbParameters["copyinput"] is False):
+
         warning_msg = ("'iota2FeatureExtraction' cannot be use with the following parameters: "
                        "'keepduplicates' : True and 'copyinput' : False. 'keepduplicates' is set"
                        " to False")
@@ -297,18 +311,18 @@ def CreateIota2FeatureExtractionApplication(OtbParameters):
 
 def CreateSampleAugmentationApplication(OtbParameters):
     """binding to SampleAugmentation OTB's application
-    
+
     Parameter
     ---------
 
     OtbParameters [dic] 
         dictionnary with otb's parameter keys
-    
+
     Return
     ------
     class 'otbApplication.Application'
         SampleAugmentation application ready to be Execute()
-    
+
     Note
     ----
     `Complete documentation <http://www.orfeo-toolbox.org/Applications/SampleAugmentation.html>`
@@ -317,7 +331,7 @@ def CreateSampleAugmentationApplication(OtbParameters):
     if sample_augmentation is None:
         raise Exception("Not possible to create 'SampleAugmentation' application, \
                          check if OTB is well configured / installed")
-    #Mandatory
+    # Mandatory
     if "in" not in OtbParameters:
         raise Exception("'in' parameter not found")
     if "out" not in OtbParameters:
@@ -326,23 +340,29 @@ def CreateSampleAugmentationApplication(OtbParameters):
     sample_augmentation.SetParameterString("in", OtbParameters["in"])
     sample_augmentation.SetParameterString("out", OtbParameters["out"])
     sample_augmentation.UpdateParameters()
-    #Options
+    # Options
     if "field" in OtbParameters:
         sample_augmentation.SetParameterString("field", OtbParameters["field"])
     if "layer" in OtbParameters:
         sample_augmentation.SetParameterString("layer", OtbParameters["layer"])
     if "label" in OtbParameters:
-        sample_augmentation.SetParameterInt("label", int(OtbParameters["label"]))
+        sample_augmentation.SetParameterInt(
+            "label", int(OtbParameters["label"]))
     if "samples" in OtbParameters:
-        sample_augmentation.SetParameterInt("samples", int(OtbParameters["samples"]))
+        sample_augmentation.SetParameterInt(
+            "samples", int(OtbParameters["samples"]))
     if "exclude" in OtbParameters:
-        sample_augmentation.SetParameterStringList("exclude", OtbParameters["exclude"])
+        sample_augmentation.SetParameterStringList(
+            "exclude", OtbParameters["exclude"])
     if "strategy" in OtbParameters:
-        sample_augmentation.SetParameterString("strategy", OtbParameters["strategy"])
+        sample_augmentation.SetParameterString(
+            "strategy", OtbParameters["strategy"])
     if "strategy.jitter.stdfactor" in OtbParameters:
-        sample_augmentation.SetParameterFloat("strategy.jitter.stdfactor", float(OtbParameters["strategy.jitter.stdfactor"]))
+        sample_augmentation.SetParameterFloat(
+            "strategy.jitter.stdfactor", float(OtbParameters["strategy.jitter.stdfactor"]))
     if "strategy.smote.neighbors" in OtbParameters:
-        sample_augmentation.SetParameterInt("strategy.smote.neighbors", int(OtbParameters["strategy.smote.neighbors"]))
+        sample_augmentation.SetParameterInt("strategy.smote.neighbors", int(
+            OtbParameters["strategy.smote.neighbors"]))
     if "seed" in OtbParameters:
         sample_augmentation.SetParameterInt("seed", OtbParameters["seed"])
     return sample_augmentation
@@ -367,7 +387,7 @@ def CreateRigidTransformResampleApplication(OtbParameters):
         raise Exception("Not possible to create 'RigidTransformResample' application, \
                         check if OTB is well configured / installed")
 
-    #Mandatory
+    # Mandatory
     if "in" not in OtbParameters:
         raise Exception("'in' parameter not found")
 
@@ -375,37 +395,50 @@ def CreateRigidTransformResampleApplication(OtbParameters):
     if isinstance(in_img, str):
         rigid.SetParameterString("in", in_img)
 
-    #Options
+    # Options
     if "transform.type" in OtbParameters:
-        rigid.SetParameterString("transform.type", str(OtbParameters["transform.type"]))
+        rigid.SetParameterString("transform.type", str(
+            OtbParameters["transform.type"]))
     if "transform.type.id.scalex" in OtbParameters:
-        rigid.SetParameterString("transform.type.id.scalex", str(OtbParameters["transform.type.id.scalex"]))
+        rigid.SetParameterString("transform.type.id.scalex", str(
+            OtbParameters["transform.type.id.scalex"]))
     if "transform.type.id.scaley" in OtbParameters:
-        rigid.SetParameterString("transform.type.id.scaley", str(OtbParameters["transform.type.id.scaley"]))
+        rigid.SetParameterString("transform.type.id.scaley", str(
+            OtbParameters["transform.type.id.scaley"]))
     if "transform.type.translation.tx" in OtbParameters:
-        rigid.SetParameterString("transform.type.translation.tx", str(OtbParameters["transform.type.translation.tx"]))
+        rigid.SetParameterString("transform.type.translation.tx", str(
+            OtbParameters["transform.type.translation.tx"]))
     if "transform.type.translation.ty" in OtbParameters:
-        rigid.SetParameterString("transform.type.translation.ty", str(OtbParameters["transform.type.translation.ty"]))
+        rigid.SetParameterString("transform.type.translation.ty", str(
+            OtbParameters["transform.type.translation.ty"]))
     if "transform.type.translation.scalex" in OtbParameters:
-        rigid.SetParameterString("transform.type.translation.scalex", str(OtbParameters["transform.type.translation.scalex"]))
+        rigid.SetParameterString("transform.type.translation.scalex", str(
+            OtbParameters["transform.type.translation.scalex"]))
     if "transform.type.translation.scaley" in OtbParameters:
-        rigid.SetParameterString("transform.type.translation.scaley", str(OtbParameters["transform.type.translation.scaley"]))
+        rigid.SetParameterString("transform.type.translation.scaley", str(
+            OtbParameters["transform.type.translation.scaley"]))
     if "transform.type.rotation.angle" in OtbParameters:
-        rigid.SetParameterString("transform.type.rotation.angle", str(OtbParameters["transform.type.rotation.angle"]))
+        rigid.SetParameterString("transform.type.rotation.angle", str(
+            OtbParameters["transform.type.rotation.angle"]))
     if "transform.type.rotation.scalex" in OtbParameters:
-        rigid.SetParameterString("transform.type.rotation.scalex", str(OtbParameters["transform.type.rotation.scalex"]))
+        rigid.SetParameterString("transform.type.rotation.scalex", str(
+            OtbParameters["transform.type.rotation.scalex"]))
     if "transform.type.rotation.scaley" in OtbParameters:
-        rigid.SetParameterString("transform.type.rotation.scaley", str(OtbParameters["transform.type.rotation.scaley"]))
+        rigid.SetParameterString("transform.type.rotation.scaley", str(
+            OtbParameters["transform.type.rotation.scaley"]))
     if "interpolator" in OtbParameters:
-        rigid.SetParameterString("interpolator", str(OtbParameters["interpolator"]))
+        rigid.SetParameterString(
+            "interpolator", str(OtbParameters["interpolator"]))
     if "interpolator.bco.radius" in OtbParameters:
-        rigid.SetParameterString("interpolator.bco.radius", str(OtbParameters["interpolator.bco.radius"]))
+        rigid.SetParameterString("interpolator.bco.radius", str(
+            OtbParameters["interpolator.bco.radius"]))
     if "out" in OtbParameters:
         rigid.SetParameterString("out", str(OtbParameters["out"]))
     if "ram" in OtbParameters:
         rigid.SetParameterString("ram", str(OtbParameters["ram"]))
     if "pixType" in OtbParameters:
-        rigid.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
+        rigid.SetParameterOutputImagePixelType(
+            "out", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
 
     return rigid
 
@@ -420,7 +453,8 @@ def CreateComputeConfusionMatrixApplication(OtbParameters):
     if "out" not in OtbParameters:
         raise Exception("'out' parameter not found")
     if "ref.vector.in" in OtbParameters:
-        confusion.SetParameterString("ref.vector.in", str(OtbParameters["ref.vector.in"]))
+        confusion.SetParameterString(
+            "ref.vector.in", str(OtbParameters["ref.vector.in"]))
 
     confusion.SetParameterString("in", str(OtbParameters["in"]))
     confusion.SetParameterString("out", str(OtbParameters["out"]))
@@ -431,19 +465,24 @@ def CreateComputeConfusionMatrixApplication(OtbParameters):
     if "ref" in OtbParameters:
         confusion.SetParameterString("ref", str(OtbParameters["ref"]))
     if "ref.raster.in" in OtbParameters:
-        confusion.SetParameterString("ref.raster.in", str(OtbParameters["ref.raster.in"]))
+        confusion.SetParameterString(
+            "ref.raster.in", str(OtbParameters["ref.raster.in"]))
     if "ref.raster.nodata" in OtbParameters:
-        confusion.SetParameterString("ref.raster.nodata", str(OtbParameters["ref.raster.nodata"]))
-    
+        confusion.SetParameterString("ref.raster.nodata", str(
+            OtbParameters["ref.raster.nodata"]))
+
     if "ref.vector.field" in OtbParameters:
-        confusion.SetParameterString("ref.vector.field", str(OtbParameters["ref.vector.field"]))
+        confusion.SetParameterString(
+            "ref.vector.field", str(OtbParameters["ref.vector.field"]))
     if "ref.vector.nodata" in OtbParameters:
-        confusion.SetParameterString("ref.vector.nodata", str(OtbParameters["ref.vector.nodata"]))
+        confusion.SetParameterString("ref.vector.nodata", str(
+            OtbParameters["ref.vector.nodata"]))
     if "nodatalabel" in OtbParameters:
-        confusion.SetParameterString("nodatalabel", str(OtbParameters["nodatalabel"]))
+        confusion.SetParameterString(
+            "nodatalabel", str(OtbParameters["nodatalabel"]))
     if "ram" in OtbParameters:
         confusion.SetParameterString("ram", str(OtbParameters["ram"]))
-    
+
     return confusion
 
 
@@ -460,8 +499,8 @@ def CreateFusionOfClassificationsApplication(OtbParameters):
     fusion [otb object ready to Execute]
     """
     fusion = otb.Registry.CreateApplication("FusionOfClassifications")
-    
-    #Mandatory
+
+    # Mandatory
     if "il" not in OtbParameters:
         raise Exception("'il' parameter not found")
 
@@ -482,23 +521,29 @@ def CreateFusionOfClassificationsApplication(OtbParameters):
             fusion.AddImageToParameterInputImageList("il",
                                                      currentObj.GetParameterOutputImage(inOutParam))
     else:
-        raise Exception(type(imagesList[0]) + " not available to FusionOfClassifications function")
+        raise Exception(
+            type(imagesList[0]) + " not available to FusionOfClassifications function")
     if "method" in OtbParameters:
         fusion.SetParameterString("method", str(OtbParameters["method"]))
     if "ram" in OtbParameters:
         fusion.SetParameterString("ram", str(OtbParameters["ram"]))
     if "method.dempstershafer.cmfl" in OtbParameters:
-        fusion.SetParameterStringList("method.dempstershafer.cmfl", OtbParameters["method.dempstershafer.cmfl"])
+        fusion.SetParameterStringList(
+            "method.dempstershafer.cmfl", OtbParameters["method.dempstershafer.cmfl"])
     if "method.dempstershafer.mob" in OtbParameters:
-        fusion.SetParameterString("method.dempstershafer.mob", str(OtbParameters["method.dempstershafer.mob"]))
+        fusion.SetParameterString("method.dempstershafer.mob", str(
+            OtbParameters["method.dempstershafer.mob"]))
     if "nodatalabel" in OtbParameters:
-        fusion.SetParameterString("nodatalabel", str(OtbParameters["nodatalabel"]))
+        fusion.SetParameterString(
+            "nodatalabel", str(OtbParameters["nodatalabel"]))
     if "undecidedlabel" in OtbParameters:
-        fusion.SetParameterString("undecidedlabel", str(OtbParameters["undecidedlabel"]))
+        fusion.SetParameterString("undecidedlabel", str(
+            OtbParameters["undecidedlabel"]))
     if "out" in OtbParameters:
         fusion.SetParameterString("out", str(OtbParameters["out"]))
     if "pixType" in OtbParameters:
-        fusion.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
+        fusion.SetParameterOutputImagePixelType(
+            "out", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
 
     return fusion
 
@@ -524,7 +569,7 @@ def CreatePolygonClassStatisticsApplication(OtbParameters):
     if "vec" not in OtbParameters:
         raise Exception("'vec' parameter not found")
 
-    #Mandatory
+    # Mandatory
     inputIm = OtbParameters["in"]
     if isinstance(inputIm, str):
         pClassStats.SetParameterString("in", inputIm)
@@ -543,7 +588,7 @@ def CreatePolygonClassStatisticsApplication(OtbParameters):
     pClassStats.SetParameterString("vec", OtbParameters["vec"])
     pClassStats.UpdateParameters()
 
-    #options
+    # options
     if "mask" in OtbParameters:
         pClassStats.SetParameterString("mask", OtbParameters["mask"])
     if "field" in OtbParameters:
@@ -565,7 +610,6 @@ def CreatePolygonClassStatisticsApplication(OtbParameters):
 
 
 def CreateSampleSelectionApplication(OtbParameters):
-
     """
     IN:
     parameter consistency are not tested here (done in otb's applications)
@@ -588,7 +632,7 @@ def CreateSampleSelectionApplication(OtbParameters):
     if "instats" not in OtbParameters:
         raise Exception("'instats' parameter not found")
 
-    #Mandatory
+    # Mandatory
     inputIm = OtbParameters["in"]
     if isinstance(inputIm, str):
         sampleS.SetParameterString("in", inputIm)
@@ -608,7 +652,7 @@ def CreateSampleSelectionApplication(OtbParameters):
     sampleS.SetParameterString("instats", OtbParameters["instats"])
     sampleS.UpdateParameters()
 
-    #options
+    # options
     if "mask" in OtbParameters:
         sampleS.SetParameterString("mask", OtbParameters["mask"])
     if "outrates" in OtbParameters:
@@ -900,7 +944,7 @@ def CreateSarCalibration(OtbParameters):
     """
     calibration = otb.Registry.CreateApplication("SARCalibration")
 
-    #Mandatory
+    # Mandatory
     if "in" not in OtbParameters:
         raise Exception("'in' parameter not found")
 
@@ -938,12 +982,12 @@ def CreateOrthoRectification(OtbParameters):
     OUT :
     ortho [otb object ready to Execute]
     """
-    #Mandatory
+    # Mandatory
     if "in" not in OtbParameters:
         raise Exception("'in' parameter not found")
     inputImage = OtbParameters["in"]
 
-    #options
+    # options
     ortho = otb.Registry.CreateApplication("OrthoRectification")
     if isinstance(inputImage, str):
         ortho.SetParameterString("io.in", inputImage)
@@ -1052,7 +1096,7 @@ def CreateMultitempFilteringFilter(OtbParameters):
     if not SARfilterF:
         raise Exception("MultitempFilteringFilter not available")
 
-    #Mandatory
+    # Mandatory
     if "inl" not in OtbParameters:
         raise Exception("'inl' parameter not found")
     if "wr" not in OtbParameters:
@@ -1090,7 +1134,7 @@ def CreateMultitempFilteringFilter(OtbParameters):
 
     SARfilterF.SetParameterString("enl", str(OtbParameters["enl"]))
 
-    #options
+    # options
     if "outputstack" in OtbParameters:
         SARfilterF.SetParameterString("outputstack",
                                       OtbParameters["outputstack"])
@@ -1122,7 +1166,7 @@ def CreateMultitempFilteringOutcore(OtbParameters):
     if not SARfilter:
         raise Exception("MultitempFilteringOutcore not available")
 
-    #Mandatory
+    # Mandatory
     if "inl" not in OtbParameters:
         raise Exception("'inl' parameter not found")
     if "wr" not in OtbParameters:
@@ -1269,20 +1313,25 @@ def CreateClumpApplication(OtbParameters):
         seg.SetParameterString("in", stack)
     elif isinstance(stack, otb.Application):
         inOutParam = getInputParameterOutput(stack)
-        seg.SetParameterInputImage("in", stack.GetParameterOutputImage(inOutParam))
+        seg.SetParameterInputImage(
+            "in", stack.GetParameterOutputImage(inOutParam))
     else:
-        raise Exception(type(stack) + " not available to CreateClumpApplication function")
+        raise Exception(
+            type(stack) + " not available to CreateClumpApplication function")
 
     if "mode" in OtbParameters:
         seg.SetParameterString("mode", OtbParameters["mode"])
     if "filter" in OtbParameters:
         seg.SetParameterString("filter", OtbParameters["filter"])
     if "filter.cc.expr" in OtbParameters:
-        seg.SetParameterString("filter.cc.expr", OtbParameters["filter.cc.expr"])
+        seg.SetParameterString(
+            "filter.cc.expr", OtbParameters["filter.cc.expr"])
     if "mode.raster.out" in OtbParameters:
-        seg.SetParameterString("mode.raster.out", OtbParameters["mode.raster.out"])
+        seg.SetParameterString(
+            "mode.raster.out", OtbParameters["mode.raster.out"])
     if "pixType" in OtbParameters:
-        seg.SetParameterOutputImagePixelType("mode.raster.out", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
+        seg.SetParameterOutputImagePixelType(
+            "mode.raster.out", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
 
     return seg
 
@@ -1334,7 +1383,8 @@ def CreateConcatenateImagesApplication(OtbParameters):
     if "ram" in OtbParameters:
         concatenate.SetParameterString("ram", OtbParameters["ram"])
     if "pixType" in OtbParameters:
-        concatenate.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
+        concatenate.SetParameterOutputImagePixelType(
+            "out", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
 
     return concatenate
 
@@ -1359,7 +1409,7 @@ def CreateBandMathApplication(OtbParameters):
         raise Exception("Not possible to create 'BandMath' application, \
                         check if OTB is well configured / installed")
 
-    #Mandatory
+    # Mandatory
     if "il" not in OtbParameters:
         raise Exception("'il' parameter not found")
     if "exp" not in OtbParameters:
@@ -1381,17 +1431,19 @@ def CreateBandMathApplication(OtbParameters):
             bandMath.AddImageToParameterInputImageList("il",
                                                        currentObj.GetParameterOutputImage(inOutParam))
     else:
-        raise Exception(type(imagesList[0]) + " not available to CreateBandMathApplication function")
+        raise Exception(
+            type(imagesList[0]) + " not available to CreateBandMathApplication function")
 
     bandMath.SetParameterString("exp", OtbParameters["exp"])
 
-    #Options
+    # Options
     if "ram" in OtbParameters:
         bandMath.SetParameterString("ram", OtbParameters["ram"])
     if "out" in OtbParameters:
         bandMath.SetParameterString("out", OtbParameters["out"])
     if "pixType" in OtbParameters:
-        bandMath.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
+        bandMath.SetParameterOutputImagePixelType(
+            "out", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
     return bandMath
 
 
@@ -1415,7 +1467,7 @@ def CreateBandMathXApplication(OtbParameters):
         raise Exception("Not possible to create 'BandMath' application, \
                         check if OTB is well configured / installed")
 
-    #Mandatory
+    # Mandatory
     if "il" not in OtbParameters:
         raise Exception("'il' parameter not found")
     if "exp" not in OtbParameters:
@@ -1437,17 +1489,19 @@ def CreateBandMathXApplication(OtbParameters):
             bandMath.AddImageToParameterInputImageList("il",
                                                        currentObj.GetParameterOutputImage(inOutParam))
     else:
-        raise Exception(type(imagesList[0]) + " not available to CreateBandMathApplication function")
+        raise Exception(
+            type(imagesList[0]) + " not available to CreateBandMathApplication function")
 
     bandMath.SetParameterString("exp", OtbParameters["exp"])
 
-    #Options
+    # Options
     if "ram" in OtbParameters:
         bandMath.SetParameterString("ram", OtbParameters["ram"])
     if "out" in OtbParameters:
         bandMath.SetParameterString("out", OtbParameters["out"])
     if "pixType" in OtbParameters:
-        bandMath.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
+        bandMath.SetParameterOutputImagePixelType(
+            "out", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
     return bandMath
 
 
@@ -1470,7 +1524,7 @@ def CreateSuperimposeApplication(OtbParameters):
         raise Exception("Not possible to create 'Superimpose' application, \
                         check if OTB is well configured / installed")
 
-    #Mandatory
+    # Mandatory
     if "inr" not in OtbParameters:
         raise Exception("'inr' parameter not found")
     if "inm" not in OtbParameters:
@@ -1482,9 +1536,11 @@ def CreateSuperimposeApplication(OtbParameters):
         siApp.SetParameterString("inr", inImg1)
     elif isinstance(inImg1, otb.Application):
         inOutParam = getInputParameterOutput(inImg1)
-        siApp.SetParameterInputImage("inr", inImg1.GetParameterOutputImage(inOutParam))
+        siApp.SetParameterInputImage(
+            "inr", inImg1.GetParameterOutputImage(inOutParam))
     elif isinstance(inImg1, tuple):
-        siApp.SetParameterInputImage("inr", inImg1[0].GetParameterOutputImage(getInputParameterOutput(inImg1[0])))
+        siApp.SetParameterInputImage("inr", inImg1[0].GetParameterOutputImage(
+            getInputParameterOutput(inImg1[0])))
     else:
         raise Exception("reference input image not recognize")
 
@@ -1494,13 +1550,15 @@ def CreateSuperimposeApplication(OtbParameters):
         siApp.SetParameterString("inm", inImg2)
     elif isinstance(inImg2, otb.Application):
         inOutParam = getInputParameterOutput(inImg2)
-        siApp.SetParameterInputImage("inm", inImg2.GetParameterOutputImage(inOutParam))
+        siApp.SetParameterInputImage(
+            "inm", inImg2.GetParameterOutputImage(inOutParam))
     elif isinstance(inImg2, tuple):
-        siApp.SetParameterInputImage("inm", inImg2[0].GetParameterOutputImage(getInputParameterOutput(inImg2[0])))
+        siApp.SetParameterInputImage("inm", inImg2[0].GetParameterOutputImage(
+            getInputParameterOutput(inImg2[0])))
     else:
         raise Exception("Image to reproject not recognize")
 
-    #Options
+    # Options
     if "elev.dem" in OtbParameters:
         siApp.SetParameterString("elev.dem", OtbParameters["elev.dem"])
     if "elev.geoid" in OtbParameters:
@@ -1525,7 +1583,8 @@ def CreateSuperimposeApplication(OtbParameters):
     if "ram" in OtbParameters:
         siApp.SetParameterString("ram", str(OtbParameters["ram"]))
     if "pixType" in OtbParameters:
-        siApp.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
+        siApp.SetParameterOutputImagePixelType(
+            "out", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
 
     return siApp, inImg2
 
@@ -1553,17 +1612,19 @@ def CreateExtractROIApplication(OtbParameters):
         raise Exception("'in' parameter not found")
 
     inImg = OtbParameters["in"]
-   
+
     if isinstance(inImg, str):
         erApp.SetParameterString("in", inImg)
     elif isinstance(inImg, otb.Application):
         inOutParam = getInputParameterOutput(inImg)
-        erApp.SetParameterInputImage("in", inImg.GetParameterOutputImage(inOutParam))
+        erApp.SetParameterInputImage(
+            "in", inImg.GetParameterOutputImage(inOutParam))
     elif isinstance(inImg, tuple):
-        erApp.SetParameterInputImage("in", inImg[0].GetParameterOutputImage(getInputParameterOutput(inImg[0])))
+        erApp.SetParameterInputImage(
+            "in", inImg[0].GetParameterOutputImage(getInputParameterOutput(inImg[0])))
     else:
         raise Exception("input image not recognize")
-    
+
     if "out" in OtbParameters:
         erApp.SetParameterString("out", str(OtbParameters["out"]))
     if "ram" in OtbParameters:
@@ -1571,22 +1632,28 @@ def CreateExtractROIApplication(OtbParameters):
     if "mode" in OtbParameters:
         erApp.SetParameterString("mode", str(OtbParameters["mode"]))
     if "mode.extent.ulx" in OtbParameters:
-        erApp.SetParameterString("mode.extent.ulx", str(OtbParameters["mode.extent.ulx"]))
+        erApp.SetParameterString("mode.extent.ulx", str(
+            OtbParameters["mode.extent.ulx"]))
     if "mode.extent.uly" in OtbParameters:
-        erApp.SetParameterString("mode.extent.uly", str(OtbParameters["mode.extent.uly"]))
+        erApp.SetParameterString("mode.extent.uly", str(
+            OtbParameters["mode.extent.uly"]))
     if "mode.extent.lrx" in OtbParameters:
-        erApp.SetParameterString("mode.extent.ulx", str(OtbParameters["mode.extent.lrx"]))
+        erApp.SetParameterString("mode.extent.ulx", str(
+            OtbParameters["mode.extent.lrx"]))
     if "mode.extent.lry" in OtbParameters:
-        erApp.SetParameterString("mode.extent.uly", str(OtbParameters["mode.extent.lry"]))
+        erApp.SetParameterString("mode.extent.uly", str(
+            OtbParameters["mode.extent.lry"]))
     if "mode.fit.im" in OtbParameters:
         refImg = OtbParameters["mode.fit.im"]
         if isinstance(refImg, str):
-            erApp.SetParameterString("mode.fit.im",refImg)
+            erApp.SetParameterString("mode.fit.im", refImg)
         elif isinstance(refImg, otb.Application):
             inOutParam = getInputParameterOutput(refImg)
-            erApp.SetParameterInputImage("mode.fit.im", refImg.GetParameterOutputImage(inOutParam))
+            erApp.SetParameterInputImage(
+                "mode.fit.im", refImg.GetParameterOutputImage(inOutParam))
         elif isinstance(refImg, tuple):
-            erApp.SetParameterInputImage("mode.fit.im", refImg[0].GetParameterOutputImage(getInputParameterOutput(refImg[0])))
+            erApp.SetParameterInputImage("mode.fit.im", refImg[0].GetParameterOutputImage(
+                getInputParameterOutput(refImg[0])))
         else:
             raise Exception("input image not recognize")
     if "mode.fit.vect" in OtbParameters:
@@ -1638,7 +1705,7 @@ def CreateRasterizationApplication(OtbParameters):
     if rasterApp is None:
         raise Exception("Not possible to create 'Rasterization' application, \
                          check if OTB is well configured / installed")
-    #Mandatory
+    # Mandatory
     if "in" not in OtbParameters:
         raise Exception("'in' parameter not found")
 
@@ -1663,19 +1730,24 @@ def CreateRasterizationApplication(OtbParameters):
     if "spy" in OtbParameters:
         rasterApp.SetParameterString("spy", str(OtbParameters["spy"]))
     if "background" in OtbParameters:
-        rasterApp.SetParameterString("background", str(OtbParameters["background"]))
+        rasterApp.SetParameterString(
+            "background", str(OtbParameters["background"]))
     if "mode" in OtbParameters:
         rasterApp.SetParameterString("mode", OtbParameters["mode"])
     if "mode.binary.foreground" in OtbParameters:
-        rasterApp.SetParameterString("mode.binary.foreground", OtbParameters["mode.binary.foreground"])
+        rasterApp.SetParameterString(
+            "mode.binary.foreground", OtbParameters["mode.binary.foreground"])
     if "mode.attribute.field" in OtbParameters:
-        rasterApp.SetParameterString("mode.attribute.field", OtbParameters["mode.attribute.field"])
+        rasterApp.SetParameterString(
+            "mode.attribute.field", OtbParameters["mode.attribute.field"])
     if "ram" in OtbParameters:
         rasterApp.SetParameterString("ram", str(OtbParameters["ram"]))
     if "pixType" in OtbParameters:
-        rasterApp.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
+        rasterApp.SetParameterOutputImagePixelType(
+            "out", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
 
     return rasterApp
+
 
 def CreatePointMatchCoregistrationModel(OtbParameters):
     """
@@ -1695,7 +1767,7 @@ def CreatePointMatchCoregistrationModel(OtbParameters):
     if PMCMApp is None:
         raise Exception("Not possible to create 'PointMatchCoregistrationModel' application, \
                          check if OTB is well configured / installed")
-    #Mandatory
+    # Mandatory
     if "in" not in OtbParameters:
         raise Exception("'in' parameter not found")
     if "inref" not in OtbParameters:
@@ -1707,52 +1779,64 @@ def CreatePointMatchCoregistrationModel(OtbParameters):
         PMCMApp.SetParameterString("in", str(OtbParameters["in"]))
     elif isinstance(OtbParameters["in"], otb.Application):
         inOutParam = getInputParameterOutput(OtbParameters["in"])
-        PMCMApp.SetParameterInputImage("in", OtbParameters["in"].GetParameterOutputImage(inOutParam))
-    
+        PMCMApp.SetParameterInputImage(
+            "in", OtbParameters["in"].GetParameterOutputImage(inOutParam))
+
     if isinstance(OtbParameters["inref"], str):
         PMCMApp.SetParameterString("inref", str(OtbParameters["inref"]))
     elif isinstance(OtbParameters["inref"], otb.Application):
         inOutParam = getInputParameterOutput(OtbParameters["inref"])
-        PMCMApp.SetParameterInputImage("inref", OtbParameters["inref"].GetParameterOutputImage(inOutParam))
+        PMCMApp.SetParameterInputImage(
+            "inref", OtbParameters["inref"].GetParameterOutputImage(inOutParam))
 
     PMCMApp.SetParameterString("outgeom", str(OtbParameters["outgeom"]))
 
     if "band" in OtbParameters:
-        PMCMApp.SetParameterString("band",str(OtbParameters["band"]))
+        PMCMApp.SetParameterString("band", str(OtbParameters["band"]))
     if "bandref" in OtbParameters:
-        PMCMApp.SetParameterString("bandref",str(OtbParameters["bandref"]))
+        PMCMApp.SetParameterString("bandref", str(OtbParameters["bandref"]))
     if "threshold" in OtbParameters:
-        PMCMApp.SetParameterString("threshold", str(OtbParameters["threshold"]))
+        PMCMApp.SetParameterString(
+            "threshold", str(OtbParameters["threshold"]))
     if "backmatching" in OtbParameters:
-        PMCMApp.SetParameterString("backmatching",str(OtbParameters["backmatching"]))
+        PMCMApp.SetParameterString(
+            "backmatching", str(OtbParameters["backmatching"]))
     if "initgeobinsize" in OtbParameters:
-        PMCMApp.SetParameterString("initgeobinsize", str(OtbParameters["initgeobinsize"]))
+        PMCMApp.SetParameterString(
+            "initgeobinsize", str(OtbParameters["initgeobinsize"]))
     if "initgeobinstep" in OtbParameters:
-        PMCMApp.SetParameterString("initgeobinstep", str(OtbParameters["initgeobinstep"]))
+        PMCMApp.SetParameterString(
+            "initgeobinstep", str(OtbParameters["initgeobinstep"]))
     if "mingeobinstep" in OtbParameters:
-        PMCMApp.SetParameterString("mingeobinstep", str(OtbParameters["mingeobinstep"]))
+        PMCMApp.SetParameterString(
+            "mingeobinstep", str(OtbParameters["mingeobinstep"]))
     if "minsiftpoints" in OtbParameters:
-        PMCMApp.SetParameterString("minsiftpoints",str(OtbParameters["minsiftpoints"]))
+        PMCMApp.SetParameterString(
+            "minsiftpoints", str(OtbParameters["minsiftpoints"]))
     if "margin" in OtbParameters:
         PMCMApp.SetParameterString("margin", str(OtbParameters["margin"]))
     if "precision" in OtbParameters:
         PMCMApp.SetParameterInt("precision", int(OtbParameters["precision"]))
-    if "mfilter" in OtbParameters :
-        PMCMApp.SetParameterInt("mfilter",int(OtbParameters["mfilter"]))
+    if "mfilter" in OtbParameters:
+        PMCMApp.SetParameterInt("mfilter", int(OtbParameters["mfilter"]))
     if "resample" in OtbParameters:
-        PMCMApp.SetParameterInt("resample",int(OtbParameters["resample"]))
+        PMCMApp.SetParameterInt("resample", int(OtbParameters["resample"]))
     if 'iterate' in OtbParameters:
-        PMCMApp.SetParameterString("iterate",str(OtbParameters["iterate"]))
+        PMCMApp.SetParameterString("iterate", str(OtbParameters["iterate"]))
     if "elev.dem" in OtbParameters:
         PMCMApp.SetParameterString("elev.dem", str(OtbParameters["elev.dem"]))
     if "elev.geoid" in OtbParameters:
-        PMCMApp.SetParameterString("elev.geoid", str(OtbParameters["elev.geoid"]))
+        PMCMApp.SetParameterString(
+            "elev.geoid", str(OtbParameters["elev.geoid"]))
     if "elev.default" in OtbParameters:
-        PMCMApp.SetParameterString("elev.default", str(OtbParameters["elev.default"]))
+        PMCMApp.SetParameterString(
+            "elev.default", str(OtbParameters["elev.default"]))
     if "outvector" in OtbParameters:
-        PMCMApp.SetParameterString("outvector", str(OtbParameters["outvector"]))
+        PMCMApp.SetParameterString(
+            "outvector", str(OtbParameters["outvector"]))
 
     return PMCMApp
+
 
 def CreatePixelValueApplication(OtbParameters):
     """
@@ -1772,7 +1856,7 @@ def CreatePixelValueApplication(OtbParameters):
     if PixelValueApp is None:
         raise Exception("Not possible to create 'PixelValue' application, \
                          check if OTB is well configured / installed")
-    #Mandatory
+    # Mandatory
     if "in" not in OtbParameters:
         raise Exception("'in' parameter not found")
     if "coordx" not in OtbParameters:
@@ -1784,15 +1868,19 @@ def CreatePixelValueApplication(OtbParameters):
         PixelValueApp.SetParameterString("in", str(OtbParameters["in"]))
     elif isinstance(OtbParameters["in"], otb.Application):
         inOutParam = getInputParameterOutput(OtbParameters["in"])
-        PixelValueApp.SetParameterInputImage("in", OtbParameters["in"].GetParameterOutputImage(inOutParam))
+        PixelValueApp.SetParameterInputImage(
+            "in", OtbParameters["in"].GetParameterOutputImage(inOutParam))
     if "coordx" in OtbParameters:
-        PixelValueApp.SetParameterString("coordx", str(OtbParameters["coordx"]))
+        PixelValueApp.SetParameterString(
+            "coordx", str(OtbParameters["coordx"]))
     if "coordy" in OtbParameters:
-        PixelValueApp.SetParameterString("coordy", str(OtbParameters["coordy"]))
+        PixelValueApp.SetParameterString(
+            "coordy", str(OtbParameters["coordy"]))
     if "out" in OtbParameters:
         PixelValueApp.SetParameterString("out", str(OtbParameters["out"]))
 
     return PixelValueApp
+
 
 def computeUserFeatures(stack, Dates, nbComponent, expressions):
     """
@@ -1811,7 +1899,7 @@ def computeUserFeatures(stack, Dates, nbComponent, expressions):
     userFeatureDate : dependance
     stack : dependance
     """
-    
+
     def transformExprToListString(expr):
         """
         Example :
@@ -1851,7 +1939,8 @@ def computeUserFeatures(stack, Dates, nbComponent, expressions):
         OUT
         ok [bool]
         """
-        integerBands = [int(currentBand.split("b")[-1]) for currentBand in allBands]
+        integerBands = [int(currentBand.split("b")[-1])
+                        for currentBand in allBands]
         return bool(max(integerBands) <= nbComp)
 
     def computeExpressionDates(expr, nbDate, nbComp):
@@ -1873,7 +1962,8 @@ def computeUserFeatures(stack, Dates, nbComponent, expressions):
         print computeExpressionDates(expr,nbDate,nbComp)
         >> ['(im1b1+im1b2)/(im1b3+im1b10+im1b1)', '(im1b11+im1b12)/(im1b13+im1b20+im1b11)', '(im1b21+im1b22)/(im1b23+im1b30+im1b21)']
         """
-        allBands = set([currentDec for currentDec in re.findall(r'[b]\d+', expr)])
+        allBands = set(
+            [currentDec for currentDec in re.findall(r'[b]\d+', expr)])
         expressionValid = checkBands(allBands, nbComp)
         if not expressionValid:
             raise Exception("User features expression : '" + expr +
@@ -1884,21 +1974,27 @@ def computeUserFeatures(stack, Dates, nbComponent, expressions):
         for date in range(nbDate):
             expressionDate = [currentChar for currentChar in expression]
             for currentBand in allBands:
-                indices = list(np.where(np.array(expression) == currentBand)[0])
+                indices = list(
+                    np.where(np.array(expression) == currentBand)[0])
                 if not indices:
-                    raise Exception("Problem in parsing expression : band " + currentBand + " not recognize")
+                    raise Exception(
+                        "Problem in parsing expression : band " + currentBand + " not recognize")
                 for ind in indices:
                     bandNumber = expressionDate[ind]
                     bandDate = int(bandNumber.split("b")[-1]) + nbComp * date
                     expressionDate[ind] = "b" + str(bandDate)
-            allExpression.append(("".join(expressionDate)).replace("b", "im1b"))
+            allExpression.append(
+                ("".join(expressionDate)).replace("b", "im1b"))
 
         return allExpression
 
     nbDates = len(Dates)
-    fields = ["USER_Features_" + str(cpt + 1) + "_" + date for cpt in range(len(expressions)) for date in Dates]
-    expressionDate = [computeExpressionDates(currentExpression, nbDates, nbComponent) for currentExpression in expressions]
-    flatExprDate = [currentExp for currentDate in expressionDate for currentExp in currentDate]
+    fields = ["USER_Features_" + str(cpt + 1) + "_" +
+              date for cpt in range(len(expressions)) for date in Dates]
+    expressionDate = [computeExpressionDates(
+        currentExpression, nbDates, nbComponent) for currentExpression in expressions]
+    flatExprDate = [
+        currentExp for currentDate in expressionDate for currentExp in currentDate]
 
     userFeatureDate = []
     for expression in flatExprDate:
@@ -1938,12 +2034,14 @@ def writeInterpolateDateFile(interpolationFile, all_dates_file, timeRes):
     maxiInterpol = all_last_dates[0]
 
     if miniInterpol != maxiInterpol:
-        outInterDates = "\n".join([str(interpolDate).replace("-", "") for interpolDate in fut.dateInterval(str(miniInterpol), str(maxiInterpol), timeRes)])
+        outInterDates = "\n".join([str(interpolDate).replace(
+            "-", "") for interpolDate in fut.dateInterval(str(miniInterpol), str(maxiInterpol), timeRes)])
     else:
         outInterDates = str(miniInterpol)
 
     if not os.path.exists(interpolationFile):
         fut.WriteNewFile(interpolationFile, outInterDates)
+
 
 def writeInputDateFile(InDateFile, OutDateFile):
     """
@@ -1955,7 +2053,7 @@ def writeInputDateFile(InDateFile, OutDateFile):
             if not date in all_dates:
                 all_dates.append(date)
     outInputDates = "\n".join(all_dates)
-    
+
     fut.WriteNewFile(OutDateFile, outInputDates)
 
 
@@ -1971,8 +2069,10 @@ def sortS1Masks(masksList):
     """
     from Sensors.SAR.S1FilteringProcessor import getDatesInOtbOutputName
     sortedMasks = []
-    S1_DES = [CMask for CMask in masksList if CMask.split("/")[-1].split("_")[3] == "DES"]
-    S1_ASC = [CMask for CMask in masksList if CMask.split("/")[-1].split("_")[3] == "ASC"]
+    S1_DES = [CMask for CMask in masksList if CMask.split(
+        "/")[-1].split("_")[3] == "DES"]
+    S1_ASC = [CMask for CMask in masksList if CMask.split(
+        "/")[-1].split("_")[3] == "ASC"]
 
     if S1_DES:
         sortedMasks.append(sorted(S1_DES, key=getDatesInOtbOutputName))
@@ -2005,31 +2105,40 @@ def getSARstack(sarConfig, tileName, allTiles, featuresPath, workingDirectory=No
     interpDateFiles = []
     inputDateFiles = []
 
-    allFiltered, allMasks = s1p.S1PreProcess(sarConfig, tileName, workingDirectory, getFiltered=True)
+    allFiltered, allMasks = s1p.S1PreProcess(
+        sarConfig, tileName, workingDirectory, getFiltered=True)
 
-    #Input dates current tile
+    # Input dates current tile
     try:
-        inDateFiles_s1_vv_ASC = fut.FileSearch_AND(os.path.join(outputDirectory, tileName[1:]), True, "S1_vv_ASC_dates.txt")[0]
-        writeInputDateFile(inDateFiles_s1_vv_ASC, inDateFiles_s1_vv_ASC.replace(".txt", "_input.txt"))
+        inDateFiles_s1_vv_ASC = fut.FileSearch_AND(os.path.join(
+            outputDirectory, tileName[1:]), True, "S1_vv_ASC_dates.txt")[0]
+        writeInputDateFile(inDateFiles_s1_vv_ASC,
+                           inDateFiles_s1_vv_ASC.replace(".txt", "_input.txt"))
     except:
         inDateFiles_s1_vv_ASC = []
     try:
-        inDateFiles_s1_vh_ASC = fut.FileSearch_AND(os.path.join(outputDirectory, tileName[1:]), True, "S1_vh_ASC_dates.txt")[0]
-        writeInputDateFile(inDateFiles_s1_vh_ASC, inDateFiles_s1_vh_ASC.replace(".txt", "_input.txt"))
+        inDateFiles_s1_vh_ASC = fut.FileSearch_AND(os.path.join(
+            outputDirectory, tileName[1:]), True, "S1_vh_ASC_dates.txt")[0]
+        writeInputDateFile(inDateFiles_s1_vh_ASC,
+                           inDateFiles_s1_vh_ASC.replace(".txt", "_input.txt"))
     except:
         inDateFiles_s1_vh_ASC = []
     try:
-        inDateFiles_s1_vv_DES = fut.FileSearch_AND(os.path.join(outputDirectory, tileName[1:]), True, "S1_vv_DES_dates.txt")[0]
-        writeInputDateFile(inDateFiles_s1_vv_DES, inDateFiles_s1_vv_DES.replace(".txt", "_input.txt"))
+        inDateFiles_s1_vv_DES = fut.FileSearch_AND(os.path.join(
+            outputDirectory, tileName[1:]), True, "S1_vv_DES_dates.txt")[0]
+        writeInputDateFile(inDateFiles_s1_vv_DES,
+                           inDateFiles_s1_vv_DES.replace(".txt", "_input.txt"))
     except:
         inDateFiles_s1_vv_DES = []
     try:
-        inDateFiles_s1_vh_DES = fut.FileSearch_AND(os.path.join(outputDirectory, tileName[1:]), True, "S1_vh_DES_dates.txt")[0]
-        writeInputDateFile(inDateFiles_s1_vh_DES, inDateFiles_s1_vh_DES.replace(".txt", "_input.txt"))
+        inDateFiles_s1_vh_DES = fut.FileSearch_AND(os.path.join(
+            outputDirectory, tileName[1:]), True, "S1_vh_DES_dates.txt")[0]
+        writeInputDateFile(inDateFiles_s1_vh_DES,
+                           inDateFiles_s1_vh_DES.replace(".txt", "_input.txt"))
     except:
         inDateFiles_s1_vh_DES = []
 
-    #Input dates all tiles
+    # Input dates all tiles
     allInDateFiles_s1_vv_DES = []
     if inDateFiles_s1_vv_DES:
         allInDateFiles_s1_vv_DES = [fut.FileSearch_AND(os.path.join(outputDirectory, tile[1:]),
@@ -2039,7 +2148,8 @@ def getSARstack(sarConfig, tileName, allTiles, featuresPath, workingDirectory=No
                                                  os.path.basename(inDateFiles_s1_vv_DES.replace(".txt", "_interpolation.txt")))
         writeInterpolateDateFile(interpDateFiles_s1_vv_DES,
                                  allInDateFiles_s1_vv_DES, timeRes)
-        inputDateFiles.append(inDateFiles_s1_vv_DES.replace(".txt", "_input.txt"))
+        inputDateFiles.append(
+            inDateFiles_s1_vv_DES.replace(".txt", "_input.txt"))
         interpDateFiles.append(interpDateFiles_s1_vv_DES)
 
     allInDateFiles_s1_vh_DES = []
@@ -2051,7 +2161,8 @@ def getSARstack(sarConfig, tileName, allTiles, featuresPath, workingDirectory=No
                                                  os.path.basename(inDateFiles_s1_vh_DES.replace(".txt", "_interpolation.txt")))
         writeInterpolateDateFile(interpDateFiles_s1_vh_DES,
                                  allInDateFiles_s1_vh_DES, timeRes)
-        inputDateFiles.append(inDateFiles_s1_vh_DES.replace(".txt", "_input.txt"))
+        inputDateFiles.append(
+            inDateFiles_s1_vh_DES.replace(".txt", "_input.txt"))
         interpDateFiles.append(interpDateFiles_s1_vh_DES)
 
     allInDateFiles_s1_vv_ASC = []
@@ -2063,7 +2174,8 @@ def getSARstack(sarConfig, tileName, allTiles, featuresPath, workingDirectory=No
                                                  os.path.basename(inDateFiles_s1_vv_ASC.replace(".txt", "_interpolation.txt")))
         writeInterpolateDateFile(interpDateFiles_s1_vv_ASC,
                                  allInDateFiles_s1_vv_ASC, timeRes)
-        inputDateFiles.append(inDateFiles_s1_vv_ASC.replace(".txt", "_input.txt"))
+        inputDateFiles.append(
+            inDateFiles_s1_vv_ASC.replace(".txt", "_input.txt"))
         interpDateFiles.append(interpDateFiles_s1_vv_ASC)
 
     allInDateFiles_s1_vh_ASC = []
@@ -2075,84 +2187,94 @@ def getSARstack(sarConfig, tileName, allTiles, featuresPath, workingDirectory=No
                                                  os.path.basename(inDateFiles_s1_vh_ASC.replace(".txt", "_interpolation.txt")))
         writeInterpolateDateFile(interpDateFiles_s1_vh_ASC,
                                  allInDateFiles_s1_vh_ASC, timeRes)
-        inputDateFiles.append(inDateFiles_s1_vh_ASC.replace(".txt", "_input.txt"))
+        inputDateFiles.append(
+            inDateFiles_s1_vh_ASC.replace(".txt", "_input.txt"))
         interpDateFiles.append(interpDateFiles_s1_vh_ASC)
 
     allMasks = sortS1Masks(allMasks[0])
 
     return allFiltered, allMasks, interpDateFiles, inputDateFiles
 
+
 def generateSARFeat_dates(sar_expressions, SAR_dict, output_raster=None):
-        """
-        """
+    """
+    """
 
-        ASC = bool(SAR_dict["asc"]["vv"]["App"])
-        DES = bool(SAR_dict["des"]["vv"]["App"])
+    ASC = bool(SAR_dict["asc"]["vv"]["App"])
+    DES = bool(SAR_dict["des"]["vv"]["App"])
+    SAR_labels = []
+
+    if ASC:
+        ASC_features_exp = computeSARFeatures_dates_expressions(sar_expressions,
+                                                                len(SAR_dict["asc"]["vv"]["availDates"]))
+        input_features = [SAR_dict["asc"]["vv"]["App"],
+                          SAR_dict["asc"]["vh"]["App"]]
+        expr = [elem for featuresDates in ASC_features_exp for elem in featuresDates]
+        SAR_labels = ["sentinel1_asc_userfeature{}_{}".format(i+1, date) for i in range(
+            len(ASC_features_exp)) for date in SAR_dict["asc"]["vv"]["availDates"]]
+    if DES:
+        DES_features_exp = computeSARFeatures_dates_expressions(sar_expressions,
+                                                                len(SAR_dict["des"]["vv"]["availDates"]))
+        input_features = [SAR_dict["des"]["vv"]["App"],
+                          SAR_dict["des"]["vh"]["App"]]
+        expr = [elem for featuresDates in DES_features_exp for elem in featuresDates]
+        SAR_labels = ["sentinel1_des_userfeature{}_{}".format(i+1, date) for i in range(
+            len(ASC_features_exp)) for date in SAR_dict["des"]["vv"]["availDates"]]
+    if ASC and DES:
+        DES_features_exp_tmp = [elem for elem in DES_features_exp]
+        DES_features_exp = []
+        for feature_dates in DES_features_exp_tmp:
+            DES_features_exp.append([feature_date.replace("im1", "im3").replace(
+                "im2", "im4") for feature_date in feature_dates])
+        input_features = [SAR_dict["asc"]["vv"]["App"],
+                          SAR_dict["asc"]["vh"]["App"],
+                          SAR_dict["des"]["vv"]["App"],
+                          SAR_dict["des"]["vh"]["App"]]
+        expr = []
         SAR_labels = []
+        feature_counter = 0
+        for ASC, DES in zip(ASC_features_exp, DES_features_exp):
+            for index_date, ASC_expr in enumerate(ASC):
+                expr.append(ASC_expr)
+                SAR_labels.append("sentinel1_asc_userfeature{}_{}".format(
+                    feature_counter + 1, SAR_dict["asc"]["vv"]["availDates"][index_date]))
+            for index_date, DES_expr in enumerate(DES):
+                expr.append(DES_expr)
+                SAR_labels.append("sentinel1_des_userfeature{}_{}".format(
+                    feature_counter + 1, SAR_dict["des"]["vv"]["availDates"][index_date]))
+            feature_counter += 1
 
-        if ASC:
-            ASC_features_exp = computeSARFeatures_dates_expressions(sar_expressions,
-                                                                    len(SAR_dict["asc"]["vv"]["availDates"]))
-            input_features = [SAR_dict["asc"]["vv"]["App"],
-                              SAR_dict["asc"]["vh"]["App"]]
-            expr = [elem for featuresDates in ASC_features_exp for elem in featuresDates]
-            SAR_labels = ["sentinel1_asc_userfeature{}_{}".format(i+1, date) for i in range(len(ASC_features_exp)) for date in SAR_dict["asc"]["vv"]["availDates"]]
-        if DES:
-            DES_features_exp = computeSARFeatures_dates_expressions(sar_expressions,
-                                                                    len(SAR_dict["des"]["vv"]["availDates"]))
-            input_features = [SAR_dict["des"]["vv"]["App"],
-                              SAR_dict["des"]["vh"]["App"]]
-            expr = [elem for featuresDates in DES_features_exp for elem in featuresDates]
-            SAR_labels = ["sentinel1_des_userfeature{}_{}".format(i+1, date) for i in range(len(ASC_features_exp)) for date in SAR_dict["des"]["vv"]["availDates"]]
-        if ASC and DES:
-            DES_features_exp_tmp = [elem for elem in DES_features_exp]
-            DES_features_exp = []
-            for feature_dates in DES_features_exp_tmp:
-                DES_features_exp.append([feature_date.replace("im1", "im3").replace("im2", "im4") for feature_date in feature_dates])
-            input_features = [SAR_dict["asc"]["vv"]["App"],
-                              SAR_dict["asc"]["vh"]["App"],
-                              SAR_dict["des"]["vv"]["App"],
-                              SAR_dict["des"]["vh"]["App"]]
-            expr = []
-            SAR_labels = []
-            feature_counter = 0
-            for ASC, DES in zip(ASC_features_exp, DES_features_exp):
-                for index_date, ASC_expr in enumerate(ASC):
-                    expr.append(ASC_expr)
-                    SAR_labels.append("sentinel1_asc_userfeature{}_{}".format(feature_counter + 1, SAR_dict["asc"]["vv"]["availDates"][index_date]))
-                for index_date, DES_expr in enumerate(DES):
-                    expr.append(DES_expr)
-                    SAR_labels.append("sentinel1_des_userfeature{}_{}".format(feature_counter + 1, SAR_dict["des"]["vv"]["availDates"][index_date]))
-                feature_counter+=1
+    userSAR_features = CreateBandMathXApplication({"il": input_features,
+                                                   "out": output_raster if output_raster else "",
+                                                   "exp": ";".join(expr)})
+    return userSAR_features, SAR_labels
 
-        userSAR_features = CreateBandMathXApplication({"il": input_features,
-                                                       "out" : output_raster if output_raster else "",
-                                                       "exp" : ";".join(expr)})
-        return userSAR_features, SAR_labels
 
 def computeSARFeatures_dates_expressions(sar_expressions, nb_dates):
-        """function use to compute SAR features assuming VV is 'im1' and
-        VH is 'im2'
-        
-        Parameters
-        ----------
-        sar_expressions : list
-            list containing string features expression
-        nb_dates : dict
-            dictionnary containing by mode (ASC or DES) the number of 
-            available dates
+    """function use to compute SAR features assuming VV is 'im1' and
+    VH is 'im2'
 
-        Return
-        ------
-        list
-        """
-        out_expressions = []
-        for sar_expr in sar_expressions:
-            sar_expr = sar_expr.lower().replace(" ","")
-            sar_date = [sar_expr.replace("vv", "im1b{}".format(i+1)).replace("vh","im2b{}".format(i+1)) for i in range(nb_dates)]
-            out_expressions.append(sar_date)
-        return out_expressions
-        
+    Parameters
+    ----------
+    sar_expressions : list
+        list containing string features expression
+    nb_dates : dict
+        dictionnary containing by mode (ASC or DES) the number of 
+        available dates
+
+    Return
+    ------
+    list
+    """
+    out_expressions = []
+    for sar_expr in sar_expressions:
+        sar_expr = sar_expr.lower().replace(" ", "")
+        sar_date = [sar_expr.replace("vv", "im1b{}".format(
+            i+1)).replace("vh", "im2b{}".format(i+1)) for i in range(nb_dates)]
+        out_expressions.append(sar_date)
+    return out_expressions
+
+
 def computeSARfeatures(sarConfig, tileToCompute, allTiles, featuresPath, logger=logger):
     """
     IN:
@@ -2172,11 +2294,13 @@ def computeSARfeatures(sarConfig, tileToCompute, allTiles, featuresPath, logger=
         interpolation_mode = config.get('Processing',
                                         'gapFilling_interpolation')
     except:
-        logger.info("Processing.gapFilling_interpolation not found, 'linear' mode is set")
+        logger.info(
+            "Processing.gapFilling_interpolation not found, 'linear' mode is set")
         interpolation_mode = "linear"
 
     if interpolation_mode.lower() not in ["linear", "spline"]:
-        logger.warning("Processing.gapFilling_interpolation wrong value, 'linear' mode is set")
+        logger.warning(
+            "Processing.gapFilling_interpolation wrong value, 'linear' mode is set")
         interpolation_mode = "linear"
 
     hand_features_expr = (config.get('Features', 'expression')).split(",")
@@ -2184,20 +2308,20 @@ def computeSARfeatures(sarConfig, tileToCompute, allTiles, featuresPath, logger=
                                                                       tileToCompute,
                                                                       allTiles,
                                                                       featuresPath)
-    #number of components per dates
+    # number of components per dates
     SAR_GAP = True
     SARcomp = 1
     SARFeatures = []
     Dep = []
     fields_names = []
-    SAR_gapfil = {"asc": {"vv":{"App":None,
-                                "availDates":None},
-                          "vh":{"App":None,
-                                "availDates":None}},
-                  "des": {"vv":{"App":None,
-                                "availDates":None},
-                          "vh":{"App":None,
-                                "availDates":None}}}
+    SAR_gapfil = {"asc": {"vv": {"App": None,
+                                 "availDates": None},
+                          "vh": {"App": None,
+                                 "availDates": None}},
+                  "des": {"vv": {"App": None,
+                                 "availDates": None},
+                          "vh": {"App": None,
+                                 "availDates": None}}}
 
     for currentSarStack, CSARmasks, interpDate, inputDate in zip(SARstack, SARmasks, interpDateFiles, inputDateFiles):
         outName = currentSarStack.GetParameterValue("outputstack")
@@ -2211,20 +2335,26 @@ def computeSARfeatures(sarConfig, tileToCompute, allTiles, featuresPath, logger=
         currentSarStack.Execute()
         Dep.append(stackMask)
         logger.info("SAR gapFilling parameters")
-        logger.info("SAR input dates file %s"%(inputDate))
-        logger.info("SAR output dates file %s"%(interpDate))
+        logger.info("SAR input dates file %s" % (inputDate))
+        logger.info("SAR output dates file %s" % (interpDate))
         logger.debug("SAR interpolation {}".format("linear"))
-        logger.debug("SAR input data {}".format(currentSarStack.GetParameterValue("outputstack")))
-        logger.debug("SAR input masks {} ".format(stackMask.GetParameterValue("out")))
-        
-        SARgapFill = otb.Registry.CreateApplication("ImageTimeSeriesGapFilling")
+        logger.debug("SAR input data {}".format(
+            currentSarStack.GetParameterValue("outputstack")))
+        logger.debug("SAR input masks {} ".format(
+            stackMask.GetParameterValue("out")))
+
+        SARgapFill = otb.Registry.CreateApplication(
+            "ImageTimeSeriesGapFilling")
         SARgapFill.SetParameterString("it", interpolation_mode.lower())
         SARgapFill.SetParameterString("id", inputDate)
         SARgapFill.SetParameterString("od", interpDate)
         SARgapFill.SetParameterString("comp", str(SARcomp))
-        SARgapFill.SetParameterInputImage("in", currentSarStack.GetParameterOutputImage("outputstack"))
-        SARgapFill.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB('float'))
-        SARgapFill.SetParameterInputImage("mask", stackMask.GetParameterOutputImage(getInputParameterOutput(stackMask)))
+        SARgapFill.SetParameterInputImage(
+            "in", currentSarStack.GetParameterOutputImage("outputstack"))
+        SARgapFill.SetParameterOutputImagePixelType(
+            "out", fut.commonPixTypeToOTB('float'))
+        SARgapFill.SetParameterInputImage(
+            "mask", stackMask.GetParameterOutputImage(getInputParameterOutput(stackMask)))
 
         outName = outName.replace(".tif", "_GAPFIL.tif")
         SARgapFill.SetParameterString("out", outName)
@@ -2238,9 +2368,11 @@ def computeSARfeatures(sarConfig, tileToCompute, allTiles, featuresPath, logger=
         else:
             SARFeatures.append(currentSarStack)
 
-        SAR_dates = fut.getNbDateInTile(interpDate, display=False, raw_dates=True)
+        SAR_dates = fut.getNbDateInTile(
+            interpDate, display=False, raw_dates=True)
         if not SAR_GAP:
-            SAR_dates = fut.getNbDateInTile(inputDate, display=False, raw_dates=True)
+            SAR_dates = fut.getNbDateInTile(
+                inputDate, display=False, raw_dates=True)
 
         SAR_mode = os.path.split(outName)[-1].split("_")[2]
         SAR_pol = os.path.split(outName)[-1].split("_")[1]
@@ -2250,11 +2382,13 @@ def computeSARfeatures(sarConfig, tileToCompute, allTiles, featuresPath, logger=
                                                                                           display=False,
                                                                                           raw_dates=True)
         for date in SAR_dates:
-            fields_names.append("sentinel1_{}_{}_{}".format(SAR_mode, SAR_pol ,date))
+            fields_names.append(
+                "sentinel1_{}_{}_{}".format(SAR_mode, SAR_pol, date))
 
     userSAR_features = None
     if not "none" in [elem.lower() for elem in hand_features_expr]:
-        userSAR_features, userSAR_features_lab = generateSARFeat_dates(hand_features_expr, SAR_gapfil)
+        userSAR_features, userSAR_features_lab = generateSARFeat_dates(
+            hand_features_expr, SAR_gapfil)
         userSAR_features.Execute()
         SARFeatures.append(userSAR_features)
         fields_names = fields_names + userSAR_features_lab
@@ -2289,7 +2423,8 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
 
     """
     from Sensors import Sensors
-    ApplicationList = [stack_dates, AllRefl, AllMask, datesFile_sensor, realDates]
+    ApplicationList = [stack_dates, AllRefl,
+                       AllMask, datesFile_sensor, realDates]
 
     def fields_names(sensor, datesFile, iota2FeatExtApp, ext_Bands_Flag=None,
                      relRefl=False, keepduplicates=False, copyIn=True,
@@ -2299,16 +2434,18 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
         sens_name = sensor.name
         sens_dates = fut.getNbDateInTile(datesFile,
                                          display=False, raw_dates=True)
-        #sort by bands number value
-        sens_bands_names = [bandName for bandName, bandOrder in sorted(iter(list(sensor.bands["BANDS"].items())), key=lambda k_v: (k_v[1], k_v[0]))]
+        # sort by bands number value
+        sens_bands_names = [bandName for bandName, bandOrder in sorted(
+            iter(list(sensor.bands["BANDS"].items())), key=lambda k_v: (k_v[1], k_v[0]))]
 
         if ext_Bands_Flag:
-            sens_bands_names = [bandName for bandName, bandNumber in list(currentSensor.keepBands.items())]
+            sens_bands_names = [bandName for bandName, bandNumber in list(
+                currentSensor.keepBands.items())]
 
         if iota2FeatExtApp.GetParameterValue("copyinput") is False:
             sens_bands_names = []
 
-        features=["NDVI", "NDWI", "Brightness"]
+        features = ["NDVI", "NDWI", "Brightness"]
         if relRefl and keepduplicates is False and copyIn is True:
             features = ["NDWI", "Brightness"]
         if not features_flag:
@@ -2340,19 +2477,24 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
     S1Data = cfg.getParam('chain', 'S1Path')
     if S1Data == "None":
         S1Data = None
-    
-    S2 = Sensors.Sentinel_2(cfg.getParam('chain', 'S2Path'), Opath("", create=False), pathConf, "", createFolder=None)
-    S2_S2C = Sensors.Sentinel_2_S2C(cfg.getParam('chain', 'S2_S2C_Path'), Opath("", create=False), pathConf, "", createFolder=None)
-    L8 = Sensors.Landsat8(cfg.getParam('chain', 'L8Path'), Opath("", create=False), pathConf, "", createFolder=None)
-    L5 = Sensors.Landsat5(cfg.getParam('chain', 'L5Path'), Opath("", create=False), pathConf, "", createFolder=None)
+
+    S2 = Sensors.Sentinel_2(cfg.getParam('chain', 'S2Path'), Opath(
+        "", create=False), pathConf, "", createFolder=None)
+    S2_S2C = Sensors.Sentinel_2_S2C(cfg.getParam('chain', 'S2_S2C_Path'), Opath(
+        "", create=False), pathConf, "", createFolder=None)
+    L8 = Sensors.Landsat8(cfg.getParam('chain', 'L8Path'), Opath(
+        "", create=False), pathConf, "", createFolder=None)
+    L5 = Sensors.Landsat5(cfg.getParam('chain', 'L5Path'), Opath(
+        "", create=False), pathConf, "", createFolder=None)
     SensorsList = [S2, S2_S2C, L8, L5]
     AllFeatures = []
     allTiles = (cfg.getParam('chain', 'listTile')).split()
-    
+
     # add SAR features
     SARdep = None
     if (S1Data and (mode == "usually" and ds_sar_opt_fus is False)) or (S1Data and (mode != "usually" and ds_sar_opt_fus is True)) or fut.onlySAR(cfg):
-        SARfeatures, SAR_fields, SARdep = computeSARfeatures(S1Data, tile, allTiles, featurepath)
+        SARfeatures, SAR_fields, SARdep = computeSARfeatures(
+            S1Data, tile, allTiles, featurepath)
         AllFeatures.append(SARfeatures)
         all_fields_sens.append(SAR_fields)
         userDateFeatures = a = b = None
@@ -2363,23 +2505,30 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
             outFeatures = gapFilling.GetParameterValue("out")
             outFeatures = outFeatures.replace(".tif", "_Features.tif")
             featExtr = otb.Registry.CreateApplication("iota2FeatureExtraction")
-            currentSensor = fut.getCurrentSensor(SensorsList, gapFilling.GetParameterValue("out"))
-            
+            currentSensor = fut.getCurrentSensor(
+                SensorsList, gapFilling.GetParameterValue("out"))
+
             comp = len(currentSensor.bands['BANDS'])
-            logger.debug("Sensor name found : %s"%(currentSensor.name))
-            logger.debug("number of bands for sensor %s : %s"%(currentSensor.name, comp))
+            logger.debug("Sensor name found : %s" % (currentSensor.name))
+            logger.debug("number of bands for sensor %s : %s" %
+                         (currentSensor.name, comp))
             if extractBands:
-                bandsToKeep = [bandNumber for bandName, bandNumber in list(currentSensor.keepBands.items())]
+                bandsToKeep = [bandNumber for bandName, bandNumber in list(
+                    currentSensor.keepBands.items())]
                 comp = len(bandsToKeep)
-                logger.debug("keepBands flag detected, number of bands to extract %s"%(comp))
+                logger.debug(
+                    "keepBands flag detected, number of bands to extract %s" % (comp))
             if useAddFeat:
-                raw_dates = fut.getNbDateInTile(c_datesFile_sensor, display=False, raw_dates=True)
-                userDateFeatures, fields_userFeat, a, b = computeUserFeatures(gapFilling, raw_dates, comp, currentSensor.addFeatures)
+                raw_dates = fut.getNbDateInTile(
+                    c_datesFile_sensor, display=False, raw_dates=True)
+                userDateFeatures, fields_userFeat, a, b = computeUserFeatures(
+                    gapFilling, raw_dates, comp, currentSensor.addFeatures)
                 userDateFeatures.Execute()
             else:
                 userDateFeatures = a = b = None
 
-            featExtr.SetParameterInputImage("in", gapFilling.GetParameterOutputImage("out"))
+            featExtr.SetParameterInputImage(
+                "in", gapFilling.GetParameterOutputImage("out"))
             featExtr.SetParameterString("comp", str(comp))
 
             red = str(currentSensor.red)
@@ -2390,11 +2539,13 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
             featExtr.SetParameterString("nir", nir)
             featExtr.SetParameterString("swir", swir)
             featExtr.SetParameterString("out", outFeatures)
-            featExtr.SetParameterOutputImagePixelType("out", fut.commonPixTypeToOTB('int16'))
-            
+            featExtr.SetParameterOutputImagePixelType(
+                "out", fut.commonPixTypeToOTB('int16'))
+
             copyinput = cfg.getParam('iota2FeatureExtraction', 'copyinput')
             relRefl = cfg.getParam('iota2FeatureExtraction', 'relrefl')
-            keepduplicates = cfg.getParam('iota2FeatureExtraction', 'keepduplicates')
+            keepduplicates = cfg.getParam(
+                'iota2FeatureExtraction', 'keepduplicates')
             acorfeat = cfg.getParam('iota2FeatureExtraction', 'acorfeat')
 
             featExtr.SetParameterValue("copyinput", copyinput)
@@ -2422,9 +2573,10 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
                 all_fields_sens.append(fields_userFeat)
 
         if userFeatPath:
-            logger.info( "Add user features")
+            logger.info("Add user features")
             userFeat_arbo = cfg.getParam('userFeat', 'arbo')
-            userFeat_pattern = (cfg.getParam('userFeat', 'patterns')).split(",")
+            userFeat_pattern = (cfg.getParam(
+                'userFeat', 'patterns')).split(",")
             userFeatures, userFeatures_fields = fut.getUserFeatInTile(userFeatPath,
                                                                       tile,
                                                                       userFeat_arbo,
@@ -2458,9 +2610,11 @@ def computeFeatures(cfg, nbDates, tile, stack_dates, AllRefl, AllMask,
     if not fut.sensorUserList(cfg):
         userDateFeatures = a = b = None
 
-    all_fields_sensors = [feat_name for cFeat in all_fields_sens for feat_name in cFeat]
+    all_fields_sensors = [
+        feat_name for cFeat in all_fields_sens for feat_name in cFeat]
 
     sep = " "*63
-    logger.debug("Features labels : %s"%(("\n" + sep).join(all_fields_sensors)))
-    
+    logger.debug("Features labels : %s" %
+                 (("\n" + sep).join(all_fields_sensors)))
+
     return outputFeatures, all_fields_sensors, ApplicationList, userDateFeatures, a, b, AllFeatures, SARdep

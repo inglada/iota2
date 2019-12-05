@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -25,6 +25,7 @@ import ogr
 
 logger = logging.getLogger(__name__)
 
+
 def CreateColorTable(fileLUT, logger_=logger):
     """
     IN :
@@ -46,10 +47,12 @@ def CreateColorTable(fileLUT, logger_=logger):
         try:
             ct.SetColorEntry(int(classID[0]), tuple(codeColor))
         except:
-            logger_.warning("a color entry was not recognize, default value set. Class label 0, RGB code : 255, 255, 255")
+            logger_.warning(
+                "a color entry was not recognize, default value set. Class label 0, RGB code : 255, 255, 255")
             ct.SetColorEntry(0, (255, 255, 255))
     filein.close()
     return ct
+
 
 def CreateIndexedColorImage(pszFilename, fileL, co_option=[], output_pix_type=gdal.GDT_Byte):
     """
@@ -66,11 +69,13 @@ def CreateIndexedColorImage(pszFilename, fileL, co_option=[], output_pix_type=gd
     if len(outpath) == 1:
         outname = os.getcwd()+'/'+outpath[0].split('.')[0]+'_ColorIndexed.tif'
     else:
-        outname = '/'.join(outpath[0:-1])+'/'+outpath[-1].split('.')[0]+'_ColorIndexed.tif'
+        outname = '/'.join(outpath[0:-1])+'/' + \
+            outpath[-1].split('.')[0]+'_ColorIndexed.tif'
     inband = indataset.GetRasterBand(1)
     gt = indataset.GetGeoTransform()
     driver = gdal.GetDriverByName("GTiff")
-    outdataset = driver.Create(outname, indataset.RasterXSize, indataset.RasterYSize, 1, output_pix_type, options=co_option)
+    outdataset = driver.Create(outname, indataset.RasterXSize,
+                               indataset.RasterYSize, 1, output_pix_type, options=co_option)
     if gt is not None and gt != (0.0, 1.0, 0.0, 0.0, 0.0, 1.0):
         outdataset.SetGeoTransform(gt)
     prj = indataset.GetProjectionRef()
@@ -84,14 +89,15 @@ def CreateIndexedColorImage(pszFilename, fileL, co_option=[], output_pix_type=gd
     print('The file '+outname+' has been created')
     return outname
 
+
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description="This function allow you to generate an image of classification with color")
-    parser.add_argument("-color ", dest="color", help="path to the color file (mandatory)", required=True)
-    parser.add_argument("-classification", dest="pathClassification", help="path to the image of classification", required=True)
+    parser = argparse.ArgumentParser(
+        description="This function allow you to generate an image of classification with color")
+    parser.add_argument("-color ", dest="color",
+                        help="path to the color file (mandatory)", required=True)
+    parser.add_argument("-classification", dest="pathClassification",
+                        help="path to the image of classification", required=True)
     args = parser.parse_args()
 
     CreateIndexedColorImage(args.pathClassification, args.color)
-
-
-

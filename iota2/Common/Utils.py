@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -23,12 +23,14 @@ from timeit import default_timer as timer
 
 logger = logging.getLogger(__name__)
 
+
 def run(cmd, desc=None, env=os.environ, logger=logger):
 
     # Create subprocess
     start = timer()
     logger.debug("run command : " + cmd)
-    p = subprocess.Popen(cmd, env=env, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    p = subprocess.Popen(cmd, env=env, shell=True,
+                         stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
     # Get output as strings
     out, err = p.communicate()
@@ -42,12 +44,13 @@ def run(cmd, desc=None, env=os.environ, logger=logger):
     logger.debug("out/err: {}".format(out.rstrip()))
     logger.debug("Done in {} seconds".format(stop-start))
 
-
     # Log error code
     if rc != 0:
-        logger.error("Command {}  exited with non-zero return code {}".format(cmd, rc))
+        logger.error(
+            "Command {}  exited with non-zero return code {}".format(cmd, rc))
         exception_msg = "Launch command fail : {} {}".format(cmd, out)
         raise Exception(exception_msg)
+
 
 class Opath(object):
 
@@ -76,7 +79,7 @@ class Opath(object):
                 try:
                     os.mkdir(self.opathT+"/REFL")
                 except OSError:
-                    logger.debug(self.opathT+"/REFL"+ "allready exists")
+                    logger.debug(self.opathT+"/REFL" + "allready exists")
 
             if not os.path.exists(self.opathF):
                 try:

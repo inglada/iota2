@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -18,6 +18,7 @@ import os
 import shutil
 from Common import ServiceConfigFile as SCF
 
+
 def GenerateDirectories(cfg):
     """
     generate IOTA2 output directories
@@ -31,7 +32,7 @@ def GenerateDirectories(cfg):
     start_step = cfg.getParam("chain", "firstStep")
 
     if os.path.exists(root) and root != "/" and rm_PathTEST and start_step == "init":
-        shutil.rmtree(root,ignore_errors=False)
+        shutil.rmtree(root, ignore_errors=False)
     ensure_dir(root)
     if os.path.exists(root+"/logs"):
         shutil.rmtree(root+"/logs")
@@ -62,7 +63,7 @@ def GenerateDirectories(cfg):
     os.mkdir(root+"/final")
     os.mkdir(root+"/final/simplification")
     os.mkdir(root+"/final/simplification/tiles")
-    os.mkdir(root+"/final/simplification/vectors")    
+    os.mkdir(root+"/final/simplification/vectors")
     os.mkdir(root+"/final/simplification/tmp")
     if os.path.exists(root+"/features"):
         shutil.rmtree(root+"/features")
@@ -79,7 +80,7 @@ def GenerateDirectories(cfg):
     if os.path.exists(root+"/stats"):
         shutil.rmtree(root+"/stats")
     os.mkdir(root+"/stats")
-    
+
     if os.path.exists(root+"/cmd"):
         shutil.rmtree(root+"/cmd")
     os.mkdir(root+"/cmd")
@@ -91,7 +92,8 @@ def GenerateDirectories(cfg):
     os.mkdir(root+"/cmd/fusion")
     os.mkdir(root+"/cmd/splitShape")
 
-    merge_final_classifications = cfg.getParam('chain', 'merge_final_classifications')
+    merge_final_classifications = cfg.getParam(
+        'chain', 'merge_final_classifications')
     if merge_final_classifications:
         if os.path.exists(root+"/final/merge_final_classifications"):
             shutil.rmtree(root+"/final/merge_final_classifications")

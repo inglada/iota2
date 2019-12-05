@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -17,14 +17,16 @@ import os
 from collections import OrderedDict
 from Common import ServiceConfigFile as SCF
 
+
 class iota2():
     """
     class use to describe steps sequence and variable to use at each step (config)
     """
+
     def __init__(self, cfg, config_ressources):
 
         # config object
-        #~ self.cfg = cfg
+        # ~ self.cfg = cfg
         self.cfg = cfg
 
         # working directory, HPC
@@ -46,14 +48,13 @@ class iota2():
         self.steps_group["vectorisation"] = OrderedDict()
         self.steps_group["lcstatistics"] = OrderedDict()
 
-        #build steps
+        # build steps
         self.steps = self.build_steps(self.cfg, config_ressources)
         self.sort_step()
 
         # pickle's path
         self.iota2_pickle = os.path.join(SCF.serviceConfigFile(self.cfg).getParam("chain", "outputPath"),
                                          "logs", "iota2.txt")
-
 
     def save_chain(self):
         """
@@ -70,7 +71,7 @@ class iota2():
         if os.path.exists(self.iota2_pickle):
             with open(self.iota2_pickle, 'rb') as fp:
                 iota2_chain = dill.load(fp)
-        else :
+        else:
             iota2_chain = self
         return iota2_chain
 
@@ -80,7 +81,8 @@ class iota2():
         """
 
         for step_place, step in enumerate(self.steps):
-            self.steps_group[step.step_group][step_place + 1] = step.step_description()
+            self.steps_group[step.step_group][step_place +
+                                              1] = step.step_description()
 
     def print_step_summarize(self, start, end, show_resources=False, checked="x"):
         """
@@ -93,9 +95,9 @@ class iota2():
                 summarize += "Group {}:\n".format(group)
             for key in self.steps_group[group]:
                 highlight = "[ ]"
-                if key >= start and key<=end:
-                    highlight="[{}]".format(checked)
-                summarize += "\t {} Step {}: {}".format(highlight, key ,
+                if key >= start and key <= end:
+                    highlight = "[{}]".format(checked)
+                summarize += "\t {} Step {}: {}".format(highlight, key,
                                                         self.steps_group[group][key])
                 if show_resources:
                     cpu = self.steps[step_position].resources["cpu"]
@@ -104,12 +106,12 @@ class iota2():
                     resource_block_name = self.steps[step_position].resources["resource_block_name"]
                     resource_block_found = self.steps[step_position].resources["resource_block_found"]
                     resource_miss = "" if resource_block_found else " -> MISSING"
-                    summarize += "\n\t\t\tresources block name : {}{}\n\t\t\tcpu : {}\n\t\t\tram : {}\n\t\t\twalltime : {}".format(resource_block_name, resource_miss, cpu, ram, walltime)
+                    summarize += "\n\t\t\tresources block name : {}{}\n\t\t\tcpu : {}\n\t\t\tram : {}\n\t\t\twalltime : {}".format(
+                        resource_block_name, resource_miss, cpu, ram, walltime)
                 summarize += "\n"
                 step_position += 1
         summarize += "\n"
         return summarize
-
 
     def get_dir(self):
         """
@@ -121,7 +123,8 @@ class iota2():
                        'stats', 'cmd', 'dataAppVal', 'dimRed', 'final',
                        'learningSamples', 'model', 'shapeRegion', "features"]
 
-        iota2_outputs_dir = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
+        iota2_outputs_dir = SCF.serviceConfigFile(
+            self.cfg).getParam('chain', 'outputPath')
 
         return [os.path.join(iota2_outputs_dir, d) for d in directories]
 
@@ -301,24 +304,35 @@ class iota2():
         step_join_stats = joinStatistics.joinStatistics(cfg,
                                                         config_ressources,
                                                         self.workingDirectory)
-        
+
         # control variable
         Sentinel1 = SCF.serviceConfigFile(cfg).getParam('chain', 'S1Path')
-        shapeRegion = SCF.serviceConfigFile(cfg).getParam('chain', 'regionPath')
-        classif_mode = SCF.serviceConfigFile(cfg).getParam('argClassification', 'classifMode')
-        sampleManagement = SCF.serviceConfigFile(cfg).getParam('argTrain', 'sampleManagement')
-        sample_augmentation = dict(SCF.serviceConfigFile(cfg).getParam('argTrain', 'sampleAugmentation'))
+        shapeRegion = SCF.serviceConfigFile(
+            cfg).getParam('chain', 'regionPath')
+        classif_mode = SCF.serviceConfigFile(cfg).getParam(
+            'argClassification', 'classifMode')
+        sampleManagement = SCF.serviceConfigFile(
+            cfg).getParam('argTrain', 'sampleManagement')
+        sample_augmentation = dict(SCF.serviceConfigFile(
+            cfg).getParam('argTrain', 'sampleAugmentation'))
         sample_augmentation_flag = sample_augmentation["activate"]
         dimred = SCF.serviceConfigFile(cfg).getParam('dimRed', 'dimRed')
-        classifier = SCF.serviceConfigFile(cfg).getParam('argTrain', 'classifier')
-        ds_sar_opt = SCF.serviceConfigFile(cfg).getParam('argTrain', 'dempster_shafer_SAR_Opt_fusion')
-        keep_runs_results = SCF.serviceConfigFile(cfg).getParam('chain', 'keep_runs_results')
-        merge_final_classifications = SCF.serviceConfigFile(cfg).getParam('chain', 'merge_final_classifications')
-        ground_truth = SCF.serviceConfigFile(cfg).getParam('chain', 'groundTruth')
+        classifier = SCF.serviceConfigFile(
+            cfg).getParam('argTrain', 'classifier')
+        ds_sar_opt = SCF.serviceConfigFile(cfg).getParam(
+            'argTrain', 'dempster_shafer_SAR_Opt_fusion')
+        keep_runs_results = SCF.serviceConfigFile(
+            cfg).getParam('chain', 'keep_runs_results')
+        merge_final_classifications = SCF.serviceConfigFile(
+            cfg).getParam('chain', 'merge_final_classifications')
+        ground_truth = SCF.serviceConfigFile(
+            cfg).getParam('chain', 'groundTruth')
         runs = SCF.serviceConfigFile(cfg).getParam('chain', 'runs')
-        outStat = SCF.serviceConfigFile(cfg).getParam('chain', 'outputStatistics')
+        outStat = SCF.serviceConfigFile(
+            cfg).getParam('chain', 'outputStatistics')
         VHR = SCF.serviceConfigFile(cfg).getParam('coregistration', 'VHRPath')
-        gridsize = SCF.serviceConfigFile(cfg).getParam('Simplification', 'gridsize')
+        gridsize = SCF.serviceConfigFile(
+            cfg).getParam('Simplification', 'gridsize')
 
         # build chain
         # init steps
@@ -327,7 +341,7 @@ class iota2():
         if not "none" in VHR.lower():
             s_container.append(step_coregistration, "init")
 
-        s_container.append(step_CommonMasks, "init")       
+        s_container.append(step_CommonMasks, "init")
         s_container.append(step_pixVal, "init")
 
         # sampling steps
