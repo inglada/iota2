@@ -16,8 +16,6 @@
 import logging
 import numpy as np
 from typing import List
-from functools import wraps
-from rasterio import Affine
 
 from iota2.Common.Utils import time_it
 
@@ -46,12 +44,13 @@ def get_class(*args, **kwargs):
     import numpy as np
     return kwargs["labels"][np.argmax(args)]
 
+
 @time_it
 def proba_to_label(proba_map: np.ndarray,
                    out_classif: str,
                    labels: List[int],
-                   transform: Affine,
-                   epsg_code: int):
+                   transform,
+                   epsg_code: int) -> np.ndarray:
     """
     """
     import rasterio
@@ -77,9 +76,9 @@ def proba_to_label(proba_map: np.ndarray,
 
 
 def probabilities_to_max_proba(proba_map: np.ndarray,
-                               transform: Affine,
+                               transform,
                                epsg_code: int,
-                               out_max_confidence: str):
+                               out_max_confidence: str) -> np.ndarray:
     """
     """
     import rasterio
@@ -103,7 +102,7 @@ def probabilities_to_max_proba(proba_map: np.ndarray,
 
 def predict(mask: str, model: str, stat: str, out_classif: str, out_confidence: str,
             out_proba: str, working_dir: str, configuration_file: str, pixel_type: str,
-            ram: int, logger=logger):
+            ram: int, logger=logger) -> None:
     """
     """
     import os
@@ -137,8 +136,11 @@ def predict(mask: str, model: str, stat: str, out_classif: str, out_confidence: 
                                                                  working_dir,
                                                                  function_partial,
                                                                  out_proba,
-                                                                 chunck_size_x=30,
-                                                                 chunck_size_y=30,
+                                                                 mask=mask,
+                                                                 mask_value=0,
+                                                                 chunk_size_mode="auto",
+                                                                 chunck_size_x=5,
+                                                                 chunck_size_y=5,
                                                                  ram=ram)
     logger.info("predictions done")
     proba_to_label(predicted_proba, out_classif, model.classes_, transform, epsg)
