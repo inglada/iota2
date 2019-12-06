@@ -399,6 +399,7 @@ class iota2():
             s_container.append(step_clip_vectors, "clipvectors")            
         else:
             # vectorization step
+            s_container.append(step_large_vecto, "vectorisation")            
             s_container.append(step_large_simp, "simplification")
             s_container.append(step_large_smoothing, "smoothing")
             s_container.append(step_clip_vectors, "clipvectors")    
