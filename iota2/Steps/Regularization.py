@@ -53,7 +53,7 @@ class Regularization(IOTA2Step.Step):
             the return could be and iterable or a callable
         """
 
-        from simplification import manageNomenclature as mn
+        from simplification import manageRegularization as mr
         
         rastclass = self.rastclass
         if not os.path.exists(os.path.join(self.outtmpdir, 'regul1.tif')):
@@ -68,7 +68,7 @@ class Regularization(IOTA2Step.Step):
         else:
             rastclass = os.path.join(self.outtmpdir, 'regul1.tif')
                     
-        rules = mn.getMaskRegularisation("/home/qt/thierionv/dev/iota2/iota2/simplification/nomenclature.cfg")
+        rules = mr.getMaskRegularisation("/home/qt/thierionv/dev/iota2/iota2/simplification/nomenclature.cfg")
 
         scenarios = [[rastclass, rule] for rule in rules]
 
@@ -82,14 +82,14 @@ class Regularization(IOTA2Step.Step):
             the function to execute as a lambda function. The returned object
             must be a lambda function.
         """
-        from simplification import manageNomenclature as mn
+        from simplification import manageRegularization as mr
 
         if self.workingDirectory:
             self.tmpdir = self.workingDirectory        
 
         #outfilereg = os.path.join(self.outputPath, 'final', 'simplification','classif_regul.tif')
         
-        step_function = lambda x: mn.adaptRegularization(self.tmpdir,
+        step_function = lambda x: mr.adaptRegularization(self.tmpdir,
                                                          x[0],
                                                          os.path.join(self.outtmpdir, x[1][2]),
                                                          str(self.RAM),

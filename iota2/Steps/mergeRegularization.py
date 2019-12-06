@@ -67,7 +67,7 @@ class mergeRegularization(IOTA2Step.Step):
             the function to execute as a lambda function. The returned object
             must be a lambda function.
         """
-        from simplification import manageNomenclature as mn
+        from simplification import manageRegularization as mr
 
         tmpdir = self.workingDirectory
         if tmpdir is None:
@@ -78,7 +78,7 @@ class mergeRegularization(IOTA2Step.Step):
         else:
             output = self.output
             
-        step_function = lambda x: mn.mergeRegularization(tmpdir,
+        step_function = lambda x: mr.mergeRegularization(tmpdir,
                                                          x,
                                                          self.umc,
                                                          output,
