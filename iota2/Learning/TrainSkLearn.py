@@ -49,7 +49,8 @@ def model_name_to_function(model_name: str):
     dico = {"RandomForestClassifier": RandomForestClassifier,
             "ExtraTreesClassifier": ExtraTreesClassifier}
     if model_name not in dico:
-        raise ValueError("{} not suported in iota2 sklearn models".format(model_name))
+        raise ValueError("{} not suported in iota2 sklearn models : {}".format(model_name,
+                                                                               ", ".join(dico.keys())))
     return dico[model_name]
 
 
