@@ -69,9 +69,10 @@ class zonalStatistics(IOTA2Step.Step):
             the return could be and iterable or a callable
         """
         from simplification import ZonalStats as zs
-
-        return zs.splitVectorFeatures(self.outfilesvectpath, self.outfilesvectpath, self.chunk)
-
+        
+        tmpdir = os.path.join(self.outputPath, 'final', 'simplification', 'tmp')
+        
+        return zs.splitVectorFeatures(self.outfilesvectpath, tmpdir, self.chunk)
 
     def step_execute(self):
         """
@@ -86,7 +87,7 @@ class zonalStatistics(IOTA2Step.Step):
         tmpdir = os.path.join(self.outputPath, 'final', 'simplification', 'tmp')
         if self.workingDirectory:
             tmpdir = self.workingDirectory
-
+        
         step_function = lambda x: zs.zonalstats(tmpdir,
                                                 [self.rastclass, self.rastconf, self.rastval],
                                                 x[0:2],
@@ -105,6 +106,4 @@ class zonalStatistics(IOTA2Step.Step):
     def step_clean(self):
         """
         """
-        from simplification import ZonalStats as zs
-        
-        zs.mergeSubVector(self.outfilesvectpath, self.nomenclature)
+        pass

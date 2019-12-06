@@ -18,6 +18,7 @@ import os
 from Steps import IOTA2Step
 from Cluster import get_RAM
 from Common import ServiceConfigFile as SCF
+from VectorTools import vector_functions as vf
 
 class largeVectorization(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
@@ -32,7 +33,10 @@ class largeVectorization(IOTA2Step.Step):
         self.grasslib = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'grasslib')
         self.angle = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'angle')
         self.outmos = os.path.join(self.outputPath, 'final', 'simplification', 'mosaic')
-
+        self.clipfile = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'clipfile')
+        self.clipfield = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'clipfield')        
+        self.grid = os.path.join(self.outputPath, 'final', 'simplification', 'grid.shp')
+        
     def step_description(self):
         """
         function use to print a short description of the step's purpose
@@ -46,13 +50,9 @@ class largeVectorization(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
-        from simplification import MergeTileRasters as mtr
-        params = mtr.getListToPolygonize(self.outmos)
+        listfid = vf.getFIDSpatialFilter(self.clipfile, self.grid, self.clipfield)
 
-        if not params:
-            raise FileNotFoundError("Vectorisation : no tile found to polygonise")
-        
-        return params 
+        return [["%s/tile_%s_%s.tif"%(self.outmos, self.clipfield, x), "%s/tile_%s_%s.shp"%(self.outmos, self.clipfield, x)] for x in listfid]
 
     def step_execute(self):
         """
@@ -70,8 +70,9 @@ class largeVectorization(IOTA2Step.Step):
 
         step_function = lambda x: vas.topologicalPolygonize(tmpdir,
                                                             self.grasslib,
-                                                            x,
-                                                            self.angle)
+                                                            x[0],
+                                                            self.angle,
+                                                            x[1])
         return step_function
 
     def step_outputs(self):

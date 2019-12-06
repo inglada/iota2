@@ -18,6 +18,7 @@ import os
 from Steps import IOTA2Step
 from Cluster import get_RAM
 from Common import ServiceConfigFile as SCF
+from VectorTools import vector_functions as vf
 
 class largeSimplification(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
@@ -32,7 +33,10 @@ class largeSimplification(IOTA2Step.Step):
         self.grasslib = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'grasslib')
         self.douglas = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'douglas')
         self.outmos = os.path.join(self.outputPath, 'final', 'simplification', 'mosaic')
-
+        self.clipfile = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'clipfile')
+        self.clipfield = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'clipfield')        
+        self.grid = os.path.join(self.outputPath, 'final', 'simplification', 'grid.shp')
+        
     def step_description(self):
         """
         function use to print a short description of the step's purpose
@@ -46,9 +50,9 @@ class largeSimplification(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
-        from simplification import MergeTileRasters as mtr
+        listfid = vf.getFIDSpatialFilter(self.clipfile, self.grid, self.clipfield)
 
-        return mtr.getListVectToSimplify(self.outmos)
+        return [["%s/tile_%s_%s.shp"%(self.outmos, self.clipfield, x), "%s/tile_%s_%s_douglas.shp"%(self.outmos, self.clipfield, x)] for x in listfid]
 
     def step_execute(self):
         """
@@ -67,9 +71,10 @@ class largeSimplification(IOTA2Step.Step):
 
         step_function = lambda x: vas.generalizeVector(tmpdir,
                                                        self.grasslib,
-                                                       x,
+                                                       x[0],
                                                        self.douglas,
-                                                       "douglas")
+                                                       "douglas",
+                                                       out=x[1])
 
         return step_function
 

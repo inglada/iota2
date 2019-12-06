@@ -159,7 +159,7 @@ class iota2():
                            sensorsPreprocess, Coregistration, Regularization, mergeRegularization,
                            Clump, Grid, crownSearch, crownBuild, mosaicTilesVectorization,
                            largeVectorization, largeSimplification, largeSmoothing,
-                           clipVectors, zonalStatistics)
+                           clipVectors, zonalStatistics, prodVectors)
 
         # control variable
         Sentinel1 = SCF.serviceConfigFile(cfg).getParam('chain', 'S1Path')
@@ -323,6 +323,11 @@ class iota2():
                                                            config_ressources,
                                                            self.workingDirectory)
         
+        step_prod_vectors = prodVectors.prodVectors(cfg,
+                                                    config_ressources,
+                                                    self.workingDirectory)
+        
+
 
         # build chain
         # init steps
@@ -446,6 +451,10 @@ class iota2():
             s_container.append(step_clip_vectors, "clipvectors")            
         else:
             # vectorization step
-            s_container.append(step_simplification, "vectorisation")
+            s_container.append(step_large_vecto, "vectorisation")            
+            s_container.append(step_large_simp, "simplification")
+            s_container.append(step_large_smoothing, "smoothing")
+            s_container.append(step_clip_vectors, "clipvectors")    
         s_container.append(step_zonal_stats, "lcstatistics")
+        s_container.append(step_prod_vectors, "lcstatistics")        
         return s_container

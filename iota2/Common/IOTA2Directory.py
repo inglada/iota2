@@ -60,6 +60,7 @@ def GenerateDirectories(cfg):
     if os.path.exists(root+"/final"):
         shutil.rmtree(root+"/final")
     os.mkdir(root+"/final")
+    os.mkdir(root+"/final/vectors")    
     os.mkdir(root+"/final/simplification")
     os.mkdir(root+"/final/simplification/tiles")
     os.mkdir(root+"/final/simplification/vectors")

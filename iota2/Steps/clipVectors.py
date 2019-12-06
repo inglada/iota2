@@ -50,6 +50,7 @@ class clipVectors(IOTA2Step.Step):
             the return could be and iterable or a callable
         """
         from simplification import MergeTileRasters as mtr
+
         return mtr.getListVectToClip(self.outmos, self.clipfield, self.outfilevect)
 
     def step_execute(self):

@@ -101,41 +101,45 @@ def rastToVectRecode(path, classif, vector, outputName, ram = "10000", dtype = "
 
 def OSORegularization(classif, umc1, core, path, output, ram = "10000", noSeaVector = None, rssize = None, umc2 = None, logger = logger):
 
-    # OTB Number of threads
-    os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = str(core)
+    if not os.path.exists(output):
+        # OTB Number of threads
+        os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = str(core)
 
-    # first regularization
-    regulClassif, time_regul1 = AdaptRegul23.regularisation(classif, umc1, core, path, ram)
+        # first regularization
+        regulClassif, time_regul1 = AdaptRegul23.regularisation(classif, umc1, core, path, ram)
 
-    logger.info(" ".join([" : ".join(["First regularization", str(time_regul1)]), "seconds"]))
+        logger.info(" ".join([" : ".join(["First regularization", str(time_regul1)]), "seconds"]))
 
-    # second regularization
-    if umc2 != None :
-        if rssize != None :
-            if os.path.exists(os.path.join(path, "reechantillonnee.tif")):
-                os.remove(os.path.join(path, "reechantillonnee.tif"))
-                
-            command = "gdalwarp -q -multi -wo NUM_THREADS=%s -r mode -tr %s %s %s %s/reechantillonnee.tif" %(core, \
-                                                                                                          rssize, \
-                                                                                                          rssize, \
-                                                                                                          regulClassif, \
-                                                                                                          path)
-            Utils.run(command)
-            logger.info(" ".join([" : ".join(["Resample", str(time.time() - time_regul1)]), "seconds"]))
+        # second regularization
+        if umc2 != None :
+            if rssize != None :
+                if os.path.exists(os.path.join(path, "reechantillonnee.tif")):
+                    os.remove(os.path.join(path, "reechantillonnee.tif"))
 
-        regulClassif, time_regul2 = AdaptRegul23.regularisation(os.path.join(path, "reechantillonnee.tif"), umc2, core, path, ram)
-        os.remove(os.path.join(path, "reechantillonnee.tif"))
-        logger.info(" ".join([" : ".join(["Second regularization", str(time_regul2)]), "seconds"]))
+                command = "gdalwarp -q -multi -wo NUM_THREADS=%s -r mode -tr %s %s %s %s/reechantillonnee.tif" %(core, \
+                                                                                                              rssize, \
+                                                                                                              rssize, \
+                                                                                                              regulClassif, \
+                                                                                                              path)
+                Utils.run(command)
+                logger.info(" ".join([" : ".join(["Resample", str(time.time() - time_regul1)]), "seconds"]))
 
-    if noSeaVector is not None:
-        outfilename = os.path.basename(output)
-        rastToVectRecode(path, regulClassif, noSeaVector, os.path.join(path, outfilename), ram, "uint8")
+            regulClassif, time_regul2 = AdaptRegul23.regularisation(os.path.join(path, "reechantillonnee.tif"), umc2, core, path, ram)
+            os.remove(os.path.join(path, "reechantillonnee.tif"))
+            logger.info(" ".join([" : ".join(["Second regularization", str(time_regul2)]), "seconds"]))
+
+        if noSeaVector is not None:
+            outfilename = os.path.basename(output)
+            rastToVectRecode(path, regulClassif, noSeaVector, os.path.join(path, outfilename), ram, "uint8")
+        else:
+            outfilename = regulClassif
+
+        shutil.copyfile(os.path.join(path, outfilename), output)
+        os.remove(os.path.join(path, outfilename))
+
     else:
-        outfilename = regulClassif
-
-    shutil.copyfile(os.path.join(path, outfilename), output)
-    os.remove(os.path.join(path, outfilename))
-
+        logger.info("One regularised file '%s' already exists for this classification"%(output))
+    
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         prog = os.path.basename(sys.argv[0])

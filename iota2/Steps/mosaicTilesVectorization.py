@@ -18,6 +18,7 @@ import os
 from Steps import IOTA2Step
 from Cluster import get_RAM
 from Common import ServiceConfigFile as SCF
+from VectorTools import vector_functions as vf
 
 class mosaicTilesVectorization(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
@@ -38,7 +39,8 @@ class mosaicTilesVectorization(IOTA2Step.Step):
         self.outfilegrid = os.path.join(self.outputPath, 'final', 'simplification', 'grid.shp')
         self.outmos = os.path.join(self.outputPath, 'final', 'simplification', 'mosaic')
         self.outfilevect = os.path.join(self.outputPath, 'final', 'simplification', 'vectors')
-            
+        self.grid = os.path.join(self.outputPath, 'final', 'simplification', 'grid.shp')
+        
         if self.workingDirectory is None:
             self.tmpdir = os.path.join(self.outputPath, 'final', 'simplification', 'tmp')
         else:
@@ -71,11 +73,8 @@ class mosaicTilesVectorization(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
-        from simplification import MergeTileRasters as mtr
-        return mtr.getListMosToDo(self.checkvalue, self.clipfile, \
-                                  self.outfilevect, \
-                                  self.outmos, self.outprefix, self.clipfield, self.clipvalue)
-    
+
+        return vf.getFIDSpatialFilter(self.clipfile, self.grid, self.clipfield)
 
     def step_execute(self):
         """
