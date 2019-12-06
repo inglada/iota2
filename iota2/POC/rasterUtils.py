@@ -35,6 +35,7 @@ def apply_function(otb_pipeline: otbApplication,
                    output_path: Optional[str] = None,
                    mask: Optional[str] = None,
                    mask_value: Optional[int] = 0,
+                   chunk_size_mode: Optional[str] = "auto",
                    chunck_size_x: Optional[int] = 10,
                    chunck_size_y: Optional[int] = 10,
                    ram: Optional[int] = 128) -> Tuple[np.ndarray, List[str], Affine, int]:
@@ -72,6 +73,7 @@ def apply_function(otb_pipeline: otbApplication,
     mosaic = new_labels = None
 
     roi_rasters, epsg_code = split_raster(otb_pipeline=otb_pipeline,
+                                          chunk_size_mode=chunk_size_mode,
                                           chunk_size=(chunck_size_x,
                                                       chunck_size_y),
                                           ram_per_chunk=ram,
@@ -265,6 +267,7 @@ OTB_CHUNK = Tuple[type(otbApplication), int]
 
 
 def split_raster(otb_pipeline: otbApplication,
+                 chunk_size_mode: str,
                  chunk_size: Tuple[int, int],
                  ram_per_chunk: int,
                  working_dir: str) -> List[OTB_CHUNK]:
@@ -293,9 +296,9 @@ def split_raster(otb_pipeline: otbApplication,
     xres, yres = otb_pipeline.GetImageSpacing("out")
     x_size, y_size = otb_pipeline.GetImageSize("out")
 
-    # TODO : ram_estimation could be useful if chunck_size == "auto"
-    # ~ ram_estimation = otb_pipeline.PropagateRequestedRegion(key="out",
-    # ~ region=otb_pipeline.GetImageRequestedRegion("out"))
+    if chunk_size_mode == "auto":
+        # ~ TODO : -> otb_pipeline.GetImageRequestedRegion("out")[size] is (x, y) or (y, x) ?
+        chunk_size = tuple(otb_pipeline.GetImageRequestedRegion("out")["size"])
 
     independant_raster = []
     boundaries = get_chunks_boundaries(chunk_size, shape=(x_size, y_size))
