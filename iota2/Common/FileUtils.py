@@ -893,7 +893,14 @@ def getRasterResolution(rasterIn):
     OUT :
     return pixelSizeX, pixelSizeY
     """
-    raster = gdal.Open(rasterIn, GA_ReadOnly)
+
+    if isinstance(rasterIn, str):
+        if not os.path.isfile(rasterIn):
+            return []
+        raster = gdal.Open(rasterIn, GA_ReadOnly)
+    elif isinstance(rasterIn, osgeo.gdal.Dataset):
+        raster = rasterIn
+        
     if raster is None:
         raise Exception("can't open " + rasterIn)
     geotransform = raster.GetGeoTransform()
@@ -1350,9 +1357,14 @@ def getRasterExtent(raster_in):
             OUTPUT
                 - ex: extent with [minX,maxX,minY,maxY]
     """
-    if not os.path.isfile(raster_in):
-        return []
-    raster = gdal.Open(raster_in, GA_ReadOnly)
+
+    if isinstance(raster_in, str):
+        if not os.path.isfile(raster_in):
+            return []
+        raster = gdal.Open(raster_in, GA_ReadOnly)
+    elif isinstance(raster_in, osgeo.gdal.Dataset):
+        raster = raster_in
+        
     if raster is None:
         return []
     geotransform = raster.GetGeoTransform()
