@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 try:
     from Common import Utils    
     from VectorTools import DeleteDuplicateGeometriesSqlite as ddg
+    from VectorTools import checkGeometryAreaThreshField as checkGeom
     from VectorTools import vector_functions as vf
     from VectorTools import AddFieldArea as afa
     from VectorTools import DeleteField as df   
@@ -91,6 +92,7 @@ def topologicalPolygonize(path, grasslib, raster, angle, out="", outformat = "ES
         
         # classification raster import
         gscript.run_command("r.in.gdal", flags="e", input=raster, output="tile", overwrite=True)
+        gscript.run_command("r.null", map="tile@datas", setnull=0)        
         
         timeimport = time.time()     
         logger.info(" ".join([" : ".join(["Classification raster import", str(timeimport - timeinit)]), "seconds"]))
@@ -132,8 +134,7 @@ def generalizeVector(path, grasslib, vector, paramgene, method, mmu="", ncolumns
     if out == "":
         out = os.path.splitext(vector)[0] + '_%s.shp'%(method)    
 
-    if not os.path.exists(out) and os.path.exists(vector):
-        
+    if not os.path.exists(out) and os.path.exists(vector):        
         logger.info('Generalize (%s) of vector file %s'%(method, os.path.basename(vector)))
         # local environnement
         layer = os.path.basename(os.path.splitext(vector)[0])
@@ -168,6 +169,13 @@ def generalizeVector(path, grasslib, vector, paramgene, method, mmu="", ncolumns
         timedouglas = time.time()     
         logger.info(" ".join([" : ".join(["Douglas simplification and exportation", str(timedouglas - timeinit)]), "seconds"]))
 
+        # clean geometries
+        tmp = os.path.join(localenv, "tmp.shp")
+        checkGeom.checkGeometryAreaThreshField(out, 1, 0, tmp)
+
+        for ext in ['.shp', '.dbf', '.shx', '.prj']:            
+            shutil.copy(os.path.splitext(tmp)[0] + ext, os.path.splitext(out)[0] + ext)
+            
         shutil.rmtree(localenv)
 
     else:    
@@ -184,12 +192,21 @@ def clipVectorfile(path, vector, clipfile, clipfield="", clipvalue="", outpath="
     else:
         out = os.path.join(outpath, '%s_%s.shp'%(prefix, str(clipvalue)))
 
+    # clean geometries
+    tmp = os.path.join(path, "tmp.shp")
+    checkGeom.checkGeometryAreaThreshField(vector, 1, 0, tmp)
+
+    for ext in ['.shp', '.dbf', '.shx', '.prj']:            
+        shutil.copy(os.path.splitext(tmp)[0] + ext, os.path.splitext(vector)[0] + ext)
+
     if not os.path.exists(out):
         if clipfile is not None:
             logger.info('Clip vector file %s with %s (%s == %s)'%(os.path.basename(vector), os.path.basename(clipfile), clipfield, clipvalue))
-
+            print('Clip vector file %s with %s (%s == %s)'%(os.path.basename(vector), os.path.basename(clipfile), clipfield, clipvalue))
+            
             # local environnement
             localenv = os.path.join(path, "tmp%s"%(str(clipvalue)))
+
             if os.path.exists(localenv):shutil.rmtree(localenv)
             os.mkdir(localenv)
 
@@ -266,6 +283,7 @@ def clipVectorfile(path, vector, clipfile, clipfield="", clipvalue="", outpath="
     else:
   
         logger.info("Output vector file '%s' already exists"%(out))
+        
             
         
 def simplification(path, raster, grasslib, out, douglas, hermite, mmu, angle=True, debulvl="info", logger=logger):
