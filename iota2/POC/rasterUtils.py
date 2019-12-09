@@ -299,7 +299,7 @@ def split_raster(otb_pipeline: otbApplication,
     if chunk_size_mode == "auto":
         # ~ TODO : -> otb_pipeline.GetImageRequestedRegion("out")[size] is (x, y) or (y, x) ?
         chunk_size = tuple(otb_pipeline.GetImageRequestedRegion("out")["size"])
-
+    print("chunk_size : {}".format(chunk_size))
     independant_raster = []
     boundaries = get_chunks_boundaries(chunk_size, shape=(x_size, y_size))
     for index, boundary in enumerate(boundaries):
