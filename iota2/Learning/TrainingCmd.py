@@ -95,7 +95,7 @@ def buildTrainCmd_points(r, paths, classif, options, dataField, out,
                                are already present before adding features
     """
     nb_columns_limit = 999
-    if len(features_labels) >= nb_columns_limit:
+    if len(features_labels.split(" ")) >= nb_columns_limit:
         output_geojson = paths.replace(".sqlite", ".geojson")
         try:
             sqlite_to_geojson(paths, output_geojson)
