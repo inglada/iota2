@@ -103,8 +103,14 @@ class iota2():
                     walltime = self.steps[step_position].resources["walltime"]
                     resource_block_name = self.steps[step_position].resources["resource_block_name"]
                     resource_block_found = self.steps[step_position].resources["resource_block_found"]
+                    log_identifier = self.steps[step_position].step_name
                     resource_miss = "" if resource_block_found else " -> MISSING"
-                    summarize += "\n\t\t\tresources block name : {}{}\n\t\t\tcpu : {}\n\t\t\tram : {}\n\t\t\twalltime : {}".format(resource_block_name, resource_miss, cpu, ram, walltime)
+                    summarize += "\n\t\t\tresources block name : {}{}\n\t\t\tcpu : {}\n\t\t\tram : {}\n\t\t\twalltime : {}\n\t\t\tlog identifier : {}".format(resource_block_name,
+                                                                                                                                                              resource_miss,
+                                                                                                                                                              cpu,
+                                                                                                                                                              ram,
+                                                                                                                                                              walltime,
+                                                                                                                                                              log_identifier)
                 summarize += "\n"
                 step_position += 1
         summarize += "\n"
