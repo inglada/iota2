@@ -189,8 +189,7 @@ def adaptRegularization(path, raster, output, ram, rule, threshold):
             tmpsieve8 = sieveRasterMemory(mask, threshold, '', 0, 8)
             tmpsieve4 = sieveRasterMemory(tmpsieve8, threshold, mask, 0, 4)
             tmpsieve8 = tmpsieve4 = None
-            
-    print(outpath)
+
     shutil.copy(mask, outpath)        
     return mask
 
@@ -234,7 +233,11 @@ def mergeRegularization(path, rasters, threshold, output, ram, resample=None, wa
             else:
                 sieve4 = sieveRasterMemory(sieve8, threshold, output, 0, 4)
                 sieve4 = sieve8 = None
-                shutil.copy(output, outpath)
+                try:
+                    shutil.copy(output, outpath)
+                except:
+                    print("Output file %s already exists"%(output))
+                    pass
 
         os.remove(merge)
         
