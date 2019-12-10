@@ -20,14 +20,14 @@ from Cluster import get_RAM
 from Common import ServiceConfigFile as SCF
 
 class mergeRegularization(IOTA2Step.Step):
-    def __init__(self, cfg, cfg_resources_file, logname=None, output=None, umc=None, resample=None, water=None, workingDirectory=None):
+    def __init__(self, cfg, cfg_resources_file, stepname=None, output=None, umc=None, resample=None, water=None, workingDirectory=None):
         # heritage init
         resources_block_name = "mergeregularisation"
         super(mergeRegularization, self).__init__(cfg, cfg_resources_file, resources_block_name)
 
         # step variables
-        if logname:
-            self.logFile = logname
+        if stepname:
+            self.step_name = stepname
             
         self.RAM = 1024.0 * get_RAM(self.resources["ram"])
         self.CPU = self.resources["cpu"]
