@@ -404,7 +404,7 @@ class iota2():
                     s_container.append(Regularization.Regularization(cfg,
                                                                      config_ressources,
                                                                      umc=umc1,
-                                                                     logname="regul1",
+                                                                     stepname="regul1",
                                                                      workingDirectory=self.workingDirectory), "regularisation")
 
                     s_container.append(mergeRegularization.mergeRegularization(cfg,
@@ -412,7 +412,7 @@ class iota2():
                                                                                workingDirectory=self.workingDirectory,
                                                                                resample=rssize,
                                                                                umc=umc1,
-                                                                               logname="merge_regul1",                                                                               
+                                                                               stepname="merge_regul1",                                                                               
                                                                                output=outregul), "regularisation")
                     umc1 = umc2
                     rssize = None
@@ -423,7 +423,7 @@ class iota2():
                 s_container.append(Regularization.Regularization(cfg,
                                                                  config_ressources,
                                                                  umc=umc1,
-                                                                 logname=logname,                                                                 
+                                                                 stepname=logname,                                                                 
                                                                  workingDirectory=self.workingDirectory), "regularisation")
 
                 s_container.append(mergeRegularization.mergeRegularization(cfg,
@@ -432,7 +432,7 @@ class iota2():
                                                                            resample=rssize,
                                                                            water=inland,
                                                                            umc=umc1,
-                                                                           logname=lognamemerge,
+                                                                           stepname=lognamemerge,
                                                                            output=outregul), "regularisation")
 
 
