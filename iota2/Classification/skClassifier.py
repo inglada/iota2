@@ -15,7 +15,7 @@
 # =========================================================================
 import logging
 import numpy as np
-from typing import List
+from typing import List, Optional
 
 from iota2.Common.Utils import time_it
 
@@ -50,17 +50,24 @@ def proba_to_label(proba_map: np.ndarray,
                    out_classif: str,
                    labels: List[int],
                    transform,
-                   epsg_code: int) -> np.ndarray:
+                   epsg_code: int,
+                   mask_path: Optional[str]=None) -> np.ndarray:
     """
     """
     import rasterio
     import numpy as np
+    from sklearn.preprocessing import binarize
+    from iota2.Tests.UnitTests.TestsUtils import rasterToArray
     labels_map = np.apply_along_axis(func1d=get_class,
                                      axis=0,
                                      arr=proba_map,
                                      labels=labels)
     labels_map = labels_map.astype("int32")
     labels_map = np.expand_dims(labels_map, axis=0)
+    if mask_path is not None:
+        mask_arr = rasterToArray(mask_path)
+        mask_arr = binarize(mask_arr)
+        labels_map = labels_map * mask_arr
 
     with rasterio.open(out_classif,
                        "w",
@@ -143,7 +150,8 @@ def predict(mask: str, model: str, stat: str, out_classif: str, out_confidence: 
                                                                  chunck_size_y=5,
                                                                  ram=ram)
     logger.info("predictions done")
-    proba_to_label(predicted_proba, out_classif, model.classes_, transform, epsg)
+    proba_to_label(predicted_proba, out_classif,
+                   model.classes_, transform, epsg, mask)
     probabilities_to_max_proba(predicted_proba, transform, epsg, out_confidence)
 
     if working_dir:
