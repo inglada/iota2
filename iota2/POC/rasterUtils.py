@@ -15,17 +15,20 @@
 # =========================================================================
 import os
 
+import logging
 import rasterio
-from rasterio.transform import Affine
-from rasterio.io import MemoryFile
-from rasterio.merge import merge
 import numpy as np
-
+from rasterio.merge import merge
+from rasterio.io import MemoryFile
+from rasterio.transform import Affine
 from typing import List, Dict, Optional, Tuple, Union
 
+from iota2.Common.FileUtils import memory_usage_psutil
 # Only for typing
 import otbApplication
 from functools import partial
+
+logger = logging.getLogger(__name__)
 
 
 def apply_function(otb_pipeline: otbApplication,
@@ -38,7 +41,8 @@ def apply_function(otb_pipeline: otbApplication,
                    chunk_size_mode: Optional[str] = "auto",
                    chunck_size_x: Optional[int] = 10,
                    chunck_size_y: Optional[int] = 10,
-                   ram: Optional[int] = 128) -> Tuple[np.ndarray, List[str], Affine, int]:
+                   ram: Optional[int] = 128,
+                   logger=logger) -> Tuple[np.ndarray, List[str], Affine, int]:
     """
     Parameters
     ----------
@@ -89,6 +93,13 @@ def apply_function(otb_pipeline: otbApplication,
         start_y = int(roi_raster.GetParameterString("starty"))
         size_y = int(roi_raster.GetParameterString("sizey"))
 
+        region_info = "processing region start_x : {} size_x : {} start_y : {} size_y : {}".format(start_x,
+                                                                                                   size_x,
+                                                                                                   start_y,
+                                                                                                   size_y)
+        logger.info(region_info)
+        print(region_info)
+        print("memory usage : {}".format(memory_usage_psutil()))
         roi_array, proj_geotransform = process_function(roi_raster,
                                                         function=function,
                                                         mask_arr=mask_array,
@@ -230,7 +241,10 @@ def process_function(otb_pipeline: otbApplication,
 
 
 def get_chunks_boundaries(chunk_size: Tuple[int, int],
-                          shape: Tuple[int, int]) -> List[Dict[str, int]]:
+                          shape: Tuple[int, int],
+                          chunk_size_mode: str,
+                          ram_estimation: int,
+                          ram_per_chunk: int) -> List[Dict[str, int]]:
     """from numpy array shape, return chunks boundaries (Extract ROI coordinates)
 
     Parameters
@@ -239,7 +253,12 @@ def get_chunks_boundaries(chunk_size: Tuple[int, int],
         tuple(chunk_size_x, chunk_size_y)
     shape : tuple
         tuple(size_x, size_y)
-
+    chunk_size_mode : str
+        flag
+    ram_estimation : float
+        ram estimation to compute the whole OTB process (in octets)
+    ram_per_chunk : float
+        ram per chunks in octets
     Return
     ------
     dict
@@ -248,9 +267,18 @@ def get_chunks_boundaries(chunk_size: Tuple[int, int],
          "starty": int,
          "sizey" : int}
     """
+    import math
     import numpy as np
+
     chunk_size_x, chunk_size_y = chunk_size[0], chunk_size[1]
     size_x, size_y = shape[0], shape[1]
+
+    if chunk_size_mode == "auto":
+        ram_estimation = ram_estimation * 1.5
+        nb_chunks = math.ceil(ram_estimation / ram_per_chunk)
+        chunk_size_x = size_x
+        chunk_size_y = int(math.ceil(float(size_y) / float(nb_chunks)))
+
     boundaries = []
     for y in np.arange(0, size_y, chunk_size_y):
         start_y = y
@@ -296,19 +324,25 @@ def split_raster(otb_pipeline: otbApplication,
     xres, yres = otb_pipeline.GetImageSpacing("out")
     x_size, y_size = otb_pipeline.GetImageSize("out")
 
-    if chunk_size_mode == "auto":
-        # ~ TODO : -> otb_pipeline.GetImageRequestedRegion("out")[size] is (x, y) or (y, x) ?
-        chunk_size = tuple(otb_pipeline.GetImageRequestedRegion("out")["size"])
-    print("chunk_size : {}".format(chunk_size))
+    ram_estimation = otb_pipeline.PropagateRequestedRegion(key="out",
+                                                           region=otb_pipeline.GetImageRequestedRegion("out"))
+
+    boundaries = get_chunks_boundaries(chunk_size,
+                                       shape=(x_size, y_size),
+                                       chunk_size_mode=chunk_size_mode,
+                                       ram_estimation=float(ram_estimation),
+                                       ram_per_chunk=float(ram_per_chunk) * 1024 ** 2)
     independant_raster = []
-    boundaries = get_chunks_boundaries(chunk_size, shape=(x_size, y_size))
+
     for index, boundary in enumerate(boundaries):
+        output_roi = ""
+        if working_dir:
+            output_roi = os.path.join(working_dir, "ROI_{}.tif".format(index))
         roi = CreateExtractROIApplication({"in": otb_pipeline,
                                            "startx": boundary["startx"],
                                            "sizex": boundary["sizex"],
                                            "starty": boundary["starty"],
                                            "sizey": boundary["sizey"],
-                                           "out": os.path.join(working_dir,
-                                                               "ROI_{}.tif".format(index))})
+                                           "out": output_roi})
         independant_raster.append(roi)
     return independant_raster, projection.GetAttrValue("AUTHORITY", 1)
