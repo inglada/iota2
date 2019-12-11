@@ -145,7 +145,7 @@ class iota_testVectortools(unittest.TestCase):
                                                         'Feuillus', 'Coniferes', 'Pelouse', 'Landes', 'UrbainDens', 'UrbainDiff', \
                                                         'ZoneIndCom', 'Route', 'PlageDune', 'SurfMin', 'Eau', 'GlaceNeige', 'Prairie', \
                                                         'Vergers', 'Vignes', 'Perimeter', 'class'], "List of fields does not fit") 
-        self.assertEqual(vf.ListValueFields(self.classifwd, "class"), ['211', '31', '11', '42', '36', '32', '43', '12', '51', '222'], \
+        self.assertEqual(vf.ListValueFields(self.classifwd, "class"), ['11', '12', '211', '222', '31', '32', '36', '42', '43', '51'], \
                         "Values of field 'class' do not fit")
         self.assertEqual(vf.getFieldType(self.classifwd, "class"), str, \
                          "Type of field 'class' (%s) do not fit, 'str' expected"%(vf.getFieldType(self.classifwd, "class")))        
