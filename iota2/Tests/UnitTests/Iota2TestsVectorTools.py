@@ -156,7 +156,7 @@ class iota_testVectortools(unittest.TestCase):
         self.assertEqual(vf.getNbFeat(self.classifwd), 102, "Number of features does not fit")
 
         sba.extractFeatureFromShape(self.classifwd, 3, "mask", self.wd)
-        mf.mergeVectors([os.path.join(self.wd, "classif00.shp"), os.path.join(self.wd, "classif01.shp"), os.path.join(self.wd, "classif02.shp")], self.classifwd)
+        mf.mergeVectors([os.path.join(self.wd, "classif0_0.shp"), os.path.join(self.wd, "classif0_1.shp"), os.path.join(self.wd, "classif0_2.shp")], self.classifwd)
         self.assertEqual(vf.getFirstLayer(self.classifwd), 'classif', "Layer does not exist in this shapefile")
 
         self.assertTrue(testutils.compareVectorFile(self.classifwd, self.classifout, 'coordinates', 'polygon', "ESRI Shapefile"), \
