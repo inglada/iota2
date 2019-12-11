@@ -55,7 +55,7 @@ class iota_testRegularisation(unittest.TestCase):
 
         self.raster10m = os.path.join(IOTA2DIR, "data", "references/sampler/final/Classif_Seed_0.tif")
         self.rasterregref = os.path.join(IOTA2DIR, "data", "references/posttreat/classif_regul.tif")
-        self.nomenclature = os.path.join(IOTA2DIR, "data", "references/posttreat/nomenclature.cfg")
+        self.nomenclature = os.path.join(IOTA2DIR, "data", "references/posttreat/nomenclature_17.cfg")
         self.wd = os.path.join(self.iota2_tests_directory, "wd")
         self.out = os.path.join(self.iota2_tests_directory, "out")
         self.tmp = os.path.join(self.iota2_tests_directory, "tmp")        
@@ -126,8 +126,9 @@ class iota_testRegularisation(unittest.TestCase):
         """
 
         rules = mr.getMaskRegularisation(self.nomenclature)
+
         for rule in rules:
-            mr.adaptRegularization(self.wd, self.raster10m, os.path.join(self.tmp, rule[2]), "1000", rule, 10)
+            mr.adaptRegularization(self.wd, self.raster10m, os.path.join(self.tmp, rule[2]), "1000", rule, 2)
 
         rasters = fut.FileSearch_AND(self.tmp, True, "mask", ".tif")
         mr.mergeRegularization(self.tmp, rasters, 10, self.outfile, "1000")
