@@ -895,7 +895,7 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
 
     """
 
-    logger.info("Begin to compute zonal statistics for vector file %"%(output))
+    logger.info("Begin to compute zonal statistics for vector file %s"%(output))
     
     if os.path.exists(output):
         return
@@ -910,7 +910,11 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
     paramstats = checkmethodstats(rasters, paramstats, nbbands)
 
     # Get vector file and FID list
-    vector, idvals = params
+    if len(params) > 1:
+        vector, idvals = params
+    else:
+        vector = params[0][0]
+        idvals = params[0][1]
     
     # if no vector subsetting (all features)
     fullfid = getFidList(vector)    
@@ -980,7 +984,7 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
     # exportation
     dataframeExport(stats, output, schema)
 
-    logger.info("End to compute zonal statistics for vector file %"%(output))
+    logger.info("End to compute zonal statistics for vector file %s"%(output))
 
     
 def iota2Formatting(invector, classes, outvector=""):
@@ -999,10 +1003,13 @@ def iota2Formatting(invector, classes, outvector=""):
         exp += "CAST(%s AS NUMERIC(6,2)) AS %s, "%(name, name)
 
 
+    layerin = os.path.splitext(os.path.basename(invector))[0]        
     if outvector == "":
-        layerout = os.path.splitext(os.path.basename(invector))[0]        
+        layerin = os.path.splitext(os.path.basename(invector))[0]        
         outvector = os.path.splitext(invector)[0] + '_tmp.shp'
+        layerout = layerin + "_tmp"
     else:
+        layerin = os.path.splitext(os.path.basename(invector))[0]                
         layerout = os.path.splitext(os.path.basename(outvector))[0]
 
     command = "ogr2ogr -lco ENCODING=UTF-8 -overwrite -q -f 'ESRI Shapefile' -nln %s -sql "\
@@ -1012,7 +1019,7 @@ def iota2Formatting(invector, classes, outvector=""):
               "CAST(meanmajb2 AS INTEGER(4)) AS Confidence, %s"\
               "CAST(area AS NUMERIC(10,2)) AS Aire "\
               "FROM %s' "\
-              "%s %s"%(layerout, exp, layerout, outvector, invector)
+              "%s %s"%(layerout, exp, layerin, outvector, invector)
 
     Utils.run(command)
 
