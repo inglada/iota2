@@ -237,6 +237,7 @@ def process_function(otb_pipeline: otbApplication,
     else:
         output = (mask_value,
                   {"projection": projection, "geo_transform": geo_transform})
+    otb_pipeline = None
     return output
 
 
