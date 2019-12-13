@@ -29,6 +29,9 @@ class classification(IOTA2Step.Step):
         self.output_path = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
         
         self.use_scikitlearn = SCF.serviceConfigFile(self.cfg).getParam('scikit_models_parameters', 'model_type') is not None
+        
+        # ~ TODO : find a smarted way to determine the attribute self.scikit_tile_split
+        self.scikit_tile_split = 50
 
     def step_description(self):
         """
@@ -55,7 +58,9 @@ class classification(IOTA2Step.Step):
                            "working_dir": param[6],
                            "configuration_file": param[7],
                            "pixel_type": param[8],
-                           "ram": param[10]} for param in parameters]
+                           "number_of_chunks": self.scikit_tile_split,
+                           "targeted_chunk": target_chunk,
+                           "ram": param[10]} for param in parameters for target_chunk in range(self.scikit_tile_split)]
         return parameters
 
     def step_execute(self):
