@@ -223,6 +223,7 @@ class serviceConfigFile:
                             "dozip": True,
                             "bingdal": None,
                             "chunk":10,
+                            "nomenclature":None,
                             "statslist" : {1:"rate", 2:"statsmaj", 3:"statsmaj"}}
             self.init_section("Simplification", simp_default)
             
