@@ -55,12 +55,12 @@ def model_name_to_function(model_name: str):
                                                             0.25, 0.5, 1,
                                                             2, 4, 8, 16],
                                                   'C': [1, 10, 100, 1000]},
-                  "RandomForestClassifier": {n_estimators: [50, 100, 200,
+                  "RandomForestClassifier": {'n_estimators': [50, 100, 200,
                                                             400, 600]},
-                  "ExtraTreesClassifier": {n_estimators: [50, 100, 200,
+                  "ExtraTreesClassifier": {'n_estimators': [50, 100, 200,
                                                           400, 600]}}
 
-    if model_name not in dico:
+    if model_name not in dico_clf:
         raise ValueError("{} not suported in iota2 sklearn models : {}".format(model_name,
                                                                                ", ".join(dico_clf.keys())))
     return dico_clf[model_name], dico_param[model_name]
@@ -102,10 +102,10 @@ def sk_learn(data_set: Dict[str, str],
     df_labels = pd.read_sql_query("select {} from {}".format(data_field, layer_name),
                                   conn)
     labels_values = np.ravel(df_labels.to_numpy())
-    clf, parameters = model_name_to_function(model_name)(**kwargs)
+    clf, parameters = model_name_to_function(model_name, **kwargs) 
 
     # Cross validation
-    model_cv = GridSearchCV(clf,
+    model_cv = GridSearchCV(clf(),
                             parameters,
                             n_jobs=-1,
                             cv=5)
