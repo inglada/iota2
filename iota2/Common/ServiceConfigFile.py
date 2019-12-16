@@ -206,8 +206,8 @@ class serviceConfigFile:
                             "confidence": None,
                             "validity": None,
                             "seed": None,
-                            "umc1": 10,
-                            "umc2": 3,
+                            "umc1": None,
+                            "umc2": None,
                             "inland": None,
                             "rssize": 20,
                             "lib64bit": None,
@@ -224,7 +224,10 @@ class serviceConfigFile:
                             "lcfield" : "Class",
                             "blocksize" : 2000,
                             "dozip": True,
-                            "bingdal": None}
+                            "bingdal": None,
+                            "chunk":10,
+                            "nomenclature":None,
+                            "statslist" : {1:"rate", 2:"statsmaj", 3:"statsmaj"}}
             self.init_section("Simplification", simp_default)
             
     def init_section(self, sectionName, sectionDefault):
@@ -480,8 +483,10 @@ class serviceConfigFile:
             self.testVarConfigFile('chain', 'S2Path', str)
             self.testVarConfigFile('chain', 'S1Path', str)
 
-            self.testVarConfigFile('chain', 'firstStep', str, ["init", "sampling", "dimred", "learning", "classification", "mosaic", "validation", "regularisation", "crown", "vectorisation", "lcstatistics"])
-            self.testVarConfigFile('chain', 'lastStep', str, ["init", "sampling", "dimred", "learning", "classification", "mosaic", "validation", "regularisation", "crown", "vectorisation", "lcstatistics"])
+            self.testVarConfigFile('chain', 'firstStep', str, ["init", "sampling", "dimred", "learning", "classification", "mosaic", \
+                                                               "validation", "regularisation", "crown", "mosaictiles", "vectorisation", "simplification", "smoothing", "clipvectors", "lcstatistics"])
+            self.testVarConfigFile('chain', 'lastStep', str, ["init", "sampling", "dimred", "learning", "classification", "mosaic", \
+                                                              "validation", "regularisation", "crown", "mosaictiles", "vectorisation", "simplification", "smoothing", "clipvectors", "lcstatistics"])
 
             if self.getParam("chain", "regionPath"):
                 check_region_vector(self.cfg)

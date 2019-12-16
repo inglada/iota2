@@ -68,10 +68,10 @@ class iota_testSerialisation(unittest.TestCase):
         self.outtile = os.path.join(self.iota2_tests_directory, self.out, "tiles/tile_0.tif")
         self.outseriaref = os.path.join(os.path.join(IOTA2DIR, "data", "references/posttreat/tiles/crown_0.tif"))
         self.outtileref = os.path.join(os.path.join(IOTA2DIR, "data", "references/posttreat/tiles/tile_0.tif"))        
-        self.outfilevect = os.path.join(self.iota2_tests_directory, self.out, "classif.shp")
-        self.outfilevectname = os.path.join(self.iota2_tests_directory, self.out, "classifmontagne.shp")        
-        self.vector = os.path.join(os.path.join(IOTA2DIR, "data", "references/posttreat/classifmontagne.shp"))
-        self.clipfile = os.path.join(os.path.join(IOTA2DIR, "data", "references/posttreat/region.shp"))
+        #self.outfilevect = os.path.join(self.iota2_tests_directory, self.out, "classif.shp")
+        #self.outfilevectname = os.path.join(self.iota2_tests_directory, self.out, "classifmontagne.shp")        
+        #self.vector = os.path.join(os.path.join(IOTA2DIR, "data", "references/posttreat/classifmontagne.shp"))
+        #self.clipfile = os.path.join(os.path.join(IOTA2DIR, "data", "references/posttreat/region.shp"))
         self.grasslib = os.environ.get('GRASSDIR')
 
         if self.grasslib is None:
@@ -140,8 +140,8 @@ class iota_testSerialisation(unittest.TestCase):
             shutil.rmtree(self.test_working_directory)
 
     # Tests definitions
-    def test_iota2_regularisation(self):
-        """Test how many samples must be add to the sample set
+    def test_iota2_serialisation(self):
+        """Test Serialisation process
         """
 
         # Grid generation test
@@ -162,14 +162,6 @@ class iota_testSerialisation(unittest.TestCase):
         outtest = testutils.rasterToArray(self.outtile)
         outtileref = testutils.rasterToArray(self.outtileref)
         self.assertTrue(np.array_equal(outtest, outtileref))
-
-        # Vectorisation test
-        mtr.tilesRastersMergeVectSimp(self.wd, self.outfileref, self.outfilevect, self.grasslib, 1000,
-                                      "class", self.clipfile, "region", "montagne", "FID", "tile_", self.outpathtile,
-                                      10, 10, True)
-
-        self.assertTrue(testutils.compareVectorFile(self.vector, self.outfilevectname, 'coordinates', 'polygon', "ESRI Shapefile"), \
-                        "Generated shapefile vector does not fit with shapefile reference file")
 
         # remove temporary folders
         if os.path.exists(self.wd):shutil.rmtree(self.wd, ignore_errors=True)
