@@ -16,7 +16,6 @@
 import logging
 import numpy as np
 from typing import List, Optional
-from joblib import parallel_backend, delayed, Parallel
 
 from iota2.Common.Utils import time_it
 
@@ -26,9 +25,8 @@ logger = logging.getLogger(__name__)
 def do_predict(array, model, dtype="float"):
     """
     """
-    import numpy as np
     # ~ TODO : is there a more effective way to invoke model.predict_proba ?
-    array_reshaped = array.reshape((array.shape[0]*array.shape[1]), array.shape[2])
+    array_reshaped = array.reshape((array.shape[0] * array.shape[1]), array.shape[2])
     predicted_array = model.predict_proba(array_reshaped)
     predicted_array = predicted_array.reshape(array.shape[0],
                                               array.shape[1],
