@@ -177,7 +177,7 @@ class iota2():
                            sensorsPreprocess, Coregistration, Regularization, mergeRegularization,
                            Clump, Grid, crownSearch, crownBuild, mosaicTilesVectorization,
                            largeVectorization, largeSimplification, largeSmoothing,
-                           clipVectors, zonalStatistics, prodVectors)
+                           clipVectors, zonalStatistics, prodVectors, skClassificationsMerge)
 
         # control variable
         Sentinel1 = SCF.serviceConfigFile(cfg).getParam('chain', 'S1Path')
@@ -201,6 +201,7 @@ class iota2():
         rssize = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'rssize')
         inland = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'inland')
         iota2_outputs_dir = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
+        use_scikitlearn = SCF.serviceConfigFile(self.cfg).getParam('scikit_models_parameters', 'model_type') is not None
 
         # will contains all IOTA² steps
         s_container = StepContainer()
@@ -268,6 +269,9 @@ class iota2():
         step_classification = classification.classification(cfg,
                                                             config_ressources,
                                                             self.workingDirectory)
+        step_sk_classifications_merge = skClassificationsMerge.ScikitClassificationsMerge(cfg,
+                                                                                          config_ressources,
+                                                                                          self.workingDirectory)
         step_confusion_sar_opt = confusionSAROpt.confusionSAROpt(cfg,
                                                                  config_ressources,
                                                                  self.workingDirectory)
@@ -390,7 +394,8 @@ class iota2():
         if classif_mode == "fusion" and shapeRegion:
             s_container.append(step_classif_fusion, "classification")
             s_container.append(step_manage_fus_indecision, "classification")
-
+        if use_scikitlearn:
+            s_container.append(step_sk_classifications_merge, "classification")
         # mosaic step
         s_container.append(step_mosaic, "mosaic")
 

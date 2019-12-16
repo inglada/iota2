@@ -235,6 +235,7 @@ def process_function(otb_pipeline: otbApplication,
     if mask_arr is not None:
         start_x, size_x, start_y, size_y = mask_box
         mask_roi = mask_arr[start_y:start_y + size_y, start_x:start_x + size_x]
+        mask_roi = binarize(mask_roi)
         unique_mask_values = np.unique(mask_roi)
         if len(unique_mask_values) == 1 and unique_mask_values[0] == mask_value:
             roi_to_ignore = True
@@ -257,8 +258,6 @@ def process_function(otb_pipeline: otbApplication,
                      origin_y - yres / 2.0,
                      0,
                      yres]
-
-    
     if roi_to_ignore is False:
         output_arr = function(array)
         if roi_contains_mask_part:
@@ -392,3 +391,41 @@ def split_raster(otb_pipeline: otbApplication,
                                            "out": output_roi})
         independant_raster.append(roi)
     return independant_raster, projection.GetAttrValue("AUTHORITY", 1)
+
+
+def merge_rasters(rasters: List[str],
+                  output_path: str,
+                  epsg_code: int,
+                  working_dir: Optional[str] = None) -> Tuple[np.ndarray, Affine]:
+    """merge geo-referenced rasters thanks to rasterio.merge
+
+    Parameters
+    ----------
+    rasters : list
+        list of raster's path
+    output_path : str
+        output path
+    epsg_code : int
+        output epsg code projection
+    working_dir : str
+        working directory
+
+    Return
+    ------
+    tuple
+        merged array, rasterio output transform
+    """
+    rasters_datasets = [rasterio.open(raster) for raster in rasters]
+    out_arr, out_trans = merge(rasters_datasets)
+    if output_path:
+        with rasterio.open(output_path,
+                           "w",
+                           driver='GTiff',
+                           height=out_arr.shape[1],
+                           width=out_arr.shape[2],
+                           count=out_arr.shape[0],
+                           crs="EPSG:{}".format(epsg_code),
+                           transform=out_trans,
+                           dtype=out_arr.dtype) as dest:
+            dest.write(out_arr)
+    return out_arr, out_trans
