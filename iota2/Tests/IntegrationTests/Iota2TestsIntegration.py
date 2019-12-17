@@ -71,7 +71,9 @@ def shapeReferenceVector(refVector, outputName):
     path, name = os.path.split(refVector)
 
     tmp = path + "/" + outputName + "_TMP"
-    fu.cpShapeFile(refVector.replace(".shp", ""), tmp, [".prj", ".shp", ".dbf", ".shx"])
+    fu.cpShapeFile(
+        refVector.replace(".shp", ""), tmp, [".prj", ".shp", ".dbf", ".shx"]
+    )
     addField(tmp + ".shp", "region", "1", str)
     addField(tmp + ".shp", "seed_0", "learn", str)
     cmd = (
@@ -103,7 +105,12 @@ def prepare_test_selection(vector, raster_ref, outputSelection, wd, dataField):
     if os.path.exists(stats_path):
         os.remove(stats_path)
     stats = otb.CreatePolygonClassStatisticsApplication(
-        {"in": raster_ref, "vec": vector, "field": dataField, "out": stats_path}
+        {
+            "in": raster_ref,
+            "vec": vector,
+            "field": dataField,
+            "out": stats_path,
+        }
     )
     stats.ExecuteAndWriteOutput()
     sampleSel = otb.CreateSampleSelectionApplication(
@@ -255,7 +262,13 @@ def prepareAnnualFeatures(workingDirectory, referenceDirectory, pattern):
     shutil.copytree(referenceDirectory, workingDirectory)
     rastersPath = fu.FileSearch_AND(workingDirectory, True, pattern)
     for raster in rastersPath:
-        cmd = "otbcli_BandMathX -il " + raster + " -out " + raster + ' -exp "im1+im1"'
+        cmd = (
+            "otbcli_BandMathX -il "
+            + raster
+            + " -out "
+            + raster
+            + ' -exp "im1+im1"'
+        )
         run(cmd)
 
 
@@ -281,7 +294,10 @@ def compareSQLite(vect_1, vect_2, CmpMode="table", ignored_fields=[]):
         [dict] : values by fields
         """
         return OrderedDict(
-            [(currentField, feat.GetField(currentField)) for currentField in fields]
+            [
+                (currentField, feat.GetField(currentField))
+                for currentField in fields
+            ]
         )
 
     def priority(item):
@@ -365,10 +381,15 @@ class iota_testFeatures(unittest.TestCase):
         self.SARDirectory = self.largeScaleDir + "/SAR_directory"
 
         self.test_vector = iota2_dataTest + "/test_vector"
-        self.RefConfig = iota2dir + "/config/Config_4Tuiles_Multi_FUS_Confidence.cfg"
-        self.TestConfig = iota2_dataTest + "/test_vector/ConfigurationFile_Test.cfg"
+        self.RefConfig = (
+            iota2dir + "/config/Config_4Tuiles_Multi_FUS_Confidence.cfg"
+        )
+        self.TestConfig = (
+            iota2_dataTest + "/test_vector/ConfigurationFile_Test.cfg"
+        )
         self.referenceShape = (
-            iota2_dataTest + "/references/sampler/D0005H0002_polygons_To_Sample.shp"
+            iota2_dataTest
+            + "/references/sampler/D0005H0002_polygons_To_Sample.shp"
         )
 
         # self.S2_largeScale = "/work/OT/theia/oso/dataTest/test_LargeScale/S2"
@@ -378,7 +399,9 @@ class iota_testFeatures(unittest.TestCase):
         self.RefSARconfigTest = (
             iota2_dataTest + "/test_vector/ConfigurationFile_SAR_Test.cfg"
         )
-        self.SARfeaturesPath = self.test_vector + "/checkOnlySarFeatures_features_SAR"
+        self.SARfeaturesPath = (
+            self.test_vector + "/checkOnlySarFeatures_features_SAR"
+        )
 
         self.SARdata = self.SARDirectory + "/raw_data"
 
@@ -387,7 +410,9 @@ class iota_testFeatures(unittest.TestCase):
         self.tilesShape = self.SARDirectory + "/Features.shp"
         self.srtmShape = self.SARDirectory + "/srtm.shp"
 
-        self.vectorRef = iota2dir + "/data/references/sampler/SARfeaturesProdRef.sqlite"
+        self.vectorRef = (
+            iota2dir + "/data/references/sampler/SARfeaturesProdRef.sqlite"
+        )
 
         self.testPath = self.test_vector + "/checkOnlySarFeatures"
         self.featuresPath = self.test_vector + "/checkOnlySarFeatures_features"
@@ -458,18 +483,28 @@ class iota_testFeatures(unittest.TestCase):
         cfg_test.save(open(config_path_test, "w"))
         config_test = SCF.serviceConfigFile(config_path_test)
 
-        referenceShape_test = shapeReferenceVector(self.referenceShape, "T31TCJ")
+        referenceShape_test = shapeReferenceVector(
+            self.referenceShape, "T31TCJ"
+        )
         preprocess("T31TCJ", config_path_test)
         commonMasks("T31TCJ", config_path_test)
         selection_test = os.path.join(self.testPath, "T31TCJ.sqlite")
         featuresPath = os.path.join(self.testPath, "features")
         raster_ref = fu.FileSearch_AND(featuresPath, True, ".tif")[0]
         prepare_test_selection(
-            referenceShape_test, raster_ref, selection_test, self.testPath, "code"
+            referenceShape_test,
+            raster_ref,
+            selection_test,
+            self.testPath,
+            "code",
         )
 
         TileEnvelope.GenerateShapeTile(
-            ["T31TCJ"], featuresPath, self.testPath + "/envelope", None, config_test
+            ["T31TCJ"],
+            featuresPath,
+            self.testPath + "/envelope",
+            None,
+            config_test,
         )
         VectorSampler.generateSamples(
             {"usually": referenceShape_test},
@@ -482,7 +517,9 @@ class iota_testFeatures(unittest.TestCase):
             self.testPath + "/learningSamples", True, ".sqlite"
         )[0]
         delete_uselessFields(test_vector)
-        compare = compareSQLite(test_vector, self.vectorRef, CmpMode="coordinates")
+        compare = compareSQLite(
+            test_vector, self.vectorRef, CmpMode="coordinates"
+        )
         self.assertTrue(compare)
 
 

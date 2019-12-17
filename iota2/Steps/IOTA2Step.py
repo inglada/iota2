@@ -42,7 +42,9 @@ class StepContainer(object):
         """
         The __contains__ method is based on step's name
         """
-        return any([step.step_name == step_ask.step_name for step in self.container])
+        return any(
+            [step.step_name == step_ask.step_name for step in self.container]
+        )
 
     def __setitem__(self, index, val):
         self.container[index] = val
@@ -51,7 +53,9 @@ class StepContainer(object):
         return self.container[index]
 
     def __str__(self):
-        return "[{}]".format(", ".join(step.step_name for step in self.container))
+        return "[{}]".format(
+            ", ".join(step.step_name for step in self.container)
+        )
 
     def __len__(self):
         return len(self.container)
@@ -78,7 +82,9 @@ def return_decorator(validate_function, type_string="<class 'function'>"):
         if str(return_value_type) != str(accepted_return_type):
             raise Exception(
                 "function '{}' must return {} type instead of {}".format(
-                    validate_function.__name__, accepted_return_type, return_value_type
+                    validate_function.__name__,
+                    accepted_return_type,
+                    return_value_type,
                 )
             )
         return return_value
@@ -109,9 +115,13 @@ class Step(object):
         )
 
         # define log path
-        outputPath = SCF.serviceConfigFile(self.cfg).getParam("chain", "outputPath")
+        outputPath = SCF.serviceConfigFile(self.cfg).getParam(
+            "chain", "outputPath"
+        )
         log_dir = os.path.join(outputPath, "logs")
-        self.logFile = os.path.join(log_dir, "{}_log.log".format(self.step_name))
+        self.logFile = os.path.join(
+            log_dir, "{}_log.log".format(self.step_name)
+        )
 
         self.previous_step = None
         self.next_step = None
@@ -139,7 +149,9 @@ class Step(object):
         cfg_step_resources = getattr(cfg_resources, str(step_name), {})
         resource["cpu"] = getattr(cfg_step_resources, "nb_cpu", default_cpu)
         resource["ram"] = getattr(cfg_step_resources, "ram", default_ram)
-        resource["walltime"] = getattr(cfg_step_resources, "walltime", default_walltime)
+        resource["walltime"] = getattr(
+            cfg_step_resources, "walltime", default_walltime
+        )
         resource["process_min"] = getattr(
             cfg_step_resources, "process_min", default_process_min
         )

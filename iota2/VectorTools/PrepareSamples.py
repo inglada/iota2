@@ -46,7 +46,9 @@ def traitEchantillons(
 
     if csvfile != 1:
         # manage nomenclature (field CODE)
-        nh.harmonisationCodeIota(newshapefile, csvfile, delimiter, fieldin, fieldout)
+        nh.harmonisationCodeIota(
+            newshapefile, csvfile, delimiter, fieldin, fieldout
+        )
 
     # Refresh Id and Area fields, keep landcover field and delete other ones
     manageFieldShapefile(newshapefile, fieldout, areapix)
@@ -72,14 +74,18 @@ def traitEchantillons(
         print(e)
 
     # Duplicate geometries
-    DeleteDuplicateGeometriesSqlite.deleteDuplicateGeometriesSqlite(outShapefile)
+    DeleteDuplicateGeometriesSqlite.deleteDuplicateGeometriesSqlite(
+        outShapefile
+    )
 
     intermediate.append(outShapefile)
 
     # Apply erosion (negative buffer)
     if bufferdist is not None:
         outbuffer = (
-            os.path.splitext(outShapefile)[0] + "_buff{}".format(bufferdist) + ".shp"
+            os.path.splitext(outShapefile)[0]
+            + "_buff{}".format(bufferdist)
+            + ".shp"
         )
         # outbuffer = "/home/vthierion/tmp/test.shp"
         intermediate.append(outbuffer)
@@ -97,7 +103,11 @@ def traitEchantillons(
         outbuffer, areapix, pix_thresh, outfile
     )
 
-    print('Samples vector file "{}" for classification are now ready'.format(outfile))
+    print(
+        'Samples vector file "{}" for classification are now ready'.format(
+            outfile
+        )
+    )
 
     if tmp:
         driver = ogr.GetDriverByName("ESRI Shapefile")
@@ -240,7 +250,11 @@ if __name__ == "__main__":
         args = parser.parse_args()
 
         if args.recode:
-            if (args.csv is None) or (args.delimiter is None) or (args.ofield is None):
+            if (
+                (args.csv is None)
+                or (args.delimiter is None)
+                or (args.ofield is None)
+            ):
                 print(
                     "Please provide CSV recode rules (-csv), CSV delimiter (-d) and Field to populate (-of)"
                 )

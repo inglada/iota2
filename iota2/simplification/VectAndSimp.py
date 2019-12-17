@@ -72,7 +72,9 @@ def init_grass(path, grasslib, debuglvl):
         shutil.rmtree(os.path.join(gisdb, "demolocation"))
 
     # Create the location in Lambert 93
-    gscript.run_command("g.proj", flags="c", epsg="2154", location="demolocation")
+    gscript.run_command(
+        "g.proj", flags="c", epsg="2154", location="demolocation"
+    )
 
     # Create datas mapset
     if not os.path.exists(os.path.join(gisdb, "/demolocation/datas")):
@@ -86,7 +88,9 @@ def init_grass(path, grasslib, debuglvl):
                 dbase=gisdb,
             )
         except BaseException:
-            raise Exception("Folder '%s' does not own to current user") % (gisdb)
+            raise Exception("Folder '%s' does not own to current user") % (
+                gisdb
+            )
 
 
 def topologicalPolygonize(
@@ -107,7 +111,9 @@ def topologicalPolygonize(
 
     if not os.path.exists(out) and os.path.exists(raster):
         print("Polygonize of raster file %s" % (os.path.basename(raster)))
-        logger.info("Polygonize of raster file %s" % (os.path.basename(raster)))
+        logger.info(
+            "Polygonize of raster file %s" % (os.path.basename(raster))
+        )
         # local environnement
         localenv = os.path.join(
             path, "tmp%s" % (os.path.basename(os.path.splitext(raster)[0]))
@@ -129,7 +135,10 @@ def topologicalPolygonize(
             " ".join(
                 [
                     " : ".join(
-                        ["Classification raster import", str(timeimport - timeinit)]
+                        [
+                            "Classification raster import",
+                            str(timeimport - timeinit),
+                        ]
                     ),
                     "seconds",
                 ]
@@ -168,7 +177,10 @@ def topologicalPolygonize(
             " ".join(
                 [
                     " : ".join(
-                        ["Classification vectorization", str(timevect - timeimport)]
+                        [
+                            "Classification vectorization",
+                            str(timevect - timeimport),
+                        ]
                     ),
                     "seconds",
                 ]
@@ -176,13 +188,17 @@ def topologicalPolygonize(
         )
 
         # Export vector file
-        gscript.run_command("v.out.ogr", input="vectile", output=out, format=outformat)
+        gscript.run_command(
+            "v.out.ogr", input="vectile", output=out, format=outformat
+        )
 
         timeexp = time.time()
         logger.info(
             " ".join(
                 [
-                    " : ".join(["Vectorization exportation", str(timeexp - timevect)]),
+                    " : ".join(
+                        ["Vectorization exportation", str(timeexp - timevect)]
+                    ),
                     "seconds",
                 ]
             )
@@ -191,7 +207,9 @@ def topologicalPolygonize(
         shutil.rmtree(localenv)
 
     else:
-        logger.info("Output vector %s file already exists" % (os.path.basename(out)))
+        logger.info(
+            "Output vector %s file already exists" % (os.path.basename(out))
+        )
 
     return out
 
@@ -217,7 +235,8 @@ def generalizeVector(
 
     if not os.path.exists(out) and os.path.exists(vector):
         logger.info(
-            "Generalize (%s) of vector file %s" % (method, os.path.basename(vector))
+            "Generalize (%s) of vector file %s"
+            % (method, os.path.basename(vector))
         )
         # local environnement
         layer = os.path.basename(os.path.splitext(vector)[0])
@@ -293,7 +312,9 @@ def generalizeVector(
         checkGeom.checkGeometryAreaThreshField(out, 1, 0, tmp)
 
         for ext in [".shp", ".dbf", ".shx", ".prj"]:
-            shutil.copy(os.path.splitext(tmp)[0] + ext, os.path.splitext(out)[0] + ext)
+            shutil.copy(
+                os.path.splitext(tmp)[0] + ext, os.path.splitext(out)[0] + ext
+            )
 
         shutil.rmtree(localenv)
 
@@ -329,7 +350,9 @@ def clipVectorfile(
     checkGeom.checkGeometryAreaThreshField(vector, 1, 0, tmp)
 
     for ext in [".shp", ".dbf", ".shx", ".prj"]:
-        shutil.copy(os.path.splitext(tmp)[0] + ext, os.path.splitext(vector)[0] + ext)
+        shutil.copy(
+            os.path.splitext(tmp)[0] + ext, os.path.splitext(vector)[0] + ext
+        )
 
     if not os.path.exists(out):
         if clipfile is not None:
@@ -367,7 +390,9 @@ def clipVectorfile(
             if vf.getNbFeat(clipfile) != 1:
                 clip = os.path.join(localenv, "clip.shp")
                 layer = vf.getFirstLayer(clipfile)
-                fieldType = vf.getFieldType(os.path.join(localenv, clipfile), clipfield)
+                fieldType = vf.getFieldType(
+                    os.path.join(localenv, clipfile), clipfield
+                )
 
                 if fieldType == str:
                     command = (
@@ -376,12 +401,9 @@ def clipVectorfile(
                     )
                     Utils.run(command)
                 elif fieldType == int or fieldType == float:
-                    command = 'ogr2ogr -sql "SELECT * FROM %s WHERE %s = %s" %s %s' % (
-                        layer,
-                        clipfield,
-                        clipvalue,
-                        clip,
-                        clipfile,
+                    command = (
+                        'ogr2ogr -sql "SELECT * FROM %s WHERE %s = %s" %s %s'
+                        % (layer, clipfield, clipvalue, clip, clipfile)
                     )
 
                     Utils.run(command)
@@ -397,7 +419,11 @@ def clipVectorfile(
             # clip
             clipped = os.path.join(localenv, "clipped.shp")
 
-            command = "ogr2ogr -select cat -clipsrc %s %s %s" % (clip, clipped, vector)
+            command = "ogr2ogr -select cat -clipsrc %s %s %s" % (
+                clip,
+                clipped,
+                vector,
+            )
 
             Utils.run(command)
 
@@ -408,7 +434,9 @@ def clipVectorfile(
         logger.info(
             " ".join(
                 [
-                    " : ".join(["Clip final shapefile", str(timeclip - timeinit)]),
+                    " : ".join(
+                        ["Clip final shapefile", str(timeclip - timeinit)]
+                    ),
                     "seconds",
                 ]
             )
@@ -429,7 +457,10 @@ def clipVectorfile(
             " ".join(
                 [
                     " : ".join(
-                        ["Delete duplicated geometries", str(timedupli - timeclip)]
+                        [
+                            "Delete duplicated geometries",
+                            str(timedupli - timeclip),
+                        ]
                     ),
                     "seconds",
                 ]
@@ -444,7 +475,8 @@ def clipVectorfile(
 
         for ext in [".shp", ".shx", ".dbf", ".prj"]:
             shutil.copy(
-                os.path.join(localenv, "clean" + ext), os.path.splitext(out)[0] + ext
+                os.path.join(localenv, "clean" + ext),
+                os.path.splitext(out)[0] + ext,
             )
 
         shutil.rmtree(localenv)
@@ -510,7 +542,10 @@ def simplification(
         " ".join(
             [
                 " : ".join(
-                    ["Classification raster import", str(timeimport - timeinit)]
+                    [
+                        "Classification raster import",
+                        str(timeimport - timeinit),
+                    ]
                 ),
                 "seconds",
             ]
@@ -547,7 +582,10 @@ def simplification(
         " ".join(
             [
                 " : ".join(
-                    ["Classification vectorization", str(timevect - timeimport)]
+                    [
+                        "Classification vectorization",
+                        str(timevect - timeimport),
+                    ]
                 ),
                 "seconds",
             ]
@@ -571,7 +609,9 @@ def simplification(
         logger.info(
             " ".join(
                 [
-                    " : ".join(["Douglas simplification", str(timedouglas - timevect)]),
+                    " : ".join(
+                        ["Douglas simplification", str(timedouglas - timevect)]
+                    ),
                     "seconds",
                 ]
             )
@@ -594,7 +634,9 @@ def simplification(
         logger.info(
             " ".join(
                 [
-                    " : ".join(["Hermine smoothing", str(timehermine - timevect)]),
+                    " : ".join(
+                        ["Hermine smoothing", str(timehermine - timevect)]
+                    ),
                     "seconds",
                 ]
             )
@@ -603,7 +645,10 @@ def simplification(
 
     # Delete non OSO class polygons (sea water, nodata and crown entities)
     gscript.run_command(
-        "v.edit", map="%s@datas" % (inputv), tool="delete", where="cat > 250 or cat < 1"
+        "v.edit",
+        map="%s@datas" % (inputv),
+        tool="delete",
+        where="cat > 250 or cat < 1",
     )
 
     # Export shapefile vector file
@@ -630,7 +675,9 @@ def simplification(
     logger.info(
         " ".join(
             [
-                " : ".join(["Vectorization exportation", str(timeexp - timevect)]),
+                " : ".join(
+                    ["Vectorization exportation", str(timeexp - timevect)]
+                ),
                 "seconds",
             ]
         )
@@ -668,7 +715,11 @@ if __name__ == "__main__":
         )
 
         parser.add_argument(
-            "-wd", dest="path", action="store", help="Working directory", required=True
+            "-wd",
+            dest="path",
+            action="store",
+            help="Working directory",
+            required=True,
         )
 
         parser.add_argument(

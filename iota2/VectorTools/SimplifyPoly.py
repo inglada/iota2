@@ -26,7 +26,12 @@ def simplify(infile, outfile, tolerance):
             feat = lyr.GetFeature(i)
             lyr.DeleteFeature(i)
             geom = feat.GetGeometryRef()
-            if geom.Simplify(float(tolerance)).GetEnvelope() != (0.0, 0.0, 0.0, 0.0):
+            if geom.Simplify(float(tolerance)).GetEnvelope() != (
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+            ):
                 feat.SetGeometry(geom.Simplify(float(tolerance)))
                 lyr.CreateFeature(feat)
             else:

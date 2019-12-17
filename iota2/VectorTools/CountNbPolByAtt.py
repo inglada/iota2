@@ -68,7 +68,12 @@ def countByAtt(shpfile, field, storecsv="", val=None):
                 if storecsv == "" or storecsv is None:
                     print(
                         "Class # %s: %s features and a total area of %s (rate : %s)"
-                        % (str(cl), str(featureCount), str(area), str(round(partcl, 2)))
+                        % (
+                            str(cl),
+                            str(featureCount),
+                            str(area),
+                            str(round(partcl, 2)),
+                        )
                     )
                 stats.append([cl, featureCount, area, partcl])
             else:
@@ -90,7 +95,12 @@ def countByAtt(shpfile, field, storecsv="", val=None):
                 if storecsv == "" or storecsv is None:
                     print(
                         "Class # %s: %s features and a total area of %s (rate : %s)"
-                        % (str(cl), str(featureCount), str(area), str(round(partcl, 2)))
+                        % (
+                            str(cl),
+                            str(featureCount),
+                            str(area),
+                            str(round(partcl, 2)),
+                        )
                     )
                     stats.append([cl, featureCount, area, partcl])
             else:
@@ -134,7 +144,9 @@ if __name__ == "__main__":
             dest="field",
             required=True,
         )
-        parser.add_argument("-value", dest="value", help="value to field to search")
+        parser.add_argument(
+            "-value", dest="value", help="value to field to search"
+        )
         parser.add_argument(
             "-storecsv",
             dest="storecsv",

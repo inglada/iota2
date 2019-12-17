@@ -193,7 +193,10 @@ def regularisation(raster, threshold, nbcores, path, ram="128"):
         " ".join(
             [
                 " : ".join(
-                    ["Masks generation for adaptive rules", str(masktime - init_regul)]
+                    [
+                        "Masks generation for adaptive rules",
+                        str(masktime - init_regul),
+                    ]
                 ),
                 "seconds",
             ]
@@ -242,7 +245,10 @@ def regularisation(raster, threshold, nbcores, path, ram="128"):
         " ".join(
             [
                 " : ".join(
-                    ["Adaptative regularizations", str(adaptativetime - masktime)]
+                    [
+                        "Adaptative regularizations",
+                        str(adaptativetime - masktime),
+                    ]
                 ),
                 "seconds",
             ]
@@ -284,10 +290,9 @@ def regularisation(raster, threshold, nbcores, path, ram="128"):
         os.remove(filemask)
 
     command = "gdalwarp -q -multi -wo NUM_THREADS="
-    command += "%s -dstnodata 0 %s/mask_regul_adapt.tif %s/mask_nd_regul_adapt.tif" % (
-        nbcores,
-        path,
-        path,
+    command += (
+        "%s -dstnodata 0 %s/mask_regul_adapt.tif %s/mask_nd_regul_adapt.tif"
+        % (nbcores, path, path)
     )
     Utils.run(command)
     filetodelete.append("%s/mask_regul_adapt.tif" % (path))
@@ -351,24 +356,16 @@ def regularisation(raster, threshold, nbcores, path, ram="128"):
 def gdal_sieve(threshold, connexion, path, i):
 
     if connexion == 8:
-        command = "gdal_sieve.py -q -%s -st %s %s/mask_nd_%s.tif %s/mask_%s_8.tif" % (
-            connexion,
-            threshold,
-            path,
-            str(i + 1),
-            path,
-            str(i + 1),
+        command = (
+            "gdal_sieve.py -q -%s -st %s %s/mask_nd_%s.tif %s/mask_%s_8.tif"
+            % (connexion, threshold, path, str(i + 1), path, str(i + 1))
         )
         os.system(command)
 
     else:
-        command = "gdal_sieve.py -q -%s -st %s %s/mask_nd_%s_8.tif %s/mask_%s_4.tif" % (
-            connexion,
-            threshold,
-            path,
-            str(i + 1),
-            path,
-            str(i + 1),
+        command = (
+            "gdal_sieve.py -q -%s -st %s %s/mask_nd_%s_8.tif %s/mask_%s_4.tif"
+            % (connexion, threshold, path, str(i + 1), path, str(i + 1))
         )
         os.system(command)
 

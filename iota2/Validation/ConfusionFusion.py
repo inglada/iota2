@@ -48,9 +48,9 @@ def computeKappa(confMat):
 
     # Kappa.
     if float((nbrSample * nbrSample) - luckyRate) != 0:
-        kappa = float((overallAccuracy * nbrSample * nbrSample) - luckyRate) / float(
-            (nbrSample * nbrSample) - luckyRate
-        )
+        kappa = float(
+            (overallAccuracy * nbrSample * nbrSample) - luckyRate
+        ) / float((nbrSample * nbrSample) - luckyRate)
     else:
         kappa = 1000
 
@@ -98,7 +98,8 @@ def computeFsByClass(Pre, Rec, AllClass):
             Fs.append(
                 (
                     AllClass[i],
-                    float(2 * Rec[i][1] * Pre[i][1]) / float(Rec[i][1] + Pre[i][1]),
+                    float(2 * Rec[i][1] * Pre[i][1])
+                    / float(Rec[i][1] + Pre[i][1]),
                 )
             )
         else:
@@ -189,7 +190,9 @@ def writeResults(Fs, Rec, Pre, kappa, overallAccuracy, AllClass, pathOut):
     resFile.close()
 
 
-def replaceAnnualCropInConfMat(confMat, AllClass, annualCrop, labelReplacement):
+def replaceAnnualCropInConfMat(
+    confMat, AllClass, annualCrop, labelReplacement
+):
     """
         IN :
             confMat [np.array of np.array] : confusion matrix
@@ -335,7 +338,8 @@ def confusion_models_merge(csv_list, dataField):
         conf_mat_dic = parse_csv(csv)
         labels_ref = list(conf_mat_dic.keys())
         labels_prod = [
-            lab for lab in list(conf_mat_dic[list(conf_mat_dic.keys())[0]].keys())
+            lab
+            for lab in list(conf_mat_dic[list(conf_mat_dic.keys())[0]].keys())
         ]
         all_labels = labels_ref + labels_prod
         labels = labels + all_labels
@@ -355,18 +359,24 @@ def confFusion(shapeIn, dataField, csv_out, txt_out, csvPath, cfg):
         N = N - 1
     cropMix = cfg.getParam("argTrain", "cropMix")
     annualCrop = cfg.getParam("argTrain", "annualCrop")
-    labelReplacement, labelName = cfg.getParam("argTrain", "ACropLabelReplacement").data
+    labelReplacement, labelName = cfg.getParam(
+        "argTrain", "ACropLabelReplacement"
+    ).data
     enableCrossValidation = cfg.getParam("chain", "enableCrossValidation")
     labelReplacement = int(labelReplacement)
 
     for seed in range(N):
         # Recherche de toute les classes possible
         AllClass = []
-        AllClass = fu.getFieldElement(shapeIn, "ESRI Shapefile", dataField, "unique")
+        AllClass = fu.getFieldElement(
+            shapeIn, "ESRI Shapefile", dataField, "unique"
+        )
         AllClass = sorted(AllClass)
 
         # Initialisation de la matrice finale
-        AllConf = fu.FileSearch_AND(csvPath, True, "seed_" + str(seed) + ".csv")
+        AllConf = fu.FileSearch_AND(
+            csvPath, True, "seed_" + str(seed) + ".csv"
+        )
         csv = fu.confCoordinatesCSV(AllConf)
         csv_f = fu.sortByFirstElem(csv)
 
@@ -380,9 +390,17 @@ def confFusion(shapeIn, dataField, csv_out, txt_out, csvPath, cfg):
             confMat, AllClass = replaceAnnualCropInConfMat(
                 confMat, AllClass, annualCrop, labelReplacement
             )
-            writeCSV(confMat, AllClass, csv_out + "/Classif_Seed_" + str(seed) + ".csv")
+            writeCSV(
+                confMat,
+                AllClass,
+                csv_out + "/Classif_Seed_" + str(seed) + ".csv",
+            )
         else:
-            writeCSV(confMat, AllClass, csv_out + "/Classif_Seed_" + str(seed) + ".csv")
+            writeCSV(
+                confMat,
+                AllClass,
+                csv_out + "/Classif_Seed_" + str(seed) + ".csv",
+            )
 
         nbrGood = confMat.trace()
         nbrSample = confMat.sum()
@@ -425,10 +443,16 @@ if __name__ == "__main__":
         required=True,
     )
     parser.add_argument(
-        "-path.csv.out", help="csv out (mandatory)", dest="csv_out", required=True
+        "-path.csv.out",
+        help="csv out (mandatory)",
+        dest="csv_out",
+        required=True,
     )
     parser.add_argument(
-        "-path.txt.out", help="results out (mandatory)", dest="txt_out", required=True
+        "-path.txt.out",
+        help="results out (mandatory)",
+        dest="txt_out",
+        required=True,
     )
     parser.add_argument(
         "-path.csv",
@@ -448,5 +472,10 @@ if __name__ == "__main__":
     cfg = SCF.serviceConfigFile(args.pathConf)
 
     confFusion(
-        args.shapeIn, args.dataField, args.csv_out, args.txt_out, args.csvPath, cfg
+        args.shapeIn,
+        args.dataField,
+        args.csv_out,
+        args.txt_out,
+        args.csvPath,
+        cfg,
     )

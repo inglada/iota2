@@ -90,15 +90,17 @@ class iota2:
         """
 
         for step_place, step in enumerate(self.steps):
-            self.steps_group[step.step_group][step_place + 1] = step.step_description()
+            self.steps_group[step.step_group][
+                step_place + 1
+            ] = step.step_description()
 
-    def print_step_summarize(self, start, end, show_resources=False, checked="x"):
+    def print_step_summarize(
+        self, start, end, show_resources=False, checked="x"
+    ):
         """
         print iota2 steps that will be run
         """
-        summarize = (
-            "Full processing include the following steps (checked steps will be run):\n"
-        )
+        summarize = "Full processing include the following steps (checked steps will be run):\n"
         step_position = 0
         for group in list(self.steps_group.keys()):
             if len(self.steps_group[group]) > 0:
@@ -121,7 +123,9 @@ class iota2:
                         "resource_block_found"
                     ]
                     log_identifier = self.steps[step_position].step_name
-                    resource_miss = "" if resource_block_found else " -> MISSING"
+                    resource_miss = (
+                        "" if resource_block_found else " -> MISSING"
+                    )
                     summarize += "\n\t\t\tresources block name : {}{}\n\t\t\tcpu : {}\n\t\t\tram : {}\n\t\t\twalltime : {}\n\t\t\tlog identifier : {}".format(
                         resource_block_name,
                         resource_miss,
@@ -241,7 +245,9 @@ class iota2:
 
         # control variable
         Sentinel1 = SCF.serviceConfigFile(cfg).getParam("chain", "S1Path")
-        shapeRegion = SCF.serviceConfigFile(cfg).getParam("chain", "regionPath")
+        shapeRegion = SCF.serviceConfigFile(cfg).getParam(
+            "chain", "regionPath"
+        )
         classif_mode = SCF.serviceConfigFile(cfg).getParam(
             "argClassification", "classifMode"
         )
@@ -249,11 +255,15 @@ class iota2:
             "argTrain", "sampleManagement"
         )
         sample_augmentation = dict(
-            SCF.serviceConfigFile(cfg).getParam("argTrain", "sampleAugmentation")
+            SCF.serviceConfigFile(cfg).getParam(
+                "argTrain", "sampleAugmentation"
+            )
         )
         sample_augmentation_flag = sample_augmentation["activate"]
         dimred = SCF.serviceConfigFile(cfg).getParam("dimRed", "dimRed")
-        classifier = SCF.serviceConfigFile(cfg).getParam("argTrain", "classifier")
+        classifier = SCF.serviceConfigFile(cfg).getParam(
+            "argTrain", "classifier"
+        )
         ds_sar_opt = SCF.serviceConfigFile(cfg).getParam(
             "argTrain", "dempster_shafer_SAR_Opt_fusion"
         )
@@ -263,15 +273,25 @@ class iota2:
         merge_final_classifications = SCF.serviceConfigFile(cfg).getParam(
             "chain", "merge_final_classifications"
         )
-        ground_truth = SCF.serviceConfigFile(cfg).getParam("chain", "groundTruth")
+        ground_truth = SCF.serviceConfigFile(cfg).getParam(
+            "chain", "groundTruth"
+        )
         runs = SCF.serviceConfigFile(cfg).getParam("chain", "runs")
-        outStat = SCF.serviceConfigFile(cfg).getParam("chain", "outputStatistics")
+        outStat = SCF.serviceConfigFile(cfg).getParam(
+            "chain", "outputStatistics"
+        )
         VHR = SCF.serviceConfigFile(cfg).getParam("coregistration", "VHRPath")
-        gridsize = SCF.serviceConfigFile(cfg).getParam("Simplification", "gridsize")
+        gridsize = SCF.serviceConfigFile(cfg).getParam(
+            "Simplification", "gridsize"
+        )
         umc1 = SCF.serviceConfigFile(cfg).getParam("Simplification", "umc1")
         umc2 = SCF.serviceConfigFile(cfg).getParam("Simplification", "umc2")
-        rssize = SCF.serviceConfigFile(self.cfg).getParam("Simplification", "rssize")
-        inland = SCF.serviceConfigFile(self.cfg).getParam("Simplification", "inland")
+        rssize = SCF.serviceConfigFile(self.cfg).getParam(
+            "Simplification", "rssize"
+        )
+        inland = SCF.serviceConfigFile(self.cfg).getParam(
+            "Simplification", "inland"
+        )
         iota2_outputs_dir = SCF.serviceConfigFile(self.cfg).getParam(
             "chain", "outputPath"
         )
@@ -293,7 +313,9 @@ class iota2:
         step_pixVal = PixelValidity.PixelValidity(
             cfg, config_ressources, self.workingDirectory
         )
-        step_env = Envelope.Envelope(cfg, config_ressources, self.workingDirectory)
+        step_env = Envelope.Envelope(
+            cfg, config_ressources, self.workingDirectory
+        )
         step_reg_vector = genRegionVector.genRegionVector(
             cfg, config_ressources, self.workingDirectory
         )
@@ -357,7 +379,9 @@ class iota2:
         step_manage_fus_indecision = fusionsIndecisions.fusionsIndecisions(
             cfg, config_ressources, self.workingDirectory
         )
-        step_mosaic = mosaic.mosaic(cfg, config_ressources, self.workingDirectory)
+        step_mosaic = mosaic.mosaic(
+            cfg, config_ressources, self.workingDirectory
+        )
 
         step_confusions_cmd = confusionCmd.confusionCmd(
             cfg, config_ressources, self.workingDirectory
@@ -476,7 +500,10 @@ class iota2:
             # TODO : creer une variable adaptative / oso / regulier (avec
             # "connection" en paramètre supplémentaire)
             outregul = os.path.join(
-                iota2_outputs_dir, "final", "simplification", "classif_regul.tif"
+                iota2_outputs_dir,
+                "final",
+                "simplification",
+                "classif_regul.tif",
             )
 
             regulruns = 2 if umc2 else 1

@@ -39,22 +39,30 @@ class largeVectorization(IOTA2Step.Step):
         self.grasslib = SCF.serviceConfigFile(self.cfg).getParam(
             "Simplification", "grasslib"
         )
-        self.angle = SCF.serviceConfigFile(self.cfg).getParam("Simplification", "angle")
-        self.outmos = os.path.join(self.outputPath, "final", "simplification", "mosaic")
+        self.angle = SCF.serviceConfigFile(self.cfg).getParam(
+            "Simplification", "angle"
+        )
+        self.outmos = os.path.join(
+            self.outputPath, "final", "simplification", "mosaic"
+        )
         self.clipfile = SCF.serviceConfigFile(self.cfg).getParam(
             "Simplification", "clipfile"
         )
         self.clipfield = SCF.serviceConfigFile(self.cfg).getParam(
             "Simplification", "clipfield"
         )
-        self.grid = os.path.join(self.outputPath, "final", "simplification", "grid.shp")
+        self.grid = os.path.join(
+            self.outputPath, "final", "simplification", "grid.shp"
+        )
 
     def step_description(self):
         """
         function use to print a short description of the step's purpose
         """
 
-        description = "Vectorisation of classification (Serialisation strategy)"
+        description = (
+            "Vectorisation of classification (Serialisation strategy)"
+        )
         return description
 
     def step_inputs(self):
@@ -63,7 +71,9 @@ class largeVectorization(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
-        listfid = vf.getFIDSpatialFilter(self.clipfile, self.grid, self.clipfield)
+        listfid = vf.getFIDSpatialFilter(
+            self.clipfile, self.grid, self.clipfield
+        )
 
         return [
             [
@@ -84,7 +94,9 @@ class largeVectorization(IOTA2Step.Step):
 
         from simplification import VectAndSimp as vas
 
-        tmpdir = os.path.join(self.outputPath, "final", "simplification", "tmp")
+        tmpdir = os.path.join(
+            self.outputPath, "final", "simplification", "tmp"
+        )
         if self.workingDirectory:
             tmpdir = self.workingDirectory
 

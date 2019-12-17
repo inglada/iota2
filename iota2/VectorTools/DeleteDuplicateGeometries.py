@@ -64,12 +64,17 @@ if __name__ == "__main__":
             help="Input shapefile",
             required=True,
         )
-        parser.add_argument("-o", dest="outpath", action="store", help="output path")
+        parser.add_argument(
+            "-o", dest="outpath", action="store", help="output path"
+        )
         args = parser.parse_args()
         print("Delete duplicate geometries...")
         newshp = DeleteDupGeom(args.shapefile)
         basenewshp = os.path.splitext(newshp)
         if args.outpath:
             fileUtils.cpShapeFile(
-                basenewshp, args.outpath, [".prj", ".shp", ".dbf", ".shx"], True
+                basenewshp,
+                args.outpath,
+                [".prj", ".shp", ".dbf", ".shx"],
+                True,
             )

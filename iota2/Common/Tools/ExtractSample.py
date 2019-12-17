@@ -24,7 +24,9 @@ from osgeo import osr
 from Common import FileUtils as fu
 
 
-def extraction(shapeE, DriverE, field, field_val, nb_extrac, shapeS, fieldo, DriverS):
+def extraction(
+    shapeE, DriverE, field, field_val, nb_extrac, shapeS, fieldo, DriverS
+):
 
     driver = ogr.GetDriverByName(DriverE)
     dataSource = driver.Open(shapeE, 0)
@@ -77,7 +79,9 @@ def extraction(shapeE, DriverE, field, field_val, nb_extrac, shapeS, fieldo, Dri
             )
             sublistFid = random.sample(listFid, nbExtraction)
 
-        chunkSublistFID = fu.splitList(sublistFid, 1 + int(len(sublistFid) / 1000))
+        chunkSublistFID = fu.splitList(
+            sublistFid, 1 + int(len(sublistFid) / 1000)
+        )
         filterFID = []
         for chunk in chunkSublistFID:
             # Filter input shapefile
@@ -128,10 +132,18 @@ if __name__ == "__main__":
         required=True,
     )
     parser.add_argument(
-        "-in.extractDriver", dest="DriverE", help="driver", default=None, required=True
+        "-in.extractDriver",
+        dest="DriverE",
+        help="driver",
+        default=None,
+        required=True,
     )
     parser.add_argument(
-        "-in.field", dest="field", help="data's field", default=None, required=True
+        "-in.field",
+        dest="field",
+        help="data's field",
+        default=None,
+        required=True,
     )
     parser.add_argument(
         "-in.field.value",
@@ -166,7 +178,11 @@ if __name__ == "__main__":
         required=True,
     )
     parser.add_argument(
-        "-in.PopDriver", dest="DriverS", help="driver", default=None, required=True
+        "-in.PopDriver",
+        dest="DriverS",
+        help="driver",
+        default=None,
+        required=True,
     )
     args = parser.parse_args()
 

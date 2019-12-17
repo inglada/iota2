@@ -260,7 +260,9 @@ def computeStats(pathConf, wD=None):
             cleanSqliteDatabase(finalDataBasePath, "output2")
 
         # plot relation
-        plotsSeed = plotRelation(finalDataBasePath, dataField, seed, iota2Folder)
+        plotsSeed = plotRelation(
+            finalDataBasePath, dataField, seed, iota2Folder
+        )
         # Compute statistics
         print("Compute statistics")
         statsByClass = computeStatistics(finalDataBasePath, dataField)
@@ -271,7 +273,9 @@ def computeStats(pathConf, wD=None):
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description="from points vector, compute stats")
+    parser = argparse.ArgumentParser(
+        description="from points vector, compute stats"
+    )
     parser.add_argument(
         "-wd",
         dest="pathWd",

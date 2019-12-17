@@ -58,7 +58,9 @@ def FileByClass(vectorlayer, field, value, opath):
                     lyr.SetAttributeFilter(None)
                 else:
                     print(
-                        "the value {} does not exist, vector file not created".format(v)
+                        "the value {} does not exist, vector file not created".format(
+                            v
+                        )
                     )
         else:
             for v in values:
@@ -69,7 +71,9 @@ def FileByClass(vectorlayer, field, value, opath):
                     lyr.SetAttributeFilter(None)
                 else:
                     print(
-                        "the value {} does not exist, vector file not created".format(v)
+                        "the value {} does not exist, vector file not created".format(
+                            v
+                        )
                     )
     else:
         print("Field %s does not exist" % field)
@@ -97,7 +101,11 @@ if __name__ == "__main__":
             required=True,
         )
         parser.add_argument(
-            "-f", dest="field", action="store", help="Field to explore", required=True
+            "-f",
+            dest="field",
+            action="store",
+            help="Field to explore",
+            required=True,
         )
         parser.add_argument(
             "-v",

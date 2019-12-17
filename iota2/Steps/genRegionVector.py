@@ -46,7 +46,9 @@ class genRegionVector(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
-        shapeRegion = SCF.serviceConfigFile(self.cfg).getParam("chain", "regionPath")
+        shapeRegion = SCF.serviceConfigFile(self.cfg).getParam(
+            "chain", "regionPath"
+        )
         return [shapeRegion]
 
     def step_execute(self):
@@ -61,11 +63,18 @@ class genRegionVector(IOTA2Step.Step):
 
         pathEnvelope = os.path.join(self.outputPath, "envelope")
         model = SCF.serviceConfigFile(self.cfg).getParam("chain", "model")
-        field_Region = SCF.serviceConfigFile(self.cfg).getParam("chain", "regionField")
+        field_Region = SCF.serviceConfigFile(self.cfg).getParam(
+            "chain", "regionField"
+        )
 
         def step_function(x):
             return area.generateRegionShape(
-                pathEnvelope, model, x, field_Region, self.cfg, self.workingDirectory
+                pathEnvelope,
+                model,
+                x,
+                field_Region,
+                self.cfg,
+                self.workingDirectory,
             )
 
         return step_function

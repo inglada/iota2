@@ -16,7 +16,8 @@ def count(shp1, shp2):
     lyr2 = ds2.GetLayer()
     lyr_defn = lyr.GetLayerDefn()
     field_names = [
-        lyr_defn.GetFieldDefn(i).GetName() for i in range(lyr_defn.GetFieldCount())
+        lyr_defn.GetFieldDefn(i).GetName()
+        for i in range(lyr_defn.GetFieldCount())
     ]
     field = "Count"
     if field in field_names:

@@ -12,7 +12,8 @@ def addFieldID(filein):
     layer = source.GetLayer()
     layer_defn = layer.GetLayerDefn()
     field_names = [
-        layer_defn.GetFieldDefn(i).GetName() for i in range(layer_defn.GetFieldCount())
+        layer_defn.GetFieldDefn(i).GetName()
+        for i in range(layer_defn.GetFieldCount())
     ]
     if "ID" in field_names or "id" in field_names or "Id" in field_names:
         if "ID" in field_names:

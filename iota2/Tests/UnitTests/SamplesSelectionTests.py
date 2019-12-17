@@ -135,7 +135,9 @@ class iota_testSamplesSelection(unittest.TestCase):
             result = self.defaultTestResult()
             self._feedErrorsToResult(result, self._outcome.errors)
         else:
-            result = getattr(self, "_outcomeForDoCleanups", self._resultForDoCleanups)
+            result = getattr(
+                self, "_outcomeForDoCleanups", self._resultForDoCleanups
+            )
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
         ok = not error and not failure
@@ -239,7 +241,9 @@ class iota_testSamplesSelection(unittest.TestCase):
         write_xml(samples_per_class, samples_per_vector, xml_test_2)
 
         # launch function
-        test_merge = os.path.join(self.test_working_directory, "test_merge.xml")
+        test_merge = os.path.join(
+            self.test_working_directory, "test_merge.xml"
+        )
         merge_write_stats([xml_test_1, xml_test_2], test_merge)
 
         # assert
@@ -259,15 +263,21 @@ class iota_testSamplesSelection(unittest.TestCase):
         # prepare test input
         test_vector_name = "samples_region_1_seed_0.sqlite"
         test_vector_table = "t31tcj_samples_region_1_seed_0_selection"
-        test_vector = os.path.join(self.test_working_directory, test_vector_name)
+        test_vector = os.path.join(
+            self.test_working_directory, test_vector_name
+        )
         shutil.copy(self.selection_ref, test_vector)
 
         # update "nb_feat" features to a new "new_tile_name" tile's name
         nb_feat = 10
         new_tile_name = "T31TDJ"
-        random_update(test_vector, test_vector_table, "tile_o", new_tile_name, nb_feat)
+        random_update(
+            test_vector, test_vector_table, "tile_o", new_tile_name, nb_feat
+        )
         rename_table(
-            test_vector, old_table_name=test_vector_table, new_table_name="output"
+            test_vector,
+            old_table_name=test_vector_table,
+            new_table_name="output",
         )
         # launch function
         new_files = split_sel(
@@ -320,7 +330,9 @@ class iota_testSamplesSelection(unittest.TestCase):
         # prepare test input
         test_vector_name = "T31TCJ_samples_region_1_seed_1_selection.sqlite"
         test_vector_table = "t31tcj_samples_region_1_seed_0_selection"
-        test_vector = os.path.join(self.test_working_directory, test_vector_name)
+        test_vector = os.path.join(
+            self.test_working_directory, test_vector_name
+        )
         shutil.copy(self.selection_ref, test_vector)
 
         update_flags(test_vector, 2, table_name=test_vector_table)
@@ -337,11 +349,16 @@ class iota_testSamplesSelection(unittest.TestCase):
             )
         )
         features_test = fut.getFieldElement(
-            test_vector, driverName="SQLite", field="seed_0", mode="all", elemType="str"
+            test_vector,
+            driverName="SQLite",
+            field="seed_0",
+            mode="all",
+            elemType="str",
         )
         nb_features_test_updated = features_test.count(updated_flag)
         self.assertTrue(
-            nb_features_origin == nb_features_test_updated, msg="update features failed"
+            nb_features_origin == nb_features_test_updated,
+            msg="update features failed",
         )
 
     def test_samples_selection(self):
@@ -363,14 +380,19 @@ class iota_testSamplesSelection(unittest.TestCase):
         )
         cfg.setParam("chain", "runs", 2)
         cfg.setParam(
-            "argTrain", "sampleSelection", {"sampler": "random", "strategy": "all"}
+            "argTrain",
+            "sampleSelection",
+            {"sampler": "random", "strategy": "all"},
         )
         # create IOTA2 directories
         IOTA2Directory.GenerateDirectories(cfg)
         shutil.copytree(
             self.features_ref,
             os.path.join(
-                self.test_working_directory, "samplesSelTest", "features", "T31TCJ"
+                self.test_working_directory,
+                "samplesSelTest",
+                "features",
+                "T31TCJ",
             ),
         )
         shutil.copy(
@@ -401,5 +423,7 @@ class iota_testSamplesSelection(unittest.TestCase):
             True,
             os.path.basename(self.selection_ref),
         )[0]
-        same = compareSQLite(self.selection_ref, selection_test, CmpMode="coordinates")
+        same = compareSQLite(
+            self.selection_ref, selection_test, CmpMode="coordinates"
+        )
         self.assertTrue(same, msg="sample selection generation failed")

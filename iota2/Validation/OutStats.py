@@ -46,7 +46,12 @@ def getDiffHisto(confMin, confMax, confStep, confidence, difference):
 def genStatsDiff(pathToConfigstats, StatsName, histo, bins):
     stats = open(pathToConfigstats, "a")
     stats.write(
-        StatsName + ":\n{\n\thistogram:'" + histo + "'\n\tbins:'" + bins + "'\n}\n\n"
+        StatsName
+        + ":\n{\n\thistogram:'"
+        + histo
+        + "'\n\tbins:'"
+        + bins
+        + "'\n}\n\n"
     )
     stats.close()
 
@@ -87,7 +92,9 @@ def outStats(cfg, tile, sample, workingDirectory):
         sys.exit(1)
     srcband = src_ds.GetRasterBand(1).ReadAsArray()
     maxView = np.amax(srcband)
-    Cloud = raster2array(Testpath + "/final/TMP/" + tile + "_Cloud_StatsOK.tif")
+    Cloud = raster2array(
+        Testpath + "/final/TMP/" + tile + "_Cloud_StatsOK.tif"
+    )
     for seed in range(Nruns):
         Classif = raster2array(
             Testpath + "/final/TMP/" + tile + "_seed_" + str(seed) + ".tif"
@@ -101,11 +108,23 @@ def outStats(cfg, tile, sample, workingDirectory):
             + ".tif"
         )
         difference = raster2array(
-            Testpath + "/final/TMP/" + tile + "_seed_" + str(seed) + "_CompRef.tif"
+            Testpath
+            + "/final/TMP/"
+            + tile
+            + "_seed_"
+            + str(seed)
+            + "_CompRef.tif"
         )
-        diffHisto = getDiffHisto(confMin, confMax, confStep, confidence, difference)
+        diffHisto = getDiffHisto(
+            confMin, confMax, confStep, confidence, difference
+        )
         statsTile = (
-            Testpath + "/final/TMP/" + tile + "_stats_seed_" + str(seed) + ".cfg"
+            Testpath
+            + "/final/TMP/"
+            + tile
+            + "_stats_seed_"
+            + str(seed)
+            + ".cfg"
         )
         if os.path.exists(statsTile):
             os.remove(statsTile)
@@ -114,10 +133,13 @@ def outStats(cfg, tile, sample, workingDirectory):
         stats.close()
         for i in range(len(statsName)):
             hist, bin_edges = histo(
-                diffHisto[i + 1], bins=np.arange(confMin, confMax + 1, confStep)
+                diffHisto[i + 1],
+                bins=np.arange(confMin, confMax + 1, confStep),
             )
             hist_str = " ".join([str(currentVal) for currentVal in hist])
-            bin_edges_str = " ".join([str(currentVal) for currentVal in bin_edges])
+            bin_edges_str = " ".join(
+                [str(currentVal) for currentVal in bin_edges]
+            )
             genStatsDiff(statsTile, statsName[i], hist_str, bin_edges_str)
         histNView, binsNview = histo(Cloud, bins=np.arange(0, maxView + 1, 1))
         hist_str = " ".join([str(currentVal) for currentVal in histNView])
@@ -131,7 +153,10 @@ if __name__ == "__main__":
         description="This function allows you launch the chain according to a configuration file"
     )
     parser.add_argument(
-        "-conf", dest="config", help="path to configuration file", required=True
+        "-conf",
+        dest="config",
+        help="path to configuration file",
+        required=True,
     )
     parser.add_argument(
         "-tile", dest="tile", help="Tile to extract statistics", required=True

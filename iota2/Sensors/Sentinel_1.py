@@ -53,15 +53,23 @@ class Sentinel_1(Sensor):
         config_parser.read(self.s1_cfg)
         s1_output_processing = config_parser.get("Paths", "output")
         self.all_tiles = self.cfg_IOTA2.getParam("chain", "listTile")
-        self.output_processing = os.path.join(s1_output_processing, tile_name[1:])
-        self.features_dir = os.path.join(
-            self.cfg_IOTA2.getParam("chain", "outputPath"), "features", tile_name
+        self.output_processing = os.path.join(
+            s1_output_processing, tile_name[1:]
         )
-        self.use_gapfilling = self.cfg_IOTA2.getParam("GlobChain", "useGapFilling")
+        self.features_dir = os.path.join(
+            self.cfg_IOTA2.getParam("chain", "outputPath"),
+            "features",
+            tile_name,
+        )
+        self.use_gapfilling = self.cfg_IOTA2.getParam(
+            "GlobChain", "useGapFilling"
+        )
         # sensors attributes
         self.mask_pattern = "BorderMask.tif"
         # output's names
-        self.mask_orbit_pol_name = "{}_{}_MASK".format(self.__class__.name, tile_name)
+        self.mask_orbit_pol_name = "{}_{}_MASK".format(
+            self.__class__.name, tile_name
+        )
         self.gapFilling_orbit_pol_name = "{}_{}_TSG".format(
             self.__class__.name, tile_name
         )
@@ -112,7 +120,9 @@ class Sentinel_1(Sensor):
             ["im{}b1".format(i + 1) for i in range(len(s1_border_masks))]
         )
         expression = "{}=={}?0:1".format(sum_mask, len(s1_border_masks))
-        raster_footprint = os.path.join(self.features_dir, "tmp", self.footprint_name)
+        raster_footprint = os.path.join(
+            self.features_dir, "tmp", self.footprint_name
+        )
         footprint_app = CreateBandMathApplication(
             {
                 "il": s1_border_masks,
@@ -136,7 +146,9 @@ class Sentinel_1(Sensor):
             self.s1_cfg,
             self.tile_name,
             self.all_tiles.split(" "),
-            os.path.join(self.cfg_IOTA2.getParam("chain", "outputPath"), "features"),
+            os.path.join(
+                self.cfg_IOTA2.getParam("chain", "outputPath"), "features"
+            ),
             workingDirectory=None,
         )
         # to be clearer
@@ -146,7 +158,9 @@ class Sentinel_1(Sensor):
         for filtered, masks, interp_dates, in_dates in zip(
             allFiltered, allMasks, interpDateFiles, inputDateFiles
         ):
-            sar_mode = os.path.basename(filtered.GetParameterValue("outputstack"))
+            sar_mode = os.path.basename(
+                filtered.GetParameterValue("outputstack")
+            )
             sar_mode = "_".join(os.path.splitext(sar_mode)[0].split("_")[0:-1])
             polarisation = sar_mode.split("_")[1]
             orbit = sar_mode.split("_")[2]
@@ -178,7 +192,9 @@ class Sentinel_1(Sensor):
             self.s1_cfg,
             self.tile_name,
             self.all_tiles.split(" "),
-            os.path.join(self.cfg_IOTA2.getParam("chain", "outputPath"), "features"),
+            os.path.join(
+                self.cfg_IOTA2.getParam("chain", "outputPath"), "features"
+            ),
             workingDirectory=None,
         )
         # to be clearer
@@ -187,7 +203,9 @@ class Sentinel_1(Sensor):
         for filtered, masks, interp_dates, in_dates in zip(
             allFiltered, allMasks, interpDateFiles, inputDateFiles
         ):
-            sar_mode = os.path.basename(filtered.GetParameterValue("outputstack"))
+            sar_mode = os.path.basename(
+                filtered.GetParameterValue("outputstack")
+            )
             sar_mode = "_".join(os.path.splitext(sar_mode)[0].split("_")[0:-1])
             polarisation = sar_mode.split("_")[1]
             orbit = sar_mode.split("_")[2]
@@ -195,7 +213,9 @@ class Sentinel_1(Sensor):
                 self.mask_orbit_pol_name, orbit, polarisation
             )
 
-            mask_orbit_pol = os.path.join(self.features_dir, "tmp", mask_orbit_pol_name)
+            mask_orbit_pol = os.path.join(
+                self.features_dir, "tmp", mask_orbit_pol_name
+            )
             masks_app = CreateConcatenateImagesApplication(
                 {
                     "il": masks,
@@ -220,14 +240,18 @@ class Sentinel_1(Sensor):
         from Common.FileUtils import getNbDateInTile
         from Common.OtbAppBank import getSARstack
         from Common.OtbAppBank import CreateConcatenateImagesApplication
-        from Common.OtbAppBank import CreateImageTimeSeriesGapFillingApplication
+        from Common.OtbAppBank import (
+            CreateImageTimeSeriesGapFillingApplication,
+        )
         from Common.OtbAppBank import getInputParameterOutput
 
         (allFiltered, allMasks, interpDateFiles, inputDateFiles) = getSARstack(
             self.s1_cfg,
             self.tile_name,
             self.all_tiles.split(" "),
-            os.path.join(self.cfg_IOTA2.getParam("chain", "outputPath"), "features"),
+            os.path.join(
+                self.cfg_IOTA2.getParam("chain", "outputPath"), "features"
+            ),
             workingDirectory=None,
         )
         # to be clearer
@@ -239,13 +263,17 @@ class Sentinel_1(Sensor):
 
         interpolation_method = "linear"
         if config.has_option("Processing", "gapFilling_interpolation"):
-            interpolation_method = config.get("Processing", "gapFilling_interpolation")
+            interpolation_method = config.get(
+                "Processing", "gapFilling_interpolation"
+            )
         dependancies = []
 
         for filtered, masks, interp_dates, in_dates in zip(
             allFiltered, allMasks, interpDateFiles, inputDateFiles
         ):
-            sar_mode = os.path.basename(filtered.GetParameterValue("outputstack"))
+            sar_mode = os.path.basename(
+                filtered.GetParameterValue("outputstack")
+            )
             sar_mode = "_".join(os.path.splitext(sar_mode)[0].split("_")[0:-1])
             polarisation = sar_mode.split("_")[1]
             orbit = sar_mode.split("_")[2]
@@ -323,7 +351,10 @@ class Sentinel_1(Sensor):
         from Common.OtbAppBank import getInputParameterOutput
 
         if self.use_gapfilling:
-            (s1_data, dependancies), s1_labels = self.get_time_series_gapFilling(ram)
+            (
+                s1_data,
+                dependancies,
+            ), s1_labels = self.get_time_series_gapFilling(ram)
         else:
             (s1_data, dependancies), s1_labels = self.get_time_series(ram)
         config = configparser.ConfigParser()
@@ -382,7 +413,9 @@ class Sentinel_1(Sensor):
                 date_file = FileSearch_AND(
                     tar_dir,
                     True,
-                    "{}_{}_dates_input.txt".format(polarisation.lower(), orbit.upper()),
+                    "{}_{}_dates_input.txt".format(
+                        polarisation.lower(), orbit.upper()
+                    ),
                 )[0]
             sar_time_series[orbit.lower()][polarisation.lower()][
                 "availDates"

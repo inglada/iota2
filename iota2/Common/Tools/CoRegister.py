@@ -32,7 +32,9 @@ from Common import ServiceConfigFile as SCF
 logger = logging.getLogger("CoRegister.py")
 streamHandler = logging.StreamHandler()
 streamHandler.setLevel(logging.DEBUG)
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+formatter = logging.Formatter(
+    "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 streamHandler.setFormatter(formatter)
 
 logger.addHandler(streamHandler)
@@ -60,9 +62,9 @@ def get_S2_Tile_Coverage(file):
         for line in f:
             str += line
 
-    band_str = str.split('<Band_Viewing_Incidence_Angles_Grids_List band_id="B2">')[
-        -1
-    ].split("</Band_Viewing_Incidence_Angles_Grids_List>")[0]
+    band_str = str.split(
+        '<Band_Viewing_Incidence_Angles_Grids_List band_id="B2">'
+    )[-1].split("</Band_Viewing_Incidence_Angles_Grids_List>")[0]
     detector_list = []
     for detector in band_str.split("<Values_List>")[1:]:
         detector = detector.split("</Values_List>")[0]
@@ -114,7 +116,9 @@ def fitnessDateScore(dateVHR, datadir, datatype):
     datadir : string
         path to the data directory
     """
-    dateVHR = date(int(str(dateVHR)[:4]), int(str(dateVHR)[4:6]), int(str(dateVHR)[6:]))
+    dateVHR = date(
+        int(str(dateVHR)[:4]), int(str(dateVHR)[4:6]), int(str(dateVHR)[6:])
+    )
     fitDate = None
     resultlist = []
     max_pixel = None
@@ -125,7 +129,9 @@ def fitnessDateScore(dateVHR, datadir, datatype):
             year = int(inDate[:4])
             month = int(inDate[4:6])
             day = int(inDate[6:8])
-            delta = 1 - min(abs((date(year, month, day) - dateVHR).days) / 500, 1)
+            delta = 1 - min(
+                abs((date(year, month, day) - dateVHR).days) / 500, 1
+            )
             percent = get_L8_Tile_Cloud_Cover(file)
             fitScore = delta * percent
             if maxFitScore < fitScore or maxFitScore is None:
@@ -134,13 +140,17 @@ def fitnessDateScore(dateVHR, datadir, datatype):
 
     elif datatype in ["S2", "S2_S2C"]:
         maxFitScore = None
-        files = sorted(glob.glob(datadir + os.sep + "*" + os.sep + "*_MTD_ALL.xml"))
+        files = sorted(
+            glob.glob(datadir + os.sep + "*" + os.sep + "*_MTD_ALL.xml")
+        )
         for file in files:
             inDate = os.path.basename(file).split("_")[1].split("-")[0]
             year = int(inDate[:4])
             month = int(inDate[4:6])
             day = int(inDate[6:8])
-            delta = 1 - min(int(abs((date(year, month, day) - dateVHR).days) / 500), 1)
+            delta = 1 - min(
+                int(abs((date(year, month, day) - dateVHR).days) / 500), 1
+            )
             percent = get_S2_Tile_Cloud_Cover(file)
             cover = get_S2_Tile_Coverage(file)
             fitScore = delta * percent * cover
@@ -194,7 +204,9 @@ def launch_coregister(tile, cfg, workingDirectory, launch_mask=True):
         datatype = "S2"
         pattern = "*STACK.tif"
     ipathS2_S2C = cfg.getParam("chain", "S2_S2C_Path")
-    if ipathS2_S2C != "None" and os.path.exists(os.path.join(ipathS2_S2C, tile)):
+    if ipathS2_S2C != "None" and os.path.exists(
+        os.path.join(ipathS2_S2C, tile)
+    ):
         datadir = os.path.join(ipathS2_S2C, tile)
         datatype = "S2_S2C"
         pattern = "*STACK.tif"
@@ -224,7 +236,9 @@ def launch_coregister(tile, cfg, workingDirectory, launch_mask=True):
             )
         else:
             dateSrc = fitnessDateScore(dateVHR, datadir, datatype)
-    insrc = glob.glob(os.path.join(datadir, "*" + str(dateSrc) + "*", pattern))[0]
+    insrc = glob.glob(
+        os.path.join(datadir, "*" + str(dateSrc) + "*", pattern)
+    )[0]
     bandsrc = cfg.getParam("coregistration", "bandSrc")
     bandref = cfg.getParam("coregistration", "bandRef")
     resample = cfg.getParam("coregistration", "resample")
@@ -324,7 +338,9 @@ def coregister(
     """
     from Common.FileUtils import ensure_dir
 
-    pathWd = os.path.dirname(insrc) if not workingDirectory else workingDirectory
+    pathWd = (
+        os.path.dirname(insrc) if not workingDirectory else workingDirectory
+    )
     if os.path.exists(pathWd) == False:
         ensure_dir(pathWd)
 
@@ -390,7 +406,8 @@ def coregister(
 
         ext = os.path.splitext(insrc)[1]
         finalOutput = os.path.join(
-            pathWd, os.path.basename(insrc.replace(ext, ext.replace(".", "_COREG.")))
+            pathWd,
+            os.path.basename(insrc.replace(ext, ext.replace(".", "_COREG."))),
         )
         superImposeApp = OtbAppBank.CreateSuperimposeApplication(
             {
@@ -402,14 +419,22 @@ def coregister(
         )
         superImposeApp[0].ExecuteAndWriteOutput()
 
-        shutil.move(finalOutput, insrc.replace(ext, ext.replace(".", "_COREG.")))
         shutil.move(
-            finalOutput.replace(ext, ".geom"), insrc.replace(ext, "_COREG.geom")
+            finalOutput, insrc.replace(ext, ext.replace(".", "_COREG."))
+        )
+        shutil.move(
+            finalOutput.replace(ext, ".geom"),
+            insrc.replace(ext, "_COREG.geom"),
         )
 
         # Mask registration if exists
         masks = glob.glob(
-            os.path.dirname(insrc) + os.sep + "MASKS" + os.sep + "*BINARY_MASK" + ext
+            os.path.dirname(insrc)
+            + os.sep
+            + "MASKS"
+            + os.sep
+            + "*BINARY_MASK"
+            + ext
         )
         if len(masks) != 0:
             for mask in masks:
@@ -444,7 +469,9 @@ def coregister(
                 ext = os.path.splitext(insrc)[1]
                 finalMask = os.path.join(
                     pathWd,
-                    os.path.basename(mask.replace(ext, ext.replace(".", "_COREG."))),
+                    os.path.basename(
+                        mask.replace(ext, ext.replace(".", "_COREG."))
+                    ),
                 )
                 superImposeApp = OtbAppBank.CreateSuperimposeApplication(
                     {
@@ -458,7 +485,8 @@ def coregister(
 
                 if finalMask != mask.replace(ext, ext.replace(".", "_COREG.")):
                     shutil.move(
-                        finalMask, mask.replace(ext, ext.replace(".", "_COREG."))
+                        finalMask,
+                        mask.replace(ext, ext.replace(".", "_COREG.")),
                     )
                     shutil.move(
                         finalMask.replace(ext, ".geom"),
@@ -470,11 +498,14 @@ def coregister(
             vhr_ref = inref
             if datatype in ["S2", "S2_S2C"]:
                 dates = [
-                    os.path.basename(fld).split("_")[1].split("-")[0] for fld in folders
+                    os.path.basename(fld).split("_")[1].split("-")[0]
+                    for fld in folders
                 ]
                 ref_date = os.path.basename(insrc).split("_")[1].split("-")[0]
             elif datatype in ["L5", "L8"]:
-                dates = [os.path.basename(fld).split("_")[3] for fld in folders]
+                dates = [
+                    os.path.basename(fld).split("_")[3] for fld in folders
+                ]
                 ref_date = os.path.basename(insrc).split("_")[3]
             dates.sort()
             ref_date_ind = dates.index(ref_date)
@@ -484,7 +515,9 @@ def coregister(
                 inref = glob.glob(
                     os.path.join(datadir, "*" + clean_dates[-1] + "*", pattern)
                 )[0]
-                insrc = glob.glob(os.path.join(datadir, "*" + date + "*", pattern))[0]
+                insrc = glob.glob(
+                    os.path.join(datadir, "*" + date + "*", pattern)
+                )[0]
                 srcClip = os.path.join(pathWd, "srcClip.tif")
                 extractROIApp = OtbAppBank.CreateExtractROIApplication(
                     {
@@ -496,7 +529,9 @@ def coregister(
                     }
                 )
                 extractROIApp.ExecuteAndWriteOutput()
-                outSensorModel = os.path.join(pathWd, "SensorModel_%s.geom" % date)
+                outSensorModel = os.path.join(
+                    pathWd, "SensorModel_%s.geom" % date
+                )
                 try:
                     PMCMApp = OtbAppBank.CreatePointMatchCoregistrationModel(
                         {
@@ -525,7 +560,9 @@ def coregister(
                     continue
 
                 outSrc = os.path.join(pathWd, "temp_file.tif")
-                io_Src = str(srcClip + "?&skipcarto=true&geom=" + outSensorModel)
+                io_Src = str(
+                    srcClip + "?&skipcarto=true&geom=" + outSensorModel
+                )
                 ds = gdal.Open(srcClip)
                 prj = ds.GetProjection()
                 gt = ds.GetGeoTransform()
@@ -577,7 +614,9 @@ def coregister(
                 ext = os.path.splitext(insrc)[1]
                 finalOutput = os.path.join(
                     pathWd,
-                    os.path.basename(insrc.replace(ext, ext.replace(".", "_COREG."))),
+                    os.path.basename(
+                        insrc.replace(ext, ext.replace(".", "_COREG."))
+                    ),
                 )
                 superImposeApp = OtbAppBank.CreateSuperimposeApplication(
                     {
@@ -590,10 +629,12 @@ def coregister(
                 superImposeApp[0].ExecuteAndWriteOutput()
 
                 shutil.move(
-                    finalOutput, insrc.replace(ext, ext.replace(".", "_COREG."))
+                    finalOutput,
+                    insrc.replace(ext, ext.replace(".", "_COREG.")),
                 )
                 shutil.move(
-                    finalOutput.replace(ext, ".geom"), insrc.replace(ext, "_COREG.geom")
+                    finalOutput.replace(ext, ".geom"),
+                    insrc.replace(ext, "_COREG.geom"),
                 )
 
                 # Mask registration if exists
@@ -655,7 +696,8 @@ def coregister(
                         superImposeApp[0].ExecuteAndWriteOutput()
 
                         shutil.move(
-                            finalMask, mask.replace(ext, ext.replace(".", "_COREG."))
+                            finalMask,
+                            mask.replace(ext, ext.replace(".", "_COREG.")),
                         )
                         shutil.move(
                             finalMask.replace(ext, ".geom"),
@@ -686,7 +728,9 @@ def coregister(
                 inref = glob.glob(
                     os.path.join(datadir, "*" + clean_dates[-1] + "*", pattern)
                 )[0]
-                insrc = glob.glob(os.path.join(datadir, "*" + date + "*", pattern))[0]
+                insrc = glob.glob(
+                    os.path.join(datadir, "*" + date + "*", pattern)
+                )[0]
                 srcClip = os.path.join(pathWd, "srcClip.tif")
                 extractROIApp = OtbAppBank.CreateExtractROIApplication(
                     {
@@ -698,7 +742,9 @@ def coregister(
                     }
                 )
                 extractROIApp.ExecuteAndWriteOutput()
-                outSensorModel = os.path.join(pathWd, "SensorModel_%s.geom" % date)
+                outSensorModel = os.path.join(
+                    pathWd, "SensorModel_%s.geom" % date
+                )
                 try:
                     PMCMApp = OtbAppBank.CreatePointMatchCoregistrationModel(
                         {
@@ -727,7 +773,9 @@ def coregister(
                     continue
 
                 outSrc = os.path.join(pathWd, "temp_file.tif")
-                io_Src = str(srcClip + "?&skipcarto=true&geom=" + outSensorModel)
+                io_Src = str(
+                    srcClip + "?&skipcarto=true&geom=" + outSensorModel
+                )
                 ds = gdal.Open(srcClip)
                 prj = ds.GetProjection()
                 gt = ds.GetGeoTransform()
@@ -775,7 +823,9 @@ def coregister(
                 ext = os.path.splitext(insrc)[1]
                 finalOutput = os.path.join(
                     pathWd,
-                    os.path.basename(insrc.replace(ext, ext.replace(".", "_COREG."))),
+                    os.path.basename(
+                        insrc.replace(ext, ext.replace(".", "_COREG."))
+                    ),
                 )
                 superImposeApp = OtbAppBank.CreateSuperimposeApplication(
                     {
@@ -788,10 +838,12 @@ def coregister(
                 superImposeApp[0].ExecuteAndWriteOutput()
 
                 shutil.move(
-                    finalOutput, insrc.replace(ext, ext.replace(".", "_COREG."))
+                    finalOutput,
+                    insrc.replace(ext, ext.replace(".", "_COREG.")),
                 )
                 shutil.move(
-                    finalOutput.replace(ext, ".geom"), insrc.replace(ext, "_COREG.geom")
+                    finalOutput.replace(ext, ".geom"),
+                    insrc.replace(ext, "_COREG.geom"),
                 )
 
                 # Mask registration if exists
@@ -838,7 +890,9 @@ def coregister(
                         ext = os.path.splitext(insrc)[1]
                         finalMask = os.path.join(
                             pathWd,
-                            os.basename(mask.replace(ext, ext.replace(".", "_COREG."))),
+                            os.basename(
+                                mask.replace(ext, ext.replace(".", "_COREG."))
+                            ),
                         )
                         superImposeApp = OtbAppBank.CreateSuperimposeApplication(
                             {
@@ -851,7 +905,8 @@ def coregister(
                         superImposeApp[0].ExecuteAndWriteOutput()
 
                         shutil.move(
-                            finalMask, mask.replace(ext, ext.replace(".", "_COREG."))
+                            finalMask,
+                            mask.replace(ext, ext.replace(".", "_COREG.")),
                         )
                         shutil.move(
                             finalMask.replace(ext, ".geom"),
@@ -924,7 +979,9 @@ def coregister(
             ext = os.path.splitext(insrc)[1]
             finalOutput = os.path.join(
                 pathWd,
-                os.path.basename(insrc.replace(ext, ext.replace(".", "_COREG."))),
+                os.path.basename(
+                    insrc.replace(ext, ext.replace(".", "_COREG."))
+                ),
             )
             superImposeApp = OtbAppBank.CreateSuperimposeApplication(
                 {
@@ -936,9 +993,12 @@ def coregister(
             )
             superImposeApp[0].ExecuteAndWriteOutput()
 
-            shutil.move(finalOutput, insrc.replace(ext, ext.replace(".", "_COREG.")))
             shutil.move(
-                finalOutput.replace(ext, ".geom"), insrc.replace(ext, "_COREG.geom")
+                finalOutput, insrc.replace(ext, ext.replace(".", "_COREG."))
+            )
+            shutil.move(
+                finalOutput.replace(ext, ".geom"),
+                insrc.replace(ext, "_COREG.geom"),
             )
 
             # Mask registration if exists
@@ -964,7 +1024,9 @@ def coregister(
                     )
                     extractROIApp.ExecuteAndWriteOutput()
                     outSrc = os.path.join(pathWd, "temp_file.tif")
-                    io_Src = str(srcClip + "?&skipcarto=true&geom=" + SensorModel)
+                    io_Src = str(
+                        srcClip + "?&skipcarto=true&geom=" + SensorModel
+                    )
                     orthoRecApp = OtbAppBank.CreateOrthoRectification(
                         {
                             "in": io_Src,
@@ -998,7 +1060,8 @@ def coregister(
                     superImposeApp[0].ExecuteAndWriteOutput()
 
                     shutil.move(
-                        finalMask, mask.replace(ext, ext.replace(".", "_COREG."))
+                        finalMask,
+                        mask.replace(ext, ext.replace(".", "_COREG.")),
                     )
                     shutil.move(
                         finalMask.replace(ext, ".geom"),
@@ -1014,9 +1077,15 @@ def coregister(
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description="Computes a time series of features")
-    parser.add_argument("-insrc", dest="insrc", help="Source raster", required=True)
-    parser.add_argument("-inref", dest="inref", help="Reference raster", required=True)
+    parser = argparse.ArgumentParser(
+        description="Computes a time series of features"
+    )
+    parser.add_argument(
+        "-insrc", dest="insrc", help="Source raster", required=True
+    )
+    parser.add_argument(
+        "-inref", dest="inref", help="Reference raster", required=True
+    )
     parser.add_argument(
         "-band",
         dest="band",
@@ -1039,10 +1108,18 @@ if __name__ == "__main__":
         default=False,
         required=False,
     )
-    parser.add_argument("-step", dest="step", help="", default=256, required=False)
-    parser.add_argument("-minstep", dest="minstep", help="", default=16, required=False)
     parser.add_argument(
-        "-minsiftpoints", dest="minsiftpoints", help="", default=40, required=False
+        "-step", dest="step", help="", default=256, required=False
+    )
+    parser.add_argument(
+        "-minstep", dest="minstep", help="", default=16, required=False
+    )
+    parser.add_argument(
+        "-minsiftpoints",
+        dest="minsiftpoints",
+        help="",
+        default=40,
+        required=False,
     )
     parser.add_argument(
         "-iterate",
@@ -1052,7 +1129,9 @@ if __name__ == "__main__":
         default=True,
         required=False,
     )
-    parser.add_argument("-prec", dest="prec", help="", default=3, required=False)
+    parser.add_argument(
+        "-prec", dest="prec", help="", default=3, required=False
+    )
     parser.add_argument(
         "-mode",
         dest="mode",
@@ -1095,7 +1174,9 @@ if __name__ == "__main__":
                 "Valid data direction needed for time series registration (mode 2 and 3)"
             )
         if args.pattern is None:
-            sys.exit("A pattern is needed for time series registration (mode 2 and 3)")
+            sys.exit(
+                "A pattern is needed for time series registration (mode 2 and 3)"
+            )
 
     coregister(
         args.insrc,

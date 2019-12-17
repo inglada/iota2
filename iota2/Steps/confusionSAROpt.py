@@ -33,16 +33,16 @@ class confusionSAROpt(IOTA2Step.Step):
         self.output_path = SCF.serviceConfigFile(self.cfg).getParam(
             "chain", "outputPath"
         )
-        self.data_field = SCF.serviceConfigFile(self.cfg).getParam("chain", "dataField")
+        self.data_field = SCF.serviceConfigFile(self.cfg).getParam(
+            "chain", "dataField"
+        )
         self.sar_opt_conf_ram = 1024.0 * get_RAM(self.resources["ram"])
 
     def step_description(self):
         """
         function use to print a short description of the step's purpose
         """
-        description = (
-            "Evaluate SAR vs optical classification's performance by tiles and models"
-        )
+        description = "Evaluate SAR vs optical classification's performance by tiles and models"
         return description
 
     def step_inputs(self):
@@ -66,7 +66,9 @@ class confusionSAROpt(IOTA2Step.Step):
         from Validation import GenConfusionMatrix as GCM
 
         def step_function(x):
-            return GCM.confusion_sar_optical(x, self.data_field, self.sar_opt_conf_ram)
+            return GCM.confusion_sar_optical(
+                x, self.data_field, self.sar_opt_conf_ram
+            )
 
         return step_function
 

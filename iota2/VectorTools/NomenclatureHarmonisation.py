@@ -56,7 +56,11 @@ if __name__ == "__main__":
             required=True,
         )
         parser.add_argument(
-            "-d", dest="delimiter", action="store", help="CSV delimiter", required=True
+            "-d",
+            dest="delimiter",
+            action="store",
+            help="CSV delimiter",
+            required=True,
         )
         parser.add_argument(
             "-if",

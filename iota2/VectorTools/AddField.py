@@ -22,7 +22,8 @@ def addField(
     layer_name = layer.GetName()
     layer_defn = layer.GetLayerDefn()
     field_names = [
-        layer_defn.GetFieldDefn(i).GetName() for i in range(layer_defn.GetFieldCount())
+        layer_defn.GetFieldDefn(i).GetName()
+        for i in range(layer_defn.GetFieldCount())
     ]
     if not valueType:
         try:
@@ -74,7 +75,8 @@ if __name__ == "__main__":
     else:
         usage = "usage: %prog [options] "
         parser = argparse.ArgumentParser(
-            description="Create a field and" "populate it of an input shapefile"
+            description="Create a field and"
+            "populate it of an input shapefile"
         )
         parser.add_argument(
             "-s",
@@ -84,7 +86,11 @@ if __name__ == "__main__":
             required=True,
         )
         parser.add_argument(
-            "-f", dest="field", action="store", help="Field to add", required=True
+            "-f",
+            dest="field",
+            action="store",
+            help="Field to add",
+            required=True,
         )
         parser.add_argument(
             "-v",

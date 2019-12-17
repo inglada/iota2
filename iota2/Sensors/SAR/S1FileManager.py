@@ -88,11 +88,21 @@ class S1FileManager(object):
                 for currentTile in layer:
 
                     if currentTile.GetField("NAME") in tilesList:
-                        tileFootPrint = currentTile.GetGeometryRef().GetGeometryRef(0)
-                        latmin = np.min([p[1] for p in tileFootPrint.GetPoints()])
-                        latmax = np.max([p[1] for p in tileFootPrint.GetPoints()])
-                        lonmin = np.min([p[0] for p in tileFootPrint.GetPoints()])
-                        lonmax = np.max([p[0] for p in tileFootPrint.GetPoints()])
+                        tileFootPrint = currentTile.GetGeometryRef().GetGeometryRef(
+                            0
+                        )
+                        latmin = np.min(
+                            [p[1] for p in tileFootPrint.GetPoints()]
+                        )
+                        latmax = np.max(
+                            [p[1] for p in tileFootPrint.GetPoints()]
+                        )
+                        lonmin = np.min(
+                            [p[0] for p in tileFootPrint.GetPoints()]
+                        )
+                        lonmax = np.max(
+                            [p[0] for p in tileFootPrint.GetPoints()]
+                        )
                         command = (
                             "python "
                             + self.pepscommand
@@ -110,7 +120,9 @@ class S1FileManager(object):
                         print(command)
                         status = -1
                         while status != 0:
-                            pid = Popen(command, stdout=None, stderr=None, shell=True)
+                            pid = Popen(
+                                command, stdout=None, stderr=None, shell=True
+                            )
                             while pid.poll() is None:
                                 self.unzipImages()
                                 time.sleep(20)
@@ -148,7 +160,9 @@ class S1FileManager(object):
             if ".zip" in f:
                 print("unzipping " + f)
                 try:
-                    zip_ref = zipfile.ZipFile(self.raw_directory + "/" + f, "r")
+                    zip_ref = zipfile.ZipFile(
+                        self.raw_directory + "/" + f, "r"
+                    )
                     zip_ref.extractall(self.raw_directory)
                     zip_ref.close()
                 except zipfile.BadZipfile:
@@ -175,22 +189,34 @@ class S1FileManager(object):
             if os.path.isdir(safeDir) == True:
                 manifest = os.path.join(safeDir, self.manifest_pattern)
                 acquisition = S1_DateAcquisition(manifest, [])
-                vv = [f for f in glob.glob(os.path.join(safeDir, self.VV_pattern))]
+                vv = [
+                    f
+                    for f in glob.glob(os.path.join(safeDir, self.VV_pattern))
+                ]
                 for vvImage in vv:
                     if vvImage not in self.ProcessedFilenames:
                         acquisition.AddImage(vvImage)
                         self.NbImages += 1
-                vh = [f for f in glob.glob(os.path.join(safeDir, self.VH_pattern))]
+                vh = [
+                    f
+                    for f in glob.glob(os.path.join(safeDir, self.VH_pattern))
+                ]
                 for vhImage in vh:
                     if vhImage not in self.ProcessedFilenames:
                         acquisition.AddImage(vhImage)
                         self.NbImages += 1
-                hh = [f for f in glob.glob(os.path.join(safeDir, self.HH_pattern))]
+                hh = [
+                    f
+                    for f in glob.glob(os.path.join(safeDir, self.HH_pattern))
+                ]
                 for hhImage in hh:
                     if hhImage not in self.ProcessedFilenames:
                         acquisition.AddImage(hhImage)
                         self.NbImages += 1
-                hv = [f for f in glob.glob(os.path.join(safeDir, self.HV_pattern))]
+                hv = [
+                    f
+                    for f in glob.glob(os.path.join(safeDir, self.HV_pattern))
+                ]
                 for hvImage in hv:
                     if hvImage not in self.ProcessedFilenames:
                         acquisition.AddImage(hvImage)
@@ -290,7 +316,8 @@ class S1FileManager(object):
     def GetProcessedFilenames(self):
         try:
             with open(
-                os.path.join(self.outputPreProcess, "ProcessedFilenames.txt"), "r"
+                os.path.join(self.outputPreProcess, "ProcessedFilenames.txt"),
+                "r",
             ) as f:
                 # return f.read().splitlines()
                 return []

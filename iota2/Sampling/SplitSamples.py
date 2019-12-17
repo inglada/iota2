@@ -56,7 +56,9 @@ def get_regions_area(
         transform_dir = formatting_vectors_dir
         if workingDirectory:
             transform_dir = workingDirectory
-        transform_vector_name = os.path.split(vector)[-1].replace(".shp", ".sqlite")
+        transform_vector_name = os.path.split(vector)[-1].replace(
+            ".shp", ".sqlite"
+        )
         sqlite_vector = os.path.join(transform_dir, transform_vector_name)
         cmd = "ogr2ogr -f 'SQLite' {} {}".format(sqlite_vector, vector)
         run(cmd)
@@ -176,7 +178,11 @@ def split(regions_split, regions_tiles, dataField, regionField):
 
             # get possible class
             class_vector = fut.getFieldElement(
-                vec, driverName="SQLite", field=dataField, mode="unique", elemType="str"
+                vec,
+                driverName="SQLite",
+                field=dataField,
+                mode="unique",
+                elemType="str",
             )
             dic_class = {}
             # get FID values for all class of current region into the current
@@ -192,7 +198,9 @@ def split(regions_split, regions_tiles, dataField, regionField):
                     FID_folds = fut.splitList(FID_cl, fold)
                     # fill new_regions_dict
                     for i, fid_fold in enumerate(FID_folds):
-                        new_regions_dict["{}f{}".format(region, i + 1)] += fid_fold
+                        new_regions_dict[
+                            "{}f{}".format(region, i + 1)
+                        ] += fid_fold
                 nb_feat += len(FID_cl)
             update_vector(vec, regionField, new_regions_dict)
             if vec not in updated_vectors:
@@ -207,12 +215,16 @@ def transform_to_shape(sqlite_vectors, formatting_vectors_dir):
     out = []
     for sqlite_vector in sqlite_vectors:
         out_name = os.path.splitext(os.path.basename(sqlite_vector))[0]
-        out_path = os.path.join(formatting_vectors_dir, "{}.shp".format(out_name))
+        out_path = os.path.join(
+            formatting_vectors_dir, "{}.shp".format(out_name)
+        )
         if os.path.exists(out_path):
             fut.removeShape(
                 out_path.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"]
             )
-        cmd = "ogr2ogr -f 'ESRI Shapefile' {} {}".format(out_path, sqlite_vector)
+        cmd = "ogr2ogr -f 'ESRI Shapefile' {} {}".format(
+            out_path, sqlite_vector
+        )
         run(cmd)
         out.append(out_path)
     return out
@@ -296,7 +308,11 @@ def splitSamples(cfg, workingDirectory=None, logger=logger):
 
     # compute region's area
     areas, regions_tiles, data_to_rm = get_regions_area(
-        vectors, regions, formatting_vectors_dir, workingDirectory, region_field
+        vectors,
+        regions,
+        formatting_vectors_dir,
+        workingDirectory,
+        region_field,
     )
 
     # get how many sub-regions must be created by too huge regions.
@@ -305,10 +321,14 @@ def splitSamples(cfg, workingDirectory=None, logger=logger):
     for region_name, area in list(areas.items()):
         logger.info("region : {} , area : {}".format(region_name, area))
 
-    updated_vectors = split(regions_split, regions_tiles, dataField, region_field)
+    updated_vectors = split(
+        regions_split, regions_tiles, dataField, region_field
+    )
 
     # transform sqlites to shape file, according to input data format
-    new_regions_shapes = transform_to_shape(updated_vectors, formatting_vectors_dir)
+    new_regions_shapes = transform_to_shape(
+        updated_vectors, formatting_vectors_dir
+    )
     for data in data_to_rm:
         os.remove(data)
 

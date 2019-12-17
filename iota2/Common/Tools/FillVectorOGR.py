@@ -26,7 +26,9 @@ from osgeo import ogr
 from Common import FileUtils as fu
 
 
-def extraction(vectorFill, vectorSource, field, field_val, driversFill, driversSource):
+def extraction(
+    vectorFill, vectorSource, field, field_val, driversFill, driversSource
+):
 
     ogrDriversSource = ogr.GetDriverByName(driversSource)
     dataSourceSource = ogrDriversSource.Open(vectorSource, 0)
@@ -69,7 +71,9 @@ def extraction(vectorFill, vectorSource, field, field_val, driversFill, driversS
 # -where "fid in (2, 0)"
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description="all vector must have the same fields")
+    parser = argparse.ArgumentParser(
+        description="all vector must have the same fields"
+    )
     parser.add_argument(
         "-vectorToFill",
         dest="vectorFill",
@@ -86,7 +90,11 @@ if __name__ == "__main__":
         required=True,
     )
     parser.add_argument(
-        "-field", dest="field", help="data's field", default=None, required=True
+        "-field",
+        dest="field",
+        help="data's field",
+        default=None,
+        required=True,
     )
     parser.add_argument(
         "-field.value",

@@ -21,12 +21,17 @@ import sys
 # sphinx-apidoc -e -f -o source/ ../../../../../../home/uz/vincenta/IOTA2/scripts/ -> une page par fonction
 # make clean
 # make html
-sys.path.insert(0, os.path.abspath("../../../../../../../home/uz/vincenta/IOTA2/"))
+sys.path.insert(
+    0, os.path.abspath("../../../../../../../home/uz/vincenta/IOTA2/")
+)
 sys.path.insert(
     0, os.path.abspath("../../../../../../../home/uz/vincenta/IOTA2/scripts/")
 )
 sys.path.insert(
-    0, os.path.abspath("../../../../../../../home/uz/vincenta/IOTA2/scripts/Sampling")
+    0,
+    os.path.abspath(
+        "../../../../../../../home/uz/vincenta/IOTA2/scripts/Sampling"
+    ),
 )
 
 # -- Project information -----------------------------------------------------
@@ -144,7 +149,13 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, "IOTA2.tex", "iota2 Documentation", "iota2 dev team", "manual")
+    (
+        master_doc,
+        "IOTA2.tex",
+        "iota2 Documentation",
+        "iota2 dev team",
+        "manual",
+    )
 ]
 
 

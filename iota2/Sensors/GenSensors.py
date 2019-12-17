@@ -48,7 +48,12 @@ def CreateCommonZone_bindings(opath, borderMasks):
     exp = "*".join(["im" + str(i + 1) + "b1" for i in range(len(borderMasks))])
     outputRaster = opath + "/MaskCommunSL.tif"
     commonMask = OtbAppBank.CreateBandMathApplication(
-        {"il": borderMasks, "exp": exp, "pixType": "uint8", "out": outputRaster}
+        {
+            "il": borderMasks,
+            "exp": exp,
+            "pixType": "uint8",
+            "out": outputRaster,
+        }
     )
 
     if not os.path.exists(opath + "/MaskCommunSL.tif"):
@@ -135,7 +140,9 @@ class Sensor(object):
 
         outputDateFile = self.fdates
         if opath:
-            outputDateFile = os.path.join(opath, os.path.split(self.fdates)[-1])
+            outputDateFile = os.path.join(
+                opath, os.path.split(self.fdates)[-1]
+            )
 
         with open(outputDateFile, "w") as filedate:
             filedate.write("\n".join(dates))
@@ -147,7 +154,9 @@ class Sensor(object):
         count = 0
         imageList = []
         fList = []
-        glob_path = (self.path + self.struct_path + self.imType).replace("[", "[[]")
+        glob_path = (self.path + self.struct_path + self.imType).replace(
+            "[", "[[]"
+        )
         for image in glob.glob(glob_path):
             imagePath = image.split("/")
             imageName = imagePath[-1].split("_")
@@ -212,7 +221,9 @@ class Sensor(object):
         logger.debug(
             "Search path for masks: {}".format(self.pathmask + "/*" + self.div)
         )
-        liste_div = glob.glob((self.pathmask + "/*" + self.div).replace("[", "[[]"))
+        liste_div = glob.glob(
+            (self.pathmask + "/*" + self.div).replace("[", "[[]")
+        )
         liste = self.sortMask(liste_div)
         return liste
 
@@ -259,13 +270,20 @@ class Sensor(object):
             for i in range(len(mlist)):
                 expr += "+im" + str(i + 1) + "b1"
         else:
-            expr = "+".join(["(1-im" + str(i + 1) + "b1)" for i in range(len(mlist))])
+            expr = "+".join(
+                ["(1-im" + str(i + 1) + "b1)" for i in range(len(mlist))]
+            )
 
         listMask_s = indBinary
         if self.name == "Sentinel2":
             listMask_s = mlist
         maskSum = OtbAppBank.CreateBandMathApplication(
-            {"il": listMask_s, "exp": expr, "pixType": "uint8", "out": self.sumMask}
+            {
+                "il": listMask_s,
+                "exp": expr,
+                "pixType": "uint8",
+                "out": self.sumMask,
+            }
         )
 
         if wMode:
@@ -275,12 +293,19 @@ class Sensor(object):
 
         expr = "im1b1>=1?1:0"
         maskBin = OtbAppBank.CreateBandMathApplication(
-            {"il": maskSum, "exp": expr, "pixType": "uint8", "out": self.borderMaskN}
+            {
+                "il": maskSum,
+                "exp": expr,
+                "pixType": "uint8",
+                "out": self.borderMaskN,
+            }
         )
         self.borderMask = self.borderMaskN
         return maskBin, indBinary, maskSum
 
-    def createMaskSeries_bindings(self, opath, maskC, wMode=False, logger=logger):
+    def createMaskSeries_bindings(
+        self, opath, maskC, wMode=False, logger=logger
+    ):
         """
         Builds one multitemporal binary mask of SPOT images
 

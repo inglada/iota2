@@ -24,7 +24,9 @@ class clipVectors(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "clipvectors"
-        super(clipVectors, self).__init__(cfg, cfg_resources_file, resources_block_name)
+        super(clipVectors, self).__init__(
+            cfg, cfg_resources_file, resources_block_name
+        )
 
         # step variables
         self.RAM = 1024.0 * get_RAM(self.resources["ram"])
@@ -44,7 +46,9 @@ class clipVectors(IOTA2Step.Step):
         self.outprefix = SCF.serviceConfigFile(self.cfg).getParam(
             "Simplification", "outprefix"
         )
-        self.outmos = os.path.join(self.outputPath, "final", "simplification", "mosaic")
+        self.outmos = os.path.join(
+            self.outputPath, "final", "simplification", "mosaic"
+        )
         self.outfilevect = os.path.join(
             self.outputPath, "final", "simplification", "vectors"
         )
@@ -53,7 +57,9 @@ class clipVectors(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = "Clip vector files for each feature of clipfile parameters"
+        description = (
+            "Clip vector files for each feature of clipfile parameters"
+        )
         return description
 
     def step_inputs(self):
@@ -64,7 +70,9 @@ class clipVectors(IOTA2Step.Step):
         """
         from simplification import MergeTileRasters as mtr
 
-        return mtr.getListVectToClip(self.outmos, self.clipfield, self.outfilevect)
+        return mtr.getListVectToClip(
+            self.outmos, self.clipfield, self.outfilevect
+        )
 
     def step_execute(self):
         """
@@ -76,7 +84,9 @@ class clipVectors(IOTA2Step.Step):
         """
         from simplification import VectAndSimp as vas
 
-        tmpdir = os.path.join(self.outputPath, "final", "simplification", "tmp")
+        tmpdir = os.path.join(
+            self.outputPath, "final", "simplification", "tmp"
+        )
         if self.workingDirectory:
             tmpdir = self.workingDirectory
 

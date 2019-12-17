@@ -37,10 +37,18 @@ if __name__ == "__main__":
             required=True,
         )
         parser.add_argument(
-            "-f", dest="field", action="store", help="Area field", required=True
+            "-f",
+            dest="field",
+            action="store",
+            help="Area field",
+            required=True,
         )
         parser.add_argument(
-            "-size", dest="nbpix", action="store", help="Area threshold", required=True
+            "-size",
+            dest="nbpix",
+            action="store",
+            help="Area threshold",
+            required=True,
         )
         parser.add_argument(
             "-o",
@@ -50,4 +58,6 @@ if __name__ == "__main__":
             required=True,
         )
         args = parser.parse_args()
-        selectBySize(args.inshapefile, args.field, args.nbpix, args.outshapefile)
+        selectBySize(
+            args.inshapefile, args.field, args.nbpix, args.outshapefile
+        )

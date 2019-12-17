@@ -63,7 +63,11 @@ def getFidArea(shapefile, classf=""):
         try:
             fieldlist.index(classf)
         except BaseException:
-            print("The field {} does not exist in the input shapefile".format(classf))
+            print(
+                "The field {} does not exist in the input shapefile".format(
+                    classf
+                )
+            )
             print(
                 "You must choose one of these existing fields : {}".format(
                     " / ".join(fieldlist)
@@ -77,7 +81,9 @@ def getFidArea(shapefile, classf=""):
 
         if geom is not None:
             if classf != "" and classf is not None:
-                listid.append([feat.GetFID(), feat.GetField(classf), geom.GetArea()])
+                listid.append(
+                    [feat.GetFID(), feat.GetField(classf), geom.GetArea()]
+                )
             else:
                 # fake class to 1 if no field class provided
                 listid.append([feat.GetFID(), 1, geom.GetArea()])
@@ -115,7 +121,8 @@ def extractFeatureFromShape(shapefile, folds, classf="", outpath=""):
 
             outshape = os.path.join(
                 outpath,
-                os.path.splitext(os.path.basename(shapefile))[0] + "%s.shp" % (suffix),
+                os.path.splitext(os.path.basename(shapefile))[0]
+                + "%s.shp" % (suffix),
             )
 
             if len(fold) != 0:
@@ -125,7 +132,9 @@ def extractFeatureFromShape(shapefile, folds, classf="", outpath=""):
                 for chunk in sublistfid:
                     filterfid.append(
                         "("
-                        + ",".join([str(currentFID[0]) for currentFID in chunk])
+                        + ",".join(
+                            [str(currentFID[0]) for currentFID in chunk]
+                        )
                         + ")"
                     )
 
@@ -149,7 +158,9 @@ def extractFeatureFromShape(shapefile, folds, classf="", outpath=""):
                     )
 
     listfolds = set([x[0] for x in tomerge])
-    listfilesbyfold = [[x, [y[1] for y in tomerge if y[0] == x]] for x in listfolds]
+    listfilesbyfold = [
+        [x, [y[1] for y in tomerge if y[0] == x]] for x in listfolds
+    ]
     for listfiles in listfilesbyfold:
         finalfile = os.path.join(
             outpath,
@@ -176,7 +187,11 @@ if __name__ == "__main__":
             description="Split polygons of each class of a shapefile in n folds"
         )
         PARSER.add_argument(
-            "-shape", dest="shape", action="store", help="Shapefile", required=True
+            "-shape",
+            dest="shape",
+            action="store",
+            help="Shapefile",
+            required=True,
         )
         PARSER.add_argument(
             "-folds",
@@ -186,10 +201,17 @@ if __name__ == "__main__":
             help="folds number",
             required=True,
         )
-        PARSER.add_argument("-field", dest="field", action="store", help="class field")
         PARSER.add_argument(
-            "-outpath", dest="outpath", action="store", help="outpath to store subsets"
+            "-field", dest="field", action="store", help="class field"
+        )
+        PARSER.add_argument(
+            "-outpath",
+            dest="outpath",
+            action="store",
+            help="outpath to store subsets",
         )
 
         ARGS = PARSER.parse_args()
-        extractFeatureFromShape(ARGS.shape, ARGS.folds, ARGS.field, ARGS.outpath)
+        extractFeatureFromShape(
+            ARGS.shape, ARGS.folds, ARGS.field, ARGS.outpath
+        )

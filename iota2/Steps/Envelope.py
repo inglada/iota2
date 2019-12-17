@@ -23,7 +23,9 @@ class Envelope(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "envelope"
-        super(Envelope, self).__init__(cfg, cfg_resources_file, resources_block_name)
+        super(Envelope, self).__init__(
+            cfg, cfg_resources_file, resources_block_name
+        )
 
         # step variables
         self.workingDirectory = workingDirectory
@@ -57,7 +59,11 @@ class Envelope(IOTA2Step.Step):
         """
         from Sampling import TileEnvelope as env
 
-        tiles = SCF.serviceConfigFile(self.cfg).getParam("chain", "listTile").split(" ")
+        tiles = (
+            SCF.serviceConfigFile(self.cfg)
+            .getParam("chain", "listTile")
+            .split(" ")
+        )
         pathTilesFeat = os.path.join(self.outputPath, "features")
 
         def step_function(x):

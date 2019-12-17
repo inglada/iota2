@@ -58,11 +58,15 @@ class mosaicTilesVectorization(IOTA2Step.Step):
         self.outfilegrid = os.path.join(
             self.outputPath, "final", "simplification", "grid.shp"
         )
-        self.outmos = os.path.join(self.outputPath, "final", "simplification", "mosaic")
+        self.outmos = os.path.join(
+            self.outputPath, "final", "simplification", "mosaic"
+        )
         self.outfilevect = os.path.join(
             self.outputPath, "final", "simplification", "vectors"
         )
-        self.grid = os.path.join(self.outputPath, "final", "simplification", "grid.shp")
+        self.grid = os.path.join(
+            self.outputPath, "final", "simplification", "grid.shp"
+        )
 
         if self.workingDirectory is None:
             self.tmpdir = os.path.join(
@@ -112,7 +116,9 @@ class mosaicTilesVectorization(IOTA2Step.Step):
 
         from simplification import MergeTileRasters as mtr
 
-        self.tmpdir = os.path.join(self.outputPath, "final", "simplification", "tmp")
+        self.tmpdir = os.path.join(
+            self.outputPath, "final", "simplification", "tmp"
+        )
         if self.workingDirectory:
             self.tmpdir = self.workingDirectory
 

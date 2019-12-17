@@ -67,10 +67,18 @@ if __name__ == "__main__":
             required=True,
         )
         parser.add_argument(
-            "-fi", dest="fieldi", action="store", help="Field to rename", required=True
+            "-fi",
+            dest="fieldi",
+            action="store",
+            help="Field to rename",
+            required=True,
         )
         parser.add_argument(
-            "-fo", dest="fieldo", action="store", help="New field name", required=True
+            "-fo",
+            dest="fieldo",
+            action="store",
+            help="New field name",
+            required=True,
         )
         args = parser.parse_args()
         try:

@@ -102,7 +102,9 @@ def get_qsub_cmd(cfg, config_ressources=None, parallel_mode="MPI"):
     return qsub
 
 
-def launchChain(cfg, config_ressources=None, parallel_mode="MPI", only_summary=False):
+def launchChain(
+    cfg, config_ressources=None, parallel_mode="MPI", only_summary=False
+):
     """
     launch iota2 to HPC
     """
@@ -131,7 +133,10 @@ if __name__ == "__main__":
         description="This function allows you launch the chain according to a configuration file"
     )
     parser.add_argument(
-        "-config", dest="config", help="path to IOTA2 configuration file", required=True
+        "-config",
+        dest="config",
+        help="path to IOTA2 configuration file",
+        required=True,
     )
     parser.add_argument(
         "-config_ressources",
@@ -160,7 +165,9 @@ if __name__ == "__main__":
     cfg = SCF.serviceConfigFile(args.config)
 
     try:
-        launchChain(cfg, args.config_ressources, args.parallel_mode, args.launchChain)
+        launchChain(
+            cfg, args.config_ressources, args.parallel_mode, args.launchChain
+        )
     # Exception manage by the chain
     # We only print the error message
     except sErr.osoError as e:

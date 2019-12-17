@@ -41,7 +41,9 @@ def rename_field(field, pattern="", index=0):
         return pattern + "_" + str(index)
 
 
-def build_fields_to_select(base_fields, fieldsnames, dfield, renaming, renaming_index):
+def build_fields_to_select(
+    base_fields, fieldsnames, dfield, renaming, renaming_index
+):
     """ builds the association between the fields in the files and the new
     names for the joined file"""
     fields_as = [dfield + " AS " + dfield]
@@ -64,7 +66,8 @@ def build_fields_to_select(base_fields, fieldsnames, dfield, renaming, renaming_
             fn + " AS " + fn + "_" + str(renaming_index) for fn in fieldsnames
         ]
         final_fields = [
-            "datatojoin." + fn + "_" + str(renaming_index) for fn in fieldsnames
+            "datatojoin." + fn + "_" + str(renaming_index)
+            for fn in fieldsnames
         ]
     fields_as = ", ".join(fields_as)
     final_fields = base_fields + ", " + ", ".join(final_fields)
@@ -103,14 +106,20 @@ def join_sqlites(
         if os.path.exists(filesqlite):
             base_fields = [
                 "[%s]." % (tablebase) + d[0]
-                for d in cursor.execute("SELECT * FROM [%s]" % (tablebase)).description
+                for d in cursor.execute(
+                    "SELECT * FROM [%s]" % (tablebase)
+                ).description
             ]
             base_fields = ", ".join(base_fields)
             db_name = "db_" + str(fid)
             fields_as = "*"
             final_fields = "*"
             if fieldsnames is not None:
-                (fields_as, final_fields, renaming_index) = build_fields_to_select(
+                (
+                    fields_as,
+                    final_fields,
+                    renaming_index,
+                ) = build_fields_to_select(
                     base_fields, fieldsnames, dfield, renaming, renaming_index
                 )
             table = get_sqlite_table(filesqlite)
@@ -136,7 +145,9 @@ def join_sqlites(
             )
             cursor.execute(sqljoin)
             cursor.execute("DROP TABLE [%s];" % (tablebase))
-            cursor.execute("ALTER TABLE datajoin RENAME TO [%s];" % (tablebase))
+            cursor.execute(
+                "ALTER TABLE datajoin RENAME TO [%s];" % (tablebase)
+            )
             cursor.execute("DROP TABLE datatojoin;")
             cursor.execute("DETACH '%s';" % (db_name))
         else:
@@ -189,4 +200,6 @@ if __name__ == "__main__":
         )
         ARGS = PARSER.parse_args()
 
-        join_sqlites(ARGS.base, ARGS.sqlites, ARGS.ofield, ARGS.fieldsn, ARGS.dfield)
+        join_sqlites(
+            ARGS.base, ARGS.sqlites, ARGS.ofield, ARGS.fieldsn, ARGS.dfield
+        )

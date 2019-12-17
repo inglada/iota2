@@ -74,7 +74,10 @@ def FileSearch_AND(PathToFolder, AllPath, *names):
         for i in range(len(files)):
             flag = 0
             for name in names:
-                if files[i].count(name) != 0 and files[i].count(".aux.xml") == 0:
+                if (
+                    files[i].count(name) != 0
+                    and files[i].count(".aux.xml") == 0
+                ):
                     flag += 1
             if flag == len(names):
                 if not AllPath:
@@ -158,7 +161,9 @@ class Sentinel1_PreProcess(object):
             os.remove("S1ProcessorOut.log")
         except BaseException:
             pass
-        self.wMode = ast.literal_eval(config.get("Processing", "writeTemporaryFiles"))
+        self.wMode = ast.literal_eval(
+            config.get("Processing", "writeTemporaryFiles")
+        )
         self.wMask = ast.literal_eval(config.get("Processing", "getMasks"))
         self.raw_directory = config.get("Paths", "S1Images")
         self.VH_pattern = "measurement/*vh*-???.tiff"
@@ -171,9 +176,13 @@ class Sentinel1_PreProcess(object):
         self.gridSpacing = float(
             config.get("Processing", "Orthorectification_gridspacing")
         )
-        self.borderThreshold = float(config.get("Processing", "BorderThreshold"))
+        self.borderThreshold = float(
+            config.get("Processing", "BorderThreshold")
+        )
 
-        self.outSpacialRes = float(config.get("Processing", "OutputSpatialResolution"))
+        self.outSpacialRes = float(
+            config.get("Processing", "OutputSpatialResolution")
+        )
         self.RAMPerProcess = int(config.get("Processing", "RAMPerProcess"))
 
         self.tilesList = [
@@ -184,7 +193,9 @@ class Sentinel1_PreProcess(object):
             config.get("Processing", "ManyProjection")
         )
         if not self.ManyProjection:
-            self.referencesFolder = config.get("Processing", "ReferencesFolder")
+            self.referencesFolder = config.get(
+                "Processing", "ReferencesFolder"
+            )
             self.rasterPattern = config.get("Processing", "RasterPattern")
 
         self.stdoutfile = open("/dev/null", "w")
@@ -308,7 +319,9 @@ class Sentinel1_PreProcess(object):
         for i in range(len(rasterList)):
             raster, tileOrigin = rasterList[i]
             manifest = raster.getManifest()
-            calibrationApplication = rasterList[i][0].GetCalibrationApplication()
+            calibrationApplication = rasterList[i][
+                0
+            ].GetCalibrationApplication()
             for calib, dep in calibrationApplication:
                 image = calib.GetParameterValue("out")
                 currentDate = getDateFromS1Raster(image)
@@ -317,7 +330,9 @@ class Sentinel1_PreProcess(object):
                 currentOrbitDirection = getOrbitDirection(manifest)
                 outUTMZone = tileName[0:2]
                 outUTMNorthern = str(int(tileName[2] >= "N"))
-                workingDirectory = os.path.join(self.outputPreProcess, tileName)
+                workingDirectory = os.path.join(
+                    self.outputPreProcess, tileName
+                )
                 if not os.path.exists(workingDirectory):
                     os.makedirs(workingDirectory)
                 inEPSG = 4326
@@ -325,8 +340,12 @@ class Sentinel1_PreProcess(object):
                 if not outUTMNorthern == "0":
                     outEPSG = outEPSG + 100
                 if self.ManyProjection:
-                    [(x, y, dummy)] = converCoord([tileOrigin[0]], inEPSG, outEPSG)
-                    [(lrx, lry, dummy)] = converCoord([tileOrigin[2]], inEPSG, outEPSG)
+                    [(x, y, dummy)] = converCoord(
+                        [tileOrigin[0]], inEPSG, outEPSG
+                    )
+                    [(lrx, lry, dummy)] = converCoord(
+                        [tileOrigin[2]], inEPSG, outEPSG
+                    )
                     uniqueProj = None
                     refRaster = None
                 else:
@@ -439,7 +458,9 @@ class Sentinel1_PreProcess(object):
             ]
             names = sortByFirstElem(names)
             toConcat = [
-                rasterList for currentDate, rasterList in names if len(rasterList) > 2
+                rasterList
+                for currentDate, rasterList in names
+                if len(rasterList) > 2
             ]
 
             for dateToConcat in toConcat:
@@ -464,7 +485,9 @@ class Sentinel1_PreProcess(object):
                 os.path.split(mask.GetParameterValue("out"))[-1].split("?")[0]
                 for mask, dep in maskList
             ]
-            nameDate = [(name.split("_")[4].split("t")[0], name) for name in names]
+            nameDate = [
+                (name.split("_")[4].split("t")[0], name) for name in names
+            ]
             nameDate = sortByFirstElem(nameDate)
 
             for date, maskList in nameDate:
@@ -474,7 +497,10 @@ class Sentinel1_PreProcess(object):
             # check if all masks comes from the same satellite
             maskFilter = []
             for masksToConcat in concatenate:
-                sat = [CmasksToConcat.split("_")[0] for CmasksToConcat in masksToConcat]
+                sat = [
+                    CmasksToConcat.split("_")[0]
+                    for CmasksToConcat in masksToConcat
+                ]
                 if not sat.count(sat[0]) == len(sat):
                     continue
                 maskFilter.append(masksToConcat)
@@ -507,14 +533,18 @@ class Sentinel1_PreProcess(object):
             for pol in rasters:
                 name.append(pol.replace(".tif", ""))
                 for currentOrtho, _ in orthoList:
-                    outputParameter = OtbAppBank.getInputParameterOutput(currentOrtho)
+                    outputParameter = OtbAppBank.getInputParameterOutput(
+                        currentOrtho
+                    )
                     if pol in currentOrtho.GetParameterValue(outputParameter):
                         if self.wMode == False:
                             tmp.append((currentOrtho, _))
                         else:
                             tmp.append(
                                 currentOrtho.GetParameterValue(
-                                    OtbAppBank.getInputParameterOutput(currentOrtho)
+                                    OtbAppBank.getInputParameterOutput(
+                                        currentOrtho
+                                    )
                                 )
                             )
 
@@ -584,9 +614,9 @@ class Sentinel1_PreProcess(object):
             allMasks.append((concatAppliM, ""))
 
         for currentMask, _ in maskList:
-            currentName = os.path.split(currentMask.GetParameterValue("out"))[-1].split(
-                "?"
-            )[0]
+            currentName = os.path.split(currentMask.GetParameterValue("out"))[
+                -1
+            ].split("?")[0]
             if not currentName in [
                 currentRaster
                 for currentRasters in masksToConcat
@@ -615,7 +645,9 @@ def filterRasterByTile(rasterList, calibrations, dependence):
     for i in range(len(rasterList)):
         calibrate = []
         for currentRaster in rasterList[i][0].GetImageList():
-            calibrate.append(getCalibrateImage(currentRaster, calibrations, dependence))
+            calibrate.append(
+                getCalibrateImage(currentRaster, calibrations, dependence)
+            )
         rasterList[i][0].SetCalibrationApplication(calibrate)
 
 
@@ -683,11 +715,19 @@ def SAR_floatToInt(
     scale_max_val = (2 ** 16) - 1
     scale_min_val = 0
     threshold_expression = "{0}>{1}?{3}:{0}<{2}?{4}:{5}".format(
-        to_db_expression, db_max, db_min, scale_max_val, scale_min_val, scale_expression
+        to_db_expression,
+        db_max,
+        db_min,
+        scale_max_val,
+        scale_min_val,
+        scale_expression,
     )
 
     expression = ";".join(
-        [threshold_expression.replace("X", str(i + 1)) for i in range(nb_bands)]
+        [
+            threshold_expression.replace("X", str(i + 1))
+            for i in range(nb_bands)
+        ]
     )
 
     outputPath = filterApplication.GetParameterValue(
@@ -706,7 +746,9 @@ def SAR_floatToInt(
     return convert
 
 
-def writeOutputRaster(OTB_App, overwrite=True, workingDirectory=None, logger=logger):
+def writeOutputRaster(
+    OTB_App, overwrite=True, workingDirectory=None, logger=logger
+):
     """
     """
     import shutil
@@ -735,7 +777,9 @@ def writeOutputRaster(OTB_App, overwrite=True, workingDirectory=None, logger=log
                 out_raster.replace(".tif", ".geom").split("?")[0],
             )
     if not launch_write:
-        logger.info("{} already exists and will not be overwrited".format(out_raster))
+        logger.info(
+            "{} already exists and will not be overwrited".format(out_raster)
+        )
 
     OTB_App = None
     return out_raster
@@ -815,7 +859,9 @@ def LaunchSARreprojection(
                 )
         if not launch_write:
             logger.info(
-                "{} already exists and will not be overwrited".format(out_raster)
+                "{} already exists and will not be overwrited".format(
+                    out_raster
+                )
             )
 
         OTB_App = None
@@ -849,7 +895,11 @@ def LaunchSARreprojection(
         all_dep.append(calib_vv)
         all_dep.append(calib_vh)
         orthoImageName_vv = "{}_{}_{}_{}_{}".format(
-            currentPlatform, tileName, "vv", currentOrbitDirection, acquisition_date
+            currentPlatform,
+            tileName,
+            "vv",
+            currentOrbitDirection,
+            acquisition_date,
         )
 
         super_vv, super_vv_dep = OtbAppBank.CreateSuperimposeApplication(
@@ -864,7 +914,11 @@ def LaunchSARreprojection(
             }
         )
         orthoImageName_vh = "{}_{}_{}_{}_{}".format(
-            currentPlatform, tileName, "vh", currentOrbitDirection, acquisition_date
+            currentPlatform,
+            tileName,
+            "vh",
+            currentOrbitDirection,
+            acquisition_date,
         )
 
         super_vh, super_vh_dep = OtbAppBank.CreateSuperimposeApplication(
@@ -891,7 +945,9 @@ def LaunchSARreprojection(
     all_acquisition_date_vv = "_".join(sorted(all_acquisition_date_vv))
     all_acquisition_date_vh = "_".join(sorted(all_acquisition_date_vh))
     # Concatenate thanks to a BandMath
-    vv_exp = ",".join(["im{}b1".format(i + 1) for i in range(len(all_superI_vv))])
+    vv_exp = ",".join(
+        ["im{}b1".format(i + 1) for i in range(len(all_superI_vv))]
+    )
     vv_exp = "max({})".format(vv_exp)
     SAR_vv = os.path.join(output_directory, all_acquisition_date_vv + ".tif")
     concatAppli_vv = OtbAppBank.CreateBandMathApplication(
@@ -903,7 +959,9 @@ def LaunchSARreprojection(
             "pixType": "float",
         }
     )
-    vh_exp = ",".join(["im{}b1".format(i + 1) for i in range(len(all_superI_vh))])
+    vh_exp = ",".join(
+        ["im{}b1".format(i + 1) for i in range(len(all_superI_vh))]
+    )
     vh_exp = "max({})".format(vh_exp)
     SAR_vh = os.path.join(output_directory, all_acquisition_date_vh + ".tif")
     concatAppli_vh = OtbAppBank.CreateBandMathApplication(
@@ -917,16 +975,24 @@ def LaunchSARreprojection(
     )
 
     ortho_path = writeOutputRaster_2(
-        concatAppli_vv, overwrite=False, workingDirectory=workingDirectory, dep=all_dep
+        concatAppli_vv,
+        overwrite=False,
+        workingDirectory=workingDirectory,
+        dep=all_dep,
     )
     ortho_path = writeOutputRaster_2(
-        concatAppli_vh, overwrite=False, workingDirectory=workingDirectory, dep=all_dep
+        concatAppli_vh,
+        overwrite=False,
+        workingDirectory=workingDirectory,
+        dep=all_dep,
     )
 
     # from the results generate a mask
     super_vv = os.path.join(output_directory, all_acquisition_date_vv + ".tif")
     border_mask = super_vv.replace(".tif", "_BorderMask.tif")
-    mask_app, _ = generateBorderMask(super_vv, border_mask, RAMPerProcess=RAMPerProcess)
+    mask_app, _ = generateBorderMask(
+        super_vv, border_mask, RAMPerProcess=RAMPerProcess
+    )
     mask_path = writeOutputRaster(
         mask_app, overwrite=False, workingDirectory=workingDirectory
     )
@@ -950,7 +1016,9 @@ def concatenateDates(rasterList):
         acquisition_date = SAR_name.split("-")[date_position].split("t")[0]
         date_SAR.append((acquisition_date, raster))
     date_SAR = fut.sortByFirstElem(date_SAR)
-    return [tuple(listOfConcatenation) for date, listOfConcatenation in date_SAR]
+    return [
+        tuple(listOfConcatenation) for date, listOfConcatenation in date_SAR
+    ]
 
 
 def splitByMode(rasterList):
@@ -1076,12 +1144,17 @@ def S1PreProcess(cfg, process_tile, workingDirectory=None, getFiltered=False):
         sys.exit(1)
 
     if not os.path.exists(S1chain.geoid):
-        print("Geoid file does not exists (" + S1chain.geoid + "), exiting ...")
+        print(
+            "Geoid file does not exists (" + S1chain.geoid + "), exiting ..."
+        )
         sys.exit(1)
 
     tilesSet = list(tilesToProcessChecked)
     rasterList = [
-        elem for elem, coordinates in S1FileManager.getS1IntersectByTile(tilesSet[0])
+        elem
+        for elem, coordinates in S1FileManager.getS1IntersectByTile(
+            tilesSet[0]
+        )
     ]
 
     comp_per_date = 2  # VV / VH
@@ -1222,7 +1295,9 @@ def S1PreProcess(cfg, process_tile, workingDirectory=None, getFiltered=False):
         if convert_to_interger:
             S1_filtered.Execute()
             convert = SAR_floatToInt(
-                S1_filtered, comp_per_date * len(date_tile[mode]), RAMPerProcess
+                S1_filtered,
+                comp_per_date * len(date_tile[mode]),
+                RAMPerProcess,
             )
             allFiltered.append(convert)
         else:

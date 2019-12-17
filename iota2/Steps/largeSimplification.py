@@ -41,14 +41,18 @@ class largeSimplification(IOTA2Step.Step):
         self.douglas = SCF.serviceConfigFile(self.cfg).getParam(
             "Simplification", "douglas"
         )
-        self.outmos = os.path.join(self.outputPath, "final", "simplification", "mosaic")
+        self.outmos = os.path.join(
+            self.outputPath, "final", "simplification", "mosaic"
+        )
         self.clipfile = SCF.serviceConfigFile(self.cfg).getParam(
             "Simplification", "clipfile"
         )
         self.clipfield = SCF.serviceConfigFile(self.cfg).getParam(
             "Simplification", "clipfield"
         )
-        self.grid = os.path.join(self.outputPath, "final", "simplification", "grid.shp")
+        self.grid = os.path.join(
+            self.outputPath, "final", "simplification", "grid.shp"
+        )
 
     def step_description(self):
         """
@@ -63,7 +67,9 @@ class largeSimplification(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
-        listfid = vf.getFIDSpatialFilter(self.clipfile, self.grid, self.clipfield)
+        listfid = vf.getFIDSpatialFilter(
+            self.clipfile, self.grid, self.clipfield
+        )
 
         return [
             [
@@ -83,7 +89,9 @@ class largeSimplification(IOTA2Step.Step):
         """
         from simplification import VectAndSimp as vas
 
-        tmpdir = os.path.join(self.outputPath, "final", "simplification", "tmp")
+        tmpdir = os.path.join(
+            self.outputPath, "final", "simplification", "tmp"
+        )
         if self.workingDirectory:
             tmpdir = self.workingDirectory
 

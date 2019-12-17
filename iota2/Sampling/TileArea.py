@@ -95,7 +95,9 @@ def CreateModelShapeFromTiles(
     for i in range(len(tilesModel)):
         for j in range(len(tilesModel[i])):
             to_remove.append(
-                fu.renameShapefile(pathTiles, tilesModel[i][j], "", "", pathToTMP)
+                fu.renameShapefile(
+                    pathTiles, tilesModel[i][j], "", "", pathToTMP
+                )
             )
 
     AllTilePath = []
@@ -104,10 +106,14 @@ def CreateModelShapeFromTiles(
     for i in range(len(tilesModel)):
         for j in range(len(tilesModel[i])):
             try:
-                ind = AllTilePath.index(pathTiles + "/" + tilesModel[i][j] + ".shp")
+                ind = AllTilePath.index(
+                    pathTiles + "/" + tilesModel[i][j] + ".shp"
+                )
             except ValueError:
                 AllTilePath.append(pathToTMP + "/" + tilesModel[i][j] + ".shp")
-                AllTilePath_ER.append(pathToTMP + "/" + tilesModel[i][j] + "_ERODE.shp")
+                AllTilePath_ER.append(
+                    pathToTMP + "/" + tilesModel[i][j] + "_ERODE.shp"
+                )
 
     for i in range(len(tilesModel)):
         for j in range(len(tilesModel[i])):
@@ -122,7 +128,9 @@ def CreateModelShapeFromTiles(
         run("rm -r " + pathToTMP)
     else:
         for rm in to_remove:
-            fu.removeShape(rm.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"])
+            fu.removeShape(
+                rm.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"]
+            )
 
 
 def generateRegionShape(
@@ -165,7 +173,9 @@ def generateRegionShape(
     region.append(AllTiles)
 
     if not pathOut:
-        pathOut = os.path.join(cfg.getParam("chain", "outputPath"), "MyRegion.shp")
+        pathOut = os.path.join(
+            cfg.getParam("chain", "outputPath"), "MyRegion.shp"
+        )
 
     p_f = pathOut.replace(" ", "").split("/")
     outName = p_f[-1].split(".")[0]
@@ -185,7 +195,10 @@ if __name__ == "__main__":
         description="This function allow you to create a shape by tile for a given area and a given region"
     )
     parser.add_argument(
-        "-fieldOut", dest="fieldOut", help="field out (mandatory)", required=True
+        "-fieldOut",
+        dest="fieldOut",
+        help="field out (mandatory)",
+        required=True,
     )
     parser.add_argument(
         "-pathTiles",
@@ -227,5 +240,10 @@ if __name__ == "__main__":
     cfg = SCF.serviceConfigFile(args.pathConf)
 
     generateRegionShape(
-        args.pathTiles, args.pathToModel, args.pathOut, args.fieldOut, cfg, args.pathWd
+        args.pathTiles,
+        args.pathToModel,
+        args.pathOut,
+        args.fieldOut,
+        cfg,
+        args.pathWd,
     )

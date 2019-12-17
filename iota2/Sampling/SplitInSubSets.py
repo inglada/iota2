@@ -61,7 +61,9 @@ def get_randomPoly(
         for cl in classes:
             listid = []
             layer.SetAttributeFilter(None)
-            attrib_filter = "{}={} AND {}='{}'".format(field, cl, regionField, region)
+            attrib_filter = "{}={} AND {}='{}'".format(
+                field, cl, regionField, region
+            )
             layer.SetAttributeFilter(attrib_filter)
             featureCount = float(layer.GetFeatureCount())
             if featureCount == 1:
@@ -134,7 +136,9 @@ def get_CrossValId(layer, dataField, classes, seeds, regionField, regions):
                 dataField, cl, regionField, region
             )
             layer.SetAttributeFilter(attrib_filter)
-            fid_area = [(f.GetFID(), f.GetGeometryRef().GetArea()) for f in layer]
+            fid_area = [
+                (f.GetFID(), f.GetGeometryRef().GetArea()) for f in layer
+            ]
             region_class_id, _ = splitByArea.splitByArea(fid_area, seeds)
             for fold_num, fold in enumerate(region_class_id):
                 id_sets[fold_num] += [cFID for cFID, cArea in fold]
@@ -269,7 +273,10 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description=func_description)
     parser.add_argument(
-        "-vector", dest="vectoFile", help="path to the vector file", required=True
+        "-vector",
+        dest="vectoFile",
+        help="path to the vector file",
+        required=True,
     )
     parser.add_argument(
         "-dataField",

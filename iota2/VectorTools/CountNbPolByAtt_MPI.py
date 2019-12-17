@@ -95,7 +95,9 @@ def mpi_schedule_job_array(csvstore, job_array, mpi_service=MPIService()):
                 nb_completed_tasks += 1
                 if len(param_array) > 0:
                     task_param = param_array.pop(0)
-                    mpi_service.comm.send([job, task_param], dest=slave_rank, tag=0)
+                    mpi_service.comm.send(
+                        [job, task_param], dest=slave_rank, tag=0
+                    )
             print("All tasks sent")
             try:
                 kill_slaves(mpi_service)
@@ -120,7 +122,9 @@ def mpi_schedule_job_array(csvstore, job_array, mpi_service=MPIService()):
                 end_date = datetime.datetime.now()
                 print(mpi_service.rank, task_param, "ended")
                 mpi_service.comm.send(
-                    [mpi_service.rank, [start_date, end_date, result]], dest=0, tag=0
+                    [mpi_service.rank, [start_date, end_date, result]],
+                    dest=0,
+                    tag=0,
                 )
 
     except BaseException:
@@ -173,7 +177,12 @@ def countByAtt(params):
         partcl = area / totalarea * 100
         print(
             "Class # %s: %s features and a total area of %s (rate : %s)"
-            % (str(classe), str(featureCount), str(area), str(round(partcl, 4)))
+            % (
+                str(classe),
+                str(featureCount),
+                str(area),
+                str(round(partcl, 4)),
+            )
         )
         stats.append([classe, featureCount, area, partcl])
         layer.ResetReading()
@@ -187,7 +196,12 @@ def countByAtt(params):
         partcl = area / totalarea * 100
         print(
             "Class # %s: %s features and a total area of %s (rate : %s)"
-            % (str(classe), str(featureCount), str(area), str(round(partcl, 4)))
+            % (
+                str(classe),
+                str(featureCount),
+                str(area),
+                str(round(partcl, 4)),
+            )
         )
         stats.append([classe, featureCount, area, partcl])
         layer.ResetReading()
@@ -226,9 +240,15 @@ if __name__ == "__main__":
         sys.exit(-1)
     else:
         USAGE = "usage: %prog [options] "
-        PARSER = argparse.ArgumentParser(description="Extract shapefile records")
+        PARSER = argparse.ArgumentParser(
+            description="Extract shapefile records"
+        )
         PARSER.add_argument(
-            "-ins", dest="ins", action="store", help="input shapefile", required=True
+            "-ins",
+            dest="ins",
+            action="store",
+            help="input shapefile",
+            required=True,
         )
         PARSER.add_argument(
             "-field",

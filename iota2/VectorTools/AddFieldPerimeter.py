@@ -12,7 +12,8 @@ def addFieldPerimeter(filein):
     layer = source.GetLayer()
     layer_defn = layer.GetLayerDefn()
     field_names = [
-        layer_defn.GetFieldDefn(i).GetName() for i in range(layer_defn.GetFieldCount())
+        layer_defn.GetFieldDefn(i).GetName()
+        for i in range(layer_defn.GetFieldCount())
     ]
     if "Perimeter" in field_names or "perimeter" in field_names:
         if "Perimeter" in field_names:

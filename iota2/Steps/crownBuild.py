@@ -24,7 +24,9 @@ class crownBuild(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "crownbuild"
-        super(crownBuild, self).__init__(cfg, cfg_resources_file, resources_block_name)
+        super(crownBuild, self).__init__(
+            cfg, cfg_resources_file, resources_block_name
+        )
 
         # step variables
         self.RAM = 1024.0 * get_RAM(self.resources["ram"])
@@ -64,11 +66,17 @@ class crownBuild(IOTA2Step.Step):
         """
         from simplification import buildCrownRaster as bcr
 
-        tmpdir = os.path.join(self.outputPath, "final", "simplification", "tmp")
+        tmpdir = os.path.join(
+            self.outputPath, "final", "simplification", "tmp"
+        )
         if self.workingDirectory:
             tmpdir = self.workingDirectory
-        tiles_list = os.path.join(self.outputPath, "final", "simplification", "tiles")
-        outpathtile = os.path.join(self.outputPath, "final", "simplification", "tiles")
+        tiles_list = os.path.join(
+            self.outputPath, "final", "simplification", "tiles"
+        )
+        outpathtile = os.path.join(
+            self.outputPath, "final", "simplification", "tiles"
+        )
 
         def step_function(x):
             return bcr.manageBlocks(

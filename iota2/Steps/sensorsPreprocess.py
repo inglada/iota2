@@ -47,7 +47,11 @@ class sensorsPreprocess(IOTA2Step.Step):
         """
         from Common import ServiceConfigFile as SCF
 
-        tiles = SCF.serviceConfigFile(self.cfg).getParam("chain", "listTile").split(" ")
+        tiles = (
+            SCF.serviceConfigFile(self.cfg)
+            .getParam("chain", "listTile")
+            .split(" ")
+        )
         return tiles
 
     def step_execute(self):

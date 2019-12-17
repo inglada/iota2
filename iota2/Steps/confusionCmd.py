@@ -33,7 +33,9 @@ class confusionCmd(IOTA2Step.Step):
             "chain", "outputPath"
         )
         self.runs = SCF.serviceConfigFile(self.cfg).getParam("chain", "runs")
-        self.data_field = SCF.serviceConfigFile(self.cfg).getParam("chain", "dataField")
+        self.data_field = SCF.serviceConfigFile(self.cfg).getParam(
+            "chain", "dataField"
+        )
 
     def step_description(self):
         """

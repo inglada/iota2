@@ -72,11 +72,19 @@ def manageClassName(nomenclature):
             if int(line.split(":")[1]) != 255:
                 exp.append(
                     "COALESCE(CAST(ROUND(out%s.value, %s) AS FLOAT),0) AS %s "
-                    % (line.split(":")[1], line.split(":")[1], line.split(":")[2])
+                    % (
+                        line.split(":")[1],
+                        line.split(":")[1],
+                        line.split(":")[2],
+                    )
                 )
                 exp2 += (
                     'LEFT JOIN (select idstats, value from stats where info = "classif" and class = %s) out%s ON s.idstats = out%s.idstats '
-                    % (line.split(":")[1], line.split(":")[1], line.split(":")[1])
+                    % (
+                        line.split(":")[1],
+                        line.split(":")[1],
+                        line.split(":")[1],
+                    )
                 )
                 exp3 += "CAST(%s AS NUMERIC(6,2)) AS %s, " % (
                     line.split(":")[2],
@@ -572,7 +580,9 @@ if __name__ == "__main__":
         sys.exit(-1)
     else:
         usage = "usage: %prog [options] "
-        parser = argparse.ArgumentParser(description="Join stats list to shapefile")
+        parser = argparse.ArgumentParser(
+            description="Join stats list to shapefile"
+        )
         parser.add_argument(
             "-shape",
             dest="shape",
@@ -594,7 +604,11 @@ if __name__ == "__main__":
             help="Nomenclature of the classification - (description:code:alias)",
         )
         parser.add_argument(
-            "-tmp", dest="tmp", action="store", help="tmp folder", required=True
+            "-tmp",
+            dest="tmp",
+            action="store",
+            help="tmp folder",
+            required=True,
         )
         parser.add_argument(
             "-output", dest="output", action="store", help="output path"
@@ -609,7 +623,9 @@ if __name__ == "__main__":
 
         if not os.path.exists(args.output):
             # computeStats(args.shape, args.stats, args.nclture, args.tmp, args.dozip, args.output)
-            computeStats(args.shape, args.stats, args.tmp, args.dozip, args.output)
+            computeStats(
+                args.shape, args.stats, args.tmp, args.dozip, args.output
+            )
         else:
             print(
                 "Output file '%s' already exists, please delete it or change output path"

@@ -61,10 +61,14 @@ def generateFeatures(pathWd, tile, cfg, writeFeatures=False, mode="usually"):
 
     logger.info("prepare features for tile : " + tile)
     wMode = cfg.getParam("GlobChain", "writeOutputs")
-    sar_optical_post_fusion = cfg.getParam("argTrain", "dempster_shafer_SAR_Opt_fusion")
+    sar_optical_post_fusion = cfg.getParam(
+        "argTrain", "dempster_shafer_SAR_Opt_fusion"
+    )
 
     config_path = cfg.pathConf
-    sensor_tile_container = Sensors_container(config_path, tile, working_dir=pathWd)
+    sensor_tile_container = Sensors_container(
+        config_path, tile, working_dir=pathWd
+    )
     feat_labels = []
     dep = []
     feat_app = []
@@ -95,9 +99,10 @@ def generateFeatures(pathWd, tile, cfg, writeFeatures=False, mode="usually"):
             feat_labels = feat_labels + features_labels
     elif mode == "SAR":
         sensor = sensor_tile_container.get_sensor("Sentinel1")
-        (sensor_features, sensor_features_dep), feat_labels = sensor.get_features(
-            ram=1000
-        )
+        (
+            sensor_features,
+            sensor_features_dep,
+        ), feat_labels = sensor.get_features(ram=1000)
         sensor_features.Execute()
         feat_app.append(sensor_features)
         dep.append(sensor_features_dep)
@@ -123,7 +128,9 @@ def generateFeatures(pathWd, tile, cfg, writeFeatures=False, mode="usually"):
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description="Computes a time series of features")
+    parser = argparse.ArgumentParser(
+        description="Computes a time series of features"
+    )
     parser.add_argument(
         "-wd",
         dest="pathWd",

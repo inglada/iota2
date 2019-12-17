@@ -267,8 +267,12 @@ def erodeInter(currentTile, NextTile, intersection, buff, proj):
     else:
         return False
 
-    fu.removeShape(intersection.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"])
-    pathFolder = "/".join(intersection.split("/")[0 : len(intersection.split("/")) - 1])
+    fu.removeShape(
+        intersection.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"]
+    )
+    pathFolder = "/".join(
+        intersection.split("/")[0 : len(intersection.split("/")) - 1]
+    )
     createShape(
         minX,
         minY,
@@ -331,7 +335,9 @@ def erodeDiag(currentTile, NextTile, intersection, buff, TMP, proj):
         )
 
         tmpName = NextTile.getName() + "_TMP"
-        subtractShape(NextTile.getPriorityEnv(), intersection, TMP, tmpName, proj)
+        subtractShape(
+            NextTile.getPriorityEnv(), intersection, TMP, tmpName, proj
+        )
 
         fu.removeShape(
             NextTile.getPriorityEnv().replace(".shp", ""),
@@ -343,12 +349,17 @@ def erodeDiag(currentTile, NextTile, intersection, buff, TMP, proj):
             [".prj", ".shp", ".dbf", ".shx"],
         )
         fu.removeShape(
-            TMP + "/" + tmpName.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"]
+            TMP + "/" + tmpName.replace(".shp", ""),
+            [".prj", ".shp", ".dbf", ".shx"],
         )
 
         tmpName = currentTile.getName() + "_TMP"
         subtractShape(
-            currentTile.getPriorityEnv(), NextTile.getPriorityEnv(), TMP, tmpName, proj
+            currentTile.getPriorityEnv(),
+            NextTile.getPriorityEnv(),
+            TMP,
+            tmpName,
+            proj,
         )
 
         fu.removeShape(
@@ -361,14 +372,19 @@ def erodeDiag(currentTile, NextTile, intersection, buff, TMP, proj):
             [".prj", ".shp", ".dbf", ".shx"],
         )
         fu.removeShape(
-            TMP + "/" + tmpName.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"]
+            TMP + "/" + tmpName.replace(".shp", ""),
+            [".prj", ".shp", ".dbf", ".shx"],
         )
 
     if yo > yn and xo < xn:
 
         tmpName = NextTile.getName() + "_TMP"
         subtractShape(
-            NextTile.getPriorityEnv(), currentTile.getPriorityEnv(), TMP, tmpName, proj
+            NextTile.getPriorityEnv(),
+            currentTile.getPriorityEnv(),
+            TMP,
+            tmpName,
+            proj,
         )
 
         fu.removeShape(
@@ -381,7 +397,8 @@ def erodeDiag(currentTile, NextTile, intersection, buff, TMP, proj):
             [".prj", ".shp", ".dbf", ".shx"],
         )
         fu.removeShape(
-            TMP + "/" + tmpName.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"]
+            TMP + "/" + tmpName.replace(".shp", ""),
+            [".prj", ".shp", ".dbf", ".shx"],
         )
 
 
@@ -392,7 +409,8 @@ def genTileEnvPrio(ObjListTile, out, tmpFile, proj):
     ObjListTile.reverse()
     listSHP = [
         createRasterFootprint(
-            c_ObjListTile.getPath(), tmpFile + "/" + c_ObjListTile.getName() + ".shp"
+            c_ObjListTile.getPath(),
+            tmpFile + "/" + c_ObjListTile.getName() + ".shp",
         )
         for c_ObjListTile in ObjListTile
     ]
@@ -413,7 +431,9 @@ def genTileEnvPrio(ObjListTile, out, tmpFile, proj):
             if IsIntersect(currentTileEnv, NextTileEnv):
 
                 InterName = (
-                    ObjListTile[i].getName() + "_inter_" + ObjListTile[j].getName()
+                    ObjListTile[i].getName()
+                    + "_inter_"
+                    + ObjListTile[j].getName()
                 )
                 intersection = fu.ClipVectorData(
                     ObjListTile[i].getEnvelope(),
@@ -456,7 +476,9 @@ def genTileEnvPrio(ObjListTile, out, tmpFile, proj):
             if IsIntersect(currentTileEnv, NextTileEnv):
                 if diag(ObjListTile[i], ObjListTile[j]):
                     InterName = (
-                        ObjListTile[i].getName() + "_inter_" + ObjListTile[j].getName()
+                        ObjListTile[i].getName()
+                        + "_inter_"
+                        + ObjListTile[j].getName()
                     )
                     intersection = fu.ClipVectorData(
                         ObjListTile[i].getEnvelope(),
@@ -504,7 +526,9 @@ def GenerateShapeTile(tiles, pathTiles, pathOut, pathWd, cfg):
 
     pathConf = cfg.pathConf
     # fu.cleanFiles(cfg)
-    featuresPath = os.path.join(cfg.getParam("chain", "outputPath"), "features")
+    featuresPath = os.path.join(
+        cfg.getParam("chain", "outputPath"), "features"
+    )
 
     # ~ cMaskName = fu.getCommonMaskName(cfg)
     cMaskName = "MaskCommunSL"
@@ -517,13 +541,16 @@ def GenerateShapeTile(tiles, pathTiles, pathOut, pathWd, cfg):
         os.mkdir(commonDirectory)
 
     common = [
-        featuresPath + "/" + Ctile + "/tmp/" + cMaskName + ".tif" for Ctile in tiles
+        featuresPath + "/" + Ctile + "/tmp/" + cMaskName + ".tif"
+        for Ctile in tiles
     ]
 
     tmp_proj = cfg.getParam("GlobChain", "proj")
     proj = int(tmp_proj.split(":")[-1])
 
-    ObjListTile = [Tile(currentTile, name) for currentTile, name in zip(common, tiles)]
+    ObjListTile = [
+        Tile(currentTile, name) for currentTile, name in zip(common, tiles)
+    ]
     ObjListTile_sort = sorted(ObjListTile, key=priorityKey)
 
     tmpFile = pathOut + "/TMP"
@@ -555,7 +582,10 @@ if __name__ == "__main__":
         "-t", dest="tiles", help="All the tiles", nargs="+", required=True
     )
     parser.add_argument(
-        "-t.path", dest="pathTiles", help="where are stored features", required=True
+        "-t.path",
+        dest="pathTiles",
+        help="where are stored features",
+        required=True,
     )
     parser.add_argument("-out", dest="pathOut", help="path out", required=True)
     parser.add_argument(
@@ -575,4 +605,6 @@ if __name__ == "__main__":
     # load configuration file
     cfg = SCF.serviceConfigFile(args.pathConf)
     # launch GenerateShapeTile
-    GenerateShapeTile(args.tiles, args.pathTiles, args.pathOut, args.pathWd, cfg)
+    GenerateShapeTile(
+        args.tiles, args.pathTiles, args.pathOut, args.pathWd, cfg
+    )

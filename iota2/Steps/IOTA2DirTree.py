@@ -61,5 +61,7 @@ class IOTA2DirTree(IOTA2Step.Step):
     def step_outputs(self):
         from Common import ServiceConfigFile as SCF
 
-        outputPath = SCF.serviceConfigFile(self.cfg).getParam("chain", "outputPath")
+        outputPath = SCF.serviceConfigFile(self.cfg).getParam(
+            "chain", "outputPath"
+        )
         return os.path.exists(outputPath)

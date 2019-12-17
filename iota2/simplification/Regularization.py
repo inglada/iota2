@@ -149,7 +149,10 @@ def OSORegularization(
 
         logger.info(
             " ".join(
-                [" : ".join(["First regularization", str(time_regul1)]), "seconds"]
+                [
+                    " : ".join(["First regularization", str(time_regul1)]),
+                    "seconds",
+                ]
             )
         )
 
@@ -167,19 +170,30 @@ def OSORegularization(
                 logger.info(
                     " ".join(
                         [
-                            " : ".join(["Resample", str(time.time() - time_regul1)]),
+                            " : ".join(
+                                ["Resample", str(time.time() - time_regul1)]
+                            ),
                             "seconds",
                         ]
                     )
                 )
 
             regulClassif, time_regul2 = AdaptRegul23.regularisation(
-                os.path.join(path, "reechantillonnee.tif"), umc2, core, path, ram
+                os.path.join(path, "reechantillonnee.tif"),
+                umc2,
+                core,
+                path,
+                ram,
             )
             os.remove(os.path.join(path, "reechantillonnee.tif"))
             logger.info(
                 " ".join(
-                    [" : ".join(["Second regularization", str(time_regul2)]), "seconds"]
+                    [
+                        " : ".join(
+                            ["Second regularization", str(time_regul2)]
+                        ),
+                        "seconds",
+                    ]
                 )
             )
 
@@ -219,7 +233,11 @@ if __name__ == "__main__":
             description="Regularization and resampling a classification raster"
         )
         parser.add_argument(
-            "-wd", dest="path", action="store", help="Working directory", required=True
+            "-wd",
+            dest="path",
+            action="store",
+            help="Working directory",
+            required=True,
         )
 
         parser.add_argument(

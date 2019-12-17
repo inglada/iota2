@@ -323,9 +323,13 @@ class Sensors_container(object):
             all_dep.append(_)
             all_dep.append(footprint)
 
-        expr = "+".join("im{}b1".format(i + 1) for i in range(len(sensors_footprint)))
+        expr = "+".join(
+            "im{}b1".format(i + 1) for i in range(len(sensors_footprint))
+        )
         expr = "{}=={}?1:0".format(expr, len(sensors_footprint))
-        common_mask_out = os.path.join(self.common_mask_dir, self.common_mask_name)
+        common_mask_out = os.path.join(
+            self.common_mask_dir, self.common_mask_name
+        )
         common_mask = CreateBandMathApplication(
             {
                 "il": sensors_footprint,
@@ -355,7 +359,10 @@ class Sensors_container(object):
         for sensor in self.enabled_sensors:
             if "get_time_series" in dir(sensor):
                 sensors_time_series.append(
-                    (sensor.__class__.name, sensor.get_time_series(available_ram))
+                    (
+                        sensor.__class__.name,
+                        sensor.get_time_series(available_ram),
+                    )
                 )
         return sensors_time_series
 
@@ -376,7 +383,10 @@ class Sensors_container(object):
         for sensor in self.enabled_sensors:
             if "get_time_series_masks" in dir(sensor):
                 sensors_time_series_masks.append(
-                    (sensor.__class__.name, sensor.get_time_series_masks(available_ram))
+                    (
+                        sensor.__class__.name,
+                        sensor.get_time_series_masks(available_ram),
+                    )
                 )
         return sensors_time_series_masks
 

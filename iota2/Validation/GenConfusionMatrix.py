@@ -37,8 +37,12 @@ def create_dummy_rasters(missing_tiles, N, cfg):
     """
     # gdal_merge.py -n 0 -createonly -o Classif_T38JPT_model_1_seed_0_fake.tif
     # Classif_T38JPT_model_1_seed_0.tif
-    classifications_dir = os.path.join(cfg.getParam("chain", "outputPath"), "classif")
-    final_dir = os.path.join(cfg.getParam("chain", "outputPath"), "final", "TMP")
+    classifications_dir = os.path.join(
+        cfg.getParam("chain", "outputPath"), "classif"
+    )
+    final_dir = os.path.join(
+        cfg.getParam("chain", "outputPath"), "final", "TMP"
+    )
 
     for tile in missing_tiles:
         classif_tile = fu.FileSearch_AND(
@@ -57,22 +61,35 @@ def create_dummy_rasters(missing_tiles, N, cfg):
 
 
 def compareRef(
-    shapeRef, shapeLearn, classif, diff, footprint, workingDirectory, cfg, pathWd
+    shapeRef,
+    shapeLearn,
+    classif,
+    diff,
+    footprint,
+    workingDirectory,
+    cfg,
+    pathWd,
 ):
 
     minX, maxX, minY, maxY = fu.getRasterExtent(classif)
     shapeRaster_val = (
-        workingDirectory + "/" + shapeRef.split("/")[-1].replace(".sqlite", ".tif")
+        workingDirectory
+        + "/"
+        + shapeRef.split("/")[-1].replace(".sqlite", ".tif")
     )
     shapeRaster_learn = (
-        workingDirectory + "/" + shapeLearn.split("/")[-1].replace(".sqlite", ".tif")
+        workingDirectory
+        + "/"
+        + shapeLearn.split("/")[-1].replace(".sqlite", ".tif")
     )
 
     dataField = cfg.getParam("chain", "dataField")
     spatialRes = int(cfg.getParam("chain", "spatialResolution"))
 
     # Rasterise val
-    shapeRef_table_name = os.path.splitext(os.path.split(shapeRef)[-1])[0].lower()
+    shapeRef_table_name = os.path.splitext(os.path.split(shapeRef)[-1])[
+        0
+    ].lower()
     cmd = (
         "gdal_rasterize -l "
         + shapeRef_table_name
@@ -97,7 +114,9 @@ def compareRef(
     )
     run(cmd)
     # Rasterise learn
-    shapeLearn_table_name = os.path.splitext(os.path.split(shapeLearn)[-1])[0].lower()
+    shapeLearn_table_name = os.path.splitext(os.path.split(shapeLearn)[-1])[
+        0
+    ].lower()
     cmd = (
         "gdal_rasterize -l "
         + shapeLearn_table_name
@@ -123,7 +142,11 @@ def compareRef(
     run(cmd)
 
     # diff val
-    diff_val = workingDirectory + "/" + diff.split("/")[-1].replace(".tif", "_val.tif")
+    diff_val = (
+        workingDirectory
+        + "/"
+        + diff.split("/")[-1].replace(".tif", "_val.tif")
+    )
     cmd_val = (
         "otbcli_BandMath -il "
         + shapeRaster_val
@@ -138,7 +161,9 @@ def compareRef(
 
     # diff learn
     diff_learn = (
-        workingDirectory + "/" + diff.split("/")[-1].replace(".tif", "_learn.tif")
+        workingDirectory
+        + "/"
+        + diff.split("/")[-1].replace(".tif", "_learn.tif")
     )
     cmd_learn = (
         "otbcli_BandMath -il "
@@ -216,7 +241,13 @@ def genConfMatrix(
             )[0]
             pathDirectory = pathTMP
             cmd = "otbcli_ComputeConfusionMatrix -in {}/Classif_Seed_{}.tif -out {}/{}_seed_{}.csv -ref.vector.field {} -ref vector -ref.vector.in {}".format(
-                pathClassif, seed, pathDirectory, tile, seed, dataField.lower(), valTile
+                pathClassif,
+                seed,
+                pathDirectory,
+                tile,
+                seed,
+                dataField.lower(),
+                valTile,
             )
             AllCmd.append(cmd)
             classif = pathTMP + "/" + tile + "_seed_" + str(seed) + ".tif"

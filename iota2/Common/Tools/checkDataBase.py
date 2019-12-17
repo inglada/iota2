@@ -158,10 +158,14 @@ def do_check(input_vector, output_vector, data_field, epsg, do_corrections):
     # Check valid geometry
     shape_valid_geom_name = "valid_geom.shp"
     shape_valid_geom_dir = os.path.split(input_vector)[0]
-    shape_valid_geom = os.path.join(shape_valid_geom_dir, shape_valid_geom_name)
+    shape_valid_geom = os.path.join(
+        shape_valid_geom_dir, shape_valid_geom_name
+    )
     shape_valid_geom = output_vector if output_vector else shape_valid_geom
 
-    input_valid_geom_shape = shape_no_multi if do_corrections else shape_no_duplicates
+    input_valid_geom_shape = (
+        shape_no_multi if do_corrections else shape_no_duplicates
+    )
     cpShapeFile(
         input_valid_geom_shape.replace(".shp", ""),
         shape_valid_geom.replace(".shp", ""),
@@ -173,7 +177,10 @@ def do_check(input_vector, output_vector, data_field, epsg, do_corrections):
 
     if invalid_geom != 0:
         error_msg = "'{}' contains {} invalid geometries and {} were removed in {}".format(
-            input_vector, invalid_geom, invalid_geom_corrected, shape_valid_geom
+            input_vector,
+            invalid_geom,
+            invalid_geom_corrected,
+            shape_valid_geom,
         )
         errors.append(error_msg)
     if output_vector is not None:
@@ -184,7 +191,9 @@ def do_check(input_vector, output_vector, data_field, epsg, do_corrections):
 
     for tmp_file in tmp_files:
         if tmp_file is not input_vector and os.path.exists(tmp_file):
-            removeShape(tmp_file.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"])
+            removeShape(
+                tmp_file.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"]
+            )
     print("\n".join(errors))
     return errors
 
@@ -228,7 +237,11 @@ if __name__ == "__main__":
         required=True,
     )
     parser.add_argument(
-        "-epsg", help="EPSG's code (mandatory)", dest="epsg", required=True, type=int
+        "-epsg",
+        help="EPSG's code (mandatory)",
+        dest="epsg",
+        required=True,
+        type=int,
     )
     parser.add_argument(
         "-doCorrections",

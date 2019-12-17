@@ -7,7 +7,9 @@ import sqlite3 as lite
 import argparse
 
 
-def deleteDuplicateGeometriesSqlite(shapefile, do_corrections=True, output_file=None):
+def deleteDuplicateGeometriesSqlite(
+    shapefile, do_corrections=True, output_file=None
+):
     """Check if a features is duplicates, then if it does it will not be copied in output shapeFile
 
     Parameters

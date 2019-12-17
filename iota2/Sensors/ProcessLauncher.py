@@ -78,7 +78,12 @@ def commonMasks(tile_name, config_path, working_directory=None, RAM=128):
 
 
 def validity(
-    tile_name, config_path, maskOut_name, view_threshold, workingDirectory=None, RAM=128
+    tile_name,
+    config_path,
+    maskOut_name,
+    view_threshold,
+    workingDirectory=None,
+    RAM=128,
 ):
     """
     function dedicated to compute validity raster/vector by tile
@@ -120,7 +125,9 @@ def validity(
     validity_processing = validity_out
     if workingDirectory:
         ensure_dir(os.path.join(workingDirectory, tile_name))
-        validity_processing = os.path.join(workingDirectory, tile_name, validity_name)
+        validity_processing = os.path.join(
+            workingDirectory, tile_name, validity_name
+        )
 
     remote_sensor_container = Sensors_container(
         config_path, tile_name, working_dir=workingDirectory
@@ -135,7 +142,9 @@ def validity(
         (time_series_masks, time_series_dep, nb_bands),
     ) in sensors_time_series_masks:
         if sensor_name.lower() == "sentinel1":
-            for sensor_mode, time_series_masks_app in list(time_series_masks.items()):
+            for sensor_mode, time_series_masks_app in list(
+                time_series_masks.items()
+            ):
                 time_series_masks_app.Execute()
                 sensors_masks.append(time_series_masks_app)
         else:
@@ -164,7 +173,9 @@ def validity(
     if not os.path.exists(os.path.join(features_dir, validity_name)):
         validity_app.ExecuteAndWriteOutput()
         if workingDirectory:
-            shutil.copy(validity_processing, os.path.join(features_dir, validity_name))
+            shutil.copy(
+                validity_processing, os.path.join(features_dir, validity_name)
+            )
     threshold_raster_out = os.path.join(
         features_dir, maskOut_name.replace(".shp", ".tif")
     )
@@ -174,7 +185,9 @@ def validity(
     threshold_vector_out = os.path.join(features_dir, maskOut_name)
 
     input_threshold = (
-        validity_processing if os.path.exists(validity_processing) else validity_out
+        validity_processing
+        if os.path.exists(validity_processing)
+        else validity_out
     )
 
     threshold_raster = CreateBandMathApplication(
@@ -198,5 +211,6 @@ def validity(
     erodeShapeFile(threshold_vector_out_tmp, threshold_vector_out, 0.1)
     os.remove(threshold_raster_out)
     removeShape(
-        threshold_vector_out_tmp.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"]
+        threshold_vector_out_tmp.replace(".shp", ""),
+        [".prj", ".shp", ".dbf", ".shx"],
     )

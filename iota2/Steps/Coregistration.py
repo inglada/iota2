@@ -45,7 +45,11 @@ class Coregistration(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
-        tiles = SCF.serviceConfigFile(self.cfg).getParam("chain", "listTile").split(" ")
+        tiles = (
+            SCF.serviceConfigFile(self.cfg)
+            .getParam("chain", "listTile")
+            .split(" ")
+        )
         return tiles
 
     def step_execute(self):
@@ -59,7 +63,9 @@ class Coregistration(IOTA2Step.Step):
         from Common.Tools import CoRegister
 
         def step_function(x):
-            return CoRegister.launch_coregister(x, self.cfg, self.workingDirectory)
+            return CoRegister.launch_coregister(
+                x, self.cfg, self.workingDirectory
+            )
 
         return step_function
 

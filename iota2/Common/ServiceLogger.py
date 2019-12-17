@@ -70,7 +70,9 @@ class serviceLogger(logging.getLoggerClass()):
                 # logging in console
                 self.consoleHandler = logging.StreamHandler()
                 self.consoleHandler.setFormatter(logFormatter)
-                self.consoleHandler.setLevel(cfg.getParam("chain", "logConsoleLevel"))
+                self.consoleHandler.setLevel(
+                    cfg.getParam("chain", "logConsoleLevel")
+                )
                 rootLogger.addHandler(self.consoleHandler)
 
 

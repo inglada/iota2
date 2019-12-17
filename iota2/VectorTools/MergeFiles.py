@@ -47,7 +47,12 @@ def mergeVectors(infiles, outfile):
     progress = 0
     for f in range(1, nbfiles):
         fusion2 = (
-            "ogr2ogr -update -append " + outfile + " " + files[f] + " -nln " + layername
+            "ogr2ogr -update -append "
+            + outfile
+            + " "
+            + files[f]
+            + " -nln "
+            + layername
         )
         print(fusion2)
         print(outfile)
@@ -76,7 +81,10 @@ if __name__ == "__main__":
             help="List of input shapefiles",
         )
         parser.add_argument(
-            "-p", dest="opath", action="store", help="Folder of input shapefiles"
+            "-p",
+            dest="opath",
+            action="store",
+            help="Folder of input shapefiles",
         )
         parser.add_argument(
             "-o",

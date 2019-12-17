@@ -10,7 +10,8 @@ def addFieldID(filein, nameField, valueField):
     layer = source.GetLayer()
     layer_defn = layer.GetLayerDefn()
     field_names = [
-        layer_defn.GetFieldDefn(i).GetName() for i in range(layer_defn.GetFieldCount())
+        layer_defn.GetFieldDefn(i).GetName()
+        for i in range(layer_defn.GetFieldCount())
     ]
     #
     try:

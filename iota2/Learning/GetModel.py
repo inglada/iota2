@@ -32,7 +32,10 @@ def getModel(pathShapes):
             )
         except ValueError:
             sort.append(
-                (path.split("/")[-1].split("_")[-3], path.split("/")[-1].split("_")[0])
+                (
+                    path.split("/")[-1].split("_")[-3],
+                    path.split("/")[-1].split("_")[0],
+                )
             )
     # [(RegionNumber,[tile1,tile2,...]),(...),...]
     return fu.sortByFirstElem(sort)

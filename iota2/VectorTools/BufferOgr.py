@@ -20,7 +20,9 @@ def bufferPoly(inputfn, outputBufferfn="", bufferDist=0):
             shpdriver.DeleteDataSource(outputBufferfn)
         outputBufferds = shpdriver.CreateDataSource(outputBufferfn)
         bufferlyr = outputBufferds.CreateLayer(
-            outputBufferfn, srs=inputlyr.GetSpatialRef(), geom_type=ogr.wkbPolygon
+            outputBufferfn,
+            srs=inputlyr.GetSpatialRef(),
+            geom_type=ogr.wkbPolygon,
         )
         featureDefn = bufferlyr.GetLayerDefn()
 
@@ -39,7 +41,8 @@ def bufferPoly(inputfn, outputBufferfn="", bufferDist=0):
                 # copy input value
                 for i in range(0, featureDefn.GetFieldCount()):
                     outFeature.SetField(
-                        featureDefn.GetFieldDefn(i).GetNameRef(), feature.GetField(i)
+                        featureDefn.GetFieldDefn(i).GetNameRef(),
+                        feature.GetField(i),
                     )
 
                 bufferlyr.CreateFeature(outFeature)
@@ -78,7 +81,11 @@ if __name__ == "__main__":
             required=True,
         )
         parser.add_argument(
-            "-b", dest="buff", action="store", help="Buffer size (m)", required=True
+            "-b",
+            dest="buff",
+            action="store",
+            help="Buffer size (m)",
+            required=True,
         )
         args = parser.parse_args()
         bufferPoly(args.inshapefile, args.outshapefile, args.buff)

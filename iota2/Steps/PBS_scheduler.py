@@ -62,7 +62,9 @@ class PBS_scheduler:
         resource["name"] = getattr(cfg_step_resources, "name", default_name)
         resource["cpu"] = getattr(cfg_step_resources, "nb_cpu", default_cpu)
         resource["ram"] = getattr(cfg_step_resources, "ram", default_ram)
-        resource["walltime"] = getattr(cfg_step_resources, "walltime", default_walltime)
+        resource["walltime"] = getattr(
+            cfg_step_resources, "walltime", default_walltime
+        )
         resource["process_min"] = getattr(
             cfg_step_resources, "process_min", default_process_min
         )

@@ -94,7 +94,9 @@ class iota_testSamplesAugmentation(unittest.TestCase):
             result = self.defaultTestResult()
             self._feedErrorsToResult(result, self._outcome.errors)
         else:
-            result = getattr(self, "_outcomeForDoCleanups", self._resultForDoCleanups)
+            result = getattr(
+                self, "_outcomeForDoCleanups", self._resultForDoCleanups
+            )
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
         ok = not error and not failure
@@ -125,7 +127,10 @@ class iota_testSamplesAugmentation(unittest.TestCase):
         self.assertTrue(class_augmentation_atLeast, atLeast_expected)
 
         class_augmentation_byClass = DataAugmentation.SamplesAugmentationCounter(
-            self.class_count, mode="byClass", minNumber=None, byClass=self.csvFile
+            self.class_count,
+            mode="byClass",
+            minNumber=None,
+            byClass=self.csvFile,
         )
         self.assertTrue(class_augmentation_byClass, byClass_expected)
 
@@ -160,5 +165,10 @@ class iota_testSamplesAugmentation(unittest.TestCase):
             max(self.class_count, key=lambda key: self.class_count[key])
         ]
         self.assertTrue(
-            all([samples_number == v for k, v in list(class_count_test.items())])
+            all(
+                [
+                    samples_number == v
+                    for k, v in list(class_count_test.items())
+                ]
+            )
         )

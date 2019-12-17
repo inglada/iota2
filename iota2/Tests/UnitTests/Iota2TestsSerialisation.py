@@ -59,16 +59,24 @@ class iota_testSerialisation(unittest.TestCase):
         os.mkdir(self.iota2_tests_directory)
 
         self.rasterclump = os.path.join(
-            os.path.join(IOTA2DIR, "data", "references/posttreat/clump32bits.tif")
+            os.path.join(
+                IOTA2DIR, "data", "references/posttreat/clump32bits.tif"
+            )
         )
         self.raster = os.path.join(
-            os.path.join(IOTA2DIR, "data", "references/posttreat/classif_clump.tif")
+            os.path.join(
+                IOTA2DIR, "data", "references/posttreat/classif_clump.tif"
+            )
         )
         self.wd = os.path.join(self.iota2_tests_directory, "wd")
         self.out = os.path.join(self.iota2_tests_directory, "out")
 
-        self.outpathtile = os.path.join(self.iota2_tests_directory, self.out, "tiles")
-        self.outfile = os.path.join(self.iota2_tests_directory, self.out, "grid.shp")
+        self.outpathtile = os.path.join(
+            self.iota2_tests_directory, self.out, "tiles"
+        )
+        self.outfile = os.path.join(
+            self.iota2_tests_directory, self.out, "grid.shp"
+        )
         self.outfileref = os.path.join(
             os.path.join(IOTA2DIR, "data", "references/posttreat/grid.shp")
         )
@@ -79,10 +87,14 @@ class iota_testSerialisation(unittest.TestCase):
             self.iota2_tests_directory, self.out, "tiles/tile_0.tif"
         )
         self.outseriaref = os.path.join(
-            os.path.join(IOTA2DIR, "data", "references/posttreat/tiles/crown_0.tif")
+            os.path.join(
+                IOTA2DIR, "data", "references/posttreat/tiles/crown_0.tif"
+            )
         )
         self.outtileref = os.path.join(
-            os.path.join(IOTA2DIR, "data", "references/posttreat/tiles/tile_0.tif")
+            os.path.join(
+                IOTA2DIR, "data", "references/posttreat/tiles/tile_0.tif"
+            )
         )
         # self.outfilevect = os.path.join(self.iota2_tests_directory, self.out, "classif.shp")
         # self.outfilevectname = os.path.join(self.iota2_tests_directory, self.out, "classifmontagne.shp")
@@ -95,7 +107,9 @@ class iota_testSerialisation(unittest.TestCase):
             raise Exception("GRASSDIR not initialized")
 
         if not os.path.exists(os.path.join(self.grasslib, "bin")):
-            raise Exception("GRASSDIR '%s' not well initialized" % (self.grasslib))
+            raise Exception(
+                "GRASSDIR '%s' not well initialized" % (self.grasslib)
+            )
 
     # after launching all tests
     @classmethod
@@ -148,7 +162,9 @@ class iota_testSerialisation(unittest.TestCase):
             result = self.defaultTestResult()
             self._feedErrorsToResult(result, self._outcome.errors)
         else:
-            result = getattr(self, "_outcomeForDoCleanups", self._resultForDoCleanups)
+            result = getattr(
+                self, "_outcomeForDoCleanups", self._resultForDoCleanups
+            )
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
         ok = not error and not failure
@@ -192,7 +208,9 @@ class iota_testSerialisation(unittest.TestCase):
         self.assertTrue(np.array_equal(outtest, outref))
 
         # Crown building test
-        bcr.manageBlocks(self.outpathtile, 0, 20, self.wd, self.outpathtile, 128)
+        bcr.manageBlocks(
+            self.outpathtile, 0, 20, self.wd, self.outpathtile, 128
+        )
 
         outtest = testutils.rasterToArray(self.outtile)
         outtileref = testutils.rasterToArray(self.outtileref)

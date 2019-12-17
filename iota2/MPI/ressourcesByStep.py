@@ -33,7 +33,9 @@ class Ressources:
         os.environ["OMP_NUM_THREADS"] = str(self.nb_cpu)
 
 
-def iota2_ressources(iota2_ressources_description="iota2_HPC_ressources_request.cfg"):
+def iota2_ressources(
+    iota2_ressources_description="iota2_HPC_ressources_request.cfg"
+):
     """
     usage :
 
@@ -45,9 +47,12 @@ def iota2_ressources(iota2_ressources_description="iota2_HPC_ressources_request.
                                                     ressources request
     """
     iota2_ressources_description = os.path.join(
-        os.path.dirname(os.path.realpath(__file__)), iota2_ressources_description
+        os.path.dirname(os.path.realpath(__file__)),
+        iota2_ressources_description,
     )
-    cfg = SCF.serviceConfigFile(iota2_ressources_description, iota_config=False)
+    cfg = SCF.serviceConfigFile(
+        iota2_ressources_description, iota_config=False
+    )
     available_steps = cfg.getAvailableSections()
 
     iota2_HPC_requests = {}

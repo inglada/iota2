@@ -137,7 +137,11 @@ def countPixelByClass(databand, fid=0, band=0, nodata=0):
             for reg in regionprops(img, data):
                 counts.append(
                     [
-                        [x for x in np.unique(reg.intensity_image) if x != nodata][0],
+                        [
+                            x
+                            for x in np.unique(reg.intensity_image)
+                            if x != nodata
+                        ][0],
                         reg.area,
                     ]
                 )
@@ -149,7 +153,9 @@ def countPixelByClass(databand, fid=0, band=0, nodata=0):
             listlab["rate"] = listlab["count"] / listlab["count"].sum()
 
             # classmaj
-            classmaj = listlab[listlab["rate"] == max(listlab["rate"])]["value"]
+            classmaj = listlab[listlab["rate"] == max(listlab["rate"])][
+                "value"
+            ]
             classmaj = classmaj.iloc[0]
 
             posclassmaj = np.where(data == int(classmaj))
@@ -313,7 +319,9 @@ def definePandasDf(geoframe, idvals, paramstats={}, classes=""):
         elif "val" in paramstats[param]:
             [cols.append("valb%s" % (param))]
         else:
-            raise Exception("The method %s is not implemented") % (paramstats[param])
+            raise Exception("The method %s is not implemented") % (
+                paramstats[param]
+            )
 
     statsgpad = gpad.GeoDataFrame(np.nan, index=idvals, columns=cols)
     geoframe = gpad.GeoDataFrame(
@@ -351,7 +359,9 @@ def checkmethodstats(rasters, paramstats, nbbands):
     if isinstance(paramstats, list):
         # List of methods (bash)
         if ":" in paramstats[0]:
-            paramstats = dict([(x.split(":")[0], x.split(":")[1]) for x in paramstats])
+            paramstats = dict(
+                [(x.split(":")[0], x.split(":")[1]) for x in paramstats]
+            )
 
         # Unique method without band / raster number
         elif len(paramstats) == 1:
@@ -367,7 +377,9 @@ def checkmethodstats(rasters, paramstats, nbbands):
             paramstats[keys] = "stats"
 
         if paramstats[keys] not in ("stats", "statsmaj", "rate", "val"):
-            raise Exception("The method %s is not implemented" % (paramstats[0]))
+            raise Exception(
+                "The method %s is not implemented" % (paramstats[0])
+            )
 
     # requested stats and band number ?
     maxband = max([int(x) for x in list(paramstats.keys())])
@@ -483,7 +495,9 @@ def storeRasterInArray(rasters):
     # Populate output ndarrays
     if len(rasters) == 1:
         for nbband in range(nbbands):
-            outdata[:, :, nbband] = fut.readRaster(rasters[0], True, nbband + 1)[0]
+            outdata[:, :, nbband] = fut.readRaster(
+                rasters[0], True, nbband + 1
+            )[0]
 
     elif len(rasters) > 1:
         for idx, raster in enumerate(rasters):
@@ -733,7 +747,9 @@ def computeStats(bands, paramstats, dataframe, idval, nodata=0):
                             set(list(dataframe.columns))
                         )
                     )
-                    dataframe = pad.concat([dataframe, classStats[newcols]], axis=1)
+                    dataframe = pad.concat(
+                        [dataframe, classStats[newcols]], axis=1
+                    )
 
                 dataframe.fillna(np.nan, inplace=True)
 
@@ -748,7 +764,9 @@ def computeStats(bands, paramstats, dataframe, idval, nodata=0):
 
                 dataframe.update(
                     pad.DataFrame(
-                        data=[rasterStats(band, nbband)], index=[idval], columns=cols
+                        data=[rasterStats(band, nbband)],
+                        index=[idval],
+                        columns=cols,
                     )
                 )
 
@@ -759,7 +777,9 @@ def computeStats(bands, paramstats, dataframe, idval, nodata=0):
                         idxbdclasses = [
                             x for x in paramstats if paramstats[x] == "rate"
                         ][0]
-                        posclassmaj = getClassMaj(bands, methodstat, idxbdclasses)
+                        posclassmaj = getClassMaj(
+                            bands, methodstat, idxbdclasses
+                        )
                     else:
                         raise Exception(
                             "No classification raster provided "
@@ -784,7 +804,9 @@ def computeStats(bands, paramstats, dataframe, idval, nodata=0):
             ### Descriptive statistics for one class ###
             elif "stats_" in methodstat:
                 if "rate" in list(paramstats.values()):
-                    idxbdclasses = [x for x in paramstats if paramstats[x] == "rate"][0]
+                    idxbdclasses = [
+                        x for x in paramstats if paramstats[x] == "rate"
+                    ][0]
                     posclass = getClassMaj(bands, methodstat, idxbdclasses)
                 else:
                     raise Exception(
@@ -811,7 +833,9 @@ def computeStats(bands, paramstats, dataframe, idval, nodata=0):
     return dataframe
 
 
-def extractPixelValue(rasters, bands, paramstats, xpt, ypt, dataframe, idval=0):
+def extractPixelValue(
+    rasters, bands, paramstats, xpt, ypt, dataframe, idval=0
+):
     """Extract pixel value and store it on a Pandas dataframe
 
     Parameters
@@ -965,10 +989,14 @@ def dataframeExport(geodataframe, output, schema):
         driver = "ESRI Shapefile"
         convert = True
     else:
-        raise Exception("The output format '%s' is not handled" % (outformat[1:]))
+        raise Exception(
+            "The output format '%s' is not handled" % (outformat[1:])
+        )
 
     if not convert:
-        geodataframe.to_file(output, driver=driver, schema=schema, encoding="utf-8")
+        geodataframe.to_file(
+            output, driver=driver, schema=schema, encoding="utf-8"
+        )
     else:
         outputinter = os.path.splitext(output)[0] + ".shp"
         geodataframe.to_file(
@@ -1037,7 +1065,9 @@ def zonalstats(
 
     """
 
-    logger.info("Begin to compute zonal statistics for vector file %s" % (output))
+    logger.info(
+        "Begin to compute zonal statistics for vector file %s" % (output)
+    )
 
     if os.path.exists(output):
         return
@@ -1144,7 +1174,9 @@ def zonalstats(
     # exportation
     dataframeExport(stats, output, schema)
 
-    logger.info("End to compute zonal statistics for vector file %s" % (output))
+    logger.info(
+        "End to compute zonal statistics for vector file %s" % (output)
+    )
 
 
 def iota2Formatting(invector, classes, outvector=""):
@@ -1234,8 +1266,12 @@ def splitVectorFeatures(vectorpath, outputPath, chunk=1, byarea=False):
                 listfid = list(filter(None, listfid))
 
             if len(listfid) == 1:
-                outfile = os.path.splitext(os.path.basename(vect))[0] + "_stats.shp"
-                params.append((vect, listfid[0], os.path.join(outputPath, outfile)))
+                outfile = (
+                    os.path.splitext(os.path.basename(vect))[0] + "_stats.shp"
+                )
+                params.append(
+                    (vect, listfid[0], os.path.join(outputPath, outfile))
+                )
             else:
                 for idchunk, fidlist in enumerate(listfid):
                     outfile = (
@@ -1244,7 +1280,9 @@ def splitVectorFeatures(vectorpath, outputPath, chunk=1, byarea=False):
                         + str(idchunk)
                         + ".shp"
                     )
-                    params.append((vect, fidlist, os.path.join(outputPath, outfile)))
+                    params.append(
+                        (vect, fidlist, os.path.join(outputPath, outfile))
+                    )
 
     else:
         vect = vectorpath
@@ -1282,7 +1320,8 @@ def computZonalStats(
         for ext in [".shp", ".dbf", ".shx", ".prj", ".cpg"]:
             try:
                 shutil.copy(
-                    os.path.splitext(tmp)[0] + ext, os.path.splitext(shape)[0] + ext
+                    os.path.splitext(tmp)[0] + ext,
+                    os.path.splitext(shape)[0] + ext,
                 )
                 os.remove(os.path.splitext(tmp)[0] + ext)
             except BaseException:
@@ -1316,7 +1355,10 @@ def getVectorsChunks(inpath, inbase="dept_"):
 
     listout = fut.FileSearch_AND(inpath, True, inbase, ".shp", "chk")
     listofchkofzones = fut.sortByFirstElem(
-        [("_".join(x.split("_")[0 : len(x.split("_")) - 1]), x) for x in listout]
+        [
+            ("_".join(x.split("_")[0 : len(x.split("_")) - 1]), x)
+            for x in listout
+        ]
     )
 
     return listofchkofzones
@@ -1332,7 +1374,8 @@ def mergeSubVector(
 ):
 
     zoneval = listofchkofzones[0].split("_")[
-        len(listofchkofzones[0].split("_")) - 1 : len(listofchkofzones[0].split("_"))
+        len(listofchkofzones[0].split("_"))
+        - 1 : len(listofchkofzones[0].split("_"))
     ]
     outfile = os.path.join(outpath, outbase + zoneval[0] + ".shp")
 
@@ -1383,7 +1426,11 @@ if __name__ == "__main__":
             formatter_class=argparse.RawTextHelpFormatter,
         )
         PARSER.add_argument(
-            "-wd", dest="path", action="store", help="working dir", required=True
+            "-wd",
+            dest="path",
+            action="store",
+            help="working dir",
+            required=True,
         )
         PARSER.add_argument(
             "-inr",
@@ -1453,7 +1500,9 @@ if __name__ == "__main__":
         PARSER.add_argument(
             "-classes", dest="classes", action="store", help="", default=""
         )
-        PARSER.add_argument("-buffer", dest="buff", action="store", help="", default="")
+        PARSER.add_argument(
+            "-buffer", dest="buff", action="store", help="", default=""
+        )
         PARSER.add_argument(
             "-syscall",
             action="store_true",
@@ -1461,7 +1510,11 @@ if __name__ == "__main__":
             default=False,
         )
         PARSER.add_argument(
-            "-gdal_cache", dest="cache", action="store", help="", default="1000"
+            "-gdal_cache",
+            dest="cache",
+            action="store",
+            help="",
+            default="1000",
         )
         PARSER.add_argument(
             "-iota2",

@@ -35,7 +35,9 @@ class genSyntheticSamples(IOTA2Step.Step):
         self.ground_truth = SCF.serviceConfigFile(self.cfg).getParam(
             "chain", "groundTruth"
         )
-        self.data_field = SCF.serviceConfigFile(self.cfg).getParam("chain", "dataField")
+        self.data_field = SCF.serviceConfigFile(self.cfg).getParam(
+            "chain", "dataField"
+        )
         self.sample_augmentation = SCF.serviceConfigFile(self.cfg).getParam(
             "argTrain", "sampleAugmentation"
         )
@@ -55,7 +57,9 @@ class genSyntheticSamples(IOTA2Step.Step):
         """
         from Sampling import DataAugmentation
 
-        return DataAugmentation.GetDataAugmentationSyntheticParameters(self.output_path)
+        return DataAugmentation.GetDataAugmentationSyntheticParameters(
+            self.output_path
+        )
 
     def step_execute(self):
         """

@@ -32,7 +32,9 @@ class confusionsMerge(IOTA2Step.Step):
         self.output_path = SCF.serviceConfigFile(self.cfg).getParam(
             "chain", "outputPath"
         )
-        self.data_field = SCF.serviceConfigFile(self.cfg).getParam("chain", "dataField")
+        self.data_field = SCF.serviceConfigFile(self.cfg).getParam(
+            "chain", "dataField"
+        )
         self.ground_truth = SCF.serviceConfigFile(self.cfg).getParam(
             "chain", "groundTruth"
         )

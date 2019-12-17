@@ -194,14 +194,18 @@ font-weight: bold;\n\
                 ind = data.index("green")
                 greenVal = int(
                     getStringBetween(
-                        data[ind + len("green") : ind + len("green") + 7], '"', '"'
+                        data[ind + len("green") : ind + len("green") + 7],
+                        '"',
+                        '"',
                     )
                 )
                 # Get the blue value
                 ind = data.index("blue")
                 blueVal = int(
                     getStringBetween(
-                        data[ind + len("blue") : ind + len("blue") + 7], '"', '"'
+                        data[ind + len("blue") : ind + len("blue") + 7],
+                        '"',
+                        '"',
                     )
                 )
                 # Get the Class Name
@@ -219,10 +223,19 @@ font-weight: bold;\n\
                 for ClassNumber, FScore in classifRes:
                     if ClassNumber == ClassNum:
                         lineData.append(
-                            (ClassNum, ClassName, redVal, greenVal, blueVal, FScore)
+                            (
+                                ClassNum,
+                                ClassName,
+                                redVal,
+                                greenVal,
+                                blueVal,
+                                FScore,
+                            )
                         )
                 if ClassName == "autres":
-                    lineData.append((ClassNum, ClassName, redVal, greenVal, blueVal))
+                    lineData.append(
+                        (ClassNum, ClassName, redVal, greenVal, blueVal)
+                    )
 
         color.close()
         for i in range(len(lineData)):

@@ -36,7 +36,9 @@ class samplesMerge(IOTA2Step.Step):
         self.field_region = SCF.serviceConfigFile(self.cfg).getParam(
             "chain", "regionField"
         )
-        self.nb_runs = SCF.serviceConfigFile(self.cfg).getParam("chain", "runs")
+        self.nb_runs = SCF.serviceConfigFile(self.cfg).getParam(
+            "chain", "runs"
+        )
 
     def step_description(self):
         """
@@ -68,7 +70,9 @@ class samplesMerge(IOTA2Step.Step):
         from Sampling import SplitSamples as splitS
 
         def step_function(x):
-            return samples_merge.samples_merge(x, self.cfg, self.workingDirectory)
+            return samples_merge.samples_merge(
+                x, self.cfg, self.workingDirectory
+            )
 
         return step_function
 

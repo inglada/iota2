@@ -76,13 +76,17 @@ def remove_old_dates(img_list, new_dates):
 
     img_to_outcore = []
     for img in img_list:
-        img_date = os.path.basename(img).split("_")[date_pos].replace(".tif", "")
+        img_date = (
+            os.path.basename(img).split("_")[date_pos].replace(".tif", "")
+        )
         if img_date in new_dates:
             img_to_outcore.append(img)
     return img_to_outcore
 
 
-def main(ortho=None, configFile=None, dates=None, tileName=None, logger=logger):
+def main(
+    ortho=None, configFile=None, dates=None, tileName=None, logger=logger
+):
 
     import ast
     from Common import FileUtils
@@ -117,7 +121,9 @@ def main(ortho=None, configFile=None, dates=None, tileName=None, logger=logger):
             key=getDatesInOtbOutputName,
         )
         if s1_vv_DES_scene:
-            outcore_s1_vv_DES = os.path.join(directories[0], d, "outcore_S1_vv_DES.tif")
+            outcore_s1_vv_DES = os.path.join(
+                directories[0], d, "outcore_S1_vv_DES.tif"
+            )
             outcore_s1_vv_DES_dates = os.path.join(
                 directories[0], d, "S1_vv_DES_dates.txt"
             )
@@ -155,7 +161,9 @@ def main(ortho=None, configFile=None, dates=None, tileName=None, logger=logger):
             key=getDatesInOtbOutputName,
         )
         if s1_vh_DES_scene:
-            outcore_s1_vh_DES = os.path.join(directories[0], d, "outcore_S1_vh_DES.tif")
+            outcore_s1_vh_DES = os.path.join(
+                directories[0], d, "outcore_S1_vh_DES.tif"
+            )
             outcore_s1_vh_DES_dates = os.path.join(
                 directories[0], d, "S1_vh_DES_dates.txt"
             )
@@ -193,7 +201,9 @@ def main(ortho=None, configFile=None, dates=None, tileName=None, logger=logger):
             key=getDatesInOtbOutputName,
         )
         if s1_vv_ASC_scene:
-            outcore_s1_vv_ASC = os.path.join(directories[0], d, "outcore_S1_vv_ASC.tif")
+            outcore_s1_vv_ASC = os.path.join(
+                directories[0], d, "outcore_S1_vv_ASC.tif"
+            )
             outcore_s1_vv_ASC_dates = os.path.join(
                 directories[0], d, "S1_vv_ASC_dates.txt"
             )
@@ -231,7 +241,9 @@ def main(ortho=None, configFile=None, dates=None, tileName=None, logger=logger):
             key=getDatesInOtbOutputName,
         )
         if s1_vh_ASC_scene:
-            outcore_s1_vh_ASC = os.path.join(directories[0], d, "outcore_S1_vh_ASC.tif")
+            outcore_s1_vh_ASC = os.path.join(
+                directories[0], d, "outcore_S1_vh_ASC.tif"
+            )
             outcore_s1_vh_ASC_dates = os.path.join(
                 directories[0], d, "S1_vh_ASC_dates.txt"
             )

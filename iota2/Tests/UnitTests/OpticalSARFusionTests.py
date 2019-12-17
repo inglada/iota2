@@ -59,7 +59,9 @@ class iota_testOpticalSARFusion(unittest.TestCase):
         self.opt_confusion = os.path.join(
             IOTA2DIR, "data", "references", "opt_confusion.csv"
         )
-        self.sar_classif = np.array([[11, 12, 31], [42, 51, 11], [11, 43, 11]][::-1])
+        self.sar_classif = np.array(
+            [[11, 12, 31], [42, 51, 11], [11, 43, 11]][::-1]
+        )
         self.optical_classif = np.array(
             [[12, 42, 31], [11, 43, 51], [43, 51, 42]][::-1]
         )
@@ -78,7 +80,9 @@ class iota_testOpticalSARFusion(unittest.TestCase):
             ][::-1]
         )
         # References
-        self.ds_fusion_ref = np.array([[11, 42, 31], [42, 43, 11], [11, 51, 11]][::-1])
+        self.ds_fusion_ref = np.array(
+            [[11, 42, 31], [42, 43, 11], [11, 51, 11]][::-1]
+        )
         self.choice_map_ref = np.array([[2, 3, 1], [2, 3, 2], [2, 3, 2]][::-1])
         self.ds_fus_confidence_ref = np.array(
             [
@@ -149,7 +153,9 @@ class iota_testOpticalSARFusion(unittest.TestCase):
             result = self.defaultTestResult()
             self._feedErrorsToResult(result, self._outcome.errors)
         else:
-            result = getattr(self, "_outcomeForDoCleanups", self._resultForDoCleanups)
+            result = getattr(
+                self, "_outcomeForDoCleanups", self._resultForDoCleanups
+            )
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
         ok = not error and not failure
@@ -173,19 +179,27 @@ class iota_testOpticalSARFusion(unittest.TestCase):
         cfg.setParam("chain", "outputPath", iota2_dir)
 
         IOTA2Directory.GenerateDirectories(cfg)
-        iota2_ds_confusions_dir = os.path.join(iota2_dir, "dataAppVal", "bymodels")
+        iota2_ds_confusions_dir = os.path.join(
+            iota2_dir, "dataAppVal", "bymodels"
+        )
         fut.ensure_dir(iota2_ds_confusions_dir)
         # generate some fake data
         nb_seed = 2
         for i in range(nb_seed):
             fake_classif_opt = os.path.join(
-                iota2_dir, "classif", "Classif_T31TCJ_model_1_seed_{}.tif".format(i)
+                iota2_dir,
+                "classif",
+                "Classif_T31TCJ_model_1_seed_{}.tif".format(i),
             )
             fake_classif_sar = os.path.join(
-                iota2_dir, "classif", "Classif_T31TCJ_model_1_seed_{}_SAR.tif".format(i)
+                iota2_dir,
+                "classif",
+                "Classif_T31TCJ_model_1_seed_{}_SAR.tif".format(i),
             )
             fake_confidence_opt = os.path.join(
-                iota2_dir, "classif", "T31TCJ_model_1_confidence_seed_{}.tif".format(i)
+                iota2_dir,
+                "classif",
+                "T31TCJ_model_1_confidence_seed_{}.tif".format(i),
             )
             fake_confidence_sar = os.path.join(
                 iota2_dir,
@@ -241,7 +255,8 @@ class iota_testOpticalSARFusion(unittest.TestCase):
 
         # define inputs
         sar_raster = os.path.join(
-            self.test_working_directory, "Classif_T31TCJ_model_1_seed_0_SAR.tif"
+            self.test_working_directory,
+            "Classif_T31TCJ_model_1_seed_0_SAR.tif",
         )
         opt_raster = os.path.join(
             self.test_working_directory, "Classif_T31TCJ_model_1_seed_0.tif"
@@ -282,7 +297,8 @@ class iota_testOpticalSARFusion(unittest.TestCase):
 
         # define inputs
         sar_raster = os.path.join(
-            self.test_working_directory, "Classif_T31TCJ_model_1_seed_0_SAR.tif"
+            self.test_working_directory,
+            "Classif_T31TCJ_model_1_seed_0_SAR.tif",
         )
         opt_raster = os.path.join(
             self.test_working_directory, "Classif_T31TCJ_model_1_seed_0.tif"
@@ -338,7 +354,8 @@ class iota_testOpticalSARFusion(unittest.TestCase):
 
         # define inputs
         sar_raster = os.path.join(
-            self.test_working_directory, "Classif_T31TCJ_model_1_seed_0_SAR.tif"
+            self.test_working_directory,
+            "Classif_T31TCJ_model_1_seed_0_SAR.tif",
         )
         opt_raster = os.path.join(
             self.test_working_directory, "Classif_T31TCJ_model_1_seed_0.tif"
@@ -347,13 +364,18 @@ class iota_testOpticalSARFusion(unittest.TestCase):
         arrayToRaster(self.optical_classif, opt_raster)
 
         sar_confid_raster = os.path.join(
-            self.test_working_directory, "T31TCJ_model_1_confidence_seed_0_SAR.tif"
+            self.test_working_directory,
+            "T31TCJ_model_1_confidence_seed_0_SAR.tif",
         )
         opt_confid_raster = os.path.join(
             self.test_working_directory, "T31TCJ_model_1_confidence_seed_0.tif"
         )
-        arrayToRaster(self.sar_confidence, sar_confid_raster, output_format="float")
-        arrayToRaster(self.optical_confidence, opt_confid_raster, output_format="float")
+        arrayToRaster(
+            self.sar_confidence, sar_confid_raster, output_format="float"
+        )
+        arrayToRaster(
+            self.optical_confidence, opt_confid_raster, output_format="float"
+        )
 
         ds_choice = os.path.join(self.test_working_directory, "choice.tif")
         arrayToRaster(self.choice_map_ref, ds_choice)
@@ -396,7 +418,8 @@ class iota_testOpticalSARFusion(unittest.TestCase):
 
         # define inputs
         sar_raster = os.path.join(
-            self.test_working_directory, "Classif_T31TCJ_model_1_seed_0_SAR.tif"
+            self.test_working_directory,
+            "Classif_T31TCJ_model_1_seed_0_SAR.tif",
         )
         opt_raster = os.path.join(
             self.test_working_directory, "Classif_T31TCJ_model_1_seed_0.tif"
@@ -405,13 +428,18 @@ class iota_testOpticalSARFusion(unittest.TestCase):
         arrayToRaster(self.optical_classif, opt_raster)
 
         sar_confid_raster = os.path.join(
-            self.test_working_directory, "T31TCJ_model_1_confidence_seed_0_SAR.tif"
+            self.test_working_directory,
+            "T31TCJ_model_1_confidence_seed_0_SAR.tif",
         )
         opt_confid_raster = os.path.join(
             self.test_working_directory, "T31TCJ_model_1_confidence_seed_0.tif"
         )
-        arrayToRaster(self.sar_confidence, sar_confid_raster, output_format="float")
-        arrayToRaster(self.optical_confidence, opt_confid_raster, output_format="float")
+        arrayToRaster(
+            self.sar_confidence, sar_confid_raster, output_format="float"
+        )
+        arrayToRaster(
+            self.optical_confidence, opt_confid_raster, output_format="float"
+        )
 
         ds_choice = os.path.join(self.test_working_directory, "choice.tif")
         arrayToRaster(self.choice_map_ref, ds_choice)
@@ -427,23 +455,36 @@ class iota_testOpticalSARFusion(unittest.TestCase):
         # random probability maps
         sar_probamap_arr = [
             np.array([[253, 874, 600], [947, 812, 941], [580, 94, 192]][::-1]),
-            np.array([[541, 711, 326], [273, 915, 698], [296, 1000, 624]][::-1]),
-            np.array([[253, 290, 610], [406, 685, 333], [302, 410, 515]][::-1]),
+            np.array(
+                [[541, 711, 326], [273, 915, 698], [296, 1000, 624]][::-1]
+            ),
+            np.array(
+                [[253, 290, 610], [406, 685, 333], [302, 410, 515]][::-1]
+            ),
             np.array([[216, 766, 98], [914, 288, 504], [70, 631, 161]][::-1]),
-            np.array([[371, 873, 134], [477, 701, 765], [549, 301, 847]][::-1]),
+            np.array(
+                [[371, 873, 134], [477, 701, 765], [549, 301, 847]][::-1]
+            ),
             np.array([[870, 201, 85], [555, 644, 802], [98, 807, 77]][::-1]),
         ]
         opt_probamap_arr = [
-            np.array([[268, 528, 131], [514, 299, 252], [725, 427, 731]][::-1]),
+            np.array(
+                [[268, 528, 131], [514, 299, 252], [725, 427, 731]][::-1]
+            ),
             np.array([[119, 241, 543], [974, 629, 626], [3, 37, 819]][::-1]),
             np.array([[409, 534, 710], [916, 43, 993], [207, 68, 282]][::-1]),
-            np.array([[820, 169, 423], [710, 626, 525], [377, 777, 461]][::-1]),
-            np.array([[475, 116, 395], [838, 297, 262], [650, 828, 595]][::-1]),
+            np.array(
+                [[820, 169, 423], [710, 626, 525], [377, 777, 461]][::-1]
+            ),
+            np.array(
+                [[475, 116, 395], [838, 297, 262], [650, 828, 595]][::-1]
+            ),
             np.array([[940, 261, 20], [339, 934, 278], [444, 326, 219]][::-1]),
         ]
         # to rasters
         sar_probamap_path = os.path.join(
-            self.test_working_directory, "PROBAMAP_T31TCJ_model_1_seed_0_SAR.tif"
+            self.test_working_directory,
+            "PROBAMAP_T31TCJ_model_1_seed_0_SAR.tif",
         )
         arrayToRaster(sar_probamap_arr, sar_probamap_path)
         opt_probamap_path = os.path.join(
@@ -538,8 +579,12 @@ class iota_testOpticalSARFusion(unittest.TestCase):
         opt_confid_raster = os.path.join(
             iota2_dir, "classif", "T31TCJ_model_1_confidence_seed_0.tif"
         )
-        arrayToRaster(self.sar_confidence, sar_confid_raster, output_format="float")
-        arrayToRaster(self.optical_confidence, opt_confid_raster, output_format="float")
+        arrayToRaster(
+            self.sar_confidence, sar_confid_raster, output_format="float"
+        )
+        arrayToRaster(
+            self.optical_confidence, opt_confid_raster, output_format="float"
+        )
 
         fusion_dic = {
             "sar_classif": sar_raster,
@@ -555,7 +600,10 @@ class iota_testOpticalSARFusion(unittest.TestCase):
             probamap_path,
             choice_path,
         ) = Fusion.dempster_shafer_fusion(
-            iota2_dir, fusion_dic, mob="precision", workingDirectory=workingDirectory
+            iota2_dir,
+            fusion_dic,
+            mob="precision",
+            workingDirectory=workingDirectory,
         )
         self.assertEqual(
             "/classif/Classif_T31TCJ_model_1_seed_0_DS.tif",

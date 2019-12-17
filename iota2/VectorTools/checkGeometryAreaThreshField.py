@@ -15,7 +15,9 @@ from VectorTools import SimplifyPoly
 import argparse
 
 
-def checkGeometryAreaThreshField(shapefile, pixelArea, pix_thresh, outshape=""):
+def checkGeometryAreaThreshField(
+    shapefile, pixelArea, pix_thresh, outshape=""
+):
 
     tmpfile = []
 
@@ -36,14 +38,18 @@ def checkGeometryAreaThreshField(shapefile, pixelArea, pix_thresh, outshape=""):
         print(e)
 
     # suppression des doubles géométries
-    DeleteDuplicateGeometriesSqlite.deleteDuplicateGeometriesSqlite(outShapefileGeom)
+    DeleteDuplicateGeometriesSqlite.deleteDuplicateGeometriesSqlite(
+        outShapefileGeom
+    )
 
     # Suppression des multipolygons
     shapefileNoDupspoly = outShapefileGeom[:-4] + "spoly" + ".shp"
     tmpfile.append(shapefileNoDupspoly)
     try:
         MultiPolyToPoly.multipoly2poly(outShapefileGeom, shapefileNoDupspoly)
-        print("Conversion of multipolygons shapefile to single polygons succeeded")
+        print(
+            "Conversion of multipolygons shapefile to single polygons succeeded"
+        )
     except Exception as e:
         print(
             "Conversion of multipolygons shapefile to single polygons did not work for the following error :"
@@ -67,8 +73,12 @@ def checkGeometryAreaThreshField(shapefile, pixelArea, pix_thresh, outshape=""):
 
     # Filter by Area
     try:
-        SelectBySize.selectBySize(shapefileNoDupspoly, "Area", pix_thresh, outshape)
-        print("Selection by size upper {} pixel(s) succeeded".format(pix_thresh))
+        SelectBySize.selectBySize(
+            shapefileNoDupspoly, "Area", pix_thresh, outshape
+        )
+        print(
+            "Selection by size upper {} pixel(s) succeeded".format(pix_thresh)
+        )
     except Exception as e:
         print("Selection by size did not work for the following error :")
         print(e)
@@ -107,7 +117,11 @@ if __name__ == "__main__":
             required=True,
         )
         parser.add_argument(
-            "-p", dest="pixelSize", action="store", help="Pixel size", required=True
+            "-p",
+            dest="pixelSize",
+            action="store",
+            help="Pixel size",
+            required=True,
         )
         parser.add_argument(
             "-at",

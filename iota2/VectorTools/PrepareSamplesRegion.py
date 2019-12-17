@@ -124,21 +124,33 @@ def gestionFields(cfg, classe, source, ss_source):
             indSource = list(cfg.Nomenclature[classe].Source).index(source)
         else:
             if source in cfg:
-                if isinstance(cfg.Nomenclature[classe][source], config.Sequence):
-                    indSource = list(cfg.Nomenclature[classe][source]).index(ss_source)
+                if isinstance(
+                    cfg.Nomenclature[classe][source], config.Sequence
+                ):
+                    indSource = list(cfg.Nomenclature[classe][source]).index(
+                        ss_source
+                    )
 
         if isinstance(cfg.Nomenclature[classe].Champs, config.Sequence):
             chp = cfg.Nomenclature[classe].Champs[indSource]
             if isinstance(chp, config.Sequence):
                 for i in range(len(chp)):
                     chpValue.append(
-                        [chp[i], cfg.Nomenclature[classe].CodesSource[indSource][i]]
+                        [
+                            chp[i],
+                            cfg.Nomenclature[classe].CodesSource[indSource][i],
+                        ]
                     )
             else:
-                chpValue.append([chp, cfg.Nomenclature[classe].CodesSource[indSource]])
+                chpValue.append(
+                    [chp, cfg.Nomenclature[classe].CodesSource[indSource]]
+                )
         else:
             chpValue.append(
-                [cfg.Nomenclature[classe].Champs, cfg.Nomenclature[classe].CodesSource]
+                [
+                    cfg.Nomenclature[classe].Champs,
+                    cfg.Nomenclature[classe].CodesSource,
+                ]
             )
 
         return chpValue
@@ -160,18 +172,24 @@ def gestionSources(cfg, classe, source):
                     filesources = cfg[source][typesource]
                     if isinstance(filesources, config.Sequence):
                         for filesource in filesources:
-                            pathList.append(cfg.globalPath[source] + "/" + filesource)
+                            pathList.append(
+                                cfg.globalPath[source] + "/" + filesource
+                            )
                             chpValue = gestionFields(cfg, classe, source, None)
                     else:
                         multival = True
                         pathList.append(cfg.globalPath[source] + "/")
-                        chpValue = gestionFields(cfg, classe, source, typesource)
+                        chpValue = gestionFields(
+                            cfg, classe, source, typesource
+                        )
                         chpValues.append([typesource, filesources, chpValue])
             else:
                 filesources = cfg[source][typesources]
                 if isinstance(filesources, config.Sequence):
                     for filesource in filesources:
-                        pathList.append(cfg.globalPath[source] + "/" + filesource)
+                        pathList.append(
+                            cfg.globalPath[source] + "/" + filesource
+                        )
                         chpValue = gestionFields(cfg, classe, source, None)
                 else:
                     pathList.append(cfg.globalPath[source] + "/" + filesources)
@@ -207,7 +225,9 @@ def gestionTraitementsClasse(
 
         if os.path.exists(outfile):
 
-            manageFieldShapefile(outfile, cfg.Nomenclature[classe].Code, area_thresh)
+            manageFieldShapefile(
+                outfile, cfg.Nomenclature[classe].Code, area_thresh
+            )
 
             # Verification de la géométrie
             vf.checkValidGeom(outfile)
@@ -223,21 +243,37 @@ def gestionTraitementsClasse(
             if buff == "None":
                 buff = None
             # wkbLineString/wkbMultiLineString/wkbMultiLineString25D/wkbLineString25D
-            if typeGeom in [2, 5, -2147483643, -2147483646] and buff is not None:
-                outfile_buffline = outfile_ssdb[:-4] + "buffline" + str(buff) + ".shp"
+            if (
+                typeGeom in [2, 5, -2147483643, -2147483646]
+                and buff is not None
+            ):
+                outfile_buffline = (
+                    outfile_ssdb[:-4] + "buffline" + str(buff) + ".shp"
+                )
                 BufferOgr.bufferPoly(outfile_ssdb, outfile_buffline, int(buff))
                 outfile_buff = outfile_buffline
             # wkbPolygon/wkbMultiPolygon/wkbPolygon25D/wkbMultiPolygon25D
-            elif typeGeom in [3, 6, -2147483645, -2147483642] and buff is not None:
+            elif (
+                typeGeom in [3, 6, -2147483645, -2147483642]
+                and buff is not None
+            ):
                 outfile_buffsurf_tmp = (
                     outfile_ssdb[:-4] + "buffsurf" + str(buff) + "_tmp.shp"
                 )
-                outfile_buffsurf = outfile_ssdb[:-4] + "buffsurf" + str(buff) + ".shp"
-                BufferOgr.bufferPoly(outfile_ssdb, outfile_buffsurf_tmp, int(buff))
-                BufferOgr.bufferPoly(outfile_buffsurf_tmp, outfile_buffsurf, -int(buff))
+                outfile_buffsurf = (
+                    outfile_ssdb[:-4] + "buffsurf" + str(buff) + ".shp"
+                )
+                BufferOgr.bufferPoly(
+                    outfile_ssdb, outfile_buffsurf_tmp, int(buff)
+                )
+                BufferOgr.bufferPoly(
+                    outfile_buffsurf_tmp, outfile_buffsurf, -int(buff)
+                )
                 outfile_buff = outfile_buffsurf
             else:
-                outfile_buff = outfile_ssdb[:-4] + "buffinv" + str(res) + ".shp"
+                outfile_buff = (
+                    outfile_ssdb[:-4] + "buffinv" + str(res) + ".shp"
+                )
                 BufferOgr.bufferPoly(outfile_ssdb, outfile_buff, -int(res))
 
             # Suppression des multipolygons
@@ -248,8 +284,12 @@ def gestionTraitementsClasse(
             AddFieldArea.addFieldArea(outfile_spoly, area_thresh)
 
             # Selection en fonction de la surface des polygones
-            outfile_area = outfile_spoly[:-4] + "sup" + str(pix_thresh) + "pix.shp"
-            SelectBySize.selectBySize(outfile_spoly, "Area", pix_thresh, outfile_area)
+            outfile_area = (
+                outfile_spoly[:-4] + "sup" + str(pix_thresh) + "pix.shp"
+            )
+            SelectBySize.selectBySize(
+                outfile_spoly, "Area", pix_thresh, outfile_area
+            )
 
             # Verification de la géométrie
             vf.checkValidGeom(outfile_area)
@@ -276,7 +316,9 @@ def gestionTraitementsClasse(
         if buff == "None":
             buff = None
         if typeGeom in [2, 5, -2147483643, -2147483646] and buff is not None:
-            outfile_buff_mask = outfile[:-4] + "buffline" + str(buff) + "_mask.shp"
+            outfile_buff_mask = (
+                outfile[:-4] + "buffline" + str(buff) + "_mask.shp"
+            )
             BufferOgr.bufferPoly(outfile, outfile_buff_mask, int(buff))
             os.system("ls {}".format(outfile_buff_mask))
             return outfile_buff_mask
@@ -286,7 +328,14 @@ def gestionTraitementsClasse(
 
 
 def gestionSamplesClasse(
-    cfg, classe, source, ouputPath, res, area_thresh, pix_thresh, lineBuffer=None
+    cfg,
+    classe,
+    source,
+    ouputPath,
+    res,
+    area_thresh,
+    pix_thresh,
+    lineBuffer=None,
 ):
 
     if cfg.globalPath[source] == "Database":
@@ -300,7 +349,9 @@ def gestionSamplesClasse(
             cfg.DataBase[source].schema,
         )
         lyr = conn.GetLayer(
-            "{}.{}".format(cfg.DataBase[source].schema, cfg.DataBase[source].table)
+            "{}.{}".format(
+                cfg.DataBase[source].schema, cfg.DataBase[source].table
+            )
         )
 
         # Create shapefile (non testé)
@@ -337,7 +388,9 @@ def gestionSamplesClasse(
         lyrRPG = None
         conn = None
     else:
-        pathList, sourcedb, chpvalue, formatData = gestionSources(cfg, classe, source)
+        pathList, sourcedb, chpvalue, formatData = gestionSources(
+            cfg, classe, source
+        )
         # Creation d'un fichier shapefile par classe
         if not isinstance(chpvalue, list) or len(chpvalue) == 1:
             if chpvalue[0][0] == "None":
@@ -357,7 +410,9 @@ def gestionSamplesClasse(
                             + ".shp"
                         )
                     else:
-                        outfile = ouputPath + "/" + sourcedb + "_" + classe + ".shp"
+                        outfile = (
+                            ouputPath + "/" + sourcedb + "_" + classe + ".shp"
+                        )
 
                     vf.copyShapefile(path, outfile)
                     out = gestionTraitementsClasse(
@@ -402,7 +457,9 @@ def gestionSamplesClasse(
                             + ".shp"
                         )
                     else:
-                        outfile = ouputPath + "/" + sourcedb + "_" + classe + ".shp"
+                        outfile = (
+                            ouputPath + "/" + sourcedb + "_" + classe + ".shp"
+                        )
 
                     chp = chpvalue[0][0]
                     value = chpvalue[0][1]
@@ -466,7 +523,9 @@ def gestionSamplesClasse(
                     value = chpvalue[nbfile][1]
                     # cas des valeurs avec apostrophe
                     # value = value.replace("'","''")
-                    FileByClass.FileByClass(path, chp, value, outpathList[nbfile])
+                    FileByClass.FileByClass(
+                        path, chp, value, outpathList[nbfile]
+                    )
                     # os.system("ls {}".format(outpathList[nbfile]))
                     nbfile += 1
 
@@ -587,7 +646,9 @@ def clipFile(cfg, ouputPath, source):
         )
         os.system(command)
     else:
-        print("Clip of a database layer will be managed after database extraction")
+        print(
+            "Clip of a database layer will be managed after database extraction"
+        )
 
 
 def gestionFichierFinal(
@@ -605,7 +666,9 @@ def gestionFichierFinal(
                     + ".shp"
                 )
                 vf.copyShapefile(outfile_area, outpathfinal)
-                manageListSources(samples_shapefile_source, outpathfinal, source)
+                manageListSources(
+                    samples_shapefile_source, outpathfinal, source
+                )
             else:
                 outpathfinal = (
                     "/".join([ouputPath, "final"])
@@ -613,7 +676,9 @@ def gestionFichierFinal(
                     + os.path.basename(outfile_area)
                 )
                 vf.copyShapefile(outfile_area, outpathfinal)
-                manageListSources(samples_shapefile_source, outpathfinal, source)
+                manageListSources(
+                    samples_shapefile_source, outpathfinal, source
+                )
         else:
             for fileout in outfile_area:
                 if "mask" not in fileout:
@@ -626,13 +691,19 @@ def gestionFichierFinal(
                         + ".shp"
                     )
                     vf.copyShapefile(fileout, outpathfinal)
-                    manageListSources(samples_shapefile_source, outpathfinal, source)
+                    manageListSources(
+                        samples_shapefile_source, outpathfinal, source
+                    )
                 else:
                     outpathfinal = (
-                        "/".join([ouputPath, "final"]) + "/" + os.path.basename(fileout)
+                        "/".join([ouputPath, "final"])
+                        + "/"
+                        + os.path.basename(fileout)
                     )
                     vf.copyShapefile(fileout, outpathfinal)
-                    manageListSources(samples_shapefile_source, outpathfinal, source)
+                    manageListSources(
+                        samples_shapefile_source, outpathfinal, source
+                    )
 
     return samples_shapefile_source
 
@@ -693,7 +764,13 @@ def gestion_echantillons(Fileconfig, ouputPath):
                         )
                     else:
                         outfile_area = gestionSamplesClasse(
-                            cfg, classe, source, ouputPath, res, area_thresh, pix_thresh
+                            cfg,
+                            classe,
+                            source,
+                            ouputPath,
+                            res,
+                            area_thresh,
+                            pix_thresh,
                         )
 
                     # gestion finale du fichier
@@ -751,20 +828,33 @@ def gestion_echantillons(Fileconfig, ouputPath):
                         priorSource = cfg.Nomenclature[classe].PrioTheme
 
                         if (
-                            len([x for x in complexDataSets if priorSource == x[0]])
+                            len(
+                                [
+                                    x
+                                    for x in complexDataSets
+                                    if priorSource == x[0]
+                                ]
+                            )
                             != 0
                         ):
                             priorPath = [
-                                x for x in complexDataSets if priorSource == x[0]
+                                x
+                                for x in complexDataSets
+                                if priorSource == x[0]
                             ][0][1]
                             secondPath = [
-                                x for x in complexDataSets if priorSource != x[0]
+                                x
+                                for x in complexDataSets
+                                if priorSource != x[0]
                             ][0][1]
                             secondSource = [
-                                x for x in complexDataSets if priorSource != x[0]
+                                x
+                                for x in complexDataSets
+                                if priorSource != x[0]
                             ][0][0]
-                            if cfg.parameters.landCoverField not in vf.getFields(
-                                priorPath
+                            if (
+                                cfg.parameters.landCoverField
+                                not in vf.getFields(priorPath)
                             ):
                                 print(
                                     "No landcover field in {} data source".format(
@@ -776,7 +866,9 @@ def gestion_echantillons(Fileconfig, ouputPath):
                                 "the priority source {} not present in sources list".format()
                             )
 
-                        if (priorPath is not None) and (secondPath is not None):
+                        if (priorPath is not None) and (
+                            secondPath is not None
+                        ):
                             intersectFilename = (
                                 ouputPath
                                 + "/inter_"
@@ -806,10 +898,14 @@ def gestion_echantillons(Fileconfig, ouputPath):
                         idxLC = fieldList.index(cfg.parameters.landCoverField)
                         for field in fieldList:
                             if fieldList.index(field) != idxLC:
-                                DeleteField.deleteField(intersectFilename, field)
+                                DeleteField.deleteField(
+                                    intersectFilename, field
+                                )
 
                         AddFieldID.addFieldID(intersectFilename)
-                        AddFieldArea.addFieldArea(intersectFilename, area_thresh)
+                        AddFieldArea.addFieldArea(
+                            intersectFilename, area_thresh
+                        )
 
                         samples_shapefile_source = gestionFichierFinal(
                             samples_shapefile_source,
@@ -878,7 +974,9 @@ def gestion_echantillons(Fileconfig, ouputPath):
         # Decoupage avec la grille : cas du parametre areaThresh
         if cfg.parameters.areaThresh != "":
             areaT = int(sqrt(float(cfg.parameters.areaThresh))) * 100.0
-            if not isinstance(cfg.parameters.sourcesAreaThresh, config.Sequence):
+            if not isinstance(
+                cfg.parameters.sourcesAreaThresh, config.Sequence
+            ):
                 sourcesAreaThresh = [cfg.parameters.sourcesAreaThresh]
             if keysource in sourcesAreaThresh:
                 outgrid = outfilemerge[:-4] + "_grid.shp"
@@ -942,17 +1040,17 @@ def gestion_echantillons(Fileconfig, ouputPath):
                 output = (
                     orderedSourcesPaths[indfile][:-4]
                     + "_"
-                    + os.path.basename(orderedSourcesPaths[indfile + 1]).split("_")[1][
-                        :-4
-                    ]
+                    + os.path.basename(orderedSourcesPaths[indfile + 1]).split(
+                        "_"
+                    )[1][:-4]
                     + ".shp"
                 )
                 outputmerge = (
                     orderedSourcesPaths[indfile][:-4]
                     + "_"
-                    + os.path.basename(orderedSourcesPaths[indfile + 1]).split("_")[1][
-                        :-4
-                    ]
+                    + os.path.basename(orderedSourcesPaths[indfile + 1]).split(
+                        "_"
+                    )[1][:-4]
                     + "_merge.shp"
                 )
                 outpathList.append(
@@ -967,17 +1065,17 @@ def gestion_echantillons(Fileconfig, ouputPath):
                 output = (
                     outpathList[indfile - 1][2][:-4]
                     + "_"
-                    + os.path.basename(orderedSourcesPaths[indfile + 1]).split("_")[1][
-                        :-4
-                    ]
+                    + os.path.basename(orderedSourcesPaths[indfile + 1]).split(
+                        "_"
+                    )[1][:-4]
                     + ".shp"
                 )
                 outputmerge = (
                     outpathList[indfile - 1][3][:-10]
                     + "_"
-                    + os.path.basename(orderedSourcesPaths[indfile + 1]).split("_")[1][
-                        :-4
-                    ]
+                    + os.path.basename(orderedSourcesPaths[indfile + 1]).split(
+                        "_"
+                    )[1][:-4]
                     + "_merge.shp"
                 )
                 outpathList.append(
@@ -997,7 +1095,9 @@ def gestion_echantillons(Fileconfig, ouputPath):
             )
             os.system(command)
             # shapeDifference.shapeDifference(listInOuput[0], listInOuput[1], listInOuput[2], False, None)
-            MergeFiles.mergeVectors([listInOuput[1], listInOuput[2]], listInOuput[3])
+            MergeFiles.mergeVectors(
+                [listInOuput[1], listInOuput[2]], listInOuput[3]
+            )
 
         subfinal = outpathList[len(outpathList) - 1][3]
 
@@ -1037,11 +1137,16 @@ def gestion_echantillons(Fileconfig, ouputPath):
 
     try:
         vf.RandomSelectionPolygons(
-            filefinal, cfg.parameters.landCoverField, 1, ouputPath + "/final/", 0.7
+            filefinal,
+            cfg.parameters.landCoverField,
+            1,
+            ouputPath + "/final/",
+            0.7,
         )
         print(
             "Les échantillons ont été séparés en deux groupes de validation {} et d'apprentissage {}".format(
-                filefinal[:-4] + "_seed0_val.shp", filefinal[:-4] + "_seed0_learn.shp"
+                filefinal[:-4] + "_seed0_val.shp",
+                filefinal[:-4] + "_seed0_learn.shp",
             )
         )
     except BaseException:

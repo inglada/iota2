@@ -85,7 +85,9 @@ def init_grass(path, grasslib):
         shutil.rmtree(os.path.join(gisdb, "demolocation"))
 
     # Create the location in Lambert 93
-    gscript.run_command("g.proj", flags="c", epsg="2154", location="demolocation")
+    gscript.run_command(
+        "g.proj", flags="c", epsg="2154", location="demolocation"
+    )
 
     # Create datas mapset
     if not os.path.exists(os.path.join(gisdb, "/demolocation/datas")):
@@ -98,7 +100,9 @@ def init_grass(path, grasslib):
                 dbase=gisdb,
             )
         except BaseException:
-            raise Exception("Folder '%s' does not own to current user") % (gisdb)
+            raise Exception("Folder '%s' does not own to current user") % (
+                gisdb
+            )
 
 
 def getTilesFiles(
@@ -223,7 +227,8 @@ def mergeTileRaster(
                 tmptile = os.path.join(localenv, os.path.basename(rasttile))
                 rasttiletmp = os.path.join(
                     localenv,
-                    os.path.splitext(os.path.basename(rasttile))[0] + "_nd.tif",
+                    os.path.splitext(os.path.basename(rasttile))[0]
+                    + "_nd.tif",
                 )
                 bmappli = oa.CreateBandMathApplication(
                     {
@@ -240,7 +245,8 @@ def mergeTileRaster(
                 fut.assembleTile_Merge(tomerge, sx, outraster, "Byte")
 
                 logger.info(
-                    'Raster mosaic "%s" done for zone %s' % (outraster, str(valueclip))
+                    'Raster mosaic "%s" done for zone %s'
+                    % (outraster, str(valueclip))
                 )
 
                 for rasttile in tomerge:
@@ -251,14 +257,17 @@ def mergeTileRaster(
                         shutil.copy(outraster, out)
                 else:
                     logger.info(
-                        "Output folder %s for mosaic storage does not exist" % (out)
+                        "Output folder %s for mosaic storage does not exist"
+                        % (out)
                     )
 
                 timemerge = time.time()
                 print(
                     " ".join(
                         [
-                            " : ".join(["Merge Tiles", str(timemerge - timeinit)]),
+                            " : ".join(
+                                ["Merge Tiles", str(timemerge - timeinit)]
+                            ),
                             "seconds",
                         ]
                     )
@@ -279,7 +288,9 @@ def mergeTileRaster(
 def getListVectToSimplify(path):
 
     simplified = [
-        os.path.splitext(x)[0].split("_")[len(os.path.splitext(x)[0].split("_")) - 2]
+        os.path.splitext(x)[0].split("_")[
+            len(os.path.splitext(x)[0].split("_")) - 2
+        ]
         for x in fut.FileSearch_AND(path, True, ".shp", "douglas")
         if "hermite" not in x
     ]
@@ -295,7 +306,9 @@ def getListVectToSimplify(path):
         if "douglas" not in x and "hermite" not in x
     ]
 
-    return [os.path.join(path, x) for x, y in polygonized if y not in simplified]
+    return [
+        os.path.join(path, x) for x, y in polygonized if y not in simplified
+    ]
 
 
 def getListVectToSmooth(path):
@@ -315,7 +328,9 @@ def getListVectToClip(path, fieldclip, vectorpath):
         listtoclip.append(
             (
                 filetoclip,
-                os.path.basename(filetoclip.replace(fieldclip, "")).split("_")[2],
+                os.path.basename(filetoclip.replace(fieldclip, "")).split("_")[
+                    2
+                ],
             )
         )
 
@@ -362,7 +377,9 @@ def getListMosToDo(
                 and "%s_" % (prefix) in filename
                 and "_%s_" % (clipfield)
             ):
-                listmos.append(int(filename.split("_")[len(filename.split("_")) - 1]))
+                listmos.append(
+                    int(filename.split("_")[len(filename.split("_")) - 1])
+                )
 
     return sorted(list(set(listvect).difference(set(listmos))))
 
@@ -373,7 +390,9 @@ def getListValues(
 
     listvalues = []
     if checkvalue:
-        listvalues.append([val for val in vf.ListValueFields(clipfile, clipfield)])
+        listvalues.append(
+            [val for val in vf.ListValueFields(clipfile, clipfield)]
+        )
     else:
         if clipvalue in vf.ListValueFields(clipfile, clipfield):
             listvalues.append([clipvalue])
@@ -414,7 +433,10 @@ def tilesRastersMergeVectSimp(
 
     timeinit = time.time()
 
-    print("Production of vector file %s" % (os.path.splitext(out)[0] + str(valueclip)))
+    print(
+        "Production of vector file %s"
+        % (os.path.splitext(out)[0] + str(valueclip))
+    )
 
     # local environnement
     localenv = os.path.join(path, "tmp%s" % (str(valueclip)))
@@ -438,14 +460,20 @@ def tilesRastersMergeVectSimp(
     localListTilesFiles = []
     for tile in listTilesFiles:
         shutil.copy(tile, localenv)
-        localListTilesFiles.append(os.path.join(localenv, os.path.basename(tile)))
+        localListTilesFiles.append(
+            os.path.join(localenv, os.path.basename(tile))
+        )
 
     finalraster = mergeTileRaster(
         path, localListTilesFiles, fieldclip, valueclip, localenv
     )
 
     timemerge = time.time()
-    print(" ".join([" : ".join(["Merge Tiles", str(timemerge - timeinit)]), "seconds"]))
+    print(
+        " ".join(
+            [" : ".join(["Merge Tiles", str(timemerge - timeinit)]), "seconds"]
+        )
+    )
 
     # Raster vectorization and simplification
     outvect = os.path.join(localenv, finalraster[:-4] + ".shp")
@@ -463,7 +491,10 @@ def tilesRastersMergeVectSimp(
         " ".join(
             [
                 " : ".join(
-                    ["Vectorisation and Simplification", str(timevect - timemerge)]
+                    [
+                        "Vectorisation and Simplification",
+                        str(timevect - timemerge),
+                    ]
                 ),
                 "seconds",
             ]
@@ -480,24 +511,20 @@ def tilesRastersMergeVectSimp(
         if vf.getNbFeat(os.path.join(localenv, clipfile)) != 1:
             clip = os.path.join(localenv, "clip.shp")
             layer = vf.getFirstLayer(clipfile)
-            fieldType = vf.getFieldType(os.path.join(localenv, clipfile), fieldclip)
+            fieldType = vf.getFieldType(
+                os.path.join(localenv, clipfile), fieldclip
+            )
 
             if fieldType == str:
-                command = "ogr2ogr -sql \"SELECT * FROM %s WHERE %s = '%s'\" %s %s" % (
-                    layer,
-                    fieldclip,
-                    valueclip,
-                    clip,
-                    clipfile,
+                command = (
+                    "ogr2ogr -sql \"SELECT * FROM %s WHERE %s = '%s'\" %s %s"
+                    % (layer, fieldclip, valueclip, clip, clipfile)
                 )
                 Utils.run(command)
             elif fieldType == int or fieldType == float:
-                command = 'ogr2ogr -sql "SELECT * FROM %s WHERE %s = %s" %s %s' % (
-                    layer,
-                    fieldclip,
-                    valueclip,
-                    clip,
-                    clipfile,
+                command = (
+                    'ogr2ogr -sql "SELECT * FROM %s WHERE %s = %s" %s %s'
+                    % (layer, fieldclip, valueclip, clip, clipfile)
                 )
                 Utils.run(command)
             else:
@@ -511,7 +538,11 @@ def tilesRastersMergeVectSimp(
 
         # clip
         clipped = os.path.join(localenv, "clipped.shp")
-        command = "ogr2ogr -select cat -clipsrc %s %s %s" % (clip, clipped, outvect)
+        command = "ogr2ogr -select cat -clipsrc %s %s %s" % (
+            clip,
+            clipped,
+            outvect,
+        )
         Utils.run(command)
 
         for ext in [".shp", ".dbf", ".shx", ".prj"]:
@@ -528,7 +559,10 @@ def tilesRastersMergeVectSimp(
     timeclip = time.time()
     print(
         " ".join(
-            [" : ".join(["Clip final shapefile", str(timeclip - timevect)]), "seconds"]
+            [
+                " : ".join(["Clip final shapefile", str(timeclip - timevect)]),
+                "seconds",
+            ]
         )
     )
 
@@ -537,7 +571,8 @@ def tilesRastersMergeVectSimp(
 
     for ext in [".shp", ".shx", ".dbf", ".prj"]:
         shutil.copy(
-            os.path.splitext(clipped)[0] + ext, os.path.join(localenv, "clean") + ext
+            os.path.splitext(clipped)[0] + ext,
+            os.path.join(localenv, "clean") + ext,
         )
         os.remove(os.path.splitext(clipped)[0] + ext)
 
@@ -545,7 +580,9 @@ def tilesRastersMergeVectSimp(
     print(
         " ".join(
             [
-                " : ".join(["Delete duplicated geometries", str(timedupli - timeclip)]),
+                " : ".join(
+                    ["Delete duplicated geometries", str(timedupli - timeclip)]
+                ),
                 "seconds",
             ]
         )
@@ -564,7 +601,9 @@ def tilesRastersMergeVectSimp(
     # Rename column
     if fieldclass:
         gscript.run_command(
-            "v.db.renamecolumn", map="cleansnap@datas", column="cat_,%s" % (fieldclass)
+            "v.db.renamecolumn",
+            map="cleansnap@datas",
+            column="cat_,%s" % (fieldclass),
         )
 
     # Export shapefile
@@ -636,7 +675,11 @@ if __name__ == "__main__":
             description="Merge and clip vector tiles " "on a given vector zone"
         )
         parser.add_argument(
-            "-wd", dest="path", action="store", help="Working directory", required=True
+            "-wd",
+            dest="path",
+            action="store",
+            help="Working directory",
+            required=True,
         )
 
         parser.add_argument(

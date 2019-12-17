@@ -34,14 +34,18 @@ class simplification(IOTA2Step.Step):
         self.outputPath = SCF.serviceConfigFile(self.cfg).getParam(
             "chain", "outputPath"
         )
-        self.mmu = SCF.serviceConfigFile(self.cfg).getParam("Simplification", "mmu")
+        self.mmu = SCF.serviceConfigFile(self.cfg).getParam(
+            "Simplification", "mmu"
+        )
         self.douglas = SCF.serviceConfigFile(self.cfg).getParam(
             "Simplification", "douglas"
         )
         self.hermite = SCF.serviceConfigFile(self.cfg).getParam(
             "Simplification", "hermite"
         )
-        self.angle = SCF.serviceConfigFile(self.cfg).getParam("Simplification", "angle")
+        self.angle = SCF.serviceConfigFile(self.cfg).getParam(
+            "Simplification", "angle"
+        )
         self.grasslib = SCF.serviceConfigFile(self.cfg).getParam(
             "Simplification", "grasslib"
         )
@@ -74,7 +78,9 @@ class simplification(IOTA2Step.Step):
         """
         from simplification import VectAndSimp as vas
 
-        tmpdir = os.path.join(self.outputPath, "final", "simplification", "tmp")
+        tmpdir = os.path.join(
+            self.outputPath, "final", "simplification", "tmp"
+        )
         if self.workingDirectory:
             tmpdir = self.workingDirectory
         outfilevectsimp = os.path.join(

@@ -100,7 +100,8 @@ def CreateNewLayer(layer, outShapefile):
                 continue
 
             outFeature.SetField(
-                outLayerDefn.GetFieldDefn(i).GetNameRef(), inFeature.GetField(i)
+                outLayerDefn.GetFieldDefn(i).GetNameRef(),
+                inFeature.GetField(i),
             )
         # Set geometry as centroid
         geom = inFeature.GetGeometryRef()

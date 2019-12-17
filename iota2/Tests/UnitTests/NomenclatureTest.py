@@ -60,11 +60,15 @@ class iota_NomenclatureTest(unittest.TestCase):
         self.refnomenc = os.path.join(
             IOTA2DIR, "data", "references/posttreat/nomenclature.txt"
         )
-        self.refqml = os.path.join(IOTA2DIR, "data", "references/posttreat/style.qml")
+        self.refqml = os.path.join(
+            IOTA2DIR, "data", "references/posttreat/style.qml"
+        )
         self.refqmlout = os.path.join(
             IOTA2DIR, "data", "references/posttreat/styleraster.qml"
         )
-        self.qml = os.path.join(self.iota2_tests_directory, self.wd, "style.qml")
+        self.qml = os.path.join(
+            self.iota2_tests_directory, self.wd, "style.qml"
+        )
 
     # after launching all tests
     @classmethod
@@ -105,7 +109,9 @@ class iota_NomenclatureTest(unittest.TestCase):
             result = self.defaultTestResult()
             self._feedErrorsToResult(result, self._outcome.errors)
         else:
-            result = getattr(self, "_outcomeForDoCleanups", self._resultForDoCleanups)
+            result = getattr(
+                self, "_outcomeForDoCleanups", self._resultForDoCleanups
+            )
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
         ok = not error and not failure
@@ -150,7 +156,8 @@ class iota_NomenclatureTest(unittest.TestCase):
         nomenc.createRasterQML(self.qml, "classe", 1)
         self.assertEqual(len(nomenc), 23)
         self.assertEqual(
-            len(open(self.qml, "r").read()), len(open(self.refqmlout, "r").read())
+            len(open(self.qml, "r").read()),
+            len(open(self.refqmlout, "r").read()),
         )
         self.assertEqual(nomenc.getCode(1), expected_codes)
 

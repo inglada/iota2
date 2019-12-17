@@ -66,7 +66,18 @@ class JobArray:
 
 
 def str2bool(v):
-    if v.lower() not in ("yes", "true", "t", "y", "1", "no", "false", "f", "n", "0"):
+    if v.lower() not in (
+        "yes",
+        "true",
+        "t",
+        "y",
+        "1",
+        "no",
+        "false",
+        "f",
+        "n",
+        "0",
+    ):
         raise argparse.ArgumentTypeError("Boolean value expected.")
 
     retour = True
@@ -81,7 +92,11 @@ def stop_workers(mpi_service):
     :param mpi_service
     """
     for i in range(1, mpi_service.size):
-        print("Worker process with rank {}/{} stopped".format(i, mpi_service.size - 1))
+        print(
+            "Worker process with rank {}/{} stopped".format(
+                i, mpi_service.size - 1
+            )
+        )
         mpi_service.comm.send(None, dest=i, tag=1)
 
 
@@ -123,7 +138,13 @@ def launchTask(function, parameter, logger, mpi_services=None):
     worker_complete_log = logger.root.handlers[0].stream.getvalue()
     logger.root.handlers[0].stream.close()
 
-    return worker_complete_log, start_date, end_date, returned_data, parameter_success
+    return (
+        worker_complete_log,
+        start_date,
+        end_date,
+        returned_data,
+        parameter_success,
+    )
 
 
 def mpi_schedule(
@@ -147,7 +168,9 @@ def mpi_schedule(
     parameters_success = []
 
     if not param_array_origin:
-        raise Exception("JobArray must contain a list of parameter as argument")
+        raise Exception(
+            "JobArray must contain a list of parameter as argument"
+        )
         sys.exit(1)
     try:
         if os.path.exists(logPath):
@@ -165,7 +188,9 @@ def mpi_schedule(
                 if len(param_array) > 0:
                     task_param = param_array.pop(0)
                     mpi_service.comm.send(
-                        [job, task_param, logger_lvl, enable_console], dest=i, tag=0
+                        [job, task_param, logger_lvl, enable_console],
+                        dest=i,
+                        tag=0,
                     )
             while nb_completed_tasks < nb_tasks:
                 [
@@ -219,7 +244,9 @@ def start_workers(mpi_service):
         mpi_status = MPI.Status()
         while True:
             # waiting sending works by master
-            task = mpi_service.comm.recv(source=0, tag=MPI.ANY_TAG, status=mpi_status)
+            task = mpi_service.comm.recv(
+                source=0, tag=MPI.ANY_TAG, status=mpi_status
+            )
             if task is None:
                 sys.exit(0)
             # unpack task
@@ -233,7 +260,13 @@ def start_workers(mpi_service):
             mpi_service.comm.send(
                 [
                     mpi_service.rank,
-                    [start_date, end_date, worker_complete_log, returned_data, success],
+                    [
+                        start_date,
+                        end_date,
+                        worker_complete_log,
+                        returned_data,
+                        success,
+                    ],
                 ],
                 dest=0,
                 tag=0,
@@ -262,7 +295,9 @@ def remove_tmp_files(cfg, current_step, chain):
 
     last_step = chain.get_steps_number()[-1]
     directories = chain.get_dir()
-    dirs_to_rm = [d for d in directories if not os.path.split(d)[-1] in keep_dir]
+    dirs_to_rm = [
+        d for d in directories if not os.path.split(d)[-1] in keep_dir
+    ]
 
     if current_step == last_step:
         for dir_to_rm in dirs_to_rm:

@@ -26,7 +26,9 @@ from osgeo import ogr
 from Common import FileUtils as fu
 
 
-def extraction(vectorFill, vectorSource, field, field_val, driversFill, driversSource):
+def extraction(
+    vectorFill, vectorSource, field, field_val, driversFill, driversSource
+):
 
     ogrDriversFill = [
         ogr.GetDriverByName(currentDriver) for currentDriver in driversFill
@@ -39,7 +41,9 @@ def extraction(vectorFill, vectorSource, field, field_val, driversFill, driversS
     ]
     dataSourceSource = ogrDriversSource.Open(vectorSource, 0)
 
-    layerFill = [currentDataSource.GetLayer() for currentDataSource in dataSourceFill]
+    layerFill = [
+        currentDataSource.GetLayer() for currentDataSource in dataSourceFill
+    ]
     layerSource = dataSourceSource.GetLayer()
     FIDColumn = layerSource.GetFIDColumn()
     if FIDColumn == "":
@@ -65,7 +69,9 @@ def extraction(vectorFill, vectorSource, field, field_val, driversFill, driversS
     for currentClass, FID in All_FID:
         splits = fu.splitList(FID, len(vectorFill))
         i = 0
-        for currentSplit, layerToFill, fidMax in zip(splits, layerFill, FIDMAX):
+        for currentSplit, layerToFill, fidMax in zip(
+            splits, layerFill, FIDMAX
+        ):
 
             chunkSublistFID = fu.splitList(
                 currentSplit, 1 + int(len(currentSplit) / 1000)
@@ -76,7 +82,10 @@ def extraction(vectorFill, vectorSource, field, field_val, driversFill, driversS
                     [
                         "("
                         + " OR ".join(
-                            [FIDColumn + "=" + str(currentFID) for currentFID in chunk]
+                            [
+                                FIDColumn + "=" + str(currentFID)
+                                for currentFID in chunk
+                            ]
                         )
                         + ")"
                         for chunk in chunkSublistFID
@@ -104,7 +113,8 @@ def extraction(vectorFill, vectorSource, field, field_val, driversFill, driversS
                 indIn = 0
                 while indIn < len(listFieldSource):
                     dstfeature.SetField(
-                        listFieldSource[indIn], feature.GetField(listFieldSource[indIn])
+                        listFieldSource[indIn],
+                        feature.GetField(listFieldSource[indIn]),
                     )
                     indIn += 1
                 layerToFill.CreateFeature(dstfeature)
@@ -119,7 +129,9 @@ def extraction(vectorFill, vectorSource, field, field_val, driversFill, driversS
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description="all vector must have the same fields")
+    parser = argparse.ArgumentParser(
+        description="all vector must have the same fields"
+    )
     parser.add_argument(
         "-vectorToFill",
         dest="vectorFill",
@@ -136,7 +148,11 @@ if __name__ == "__main__":
         required=True,
     )
     parser.add_argument(
-        "-field", dest="field", help="data's field", default=None, required=True
+        "-field",
+        dest="field",
+        help="data's field",
+        default=None,
+        required=True,
     )
     parser.add_argument(
         "-field.value",

@@ -79,7 +79,10 @@ if __name__ == "__main__":
         "-in", help="image to extract statistics", dest="image", required=True
     )
     parser.add_argument(
-        "-wd", help="working directory", dest="outStat_directory", required=True
+        "-wd",
+        help="working directory",
+        dest="outStat_directory",
+        required=True,
     )
     parser.add_argument(
         "-filter",

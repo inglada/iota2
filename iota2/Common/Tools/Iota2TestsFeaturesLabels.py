@@ -24,7 +24,9 @@ from Common import FileUtils as fut
 # python -m unittest iota2tests_features_labels
 
 
-def prepareAnnualFeatures(workingDirectory, referenceDirectory, pattern, rename=None):
+def prepareAnnualFeatures(
+    workingDirectory, referenceDirectory, pattern, rename=None
+):
     """
     double all rasters's pixels
     rename must be a tuple
@@ -50,7 +52,13 @@ def prepareAnnualFeatures(workingDirectory, referenceDirectory, pattern, rename=
 
     rastersPath = fut.FileSearch_AND(workingDirectory, True, pattern)
     for raster in rastersPath:
-        cmd = "otbcli_BandMathX -il " + raster + " -out " + raster + ' -exp "im1+im1"'
+        cmd = (
+            "otbcli_BandMathX -il "
+            + raster
+            + " -out "
+            + raster
+            + ' -exp "im1+im1"'
+        )
         print(cmd)
         os.system(cmd)
 
@@ -90,7 +98,9 @@ class iota_test_Basic(unittest.TestCase):
         self.test_working_directory = None
         self.test_working_directory_tmp = None
         config_path = os.path.join(
-            self.iota2_directory, "config", "Config_4Tuiles_Multi_FUS_Confidence.cfg"
+            self.iota2_directory,
+            "config",
+            "Config_4Tuiles_Multi_FUS_Confidence.cfg",
         )
         self.config = SCF.serviceConfigFile(config_path)
 
@@ -154,9 +164,13 @@ class iota_test_Basic(unittest.TestCase):
         IOTA2Directory.GenerateDirectories(self.test_working_directory)
 
         # fill up configuration file
-        self.config.setParam("chain", "outputPath", self.test_working_directory)
+        self.config.setParam(
+            "chain", "outputPath", self.test_working_directory
+        )
         self.config.setParam("chain", "listTile", "D0005H0002")
-        self.config.setParam("chain", "featuresPath", self.test_working_directory_tmp)
+        self.config.setParam(
+            "chain", "featuresPath", self.test_working_directory_tmp
+        )
         self.config.setParam("chain", "L8Path", L8_rasters)
         self.config.setParam("chain", "userFeatPath", "None")
         self.config.setParam(
@@ -212,8 +226,12 @@ class iota_test_Basic(unittest.TestCase):
             "sampler",
             "D0005H0002_polygons_To_Sample.shp",
         )
-        L8_rasters_non_annual = os.path.join(self.iota2_directory, "data", "L8_50x50")
-        L8_rasters_annual = os.path.join(self.test_working_directory_tmp, "annualData")
+        L8_rasters_non_annual = os.path.join(
+            self.iota2_directory, "data", "L8_50x50"
+        )
+        L8_rasters_annual = os.path.join(
+            self.test_working_directory_tmp, "annualData"
+        )
         os.mkdir(L8_rasters_annual)
 
         # annual sensor data generation (pix annual = 2 * pix non_annual)
@@ -243,7 +261,9 @@ class iota_test_Basic(unittest.TestCase):
         IOTA2Directory.GenerateDirectories(self.test_working_directory)
 
         # fill up configuration file
-        self.config.setParam("chain", "outputPath", self.test_working_directory)
+        self.config.setParam(
+            "chain", "outputPath", self.test_working_directory
+        )
         self.config.setParam("chain", "listTile", "D0005H0002")
         self.config.setParam("chain", "featuresPath", non_annual_features)
         self.config.setParam("chain", "L8Path", L8_rasters_non_annual)
@@ -314,9 +334,13 @@ class iota_test_Basic(unittest.TestCase):
         IOTA2Directory.GenerateDirectories(self.test_working_directory)
 
         # fill up configuration file
-        self.config.setParam("chain", "outputPath", self.test_working_directory)
+        self.config.setParam(
+            "chain", "outputPath", self.test_working_directory
+        )
         self.config.setParam("chain", "listTile", "D0005H0002")
-        self.config.setParam("chain", "featuresPath", self.test_working_directory_tmp)
+        self.config.setParam(
+            "chain", "featuresPath", self.test_working_directory_tmp
+        )
         self.config.setParam("chain", "L8Path", L8_rasters)
         self.config.setParam("chain", "userFeatPath", "None")
         self.config.setParam(
@@ -338,7 +362,9 @@ class iota_test_Basic(unittest.TestCase):
             None,
             self.config,
         )
-        shapeRegion = os.path.join(self.test_working_directory_tmp, "MyFakeRegion.shp")
+        shapeRegion = os.path.join(
+            self.test_working_directory_tmp, "MyFakeRegion.shp"
+        )
         area.generateRegionShape(
             "one_region",
             self.test_working_directory + "/envelope",
@@ -372,6 +398,7 @@ class iota_test_Basic(unittest.TestCase):
         # must be 'originfid'
         condition = (
             len(set(ref_field_list) - set(test_field_list)) == 1
-            and list(set(ref_field_list) - set(test_field_list))[0] == "originfid"
+            and list(set(ref_field_list) - set(test_field_list))[0]
+            == "originfid"
         )
         self.assertTrue(condition)

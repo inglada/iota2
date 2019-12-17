@@ -216,7 +216,15 @@ def arraytoRaster(array, output, model, driver="GTiff"):
 
 
 def searchCrownTile(
-    inpath, raster, clump, ram, grid, outpath, nbcore=4, ngrid=-1, logger=logger
+    inpath,
+    raster,
+    clump,
+    ram,
+    grid,
+    outpath,
+    nbcore=4,
+    ngrid=-1,
+    logger=logger,
 ):
     """
 
@@ -312,10 +320,14 @@ def searchCrownTile(
                         ]
                     )
                 )
-                logger.info(" : ".join(["Entities number", str(len(listTileId))]))
+                logger.info(
+                    " : ".join(["Entities number", str(len(listTileId))])
+                )
 
                 # tile entities bounding box
-                listExtent = ExtentEntitiesTile(listTileId, params, xsize, ysize, False)
+                listExtent = ExtentEntitiesTile(
+                    listTileId, params, xsize, ysize, False
+                )
                 timeextent = time.time()
                 logger.info(
                     " ".join(
@@ -395,7 +407,11 @@ def searchCrownTile(
                             " : ".join(
                                 [
                                     "List crown entities",
-                                    str(round(timecrownentities - timeextract, 2)),
+                                    str(
+                                        round(
+                                            timecrownentities - timeextract, 2
+                                        )
+                                    ),
                                 ]
                             ),
                             "seconds",
@@ -420,7 +436,13 @@ def searchCrownTile(
                 if os.path.exists(rastEntitiesNeighbors):
                     os.remove(rastEntitiesNeighbors)
                 command = "gdalwarp -q -multi -wo NUM_THREADS={} -te {} {} {} {} -ot UInt32 {} {}".format(
-                    nbcore, xmin, ymin, xmax, ymax, raster, rastEntitiesNeighbors
+                    nbcore,
+                    xmin,
+                    ymin,
+                    xmax,
+                    ymax,
+                    raster,
+                    rastEntitiesNeighbors,
                 )
 
                 Utils.run(command)
@@ -432,7 +454,13 @@ def searchCrownTile(
                             " : ".join(
                                 [
                                     "Extract classification raster on crown entities extent",
-                                    str(round(timeextractcrown - timecrownentities, 2)),
+                                    str(
+                                        round(
+                                            timeextractcrown
+                                            - timecrownentities,
+                                            2,
+                                        )
+                                    ),
                                 ]
                             ),
                             "seconds",
@@ -446,7 +474,8 @@ def searchCrownTile(
                 )
 
                 with open(
-                    os.path.join(inpath, str(ngrid), "listid_%s" % (ngrid)), "wb"
+                    os.path.join(inpath, str(ngrid), "listid_%s" % (ngrid)),
+                    "wb",
                 ) as fp:
                     pickle.dump([listTileId + list(flatneighbors)], fp)
 
@@ -454,7 +483,9 @@ def searchCrownTile(
                     os.path.join(inpath, str(ngrid), "listid_%s" % (ngrid)),
                     os.path.join(outpath, "listid_%s" % (ngrid)),
                 )
-                shutil.rmtree(os.path.join(inpath, str(ngrid)), ignore_errors=True)
+                shutil.rmtree(
+                    os.path.join(inpath, str(ngrid)), ignore_errors=True
+                )
 
             if allTile:
                 ngrid += 1
@@ -477,7 +508,11 @@ if __name__ == "__main__":
         )
 
         parser.add_argument(
-            "-wd", dest="path", action="store", help="Working directory", required=True
+            "-wd",
+            dest="path",
+            action="store",
+            help="Working directory",
+            required=True,
         )
 
         parser.add_argument(
@@ -513,7 +548,11 @@ if __name__ == "__main__":
         )
 
         parser.add_argument(
-            "-grid", dest="grid", action="store", help="Grid file name", required=True
+            "-grid",
+            dest="grid",
+            action="store",
+            help="Grid file name",
+            required=True,
         )
 
         parser.add_argument(
@@ -526,7 +565,11 @@ if __name__ == "__main__":
         )
 
         parser.add_argument(
-            "-out", dest="out", action="store", help="outname directory", required=True
+            "-out",
+            dest="out",
+            action="store",
+            help="outname directory",
+            required=True,
         )
 
         args = parser.parse_args()

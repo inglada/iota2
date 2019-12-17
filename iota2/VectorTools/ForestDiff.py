@@ -56,7 +56,12 @@ def minimum_bounding_rectangle(hull):
     # find rotation matrices
     # XXX both work
     rotations = np.vstack(
-        [np.cos(angles), np.cos(angles - pi2), np.cos(angles + pi2), np.cos(angles)]
+        [
+            np.cos(angles),
+            np.cos(angles - pi2),
+            np.cos(angles + pi2),
+            np.cos(angles),
+        ]
     ).T
 
     rotations = rotations.reshape((-1, 2, 2))
@@ -123,7 +128,9 @@ def addDiscriminationFields(filein):
             largeur = min(Point1.Distance(Point2), Point2.Distance(Point3))
             if areahull != 0 and peripoly != 0 and largeur != 0:
                 convexity = geom.GetArea() / areahull
-                compacity = 4 * math.pi * (geom.GetArea() / math.pow(peripoly, 2))
+                compacity = (
+                    4 * math.pi * (geom.GetArea() / math.pow(peripoly, 2))
+                )
                 elongation = longueur / largeur
             else:
                 layer.DeleteFeature(feat.GetFID())
@@ -169,7 +176,9 @@ def addClassAHF(filein, convex=0.7, compa=0.4, elong=2.5):
     layer = None
 
 
-def foret_non_foret(chemin, FileInit, FileOut, convex=0.7, compa=0.4, elong=2.5):
+def foret_non_foret(
+    chemin, FileInit, FileOut, convex=0.7, compa=0.4, elong=2.5
+):
 
     os.chdir(chemin)
     print(os.path.join(chemin, FileInit))
@@ -192,7 +201,11 @@ def foret_non_foret(chemin, FileInit, FileOut, convex=0.7, compa=0.4, elong=2.5)
     # Soustraction de l'ouverture par rapport au fichier Forêt non différencier
     # os.system('python DifferenceQGIS.py ' + FileInit + ' tmp_Dilatation20.shp True tmp_Non_foret_temp_poly.shp')
     sd.shapeDifference(
-        FileInit, "tmp_Dilatation20.shp", "tmp_Non_foret_temp_poly.shp", False, None
+        FileInit,
+        "tmp_Dilatation20.shp",
+        "tmp_Non_foret_temp_poly.shp",
+        False,
+        None,
     )
     # Transformation des multipolygones en polygones simples
     mpp.multipoly2poly("tmp_Non_foret_temp_poly.shp", "tmp_Non_Foret_temp.shp")
@@ -219,7 +232,11 @@ def foret_non_foret(chemin, FileInit, FileOut, convex=0.7, compa=0.4, elong=2.5)
     # Soustraction de la non-forêt par rapport au fichier initial, pour
     # obtenir les vrais contours de la forêt
     sd.shapeDifference(
-        FileInit, "tmp_Non_Foret_temp.shp", "tmp_Foret_temp_poly.shp", False, None
+        FileInit,
+        "tmp_Non_Foret_temp.shp",
+        "tmp_Foret_temp_poly.shp",
+        False,
+        None,
     )
 
     vf.checkValidGeom("tmp_Foret_temp_poly.shp")
@@ -242,7 +259,11 @@ def foret_non_foret(chemin, FileInit, FileOut, convex=0.7, compa=0.4, elong=2.5)
     # Soustraction des forêts du fichier original pour récupérer les bosquets
     # et boqueteaux dans la couche non-forêt
     sd.shapeDifference(
-        FileInit, "tmp_Foret_temp.shp", "tmp_Non_foret_full_poly.shp", False, None
+        FileInit,
+        "tmp_Foret_temp.shp",
+        "tmp_Non_foret_full_poly.shp",
+        False,
+        None,
     )
 
     vf.checkValidGeom("tmp_Non_foret_full_poly.shp")
@@ -285,7 +306,11 @@ def foret_non_foret(chemin, FileInit, FileOut, convex=0.7, compa=0.4, elong=2.5)
 
     # Différence entre le fichier imitial et les nouvelles forêts
     sd.shapeDifference(
-        FileInit, "tmp_Non_Foret_full.shp", "tmp_Foret_full_poly.shp", False, None
+        FileInit,
+        "tmp_Non_Foret_full.shp",
+        "tmp_Foret_full_poly.shp",
+        False,
+        None,
     )
     vf.checkValidGeom("tmp_Foret_full_poly.shp")
     # Transformation des multipolygones en polygones simples

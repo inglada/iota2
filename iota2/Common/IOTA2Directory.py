@@ -32,7 +32,12 @@ def GenerateDirectories(cfg):
     rm_PathTEST = cfg.getParam("chain", "remove_outputPath")
     start_step = cfg.getParam("chain", "firstStep")
 
-    if os.path.exists(root) and root != "/" and rm_PathTEST and start_step == "init":
+    if (
+        os.path.exists(root)
+        and root != "/"
+        and rm_PathTEST
+        and start_step == "init"
+    ):
         shutil.rmtree(root, ignore_errors=False)
     ensure_dir(root)
 
@@ -96,7 +101,9 @@ def GenerateDirectories(cfg):
     os.mkdir(root + "/cmd/fusion")
     os.mkdir(root + "/cmd/splitShape")
 
-    merge_final_classifications = cfg.getParam("chain", "merge_final_classifications")
+    merge_final_classifications = cfg.getParam(
+        "chain", "merge_final_classifications"
+    )
     if merge_final_classifications:
         if os.path.exists(root + "/final/merge_final_classifications"):
             shutil.rmtree(root + "/final/merge_final_classifications")

@@ -57,7 +57,9 @@ def create_grid(base_shp, out_grid, distance_line):
         sys.exit(1)
 
     #  Specific output layer
-    out_layer = out_ds.CreateLayer(str(out_grid), srsObj, geom_type=ogr.wkbLineString)
+    out_layer = out_ds.CreateLayer(
+        str(out_grid), srsObj, geom_type=ogr.wkbLineString
+    )
 
     # Add a integer field (ID)
     new_field = ogr.FieldDefn("ID", 0)

@@ -67,7 +67,10 @@ def clumpAndStackClassif(
             " ".join(
                 [
                     " : ".join(
-                        ["Input raster well clumped : ", str(clumptime - begin_clump)]
+                        [
+                            "Input raster well clumped : ",
+                            str(clumptime - begin_clump),
+                        ]
                     ),
                     "seconds",
                 ]
@@ -121,7 +124,9 @@ def clumpAndStackClassif(
             )
         )
 
-        shutil.copyfile(os.path.join(path, outfilename), os.path.join(out, outfilename))
+        shutil.copyfile(
+            os.path.join(path, outfilename), os.path.join(out, outfilename)
+        )
 
     else:
         clumpAppli.ExecuteAndWriteOutput()
@@ -203,7 +208,9 @@ def clumpAndStackClassif(
 
     clumptime = time.time()
     logger.info(
-        " ".join([" : ".join(["Clump : ", str(clumptime - begin_clump)]), "seconds"])
+        " ".join(
+            [" : ".join(["Clump : ", str(clumptime - begin_clump)]), "seconds"]
+        )
     )
 
 
@@ -221,7 +228,11 @@ if __name__ == "__main__":
         )
 
         parser.add_argument(
-            "-wd", dest="path", action="store", help="Working directory", required=True
+            "-wd",
+            dest="path",
+            action="store",
+            help="Working directory",
+            required=True,
         )
 
         parser.add_argument(

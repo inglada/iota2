@@ -41,7 +41,9 @@ def getStatsFromSamples(InSamples, ground_truth, region_field):
         raise Exception("Can not open : " + InSamples)
 
     layer = ds.GetLayer()
-    featuresFields = fu.getVectorFeatures(ground_truth, region_field, InSamples)
+    featuresFields = fu.getVectorFeatures(
+        ground_truth, region_field, InSamples
+    )
 
     allStat = []
     for currentBand in featuresFields:
@@ -60,7 +62,9 @@ def getStatsFromSamples(InSamples, ground_truth, region_field):
 
 
 def writeStatsFromSample(InSamples, outStats, ground_truth, region_field):
-    allMean, allStdDev = getStatsFromSamples(InSamples, ground_truth, region_field)
+    allMean, allStdDev = getStatsFromSamples(
+        InSamples, ground_truth, region_field
+    )
 
     with open(outStats, "w") as statsFile:
         statsFile.write(
@@ -70,7 +74,9 @@ def writeStatsFromSample(InSamples, outStats, ground_truth, region_field):
         )
         for currentMean in allMean:
             statsFile.write(
-                '        <StatisticVector value="' + str(currentMean) + '" />\n'
+                '        <StatisticVector value="'
+                + str(currentMean)
+                + '" />\n'
             )
         statsFile.write(
             '    </Statistic>\n\
@@ -90,7 +96,9 @@ def get_svm_normalization_stats(stats_dir, region_name, seed):
     """
     """
     return fu.FileSearch_AND(
-        stats_dir, True, "samples_region_{}_seed_{}.xml".format(region_name, seed)
+        stats_dir,
+        True,
+        "samples_region_{}_seed_{}.xml".format(region_name, seed),
     )[0]
 
 
@@ -99,12 +107,22 @@ def sqlite_to_geojson(input_db: str, output_db: str, logger=logger) -> None:
     """
     from Common.Utils import run
 
-    logger.info("changin input data format {} to {}".format(input_db, output_db))
+    logger.info(
+        "changin input data format {} to {}".format(input_db, output_db)
+    )
     run('ogr2ogr -f "GeoJSON" {} {}'.format(output_db, input_db))
 
 
 def buildTrainCmd_points(
-    r, paths, classif, options, dataField, out, stat, features_labels, model_name
+    r,
+    paths,
+    classif,
+    options,
+    dataField,
+    out,
+    stat,
+    features_labels,
+    model_name,
 ):
     """
     shape_ref [param] [string] path to a shape use to determine how many fields
@@ -169,7 +187,9 @@ def config_model(outputPath, region_field):
     # init
     all_regions = []
     for sample in samples:
-        tile_name = os.path.splitext(os.path.basename(sample))[0].split("_")[posTile]
+        tile_name = os.path.splitext(os.path.basename(sample))[0].split("_")[
+            posTile
+        ]
         regions = fu.getFieldElement(
             sample,
             driverName="ESRI Shapefile",
@@ -203,8 +223,12 @@ def config_model(outputPath, region_field):
         >= 1
     ]
     for shape_region in shape_regions:
-        tile = os.path.splitext(os.path.basename(shape_region))[0].split("_")[-1]
-        region = os.path.splitext(os.path.basename(shape_region))[0].split("_")[-2]
+        tile = os.path.splitext(os.path.basename(shape_region))[0].split("_")[
+            -1
+        ]
+        region = os.path.splitext(os.path.basename(shape_region))[0].split(
+            "_"
+        )[-2]
         for model_name, tiles_model in list(model_tiles.items()):
             if model_name.split("f")[0] == region and tile not in tiles_model:
                 tiles_model.append(tile)
@@ -264,7 +288,11 @@ def launchTraining(cfg, dataField, stat, N, pathToCmdTrain, out, pathWd):
             posSeed_sample = posSeed - 1
             suffix = "_SAR"
         model = os.path.split(sample)[-1].split("_")[posModel_sample]
-        seed = os.path.split(sample)[-1].split("_")[posSeed_sample].split("seed")[-1]
+        seed = (
+            os.path.split(sample)[-1]
+            .split("_")[posSeed_sample]
+            .split("seed")[-1]
+        )
         outStats = None
         if classif.lower() == "svm" or classif.lower() == "libsvm":
             outStats = os.path.join(
@@ -329,7 +357,10 @@ if __name__ == "__main__":
         required=True,
     )
     parser.add_argument(
-        "--stat", dest="stat", help="statistics for classification", required=False
+        "--stat",
+        dest="stat",
+        help="statistics for classification",
+        required=False,
     )
     parser.add_argument(
         "-train.out.cmd",

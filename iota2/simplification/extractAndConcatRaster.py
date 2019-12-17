@@ -62,7 +62,11 @@ if __name__ == "__main__":
             description="Clip raster files and concatenate them"
         )
         PARSER.add_argument(
-            "-wd", dest="path", action="store", help="working dir", required=True
+            "-wd",
+            dest="path",
+            action="store",
+            help="working dir",
+            required=True,
         )
 
         PARSER.add_argument(
@@ -79,7 +83,11 @@ if __name__ == "__main__":
         )
 
         PARSER.add_argument(
-            "-out", dest="out", action="store", help="output raster", required=True
+            "-out",
+            dest="out",
+            action="store",
+            help="output raster",
+            required=True,
         )
 
         PARSER.add_argument(

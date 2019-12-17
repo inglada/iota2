@@ -30,7 +30,11 @@ def run(cmd, desc=None, env=os.environ, logger=logger):
     start = timer()
     logger.debug("run command : " + cmd)
     p = subprocess.Popen(
-        cmd, env=env, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+        cmd,
+        env=env,
+        shell=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
     )
 
     # Get output as strings
@@ -47,7 +51,9 @@ def run(cmd, desc=None, env=os.environ, logger=logger):
 
     # Log error code
     if rc != 0:
-        logger.error("Command {}  exited with non-zero return code {}".format(cmd, rc))
+        logger.error(
+            "Command {}  exited with non-zero return code {}".format(cmd, rc)
+        )
         exception_msg = "Launch command fail : {} {}".format(cmd, out)
         raise Exception(exception_msg)
 

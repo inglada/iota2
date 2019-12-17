@@ -42,7 +42,11 @@ def manageMultiPoly2Poly(in_lyr, out_lyr, field_name_list, do_correction=True):
             else:
                 if do_correction:
                     addPolygon(
-                        in_feat, geom.ExportToWkb(), in_lyr, out_lyr, field_name_list
+                        in_feat,
+                        geom.ExportToWkb(),
+                        in_lyr,
+                        out_lyr,
+                        field_name_list,
                     )
     return multi_cpt
 
@@ -85,7 +89,9 @@ def multipoly2poly(inshape, outshape, do_correction=True):
                 continue
             out_lyr.CreateField(fieldDefn)
 
-    multipoly = manageMultiPoly2Poly(in_lyr, out_lyr, field_name_list, do_correction)
+    multipoly = manageMultiPoly2Poly(
+        in_lyr, out_lyr, field_name_list, do_correction
+    )
     return multipoly
 
 

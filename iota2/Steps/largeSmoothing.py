@@ -41,15 +41,21 @@ class largeSmoothing(IOTA2Step.Step):
         self.hermite = SCF.serviceConfigFile(self.cfg).getParam(
             "Simplification", "hermite"
         )
-        self.mmu = SCF.serviceConfigFile(self.cfg).getParam("Simplification", "mmu")
-        self.outmos = os.path.join(self.outputPath, "final", "simplification", "mosaic")
+        self.mmu = SCF.serviceConfigFile(self.cfg).getParam(
+            "Simplification", "mmu"
+        )
+        self.outmos = os.path.join(
+            self.outputPath, "final", "simplification", "mosaic"
+        )
         self.clipfile = SCF.serviceConfigFile(self.cfg).getParam(
             "Simplification", "clipfile"
         )
         self.clipfield = SCF.serviceConfigFile(self.cfg).getParam(
             "Simplification", "clipfield"
         )
-        self.grid = os.path.join(self.outputPath, "final", "simplification", "grid.shp")
+        self.grid = os.path.join(
+            self.outputPath, "final", "simplification", "grid.shp"
+        )
 
     def step_description(self):
         """
@@ -64,12 +70,15 @@ class largeSmoothing(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
-        listfid = vf.getFIDSpatialFilter(self.clipfile, self.grid, self.clipfield)
+        listfid = vf.getFIDSpatialFilter(
+            self.clipfile, self.grid, self.clipfield
+        )
 
         return [
             [
                 "%s/tile_%s_%s_douglas.shp" % (self.outmos, self.clipfield, x),
-                "%s/tile_%s_%s_douglas_hermite.shp" % (self.outmos, self.clipfield, x),
+                "%s/tile_%s_%s_douglas_hermite.shp"
+                % (self.outmos, self.clipfield, x),
             ]
             for x in listfid
         ]
@@ -84,12 +93,20 @@ class largeSmoothing(IOTA2Step.Step):
         """
         from simplification import VectAndSimp as vas
 
-        tmpdir = os.path.join(self.outputPath, "final", "simplification", "tmp")
+        tmpdir = os.path.join(
+            self.outputPath, "final", "simplification", "tmp"
+        )
         if self.workingDirectory:
             tmpdir = self.workingDirectory
 
         step_function = lambda x: vas.generalizeVector(
-            tmpdir, self.grasslib, x[0], self.hermite, "hermite", self.mmu, out=x[1]
+            tmpdir,
+            self.grasslib,
+            x[0],
+            self.hermite,
+            "hermite",
+            self.mmu,
+            out=x[1],
         )
 
         return step_function

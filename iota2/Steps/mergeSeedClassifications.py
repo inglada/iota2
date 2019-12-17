@@ -32,7 +32,9 @@ class mergeSeedClassifications(IOTA2Step.Step):
         self.output_path = SCF.serviceConfigFile(self.cfg).getParam(
             "chain", "outputPath"
         )
-        self.data_field = SCF.serviceConfigFile(self.cfg).getParam("chain", "dataField")
+        self.data_field = SCF.serviceConfigFile(self.cfg).getParam(
+            "chain", "dataField"
+        )
         self.nomenclature = SCF.serviceConfigFile(self.cfg).getParam(
             "chain", "nomenclaturePath"
         )
@@ -52,13 +54,15 @@ class mergeSeedClassifications(IOTA2Step.Step):
         self.enableCrossValidation = SCF.serviceConfigFile(self.cfg).getParam(
             "chain", "enableCrossValidation"
         )
-        self.ground_truth = SCF.serviceConfigFile(cfg).getParam("chain", "groundTruth")
+        self.ground_truth = SCF.serviceConfigFile(cfg).getParam(
+            "chain", "groundTruth"
+        )
         self.fusionClaAllSamplesVal = SCF.serviceConfigFile(cfg).getParam(
             "chain", "fusionOfClassificationAllSamplesValidation"
         )
-        self.merge_final_classifications_method = SCF.serviceConfigFile(cfg).getParam(
-            "chain", "merge_final_classifications_method"
-        )
+        self.merge_final_classifications_method = SCF.serviceConfigFile(
+            cfg
+        ).getParam("chain", "merge_final_classifications_method")
 
     def step_description(self):
         """

@@ -121,7 +121,9 @@ class iota_testVectorFormatting(unittest.TestCase):
             result = self.defaultTestResult()
             self._feedErrorsToResult(result, self._outcome.errors)
         else:
-            result = getattr(self, "_outcomeForDoCleanups", self._resultForDoCleanups)
+            result = getattr(
+                self, "_outcomeForDoCleanups", self._resultForDoCleanups
+            )
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
         ok = not error and not failure
@@ -149,7 +151,9 @@ class iota_testVectorFormatting(unittest.TestCase):
             self.test_working_directory, "IOTA2_dir_VectorFormatting"
         )
         # prepare ground truth
-        ground_truth = os.path.join(self.test_working_directory, "groundTruth_test.shp")
+        ground_truth = os.path.join(
+            self.test_working_directory, "groundTruth_test.shp"
+        )
         cmd = "ogr2ogr -s_srs EPSG:2154 -t_srs EPSG:2154 -dialect 'SQLite' -sql 'select GEOMETRY,code from t31tcj' {} {}".format(
             ground_truth, self.in_vector
         )
@@ -237,7 +241,8 @@ class iota_testVectorFormatting(unittest.TestCase):
         )
         # check nb features
         self.assertTrue(
-            nb_features_origin == nb_features_test, msg="wrong number of features"
+            nb_features_origin == nb_features_test,
+            msg="wrong number of features",
         )
 
         # check fields
@@ -274,7 +279,11 @@ class iota_testVectorFormatting(unittest.TestCase):
         regionField = "region"
         extraction_ratio = 0.5
         extract_maj_vote_samples(
-            in_vector, extracted_vector, extraction_ratio, dataField, regionField
+            in_vector,
+            extracted_vector,
+            extraction_ratio,
+            dataField,
+            regionField,
         )
         # assert
         features_origin = fut.getFieldElement(
@@ -307,7 +316,8 @@ class iota_testVectorFormatting(unittest.TestCase):
         buff = []
         for class_name, class_count in list(by_class_origin.items()):
             buff.append(
-                by_class_in_vector[class_name] == extraction_ratio * class_count
+                by_class_in_vector[class_name]
+                == extraction_ratio * class_count
             )
 
         self.assertTrue(all(buff), msg="extraction of samples failed")
@@ -376,7 +386,11 @@ class iota_testVectorFormatting(unittest.TestCase):
         )
         seed_0_val_test = len(
             fut.getFieldElement(
-                s0_val, driverName="SQLite", field="region", mode="all", elemType="str"
+                s0_val,
+                driverName="SQLite",
+                field="region",
+                mode="all",
+                elemType="str",
             )
         )
         seed_1_learn_test = len(
@@ -390,7 +404,11 @@ class iota_testVectorFormatting(unittest.TestCase):
         )
         seed_1_val_test = len(
             fut.getFieldElement(
-                s1_val, driverName="SQLite", field="region", mode="all", elemType="str"
+                s1_val,
+                driverName="SQLite",
+                field="region",
+                mode="all",
+                elemType="str",
             )
         )
 
@@ -420,16 +438,21 @@ class iota_testVectorFormatting(unittest.TestCase):
         # define inputs
         fields_to_keep = ["region", "code"]
         test_vector_name = "test_vector.sqlite"
-        test_vector = os.path.join(self.test_working_directory, test_vector_name)
+        test_vector = os.path.join(
+            self.test_working_directory, test_vector_name
+        )
 
         # launch function
         keepFields(self.in_vector, test_vector, fields=fields_to_keep)
 
         # assert
-        test_vector_fields = fut.getAllFieldsInShape(test_vector, driver="SQLite")
+        test_vector_fields = fut.getAllFieldsInShape(
+            test_vector, driver="SQLite"
+        )
         self.assertTrue(
             all(
-                current_field in fields_to_keep for current_field in test_vector_fields
+                current_field in fields_to_keep
+                for current_field in test_vector_fields
             ),
             msg="remove fields failed",
         )
@@ -446,8 +469,12 @@ class iota_testVectorFormatting(unittest.TestCase):
 
         # define inputs
         test_vector_name = "T31TCJ.sqlite"
-        test_vector = os.path.join(self.test_working_directory, test_vector_name)
-        cmd = "ogr2ogr -nln t31tcj -f SQLite {} {}".format(test_vector, self.ref_region)
+        test_vector = os.path.join(
+            self.test_working_directory, test_vector_name
+        )
+        cmd = "ogr2ogr -nln t31tcj -f SQLite {} {}".format(
+            test_vector, self.ref_region
+        )
         run(cmd)
 
         # launch function
@@ -492,12 +519,20 @@ class iota_testVectorFormatting(unittest.TestCase):
         )
         nb_features_new_region = 5
         test_vector_name = "T31TCJ_Samples.sqlite"
-        test_vector = os.path.join(self.test_working_directory, test_vector_name)
-        cmd = "ogr2ogr -nln output -f SQLite {} {}".format(test_vector, self.in_vector)
+        test_vector = os.path.join(
+            self.test_working_directory, test_vector_name
+        )
+        cmd = "ogr2ogr -nln output -f SQLite {} {}".format(
+            test_vector, self.in_vector
+        )
         run(cmd)
 
-        random_update(test_vector, "output", "seed_0", "learn", nb_features_origin)
-        random_update(test_vector, "output", "region", "2", nb_features_new_region)
+        random_update(
+            test_vector, "output", "seed_0", "learn", nb_features_origin
+        )
+        random_update(
+            test_vector, "output", "region", "2", nb_features_new_region
+        )
 
         output_dir = self.test_working_directory
         region_field = "region"
@@ -534,4 +569,6 @@ class iota_testVectorFormatting(unittest.TestCase):
         )
 
         self.assertTrue(nb_features_new_region == feat_vect_reg_2)
-        self.assertTrue(nb_features_origin == feat_vect_reg_1 + feat_vect_reg_2)
+        self.assertTrue(
+            nb_features_origin == feat_vect_reg_1 + feat_vect_reg_2
+        )

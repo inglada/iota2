@@ -49,12 +49,18 @@ class DimensionalityReductionTests(unittest.TestCase):
         self.statsFile = os.path.join(iota2_dataTest, "dim_red_stats.xml")
         self.testStatsFile = os.path.join(iota2_dataTest, "tmp", "stats.xml")
         self.outputModelFileName = os.path.join(iota2_dataTest, "model.pca")
-        self.testOutputModelFileName = os.path.join(iota2_dataTest, "tmp", "model.pca")
-        self.reducedOutputFileName = os.path.join(iota2_dataTest, "reduced.sqlite")
+        self.testOutputModelFileName = os.path.join(
+            iota2_dataTest, "tmp", "model.pca"
+        )
+        self.reducedOutputFileName = os.path.join(
+            iota2_dataTest, "reduced.sqlite"
+        )
         self.testReducedOutputFileName = os.path.join(
             iota2_dataTest, "tmp", "reduced.sqlite"
         )
-        self.testJointReducedFile = os.path.join(iota2_dataTest, "tmp", "joint.sqlite")
+        self.testJointReducedFile = os.path.join(
+            iota2_dataTest, "tmp", "joint.sqlite"
+        )
         self.jointReducedFile = os.path.join(iota2_dataTest, "joint.sqlite")
         self.outputSampleFileName = "reduced_output_samples.sqlite"
         self.testOutputSampleFileName = "reduced_output_samples.sqlite"
@@ -65,7 +71,9 @@ class DimensionalityReductionTests(unittest.TestCase):
     def test_GetAvailableFeatures(self):
 
         expected = "20140118"
-        (feats, metaDataFields) = DR.GetAvailableFeatures(self.inputSampleFileName)
+        (feats, metaDataFields) = DR.GetAvailableFeatures(
+            self.inputSampleFileName
+        )
         self.assertEqual(feats["landsat8"]["brightness"][0], expected)
 
         expected = "b1"
@@ -121,11 +129,15 @@ class DimensionalityReductionTests(unittest.TestCase):
             ]
         ]
 
-        (fl, metaDataFields) = DR.BuildFeaturesLists(self.inputSampleFileName, "global")
+        (fl, metaDataFields) = DR.BuildFeaturesLists(
+            self.inputSampleFileName, "global"
+        )
         self.assertEqual(expected[0], fl[0][: len(expected[0])])
 
     def test_GenerateFeatureListDate(self):
-        (fl, metaDataFields) = DR.BuildFeaturesLists(self.inputSampleFileName, "date")
+        (fl, metaDataFields) = DR.BuildFeaturesLists(
+            self.inputSampleFileName, "date"
+        )
         self.assertEqual(self.flDate, fl[0])
 
     def test_GenerateFeatureListBand(self):
@@ -155,7 +167,9 @@ class DimensionalityReductionTests(unittest.TestCase):
             "landsat8_b2_20141220",
             "landsat8_b2_20141229",
         ]
-        (fl, metaDataFields) = DR.BuildFeaturesLists(self.inputSampleFileName, "band")
+        (fl, metaDataFields) = DR.BuildFeaturesLists(
+            self.inputSampleFileName, "band"
+        )
         self.assertEqual(expected, fl[1])
 
     def test_ComputeFeatureStatistics(self):
@@ -177,7 +191,9 @@ class DimensionalityReductionTests(unittest.TestCase):
         )
         self.assertTrue(
             filecmp.cmp(
-                self.testOutputModelFileName, self.outputModelFileName, shallow=False
+                self.testOutputModelFileName,
+                self.outputModelFileName,
+                shallow=False,
             ),
             msg="Model files don't match",
         )
@@ -187,7 +203,9 @@ class DimensionalityReductionTests(unittest.TestCase):
 
         outputFeatures = ["reduced_" + str(x) for x in range(6)]
 
-        (dummy, metaDataFields) = DR.BuildFeaturesLists(self.inputSampleFileName)
+        (dummy, metaDataFields) = DR.BuildFeaturesLists(
+            self.inputSampleFileName
+        )
         numberOfMetaDataFields = len(metaDataFields)
         inputDimensions = len(
             fu.getAllFieldsInShape(self.inputSampleFileName, "SQLite")[
@@ -220,11 +238,15 @@ class DimensionalityReductionTests(unittest.TestCase):
 
         fl = [self.reducedOutputFileName, self.reducedOutputFileName]
         outputFeatures = ["reduced_" + str(x + 1) for x in range(5)]
-        DR.JoinReducedSampleFiles(fl, self.testJointReducedFile, outputFeatures)
+        DR.JoinReducedSampleFiles(
+            fl, self.testJointReducedFile, outputFeatures
+        )
 
         self.assertTrue(
             compareSQLite(
-                self.testJointReducedFile, self.jointReducedFile, CmpMode="coordinates"
+                self.testJointReducedFile,
+                self.jointReducedFile,
+                CmpMode="coordinates",
             ),
             msg="Joined files don't match",
         )
@@ -561,7 +583,8 @@ class DimensionalityReductionTests(unittest.TestCase):
             self.configFile, app, modelList
         )
         appdr.SetParameterString(
-            "out", os.path.join(iota2_dataTest, "tmp", "reducedStackPipeline.tif")
+            "out",
+            os.path.join(iota2_dataTest, "tmp", "reducedStackPipeline.tif"),
         )
         appdr.ExecuteAndWriteOutput()
 

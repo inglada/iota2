@@ -138,7 +138,9 @@ def mergeFinalClassifications(
     confusion_matrix_name = "fusionConfusion.png"
 
     if not method in ["majorityvoting", "dempstershafer"]:
-        err_msg = "the fusion method must be 'majorityvoting' or 'dempstershafer'"
+        err_msg = (
+            "the fusion method must be 'majorityvoting' or 'dempstershafer'"
+        )
         logger.error(err_msg)
         raise Exception(err_msg)
     if not dempstershafer_mob in ["precision", "recall", "accuracy", "kappa"]:
@@ -154,7 +156,9 @@ def mergeFinalClassifications(
         wd_merge = workingDirectory
 
     final_classifications = [
-        fut.FileSearch_AND(iota2_dir_final, True, "Classif_Seed_{}.tif".format(run))[0]
+        fut.FileSearch_AND(
+            iota2_dir_final, True, "Classif_Seed_{}.tif".format(run)
+        )[0]
         for run in range(runs)
     ]
     fusion_path = os.path.join(wd, fusion_name)
@@ -170,7 +174,9 @@ def mergeFinalClassifications(
     )
     logger.debug("fusion options:")
     logger.debug(fusion_options)
-    fusion_app = otbApp.CreateFusionOfClassificationsApplication(fusion_options)
+    fusion_app = otbApp.CreateFusionOfClassificationsApplication(
+        fusion_options
+    )
     logger.debug("START fusion of final classifications")
     fusion_app.ExecuteAndWriteOutput()
     logger.debug("END fusion of final classifications")
@@ -179,11 +185,15 @@ def mergeFinalClassifications(
         fusion_path,
         colorFile,
         co_option=["COMPRESS=LZW"],
-        output_pix_type=gdal.GDT_Byte if pixType == "uint8" else gdal.GDT_UInt16,
+        output_pix_type=gdal.GDT_Byte
+        if pixType == "uint8"
+        else gdal.GDT_UInt16,
     )
 
     confusion_matrix = os.path.join(
-        iota2_dir_final, "merge_final_classifications", "confusion_mat_maj_vote.csv"
+        iota2_dir_final,
+        "merge_final_classifications",
+        "confusion_mat_maj_vote.csv",
     )
     if enableCrossValidation is False:
         vector_val = fut.FileSearch_AND(
@@ -225,8 +235,12 @@ def mergeFinalClassifications(
     )
 
     if keep_runs_results:
-        seed_results = fut.FileSearch_AND(iota2_dir_final, True, "RESULTS.txt")[0]
-        shutil.copy(seed_results, os.path.join(iota2_dir_final, new_results_seed_file))
+        seed_results = fut.FileSearch_AND(
+            iota2_dir_final, True, "RESULTS.txt"
+        )[0]
+        shutil.copy(
+            seed_results, os.path.join(iota2_dir_final, new_results_seed_file)
+        )
 
     maj_vote_report = os.path.join(iota2_dir_final, "RESULTS.txt")
 

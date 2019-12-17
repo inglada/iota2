@@ -78,7 +78,9 @@ class iota_testZonalStats(unittest.TestCase):
         self.vectorstatsiota2 = os.path.join(
             self.iota2_tests_directory, self.out, "classifiota2.shp"
         )
-        self.outzip = os.path.join(self.iota2_tests_directory, self.out, "classif.zip")
+        self.outzip = os.path.join(
+            self.iota2_tests_directory, self.out, "classif.zip"
+        )
         self.statslist = {1: "rate", 2: "statsmaj", 3: "statsmaj"}
         self.nomenclature = os.path.join(
             IOTA2DIR, "data", "references/posttreat/nomenclature_17.cfg"
@@ -133,7 +135,9 @@ class iota_testZonalStats(unittest.TestCase):
             result = self.defaultTestResult()
             self._feedErrorsToResult(result, self._outcome.errors)
         else:
-            result = getattr(self, "_outcomeForDoCleanups", self._resultForDoCleanups)
+            result = getattr(
+                self, "_outcomeForDoCleanups", self._resultForDoCleanups
+            )
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
         ok = not error and not failure
@@ -157,7 +161,9 @@ class iota_testZonalStats(unittest.TestCase):
             self.statslist,
             classes=self.nomenclature,
         )
-        zs.iota2Formatting(self.vectorstats, self.nomenclature, self.vectorstatsiota2)
+        zs.iota2Formatting(
+            self.vectorstats, self.nomenclature, self.vectorstatsiota2
+        )
         zs.compressShape(self.vectorstatsiota2, self.outzip)
 
         # Final integration test

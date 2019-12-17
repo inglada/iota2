@@ -208,7 +208,10 @@ def compareVectorFile(
 
     def getFieldValue(feat, fields):
         return dict(
-            [(currentField, feat.GetField(currentField)) for currentField in fields]
+            [
+                (currentField, feat.GetField(currentField))
+                for currentField in fields
+            ]
         )
 
     def priority(item):
@@ -222,7 +225,10 @@ def compareVectorFile(
         fields = fu.getAllFieldsInShape(vector, drivername)
         for feature in lyr:
             if typegeom == "point":
-                x, y = feature.GetGeometryRef().GetX(), feature.GetGeometryRef().GetY()
+                x, y = (
+                    feature.GetGeometryRef().GetX(),
+                    feature.GetGeometryRef().GetY(),
+                )
             elif typegeom == "polygon":
                 x, y = (
                     feature.GetGeometryRef().Centroid().GetX(),
@@ -274,7 +280,9 @@ def rename_table(vect_file, old_table_name, new_table_name="output"):
     """
     import sqlite3 as lite
 
-    sql_clause = "ALTER TABLE {} RENAME TO {}".format(old_table_name, new_table_name)
+    sql_clause = "ALTER TABLE {} RENAME TO {}".format(
+        old_table_name, new_table_name
+    )
 
     conn = lite.connect(vect_file)
     cursor = conn.cursor()

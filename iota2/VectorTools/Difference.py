@@ -32,7 +32,9 @@ def DifferenceFiles(shp1, shp2):
         minY = y - float(distance)
         maxX = x + float(distance)
         maxY = y + float(distance)
-        lyr2.SetSpatialFilterRect(float(minX), float(minY), float(maxX), float(maxY))
+        lyr2.SetSpatialFilterRect(
+            float(minX), float(minY), float(maxX), float(maxY)
+        )
         nbfeat2 = lyr2.GetFeatureCount()
         intersection = False
         listFID = []
@@ -84,7 +86,9 @@ def DifferenceFiles(shp1, shp2):
         minY = y - float(distance)
         maxX = x + float(distance)
         maxY = y + float(distance)
-        lyr2.SetSpatialFilterRect(float(minX), float(minY), float(maxX), float(maxY))
+        lyr2.SetSpatialFilterRect(
+            float(minX), float(minY), float(maxX), float(maxY)
+        )
         nbfeat2 = lyr2.GetFeatureCount()
         intersection = False
         listFID = []

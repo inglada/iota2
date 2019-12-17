@@ -40,7 +40,9 @@ def genRasterEnvelope(raster, outputShape):
     srs = osr.SpatialReference()
     srs.ImportFromEPSG(int(epsg))
 
-    out_lyr = data_source.CreateLayer(rasterName, srs, geom_type=ogr.wkbPolygon)
+    out_lyr = data_source.CreateLayer(
+        rasterName, srs, geom_type=ogr.wkbPolygon
+    )
 
     field_ext = ogr.FieldDefn("ext", ogr.OFTString)
     field_ext.SetWidth(24)
@@ -145,7 +147,8 @@ def mosaicFromShape(rasters, shape, rasterOut, workingDir=None):
 
     # sort input raster by origin (upperLeft)
     rasters_p = sorted(
-        [(raster, fut.getRasterExtent(raster)) for raster in rasters], key=upperLeft
+        [(raster, fut.getRasterExtent(raster)) for raster in rasters],
+        key=upperLeft,
     )[::-1]
 
     outputDirectory = os.path.split(rasterOut)[0]
@@ -193,7 +196,9 @@ def mosaicFromShape(rasters, shape, rasterOut, workingDir=None):
 
     # clean tmp files
     for vec in tmp_files_vec:
-        fut.removeShape(vec.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"])
+        fut.removeShape(
+            vec.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"]
+        )
     for img in tmp_files_raster:
         os.remove(img)
 
@@ -220,10 +225,16 @@ if __name__ == "__main__":
         required=True,
     )
     parser.add_argument(
-        "-out", help="output raster path (mandatory)", dest="rasterOut", required=True
+        "-out",
+        help="output raster path (mandatory)",
+        dest="rasterOut",
+        required=True,
     )
     parser.add_argument(
-        "-working.directory", help="working directory", dest="wD", required=False
+        "-working.directory",
+        help="working directory",
+        dest="wD",
+        required=False,
     )
 
     args = parser.parse_args()

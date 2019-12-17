@@ -50,12 +50,16 @@ def dempster_shafer_fusion_parameters(iota2_dir):
 
     iota2_ds_confusions_dir = os.path.join(iota2_dir, "dataAppVal", "bymodels")
     iota2_classif_dir = os.path.join(iota2_dir, "classif")
-    classifications = fu.FileSearch_AND(iota2_classif_dir, True, "Classif", ".tif")
+    classifications = fu.FileSearch_AND(
+        iota2_classif_dir, True, "Classif", ".tif"
+    )
     # group by models
     model_group = []
     for classif in classifications:
         classif_name = os.path.basename(classif)
-        classif_seed = classif_name.split("_")[classif_seed_pos].replace(".tif", "")
+        classif_seed = classif_name.split("_")[classif_seed_pos].replace(
+            ".tif", ""
+        )
         classif_model = classif_name.split("_")[classif_model_pos]
         classif_tile = classif_name.split("_")[classif_tile_pos]
         key_param = (classif_seed, classif_model, classif_tile)
@@ -66,13 +70,17 @@ def dempster_shafer_fusion_parameters(iota2_dir):
     for raster_model in raster_group:
         for raster in raster_model:
             raster_name = os.path.basename(raster)
-            classif_seed = raster_name.split("_")[classif_seed_pos].replace(".tif", "")
+            classif_seed = raster_name.split("_")[classif_seed_pos].replace(
+                ".tif", ""
+            )
             classif_model = raster_name.split("_")[classif_model_pos]
             if "SAR.tif" in raster_name:
                 sar_model = fu.fileSearchRegEx(
                     os.path.join(
                         iota2_ds_confusions_dir,
-                        "model_{}_seed_{}_SAR.csv".format(classif_model, classif_seed),
+                        "model_{}_seed_{}_SAR.csv".format(
+                            classif_model, classif_seed
+                        ),
                     )
                 )[0]
                 sar_classif = raster
@@ -80,7 +88,9 @@ def dempster_shafer_fusion_parameters(iota2_dir):
                 opt_model = fu.fileSearchRegEx(
                     os.path.join(
                         iota2_ds_confusions_dir,
-                        "model_{}_seed_{}.csv".format(classif_model, classif_seed),
+                        "model_{}_seed_{}.csv".format(
+                            classif_model, classif_seed
+                        ),
                     )
                 )[0]
                 opt_classif = raster
@@ -133,12 +143,20 @@ def perform_fusion(
     """
     from Common import OtbAppBank
 
-    model = os.path.basename(fusion_dic["sar_classif"]).split("_")[classif_model_pos]
-    seed = os.path.basename(fusion_dic["sar_classif"]).split("_")[classif_seed_pos]
-    tile = os.path.basename(fusion_dic["sar_classif"]).split("_")[classif_tile_pos]
+    model = os.path.basename(fusion_dic["sar_classif"]).split("_")[
+        classif_model_pos
+    ]
+    seed = os.path.basename(fusion_dic["sar_classif"]).split("_")[
+        classif_seed_pos
+    ]
+    tile = os.path.basename(fusion_dic["sar_classif"]).split("_")[
+        classif_tile_pos
+    ]
     classif_dir, _ = os.path.split(fusion_dic["sar_classif"])
 
-    sar_opt_fus_name = "Classif_{}_model_{}_seed_{}_DS.tif".format(tile, model, seed)
+    sar_opt_fus_name = "Classif_{}_model_{}_seed_{}_DS.tif".format(
+        tile, model, seed
+    )
     sar_opt_fus = os.path.join(classif_dir, sar_opt_fus_name)
     if workingDirectory:
         sar_opt_fus = os.path.join(workingDirectory, sar_opt_fus_name)
@@ -153,13 +171,17 @@ def perform_fusion(
         "out": sar_opt_fus,
     }
 
-    ds_fus = OtbAppBank.CreateFusionOfClassificationsApplication(fusion_parameters)
+    ds_fus = OtbAppBank.CreateFusionOfClassificationsApplication(
+        fusion_parameters
+    )
     if not os.path.exists(os.path.join(classif_dir, sar_opt_fus_name)):
         LOGGER.info("computing : {}".format(sar_opt_fus))
         ds_fus.ExecuteAndWriteOutput()
         LOGGER.debug("{} DONE".format(sar_opt_fus))
         if workingDirectory:
-            shutil.copy(sar_opt_fus, os.path.join(classif_dir, sar_opt_fus_name))
+            shutil.copy(
+                sar_opt_fus, os.path.join(classif_dir, sar_opt_fus_name)
+            )
             os.remove(sar_opt_fus)
     return os.path.join(classif_dir, sar_opt_fus_name)
 
@@ -223,17 +245,29 @@ def compute_fusion_choice(
     """
     from Common import OtbAppBank
 
-    model = os.path.basename(fusion_dic["sar_classif"]).split("_")[classif_model_pos]
-    seed = os.path.basename(fusion_dic["sar_classif"]).split("_")[classif_seed_pos]
-    tile = os.path.basename(fusion_dic["sar_classif"]).split("_")[classif_tile_pos]
-    im_list = [fusion_dic["sar_classif"], fusion_dic["opt_classif"], fusion_class]
+    model = os.path.basename(fusion_dic["sar_classif"]).split("_")[
+        classif_model_pos
+    ]
+    seed = os.path.basename(fusion_dic["sar_classif"]).split("_")[
+        classif_seed_pos
+    ]
+    tile = os.path.basename(fusion_dic["sar_classif"]).split("_")[
+        classif_tile_pos
+    ]
+    im_list = [
+        fusion_dic["sar_classif"],
+        fusion_dic["opt_classif"],
+        fusion_class,
+    ]
     choice_exp = "im1b1==im3b1 and im2b1==im3b1?{ds_choice_both}:im1b1==im3b1?{ds_choice_sar}:im2b1==im3b1?{ds_choice_opt}:{ds_no_choice}".format(
         ds_choice_both=ds_choice_both,
         ds_choice_sar=ds_choice_sar,
         ds_choice_opt=ds_choice_opt,
         ds_no_choice=ds_no_choice,
     )
-    ds_choice_name = "DSchoice_{}_model_{}_seed_{}.tif".format(tile, model, seed)
+    ds_choice_name = "DSchoice_{}_model_{}_seed_{}.tif".format(
+        tile, model, seed
+    )
     ds_choice_dir = os.path.join(iota2_dir, "final", "TMP")
     if not os.path.exists(ds_choice_dir):
         try:
@@ -324,9 +358,15 @@ def compute_confidence_fusion(
     from Common import OtbAppBank
 
     classif_dir, _ = os.path.split(fusion_dic["sar_classif"])
-    model = os.path.basename(fusion_dic["sar_classif"]).split("_")[classif_model_pos]
-    seed = os.path.basename(fusion_dic["sar_classif"]).split("_")[classif_seed_pos]
-    tile = os.path.basename(fusion_dic["sar_classif"]).split("_")[classif_tile_pos]
+    model = os.path.basename(fusion_dic["sar_classif"]).split("_")[
+        classif_model_pos
+    ]
+    seed = os.path.basename(fusion_dic["sar_classif"]).split("_")[
+        classif_seed_pos
+    ]
+    tile = os.path.basename(fusion_dic["sar_classif"]).split("_")[
+        classif_tile_pos
+    ]
     sar_confidence = fu.fileSearchRegEx(
         os.path.join(
             classif_dir,
@@ -335,7 +375,8 @@ def compute_confidence_fusion(
     )[0]
     opt_confidence = fu.fileSearchRegEx(
         os.path.join(
-            classif_dir, "{}_model_{}_confidence_seed_{}.tif".format(tile, model, seed)
+            classif_dir,
+            "{}_model_{}_confidence_seed_{}.tif".format(tile, model, seed),
         )
     )[0]
 
@@ -353,7 +394,11 @@ def compute_confidence_fusion(
     ds_confidence = os.path.join(ds_confidence_dir, ds_confidence_name)
     if workingDirectory:
         ds_confidence = os.path.join(workingDirectory, ds_confidence_name)
-    confidence_param = {"il": im_list, "out": ds_confidence, "exp": confidence_exp}
+    confidence_param = {
+        "il": im_list,
+        "out": ds_confidence,
+        "exp": confidence_exp,
+    }
     confidence = OtbAppBank.CreateBandMathApplication(confidence_param)
 
     if not os.path.exists(os.path.join(ds_confidence_dir, ds_confidence_name)):
@@ -363,7 +408,8 @@ def compute_confidence_fusion(
         if workingDirectory:
             # copy confidence
             shutil.copy(
-                ds_confidence, os.path.join(ds_confidence_dir, ds_confidence_name)
+                ds_confidence,
+                os.path.join(ds_confidence_dir, ds_confidence_name),
             )
             # remove
             os.remove(ds_confidence)
@@ -436,9 +482,15 @@ def compute_probamap_fusion(
     from Common.FileUtils import getRasterNbands
 
     classif_dir, _ = os.path.split(fusion_dic["sar_classif"])
-    model = os.path.basename(fusion_dic["sar_classif"]).split("_")[classif_model_pos]
-    seed = os.path.basename(fusion_dic["sar_classif"]).split("_")[classif_seed_pos]
-    tile = os.path.basename(fusion_dic["sar_classif"]).split("_")[classif_tile_pos]
+    model = os.path.basename(fusion_dic["sar_classif"]).split("_")[
+        classif_model_pos
+    ]
+    seed = os.path.basename(fusion_dic["sar_classif"]).split("_")[
+        classif_seed_pos
+    ]
+    tile = os.path.basename(fusion_dic["sar_classif"]).split("_")[
+        classif_tile_pos
+    ]
     sar_proba_map = fu.fileSearchRegEx(
         os.path.join(
             classif_dir,
@@ -447,7 +499,8 @@ def compute_probamap_fusion(
     )[0]
     opt_proba_map = fu.fileSearchRegEx(
         os.path.join(
-            classif_dir, "PROBAMAP_{}_model_{}_seed_{}.tif".format(tile, model, seed)
+            classif_dir,
+            "PROBAMAP_{}_model_{}_seed_{}.tif".format(tile, model, seed),
         )
     )[0]
     sar_confidence = fu.fileSearchRegEx(
@@ -458,10 +511,17 @@ def compute_probamap_fusion(
     )[0]
     opt_confidence = fu.fileSearchRegEx(
         os.path.join(
-            classif_dir, "{}_model_{}_confidence_seed_{}.tif".format(tile, model, seed)
+            classif_dir,
+            "{}_model_{}_confidence_seed_{}.tif".format(tile, model, seed),
         )
     )[0]
-    im_list = [ds_choice, sar_proba_map, opt_proba_map, sar_confidence, opt_confidence]
+    im_list = [
+        ds_choice,
+        sar_proba_map,
+        opt_proba_map,
+        sar_confidence,
+        opt_confidence,
+    ]
     nb_bands_probamap_opt = getRasterNbands(opt_proba_map)
     nb_bands_probamap_sar = getRasterNbands(sar_proba_map)
     if nb_bands_probamap_opt != nb_bands_probamap_sar:
@@ -478,14 +538,23 @@ def compute_probamap_fusion(
         ds_choice_both=ds_choice_both,
         ds_choice_sar=ds_choice_sar,
         ds_choice_opt=ds_choice_opt,
-        ds_no_choice="{" + ",".join([str(ds_no_choice)] * nb_bands_probamap_opt) + "}",
+        ds_no_choice="{"
+        + ",".join([str(ds_no_choice)] * nb_bands_probamap_opt)
+        + "}",
     )
-    ds_probamap_name = "PROBAMAP_{}_model_{}_seed_{}_DS.tif".format(tile, model, seed)
+    ds_probamap_name = "PROBAMAP_{}_model_{}_seed_{}_DS.tif".format(
+        tile, model, seed
+    )
     ds_probamap_dir = classif_dir
     ds_probamap = os.path.join(ds_probamap_dir, ds_probamap_name)
     if workingDirectory:
         ds_probamap = os.path.join(workingDirectory, ds_probamap_name)
-    probamap_param = {"il": im_list, "out": ds_probamap, "ram": str(ram), "exp": exp}
+    probamap_param = {
+        "il": im_list,
+        "out": ds_probamap,
+        "ram": str(ram),
+        "exp": exp,
+    }
     probamap_app = OtbAppBank.CreateBandMathXApplication(probamap_param)
 
     if not os.path.exists(os.path.join(ds_probamap_dir, ds_probamap_name)):
@@ -504,7 +573,11 @@ def compute_probamap_fusion(
 
 
 def dempster_shafer_fusion(
-    iota2_dir, fusion_dic, mob="precision", proba_map_flag=False, workingDirectory=None
+    iota2_dir,
+    fusion_dic,
+    mob="precision",
+    proba_map_flag=False,
+    workingDirectory=None,
 ):
     """
     perform a fusion of classifications thanks acording to Dempster-Shafer's method
@@ -642,7 +715,10 @@ def fusion(pathClassif, cfg, pathWd):
                     pathClassif,
                     True,
                     "Classif_" + tile,
-                    "seed_" + str(seed) + classification_suffix_pattern + ".tif",
+                    "seed_"
+                    + str(seed)
+                    + classification_suffix_pattern
+                    + ".tif",
                 )
                 allPathFusion = " ".join(classifPath)
                 cmd = (

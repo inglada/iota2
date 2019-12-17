@@ -28,12 +28,16 @@ def genGeometries(origin, size, X, Y, overlap):
             if x == 0:
                 minX = origin[0]
             else:
-                minX = float((origin[0] + x * size * 1000) - 1000 * overlap * x)
+                minX = float(
+                    (origin[0] + x * size * 1000) - 1000 * overlap * x
+                )
             maxX = minX + size * 1000
             if y == 0:
                 minY = origin[1]
             else:
-                minY = float((origin[1] + y * size * 1000) - 1000 * overlap * y)
+                minY = float(
+                    (origin[1] + y * size * 1000) - 1000 * overlap * y
+                )
             maxY = minY + size * 1000
 
             ring = ogr.Geometry(ogr.wkbLinearRing)
@@ -77,7 +81,13 @@ def generateTif(vectorFile, pixSize):
 
 
 def genGrid(
-    outputDirectory, X=10, Y=10, overlap=10, size=100, raster="True", pixSize=100
+    outputDirectory,
+    X=10,
+    Y=10,
+    overlap=10,
+    size=100,
+    raster="True",
+    pixSize=100,
 ):
 
     origin = (500100, 6211230)  # lower left
@@ -94,7 +104,9 @@ def genGrid(
                 driver.DeleteDataSource(outTile)
             data_source = driver.CreateDataSource(outTile)
             layerName = outTile.split("/")[-1].split(".")[0]
-            layer = data_source.CreateLayer(layerName, srs, geom_type=ogr.wkbPolygon)
+            layer = data_source.CreateLayer(
+                layerName, srs, geom_type=ogr.wkbPolygon
+            )
             field_tile = ogr.FieldDefn("Tile", ogr.OFTInteger)
             field_tile.SetWidth(5)
             layer.CreateField(field_tile)
@@ -147,7 +159,12 @@ if __name__ == "__main__":
         required=True,
     )
     parser.add_argument(
-        "-size", dest="size", help="tile's size", type=float, default=100, required=True
+        "-size",
+        dest="size",
+        help="tile's size",
+        type=float,
+        default=100,
+        required=True,
     )
     parser.add_argument(
         "-generateRaster",
@@ -168,6 +185,13 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    genGrid(args.outputDirectory, args.X, args.Y, args.overlap, args.size, args.raster)
+    genGrid(
+        args.outputDirectory,
+        args.X,
+        args.Y,
+        args.overlap,
+        args.size,
+        args.raster,
+    )
 
 # python test_genGrid.py -outputDirectory /mnt/data/home/vincenta/IOTA2/test_data/test_envelope -size 100 -overlap 10 -Ygrid 10 -Xgrid 10

@@ -11,7 +11,8 @@ def addFieldArea(filein, sizepix):
     layer = source.GetLayer()
     layer_defn = layer.GetLayerDefn()
     field_names = [
-        layer_defn.GetFieldDefn(i).GetName() for i in range(layer_defn.GetFieldCount())
+        layer_defn.GetFieldDefn(i).GetName()
+        for i in range(layer_defn.GetFieldCount())
     ]
     if "Area" in field_names or "area" in field_names:
         if "Area" in field_names:
@@ -55,7 +56,11 @@ if __name__ == "__main__":
             required=True,
         )
         parser.add_argument(
-            "-spix", dest="spix", action="store", help="Pixel size in m2", required=True
+            "-spix",
+            dest="spix",
+            action="store",
+            help="Pixel size in m2",
+            required=True,
         )
         args = parser.parse_args()
         if addFieldArea(args.shapefile, args.spix) == 0:

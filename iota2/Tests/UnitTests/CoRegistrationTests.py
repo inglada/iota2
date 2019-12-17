@@ -84,7 +84,9 @@ class iota_testCoRegistration(unittest.TestCase):
             result = self.defaultTestResult()
             self._feedErrorsToResult(result, self._outcome.errors)
         else:
-            result = getattr(self, "_outcomeForDoCleanups", self._resultForDoCleanups)
+            result = getattr(
+                self, "_outcomeForDoCleanups", self._resultForDoCleanups
+            )
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
         ok = not error and not failure
@@ -128,19 +130,27 @@ class iota_testCoRegistration(unittest.TestCase):
         cfg_coregister.chain.outputPath = self.test_working_directory
         cfg_coregister.chain.S2Path = datadir_test
         cfg_coregister.save(open(test_config, "w"))
-        ensure_dir(os.path.join(self.test_working_directory, "features", "T38KPD"))
+        ensure_dir(
+            os.path.join(self.test_working_directory, "features", "T38KPD")
+        )
 
         # T38KPD's coregistration
         CoRegister.launch_coregister("T38KPD", test_config, None, False)
         dateFolders = glob.glob(os.path.join(datadir_test, "T38KPD", "*"))
-        geomsFiles = glob.glob(os.path.join(datadir_test, "T38KPD", "*", "*.geom"))
+        geomsFiles = glob.glob(
+            os.path.join(datadir_test, "T38KPD", "*", "*.geom")
+        )
         # assert
         self.assertTrue(len(dateFolders) == len(geomsFiles))
 
         # T38KPE's coregistration
-        ensure_dir(os.path.join(self.test_working_directory, "features", "T38KPE"))
+        ensure_dir(
+            os.path.join(self.test_working_directory, "features", "T38KPE")
+        )
         CoRegister.launch_coregister("T38KPE", test_config, None, False)
         # assert
         dateFolders = glob.glob(os.path.join(datadir_test, "T38KPE", "*"))
-        geomsFiles = glob.glob(os.path.join(datadir_test, "T38KPE", "*", "*.geom"))
+        geomsFiles = glob.glob(
+            os.path.join(datadir_test, "T38KPE", "*", "*.geom")
+        )
         self.assertTrue(len(dateFolders) == len(geomsFiles))

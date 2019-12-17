@@ -46,7 +46,9 @@ def getLandsatRedBand(l8ImageIn, l8RedBandOut, channel=4):
     extractApp = otb.Registry.CreateApplication("ExtractROI")
     extractApp.SetParameterString("in", l8ImageIn)
     extractApp.SetParameterString("out", l8RedBandOut)
-    extractApp.SetParameterOutputImagePixelType("out", otb.ImagePixelType_int16)
+    extractApp.SetParameterOutputImagePixelType(
+        "out", otb.ImagePixelType_int16
+    )
     extractApp.UpdateParameters()
     extractApp.SetParameterStringList("cl", ["Channel" + str(channel)])
     extractApp.ExecuteAndWriteOutput()
@@ -79,7 +81,11 @@ def disparityMapEstimation(
 
 
 def filterDisparityMap(
-    dmIn, dmComponentOut, metricThreshold=0.90, dmComponent="x", outputInvalidValue=-100
+    dmIn,
+    dmComponentOut,
+    metricThreshold=0.90,
+    dmComponent="x",
+    outputInvalidValue=-100,
 ):
     """Filter a component (x or y) of the disparity map using a metric validity
     threshold. Only pixels above the threshold will be kept"""
@@ -87,7 +93,12 @@ def filterDisparityMap(
     if dmComponent == "y":
         compStr = "im1b2"
     expression = (
-        "im1b3>" + str(metricThreshold) + "?" + compStr + ":" + str(outputInvalidValue)
+        "im1b3>"
+        + str(metricThreshold)
+        + "?"
+        + compStr
+        + ":"
+        + str(outputInvalidValue)
     )
     bmApp = otb.Registry.CreateApplication("BandMath")
     bmApp.SetParameterStringList("il", [dmIn])
@@ -132,7 +143,13 @@ def estimateMeanShiftAndStd(
     disparityMap = workingDir + "/dm.tif"
     disparityMapX = workingDir + "/dmx.tif"
     disparityMapY = workingDir + "/dmy.tif"
-    filesToRemove = [lowResS2, redl8, disparityMap, disparityMapX, disparityMapY]
+    filesToRemove = [
+        lowResS2,
+        redl8,
+        disparityMap,
+        disparityMapX,
+        disparityMapY,
+    ]
     subsampleS2(s2ImageIn, lowResS2, l8ImageIn)
     getLandsatRedBand(l8ImageIn, redl8, l8RedChannel)
     disparityMapEstimation(lowResS2, redl8, disparityMap)
@@ -229,5 +246,8 @@ if __name__ == "__main__":
         )
         args = parser.parse_args()
         landsatShift(
-            args.l8Image, args.s2Image, bool(args.removeTemp == "y"), args.workingDir
+            args.l8Image,
+            args.s2Image,
+            bool(args.removeTemp == "y"),
+            args.workingDir,
         )

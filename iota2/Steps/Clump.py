@@ -24,7 +24,9 @@ class Clump(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "clump"
-        super(Clump, self).__init__(cfg, cfg_resources_file, resources_block_name)
+        super(Clump, self).__init__(
+            cfg, cfg_resources_file, resources_block_name
+        )
 
         # step variables
         self.RAM = 1024.0 * get_RAM(self.resources["ram"])
@@ -65,9 +67,14 @@ class Clump(IOTA2Step.Step):
         from simplification import ClumpClassif as clump
 
         outfileclp = os.path.join(
-            self.outputPath, "final", "simplification", "classif_regul_clump.tif"
+            self.outputPath,
+            "final",
+            "simplification",
+            "classif_regul_clump.tif",
         )
-        tmpdir = os.path.join(self.outputPath, "final", "simplification", "tmp")
+        tmpdir = os.path.join(
+            self.outputPath, "final", "simplification", "tmp"
+        )
         if self.workingDirectory:
             tmpdir = self.workingDirectory
         use64bit = True if self.lib64bit is not None else False

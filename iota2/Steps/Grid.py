@@ -24,7 +24,9 @@ class Grid(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "grid"
-        super(Grid, self).__init__(cfg, cfg_resources_file, resources_block_name)
+        super(Grid, self).__init__(
+            cfg, cfg_resources_file, resources_block_name
+        )
 
         # step variables
         self.RAM = 1024.0 * get_RAM(self.resources["ram"])
@@ -35,7 +37,9 @@ class Grid(IOTA2Step.Step):
         self.gridsize = SCF.serviceConfigFile(self.cfg).getParam(
             "Simplification", "gridsize"
         )
-        self.epsg = SCF.serviceConfigFile(self.cfg).getParam("GlobChain", "proj")
+        self.epsg = SCF.serviceConfigFile(self.cfg).getParam(
+            "GlobChain", "proj"
+        )
 
     def step_description(self):
         """
@@ -51,7 +55,10 @@ class Grid(IOTA2Step.Step):
             the return could be and iterable or a callable
         """
         outfileclp = os.path.join(
-            self.outputPath, "final", "simplification", "classif_regul_clump.tif"
+            self.outputPath,
+            "final",
+            "simplification",
+            "classif_regul_clump.tif",
         )
         return [outfileclp]
 

@@ -42,7 +42,9 @@ def generateStatModel(
             nameToRm = name.replace("f" + fold, "").replace(".shp", "")
             print("remove : " + path + "/" + nameToRm + ".shp")
             if os.path.exists(path + "/" + nameToRm + ".shp"):
-                fu.removeShape(path + "/" + nameToRm, [".prj", ".shp", ".dbf", ".shx"])
+                fu.removeShape(
+                    path + "/" + nameToRm, [".prj", ".shp", ".dbf", ".shx"]
+                )
 
     modTiles = GM.getModel(pathShapes)
     Stack_ind = fu.getFeatStackName(pathConf)

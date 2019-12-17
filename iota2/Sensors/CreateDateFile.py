@@ -24,7 +24,9 @@ def CreateFichierDatesReg(debut, fin, gap, opath, sensorName):
     end : idem
     gap : time between two images in days
     """
-    date_init = datetime.date(int(debut[0:4]), int(debut[4:6]), int(debut[6:8]))
+    date_init = datetime.date(
+        int(debut[0:4]), int(debut[4:6]), int(debut[6:8])
+    )
     date_end = datetime.date(int(fin[0:4]), int(fin[4:6]), int(fin[6:8]))
 
     outputDateFile = opath + "/DatesInterpReg" + sensorName + ".txt"

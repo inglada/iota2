@@ -58,7 +58,10 @@ def FileSearch_fast(PathToFolder, AllPath, *names):
         for i in range(len(files)):
             flag = 0
             for name in names:
-                if files[i].count(name) != 0 and files[i].count(".aux.xml") == 0:
+                if (
+                    files[i].count(name) != 0
+                    and files[i].count(".aux.xml") == 0
+                ):
                     flag += 1
             if flag == len(names):
                 # if not AllPath:
@@ -123,7 +126,14 @@ def addLineToFile(inputFile, line):
 
 
 def launchFit(
-    noDataM, noDataR, tileFolder, currentTile, sensorName, S2Folder, S2Bands, masks
+    noDataM,
+    noDataR,
+    tileFolder,
+    currentTile,
+    sensorName,
+    S2Folder,
+    S2Bands,
+    masks,
 ):
     S2Bands = S2Bands + masks
     noDataM = dict(list(zip(masks, noDataM)))
@@ -147,7 +157,9 @@ def launchFit(
             AllTiles = []
             for currentFolder in currentSameDate:
                 print(currentFolder)
-                path = FileSearch_fast(currentFolder, True, currentBand, ".tif")
+                path = FileSearch_fast(
+                    currentFolder, True, currentBand, ".tif"
+                )
                 tile = path.split("/")[-1].split("_")[-1].replace(".tif", "")
                 X, Y, inEPSG = getTileOrigin(tile, S2Folder)
                 X_conv, Y_conv = converCoord((X, Y), inEPSG, 2154)
@@ -237,7 +249,8 @@ def launchFit(
                 run(cmd)
                 if workingDirectory:
                     shutil.copy(
-                        workingFolder + "/" + outName, outFolder + "/" + outName
+                        workingFolder + "/" + outName,
+                        outFolder + "/" + outName,
                     )
                     os.remove(workingFolder + "/" + outName)
             cpt += 1

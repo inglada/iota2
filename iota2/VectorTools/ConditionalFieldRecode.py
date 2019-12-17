@@ -20,7 +20,9 @@ def conFieldRecode(shapefile, fieldin, fieldout, valin, valout):
         indfield = fieldList.index(fieldin)
     except BaseException:
         raise Exception(
-            "The field {} does not exist in the input shapefile".format(fieldin),
+            "The field {} does not exist in the input shapefile".format(
+                fieldin
+            ),
             "You must choose one of these existing fields : {}".format(
                 " / ".join(fieldList)
             ),
@@ -30,7 +32,9 @@ def conFieldRecode(shapefile, fieldin, fieldout, valin, valout):
     # Field type
     inLayerDefn = lyr.GetLayerDefn()
     fieldTypeCode = inLayerDefn.GetFieldDefn(indfield).GetType()
-    fieldType = inLayerDefn.GetFieldDefn(indfield).GetFieldTypeName(fieldTypeCode)
+    fieldType = inLayerDefn.GetFieldDefn(indfield).GetFieldTypeName(
+        fieldTypeCode
+    )
     if fieldout.lower() in [x.lower() for x in fieldList]:
         print(
             "Field '{}' already exists. Existing value of {} field will be changed !!!".format(
@@ -51,7 +55,11 @@ def conFieldRecode(shapefile, fieldin, fieldout, valin, valout):
         if lyr.GetFeatureCount() != 0:
             try:
                 changeValueField(lyr, fieldout, valout)
-                print("Field '{}' populated with {} value".format(fieldout, valout))
+                print(
+                    "Field '{}' populated with {} value".format(
+                        fieldout, valout
+                    )
+                )
             except BaseException:
                 print("Error while populate field '{}'".format(fieldout))
                 sys.exit(-1)
@@ -66,7 +74,11 @@ def conFieldRecode(shapefile, fieldin, fieldout, valin, valout):
         if lyr.GetFeatureCount() != 0:
             try:
                 changeValueField(lyr, fieldout, valout)
-                print("Field '{}' populated with {} value".format(fieldout, valout))
+                print(
+                    "Field '{}' populated with {} value".format(
+                        fieldout, valout
+                    )
+                )
             except BaseException:
                 print("Error while populate field '{}'".format(fieldout))
                 sys.exit(-1)

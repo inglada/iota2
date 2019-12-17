@@ -71,16 +71,22 @@ class iota_testVectSimp(unittest.TestCase):
             self.iota2_tests_directory, self.out, "classifsmooth.shp"
         )
         self.vector = os.path.join(
-            os.path.join(IOTA2DIR, "data", "references/posttreat/vectors/classif.shp")
+            os.path.join(
+                IOTA2DIR, "data", "references/posttreat/vectors/classif.shp"
+            )
         )
         self.vectorsimp = os.path.join(
             os.path.join(
-                IOTA2DIR, "data", "references/posttreat/vectors/classifsimp.shp"
+                IOTA2DIR,
+                "data",
+                "references/posttreat/vectors/classifsimp.shp",
             )
         )
         self.vectorsmooth = os.path.join(
             os.path.join(
-                IOTA2DIR, "data", "references/posttreat/vectors/classifsmooth.shp"
+                IOTA2DIR,
+                "data",
+                "references/posttreat/vectors/classifsmooth.shp",
             )
         )
 
@@ -90,7 +96,9 @@ class iota_testVectSimp(unittest.TestCase):
             raise Exception("GRASSDIR not initialized")
 
         if not os.path.exists(os.path.join(self.grasslib, "bin")):
-            raise Exception("GRASSDIR '%s' not well initialized" % (self.grasslib))
+            raise Exception(
+                "GRASSDIR '%s' not well initialized" % (self.grasslib)
+            )
 
     # after launching all tests
     @classmethod
@@ -137,7 +145,9 @@ class iota_testVectSimp(unittest.TestCase):
             result = self.defaultTestResult()
             self._feedErrorsToResult(result, self._outcome.errors)
         else:
-            result = getattr(self, "_outcomeForDoCleanups", self._resultForDoCleanups)
+            result = getattr(
+                self, "_outcomeForDoCleanups", self._resultForDoCleanups
+            )
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
         ok = not error and not failure

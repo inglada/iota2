@@ -36,7 +36,10 @@ logger = logging.getLogger(__name__)
 
 
 def copy_inputs_sensors_data(
-    folder_to_copy, workingDirectory, data_dir_name="sensors_data", logger=logger
+    folder_to_copy,
+    workingDirectory,
+    data_dir_name="sensors_data",
+    logger=logger,
 ):
     """
     IN
@@ -60,7 +63,9 @@ def copy_inputs_sensors_data(
         shutil.rmtree(output_dir)
     copy_start = time.time()
     shutil.copytree(
-        folder_to_copy, output_dir, ignore=ignore_patterns("*FRE_B*.tif", "*R1.tif")
+        folder_to_copy,
+        output_dir,
+        ignore=ignore_patterns("*FRE_B*.tif", "*R1.tif"),
     )
     copy_end = time.time()
     logger.debug("copy time : " + str(copy_end - copy_start) + " seconds")
@@ -68,7 +73,12 @@ def copy_inputs_sensors_data(
 
 
 def PreProcessS2_S2C(
-    outproj, ipathS2_S2C, tile_name, s2_s2c_target_dir, workingDirectory, logger=logger
+    outproj,
+    ipathS2_S2C,
+    tile_name,
+    s2_s2c_target_dir,
+    workingDirectory,
+    logger=logger,
 ):
     """ preprocess sen2cor images in order to be usable by IOTA2
 
@@ -185,7 +195,9 @@ def PreProcessS2_S2C(
         from Common import OtbAppBank
 
         # get all dates
-        s2c_dates = list(s2c_bands_dates[list(s2c_bands_dates.keys())[0]].keys())
+        s2c_dates = list(
+            s2c_bands_dates[list(s2c_bands_dates.keys())[0]].keys()
+        )
 
         # for each date concatenates bands
         for s2c_date in s2c_dates:
@@ -198,14 +210,19 @@ def PreProcessS2_S2C(
             )
             if s2_s2c_target_dir:
                 concatenate_out_dir = os.path.join(
-                    s2_s2c_target_dir, concatenate_out_dir.replace(s2_s2c_dir, "")
+                    s2_s2c_target_dir,
+                    concatenate_out_dir.replace(s2_s2c_dir, ""),
                 )
             working_dir = concatenate_out_dir
             if workingDirectory:
                 working_dir = workingDirectory
             fu.ensure_dir(concatenate_out_dir)
-            concatenate_output = os.path.join(concatenate_out_dir, concatenate_out_name)
-            concatenate_working_path = os.path.join(working_dir, concatenate_out_name)
+            concatenate_output = os.path.join(
+                concatenate_out_dir, concatenate_out_name
+            )
+            concatenate_working_path = os.path.join(
+                working_dir, concatenate_out_name
+            )
             concatenate.SetParameterOutputImagePixelType(
                 "out", otb.ImagePixelType_uint16
             )
@@ -334,7 +351,9 @@ def PreProcessS2_S2C(
         )
         for SCL in SCL_dates:
             R20_directory, SCL_name = os.path.split(SCL)
-            IMG_DATA_dir = os.path.normpath(R20_directory).split(os.sep)[0:-1:1]
+            IMG_DATA_dir = os.path.normpath(R20_directory).split(os.sep)[
+                0:-1:1
+            ]
             R10_directory = os.sep.join(IMG_DATA_dir + ["R10m"])
             SCL_10m_app = OtbAppBank.CreateRigidTransformResampleApplication(
                 {
@@ -441,11 +460,17 @@ def PreProcessS2_S2C(
 
     # fill-up python dictionary
     for img in B5:
-        s2c_bands_dates["B5"][sen2cor_s2.getDateFromName(img, complete_date=True)] = img
+        s2c_bands_dates["B5"][
+            sen2cor_s2.getDateFromName(img, complete_date=True)
+        ] = img
     for img in B6:
-        s2c_bands_dates["B6"][sen2cor_s2.getDateFromName(img, complete_date=True)] = img
+        s2c_bands_dates["B6"][
+            sen2cor_s2.getDateFromName(img, complete_date=True)
+        ] = img
     for img in B7:
-        s2c_bands_dates["B7"][sen2cor_s2.getDateFromName(img, complete_date=True)] = img
+        s2c_bands_dates["B7"][
+            sen2cor_s2.getDateFromName(img, complete_date=True)
+        ] = img
     for img in B8A:
         s2c_bands_dates["B8A"][
             sen2cor_s2.getDateFromName(img, complete_date=True)
@@ -459,13 +484,21 @@ def PreProcessS2_S2C(
             sen2cor_s2.getDateFromName(img, complete_date=True)
         ] = img
     for img in B2:
-        s2c_bands_dates["B2"][sen2cor_s2.getDateFromName(img, complete_date=True)] = img
+        s2c_bands_dates["B2"][
+            sen2cor_s2.getDateFromName(img, complete_date=True)
+        ] = img
     for img in B3:
-        s2c_bands_dates["B3"][sen2cor_s2.getDateFromName(img, complete_date=True)] = img
+        s2c_bands_dates["B3"][
+            sen2cor_s2.getDateFromName(img, complete_date=True)
+        ] = img
     for img in B4:
-        s2c_bands_dates["B4"][sen2cor_s2.getDateFromName(img, complete_date=True)] = img
+        s2c_bands_dates["B4"][
+            sen2cor_s2.getDateFromName(img, complete_date=True)
+        ] = img
     for img in B8:
-        s2c_bands_dates["B8"][sen2cor_s2.getDateFromName(img, complete_date=True)] = img
+        s2c_bands_dates["B8"][
+            sen2cor_s2.getDateFromName(img, complete_date=True)
+        ] = img
 
     # check if all bands are found for each date
     check_bands_dates(s2c_bands_dates)
@@ -546,7 +579,9 @@ def resample_s2(
     if not os.path.exists(output_path):
         logger.info("launch resampling : {}".format(file_name))
         resample_app.ExecuteAndWriteOutput()
-        logger.debug("resampling of {} done at {}".format(raster_in, output_path))
+        logger.debug(
+            "resampling of {} done at {}".format(raster_in, output_path)
+        )
         if workingDirectory:
             shutil.copy(output_working_path, output_path)
             os.remove(output_working_path)
@@ -625,7 +660,9 @@ def reprojection_s2_mask(
                 os.remove(output_working_path)
         else:
             shutil.copy(raster_in, output_path)
-        logger.debug("reproject : {} DONE at {}".format(raster_in, output_path))
+        logger.debug(
+            "reproject : {} DONE at {}".format(raster_in, output_path)
+        )
     return output_path
 
 
@@ -694,7 +731,11 @@ def stack_s2(
         s2_bands["b11"],
         s2_bands["b12"],
     ]
-    concatenation_param = {"il": bands, "out": output_working_path, "pixType": "int16"}
+    concatenation_param = {
+        "il": bands,
+        "out": output_working_path,
+        "pixType": "int16",
+    }
     epsg_origin = fu.getRasterProjectionEPSG(s2_bands["b2"])
     if os.path.exists(output_path):
         epsg_stack = fu.getRasterProjectionEPSG(output_path)
@@ -718,7 +759,9 @@ def stack_s2(
                 os.remove(output_working_path)
     else:
         # concatenate
-        concat_app = OtbAppBank.CreateConcatenateImagesApplication(concatenation_param)
+        concat_app = OtbAppBank.CreateConcatenateImagesApplication(
+            concatenation_param
+        )
         logger.info("generating stack : {}".format(output_path))
         concat_app.ExecuteAndWriteOutput()
         logger.debug("stack : {} generated".format(output_path))
@@ -787,7 +830,9 @@ def PreProcessS2(
     dates = os.listdir(tileFolder)
     for date in dates:
         # masks reprojection
-        Cloud = fu.FileSearch_AND(os.path.join(tileFolder, date), True, cloud)[0]
+        Cloud = fu.FileSearch_AND(os.path.join(tileFolder, date), True, cloud)[
+            0
+        ]
         Sat = fu.FileSearch_AND(os.path.join(tileFolder, date), True, sat)[0]
         Div = fu.FileSearch_AND(os.path.join(tileFolder, date), True, div)[0]
         reprojection_s2_mask(
@@ -825,15 +870,15 @@ def PreProcessS2(
         if s2_target_dir:
             bands_10m_dir = os.path.join(s2_target_dir, tile)
         s2_bands = {}
-        s2_bands["b2"] = fu.fileSearchRegEx(tileFolder + "/" + date + "/*FRE_B2*.tif")[
-            0
-        ]
-        s2_bands["b3"] = fu.fileSearchRegEx(tileFolder + "/" + date + "/*FRE_B3*.tif")[
-            0
-        ]
-        s2_bands["b4"] = fu.fileSearchRegEx(tileFolder + "/" + date + "/*FRE_B4*.tif")[
-            0
-        ]
+        s2_bands["b2"] = fu.fileSearchRegEx(
+            tileFolder + "/" + date + "/*FRE_B2*.tif"
+        )[0]
+        s2_bands["b3"] = fu.fileSearchRegEx(
+            tileFolder + "/" + date + "/*FRE_B3*.tif"
+        )[0]
+        s2_bands["b4"] = fu.fileSearchRegEx(
+            tileFolder + "/" + date + "/*FRE_B4*.tif"
+        )[0]
         s2_bands["b5"] = fu.fileSearchRegEx(
             bands_10m_dir + "/" + date + "/*FRE_B5*_10M.tif"
         )[0]
@@ -843,7 +888,9 @@ def PreProcessS2(
         s2_bands["b7"] = fu.fileSearchRegEx(
             bands_10m_dir + "/" + date + "/*FRE_B7*_10M.tif"
         )[0]
-        s2_bands["b8"] = fu.fileSearchRegEx(tileFolder + "/" + date + "/*FRE_B8.tif")[0]
+        s2_bands["b8"] = fu.fileSearchRegEx(
+            tileFolder + "/" + date + "/*FRE_B8.tif"
+        )[0]
         s2_bands["b8a"] = fu.fileSearchRegEx(
             bands_10m_dir + "/" + date + "/*FRE_B8A*_10M.tif"
         )[0]
@@ -887,14 +934,20 @@ def generateStack(
         writeOutput = False
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
-    if outputDirectory and not os.path.exists(outputDirectory) and not testMode:
+    if (
+        outputDirectory
+        and not os.path.exists(outputDirectory)
+        and not testMode
+    ):
         try:
             os.mkdir(outputDirectory)
         except OSError:
             logger.warning(outputDirectory + "allready exists")
     if not os.path.exists(cfg.pathConf):
         raise Exception("'" + cfg.pathConf + "' does not exists")
-    logger.info("features generation using '%s' configuration file" % (cfg.pathConf))
+    logger.info(
+        "features generation using '%s' configuration file" % (cfg.pathConf)
+    )
 
     ipathL5 = cfg.getParam("chain", "L5Path")
     if ipathL5 == "None":
@@ -919,7 +972,9 @@ def generateStack(
     sensorConfig = (os.path.join(os.environ.get("IOTA2DIR"), "scripts")).split(
         os.path.sep
     )
-    sensorConfig = (os.path.sep).join(sensorConfig[0:-1] + ["config", "sensors.cfg"])
+    sensorConfig = (os.path.sep).join(
+        sensorConfig[0:-1] + ["config", "sensors.cfg"]
+    )
     cfg_sensors = SCF.serviceConfigFile(sensorConfig, iota_config=False)
 
     if testMode:
@@ -974,7 +1029,9 @@ def generateStack(
                 os.mkdir(os.path.join(outputDirectory, "tmp"))
             except OSError:
                 logger.warning(os.path.join(outputDirectory, "tmp"))
-        inputDatesL5 = landsat5.setInputDatesFile(os.path.join(outputDirectory, "tmp"))
+        inputDatesL5 = landsat5.setInputDatesFile(
+            os.path.join(outputDirectory, "tmp")
+        )
         if not (dateB_L5 and dateE_L5 and gapL5):
             raise Exception("missing parameters")
         datesVoulues = CreateFichierDatesReg(
@@ -1006,7 +1063,9 @@ def generateStack(
                 os.mkdir(os.path.join(outputDirectory, "tmp"))
             except OSError:
                 logger.warning(os.path.join(outputDirectory, "tmp"))
-        inputDatesL8 = landsat8.setInputDatesFile(os.path.join(outputDirectory, "tmp"))
+        inputDatesL8 = landsat8.setInputDatesFile(
+            os.path.join(outputDirectory, "tmp")
+        )
         if not (dateB_L8 and dateE_L8 and gapL8):
             raise Exception("missing parameters")
         datesVoulues = CreateFichierDatesReg(
@@ -1044,13 +1103,17 @@ def generateStack(
             )
 
         S2res = 10
-        Sentinel2 = Sentinel_2(os.path.join(ipathS2, tile), wDir, cfg.pathConf, S2res)
+        Sentinel2 = Sentinel_2(
+            os.path.join(ipathS2, tile), wDir, cfg.pathConf, S2res
+        )
         if not os.path.exists(os.path.join(outputDirectory, "tmp")):
             try:
                 os.mkdir(os.path.join(outputDirectory, "tmp"))
             except OSError:
                 logger.warning(os.path.join(outputDirectory, "tmp"))
-        inputDatesS2 = Sentinel2.setInputDatesFile(os.path.join(outputDirectory, "tmp"))
+        inputDatesS2 = Sentinel2.setInputDatesFile(
+            os.path.join(outputDirectory, "tmp")
+        )
         if not (dateB_S2 and dateE_S2 and gapS2):
             raise Exception("missing parameters")
         datesVoulues = CreateFichierDatesReg(
@@ -1147,7 +1210,13 @@ def generateStack(
                 spe=True,
             )
 
-    return temporalSeries, masksSeries, interpDates, realDates, commonRasterMask
+    return (
+        temporalSeries,
+        masksSeries,
+        interpDates,
+        realDates,
+        commonRasterMask,
+    )
 
 
 if __name__ == "__main__":

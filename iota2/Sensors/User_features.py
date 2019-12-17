@@ -49,7 +49,9 @@ class User_features(Sensor):
         # run attributes
         self.tile_directory = os.path.join(self.user_feat_data, tile_dir_name)
         self.features_dir = os.path.join(
-            self.cfg_IOTA2.getParam("chain", "outputPath"), "features", tile_name
+            self.cfg_IOTA2.getParam("chain", "outputPath"),
+            "features",
+            tile_name,
         )
         self.target_proj = int(
             self.cfg_IOTA2.getParam("GlobChain", "proj")
@@ -60,7 +62,9 @@ class User_features(Sensor):
 
         # sensors attributes
         self.data_type = (
-            self.cfg_IOTA2.getParam("userFeat", "patterns").replace(" ", "").split(",")
+            self.cfg_IOTA2.getParam("userFeat", "patterns")
+            .replace(" ", "")
+            .split(",")
         )
 
         # output's names
@@ -73,7 +77,9 @@ class User_features(Sensor):
         self.footprint_name = "{}_{}_footprint.tif".format(
             self.__class__.name, tile_name
         )
-        ref_image_name = "{}_{}_reference.tif".format(self.__class__.name, tile_name)
+        ref_image_name = "{}_{}_reference.tif".format(
+            self.__class__.name, tile_name
+        )
         self.ref_image = os.path.join(
             self.cfg_IOTA2.getParam("chain", "outputPath"),
             "features",
@@ -97,12 +103,16 @@ class User_features(Sensor):
         ensure_dir(footprint_dir, raise_exe=False)
         footprint_out = os.path.join(footprint_dir, self.footprint_name)
 
-        user_feature = FileSearch_AND(self.tile_directory, True, self.data_type[0])
+        user_feature = FileSearch_AND(
+            self.tile_directory, True, self.data_type[0]
+        )
 
         # tile reference image generation
         base_ref = user_feature[0]
         logger.info(
-            "reference image generation {} from {}".format(self.ref_image, base_ref)
+            "reference image generation {} from {}".format(
+                self.ref_image, base_ref
+            )
         )
         ensure_dir(os.path.dirname(self.ref_image), raise_exe=False)
         base_ref_projection = getRasterProjectionEPSG(base_ref)
@@ -146,7 +156,9 @@ class User_features(Sensor):
 
         time_series_dir = os.path.join(self.features_dir, "tmp")
         ensure_dir(time_series_dir, raise_exe=False)
-        times_series_mask = os.path.join(time_series_dir, self.time_series_masks_name)
+        times_series_mask = os.path.join(
+            time_series_dir, self.time_series_masks_name
+        )
 
         # check patterns
         for pattern in self.data_type:

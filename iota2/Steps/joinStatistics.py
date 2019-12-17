@@ -38,7 +38,9 @@ class joinStatistics(IOTA2Step.Step):
         self.outprefix = SCF.serviceConfigFile(self.cfg).getParam(
             "Simplification", "outprefix"
         )
-        self.dozip = SCF.serviceConfigFile(self.cfg).getParam("Simplification", "dozip")
+        self.dozip = SCF.serviceConfigFile(self.cfg).getParam(
+            "Simplification", "dozip"
+        )
 
     def step_description(self):
         """
@@ -72,7 +74,9 @@ class joinStatistics(IOTA2Step.Step):
 
         tmpdir = self.workingDirectory
         if tmpdir is None:
-            tmpdir = os.path.join(self.outputPath, "final", "simplification", "tmp")
+            tmpdir = os.path.join(
+                self.outputPath, "final", "simplification", "tmp"
+            )
         outfilevecttojoin = os.path.join(
             self.outputPath,
             "final",

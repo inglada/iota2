@@ -24,7 +24,9 @@ class prodVectors(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "prodVectors"
-        super(prodVectors, self).__init__(cfg, cfg_resources_file, resources_block_name)
+        super(prodVectors, self).__init__(
+            cfg, cfg_resources_file, resources_block_name
+        )
 
         # step variables
         self.RAM = 1024.0 * get_RAM(self.resources["ram"])
@@ -40,7 +42,9 @@ class prodVectors(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = "Merge statistics and format output vectors for OSO production"
+        description = (
+            "Merge statistics and format output vectors for OSO production"
+        )
         return description
 
     def step_inputs(self):
@@ -51,7 +55,9 @@ class prodVectors(IOTA2Step.Step):
         """
         from simplification import ZonalStats as zs
 
-        tmpdir = os.path.join(self.outputPath, "final", "simplification", "tmp")
+        tmpdir = os.path.join(
+            self.outputPath, "final", "simplification", "tmp"
+        )
 
         return zs.getVectorsChunks(tmpdir)
 
@@ -67,7 +73,9 @@ class prodVectors(IOTA2Step.Step):
 
         outpath = os.path.join(self.outputPath, "final", "vectors")
 
-        step_function = lambda x: zs.mergeSubVector(x, outpath, self.nomenclature)
+        step_function = lambda x: zs.mergeSubVector(
+            x, outpath, self.nomenclature
+        )
 
         return step_function
 

@@ -71,7 +71,9 @@ class iota_testVectortools(unittest.TestCase):
         self.classif = os.path.join(
             IOTA2DIR, "data", "references/vectortools/classif.shp"
         )
-        self.inter = os.path.join(IOTA2DIR, "data", "references/vectortools/region.shp")
+        self.inter = os.path.join(
+            IOTA2DIR, "data", "references/vectortools/region.shp"
+        )
         self.classifwd = os.path.join(self.out, "classif.shp")
         self.classifout = os.path.join(
             IOTA2DIR, "data", "references/vectortools/classifout.shp"
@@ -123,7 +125,9 @@ class iota_testVectortools(unittest.TestCase):
             result = self.defaultTestResult()
             self._feedErrorsToResult(result, self._outcome.errors)
         else:
-            result = getattr(self, "_outcomeForDoCleanups", self._resultForDoCleanups)
+            result = getattr(
+                self, "_outcomeForDoCleanups", self._resultForDoCleanups
+            )
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
         ok = not error and not failure
@@ -156,7 +160,9 @@ class iota_testVectortools(unittest.TestCase):
         cnf.changeName(self.classifwd, "Classe", "class")
 
         self.assertEqual(
-            vf.getNbFeat(self.classifwd), 144, "Number of features does not fit"
+            vf.getNbFeat(self.classifwd),
+            144,
+            "Number of features does not fit",
         )
         self.assertEqual(
             vf.getFields(self.classifwd),
@@ -217,9 +223,13 @@ class iota_testVectortools(unittest.TestCase):
                 "mask",
             ],
         )
-        check.checkGeometryAreaThreshField(self.outinter, 100, 1, self.classifwd)
+        check.checkGeometryAreaThreshField(
+            self.outinter, 100, 1, self.classifwd
+        )
         self.assertEqual(
-            vf.getNbFeat(self.classifwd), 102, "Number of features does not fit"
+            vf.getNbFeat(self.classifwd),
+            102,
+            "Number of features does not fit",
         )
 
         sba.extractFeatureFromShape(self.classifwd, 3, "mask", self.wd)

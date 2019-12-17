@@ -16,7 +16,8 @@ def deleteField(shapefile, field):
     lyr = shp.GetLayer()
     lyr_defn = lyr.GetLayerDefn()
     field_names = [
-        lyr_defn.GetFieldDefn(i).GetName() for i in range(lyr_defn.GetFieldCount())
+        lyr_defn.GetFieldDefn(i).GetName()
+        for i in range(lyr_defn.GetFieldCount())
     ]
     if field in field_names:
         i = field_names.index(field)
@@ -43,7 +44,11 @@ if __name__ == "__main__":
             required=True,
         )
         parser.add_argument(
-            "-f", dest="field", action="store", help="Field to delete", required=True
+            "-f",
+            dest="field",
+            action="store",
+            help="Field to delete",
+            required=True,
         )
         args = parser.parse_args()
         deleteField(args.shapefile, args.field)

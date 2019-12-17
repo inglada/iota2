@@ -81,7 +81,9 @@ def RandomInSitu(vectorFile, field, nbdraws, opath, perc_learn):
 
     chA = "".join(resultA)
     layer.SetAttributeFilter(chA)
-    outShapefile = opath + "/" + namefile[-1] + "_seed" + str(tirage) + "_learn.shp"
+    outShapefile = (
+        opath + "/" + namefile[-1] + "_seed" + str(tirage) + "_learn.shp"
+    )
     vf.CreateNewLayer(layer, outShapefile)
 
     listValid = []
@@ -102,12 +104,16 @@ def RandomInSitu(vectorFile, field, nbdraws, opath, perc_learn):
 
     chV = "".join(resultV)
     layer.SetAttributeFilter(chV)
-    outShapefile2 = opath + "/" + namefile[-1] + "_seed" + str(tirage) + "_val.shp"
+    outShapefile2 = (
+        opath + "/" + namefile[-1] + "_seed" + str(tirage) + "_val.shp"
+    )
     vf.CreateNewLayer(layer, outShapefile2)
 
 
 if __name__ == "__main__":
-    usage = "usage: <infile> <field_containing_class> <opath> <out_nb_polygons> "
+    usage = (
+        "usage: <infile> <field_containing_class> <opath> <out_nb_polygons> "
+    )
     if len(sys.argv) != 6:
         print(usage)
         sys.exit(1)

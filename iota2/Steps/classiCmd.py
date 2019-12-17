@@ -24,7 +24,9 @@ class classiCmd(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "cmdClassifications"
-        super(classiCmd, self).__init__(cfg, cfg_resources_file, resources_block_name)
+        super(classiCmd, self).__init__(
+            cfg, cfg_resources_file, resources_block_name
+        )
 
         # step variables
         self.workingDirectory = workingDirectory

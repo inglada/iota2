@@ -33,9 +33,7 @@ class splitSamples(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = (
-            "split learning polygons and Validation polygons in sub-sample if necessary"
-        )
+        description = "split learning polygons and Validation polygons in sub-sample if necessary"
         return description
 
     def step_inputs(self):

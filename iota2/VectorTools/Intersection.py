@@ -127,7 +127,9 @@ if __name__ == "__main__":
         sys.exit(-1)
     else:
         usage = "usage: %prog [options] "
-        parser = argparse.ArgumentParser(description="Intersection of two shapefiles")
+        parser = argparse.ArgumentParser(
+            description="Intersection of two shapefiles"
+        )
         parser.add_argument(
             "-s1", dest="first", action="store", help="First shapefile path"
         )

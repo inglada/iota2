@@ -70,7 +70,9 @@ def CreateIndexedColorImage(
         sys.exit(1)
     outpath = pszFilename.split("/")
     if len(outpath) == 1:
-        outname = os.getcwd() + "/" + outpath[0].split(".")[0] + "_ColorIndexed.tif"
+        outname = (
+            os.getcwd() + "/" + outpath[0].split(".")[0] + "_ColorIndexed.tif"
+        )
     else:
         outname = (
             "/".join(outpath[0:-1])

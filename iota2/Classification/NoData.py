@@ -105,7 +105,9 @@ def gen_MaskRegionByTile(
     return modelTile
 
 
-def concatClassifs_OneTile(pathWd, seed, currentTile, pathTest, modelTile, concatOut):
+def concatClassifs_OneTile(
+    pathWd, seed, currentTile, pathTest, modelTile, concatOut
+):
 
     classifFusion = []
 
@@ -166,7 +168,9 @@ def concatRegion_OneTile(
         shutil.copy(classifFusion_mask[0], TileMask_concat)
     elif len(classifFusion_mask) != 1 and not os.path.exists(TileMask_concat):
         # in order to match images and their mask
-        classifFusion_MASK_sort = sorted(classifFusion_mask, key=getModelinMASK)
+        classifFusion_MASK_sort = sorted(
+            classifFusion_mask, key=getModelinMASK
+        )
         stringClFus = " ".join(classifFusion_MASK_sort)
 
         pathDirectory = pathTest + "/classif"
@@ -267,12 +271,17 @@ def getNbsplitShape(model, configModelPath):
     fold = []
     for model_tile in cfg.AllModel:
         model_name = model_tile.modelName
-        if model_name.split("f")[0] == model and len(model_name.split("f")) > 1:
+        if (
+            model_name.split("f")[0] == model
+            and len(model_name.split("f")) > 1
+        ):
             fold.append(int(model_name.split("f")[-1]))
     return max(fold)
 
 
-def noData(pathTest, pathFusion, fieldRegion, pathToImg, pathToRegion, N, cfg, pathWd):
+def noData(
+    pathTest, pathFusion, fieldRegion, pathToImg, pathToRegion, N, cfg, pathWd
+):
     """
     manage undecision comming from fusion of classifications
     """
@@ -294,7 +303,9 @@ def noData(pathTest, pathFusion, fieldRegion, pathToImg, pathToRegion, N, cfg, p
 
     if region_vec:
         currentmodel = pathFusion.split("/")[-1].split("_")[3]
-        config_model = os.path.join(outputPath, "config_model", "configModel.cfg")
+        config_model = os.path.join(
+            outputPath, "config_model", "configModel.cfg"
+        )
         Nfold = getNbsplitShape(currentmodel, config_model)
 
     pathDirectory = pathTest + "/classif"
@@ -440,7 +451,11 @@ def noData(pathTest, pathFusion, fieldRegion, pathToImg, pathToRegion, N, cfg, p
         outConcat_mask = pathTest + "/classif/" + currentTile + "_MASK.tif"
         if region_vec:
             pattern_mask = (
-                "*region_" + modelTile[0].split("f")[0] + "_" + currentTile + ".tif"
+                "*region_"
+                + modelTile[0].split("f")[0]
+                + "_"
+                + currentTile
+                + ".tif"
             )
             classifFusion_mask_tmp = fu.fileSearchRegEx(
                 pathTest + "/classif/MASK/" + pattern_mask
@@ -471,7 +486,9 @@ def noData(pathTest, pathFusion, fieldRegion, pathToImg, pathToRegion, N, cfg, p
             if i + 1 < len(classifFusion_mask):
                 exp = exp + "im2b" + str(i + 1) + ">=1?im3b" + str(i + 1) + ":"
             else:
-                exp = exp + "im2b" + str(i + 1) + ">=1?im3b" + str(i + 1) + ":0"
+                exp = (
+                    exp + "im2b" + str(i + 1) + ">=1?im3b" + str(i + 1) + ":0"
+                )
         exp = "im1b1!=0?im1b1:(" + exp + ")"
 
         imgData = (

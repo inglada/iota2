@@ -27,7 +27,18 @@ logger = logging.getLogger(__name__)
 
 
 def str2bool(v):
-    if v.lower() not in ("yes", "true", "t", "y", "1", "no", "false", "f", "n", "0"):
+    if v.lower() not in (
+        "yes",
+        "true",
+        "t",
+        "y",
+        "1",
+        "no",
+        "false",
+        "f",
+        "n",
+        "0",
+    ):
         raise argparse.ArgumentTypeError("Boolean value expected.")
 
     retour = True
@@ -81,18 +92,33 @@ class iota2Classification:
             tile, self.model_name, self.seed
         )
         if mode == "SAR":
-            classification_name = classification_name.replace(".tif", "_SAR.tif")
+            classification_name = classification_name.replace(
+                ".tif", "_SAR.tif"
+            )
             confidence_name = confidence_name.replace(".tif", "_SAR.tif")
             proba_map_name = proba_map_name.replace(".tif", "_SAR.tif")
-        self.classification = os.path.join(output_directory, classification_name)
+        self.classification = os.path.join(
+            output_directory, classification_name
+        )
         self.confidence = os.path.join(output_directory, confidence_name)
         self.proba_map_path = self.get_proba_map(
-            classifier_type, output_directory, model, tile, proba_map, proba_map_name
+            classifier_type,
+            output_directory,
+            model,
+            tile,
+            proba_map,
+            proba_map_name,
         )
         self.working_directory = working_directory
 
     def get_proba_map(
-        self, classifier_type, output_directory, model, tile, gen_proba, proba_map_name
+        self,
+        classifier_type,
+        output_directory,
+        model,
+        tile,
+        gen_proba,
+        proba_map_name,
     ):
         """get probability map absolute path
 
@@ -170,7 +196,8 @@ class iota2Classification:
             nb_class_run = len(all_class)
             if self.working_directory:
                 self.proba_map_path = os.path.join(
-                    self.working_directory, os.path.split(self.proba_map_path)[-1]
+                    self.working_directory,
+                    os.path.split(self.proba_map_path)[-1],
                 )
             classifier_options["probamap"] = "{}?&writegeom=false".format(
                 self.proba_map_path
@@ -223,30 +250,39 @@ class iota2Classification:
             class_model = self.models_class[self.model_name][int(self.seed)]
             if len(class_model) != len(all_class):
                 logger.info(
-                    "reordering the probability map : '{}'".format(self.proba_map_path)
+                    "reordering the probability map : '{}'".format(
+                        self.proba_map_path
+                    )
                 )
                 self.reorder_proba_map(
-                    self.proba_map_path, self.proba_map_path, class_model, all_class
+                    self.proba_map_path,
+                    self.proba_map_path,
+                    class_model,
+                    all_class,
                 )
 
         if self.working_directory:
             shutil.copy(
                 self.classification,
                 os.path.join(
-                    self.output_directory, os.path.split(self.classification)[-1]
+                    self.output_directory,
+                    os.path.split(self.classification)[-1],
                 ),
             )
             # ~ os.remove(self.classification)
             shutil.copy(
                 self.confidence,
-                os.path.join(self.output_directory, os.path.split(self.confidence)[-1]),
+                os.path.join(
+                    self.output_directory, os.path.split(self.confidence)[-1]
+                ),
             )
             # ~ os.remove(self.confidence)
             if self.proba_map_path:
                 shutil.copy(
                     self.proba_map_path,
                     os.path.join(
-                        self.output_directory, os.path.split(self.proba_map_path)[-1]
+                        self.output_directory,
+                        os.path.split(self.proba_map_path)[-1],
                     ),
                 )
                 # ~ os.remove(self.proba_map_path)
@@ -289,7 +325,9 @@ class iota2Classification:
             else:
                 idx = NODATA_LABEL_idx
             index_vector.append(idx)
-        exp = "bands(im1, {})".format("{" + ",".join(map(str, index_vector)) + "}")
+        exp = "bands(im1, {})".format(
+            "{" + ",".join(map(str, index_vector)) + "}"
+        )
         reorder_app = CreateBandMathXApplication(
             {
                 "il": proba_map_path_in,
@@ -343,7 +381,9 @@ def get_class_by_models(iota2_samples_dir, data_field, model=None):
         models_files = FileSearch_AND(modelpath, True, "model", "seed", ".txt")
 
         for model_file in models_files:
-            model_name = os.path.splitext(os.path.basename(model_file))[0].split("_")[1]
+            model_name = os.path.splitext(os.path.basename(model_file))[
+                0
+            ].split("_")[1]
             class_models[model_name] = {}
             seed_number = int(
                 os.path.splitext(os.path.basename(model_file))[0]
@@ -354,18 +394,22 @@ def get_class_by_models(iota2_samples_dir, data_field, model=None):
             class_models[model_name][seed_number] = classes
     else:
         samples_files = FileSearch_AND(
-            iota2_samples_dir, True, "Samples_region_", "_seed", "_learn.sqlite"
+            iota2_samples_dir,
+            True,
+            "Samples_region_",
+            "_seed",
+            "_learn.sqlite",
         )
 
         for samples_file in samples_files:
-            model_name = os.path.splitext(os.path.basename(samples_file))[0].split("_")[
-                2
-            ]
+            model_name = os.path.splitext(os.path.basename(samples_file))[
+                0
+            ].split("_")[2]
             class_models[model_name] = {}
         for samples_file in samples_files:
-            model_name = os.path.splitext(os.path.basename(samples_file))[0].split("_")[
-                2
-            ]
+            model_name = os.path.splitext(os.path.basename(samples_file))[
+                0
+            ].split("_")[2]
             seed_number = int(
                 os.path.splitext(os.path.basename(samples_file))[0]
                 .split("_")[3]
@@ -409,7 +453,9 @@ def launchClassification(
         cfg = SCF.serviceConfigFile(cfg)
 
     classifier_type = cfg.getParam("argTrain", "classifier")
-    output_directory = os.path.join(cfg.getParam("chain", "outputPath"), "classif")
+    output_directory = os.path.join(
+        cfg.getParam("chain", "outputPath"), "classif"
+    )
     tiles = (cfg.getParam("chain", "listTile")).split()
     tile = fu.findCurrentTileInString(Classifmask, tiles)
 
@@ -417,7 +463,9 @@ def launchClassification(
     outputPath = cfg.getParam("chain", "outputPath")
     featuresPath = os.path.join(outputPath, "features")
     dimred = cfg.getParam("dimRed", "dimRed")
-    proba_map_expected = cfg.getParam("argClassification", "enable_probability_map")
+    proba_map_expected = cfg.getParam(
+        "argClassification", "enable_probability_map"
+    )
     wd = pathWd
     if not pathWd:
         wd = featuresPath
@@ -444,7 +492,9 @@ def launchClassification(
         wd, tile, cfg, mode=mode
     )
 
-    feature_raster = AllFeatures.GetParameterValue(getInputParameterOutput(AllFeatures))
+    feature_raster = AllFeatures.GetParameterValue(
+        getInputParameterOutput(AllFeatures)
+    )
     if wMode:
         if not os.path.exists(feature_raster):
             AllFeatures.ExecuteAndWriteOutput()
@@ -471,7 +521,9 @@ def launchClassification(
     )
     data_field = cfg.getParam("chain", "dataField")
     models_class = get_class_by_models(
-        iota2_samples_dir, data_field, model=model if proba_map_expected else None
+        iota2_samples_dir,
+        data_field,
+        model=model if proba_map_expected else None,
     )
     classif = iota2Classification(
         cfg,
@@ -512,13 +564,25 @@ if __name__ == "__main__":
         required=True,
     )
     parser.add_argument(
-        "-pixType", dest="pixType", help="pixel format", default=None, required=True
+        "-pixType",
+        dest="pixType",
+        help="pixel format",
+        default=None,
+        required=True,
     )
     parser.add_argument(
-        "-model", dest="model", help="path to the model", default=None, required=True
+        "-model",
+        dest="model",
+        help="path to the model",
+        default=None,
+        required=True,
     )
     parser.add_argument(
-        "-imstat", dest="stats", help="path to statistics", default=None, required=False
+        "-imstat",
+        dest="stats",
+        help="path to statistics",
+        default=None,
+        required=False,
     )
     parser.add_argument(
         "-out",

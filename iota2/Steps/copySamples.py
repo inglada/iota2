@@ -23,14 +23,18 @@ class copySamples(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "samplesManagement"
-        super(copySamples, self).__init__(cfg, cfg_resources_file, resources_block_name)
+        super(copySamples, self).__init__(
+            cfg, cfg_resources_file, resources_block_name
+        )
 
         # step variables
         self.workingDirectory = workingDirectory
         self.output_path = SCF.serviceConfigFile(self.cfg).getParam(
             "chain", "outputPath"
         )
-        self.dataField = SCF.serviceConfigFile(self.cfg).getParam("chain", "dataField")
+        self.dataField = SCF.serviceConfigFile(self.cfg).getParam(
+            "chain", "dataField"
+        )
         self.sampleManagement = SCF.serviceConfigFile(self.cfg).getParam(
             "argTrain", "sampleManagement"
         )
@@ -66,7 +70,10 @@ class copySamples(IOTA2Step.Step):
 
         def step_function(x):
             return DataAugmentation.DataAugmentationByCopy(
-                self.dataField.lower(), self.sampleManagement, x, self.workingDirectory
+                self.dataField.lower(),
+                self.sampleManagement,
+                x,
+                self.workingDirectory,
             )
 
         return step_function

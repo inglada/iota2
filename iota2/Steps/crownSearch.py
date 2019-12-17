@@ -24,7 +24,9 @@ class crownSearch(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "crownsearch"
-        super(crownSearch, self).__init__(cfg, cfg_resources_file, resources_block_name)
+        super(crownSearch, self).__init__(
+            cfg, cfg_resources_file, resources_block_name
+        )
 
         # step variables
         self.RAM = 1024.0 * get_RAM(self.resources["ram"])
@@ -63,11 +65,16 @@ class crownSearch(IOTA2Step.Step):
         """
         from simplification import searchCrownTile as sct
 
-        tmpdir = os.path.join(self.outputPath, "final", "simplification", "tmp")
+        tmpdir = os.path.join(
+            self.outputPath, "final", "simplification", "tmp"
+        )
         if self.workingDirectory:
             tmpdir = self.workingDirectory
         outfileclp = os.path.join(
-            self.outputPath, "final", "simplification", "classif_regul_clump.tif"
+            self.outputPath,
+            "final",
+            "simplification",
+            "classif_regul_clump.tif",
         )
         inclump = os.path.join(
             self.outputPath, "final", "simplification", "clump32bits.tif"
@@ -75,7 +82,9 @@ class crownSearch(IOTA2Step.Step):
         outfilegrid = os.path.join(
             self.outputPath, "final", "simplification", "grid.shp"
         )
-        outseria = os.path.join(self.outputPath, "final", "simplification", "tiles")
+        outseria = os.path.join(
+            self.outputPath, "final", "simplification", "tiles"
+        )
 
         def step_function(x):
             return sct.searchCrownTile(

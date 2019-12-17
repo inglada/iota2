@@ -61,7 +61,9 @@ def prepareBandRasterDataset(raster):
     transform = data.GetGeoTransform()
     proj = data.GetProjection()
     drv = gdal.GetDriverByName("MEM")
-    dst_ds = drv.Create("", data.RasterXSize, data.RasterYSize, 1, gdal.GDT_Byte)
+    dst_ds = drv.Create(
+        "", data.RasterXSize, data.RasterYSize, 1, gdal.GDT_Byte
+    )
     dst_ds.SetGeoTransform(transform)
     dst_ds.SetProjection(proj)
     dstband = dst_ds.GetRasterBand(1)
@@ -159,7 +161,13 @@ def maskOTBBandMathOutput(path, raster, exp, ram, output, dstnodata=0):
 
     outbm = os.path.join(path, "mask.tif")
     bandMathAppli = OtbAppBank.CreateBandMathApplication(
-        {"il": raster, "exp": exp, "ram": str(ram), "pixType": "uint8", "out": outbm}
+        {
+            "il": raster,
+            "exp": exp,
+            "ram": str(ram),
+            "pixType": "uint8",
+            "out": outbm,
+        }
     )
 
     p = mp.Process(target=executeApp, args=[bandMathAppli])
@@ -180,7 +188,9 @@ def maskOTBBandMathOutput(path, raster, exp, ram, output, dstnodata=0):
     return output
 
 
-def sieveRasterMemory(raster, threshold, output="", dstnodata=0, pixelConnection=8):
+def sieveRasterMemory(
+    raster, threshold, output="", dstnodata=0, pixelConnection=8
+):
 
     # input band
     if isinstance(raster, str):

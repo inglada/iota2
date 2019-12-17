@@ -22,7 +22,12 @@ from Common import ServiceConfigFile as SCF
 
 class Regularization(IOTA2Step.Step):
     def __init__(
-        self, cfg, cfg_resources_file, umc, stepname=None, workingDirectory=None
+        self,
+        cfg,
+        cfg_resources_file,
+        umc,
+        stepname=None,
+        workingDirectory=None,
     ):
         # heritage init
         resources_block_name = "regularisation"
@@ -44,9 +49,13 @@ class Regularization(IOTA2Step.Step):
         self.rastclass = SCF.serviceConfigFile(self.cfg).getParam(
             "Simplification", "classification"
         )
-        self.seed = SCF.serviceConfigFile(self.cfg).getParam("Simplification", "seed")
+        self.seed = SCF.serviceConfigFile(self.cfg).getParam(
+            "Simplification", "seed"
+        )
         self.umc = umc
-        self.outtmpdir = os.path.join(self.outputPath, "final", "simplification", "tmp")
+        self.outtmpdir = os.path.join(
+            self.outputPath, "final", "simplification", "tmp"
+        )
 
     def step_description(self):
         """
@@ -70,16 +79,22 @@ class Regularization(IOTA2Step.Step):
             if rastclass is None:
                 if self.seed is not None:
                     rastclass = os.path.join(
-                        self.outputPath, "final", "Classif_Seed_{}.tif".format(seed)
+                        self.outputPath,
+                        "final",
+                        "Classif_Seed_{}.tif".format(seed),
                     )
                 else:
                     if os.path.exists(
                         os.path.join(
-                            self.outputPath, "final", "Classifications_fusion.tif"
+                            self.outputPath,
+                            "final",
+                            "Classifications_fusion.tif",
                         )
                     ):
                         rastclass = os.path.join(
-                            self.outputPath, "final", "Classifications_fusion.tif"
+                            self.outputPath,
+                            "final",
+                            "Classifications_fusion.tif",
                         )
                     else:
                         rastclass = os.path.join(

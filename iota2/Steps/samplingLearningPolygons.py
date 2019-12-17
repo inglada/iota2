@@ -32,9 +32,9 @@ class samplingLearningPolygons(IOTA2Step.Step):
         self.output_path = SCF.serviceConfigFile(self.cfg).getParam(
             "chain", "outputPath"
         )
-        self.enable_cross_validation = SCF.serviceConfigFile(self.cfg).getParam(
-            "chain", "enableCrossValidation"
-        )
+        self.enable_cross_validation = SCF.serviceConfigFile(
+            self.cfg
+        ).getParam("chain", "enableCrossValidation")
 
     def step_description(self):
         """
@@ -60,7 +60,9 @@ class samplingLearningPolygons(IOTA2Step.Step):
             os.path.join(self.output_path, "samplesSelection"), True, ".shp"
         )
         if self.enable_cross_validation:
-            selected_polygons = sorted(selected_polygons, key=self.sort_by_seed)[:-1]
+            selected_polygons = sorted(
+                selected_polygons, key=self.sort_by_seed
+            )[:-1]
         return selected_polygons
 
     def step_execute(self):

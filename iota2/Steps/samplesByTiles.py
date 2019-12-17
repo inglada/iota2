@@ -53,12 +53,14 @@ class samplesByTiles(IOTA2Step.Step):
             SCF.serviceConfigFile(self.cfg).getParam("chain", "outputPath"),
             "samplesSelection",
         )
-        sampled_vectors = FileSearch_AND(sample_sel_directory, True, "selection.sqlite")
+        sampled_vectors = FileSearch_AND(
+            sample_sel_directory, True, "selection.sqlite"
+        )
         tiles = []
         for sampled_vector in sampled_vectors:
-            tile_name = os.path.splitext(os.path.basename(sampled_vector))[0].split(
-                "_"
-            )[self.tile_name_pos]
+            tile_name = os.path.splitext(os.path.basename(sampled_vector))[
+                0
+            ].split("_")[self.tile_name_pos]
             if not tile_name in tiles:
                 tiles.append(tile_name)
         return tiles

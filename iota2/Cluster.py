@@ -43,7 +43,9 @@ def get_RAM(ram):
     return ram
 
 
-def get_HPC_disponibility(nb_cpu, ram, process_min, process_max, nb_parameters):
+def get_HPC_disponibility(
+    nb_cpu, ram, process_min, process_max, nb_parameters
+):
     """
     usage : function use to predict ressources request by iota2 tasks
 
@@ -74,7 +76,9 @@ def get_HPC_disponibility(nb_cpu, ram, process_min, process_max, nb_parameters):
     cmd = 'qhostpbs | grep rh7 | grep t72h | grep -v "full" | grep -v "down" | grep -v "offl"'
 
     # RegEx to find available cpu
-    regEx_cpu = re.compile("(\d+[\s\d]?)/(\d+[\s\d]?)/(\d+[\s\d]?)/(\d+[\s\d]?)")
+    regEx_cpu = re.compile(
+        "(\d+[\s\d]?)/(\d+[\s\d]?)/(\d+[\s\d]?)/(\d+[\s\d]?)"
+    )
 
     # RegEx to find available cpu
     regEx_ram = re.compile(r"([\s\d]?[\s\d]?\d+)+/(\d+\d+\d+)+")
@@ -115,7 +119,9 @@ def get_HPC_disponibility(nb_cpu, ram, process_min, process_max, nb_parameters):
     hpc_ressources_task = None
     # can find ressources
     if node_dic:
-        hpc_ressources_task = dict(Counter([v for k, v in list(node_dic.items())]))
+        hpc_ressources_task = dict(
+            Counter([v for k, v in list(node_dic.items())])
+        )
         hpc_ressources_task_sorted = sorted(
             list(hpc_ressources_task.items()), key=operator.itemgetter(1)
         )
@@ -529,7 +535,10 @@ if __name__ == "__main__":
         description="This function allows you launch the chain according to a configuration file"
     )
     parser.add_argument(
-        "-config", dest="config", help="path to IOTA2 configuration file", required=True
+        "-config",
+        dest="config",
+        help="path to IOTA2 configuration file",
+        required=True,
     )
     parser.add_argument(
         "-config_ressources",

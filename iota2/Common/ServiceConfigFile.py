@@ -124,9 +124,13 @@ class serviceConfigFile:
             sampleSel_default = self.init_dicoMapping(
                 {"sampler": "random", "strategy": "all"}
             )
-            sampleAugmentationg_default = self.init_dicoMapping({"activate": False})
+            sampleAugmentationg_default = self.init_dicoMapping(
+                {"activate": False}
+            )
             annualCrop = self.init_listSequence(["11", "12"])
-            ACropLabelReplacement = self.init_listSequence(["10", "annualCrop"])
+            ACropLabelReplacement = self.init_listSequence(
+                ["10", "annualCrop"]
+            )
             argTrain_default = {
                 "sampleSelection": sampleSel_default,
                 "sampleAugmentation": sampleAugmentationg_default,
@@ -151,7 +155,9 @@ class serviceConfigFile:
             self.init_section("argClassification", argClassification_default)
             # init GlobChain section
             GlobChain_default = {
-                "features": self.init_listSequence(["NDVI", "NDWI", "Brightness"]),
+                "features": self.init_listSequence(
+                    ["NDVI", "NDWI", "Brightness"]
+                ),
                 "autoDate": True,
                 "writeOutputs": False,
                 "useAdditionalFeatures": False,
@@ -166,7 +172,9 @@ class serviceConfigFile:
                 "extractBands": False,
                 "acorfeat": False,
             }
-            self.init_section("iota2FeatureExtraction", iota2FeatureExtraction_default)
+            self.init_section(
+                "iota2FeatureExtraction", iota2FeatureExtraction_default
+            )
             # init dimensionality reduction
             dimRed_default = {
                 "dimRed": False,
@@ -210,7 +218,18 @@ class serviceConfigFile:
                 "startDate": "",
                 "endDate": "",
                 "keepBands": self.init_listSequence(
-                    ["B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11", "B12"]
+                    [
+                        "B2",
+                        "B3",
+                        "B4",
+                        "B5",
+                        "B6",
+                        "B7",
+                        "B8",
+                        "B8A",
+                        "B11",
+                        "B12",
+                    ]
                 ),
             }
             Sentinel_2_S2C_default = {
@@ -220,7 +239,18 @@ class serviceConfigFile:
                 "startDate": "",
                 "endDate": "",
                 "keepBands": self.init_listSequence(
-                    ["B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11", "B12"]
+                    [
+                        "B2",
+                        "B3",
+                        "B4",
+                        "B5",
+                        "B6",
+                        "B7",
+                        "B8",
+                        "B8A",
+                        "B11",
+                        "B12",
+                    ]
                 ),
             }
             Sentinel_2_L3A_default = {
@@ -230,7 +260,18 @@ class serviceConfigFile:
                 "startDate": "",
                 "endDate": "",
                 "keepBands": self.init_listSequence(
-                    ["B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11", "B12"]
+                    [
+                        "B2",
+                        "B3",
+                        "B4",
+                        "B5",
+                        "B6",
+                        "B7",
+                        "B8",
+                        "B8A",
+                        "B11",
+                        "B12",
+                    ]
                 ),
             }
 
@@ -323,7 +364,9 @@ class serviceConfigFile:
                 )
             )
 
-    def testVarConfigFile(self, section, variable, varType, valeurs="", valDefaut=""):
+    def testVarConfigFile(
+        self, section, variable, varType, valeurs="", valDefaut=""
+    ):
         """
             This function check if variable is in obj
             and if it has varType type.
@@ -338,7 +381,9 @@ class serviceConfigFile:
 
         if not hasattr(self.cfg, section):
             raise sErr.configFileError(
-                "Section '" + str(section) + "' is not in the configuration file"
+                "Section '"
+                + str(section)
+                + "' is not in the configuration file"
             )
 
         objSection = getattr(self.cfg, section)
@@ -438,7 +483,11 @@ class serviceConfigFile:
                         )
                 if "samples.strategy" in sampleAug:
                     samples_strategy = sampleAug["samples.strategy"]
-                    if samples_strategy not in ["minNumber", "balance", "byClass"]:
+                    if samples_strategy not in [
+                        "minNumber",
+                        "balance",
+                        "byClass",
+                    ]:
                         raise sErr.configError(
                             "augmentation strategy must be 'minNumber', 'balance' or 'byClass'"
                         )
@@ -463,7 +512,9 @@ class serviceConfigFile:
                     if not isinstance(TargetModels, Sequence):
                         raise sErr.configError("target_models must a list")
                     if not isinstance(TargetModels[0], str):
-                        raise sErr.configError("target_models must constains strings")
+                        raise sErr.configError(
+                            "target_models must constains strings"
+                        )
 
             sampleAug = dict(self.cfg.argTrain.sampleAugmentation)
             check_parameters(sampleAug)
@@ -486,7 +537,14 @@ class serviceConfigFile:
                     "rand",
                     "inxml",
                 ]
-                strats = ["byclass", "constant", "percent", "total", "smallest", "all"]
+                strats = [
+                    "byclass",
+                    "constant",
+                    "percent",
+                    "total",
+                    "smallest",
+                    "all",
+                ]
                 for p in not_allowed_p:
                     if p in sampleSel:
                         raise sErr.configError(
@@ -498,7 +556,9 @@ class serviceConfigFile:
                 if "sampler" in sampleSel:
                     sampler = sampleSel["sampler"]
                     if sampler not in ["periodic", "random"]:
-                        raise sErr.configError("sampler must be 'periodic' or 'random'")
+                        raise sErr.configError(
+                            "sampler must be 'periodic' or 'random'"
+                        )
                 if "sampler.periodic.jitter" in sampleSel:
                     jitter = sampleSel["sampler.periodic.jitter"]
                     if not isinstance(jitter, int):
@@ -508,25 +568,35 @@ class serviceConfigFile:
                     if strategy not in strats:
                         raise sErr.configError(
                             "strategy must be {}".format(
-                                " or ".join(["'{}'".format(elem) for elem in strats])
+                                " or ".join(
+                                    ["'{}'".format(elem) for elem in strats]
+                                )
                             )
                         )
                 if "strategy.byclass.in" in sampleSel:
                     byclass = sampleSel["strategy.byclass.in"]
                     if not isinstance(byclass, str):
-                        raise sErr.configError("strategy.byclass.in must a string")
+                        raise sErr.configError(
+                            "strategy.byclass.in must a string"
+                        )
                 if "strategy.constant.nb" in sampleSel:
                     constant = sampleSel["strategy.constant.nb"]
                     if not isinstance(constant, int):
-                        raise sErr.configError("strategy.constant.nb must an integer")
+                        raise sErr.configError(
+                            "strategy.constant.nb must an integer"
+                        )
                 if "strategy.percent.p" in sampleSel:
                     percent = sampleSel["strategy.percent.p"]
                     if not isinstance(percent, float):
-                        raise sErr.configError("strategy.percent.p must a float")
+                        raise sErr.configError(
+                            "strategy.percent.p must a float"
+                        )
                 if "strategy.total.v" in sampleSel:
                     total = sampleSel["strategy.total.v"]
                     if not isinstance(total, int):
-                        raise sErr.configError("strategy.total.v must an integer")
+                        raise sErr.configError(
+                            "strategy.total.v must an integer"
+                        )
                 if "elev.dem" in sampleSel:
                     dem = sampleSel["elev.dem"]
                     if not isinstance(dem, str):
@@ -574,9 +644,9 @@ class serviceConfigFile:
             field_index = layer.FindFieldIndex(region_field, False)
             layerDefinition = layer.GetLayerDefn()
             fieldTypeCode = layerDefinition.GetFieldDefn(field_index).GetType()
-            fieldType = layerDefinition.GetFieldDefn(field_index).GetFieldTypeName(
-                fieldTypeCode
-            )
+            fieldType = layerDefinition.GetFieldDefn(
+                field_index
+            ).GetFieldTypeName(fieldTypeCode)
             if fieldType != "String":
                 raise sErr.configError("the region field must be a string")
 
@@ -654,7 +724,9 @@ class serviceConfigFile:
             self.testVarConfigFile("chain", "spatialResolution", int)
             self.testVarConfigFile("chain", "colorTable", str)
             self.testVarConfigFile("chain", "mode_outside_RegionSplit", float)
-            self.testVarConfigFile("chain", "merge_final_classifications", bool)
+            self.testVarConfigFile(
+                "chain", "merge_final_classifications", bool
+            )
             if self.getParam("chain", "merge_final_classifications"):
                 self.testVarConfigFile(
                     "chain", "merge_final_classifications_undecidedlabel", int
@@ -685,7 +757,9 @@ class serviceConfigFile:
             self.testVarConfigFile("argTrain", "prevFeatures", str)
             self.testVarConfigFile("argTrain", "outputPrevFeatures", str)
             self.testVarConfigFile("argTrain", "annualCrop", Sequence)
-            self.testVarConfigFile("argTrain", "ACropLabelReplacement", Sequence)
+            self.testVarConfigFile(
+                "argTrain", "ACropLabelReplacement", Sequence
+            )
 
             self.testVarConfigFile("argTrain", "sampleSelection", Mapping)
             self.testVarConfigFile("argTrain", "samplesClassifMix", bool)
@@ -697,7 +771,9 @@ class serviceConfigFile:
             self.testVarConfigFile(
                 "argClassification", "classifMode", str, ["separate", "fusion"]
             )
-            self.testVarConfigFile("argClassification", "enable_probability_map", bool)
+            self.testVarConfigFile(
+                "argClassification", "enable_probability_map", bool
+            )
             self.testVarConfigFile(
                 "argClassification",
                 "noLabelManagement",
@@ -714,8 +790,12 @@ class serviceConfigFile:
 
             self.testVarConfigFile("iota2FeatureExtraction", "copyinput", bool)
             self.testVarConfigFile("iota2FeatureExtraction", "relrefl", bool)
-            self.testVarConfigFile("iota2FeatureExtraction", "keepduplicates", bool)
-            self.testVarConfigFile("iota2FeatureExtraction", "extractBands", bool)
+            self.testVarConfigFile(
+                "iota2FeatureExtraction", "keepduplicates", bool
+            )
+            self.testVarConfigFile(
+                "iota2FeatureExtraction", "extractBands", bool
+            )
             self.testVarConfigFile("iota2FeatureExtraction", "acorfeat", bool)
 
             self.testVarConfigFile("dimRed", "dimRed", bool)
@@ -726,7 +806,9 @@ class serviceConfigFile:
 
             if self.cfg.chain.L5Path_old != "None":
                 # L5 variable check
-                self.testVarConfigFile("Landsat5_old", "temporalResolution", int)
+                self.testVarConfigFile(
+                    "Landsat5_old", "temporalResolution", int
+                )
                 self.testVarConfigFile("Landsat5_old", "keepBands", Sequence)
             if self.cfg.chain.L8Path != "None":
                 # L8 variable check
@@ -734,7 +816,9 @@ class serviceConfigFile:
                 self.testVarConfigFile("Landsat8", "keepBands", Sequence)
             if self.cfg.chain.L8Path_old != "None":
                 # L8 variable check
-                self.testVarConfigFile("Landsat8_old", "temporalResolution", int)
+                self.testVarConfigFile(
+                    "Landsat8_old", "temporalResolution", int
+                )
                 self.testVarConfigFile("Landsat8_old", "keepBands", Sequence)
 
             if self.cfg.chain.S2Path != "None":
@@ -795,7 +879,8 @@ class serviceConfigFile:
             # parameters compatibilities check
             classier_probamap_avail = ["sharkrf"]
             if (
-                self.getParam("argClassification", "enable_probability_map") is True
+                self.getParam("argClassification", "enable_probability_map")
+                is True
                 and self.getParam("argTrain", "classifier").lower()
                 not in classier_probamap_avail
             ):
@@ -813,11 +898,17 @@ class serviceConfigFile:
                 raise sErr.configError(
                     "you can't chose 'one_region' mode and ask a fusion of classifications\n"
                 )
-            if self.cfg.chain.merge_final_classifications and self.cfg.chain.runs == 1:
+            if (
+                self.cfg.chain.merge_final_classifications
+                and self.cfg.chain.runs == 1
+            ):
                 raise sErr.configError(
                     "these parameters are incompatible runs:1 and merge_final_classifications:True"
                 )
-            if self.cfg.chain.enableCrossValidation and self.cfg.chain.runs == 1:
+            if (
+                self.cfg.chain.enableCrossValidation
+                and self.cfg.chain.runs == 1
+            ):
                 raise sErr.configError(
                     "these parameters are incompatible runs:1 and enableCrossValidation:True"
                 )
@@ -828,7 +919,10 @@ class serviceConfigFile:
                 raise sErr.configError(
                     "these parameters are incompatible splitGroundTruth:False and enableCrossValidation:True"
                 )
-            if self.cfg.chain.splitGroundTruth is False and self.cfg.chain.runs != 1:
+            if (
+                self.cfg.chain.splitGroundTruth is False
+                and self.cfg.chain.runs != 1
+            ):
                 raise sErr.configError(
                     "these parameters are incompatible splitGroundTruth:False and runs different from 1"
                 )
@@ -887,7 +981,9 @@ class serviceConfigFile:
 
         if not hasattr(self.cfg, section):
             # not an osoError class because it should NEVER happened
-            raise Exception("Section is not in the configuration file: " + str(section))
+            raise Exception(
+                "Section is not in the configuration file: " + str(section)
+            )
 
         objSection = getattr(self.cfg, section)
         if not hasattr(objSection, variable):
@@ -912,7 +1008,9 @@ class serviceConfigFile:
 
         if not hasattr(self.cfg, section):
             # not an osoError class because it should NEVER happened
-            raise Exception("Section is not in the configuration file: " + str(section))
+            raise Exception(
+                "Section is not in the configuration file: " + str(section)
+            )
 
         objSection = getattr(self.cfg, section)
 
@@ -934,7 +1032,9 @@ class serviceConfigFile:
             :param value: value to set
         """
         if not hasattr(self.cfg, section):
-            raise Exception("Section is not in the configuration file: " + str(section))
+            raise Exception(
+                "Section is not in the configuration file: " + str(section)
+            )
         objSection = getattr(self.cfg, section)
         if not hasattr(objSection, variable):
             setattr(objSection, variable, value)
@@ -953,7 +1053,9 @@ class serviceConfigFile:
 
         if not hasattr(self.cfg, section):
             # not an osoError class because it should NEVER happened
-            raise Exception("Section is not in the configuration file: " + str(section))
+            raise Exception(
+                "Section is not in the configuration file: " + str(section)
+            )
 
         objSection = getattr(self.cfg, section)
 

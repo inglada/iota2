@@ -197,7 +197,9 @@ def mergeOutStats(cfg):
         )
         plt.ylabel("Nb pix")
         plt.xlabel("Confidence")
-        lgd = plt.legend(loc="center left", bbox_to_anchor=(1, 0.8), numpoints=1)
+        lgd = plt.legend(
+            loc="center left", bbox_to_anchor=(1, 0.8), numpoints=1
+        )
         plt.title("Histogram")
         plt.savefig(
             Testpath + "/final/Stats_VOK_VNOK.png",
@@ -234,7 +236,9 @@ def mergeOutStats(cfg):
         )
         plt.ylabel("Nb pix")
         plt.xlabel("Confidence")
-        lgd = plt.legend(loc="center left", bbox_to_anchor=(1, 0.8), numpoints=1)
+        lgd = plt.legend(
+            loc="center left", bbox_to_anchor=(1, 0.8), numpoints=1
+        )
         plt.title("Histogram")
         plt.savefig(
             Testpath + "/final/Stats_LOK_LNOK.png",
@@ -279,7 +283,10 @@ if __name__ == "__main__":
         description="This function merges tile's statistics"
     )
     parser.add_argument(
-        "-conf", dest="config", help="path to configuration file", required=True
+        "-conf",
+        dest="config",
+        help="path to configuration file",
+        required=True,
     )
     args = parser.parse_args()
 

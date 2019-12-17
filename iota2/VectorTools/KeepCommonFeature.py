@@ -48,7 +48,9 @@ if __name__ == "__main__":
     usage = "usage: <file1.shp> <file2.shp> <field_shp1> <field_shp2>"
     listfiles = []
     if len(sys.argv) == 5:
-        CheckDoubleGeomTwofilesCopy(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
+        CheckDoubleGeomTwofilesCopy(
+            sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
+        )
         sys.exit(0)
     else:
         print(usage)

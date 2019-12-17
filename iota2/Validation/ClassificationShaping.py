@@ -39,12 +39,25 @@ def BuildNbVoteCmd(classifTile, VoteMap):
         exp.append("(im" + str(i + 1) + "b1!=0?1:0)")
     expVote = "+".join(exp)
     imgs = " ".join(classifTile)
-    cmd = "otbcli_BandMath -il " + imgs + " -out " + VoteMap + ' -exp "' + expVote + '"'
+    cmd = (
+        "otbcli_BandMath -il "
+        + imgs
+        + " -out "
+        + VoteMap
+        + ' -exp "'
+        + expVote
+        + '"'
+    )
     return cmd
 
 
 def BuildConfidenceCmd(
-    finalTile, classifTile, confidence, OutPutConfidence, fact=100, pixType="uint8"
+    finalTile,
+    classifTile,
+    confidence,
+    OutPutConfidence,
+    fact=100,
+    pixType="uint8",
 ):
 
     if len(classifTile) != len(confidence):
@@ -67,7 +80,9 @@ def BuildConfidenceCmd(
             + "b1)"
         )
     # expConfidence="im1b1==0?0:("+"+".join(exp)+")/im"+str(2+2*N)+"b1"
-    expConfidence = "im1b1==0?0:(" + "+".join(exp) + ")/" + str(len(classifTile))
+    expConfidence = (
+        "im1b1==0?0:(" + "+".join(exp) + ")/" + str(len(classifTile))
+    )
 
     All = classifTile + confidence
     All = " ".join(All)
@@ -101,7 +116,9 @@ def removeInListByRegEx(InputList, RegEx):
     return Outlist
 
 
-def proba_map_fusion(proba_map_list, ram=128, working_directory=None, logger=logger):
+def proba_map_fusion(
+    proba_map_list, ram=128, working_directory=None, logger=logger
+):
     """fusion of probabilities map
 
     Parameters
@@ -128,12 +145,21 @@ def proba_map_fusion(proba_map_list, ram=128, working_directory=None, logger=log
     )
     proba_map_fus_path = os.path.join(proba_map_fus_dir, proba_map_fus_name)
     if working_directory:
-        proba_map_fus_path = os.path.join(working_directory, proba_map_fus_name)
+        proba_map_fus_path = os.path.join(
+            working_directory, proba_map_fus_name
+        )
     logger.info(
-        "Fusion of probality maps : {} at {}".format(proba_map_list, proba_map_fus_path)
+        "Fusion of probality maps : {} at {}".format(
+            proba_map_list, proba_map_fus_path
+        )
     )
     proba_merge = CreateBandMathXApplication(
-        {"il": proba_map_list, "ram": str(ram), "out": proba_map_fus_path, "exp": exp}
+        {
+            "il": proba_map_list,
+            "ram": str(ram),
+            "out": proba_map_fus_path,
+            "exp": exp,
+        }
     )
     proba_merge.ExecuteAndWriteOutput()
     if working_directory:
@@ -152,7 +178,9 @@ def genGlobalConfidence(N, pathWd, cfg):
     AllTile = cfg.getParam("chain", "listTile").split(" ")
     shapeRegion = cfg.getParam("chain", "regionPath")
     ds_sar_opt = cfg.getParam("argTrain", "dempster_shafer_SAR_Opt_fusion")
-    proba_map_flag = cfg.getParam("argClassification", "enable_probability_map")
+    proba_map_flag = cfg.getParam(
+        "argClassification", "enable_probability_map"
+    )
     PROBAMAP_PATTERN = "PROBAMAP"
     tmpClassif = pathTest + "/classif/tmpClassif"
     pathToClassif = pathTest + "/classif"
@@ -174,7 +202,9 @@ def genGlobalConfidence(N, pathWd, cfg):
                     if ds_sar_opt:
                         confidence_pattern = os.path.join(
                             pathToClassif,
-                            "{}*model*confidence_seed_{}*_DS.tif".format(tuile, seed),
+                            "{}*model*confidence_seed_{}*_DS.tif".format(
+                                tuile, seed
+                            ),
                         )
                     confidence = fu.fileSearchRegEx(confidence_pattern)
                     globalConf = (
@@ -225,7 +255,9 @@ def genGlobalConfidence(N, pathWd, cfg):
                     )  # tmp tile (produce by each classifier, without nodata)
                     splitModel = []
                     for classif in classifTile:
-                        model = classif.split("/")[-1].split("_")[3].split("f")[0]
+                        model = (
+                            classif.split("/")[-1].split("_")[3].split("f")[0]
+                        )
                         try:
                             ind = splitModel.index(model)
                         except ValueError:
@@ -337,7 +369,10 @@ def genGlobalConfidence(N, pathWd, cfg):
                     j = 0
                     # -> confidence from splited models are from 0 to 100
                     exp1 = "+".join(
-                        ["im" + str(i + 1) + "b1" for i in range(len(splitConfidence))]
+                        [
+                            "im" + str(i + 1) + "b1"
+                            for i in range(len(splitConfidence))
+                        ]
                     )
                     exp2 = "+".join(
                         [
@@ -395,7 +430,10 @@ def genGlobalConfidence(N, pathWd, cfg):
                         + suffix
                     )
                     exp = "+".join(
-                        ["im" + str(i + 1) + "b1" for i in range(len(confidence))]
+                        [
+                            "im" + str(i + 1) + "b1"
+                            for i in range(len(confidence))
+                        ]
                     )
                     AllConfidence = " ".join(confidence)
                     # for currentConf in confidence:
@@ -431,7 +469,15 @@ def genGlobalConfidence(N, pathWd, cfg):
 
 
 def ClassificationShaping(
-    pathClassif, pathEnvelope, pathImg, fieldEnv, N, pathOut, pathWd, cfg, colorpath
+    pathClassif,
+    pathEnvelope,
+    pathImg,
+    fieldEnv,
+    N,
+    pathOut,
+    pathWd,
+    cfg,
+    colorpath,
 ):
 
     if not isinstance(cfg, SCF.serviceConfigFile):
@@ -464,7 +510,9 @@ def ClassificationShaping(
     featuresPath = os.path.join(pathTest, "features")
     outputStatistics = cfg.getParam("chain", "outputStatistics")
     spatialResolution = cfg.getParam("chain", "spatialResolution")
-    proba_map_flag = cfg.getParam("argClassification", "enable_probability_map")
+    proba_map_flag = cfg.getParam(
+        "argClassification", "enable_probability_map"
+    )
     shapeRegion = cfg.getParam("chain", "regionPath")
     allTMPFolder = fu.fileSearchRegEx(pathTest + "/TMPFOLDER*")
     if allTMPFolder:
@@ -512,7 +560,12 @@ def ClassificationShaping(
             )
             if ds_sar_opt:
                 AllClassifSeed = fu.FileSearch_AND(
-                    pathClassif, True, ".tif", "Classif", "seed_" + str(seed), "DS.tif"
+                    pathClassif,
+                    True,
+                    ".tif",
+                    "Classif",
+                    "seed_" + str(seed),
+                    "DS.tif",
                 )
             ind = 1
         elif classifMode == "fusion":
@@ -521,7 +574,9 @@ def ClassificationShaping(
             )
             if ds_sar_opt:
                 AllClassifSeed = fu.FileSearch_AND(
-                    pathClassif, True, "_FUSION_NODATA_seed" + str(seed) + "_DS.tif"
+                    pathClassif,
+                    True,
+                    "_FUSION_NODATA_seed" + str(seed) + "_DS.tif",
                 )
             ind = 0
         for tile in AllClassifSeed:
@@ -571,7 +626,9 @@ def ClassificationShaping(
             cloudTilePriority_StatsOK = (
                 pathTest + "/final/TMP/" + tile + "_Cloud_StatsOK.tif"
             )
-            cloudTilePriority_tmp_StatsOK = TMP + "/" + tile + "_Cloud_StatsOK.tif"
+            cloudTilePriority_tmp_StatsOK = (
+                TMP + "/" + tile + "_Cloud_StatsOK.tif"
+            )
             cloud[seed].append(cloudTilePriority)
             if not os.path.exists(cloudTilePriority):
                 cmd_cloud = (
@@ -597,7 +654,8 @@ def ClassificationShaping(
                     run(cmd_cloud)
                     if pathWd:
                         shutil.copy(
-                            cloudTilePriority_tmp_StatsOK, cloudTilePriority_StatsOK
+                            cloudTilePriority_tmp_StatsOK,
+                            cloudTilePriority_StatsOK,
                         )
                         os.remove(cloudTilePriority_tmp_StatsOK)
 
@@ -621,7 +679,8 @@ def ClassificationShaping(
         )
         if pathWd:
             shutil.copy(
-                pathWd + "/Classif_Seed_" + str(seed) + ".tif", pathTest + "/final"
+                pathWd + "/Classif_Seed_" + str(seed) + ".tif",
+                pathTest + "/final",
             )
             os.remove(pathWd + "/Classif_Seed_" + str(seed) + ".tif")
         fu.assembleTile_Merge(
@@ -633,13 +692,16 @@ def ClassificationShaping(
         )
         if pathWd:
             shutil.copy(
-                pathWd + "/Confidence_Seed_" + str(seed) + ".tif", pathTest + "/final"
+                pathWd + "/Confidence_Seed_" + str(seed) + ".tif",
+                pathTest + "/final",
             )
             os.remove(pathWd + "/Confidence_Seed_" + str(seed) + ".tif")
         color.CreateIndexedColorImage(
             pathTest + "/final/Classif_Seed_" + str(seed) + ".tif",
             colorpath,
-            output_pix_type=gdal.GDT_Byte if pixType == "uint8" else gdal.GDT_UInt16,
+            output_pix_type=gdal.GDT_Byte
+            if pixType == "uint8"
+            else gdal.GDT_UInt16,
         )
 
         if proba_map_flag:

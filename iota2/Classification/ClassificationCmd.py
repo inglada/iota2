@@ -59,7 +59,9 @@ def launchClassification(
         run("mkdir " + maskFiles)
 
     if pathToRegion is None:
-        pathToRegion = os.path.join(cfg.getParam("chain", "outputPath"), "MyRegion.shp")
+        pathToRegion = os.path.join(
+            cfg.getParam("chain", "outputPath"), "MyRegion.shp"
+        )
 
     shpRName = pathToRegion.split("/")[-1].replace(".shp", "")
 
@@ -85,7 +87,9 @@ def launchClassification(
             suffix = "_SAR"
         tilesToEvaluate = tiles
 
-        if ("fusion" in classifMode and shapeRegion is None) or (shapeRegion is None):
+        if ("fusion" in classifMode and shapeRegion is None) or (
+            shapeRegion is None
+        ):
             tilesToEvaluate = allTiles
         # construction du string de sortie
         for tile in tilesToEvaluate:
@@ -120,7 +124,9 @@ def launchClassification(
             confidenceMap_name = "{}_model_{}_confidence_seed_{}{}.tif".format(
                 tile, model, seed, suffix
             )
-            CmdConfidenceMap = " -confmap " + os.path.join(pathOut, confidenceMap_name)
+            CmdConfidenceMap = " -confmap " + os.path.join(
+                pathOut, confidenceMap_name
+            )
 
             if not os.path.exists(maskFiles + "/" + maskTif):
                 pathToMaskCommun = (
@@ -135,7 +141,10 @@ def launchClassification(
                 if pathWd is not None:
                     maskFiles = pathWd
                 nameOut = fu.ClipVectorData(
-                    maskSHP, pathToMaskCommun, maskFiles, maskTif.replace(".tif", "")
+                    maskSHP,
+                    pathToMaskCommun,
+                    maskFiles,
+                    maskTif.replace(".tif", ""),
                 )
                 cmdRaster = (
                     "otbcli_Rasterization -in "
@@ -162,7 +171,15 @@ def launchClassification(
                     )
                 run(cmdRaster)
                 if pathWd is not None:
-                    run("cp " + pathWd + "/" + maskTif + " " + pathOut + "/MASK")
+                    run(
+                        "cp "
+                        + pathWd
+                        + "/"
+                        + maskTif
+                        + " "
+                        + pathOut
+                        + "/MASK"
+                    )
                     os.remove(pathWd + "/" + maskTif)
 
             out = (
@@ -252,7 +269,10 @@ if __name__ == "__main__":
         required=True,
     )
     parser.add_argument(
-        "--stat", dest="stat", help="statistics for classification", required=False
+        "--stat",
+        dest="stat",
+        help="statistics for classification",
+        required=False,
     )
     parser.add_argument(
         "-path.region.tile",
@@ -279,7 +299,10 @@ if __name__ == "__main__":
         required=True,
     )
     parser.add_argument(
-        "-N", dest="N", help="number of random sample(mandatory)", required=True
+        "-N",
+        dest="N",
+        help="number of random sample(mandatory)",
+        required=True,
     )
     parser.add_argument(
         "-classif.out.cmd",

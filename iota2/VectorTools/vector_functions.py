@@ -177,7 +177,9 @@ def spatialFilter(
 
     fields = getFields(clipzone, driverclip)
     layerDfnClip = lyrclip.GetLayerDefn()
-    fieldTypeCode = layerDfnClip.GetFieldDefn(fields.index(clipfield)).GetType()
+    fieldTypeCode = layerDfnClip.GetFieldDefn(
+        fields.index(clipfield)
+    ).GetType()
 
     if fieldTypeCode == 4:
         lyrclip.SetAttributeFilter(clipfield + " = '" + str(clipvalue) + "'")
@@ -295,7 +297,9 @@ def getFieldType(shp, field):
     for i in range(layerDefinition.GetFieldCount()):
         if layerDefinition.GetFieldDefn(i).GetName() == field:
             fieldTypeCode = layerDefinition.GetFieldDefn(i).GetType()
-            fieldType = layerDefinition.GetFieldDefn(i).GetFieldTypeName(fieldTypeCode)
+            fieldType = layerDefinition.GetFieldDefn(i).GetFieldTypeName(
+                fieldTypeCode
+            )
 
     return dico[fieldType]
 
@@ -347,7 +351,10 @@ def copyShapefile(shape, outshape):
             if os.path.splitext(name)[0] == basefile:
                 copyfile(
                     folder + "/" + name,
-                    folderout + "/" + basefileout + os.path.splitext(name)[1].lower(),
+                    folderout
+                    + "/"
+                    + basefileout
+                    + os.path.splitext(name)[1].lower(),
                 )
 
 
@@ -443,7 +450,8 @@ def CreateNewLayer(layer, outShapefile):
                 continue
 
             outFeature.SetField(
-                outLayerDefn.GetFieldDefn(i).GetNameRef(), inFeature.GetField(i)
+                outLayerDefn.GetFieldDefn(i).GetNameRef(),
+                inFeature.GetField(i),
             )
         # Set geometry as centroid
         geom = inFeature.GetGeometryRef()
@@ -744,7 +752,9 @@ def checkIntersect(shp, distance, fieldin):
         minY = y - float(distance)
         maxX = x + float(distance)
         maxY = y + float(distance)
-        layer.SetSpatialFilterRect(float(minX), float(minY), float(maxX), float(maxY))
+        layer.SetSpatialFilterRect(
+            float(minX), float(minY), float(maxX), float(maxY)
+        )
         nbfeat2 = layer.GetFeatureCount()
         intersection = False
         listFID = []
@@ -768,7 +778,9 @@ def checkIntersect(shp, distance, fieldin):
             for f in listFID:
                 feat2 = layer.GetFeature(f)
                 geom2 = feat2.GetGeometryRef()
-                if feat1.GetFieldAsString(fieldin) == feat2.GetFieldAsString(fieldin):
+                if feat1.GetFieldAsString(fieldin) == feat2.GetFieldAsString(
+                    fieldin
+                ):
                     print(
                         feat1.GetFieldAsString("id")
                         + " "
@@ -788,7 +800,9 @@ def checkIntersect(shp, distance, fieldin):
             for f in listFID:
                 feat2 = layer.GetFeature(f)
                 geom2 = feat2.GetGeometryRef()
-                if feat1.GetFieldAsString(fieldin) == feat2.GetFieldAsString(fieldin):
+                if feat1.GetFieldAsString(fieldin) == feat2.GetFieldAsString(
+                    fieldin
+                ):
                     newgeom = Union(geom1, geom2)
                 else:
                     newgeom = Difference(geom1, geom2)
@@ -846,7 +860,9 @@ def checkIntersect2(shp, fieldin, fieldinID):
             for f in listFID:
                 feat2 = layer.GetFeature(f)
                 geom2 = feat2.GetGeometryRef()
-                if feat1.GetFieldAsString(fieldin) == feat2.GetFieldAsString(fieldin):
+                if feat1.GetFieldAsString(fieldin) == feat2.GetFieldAsString(
+                    fieldin
+                ):
                     print(
                         feat1.GetFieldAsString(fieldinID)
                         + " "
@@ -866,7 +882,9 @@ def checkIntersect2(shp, fieldin, fieldinID):
             for f in listFID:
                 feat2 = layer.GetFeature(f)
                 geom2 = feat2.GetGeometryRef()
-                if feat1.GetFieldAsString(fieldin) == feat2.GetFieldAsString(fieldin):
+                if feat1.GetFieldAsString(fieldin) == feat2.GetFieldAsString(
+                    fieldin
+                ):
                     newgeom = Union(geom1, geom2)
                 else:
                     newgeom = Difference(geom1, geom2)
@@ -910,7 +928,9 @@ def checkIntersect3(shp, fieldin, fieldinID):
             geom2 = feat2.GetGeometryRef()
             if geom1.Intersects(geom2) == True and not geom1.Equal(geom2):
                 listFID.append(feat2.GetFID())
-                if feat1.GetFieldAsString(fieldin) == feat2.GetFieldAsString(fieldin):
+                if feat1.GetFieldAsString(fieldin) == feat2.GetFieldAsString(
+                    fieldin
+                ):
                     newgeom = Union(geom1, geom2)
                     newgeom2 = ogr.CreateGeometryFromWkb(newgeom.wkb)
                     newFeature = ogr.Feature(layerDef)

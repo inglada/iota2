@@ -83,7 +83,9 @@ class iota_testSamplesSplits(unittest.TestCase):
             result = self.defaultTestResult()
             self._feedErrorsToResult(result, self._outcome.errors)
         else:
-            result = getattr(self, "_outcomeForDoCleanups", self._resultForDoCleanups)
+            result = getattr(
+                self, "_outcomeForDoCleanups", self._resultForDoCleanups
+            )
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
         ok = not error and not failure
@@ -107,7 +109,10 @@ class iota_testSamplesSplits(unittest.TestCase):
         )
         numbler_of_class = 23
         random_ground_truth_generator(
-            vector_file_to_split, self.data_field, numbler_of_class, self.region_field
+            vector_file_to_split,
+            self.data_field,
+            numbler_of_class,
+            self.region_field,
         )
 
         random_seed = None
@@ -212,7 +217,10 @@ class iota_testSamplesSplits(unittest.TestCase):
         )
         numbler_of_class = 23
         random_ground_truth_generator(
-            vector_file_to_split, self.data_field, numbler_of_class, self.region_field
+            vector_file_to_split,
+            self.data_field,
+            numbler_of_class,
+            self.region_field,
         )
 
         random_seed = 1

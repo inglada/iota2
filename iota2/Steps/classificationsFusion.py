@@ -48,7 +48,9 @@ class classificationsFusion(IOTA2Step.Step):
         """
         from Classification import Fusion as FUS
 
-        return FUS.fusion(os.path.join(self.output_path, "classif"), self.cfg, None)
+        return FUS.fusion(
+            os.path.join(self.output_path, "classif"), self.cfg, None
+        )
 
     def step_execute(self):
         """

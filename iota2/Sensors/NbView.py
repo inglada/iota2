@@ -49,7 +49,9 @@ def getLineNumberInFiles(fileList):
     return nbLine
 
 
-def nbViewOptical(tile, workingDirectory, cfg, outputRaster, tilePath, logger=logger):
+def nbViewOptical(
+    tile, workingDirectory, cfg, outputRaster, tilePath, logger=logger
+):
 
     logger.info("Computing pixel validity by tile")
 
@@ -67,7 +69,9 @@ def nbViewOptical(tile, workingDirectory, cfg, outputRaster, tilePath, logger=lo
     )
     if not os.path.exists(tilePath + "/tmp"):
         os.mkdir(tilePath + "/tmp")
-        fu.updateDirectory(tilesStackDirectory + "/" + tile + "/tmp", tilePath + "/tmp")
+        fu.updateDirectory(
+            tilesStackDirectory + "/" + tile + "/tmp", tilePath + "/tmp"
+        )
     if not os.path.exists(tilePath + "/Final"):
         os.mkdir(tilePath + "/Final")
         fu.updateDirectory(
@@ -109,17 +113,23 @@ def nbViewSAR(tile, cfg, outputRaster, workingDirectory):
 
     S1Data = cfg.getParam("chain", "S1Path")
     allTiles = (cfg.getParam("chain", "listTile")).split()
-    featuresPath = os.path.join(cfg.getParam("chain", "outputPath"), "features")
+    featuresPath = os.path.join(
+        cfg.getParam("chain", "outputPath"), "features"
+    )
 
     # launch SAR masks generation
-    a, SARmasks, c, d = OtbAppBank.getSARstack(S1Data, tile, allTiles, featuresPath)
+    a, SARmasks, c, d = OtbAppBank.getSARstack(
+        S1Data, tile, allTiles, featuresPath
+    )
     flatMasks = list(
         set([CCSARmasks for CSARmasks in SARmasks for CCSARmasks in CSARmasks])
     )
     bmExp = (
         str(len(flatMasks))
         + "-"
-        + "-".join(["im" + str(date + 1) + "b1" for date in range(len(flatMasks))])
+        + "-".join(
+            ["im" + str(date + 1) + "b1" for date in range(len(flatMasks))]
+        )
     )
     nbView = OtbAppBank.CreateBandMathApplication(
         {
@@ -177,7 +187,9 @@ def nbViewUserFeatures(tile, cfg):
 
     nbBands = 0
     for dir_user in os.listdir(userFeatPath):
-        if tile in dir_user and os.path.isdir(os.path.join(userFeatPath, dir_user)):
+        if tile in dir_user and os.path.isdir(
+            os.path.join(userFeatPath, dir_user)
+        ):
             for cpattern in userFeat_patterns:
                 ref_raster = fu.FileSearch_AND(
                     os.path.join(userFeatPath, dir_user),
@@ -188,7 +200,12 @@ def nbViewUserFeatures(tile, cfg):
 
     nbView_out = os.path.join(featuresPath, tile, "nbView.tif")
     nbView = OtbAppBank.CreateBandMathApplication(
-        {"il": ref_raster, "out": nbView_out, "exp": str(nbBands), "pixType": "uint16"}
+        {
+            "il": ref_raster,
+            "out": nbView_out,
+            "exp": str(nbBands),
+            "pixType": "uint16",
+        }
     )
     return nbView
 
@@ -244,7 +261,9 @@ def genNbView(TilePath, maskOut_name, nbview, cfg, workingDirectory=None):
 
     if not os.path.exists(TilePath + "/" + nameNbView):
         tmp2 = maskOut.replace(".shp", "_tmp_2.tif").replace(TilePath, wd)
-        tilesStackDirectory = computeNbView(tile, wd, cfg, tilePixVal, TilePath)
+        tilesStackDirectory = computeNbView(
+            tile, wd, cfg, tilePixVal, TilePath
+        )
         cmd = (
             "otbcli_BandMath -il "
             + tilePixVal
@@ -297,12 +316,17 @@ if __name__ == "__main__":
         dest="tileMaskPath",
         required=True,
     )
-    parser.add_argument("-out", help="output shapeFile", dest="maskOut", required=True)
+    parser.add_argument(
+        "-out", help="output shapeFile", dest="maskOut", required=True
+    )
     parser.add_argument(
         "-nbview", help="nbview threshold", dest="nbview", required=True
     )
     parser.add_argument(
-        "-conf", help="path to the configuration file", dest="pathConf", required=False
+        "-conf",
+        help="path to the configuration file",
+        dest="pathConf",
+        required=False,
     )
     parser.add_argument(
         "--wd",
@@ -316,4 +340,10 @@ if __name__ == "__main__":
     # load configuration file
     cfg = SCF.serviceConfigFile(args.pathConf)
 
-    genNbView(args.tileMaskPath, args.maskOut, args.nbview, cfg, args.workingDirectory)
+    genNbView(
+        args.tileMaskPath,
+        args.maskOut,
+        args.nbview,
+        cfg,
+        args.workingDirectory,
+    )

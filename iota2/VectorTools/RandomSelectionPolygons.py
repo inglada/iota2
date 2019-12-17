@@ -79,7 +79,9 @@ def RandomInSitu(vectorFile, field, nbdraws, opath, name, ratio, pathWd):
     AllTrain = []
     AllValid = []
     for tirage in range(0, nbtirage):
-        listallid, listValid = get_randomPoly(dataSource, field, classes, ratio)
+        listallid, listValid = get_randomPoly(
+            dataSource, field, classes, ratio
+        )
         ch = ""
         listFid = []
         for fid in listallid:
@@ -93,15 +95,22 @@ def RandomInSitu(vectorFile, field, nbdraws, opath, name, ratio, pathWd):
 
         chA = "".join(resultA)
         layer.SetAttributeFilter(chA)
-        learningShape = opath + "/" + name + "_seed" + str(tirage) + "_learn.shp"
+        learningShape = (
+            opath + "/" + name + "_seed" + str(tirage) + "_learn.shp"
+        )
         if pathWd is None:
-            outShapefile = opath + "/" + name + "_seed" + str(tirage) + "_learn.shp"
+            outShapefile = (
+                opath + "/" + name + "_seed" + str(tirage) + "_learn.shp"
+            )
             vf.CreateNewLayer(layer, outShapefile)
         else:
-            outShapefile = pathWd + "/" + name + "_seed" + str(tirage) + "_learn.shp"
+            outShapefile = (
+                pathWd + "/" + name + "_seed" + str(tirage) + "_learn.shp"
+            )
             vf.CreateNewLayer(layer, outShapefile)
             vf.copyShapefile(
-                outShapefile, opath + "/" + name + "_seed" + str(tirage) + "_learn.shp"
+                outShapefile,
+                opath + "/" + name + "_seed" + str(tirage) + "_learn.shp",
             )
 
         for i in allFID:
@@ -121,15 +130,22 @@ def RandomInSitu(vectorFile, field, nbdraws, opath, name, ratio, pathWd):
 
         chV = "".join(resultV)
         layer.SetAttributeFilter(chV)
-        validationShape = opath + "/" + name + "_seed" + str(tirage) + "_val.shp"
+        validationShape = (
+            opath + "/" + name + "_seed" + str(tirage) + "_val.shp"
+        )
         if pathWd is None:
-            outShapefile2 = opath + "/" + name + "_seed" + str(tirage) + "_val.shp"
+            outShapefile2 = (
+                opath + "/" + name + "_seed" + str(tirage) + "_val.shp"
+            )
             vf.CreateNewLayer(layer, outShapefile2)
         else:
-            outShapefile2 = pathWd + "/" + name + "_seed" + str(tirage) + "_val.shp"
+            outShapefile2 = (
+                pathWd + "/" + name + "_seed" + str(tirage) + "_val.shp"
+            )
             vf.CreateNewLayer(layer, outShapefile2)
             vf.copyShapefile(
-                outShapefile2, opath + "/" + name + "_seed" + str(tirage) + "_val.shp"
+                outShapefile2,
+                opath + "/" + name + "_seed" + str(tirage) + "_val.shp",
             )
 
         AllTrain.append(learningShape)
@@ -169,7 +185,10 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "-shape", help="path to a shapeFile (mandatory)", dest="path", required=True
+        "-shape",
+        help="path to a shapeFile (mandatory)",
+        dest="path",
+        required=True,
     )
     parser.add_argument(
         "-field",
@@ -208,5 +227,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     RandomInSituByTile(
-        args.path, args.dataField, args.N, args.pathOut, args.ratio, args.pathWd
+        args.path,
+        args.dataField,
+        args.N,
+        args.pathOut,
+        args.ratio,
+        args.pathWd,
     )

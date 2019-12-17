@@ -56,7 +56,9 @@ class Parametres:
         return retour
 
 
-def plotCorrelation(x, y, xLabel, yLabel, outputPath, forceParameter=Parametres()):
+def plotCorrelation(
+    x, y, xLabel, yLabel, outputPath, forceParameter=Parametres()
+):
 
     # Define the locations for the axes
     left, width = 0.12, 0.50

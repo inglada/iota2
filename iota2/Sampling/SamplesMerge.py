@@ -74,7 +74,13 @@ def get_models(formatting_vector_directory, regionField, runs):
 
 
 def extract_POI(
-    tile_vector, region, seed, region_field, POI, POI_val, force_seed_field=None
+    tile_vector,
+    region,
+    seed,
+    region_field,
+    POI,
+    POI_val,
+    force_seed_field=None,
 ):
     """
     """
@@ -91,7 +97,12 @@ def extract_POI(
         if force_seed_field:
             seed_field = force_seed_field
         cmd = "ogr2ogr -where \"{}='{}' AND {}='{}'\" {} {}".format(
-            region_field, region, seed_field, validation_flag, POI_val, tile_vector
+            region_field,
+            region,
+            seed_field,
+            validation_flag,
+            POI_val,
+            tile_vector,
         )
         run(cmd)
 
@@ -138,8 +149,12 @@ def samples_merge(region_tiles_seed, cfg, workingDirectory):
     vector_region = []
     vector_region_val = []
     for tile in tiles:
-        vector_tile = fut.FileSearch_AND(formatting_vec_dir, True, tile, ".shp")[0]
-        POI_name = "{}_region_{}_seed_{}_samples.shp".format(tile, region, seed)
+        vector_tile = fut.FileSearch_AND(
+            formatting_vec_dir, True, tile, ".shp"
+        )[0]
+        POI_name = "{}_region_{}_seed_{}_samples.shp".format(
+            tile, region, seed
+        )
         POI_learn = os.path.join(wd, POI_name)
         POI_val = None
         # if SAR and Optical post-classification fusion extract validation
@@ -165,7 +180,9 @@ def samples_merge(region_tiles_seed, cfg, workingDirectory):
     merged_POI = fut.mergeVectors(merged_POI_name, wd, vector_region)
 
     for vector_r in vector_region:
-        fut.removeShape(vector_r.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"])
+        fut.removeShape(
+            vector_r.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"]
+        )
 
     if workingDirectory:
         fut.cpShapeFile(

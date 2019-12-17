@@ -47,11 +47,15 @@ class zonalStatistics(IOTA2Step.Step):
         self.rastval = SCF.serviceConfigFile(self.cfg).getParam(
             "Simplification", "validity"
         )
-        self.seed = SCF.serviceConfigFile(self.cfg).getParam("Simplification", "seed")
+        self.seed = SCF.serviceConfigFile(self.cfg).getParam(
+            "Simplification", "seed"
+        )
         self.bingdal = SCF.serviceConfigFile(self.cfg).getParam(
             "Simplification", "bingdal"
         )
-        self.chunk = SCF.serviceConfigFile(self.cfg).getParam("Simplification", "chunk")
+        self.chunk = SCF.serviceConfigFile(self.cfg).getParam(
+            "Simplification", "chunk"
+        )
         self.statslist = SCF.serviceConfigFile(self.cfg).getParam(
             "Simplification", "statslist"
         )
@@ -62,7 +66,9 @@ class zonalStatistics(IOTA2Step.Step):
         if self.rastclass is None:
             if self.seed is not None:
                 self.rastclass = os.path.join(
-                    self.outputPath, "final", "Classif_Seed_{}.tif".format(self.seed)
+                    self.outputPath,
+                    "final",
+                    "Classif_Seed_{}.tif".format(self.seed),
                 )
                 if self.rastconf is None:
                     self.rastconf = os.path.join(
@@ -72,7 +78,9 @@ class zonalStatistics(IOTA2Step.Step):
                     )
             else:
                 if os.path.exists(
-                    os.path.join(self.outputPath, "final", "Classifications_fusion.tif")
+                    os.path.join(
+                        self.outputPath, "final", "Classifications_fusion.tif"
+                    )
                 ):
                     self.rastclass = os.path.join(
                         self.outputPath, "final", "Classifications_fusion.tif"
@@ -83,7 +91,9 @@ class zonalStatistics(IOTA2Step.Step):
                     )
                 # Pas de fusion de confidence ?
         if self.rastval is None:
-            self.rastval = os.path.join(self.outputPath, "final", "PixelsValidity.tif")
+            self.rastval = os.path.join(
+                self.outputPath, "final", "PixelsValidity.tif"
+            )
         if self.rastconf is None:
             self.rastconf = os.path.join(
                 self.outputPath, "final", "Confidence_Seed_0.tif"
@@ -93,7 +103,9 @@ class zonalStatistics(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = "Compute statistics for each polygon of the classification"
+        description = (
+            "Compute statistics for each polygon of the classification"
+        )
         return description
 
     def step_inputs(self):
@@ -104,9 +116,13 @@ class zonalStatistics(IOTA2Step.Step):
         """
         from simplification import ZonalStats as zs
 
-        tmpdir = os.path.join(self.outputPath, "final", "simplification", "tmp")
+        tmpdir = os.path.join(
+            self.outputPath, "final", "simplification", "tmp"
+        )
 
-        return zs.splitVectorFeatures(self.outfilesvectpath, tmpdir, self.chunk)
+        return zs.splitVectorFeatures(
+            self.outfilesvectpath, tmpdir, self.chunk
+        )
 
     def step_execute(self):
         """
@@ -118,7 +134,9 @@ class zonalStatistics(IOTA2Step.Step):
         """
         from simplification import ZonalStats as zs
 
-        tmpdir = os.path.join(self.outputPath, "final", "simplification", "tmp")
+        tmpdir = os.path.join(
+            self.outputPath, "final", "simplification", "tmp"
+        )
         if self.workingDirectory:
             tmpdir = self.workingDirectory
 

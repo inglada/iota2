@@ -19,11 +19,15 @@ import otbApplication as otb
 from Common import FileUtils as fu
 
 
-def extractMatrix(raster, shapeROI, fieldROI, valuesROI, groudTruth, dataField, outcsv):
+def extractMatrix(
+    raster, shapeROI, fieldROI, valuesROI, groudTruth, dataField, outcsv
+):
 
     vecToRaster = otb.Registry.CreateApplication("Rasterization")
     vecToRaster.SetParameterString("im", raster)
-    vecToRaster.SetParameterString("epsg", str(fu.getRasterProjectionEPSG(raster)))
+    vecToRaster.SetParameterString(
+        "epsg", str(fu.getRasterProjectionEPSG(raster))
+    )
     vecToRaster.SetParameterString("mode", "attribute")
     vecToRaster.SetParameterString("in", shapeROI)
     vecToRaster.SetParameterString("mode.attribute.field", fieldROI)
@@ -55,7 +59,9 @@ def extractMatrix(raster, shapeROI, fieldROI, valuesROI, groudTruth, dataField, 
     maskVal.Execute()
 
     confMatrix = otb.Registry.CreateApplication("ComputeConfusionMatrix")
-    confMatrix.SetParameterInputImage("in", maskVal.GetParameterOutputImage("out"))
+    confMatrix.SetParameterInputImage(
+        "in", maskVal.GetParameterOutputImage("out")
+    )
     confMatrix.SetParameterString("ref.vector.in", groudTruth)
     confMatrix.SetParameterString("nodatalabel", "0")
     confMatrix.SetParameterString("ref", "vector")
@@ -116,7 +122,11 @@ if __name__ == "__main__":
         required=True,
     )
     parser.add_argument(
-        "-out", dest="outcsv", help="output csv file", default=None, required=True
+        "-out",
+        dest="outcsv",
+        help="output csv file",
+        default=None,
+        required=True,
     )
     args = parser.parse_args()
 

@@ -40,8 +40,12 @@ def region_tile(sample_sel_dir):
             mode="unique",
             elemType="str",
         )
-        region_name = os.path.splitext(os.path.basename(region_vector))[0].split("_")[2]
-        seed = os.path.splitext(os.path.basename(region_vector))[0].split("_")[4]
+        region_name = os.path.splitext(os.path.basename(region_vector))[
+            0
+        ].split("_")[2]
+        seed = os.path.splitext(os.path.basename(region_vector))[0].split("_")[
+            4
+        ]
         tiles = sorted(tiles)
         for tile in tiles:
             output.append((region_name, seed, tile))
@@ -76,16 +80,28 @@ def samples_stats(region_seed_tile, cfg, workingDirectory=None, logger=logger):
         wd = workingDirectory
 
     raster_mask = fut.FileSearch_AND(
-        tile_region_dir, True, "region_" + region.split("f")[0] + "_", ".tif", tile
+        tile_region_dir,
+        True,
+        "region_" + region.split("f")[0] + "_",
+        ".tif",
+        tile,
     )[0]
     region_vec = fut.FileSearch_AND(
-        samples_selection_dir, True, "_region_" + region, "seed_" + seed, ".shp"
+        samples_selection_dir,
+        True,
+        "_region_" + region,
+        "seed_" + seed,
+        ".shp",
     )[0]
 
     logger.info(
-        "Launch statistics on tile {} in region {} run {}".format(tile, region, seed)
+        "Launch statistics on tile {} in region {} run {}".format(
+            tile, region, seed
+        )
     )
-    region_tile_stats_name = "{}_region_{}_seed_{}_stats.xml".format(tile, region, seed)
+    region_tile_stats_name = "{}_region_{}_seed_{}_stats.xml".format(
+        tile, region, seed
+    )
     region_tile_stats = os.path.join(wd, region_tile_stats_name)
     polygonStats = otb.CreatePolygonClassStatisticsApplication(
         {

@@ -78,7 +78,11 @@ def split_vector_by_region(
     extent = os.path.splitext(vec_name)[-1]
 
     regions = fut.getFieldElement(
-        in_vect, driverName=driver, field=region_field, mode="unique", elemType="str"
+        in_vect,
+        driverName=driver,
+        field=region_field,
+        mode="unique",
+        elemType="str",
     )
 
     table = vec_name.split(".")[0]
@@ -95,7 +99,13 @@ def split_vector_by_region(
         )
         for region in regions:
             out_vec_name_learn = "_".join(
-                [tile, "region", region, "seed" + str(seed), "Samples_learn_tmp"]
+                [
+                    tile,
+                    "region",
+                    region,
+                    "seed" + str(seed),
+                    "Samples_learn_tmp",
+                ]
             )
             if mode != "usually":
                 out_vec_name_learn = "_".join(
@@ -109,7 +119,9 @@ def split_vector_by_region(
                         "learn_tmp",
                     ]
                 )
-            output_vec_learn = os.path.join(output_dir, out_vec_name_learn + extent)
+            output_vec_learn = os.path.join(
+                output_dir, out_vec_name_learn + extent
+            )
             seed_clause_learn = "seed_{}='{}'".format(seed, learn_flag)
             region_clause = "{}='{}'".format(region_field, region)
 
@@ -129,7 +141,9 @@ def split_vector_by_region(
             run(cmd)
 
             # drop useless column
-            sql_clause = "select GEOMETRY,{} from {}".format(fields_to_keep, tableName)
+            sql_clause = "select GEOMETRY,{} from {}".format(
+                fields_to_keep, tableName
+            )
             output_vec_learn_out = output_vec_learn.replace("_tmp", "")
 
             cmd = "ogr2ogr -s_srs {} -t_srs {} -dialect 'SQLite' -f 'SQLite' -nln {} -sql '{}' {} {}".format(
@@ -185,7 +199,9 @@ def create_tile_region_masks(
         all_regions.append(r)
     region = None
     for region in all_regions:
-        output_name = "{}_region_{}_{}.shp".format(origin_name, region, tile_name)
+        output_name = "{}_region_{}_{}.shp".format(
+            origin_name, region, tile_name
+        )
         output_path = os.path.join(outputDirectory, output_name)
         db_name = (os.path.splitext(os.path.basename(tileRegion))[0]).lower()
         cmd = "ogr2ogr -f 'ESRI Shapefile' -sql \"SELECT * FROM {} WHERE {}='{}'\" {} {}".format(
@@ -284,13 +300,19 @@ def splitbySets(
     learn_flag = "learn"
     tileOrigin_field_name = "tile_o"
 
-    vector_layer_name = (os.path.splitext(os.path.split(vector)[-1])[0]).lower()
+    vector_layer_name = (
+        os.path.splitext(os.path.split(vector)[-1])[0]
+    ).lower()
 
     # predict fields to keep
     fields_to_rm = ["seed_" + str(seed) for seed in range(seeds)]
     fields_to_rm.append(tileOrigin_field_name)
     all_fields = fut.getAllFieldsInShape(vector)
-    fields = [field_name for field_name in all_fields if field_name not in fields_to_rm]
+    fields = [
+        field_name
+        for field_name in all_fields
+        if field_name not in fields_to_rm
+    ]
 
     # start split
     for seed in range(seeds):
@@ -300,7 +322,9 @@ def splitbySets(
         sql_cmd_valid = "select * FROM {} WHERE {}".format(
             vector_layer_name, valid_clause
         )
-        output_vec_valid_name = "_".join([tile_name, "seed_" + str(seed), "val"])
+        output_vec_valid_name = "_".join(
+            [tile_name, "seed_" + str(seed), "val"]
+        )
         output_vec_valid_name_tmp = "_".join(
             [tile_name, "seed_" + str(seed), "val", "tmp"]
         )
@@ -322,7 +346,9 @@ def splitbySets(
         sql_cmd_learn = "select * FROM {} WHERE {}".format(
             vector_layer_name, learn_clause
         )
-        output_vec_learn_name = "_".join([tile_name, "seed_" + str(seed), "learn"])
+        output_vec_learn_name = "_".join(
+            [tile_name, "seed_" + str(seed), "learn"]
+        )
         output_vec_learn_name_tmp = "_".join(
             [tile_name, "seed_" + str(seed), "learn", "tmp"]
         )
@@ -409,14 +435,20 @@ def BuiltWhereSQL_exp(sample_id_to_extract, clause):
         nbSplit=int(math.ceil(float(len(sample_id_to_extract)) / SQL_LIMIT)),
     )
     list_fid = [
-        "fid {} ({})".format(clause, ",".join(chunk)) for chunk in sample_id_to_extract
+        "fid {} ({})".format(clause, ",".join(chunk))
+        for chunk in sample_id_to_extract
     ]
     sql_exp = " OR ".join(list_fid)
     return sql_exp
 
 
 def extract_maj_vote_samples(
-    vec_in, vec_out, ratio_to_keep, dataField, regionField, driver_name="ESRI Shapefile"
+    vec_in,
+    vec_out,
+    ratio_to_keep,
+    dataField,
+    regionField,
+    driver_name="ESRI Shapefile",
 ):
     """
     dedicated to extract samples by class according to a ratio.
@@ -445,10 +477,18 @@ def extract_maj_vote_samples(
     import sqlite3 as lite
 
     class_avail = fut.getFieldElement(
-        vec_in, driverName=driver_name, field=dataField, mode="unique", elemType="int"
+        vec_in,
+        driverName=driver_name,
+        field=dataField,
+        mode="unique",
+        elemType="int",
     )
     region_avail = fut.getFieldElement(
-        vec_in, driverName=driver_name, field=regionField, mode="unique", elemType="str"
+        vec_in,
+        driverName=driver_name,
+        field=regionField,
+        mode="unique",
+        elemType="str",
     )
 
     driver = ogr.GetDriverByName(driver_name)
@@ -468,16 +508,24 @@ def extract_maj_vote_samples(
 
     # remove in vec_in targeted FID
     vec_in_rm = vec_in.replace(".shp", "_tmp.shp")
-    fid_samples_notIn = BuiltWhereSQL_exp(sample_id_to_extract, clause="not in")
-    cmd = "ogr2ogr -where '{}' {} {}".format(fid_samples_notIn, vec_in_rm, vec_in)
+    fid_samples_notIn = BuiltWhereSQL_exp(
+        sample_id_to_extract, clause="not in"
+    )
+    cmd = "ogr2ogr -where '{}' {} {}".format(
+        fid_samples_notIn, vec_in_rm, vec_in
+    )
     run(cmd)
 
-    fut.removeShape(vec_in.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"])
+    fut.removeShape(
+        vec_in.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"]
+    )
 
     cmd = "ogr2ogr {} {}".format(vec_in, vec_in_rm)
     run(cmd)
 
-    fut.removeShape(vec_in_rm.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"])
+    fut.removeShape(
+        vec_in_rm.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"]
+    )
 
 
 def VectorFormatting(cfg, tile_name, workingDirectory=None, logger=logger):
@@ -515,9 +563,13 @@ def VectorFormatting(cfg, tile_name, workingDirectory=None, logger=logger):
     dataField = (cfg.getParam("chain", "dataField")).lower()
 
     cloud_threshold = cfg.getParam("chain", "cloud_threshold")
-    features_directory = os.path.join(cfg.getParam("chain", "outputPath"), "features")
+    features_directory = os.path.join(
+        cfg.getParam("chain", "outputPath"), "features"
+    )
     cloud_vec = os.path.join(
-        features_directory, tile_name, "CloudThreshold_" + str(cloud_threshold) + ".shp"
+        features_directory,
+        tile_name,
+        "CloudThreshold_" + str(cloud_threshold) + ".shp",
     )
     tileEnv_vec = os.path.join(
         cfg.getParam("chain", "outputPath"), "envelope", tile_name + ".shp"
@@ -531,22 +583,32 @@ def VectorFormatting(cfg, tile_name, workingDirectory=None, logger=logger):
     )
     seeds = cfg.getParam("chain", "runs")
     epsg = int((cfg.getParam("GlobChain", "proj")).split(":")[-1])
-    split_directory = os.path.join(cfg.getParam("chain", "outputPath"), "dataAppVal")
+    split_directory = os.path.join(
+        cfg.getParam("chain", "outputPath"), "dataAppVal"
+    )
     formatting_directory = os.path.join(
         cfg.getParam("chain", "outputPath"), "formattingVectors"
     )
-    final_directory = os.path.join(cfg.getParam("chain", "outputPath"), "final")
+    final_directory = os.path.join(
+        cfg.getParam("chain", "outputPath"), "final"
+    )
     region_vec = cfg.getParam("chain", "regionPath")
     regionField = (cfg.getParam("chain", "regionField")).lower()
     if not region_vec:
-        region_vec = os.path.join(cfg.getParam("chain", "outputPath"), "MyRegion.shp")
+        region_vec = os.path.join(
+            cfg.getParam("chain", "outputPath"), "MyRegion.shp"
+        )
 
-    merge_final_classifications = cfg.getParam("chain", "merge_final_classifications")
+    merge_final_classifications = cfg.getParam(
+        "chain", "merge_final_classifications"
+    )
     if merge_final_classifications:
         merge_final_classifications_ratio = cfg.getParam(
             "chain", "merge_final_classifications_ratio"
         )
-        wd_maj_vote = os.path.join(final_directory, "merge_final_classifications")
+        wd_maj_vote = os.path.join(
+            final_directory, "merge_final_classifications"
+        )
         if workingDirectory:
             wd_maj_vote = workingDirectory
 
@@ -611,7 +673,9 @@ def VectorFormatting(cfg, tile_name, workingDirectory=None, logger=logger):
         img_ref,
     )
 
-    logger.info("launch intersection between tile's envelopeRegion and groundTruth")
+    logger.info(
+        "launch intersection between tile's envelopeRegion and groundTruth"
+    )
     tileRegionGroundTruth = os.path.join(
         wd, "tileRegionGroundTruth_" + tile_name + ".sqlite"
     )
@@ -657,7 +721,9 @@ def VectorFormatting(cfg, tile_name, workingDirectory=None, logger=logger):
 
     if merge_final_classifications and fusionMergeAllValidation is False:
         maj_vote_sample_tile_name = "{}_majvote.sqlite".format(tile_name)
-        maj_vote_sample_tile = os.path.join(wd_maj_vote, maj_vote_sample_tile_name)
+        maj_vote_sample_tile = os.path.join(
+            wd_maj_vote, maj_vote_sample_tile_name
+        )
         if enableCrossValidation is False:
             extract_maj_vote_samples(
                 output,
@@ -668,7 +734,9 @@ def VectorFormatting(cfg, tile_name, workingDirectory=None, logger=logger):
                 driver_name="ESRI Shapefile",
             )
 
-    logger.info("split {} in {} subsets with the ratio {}".format(output, seeds, ratio))
+    logger.info(
+        "split {} in {} subsets with the ratio {}".format(output, seeds, ratio)
+    )
     subset.splitInSubSets(
         output,
         dataField,
@@ -681,7 +749,9 @@ def VectorFormatting(cfg, tile_name, workingDirectory=None, logger=logger):
         random_seed=random_seed,
     )
 
-    addField(output, tile_field, tile_name, valueType=str, driver_name=output_driver)
+    addField(
+        output, tile_field, tile_name, valueType=str, driver_name=output_driver
+    )
 
     split_dir = split_directory
     if workingDirectory:
@@ -702,14 +772,18 @@ def VectorFormatting(cfg, tile_name, workingDirectory=None, logger=logger):
         if output_driver == "SQLite":
             shutil.copy(
                 output,
-                os.path.join(cfg.getParam("chain", "outputPath"), "formattingVectors"),
+                os.path.join(
+                    cfg.getParam("chain", "outputPath"), "formattingVectors"
+                ),
             )
             os.remove(output)
 
         elif output_driver == "ESRI Shapefile":
             fut.cpShapeFile(
                 output.replace(".shp", ""),
-                os.path.join(cfg.getParam("chain", "outputPath"), "formattingVectors"),
+                os.path.join(
+                    cfg.getParam("chain", "outputPath"), "formattingVectors"
+                ),
                 [".prj", ".shp", ".dbf", ".shx"],
                 True,
             )
@@ -720,7 +794,9 @@ def VectorFormatting(cfg, tile_name, workingDirectory=None, logger=logger):
         for currentSplit in output_splits:
             shutil.copy(
                 currentSplit,
-                os.path.join(cfg.getParam("chain", "outputPath"), "dataAppVal"),
+                os.path.join(
+                    cfg.getParam("chain", "outputPath"), "dataAppVal"
+                ),
             )
             os.remove(currentSplit)
 
@@ -743,7 +819,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=func_description)
 
     parser.add_argument(
-        "-config", dest="config", help="path to a configuration path", required=False
+        "-config",
+        dest="config",
+        help="path to a configuration path",
+        required=False,
     )
 
     parser.add_argument(

@@ -67,7 +67,9 @@ class Sentinel_2(Sensor):
             "Sentinel_2", "write_reproject_resampled_input_dates_stack"
         )
         self.features_dir = os.path.join(
-            self.cfg_IOTA2.getParam("chain", "outputPath"), "features", tile_name
+            self.cfg_IOTA2.getParam("chain", "outputPath"),
+            "features",
+            tile_name,
         )
         extract_bands = self.cfg_IOTA2.getParam("Sentinel_2", "keepBands")
         extract_bands_flag = self.cfg_IOTA2.getParam(
@@ -117,15 +119,20 @@ class Sentinel_2(Sensor):
             # check_mandatory bands() return True/False
             self.extracted_bands = [
                 (band_name, band_position + 1)
-                for band_position, band_name in enumerate(self.stack_band_position)
-                if band_name in self.cfg_IOTA2.getParam("Sentinel_2", "keepBands")
+                for band_position, band_name in enumerate(
+                    self.stack_band_position
+                )
+                if band_name
+                in self.cfg_IOTA2.getParam("Sentinel_2", "keepBands")
             ]
 
         # output's names
         self.footprint_name = "{}_{}_footprint.tif".format(
             self.__class__.name, tile_name
         )
-        ref_image_name = "{}_{}_reference.tif".format(self.__class__.name, tile_name)
+        ref_image_name = "{}_{}_reference.tif".format(
+            self.__class__.name, tile_name
+        )
         self.ref_image = os.path.join(
             self.cfg_IOTA2.getParam("chain", "outputPath"),
             "features",
@@ -133,7 +140,9 @@ class Sentinel_2(Sensor):
             "tmp",
             ref_image_name,
         )
-        self.time_series_name = "{}_{}_TS.tif".format(self.__class__.name, tile_name)
+        self.time_series_name = "{}_{}_TS.tif".format(
+            self.__class__.name, tile_name
+        )
         self.time_series_masks_name = "{}_{}_MASKS.tif".format(
             self.__class__.name, tile_name
         )
@@ -144,7 +153,9 @@ class Sentinel_2(Sensor):
             self.__class__.name, tile_name
         )
         # about gapFilling interpolations
-        self.temporal_res = self.cfg_IOTA2.getParam("Sentinel_2", "temporalResolution")
+        self.temporal_res = self.cfg_IOTA2.getParam(
+            "Sentinel_2", "temporalResolution"
+        )
         self.input_dates = "{}_{}_input_dates.txt".format(
             self.__class__.name, tile_name
         )
@@ -169,7 +180,10 @@ class Sentinel_2(Sensor):
         from Common.FileUtils import FileSearch_AND
 
         pattern = "{}.tif".format(self.suffix)
-        if not "none" in self.cfg_IOTA2.getParam("coregistration", "VHRPath").lower():
+        if (
+            not "none"
+            in self.cfg_IOTA2.getParam("coregistration", "VHRPath").lower()
+        ):
             pattern = "{}_COREG.tif".format(self.suffix)
 
         stacks = sorted(
@@ -189,7 +203,10 @@ class Sentinel_2(Sensor):
         from Common.FileUtils import FileSearch_AND
 
         pattern = "{}.tif".format(self.masks_date_suffix)
-        if not "none" in self.cfg_IOTA2.getParam("coregistration", "VHRPath").lower():
+        if (
+            not "none"
+            in self.cfg_IOTA2.getParam("coregistration", "VHRPath").lower()
+        ):
             pattern = "{}_COREG.tif".format(self.suffix)
         masks = sorted(
             FileSearch_AND(
@@ -206,7 +223,9 @@ class Sentinel_2(Sensor):
         """
         from Common.FileUtils import FileSearch_AND
 
-        _, b2_name = os.path.split(FileSearch_AND(date_dir, True, "FRE_B2.tif")[0])
+        _, b2_name = os.path.split(
+            FileSearch_AND(date_dir, True, "FRE_B2.tif")[0]
+        )
         return b2_name.replace(
             "{}_B2.tif".format(self.data_type),
             "{}_{}.tif".format(self.data_type, self.suffix),
@@ -257,7 +276,9 @@ class Sentinel_2(Sensor):
         # tile reference image generation
         base_ref = date_bands[0]
         logger.info(
-            "reference image generation {} from {}".format(self.ref_image, base_ref)
+            "reference image generation {} from {}".format(
+                self.ref_image, base_ref
+            )
         )
         ensure_dir(os.path.dirname(self.ref_image), raise_exe=False)
         base_ref_projection = getRasterProjectionEPSG(base_ref)
@@ -329,7 +350,8 @@ class Sentinel_2(Sensor):
             date_mask.append(
                 glob.glob(
                     os.path.join(
-                        date_dir, "{}{}".format(self.struct_path_masks, mask_name)
+                        date_dir,
+                        "{}{}".format(self.struct_path_masks, mask_name),
                     )
                 )[0]
             )
@@ -355,9 +377,13 @@ class Sentinel_2(Sensor):
             out_mask_processing = os.path.join(working_dir, mask_name)
 
         # build binary mask
-        expr = "+".join(["im{}b1".format(cpt + 1) for cpt in range(len(date_mask))])
+        expr = "+".join(
+            ["im{}b1".format(cpt + 1) for cpt in range(len(date_mask))]
+        )
         expr = "({})==0?0:1".format(expr)
-        binary_mask_rule = CreateBandMathApplication({"il": date_mask, "exp": expr})
+        binary_mask_rule = CreateBandMathApplication(
+            {"il": date_mask, "exp": expr}
+        )
         binary_mask_rule.Execute()
         # reproject using reference image
         superimp, _ = CreateSuperimposeApplication(
@@ -418,7 +444,10 @@ class Sentinel_2(Sensor):
             # manage date dupplicate
             if current_date in preprocessed_dates:
                 current_date = "{}.1".format(current_date)
-            preprocessed_dates[current_date] = {"data": data_prepro, "mask": data_mask}
+            preprocessed_dates[current_date] = {
+                "data": data_prepro,
+                "mask": data_mask,
+            }
         return preprocessed_dates
 
     def footprint(self, ram=128):
@@ -453,14 +482,19 @@ class Sentinel_2(Sensor):
                 )[0]
             )
 
-        expr = " || ".join("1 - im{}b1".format(i + 1) for i in range(len(date_edge)))
+        expr = " || ".join(
+            "1 - im{}b1".format(i + 1) for i in range(len(date_edge))
+        )
         s2_border = CreateBandMathApplication(
             {"il": date_edge, "exp": expr, "ram": str(ram)}
         )
         s2_border.Execute()
 
         reference_raster = self.ref_image
-        if not "none" in self.cfg_IOTA2.getParam("coregistration", "VHRPath").lower():
+        if (
+            not "none"
+            in self.cfg_IOTA2.getParam("coregistration", "VHRPath").lower()
+        ):
             reference_raster = self.get_available_dates()[0]
 
         # superimpose footprint
@@ -489,14 +523,18 @@ class Sentinel_2(Sensor):
 
         interp_date_dir = os.path.join(self.features_dir, "tmp")
         ensure_dir(interp_date_dir, raise_exe=False)
-        interp_date_file = os.path.join(interp_date_dir, self.interpolated_dates)
+        interp_date_file = os.path.join(
+            interp_date_dir, self.interpolated_dates
+        )
         # get dates in the whole S2 data-set
         date_interp_min, date_interp_max = getDateS2(
             self.s2_data, self.all_tiles.split(" ")
         )
         # force dates
         if not self.cfg_IOTA2.getParam("GlobChain", "autoDate"):
-            date_interp_min = self.cfg_IOTA2.getParam("Sentinel_2", "startDate")
+            date_interp_min = self.cfg_IOTA2.getParam(
+                "Sentinel_2", "startDate"
+            )
             date_interp_max = self.cfg_IOTA2.getParam("Sentinel_2", "endDate")
 
         dates = [
@@ -560,7 +598,9 @@ class Sentinel_2(Sensor):
 
         time_series_dir = os.path.join(self.features_dir, "tmp")
         ensure_dir(time_series_dir, raise_exe=False)
-        times_series_raster = os.path.join(time_series_dir, self.time_series_name)
+        times_series_raster = os.path.join(
+            time_series_dir, self.time_series_name
+        )
 
         dates_time_series = CreateConcatenateImagesApplication(
             {
@@ -582,7 +622,10 @@ class Sentinel_2(Sensor):
         # if not all bands must be used
         if self.extracted_bands:
             app_dep.append(dates_time_series)
-            (dates_time_series, features_labels) = self.extract_bands_time_series(
+            (
+                dates_time_series,
+                features_labels,
+            ) = self.extract_bands_time_series(
                 dates_time_series,
                 dates_in,
                 len(self.stack_band_position),
@@ -606,14 +649,18 @@ class Sentinel_2(Sensor):
         channels_interest = []
         for date_number in range(nb_dates):
             for band_name, band_position in extract_bands:
-                channels_interest.append(band_position + int(date_number * comp))
+                channels_interest.append(
+                    band_position + int(date_number * comp)
+                )
 
         features_labels = [
             "{}_{}_{}".format(self.__class__.name, band_name, date)
             for date in dates_in
             for band_name, band_pos in extract_bands
         ]
-        channels_list = ["Channel{}".format(channel) for channel in channels_interest]
+        channels_list = [
+            "Channel{}".format(channel) for channel in channels_interest
+        ]
         time_series_out = dates_time_series.GetParameterString("out")
         dates_time_series.Execute()
         extract = CreateExtractROIApplication(
@@ -659,7 +706,9 @@ class Sentinel_2(Sensor):
 
         time_series_dir = os.path.join(self.features_dir, "tmp")
         ensure_dir(time_series_dir, raise_exe=False)
-        times_series_mask = os.path.join(time_series_dir, self.time_series_masks_name)
+        times_series_mask = os.path.join(
+            time_series_dir, self.time_series_masks_name
+        )
         dates_time_series_mask = CreateConcatenateImagesApplication(
             {
                 "il": dates_masks,
@@ -673,7 +722,9 @@ class Sentinel_2(Sensor):
     def get_time_series_gapFilling(self, ram=128):
         """
         """
-        from Common.OtbAppBank import CreateImageTimeSeriesGapFillingApplication
+        from Common.OtbAppBank import (
+            CreateImageTimeSeriesGapFillingApplication,
+        )
         from Common.OtbAppBank import getInputParameterOutput
         from Common.FileUtils import ensure_dir
 
@@ -695,7 +746,9 @@ class Sentinel_2(Sensor):
             time_series_raster = time_series.GetParameterValue(
                 getInputParameterOutput(time_series)
             )
-            masks_raster = masks.GetParameterValue(getInputParameterOutput(masks))
+            masks_raster = masks.GetParameterValue(
+                getInputParameterOutput(masks)
+            )
             if not os.path.exists(masks_raster):
                 p = mp.Process(target=executeApp, args=[masks])
                 p.start()
@@ -751,7 +804,9 @@ class Sentinel_2(Sensor):
 
         for feature in self.features_names_list:
             for date in dates:
-                out_labels.append("{}_{}_{}".format(self.__class__.name, feature, date))
+                out_labels.append(
+                    "{}_{}_{}".format(self.__class__.name, feature, date)
+                )
         return out_labels
 
     def get_features(self, ram=128, logger=logger):
@@ -768,7 +823,9 @@ class Sentinel_2(Sensor):
         features_out = os.path.join(features_dir, self.features_names)
 
         features = self.cfg_IOTA2.getParam("GlobChain", "features")
-        enable_gapFilling = self.cfg_IOTA2.getParam("GlobChain", "useGapFilling")
+        enable_gapFilling = self.cfg_IOTA2.getParam(
+            "GlobChain", "useGapFilling"
+        )
         hand_features_flag = self.cfg_IOTA2.getParam(
             "GlobChain", "useAdditionalFeatures"
         )
@@ -781,7 +838,10 @@ class Sentinel_2(Sensor):
         _, dates_enabled = self.write_interpolation_dates_file()
 
         if not enable_gapFilling:
-            (in_stack, in_stack_dep), in_stack_features_labels = self.get_time_series()
+            (
+                in_stack,
+                in_stack_dep,
+            ), in_stack_features_labels = self.get_time_series()
             _, dates_enabled = self.write_dates_file()
 
         if self.cfg_IOTA2.getParam("GlobChain", "writeOutputs") is False:
@@ -800,7 +860,9 @@ class Sentinel_2(Sensor):
         # output
         app_dep = []
         if hand_features_flag:
-            hand_features = self.cfg_IOTA2.getParam("Sentinel_2", "additionalFeatures")
+            hand_features = self.cfg_IOTA2.getParam(
+                "Sentinel_2", "additionalFeatures"
+            )
             comp = (
                 len(self.stack_band_position)
                 if not self.extracted_bands
@@ -815,14 +877,22 @@ class Sentinel_2(Sensor):
         if features:
             bands_avail = self.stack_band_position
             if self.extracted_bands:
-                bands_avail = [band_name for band_name, _ in self.extracted_bands]
+                bands_avail = [
+                    band_name for band_name, _ in self.extracted_bands
+                ]
                 # check mandatory bands
                 if not "B4" in bands_avail:
-                    raise Exception("red band (B4) is needed to compute features")
+                    raise Exception(
+                        "red band (B4) is needed to compute features"
+                    )
                 if not "B8" in bands_avail:
-                    raise Exception("nir band (B8) is needed to compute features")
+                    raise Exception(
+                        "nir band (B8) is needed to compute features"
+                    )
                 if not "B11" in bands_avail:
-                    raise Exception("swir band (B11) is needed to compute features")
+                    raise Exception(
+                        "swir band (B11) is needed to compute features"
+                    )
             feat_parameters = {
                 "in": in_stack,
                 "out": features_out,
@@ -833,7 +903,9 @@ class Sentinel_2(Sensor):
                 "copyinput": self.cfg_IOTA2.getParam(
                     "iota2FeatureExtraction", "copyinput"
                 ),
-                "relrefl": self.cfg_IOTA2.getParam("iota2FeatureExtraction", "relrefl"),
+                "relrefl": self.cfg_IOTA2.getParam(
+                    "iota2FeatureExtraction", "relrefl"
+                ),
                 "keepduplicates": self.cfg_IOTA2.getParam(
                     "iota2FeatureExtraction", "keepduplicates"
                 ),
@@ -843,17 +915,26 @@ class Sentinel_2(Sensor):
                 "pixType": "int16",
                 "ram": str(ram),
             }
-            copyinput = self.cfg_IOTA2.getParam("iota2FeatureExtraction", "copyinput")
-            rel_refl = self.cfg_IOTA2.getParam("iota2FeatureExtraction", "relrefl")
+            copyinput = self.cfg_IOTA2.getParam(
+                "iota2FeatureExtraction", "copyinput"
+            )
+            rel_refl = self.cfg_IOTA2.getParam(
+                "iota2FeatureExtraction", "relrefl"
+            )
             keep_dupl = self.cfg_IOTA2.getParam(
                 "iota2FeatureExtraction", "keepduplicates"
             )
 
-            features_app = CreateIota2FeatureExtractionApplication(feat_parameters)
+            features_app = CreateIota2FeatureExtractionApplication(
+                feat_parameters
+            )
             if copyinput is False:
                 in_stack_features_labels = []
-            features_labels = in_stack_features_labels + self.get_features_labels(
-                dates_enabled, rel_refl, keep_dupl, copyinput
+            features_labels = (
+                in_stack_features_labels
+                + self.get_features_labels(
+                    dates_enabled, rel_refl, keep_dupl, copyinput
+                )
             )
         else:
             features_app = in_stack

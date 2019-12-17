@@ -149,7 +149,11 @@ if __name__ == "__main__":
             required=True,
         )
         parser.add_argument(
-            "-r", dest="raster", action="store", help="Input raster file", default=None
+            "-r",
+            dest="raster",
+            action="store",
+            help="Input raster file",
+            default=None,
         )
         parser.add_argument(
             "-c",
@@ -169,7 +173,9 @@ if __name__ == "__main__":
         args = parser.parse_args()
 
         if args.raster is not None:
-            nbtiles = grid_generate(args.outname, args.xysize, args.epsg, args.raster)
+            nbtiles = grid_generate(
+                args.outname, args.xysize, args.epsg, args.raster
+            )
         elif args.coords is not None:
             nbtiles = grid_generate(
                 args.outname, args.xysize, args.epsg, None, args.coords

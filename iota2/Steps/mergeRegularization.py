@@ -52,7 +52,9 @@ class mergeRegularization(IOTA2Step.Step):
         self.water = water
         self.umc = umc
         self.output = output
-        self.tmpdir = os.path.join(self.outputPath, "final", "simplification", "tmp")
+        self.tmpdir = os.path.join(
+            self.outputPath, "final", "simplification", "tmp"
+        )
 
     def step_description(self):
         """
@@ -86,7 +88,9 @@ class mergeRegularization(IOTA2Step.Step):
 
         tmpdir = self.workingDirectory
         if tmpdir is None:
-            tmpdir = os.path.join(self.outputPath, "final", "simplification", "tmp")
+            tmpdir = os.path.join(
+                self.outputPath, "final", "simplification", "tmp"
+            )
 
         if not self.output:
             output = os.path.join(tmpdir, "regul1.tif")
@@ -94,7 +98,13 @@ class mergeRegularization(IOTA2Step.Step):
             output = self.output
 
         step_function = lambda x: mr.mergeRegularization(
-            tmpdir, x, self.umc, output, str(self.RAM), self.resample, self.water
+            tmpdir,
+            x,
+            self.umc,
+            output,
+            str(self.RAM),
+            self.resample,
+            self.water,
         )
 
         return step_function
@@ -109,7 +119,9 @@ class mergeRegularization(IOTA2Step.Step):
         """
         from Common import FileUtils as fut
 
-        for filetoremove in fut.FileSearch_AND(self.tmpdir, True, "mask", ".tif"):
+        for filetoremove in fut.FileSearch_AND(
+            self.tmpdir, True, "mask", ".tif"
+        ):
             os.remove(filetoremove)
 
         if os.path.exists(

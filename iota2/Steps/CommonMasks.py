@@ -24,7 +24,9 @@ class CommonMasks(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "get_common_mask"
-        super(CommonMasks, self).__init__(cfg, cfg_resources_file, resources_block_name)
+        super(CommonMasks, self).__init__(
+            cfg, cfg_resources_file, resources_block_name
+        )
 
         # step variables
         self.workingDirectory = workingDirectory
@@ -45,7 +47,11 @@ class CommonMasks(IOTA2Step.Step):
         """
         from Common import ServiceConfigFile as SCF
 
-        tiles = SCF.serviceConfigFile(self.cfg).getParam("chain", "listTile").split(" ")
+        tiles = (
+            SCF.serviceConfigFile(self.cfg)
+            .getParam("chain", "listTile")
+            .split(" ")
+        )
         return tiles
 
     def step_execute(self):

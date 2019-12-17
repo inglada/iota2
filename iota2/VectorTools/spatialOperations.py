@@ -130,16 +130,20 @@ def intersectSqlites(
 
     cursor.execute("drop table tmpt1")
     cursor.execute("drop table tmpt2")
-    cursor.execute("create table t1 (fid integer not null primary key autoincrement);")
+    cursor.execute(
+        "create table t1 (fid integer not null primary key autoincrement);"
+    )
     point1 = point2 = False
 
     if t1type in (3, 6, 1003, 1006, "POLYGON", "MULTIPOLYGON"):
         cursor.execute(
-            'select AddGeometryColumn("t1", "geometry", %s, "MULTIPOLYGON", 2)' % (epsg)
+            'select AddGeometryColumn("t1", "geometry", %s, "MULTIPOLYGON", 2)'
+            % (epsg)
         )
     elif t1type in (1, 4, 1001, 1004, "POINT", "MULTIPOINT"):
         cursor.execute(
-            'select AddGeometryColumn("t1", "geometry", %s, "MULTIPOINT", 2)' % (epsg)
+            'select AddGeometryColumn("t1", "geometry", %s, "MULTIPOINT", 2)'
+            % (epsg)
         )
 
         point1 = True
@@ -149,19 +153,25 @@ def intersectSqlites(
     listnamefieldst1 = []
     for field in listfieldst1:
         try:
-            cursor.execute("ALTER TABLE t1 ADD COLUMN %s %s;" % (field[0], field[1]))
+            cursor.execute(
+                "ALTER TABLE t1 ADD COLUMN %s %s;" % (field[0], field[1])
+            )
             listnamefieldst1.append(field[0])
         except BaseException:
             print("Column '%s' already exists, not added" % (field[0]))
             continue
-    cursor.execute("create table t2 (fid integer not null primary key autoincrement);")
+    cursor.execute(
+        "create table t2 (fid integer not null primary key autoincrement);"
+    )
     if t2type in (3, 6, 1003, 1006):
         cursor.execute(
-            'select AddGeometryColumn("t2", "geometry", %s, "MULTIPOLYGON", 2)' % (epsg)
+            'select AddGeometryColumn("t2", "geometry", %s, "MULTIPOLYGON", 2)'
+            % (epsg)
         )
     elif t2type in (1, 4, 1001, 1004):
         cursor.execute(
-            'select AddGeometryColumn("t2", "geometry", %s, "MULTIPOINT", 2)' % (epsg)
+            'select AddGeometryColumn("t2", "geometry", %s, "MULTIPOINT", 2)'
+            % (epsg)
         )
         point2 = True
     else:
@@ -170,7 +180,9 @@ def intersectSqlites(
     listnamefieldst2 = []
     for field in listfieldst2:
         try:
-            cursor.execute("ALTER TABLE t2 ADD COLUMN %s %s;" % (field[0], field[1]))
+            cursor.execute(
+                "ALTER TABLE t2 ADD COLUMN %s %s;" % (field[0], field[1])
+            )
             listnamefieldst2.append(field[0])
         except BaseException:
             print("Column '%s' already exists, not added" % (field[0]))
@@ -383,10 +395,18 @@ if __name__ == "__main__":
             required=True,
         )
         parser.add_argument(
-            "-tmp", dest="tmp", action="store", help="tmp folder", required=True
+            "-tmp",
+            dest="tmp",
+            action="store",
+            help="tmp folder",
+            required=True,
         )
         parser.add_argument(
-            "-output", dest="output", action="store", help="output path", required=True
+            "-output",
+            dest="output",
+            action="store",
+            help="output path",
+            required=True,
         )
         parser.add_argument(
             "-format",

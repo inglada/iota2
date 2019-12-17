@@ -87,7 +87,9 @@ class iota_testS2STSensor(unittest.TestCase):
             result = self.defaultTestResult()
             self._feedErrorsToResult(result, self._outcome.errors)
         else:
-            result = getattr(self, "_outcomeForDoCleanups", self._resultForDoCleanups)
+            result = getattr(
+                self, "_outcomeForDoCleanups", self._resultForDoCleanups
+            )
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
         ok = not error and not failure
@@ -123,9 +125,9 @@ class iota_testS2STSensor(unittest.TestCase):
         )
 
         products = []
-        for Product_Organisation_nodes in general_info_node[0].getElementsByTagName(
-            "Product_Organisation"
-        ):
+        for Product_Organisation_nodes in general_info_node[
+            0
+        ].getElementsByTagName("Product_Organisation"):
             img_list_nodes = Product_Organisation_nodes.getElementsByTagName(
                 "IMAGE_FILE"
             )
@@ -145,8 +147,12 @@ class iota_testS2STSensor(unittest.TestCase):
         """
         from TestsUtils import arrayToRaster
 
-        fake_raster = [np.array([[10, 55, 61], [100, 56, 42], [1, 42, 29]][::-1])]
-        fake_scene_classification = [np.array([[2, 0, 4], [0, 4, 2], [1, 1, 10]][::-1])]
+        fake_raster = [
+            np.array([[10, 55, 61], [100, 56, 42], [1, 42, 29]][::-1])
+        ]
+        fake_scene_classification = [
+            np.array([[2, 0, 4], [0, 4, 2], [1, 1, 10]][::-1])
+        ]
         for mtd in MTD_files:
             prod_list = self.generate_data_tree(
                 os.path.join(self.test_working_directory, "T31TCJ"), mtd
@@ -191,7 +197,9 @@ class iota_testS2STSensor(unittest.TestCase):
         self.generate_data(self.MTD_files)
 
         # config file
-        config_path_test = os.path.join(self.test_working_directory, "Config_TEST.cfg")
+        config_path_test = os.path.join(
+            self.test_working_directory, "Config_TEST.cfg"
+        )
         shutil.copy(self.config_test, config_path_test)
 
         S2ST_data = self.test_working_directory
@@ -227,11 +235,17 @@ class iota_testS2STSensor(unittest.TestCase):
             time_s_app.ExecuteAndWriteOutput()
         # produce the time series gapFilled
         time_s_g = sensors.get_sensors_time_series_gapfilling()
-        for sensor_name, ((time_s_g_app, app_dep), features_labels) in time_s_g:
+        for (
+            sensor_name,
+            ((time_s_g_app, app_dep), features_labels),
+        ) in time_s_g:
             time_s_g_app.ExecuteAndWriteOutput()
         # produce features
         features = sensors.get_sensors_features()
-        for sensor_name, ((features_app, app_dep), features_labels) in features:
+        for (
+            sensor_name,
+            ((features_app, app_dep), features_labels),
+        ) in features:
             features_app.ExecuteAndWriteOutput()
 
         feature_array = rasterToArray(

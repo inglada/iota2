@@ -91,7 +91,9 @@ class iota_testClassifications(unittest.TestCase):
             result = self.defaultTestResult()
             self._feedErrorsToResult(result, self._outcome.errors)
         else:
-            result = getattr(self, "_outcomeForDoCleanups", self._resultForDoCleanups)
+            result = getattr(
+                self, "_outcomeForDoCleanups", self._resultForDoCleanups
+            )
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
         ok = not error and not failure
@@ -110,11 +112,17 @@ class iota_testClassifications(unittest.TestCase):
 
         # prepare inputs
         probamap_arr = [
-            np.array([[268, 528, 131], [514, 299, 252], [725, 427, 731]][::-1]),
+            np.array(
+                [[268, 528, 131], [514, 299, 252], [725, 427, 731]][::-1]
+            ),
             np.array([[119, 241, 543], [974, 629, 626], [3, 37, 819]][::-1]),
             np.array([[409, 534, 710], [916, 43, 993], [207, 68, 282]][::-1]),
-            np.array([[820, 169, 423], [710, 626, 525], [377, 777, 461]][::-1]),
-            np.array([[475, 116, 395], [838, 297, 262], [650, 828, 595]][::-1]),
+            np.array(
+                [[820, 169, 423], [710, 626, 525], [377, 777, 461]][::-1]
+            ),
+            np.array(
+                [[475, 116, 395], [838, 297, 262], [650, 828, 595]][::-1]
+            ),
             np.array([[0, 0, 0], [0, 0, 0], [0, 0, 0]][::-1]),
         ]
         probamap_path = os.path.join(
@@ -138,7 +146,8 @@ class iota_testClassifications(unittest.TestCase):
         class_model = [1, 2, 3, 4, 6]
         all_class = [1, 2, 3, 4, 5, 6]
         proba_map_path_out = os.path.join(
-            self.test_working_directory, "PROBAMAP_T31TCJ_model_1_seed_0_ORDERED.tif"
+            self.test_working_directory,
+            "PROBAMAP_T31TCJ_model_1_seed_0_ORDERED.tif",
         )
         classifier.reorder_proba_map(
             probamap_path, proba_map_path_out, class_model, all_class
@@ -146,12 +155,18 @@ class iota_testClassifications(unittest.TestCase):
 
         # assert
         probamap_arr_ref = [
-            np.array([[268, 528, 131], [514, 299, 252], [725, 427, 731]][::-1]),
+            np.array(
+                [[268, 528, 131], [514, 299, 252], [725, 427, 731]][::-1]
+            ),
             np.array([[119, 241, 543], [974, 629, 626], [3, 37, 819]][::-1]),
             np.array([[409, 534, 710], [916, 43, 993], [207, 68, 282]][::-1]),
-            np.array([[820, 169, 423], [710, 626, 525], [377, 777, 461]][::-1]),
+            np.array(
+                [[820, 169, 423], [710, 626, 525], [377, 777, 461]][::-1]
+            ),
             np.array([[0, 0, 0], [0, 0, 0], [0, 0, 0]][::-1]),
-            np.array([[475, 116, 395], [838, 297, 262], [650, 828, 595]][::-1]),
+            np.array(
+                [[475, 116, 395], [838, 297, 262], [650, 828, 595]][::-1]
+            ),
         ]
         reordered_test_arr = rasterToArray(proba_map_path_out)
         self.assertEqual(len(all_class), len(reordered_test_arr))
@@ -161,4 +176,6 @@ class iota_testClassifications(unittest.TestCase):
             band_test = reordered_test_arr[band]
             for ref_val, test_val in zip(band_ref.flat, band_test.flat):
                 is_bands_ok.append(int(ref_val) == int(test_val))
-        self.assertTrue(all(is_bands_ok), msg="reordering probability maps failed")
+        self.assertTrue(
+            all(is_bands_ok), msg="reordering probability maps failed"
+        )

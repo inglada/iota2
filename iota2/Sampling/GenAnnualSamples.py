@@ -100,7 +100,11 @@ def getAll_regions(tileName, folder):
 
 
 def add_origin_fields(
-    origin_shape, output_layer, region_field_name, runs, origin_driver="ESRI Shapefile"
+    origin_shape,
+    output_layer,
+    region_field_name,
+    runs,
+    origin_driver="ESRI Shapefile",
 ):
     """
     usage add field definition from origin_shape to output_layer (except reiong field)
@@ -126,7 +130,9 @@ def add_origin_fields(
     for i in range(layerDefinition.GetFieldCount()):
         fieldName = layerDefinition.GetFieldDefn(i).GetName()
         fieldTypeCode = layerDefinition.GetFieldDefn(i).GetType()
-        fieldType = layerDefinition.GetFieldDefn(i).GetFieldTypeName(fieldTypeCode)
+        fieldType = layerDefinition.GetFieldDefn(i).GetFieldTypeName(
+            fieldTypeCode
+        )
         fieldWidth = layerDefinition.GetFieldDefn(i).GetWidth()
         GetPrecision = layerDefinition.GetFieldDefn(i).GetPrecision()
 
@@ -178,7 +184,9 @@ def genAnnualShapePoints(
     for current_seed in range(runs):
 
         for currentMask in masks:
-            currentRegion = os.path.split(currentMask)[-1].split("_")[region_pos]
+            currentRegion = os.path.split(currentMask)[-1].split("_")[
+                region_pos
+            ]
             vector_region = os.path.join(
                 workingDirectory,
                 "Annual_"
@@ -203,7 +211,9 @@ def genAnnualShapePoints(
                 )
             )
 
-            mapReg = otb.Registry.CreateApplication("ClassificationMapRegularization")
+            mapReg = otb.Registry.CreateApplication(
+                "ClassificationMapRegularization"
+            )
             mapReg.SetParameterString("io.in", classificationRaster)
             mapReg.SetParameterString("ip.undecidedlabel", "0")
             mapReg.Execute()
@@ -246,7 +256,9 @@ def genAnnualShapePoints(
                 rasterRdy
                 + "?&streaming:type=stripped&streaming:sizemode=nbsplits&streaming:sizevalue=10",
             )
-            rdy.SetParameterOutputImagePixelType("out", otb.ImagePixelType_uint8)
+            rdy.SetParameterOutputImagePixelType(
+                "out", otb.ImagePixelType_uint8
+            )
             rdy.ExecuteAndWriteOutput()
 
             rasterArray = raster2array(rasterRdy)
@@ -272,24 +284,31 @@ def genAnnualShapePoints(
             layerName = "output"  # layerName
             layerOUT = data_source.CreateLayer(layerName, srs, ogr.wkbPoint)
 
-            add_origin_fields(inlearningShape, layerOUT, region_field_name, runs)
+            add_origin_fields(
+                inlearningShape, layerOUT, region_field_name, runs
+            )
 
             for currentVal in classToKeep.data:
                 try:
-                    nbSamples = annu_repartition[str(currentVal)][currentRegion][
-                        current_seed
-                    ]
+                    nbSamples = annu_repartition[str(currentVal)][
+                        currentRegion
+                    ][current_seed]
                 except BaseException:
                     logger.info(
                         "class : {} does not exists in {} at seed {} in region {}".format(
-                            currentVal, inlearningShape, current_seed, currentRegion
+                            currentVal,
+                            inlearningShape,
+                            current_seed,
+                            currentRegion,
                         )
                     )
                     continue
                 Y, X = np.where(rasterArray == int(currentVal))
                 XYcoordinates = []
                 for y, x in zip(Y, X):
-                    X_c, Y_c = pixCoordinates(x, y, x_origin, y_origin, sizeX, sizeY)
+                    X_c, Y_c = pixCoordinates(
+                        x, y, x_origin, y_origin, sizeX, sizeY
+                    )
                     XYcoordinates.append((X_c, Y_c))
                 if nbSamples > len(XYcoordinates):
                     nbSamples = len(XYcoordinates)
@@ -338,7 +357,9 @@ def genAnnualShapePoints(
                         driver_name="SQLite",
                     )
 
-    outlearningShape_name = os.path.splitext(os.path.split(outlearningShape)[-1])[0]
+    outlearningShape_name = os.path.splitext(
+        os.path.split(outlearningShape)[-1]
+    )[0]
     outlearningShape_dir = os.path.split(outlearningShape)[0]
 
     fu.mergeSQLite(outlearningShape_name, outlearningShape_dir, vector_regions)
@@ -366,13 +387,20 @@ if __name__ == "__main__":
     )
     parser.add_argument("-mask", help="", dest="mask", required=True)
     parser.add_argument(
-        "-classificationRaster", help="", dest="classificationRaster", required=True
+        "-classificationRaster",
+        help="",
+        dest="classificationRaster",
+        required=True,
     )
     parser.add_argument(
         "-validityRaster", help="", dest="validityRaster", required=True
     )
     parser.add_argument(
-        "-validityThreshold", type=int, help="", dest="validityThreshold", required=True
+        "-validityThreshold",
+        type=int,
+        help="",
+        dest="validityThreshold",
+        required=True,
     )
     parser.add_argument("-tile", help="", dest="tile", required=True)
     parser.add_argument("-dataField", help="", dest="dataField", required=True)
@@ -384,12 +412,23 @@ if __name__ == "__main__":
         required=None,
     )
     parser.add_argument(
-        "-classToKeep", type=int, nargs="+", help="", dest="classToKeep", required=True
+        "-classToKeep",
+        type=int,
+        nargs="+",
+        help="",
+        dest="classToKeep",
+        required=True,
     )
     parser.add_argument(
-        "-targetResolution", type=int, help="", dest="rasterResolution", required=True
+        "-targetResolution",
+        type=int,
+        help="",
+        dest="rasterResolution",
+        required=True,
     )
-    parser.add_argument("-gdalDriver", help="", dest="gdalDriver", required=True)
+    parser.add_argument(
+        "-gdalDriver", help="", dest="gdalDriver", required=True
+    )
     parser.add_argument("-epsg", help="epsg code", dest="coeff", required=True)
     parser.add_argument(
         "-wc",

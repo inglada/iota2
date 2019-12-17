@@ -34,16 +34,16 @@ class additionalStatistics(IOTA2Step.Step):
         )
         self.runs = SCF.serviceConfigFile(self.cfg).getParam("chain", "runs")
         self.tiles = (
-            SCF.serviceConfigFile(self.cfg).getParam("chain", "listTile").split(" ")
+            SCF.serviceConfigFile(self.cfg)
+            .getParam("chain", "listTile")
+            .split(" ")
         )
 
     def step_description(self):
         """
         function use to print a short description of the step's purpose
         """
-        description = (
-            "Generate additional statistics by tiles about ouput classifications"
-        )
+        description = "Generate additional statistics by tiles about ouput classifications"
         return description
 
     def step_inputs(self):

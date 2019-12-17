@@ -78,7 +78,9 @@ def getFieldType(layer, field):
         fieldName = layerDefinition.GetFieldDefn(i).GetName()
         fieldList.append('"' + fieldName + '"')
         fieldTypeCode = layerDefinition.GetFieldDefn(i).GetType()
-        fieldType = layerDefinition.GetFieldDefn(i).GetFieldTypeName(fieldTypeCode)
+        fieldType = layerDefinition.GetFieldDefn(i).GetFieldTypeName(
+            fieldTypeCode
+        )
         if fieldType == "Integer":
             fieldDef[fieldName] = int
         elif fieldType == "String":
@@ -89,7 +91,10 @@ def getFieldType(layer, field):
         retour = fieldDef[field]
     except BaseException:
         raise Exception(
-            'Field : "' + field + "\" not in field's list : " + " , ".join(fieldList)
+            'Field : "'
+            + field
+            + "\" not in field's list : "
+            + " , ".join(fieldList)
         )
     return retour
 
@@ -134,7 +139,9 @@ def getBBox(raster_in, allGeom):
     return minX, maxX, minY, maxY
 
 
-def generateRaster(raster_path, features_path, driver, field, valField, output, epsg):
+def generateRaster(
+    raster_path, features_path, driver, field, valField, output, epsg
+):
     """
     """
 
@@ -246,7 +253,11 @@ if __name__ == "__main__":
         required=False,
     )
     parser.add_argument(
-        "-out", dest="output", help="output raster", default=None, required=True
+        "-out",
+        dest="output",
+        help="output raster",
+        default=None,
+        required=True,
     )
     args = parser.parse_args()
 

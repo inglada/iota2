@@ -55,7 +55,8 @@ def get_randomPoly(dataSource, field, classes, ratio, logger=logger):
                 listid.sort()
             listToChoice = random.sample(listid, int(polbysel))
             logger.debug(
-                "for class %s, list of choosen features : %s" % (cl, listToChoice)
+                "for class %s, list of choosen features : %s"
+                % (cl, listToChoice)
             )
             for fid in listToChoice:
                 listallid.append(fid)
@@ -63,7 +64,9 @@ def get_randomPoly(dataSource, field, classes, ratio, logger=logger):
     return listallid, listValid
 
 
-def RandomInSitu(vectorFile, field, nbdraws, opath, name, AllFields, ratio, pathWd):
+def RandomInSitu(
+    vectorFile, field, nbdraws, opath, name, AllFields, ratio, pathWd
+):
     """
     """
 
@@ -98,7 +101,9 @@ def RandomInSitu(vectorFile, field, nbdraws, opath, name, AllFields, ratio, path
     AllTrain = []
     AllValid = []
     for tirage in range(0, nbtirage):
-        listallid, listValid = get_randomPoly(dataSource, field, classes, ratio)
+        listallid, listValid = get_randomPoly(
+            dataSource, field, classes, ratio
+        )
         ch = ""
         listFid = []
         for fid in listallid:
@@ -111,12 +116,18 @@ def RandomInSitu(vectorFile, field, nbdraws, opath, name, AllFields, ratio, path
 
         chA = "".join(resultA)
         layer.SetAttributeFilter(chA)
-        learningShape = opath + "/" + name + "_seed" + str(tirage) + "_learn.shp"
+        learningShape = (
+            opath + "/" + name + "_seed" + str(tirage) + "_learn.shp"
+        )
         if pathWd is None:
-            outShapefile = opath + "/" + name + "_seed" + str(tirage) + "_learn.shp"
+            outShapefile = (
+                opath + "/" + name + "_seed" + str(tirage) + "_learn.shp"
+            )
             fu.CreateNewLayer(layer, outShapefile, AllFields)
         else:
-            outShapefile = pathWd + "/" + name + "_seed" + str(tirage) + "_learn.shp"
+            outShapefile = (
+                pathWd + "/" + name + "_seed" + str(tirage) + "_learn.shp"
+            )
             fu.CreateNewLayer(layer, outShapefile, AllFields)
             fu.cpShapeFile(
                 outShapefile.replace(".shp", ""),
@@ -141,12 +152,18 @@ def RandomInSitu(vectorFile, field, nbdraws, opath, name, AllFields, ratio, path
 
         chV = "".join(resultV)
         layer.SetAttributeFilter(chV)
-        validationShape = opath + "/" + name + "_seed" + str(tirage) + "_val.shp"
+        validationShape = (
+            opath + "/" + name + "_seed" + str(tirage) + "_val.shp"
+        )
         if pathWd is None:
-            outShapefile2 = opath + "/" + name + "_seed" + str(tirage) + "_val.shp"
+            outShapefile2 = (
+                opath + "/" + name + "_seed" + str(tirage) + "_val.shp"
+            )
             fu.CreateNewLayer(layer, outShapefile2, AllFields)
         else:
-            outShapefile2 = pathWd + "/" + name + "_seed" + str(tirage) + "_val.shp"
+            outShapefile2 = (
+                pathWd + "/" + name + "_seed" + str(tirage) + "_val.shp"
+            )
             fu.CreateNewLayer(layer, outShapefile2, AllFields)
             fu.cpShapeFile(
                 outShapefile2.replace(".shp", ""),
@@ -159,7 +176,14 @@ def RandomInSitu(vectorFile, field, nbdraws, opath, name, AllFields, ratio, path
 
 
 def RandomInSituByTile(
-    path_mod_tile, dataField, N, pathOut, ratio, cfg=None, pathWd=None, test=False
+    path_mod_tile,
+    dataField,
+    N,
+    pathOut,
+    ratio,
+    cfg=None,
+    pathWd=None,
+    test=False,
 ):
 
     if not test:
@@ -188,7 +212,14 @@ def RandomInSituByTile(
         featureCount = layer.GetFeatureCount()
         if featureCount != 0:
             AllTrain, AllValid = RandomInSitu(
-                path_mod_tile, dataField, N, pathOut, name, AllFields, ratio, pathWd
+                path_mod_tile,
+                dataField,
+                N,
+                pathOut,
+                name,
+                AllFields,
+                ratio,
+                pathWd,
             )
             return AllTrain, AllValid
         else:
@@ -255,5 +286,11 @@ if __name__ == "__main__":
     cfg = SCF.serviceConfigFile(args.pathConf)
 
     RandomInSituByTile(
-        args.path, args.dataField, args.N, args.pathOut, args.ratio, cfg, args.pathWd
+        args.path,
+        args.dataField,
+        args.N,
+        args.pathOut,
+        args.ratio,
+        cfg,
+        args.pathWd,
     )

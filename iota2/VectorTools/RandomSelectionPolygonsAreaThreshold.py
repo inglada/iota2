@@ -48,7 +48,9 @@ def get_randomPolyAreaThresh(
     try:
         indfield = fieldList.index(field)
     except BaseException:
-        print("The field {} does not exist in the input shapefile".format(field))
+        print(
+            "The field {} does not exist in the input shapefile".format(field)
+        )
         print(
             "You must choose one of these existing fields : {}".format(
                 " / ".join(fieldList)
@@ -58,7 +60,9 @@ def get_randomPolyAreaThresh(
 
     inLayerDefn = layer.GetLayerDefn()
     fieldTypeCode = inLayerDefn.GetFieldDefn(indfield).GetType()
-    fieldType = inLayerDefn.GetFieldDefn(indfield).GetFieldTypeName(fieldTypeCode)
+    fieldType = inLayerDefn.GetFieldDefn(indfield).GetFieldTypeName(
+        fieldTypeCode
+    )
 
     # Filter on given class
     if fieldType != "String":
@@ -109,12 +113,16 @@ def get_randomPolyAreaThresh(
     if outShapefile is not None:
         lyrtmpsqlite = os.path.splitext(os.path.basename(shapefile))[0]
         tmpsqlite = os.path.join(wd, "tmp" + lyrtmpsqlite + ".sqlite")
-        os.system('ogr2ogr -preserve_fid -f "SQLite" %s %s' % (tmpsqlite, shapefile))
+        os.system(
+            'ogr2ogr -preserve_fid -f "SQLite" %s %s' % (tmpsqlite, shapefile)
+        )
 
         conn = db.connect(tmpsqlite)
         cursor = conn.cursor()
 
-        nb_sub_split_SQLITE = int(math.ceil(len(listToChoice) / sqlite3_query_limit))
+        nb_sub_split_SQLITE = int(
+            math.ceil(len(listToChoice) / sqlite3_query_limit)
+        )
         sub_FID_sqlite = fut.splitList(listToChoice, nb_sub_split_SQLITE)
         subFid_clause = []
         for subFID in sub_FID_sqlite:
@@ -130,7 +138,9 @@ def get_randomPolyAreaThresh(
 
         conn = cursor = None
 
-        os.system('ogr2ogr -f "ESRI Shapefile" %s %s' % (outShapefile, tmpsqlite))
+        os.system(
+            'ogr2ogr -f "ESRI Shapefile" %s %s' % (outShapefile, tmpsqlite)
+        )
 
         print(
             "Random Selection of polygons with value '{}' of field '{}' done and stored in '{}'".format(
@@ -145,9 +155,14 @@ if __name__ == "__main__":
         description="This function allows to randomnly extract polygons from input shapefile given a sum of areas threshold"
     )
 
-    parser.add_argument("-path", help="working dir", dest="path", required=True)
     parser.add_argument(
-        "-shape", help="path to a shapeFile (mandatory)", dest="shape", required=True
+        "-path", help="working dir", dest="path", required=True
+    )
+    parser.add_argument(
+        "-shape",
+        help="path to a shapeFile (mandatory)",
+        dest="shape",
+        required=True,
     )
     parser.add_argument(
         "-field",
@@ -158,7 +173,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "-class", dest="classe", help="class name to extrac", required=True
     )
-    parser.add_argument("-thresh", dest="thresh", help="Area threshold", required=True)
+    parser.add_argument(
+        "-thresh", dest="thresh", help="Area threshold", required=True
+    )
     parser.add_argument("-out", dest="output", help="Output shapefile")
     parser.add_argument(
         "-nolistid",

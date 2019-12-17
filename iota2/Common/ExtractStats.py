@@ -32,7 +32,9 @@ def extractStats(vectorIn, pathConf, wD=None):
     modelToCompute = vectorIn.split("/")[-1].split("_")[2].split("f")[0]
     seed = vectorIn.split("/")[-1].split("_")[3].replace("seed", "")
     workingDirectory = iota2Folder + "/final/TMP"
-    shapeMode = vectorIn.split("/")[-1].split("_")[-1].split(".")[0]  # 'learn' or 'val'
+    shapeMode = (
+        vectorIn.split("/")[-1].split("_")[-1].split(".")[0]
+    )  # 'learn' or 'val'
     if wD:
         workingDirectory = wD
 
@@ -79,7 +81,9 @@ def extractStats(vectorIn, pathConf, wD=None):
     sampleS.ExecuteAndWriteOutput()
 
     classificationRaster = fut.FileSearch_AND(
-        iota2Folder + "/final/TMP", True, tileToCompute + "_seed_" + seed + ".tif"
+        iota2Folder + "/final/TMP",
+        True,
+        tileToCompute + "_seed_" + seed + ".tif",
     )[0]
     validity = fut.FileSearch_AND(
         iota2Folder + "/final/TMP", True, tileToCompute + "_Cloud.tif"
@@ -114,7 +118,11 @@ def extractStats(vectorIn, pathConf, wD=None):
             "field": dataField,
             " out": outSampleExtraction,
             "outfield": "list",
-            "outfield.list.names": ["predictedClass", "validity", "confidence"],
+            "outfield.list.names": [
+                "predictedClass",
+                "validity",
+                "confidence",
+            ],
         }
     )
     extraction.ExecuteAndWriteOutput()

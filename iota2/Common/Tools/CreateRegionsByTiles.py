@@ -66,7 +66,9 @@ def splitVectorLayer(shp_in, attribute, attribute_type, field_vals, pathOut):
             shp_out_list.append(shp_out)
     else:
         raise Exception(
-            "Error for attribute_type ", attribute_type, '! Should be "string" or "int"'
+            "Error for attribute_type ",
+            attribute_type,
+            '! Should be "string" or "int"',
         )
 
     return shp_out_list
@@ -159,5 +161,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     createRegionsByTiles(
-        args.region, args.regionField, args.pathToEnv, args.pathOut, args.pathWd
+        args.region,
+        args.regionField,
+        args.pathToEnv,
+        args.pathOut,
+        args.pathWd,
     )

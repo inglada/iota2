@@ -39,7 +39,9 @@ class iota2_run(unittest.TestCase):
         # class const variables
         self.iota2_directory = os.environ.get("IOTA2DIR")
         self.config_path = os.path.join(
-            self.iota2_directory, "config", "Config_4Tuiles_Multi_FUS_Confidence.cfg"
+            self.iota2_directory,
+            "config",
+            "Config_4Tuiles_Multi_FUS_Confidence.cfg",
         )
         self.config_path_test = None
         self.iota2_tests_directory = os.path.join(
@@ -78,7 +80,9 @@ class iota2_run(unittest.TestCase):
         shutil.copy(self.config_path, self.config_path_test)
 
     def tearDown(self):
-        result = getattr(self, "_outcomeForDoCleanups", self._resultForDoCleanups)
+        result = getattr(
+            self, "_outcomeForDoCleanups", self._resultForDoCleanups
+        )
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
         ok = not error and not failure

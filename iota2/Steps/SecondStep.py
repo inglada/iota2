@@ -68,7 +68,9 @@ class SecondStep(IOTA2Step.Step):
     def step_outputs(self):
         from Common import FileUtils
 
-        return FileUtils.FileSearch_AND(self.output_dir, True, "test_dummy_", ".txt")
+        return FileUtils.FileSearch_AND(
+            self.output_dir, True, "test_dummy_", ".txt"
+        )
 
     def step_clean(self):
         """

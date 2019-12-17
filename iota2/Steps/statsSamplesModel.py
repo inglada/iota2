@@ -61,7 +61,9 @@ class statsSamplesModel(IOTA2Step.Step):
         """
 
         def step_function(x):
-            return SamplesStat.samples_stats(x, self.cfg, self.workingDirectory)
+            return SamplesStat.samples_stats(
+                x, self.cfg, self.workingDirectory
+            )
 
         return step_function
 

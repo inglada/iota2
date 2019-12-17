@@ -57,7 +57,9 @@ class Landsat5(Sensor):
             tmpPath = opath.opathT
 
         cfg_IOTA2 = SCF.serviceConfigFile(fconf)
-        sensorConfig = os.path.join(get_iota2_project_dir(), "config", "sensors.cfg")
+        sensorConfig = os.path.join(
+            get_iota2_project_dir(), "config", "sensors.cfg"
+        )
         cfg_sensors = SCF.serviceConfigFile(sensorConfig, iota_config=False)
 
         self.name = "Landsat5"
@@ -88,7 +90,8 @@ class Landsat5(Sensor):
         self.native_res = int(cfg_sensors.getParam("Landsat5", "nativeRes"))
         self.imType = cfg_sensors.getParam("Landsat5", "imtype")
         if (
-            not "none" in cfg_IOTA2.getParam("coregistration", "VHRPath").lower()
+            not "none"
+            in cfg_IOTA2.getParam("coregistration", "VHRPath").lower()
             and len(
                 glob.glob(
                     self.path
@@ -104,19 +107,26 @@ class Landsat5(Sensor):
         self.pathRes = tmpPath + "/LandRes_%sm/" % workRes
         self.proj = cfg_IOTA2.getParam("GlobChain", "proj")
 
-        self.addFeatures = (cfg_IOTA2.getParam("Landsat5", "additionalFeatures")).split(
-            ","
-        )
+        self.addFeatures = (
+            cfg_IOTA2.getParam("Landsat5", "additionalFeatures")
+        ).split(",")
         # MASK INFO
         self.nuages = cfg_sensors.getParam("Landsat5", "nuages")
         self.saturation = cfg_sensors.getParam("Landsat5", "saturation")
         self.div = cfg_sensors.getParam("Landsat5", "div")
         self.nodata = cfg_sensors.getParam("Landsat5", "nodata")
-        self.pathmask = self.path + cfg_sensors.getParam("Landsat5", "arbomask")
+        self.pathmask = self.path + cfg_sensors.getParam(
+            "Landsat5", "arbomask"
+        )
         if (
-            not "none" in cfg_IOTA2.getParam("coregistration", "VHRPath").lower()
+            not "none"
+            in cfg_IOTA2.getParam("coregistration", "VHRPath").lower()
             and len(
-                glob.glob(self.pathmask + "*COREG*" + os.path.splitext(self.imType)[1])
+                glob.glob(
+                    self.pathmask
+                    + "*COREG*"
+                    + os.path.splitext(self.imType)[1]
+                )
             )
             > 0
         ):
@@ -130,7 +140,9 @@ class Landsat5(Sensor):
         self.borderMask = self.borderMaskN
 
         sensorEnable = (
-            self.path is not None and len(self.path) > 0 and "None" not in self.path
+            self.path is not None
+            and len(self.path) > 0
+            and "None" not in self.path
         )
 
         # bands definitions
@@ -138,7 +150,8 @@ class Landsat5(Sensor):
             [
                 (key, value)
                 for key, value in sorted(
-                    iter(list(dicoBands.items())), key=lambda k_v2: (k_v2[1], k_v2[0])
+                    iter(list(dicoBands.items())),
+                    key=lambda k_v2: (k_v2[1], k_v2[0]),
                 )
             ]
         )
@@ -148,7 +161,8 @@ class Landsat5(Sensor):
 
         if (
             sensorEnable
-            and cfg_IOTA2.getParam("iota2FeatureExtraction", "extractBands") == True
+            and cfg_IOTA2.getParam("iota2FeatureExtraction", "extractBands")
+            == True
         ):
             self.keepBands = OrderedDict(
                 [
@@ -179,11 +193,15 @@ class Landsat5(Sensor):
                 self.liste = self.getImages(opath)
                 if len(self.liste) == 0:
                     logger.warning(
-                        "[Landsat5] No valid images found in {}".format(self.path)
+                        "[Landsat5] No valid images found in {}".format(
+                            self.path
+                        )
                     )
                 else:
                     logger.debug(
-                        "[Landsat5] Found the following images: {}".format(self.liste)
+                        "[Landsat5] Found the following images: {}".format(
+                            self.liste
+                        )
                     )
                     self.imRef = self.liste[0]
         except MonException as mess:
@@ -212,7 +230,15 @@ class Landsat8(Sensor):
         fconf,
         workRes,
         createFolder="Create",
-        dicoBands={"B1": 1, "B2": 2, "B3": 3, "B4": 4, "B5": 5, "B6": 6, "B7": 7},
+        dicoBands={
+            "B1": 1,
+            "B2": 2,
+            "B3": 3,
+            "B4": 4,
+            "B5": 5,
+            "B6": 6,
+            "B7": 7,
+        },
         logger=logger,
     ):
         from Common import ServiceConfigFile as SCF
@@ -240,11 +266,15 @@ class Landsat8(Sensor):
         self.fdates = tmpPath + "/" + self.name + "imagesDateList.txt"
 
         sensorEnable = (
-            self.path is not None and len(self.path) > 0 and "None" not in self.path
+            self.path is not None
+            and len(self.path) > 0
+            and "None" not in self.path
         )
 
         cfg_IOTA2 = SCF.serviceConfigFile(fconf)
-        sensorConfig = os.path.join(get_iota2_project_dir(), "config", "sensors.cfg")
+        sensorConfig = os.path.join(
+            get_iota2_project_dir(), "config", "sensors.cfg"
+        )
         cfg_sensors = SCF.serviceConfigFile(sensorConfig, iota_config=False)
 
         # MASK
@@ -263,7 +293,8 @@ class Landsat8(Sensor):
         self.native_res = int(cfg_sensors.getParam("Landsat8", "nativeRes"))
         self.imType = cfg_sensors.getParam("Landsat8", "imtype")
         if (
-            not "none" in cfg_IOTA2.getParam("coregistration", "VHRPath").lower()
+            not "none"
+            in cfg_IOTA2.getParam("coregistration", "VHRPath").lower()
             and len(
                 glob.glob(
                     self.path
@@ -279,19 +310,26 @@ class Landsat8(Sensor):
         self.pathRes = tmpPath + "/LandRes_%sm/" % workRes
         self.proj = cfg_IOTA2.getParam("GlobChain", "proj")
 
-        self.addFeatures = (cfg_IOTA2.getParam("Landsat8", "additionalFeatures")).split(
-            ","
-        )
+        self.addFeatures = (
+            cfg_IOTA2.getParam("Landsat8", "additionalFeatures")
+        ).split(",")
         # MASK INFO
         self.nuages = cfg_sensors.getParam("Landsat8", "nuages")
         self.saturation = cfg_sensors.getParam("Landsat8", "saturation")
         self.div = cfg_sensors.getParam("Landsat8", "div")
         self.nodata = cfg_sensors.getParam("Landsat8", "nodata")
-        self.pathmask = self.path + cfg_sensors.getParam("Landsat8", "arbomask")
+        self.pathmask = self.path + cfg_sensors.getParam(
+            "Landsat8", "arbomask"
+        )
         if (
-            not "none" in cfg_IOTA2.getParam("coregistration", "VHRPath").lower()
+            not "none"
+            in cfg_IOTA2.getParam("coregistration", "VHRPath").lower()
             and len(
-                glob.glob(self.pathmask + "*COREG*" + os.path.splitext(self.imType)[1])
+                glob.glob(
+                    self.pathmask
+                    + "*COREG*"
+                    + os.path.splitext(self.imType)[1]
+                )
             )
             > 0
         ):
@@ -309,7 +347,8 @@ class Landsat8(Sensor):
             [
                 (key, value)
                 for key, value in sorted(
-                    iter(list(dicoBands.items())), key=lambda k_v3: (k_v3[1], k_v3[0])
+                    iter(list(dicoBands.items())),
+                    key=lambda k_v3: (k_v3[1], k_v3[0]),
                 )
             ]
         )
@@ -319,7 +358,8 @@ class Landsat8(Sensor):
 
         if (
             sensorEnable
-            and cfg_IOTA2.getParam("iota2FeatureExtraction", "extractBands") == True
+            and cfg_IOTA2.getParam("iota2FeatureExtraction", "extractBands")
+            == True
         ):
             self.keepBands = OrderedDict(
                 [
@@ -350,11 +390,15 @@ class Landsat8(Sensor):
                 self.liste = self.getImages(opath)
                 if len(self.liste) == 0:
                     logger.warning(
-                        "[Landsat8] No valid images found in {}".format(self.path)
+                        "[Landsat8] No valid images found in {}".format(
+                            self.path
+                        )
                     )
                 else:
                     logger.debug(
-                        "[Landsat8] Found the following images: {}".format(self.liste)
+                        "[Landsat8] Found the following images: {}".format(
+                            self.liste
+                        )
                     )
                     self.imRef = self.liste[0]
         except MonException as mess:
@@ -423,18 +467,23 @@ class Sentinel_2(Sensor):
 
             self.path = path_image
             sensorEnable = (
-                self.path is not None and len(self.path) > 0 and "None" not in self.path
+                self.path is not None
+                and len(self.path) > 0
+                and "None" not in self.path
             )
             sensorConfig = os.path.join(
                 get_iota2_project_dir(), "config", "sensors.cfg"
             )
-            cfg_sensors = SCF.serviceConfigFile(sensorConfig, iota_config=False)
+            cfg_sensors = SCF.serviceConfigFile(
+                sensorConfig, iota_config=False
+            )
 
             # consts
             self.struct_path = cfg_sensors.getParam("Sentinel_2", "arbo")
             self.imType = cfg_sensors.getParam("Sentinel_2", "imtype")
             if (
-                not "none" in cfg_IOTA2.getParam("coregistration", "VHRPath").lower()
+                not "none"
+                in cfg_IOTA2.getParam("coregistration", "VHRPath").lower()
                 and len(
                     glob.glob(
                         self.path
@@ -450,7 +499,9 @@ class Sentinel_2(Sensor):
             self.fimages = tmpPath + "/" + self.name + "imagesList.txt"
 
             # masks
-            self.pathmask = self.path + cfg_sensors.getParam("Sentinel_2", "arbomask")
+            self.pathmask = self.path + cfg_sensors.getParam(
+                "Sentinel_2", "arbomask"
+            )
             self.nuages = cfg_sensors.getParam("Sentinel_2", "nuages")
             self.nodata = cfg_sensors.getParam("Sentinel_2", "nodata")
             self.serieTempMask = tmpPath + "/" + self.name + "_ST_MASK.tif"
@@ -458,13 +509,18 @@ class Sentinel_2(Sensor):
             self.saturation = cfg_sensors.getParam("Sentinel_2", "saturation")
             self.div = cfg_sensors.getParam("Sentinel_2", "div")
             self.nuages = cfg_sensors.getParam("Sentinel_2", "nuages_reproj")
-            self.saturation = cfg_sensors.getParam("Sentinel_2", "saturation_reproj")
+            self.saturation = cfg_sensors.getParam(
+                "Sentinel_2", "saturation_reproj"
+            )
             self.div = cfg_sensors.getParam("Sentinel_2", "div_reproj")
             if (
-                not "none" in cfg_IOTA2.getParam("coregistration", "VHRPath").lower()
+                not "none"
+                in cfg_IOTA2.getParam("coregistration", "VHRPath").lower()
                 and len(
                     glob.glob(
-                        self.pathmask + "*COREG*" + os.path.splitext(self.imType)[1]
+                        self.pathmask
+                        + "*COREG*"
+                        + os.path.splitext(self.imType)[1]
                     )
                 )
                 > 0
@@ -479,7 +535,9 @@ class Sentinel_2(Sensor):
             self.borderMask = self.borderMaskN
             self.serieTemp = tmpPath + "/" + self.name + "_ST_REFL.tif"
             self.serieTempGap = tmpPath + "/" + self.name + "_ST_REFL_GAP.tif"
-            self.nodata_MASK = cfg_sensors.getParam("Sentinel_2", "nodata_Mask")
+            self.nodata_MASK = cfg_sensors.getParam(
+                "Sentinel_2", "nodata_Mask"
+            )
 
             self.addFeatures = (
                 cfg_IOTA2.getParam("Sentinel_2", "additionalFeatures")
@@ -488,7 +546,9 @@ class Sentinel_2(Sensor):
             self.indices = "NDVI", "NDWI", "Brightness"
             self.fdates = tmpPath + "/" + self.name + "imagesDateList.txt"
             self.posDate = 1
-            self.native_res = int(cfg_sensors.getParam("Sentinel_2", "nativeRes"))
+            self.native_res = int(
+                cfg_sensors.getParam("Sentinel_2", "nativeRes")
+            )
             self.pathRes = tmpPath + "/LandRes_%sm/" % workRes
 
             self.proj = cfg_IOTA2.getParam("GlobChain", "proj")
@@ -500,7 +560,8 @@ class Sentinel_2(Sensor):
                 [
                     (key, value)
                     for key, value in sorted(
-                        iter(list(dicoBands.items())), key=lambda k_v: (k_v[1], k_v[0])
+                        iter(list(dicoBands.items())),
+                        key=lambda k_v: (k_v[1], k_v[0]),
                     )
                 ]
             )
@@ -511,7 +572,10 @@ class Sentinel_2(Sensor):
             self.keepBands = None
             if (
                 sensorEnable
-                and cfg_IOTA2.getParam("iota2FeatureExtraction", "extractBands") == True
+                and cfg_IOTA2.getParam(
+                    "iota2FeatureExtraction", "extractBands"
+                )
+                == True
             ):
                 self.keepBands = OrderedDict(
                     [
@@ -524,15 +588,21 @@ class Sentinel_2(Sensor):
                     try:
                         self.red = list(self.keepBands.keys()).index("B4")
                     except BaseException:
-                        raise Exception("red band is needed to compute features")
+                        raise Exception(
+                            "red band is needed to compute features"
+                        )
                     try:
                         self.nir = list(self.keepBands.keys()).index("B8")
                     except BaseException:
-                        raise Exception("nir band is needed to compute features")
+                        raise Exception(
+                            "nir band is needed to compute features"
+                        )
                     try:
                         self.swir = list(self.keepBands.keys()).index("B11")
                     except BaseException:
-                        raise Exception("swir band is needed to compute features")
+                        raise Exception(
+                            "swir band is needed to compute features"
+                        )
                 else:
                     self.red = self.nir = self.swir = -1
 
@@ -544,7 +614,9 @@ class Sentinel_2(Sensor):
                     self.liste = self.getImages(opath)
                     if len(self.liste) == 0:
                         logger.warning(
-                            "[Sentinel2] No valid images found in {}".format(self.path)
+                            "[Sentinel2] No valid images found in {}".format(
+                                self.path
+                            )
                         )
                     else:
                         logger.debug(
@@ -567,7 +639,9 @@ class Sentinel_2(Sensor):
 
         logger = logging.getLogger(__name__)
         sensorEnable = (
-            self.path is not None and len(self.path) > 0 and "None" not in self.path
+            self.path is not None
+            and len(self.path) > 0
+            and "None" not in self.path
         )
 
         if sensorEnable:
@@ -583,7 +657,9 @@ class Sentinel_2(Sensor):
                         "[Spot4] No valid images found in {}".format(self.path)
                     )
                 else:
-                    logger.debug("[Spot4] Found the following images: {}".format(liste))
+                    logger.debug(
+                        "[Spot4] Found the following images: {}".format(liste)
+                    )
                     self.imRef = liste[0]
             except MonException as mess:
                 logger.error("[Spot4] Exception caught: {}".format(mess))
@@ -626,27 +702,36 @@ class Sentinel_2_S2C(Sensor):
         if os.path.exists(fconf):
             cfg_IOTA2 = SCF.serviceConfigFile(fconf)
             # check output target directory
-            output_target_dir = cfg_IOTA2.getParam("chain", "S2_S2C_output_path")
+            output_target_dir = cfg_IOTA2.getParam(
+                "chain", "S2_S2C_output_path"
+            )
             if output_target_dir:
                 path_image = os.path.normpath(path_image)
                 path_image = path_image.split(os.sep)[-1]
                 path_image = os.path.join(output_target_dir, path_image)
 
             self.path = path_image
-            self.fdates = os.path.join(tmpPath, self.name + "imagesDateList.txt")
+            self.fdates = os.path.join(
+                tmpPath, self.name + "imagesDateList.txt"
+            )
             self.imRef = None
             sensorEnable = (
-                self.path is not None and len(self.path) > 0 and "None" not in self.path
+                self.path is not None
+                and len(self.path) > 0
+                and "None" not in self.path
             )
             sensorConfig = os.path.join(
                 get_iota2_project_dir(), "config", "sensors.cfg"
             )
-            cfg_sensors = SCF.serviceConfigFile(sensorConfig, iota_config=False)
+            cfg_sensors = SCF.serviceConfigFile(
+                sensorConfig, iota_config=False
+            )
 
             self.struct_path = cfg_sensors.getParam("Sentinel_2_S2C", "arbo")
             self.imType = cfg_sensors.getParam("Sentinel_2_S2C", "imtype")
             if (
-                not "none" in cfg_IOTA2.getParam("coregistration", "VHRPath").lower()
+                not "none"
+                in cfg_IOTA2.getParam("coregistration", "VHRPath").lower()
                 and len(
                     glob.glob(
                         self.path
@@ -677,10 +762,13 @@ class Sentinel_2_S2C(Sensor):
             )
             self.nuages = cfg_sensors.getParam("Sentinel_2_S2C", "nuages")
             if (
-                not "none" in cfg_IOTA2.getParam("coregistration", "VHRPath").lower()
+                not "none"
+                in cfg_IOTA2.getParam("coregistration", "VHRPath").lower()
                 and len(
                     glob.glob(
-                        self.pathmask + "*COREG*" + os.path.splitext(self.imType)[1]
+                        self.pathmask
+                        + "*COREG*"
+                        + os.path.splitext(self.imType)[1]
                     )
                 )
                 > 0
@@ -708,28 +796,38 @@ class Sentinel_2_S2C(Sensor):
             self.keepBands = None
             if (
                 sensorEnable
-                and cfg_IOTA2.getParam("iota2FeatureExtraction", "extractBands") == True
+                and cfg_IOTA2.getParam(
+                    "iota2FeatureExtraction", "extractBands"
+                )
+                == True
             ):
                 self.keepBands = OrderedDict(
                     [
                         (k, v)
                         for k, v in list(self.bands["BANDS"].items())
-                        if k in cfg_IOTA2.getParam("Sentinel_2_S2C", "keepBands")
+                        if k
+                        in cfg_IOTA2.getParam("Sentinel_2_S2C", "keepBands")
                     ]
                 )
                 if cfg_IOTA2.getParam("GlobChain", "features"):
                     try:
                         self.red = list(self.keepBands.keys()).index("B4")
                     except BaseException:
-                        raise Exception("red band is needed to compute features")
+                        raise Exception(
+                            "red band is needed to compute features"
+                        )
                     try:
                         self.nir = list(self.keepBands.keys()).index("B8")
                     except BaseException:
-                        raise Exception("nir band is needed to compute features")
+                        raise Exception(
+                            "nir band is needed to compute features"
+                        )
                     try:
                         self.swir = list(self.keepBands.keys()).index("B11")
                     except BaseException:
-                        raise Exception("swir band is needed to compute features")
+                        raise Exception(
+                            "swir band is needed to compute features"
+                        )
                 else:
                     self.red = self.nir = self.swir = -1
             self.nbBands = len(list(self.bands["BANDS"].keys()))
@@ -757,13 +855,21 @@ class Sentinel_2_S2C(Sensor):
         from Common import OtbAppBank as otbApp
 
         mlist = self.getList_NoDataMask()
-        border_exp = " + ".join(["im{}b1".format(i + 1) for i in range(len(mlist))])
+        border_exp = " + ".join(
+            ["im{}b1".format(i + 1) for i in range(len(mlist))]
+        )
         border_app = otbApp.CreateBandMathApplication(
-            {"il": mlist, "exp": "{}>0?1:0".format(border_exp), "pixType": "uint8"}
+            {
+                "il": mlist,
+                "exp": "{}>0?1:0".format(border_exp),
+                "pixType": "uint8",
+            }
         )
         return border_app, "", ""
 
-    def createMaskSeries_bindings(self, opath, maskC, wMode=False, logger=logger):
+    def createMaskSeries_bindings(
+        self, opath, maskC, wMode=False, logger=logger
+    ):
         """ usage : create masks temporal serie ready to use for gapfilling
         """
         from Common import OtbAppBank as otbApp

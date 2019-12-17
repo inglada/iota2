@@ -31,7 +31,9 @@ def updateDirectory(src, dst):
     for currentContent in content:
         if os.path.isfile(src + "/" + currentContent):
             if not os.path.exists(dst + "/" + currentContent):
-                shutil.copy(src + "/" + currentContent, dst + "/" + currentContent)
+                shutil.copy(
+                    src + "/" + currentContent, dst + "/" + currentContent
+                )
         if os.path.isdir(src + "/" + currentContent):
             if not os.path.exists(dst + "/" + currentContent):
                 try:
@@ -100,15 +102,19 @@ def generateOneClassificationHTML(cfgFile):
 
     file_JS.write(CS.var_Classif % (fig_id, Title, "true", Url, Layer))
     file_JS.write(
-        CS.var_Classif % ("validity", validityTitle, "false", Url, validityLayer)
+        CS.var_Classif
+        % ("validity", validityTitle, "false", Url, validityLayer)
     )
     file_JS.write(
-        CS.var_Classif % ("confidence", confidenceTitle, "false", Url, confidenceLayer)
+        CS.var_Classif
+        % ("confidence", confidenceTitle, "false", Url, confidenceLayer)
     )
 
     visible = "true"
     for imType in bing:
-        file_JS.write(CS.var_Bings % (imType, imType, visible, bingKey, imType))
+        file_JS.write(
+            CS.var_Bings % (imType, imType, visible, bingKey, imType)
+        )
         visible = "false"
 
     file_JS.write(CS.var_layerSwitcher)
@@ -160,7 +166,9 @@ var opcity = selectOpa.value;\n"
         + ' style="border: 1px solid white;float: left;width:100%"></div>'
     )
     file_HTML.write(CS.htmlTAIL)
-    file_HTML.write("<script src=" + fig_id + ".js></script>\n</body>\n</html>")
+    file_HTML.write(
+        "<script src=" + fig_id + ".js></script>\n</body>\n</html>"
+    )
     file_HTML.close()
 
 
@@ -191,7 +199,9 @@ def generateMultiClassificationHTML(cfgFile):
         AllOut.append(workingDirectory + "/" + AllClassif[num_classif].fig_out)
         AllUrl.append(AllClassif[num_classif].url)
         AllLayer.append(AllClassif[num_classif].layerName)
-        AllClassesDescriptions.append(AllClassif[num_classif].classesDescriptions)
+        AllClassesDescriptions.append(
+            AllClassif[num_classif].classesDescriptions
+        )
 
     # Step1 -> for each classification, generate one figure of results
     Allfig_id = []
@@ -207,12 +217,16 @@ def generateMultiClassificationHTML(cfgFile):
 
     file_JS.write(CS.JS_headers)
     visible = "true"
-    for url, layer, fig_id, title in zip(AllUrl, AllLayer, Allfig_id, AllTitle):
+    for url, layer, fig_id, title in zip(
+        AllUrl, AllLayer, Allfig_id, AllTitle
+    ):
         file_JS.write(CS.var_Classif % (fig_id, title, visible, url, layer))
         visible = "false"
     visible = "true"
     for imType in bing:
-        file_JS.write(CS.var_Bings % (imType, imType, visible, bingKey, imType))
+        file_JS.write(
+            CS.var_Bings % (imType, imType, visible, bingKey, imType)
+        )
         visible = "false"
 
     file_JS.write(CS.var_layerSwitcher)

@@ -77,10 +77,18 @@ def manageBlocks(
     tomerge = []
     for paths, dirs, files in os.walk(pathCrowns):
         for crown in files:
-            if "crown_" + str(tilenumber) + ".tif" in crown and "aux.xml" not in crown:
+            if (
+                "crown_" + str(tilenumber) + ".tif" in crown
+                and "aux.xml" not in crown
+            ):
                 shutil.copy(os.path.join(paths, crown), inpath)
-                crownSource = gdal.Open(os.path.join(inpath, crown), GA_ReadOnly)
-                row, col = int(crownSource.RasterYSize), int(crownSource.RasterXSize)
+                crownSource = gdal.Open(
+                    os.path.join(inpath, crown), GA_ReadOnly
+                )
+                row, col = (
+                    int(crownSource.RasterYSize),
+                    int(crownSource.RasterXSize),
+                )
                 crownSource = None
                 intervalX = np.arange(0, col, blocksize)
                 intervalY = np.arange(0, row, blocksize)
@@ -96,11 +104,16 @@ def manageBlocks(
                 for y in intervalY:
                     for x in intervalX:
                         outputTif = os.path.join(
-                            inpath, "crown%sblock%s.tif" % (tilenumber, nbblock)
+                            inpath,
+                            "crown%sblock%s.tif" % (tilenumber, nbblock),
                         )
-                        xmin, ymin = pixToGeo(os.path.join(inpath, crown), x, y)
+                        xmin, ymin = pixToGeo(
+                            os.path.join(inpath, crown), x, y
+                        )
                         xmax, ymax = pixToGeo(
-                            os.path.join(inpath, crown), x + blocksize, y + blocksize
+                            os.path.join(inpath, crown),
+                            x + blocksize,
+                            y + blocksize,
                         )
 
                         cmd = (
@@ -128,7 +141,9 @@ def manageBlocks(
                         masknd = np.isin(idx, listid[0])
                         x = labels * masknd
                         outRasterPath = os.path.join(
-                            inpath, "crown%sblock%s_masked.tif" % (tilenumber, nbblock)
+                            inpath,
+                            "crown%sblock%s_masked.tif"
+                            % (tilenumber, nbblock),
                         )
                         tomerge.append(outRasterPath)
                         arraytoRaster(x, outRasterPath, ds)
@@ -139,7 +154,10 @@ def manageBlocks(
                 # Mosaic
                 out = os.path.join(inpath, "tile_%s.tif" % (tilenumber))
                 fu.assembleTile_Merge(
-                    tomerge, int(round(ds.GetGeoTransform()[1], 0)), out, ot="Byte"
+                    tomerge,
+                    int(round(ds.GetGeoTransform()[1], 0)),
+                    out,
+                    ot="Byte",
                 )
 
                 shutil.copy(out, outpath)
@@ -152,4 +170,6 @@ def manageBlocks(
                 for fileblock in tomerge:
                     os.remove(fileblock)
 
-                logger.info("Crown raster of tile %s is now ready" % (tilenumber))
+                logger.info(
+                    "Crown raster of tile %s is now ready" % (tilenumber)
+                )

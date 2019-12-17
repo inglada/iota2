@@ -34,7 +34,10 @@ def split_vectors_by_regions(path_list):
 
     output = []
     seedVector_ = fu.sortByFirstElem(
-        [(os.path.split(vec)[-1].split("_")[seed_position], vec) for vec in path_list]
+        [
+            (os.path.split(vec)[-1].split("_")[seed_position], vec)
+            for vec in path_list
+        ]
     )
     seedVector = [seedVector for seed, seedVector in seedVector_]
 
@@ -44,7 +47,9 @@ def split_vectors_by_regions(path_list):
             for vec in currentSeed
         ]
         regionVector_sorted_ = fu.sortByFirstElem(regionVector)
-        regionVector_sorted = [r_vectors for region, r_vectors in regionVector_sorted_]
+        regionVector_sorted = [
+            r_vectors for region, r_vectors in regionVector_sorted_
+        ]
         for seed_vect_region in regionVector_sorted:
             output.append(seed_vect_region)
     return output
@@ -73,9 +78,9 @@ def tile_vectors_to_models(iota2_learning_samples_dir, sep_sar_opt=False):
         iota2_learning_samples_dir, True, "Samples_SAR_learn.sqlite"
     )
 
-    vect_to_model = split_vectors_by_regions(vectors) + split_vectors_by_regions(
-        vectors_sar
-    )
+    vect_to_model = split_vectors_by_regions(
+        vectors
+    ) + split_vectors_by_regions(vectors_sar)
     return vect_to_model
 
 
@@ -95,7 +100,9 @@ def check_duplicates(sqlite_file, logger=logger):
         sql_clause = "delete from output where ogc_fid in (select min(ogc_fid) from output group by GEOMETRY having count(*) >= 2);"
         cursor.execute(sql_clause)
         conn.commit()
-        logger.warning("{} were removed in {}".format(len(results), sqlite_file))
+        logger.warning(
+            "{} were removed in {}".format(len(results), sqlite_file)
+        )
 
 
 def cleanRepo(outputPath, logger=logger):
@@ -129,12 +136,18 @@ def vectorSamplesMerge(cfg, vectorList, logger=logger):
     outputPath = cfg.getParam("chain", "outputPath")
     cleanRepo(outputPath)
 
-    currentModel = os.path.split(vectorList[0])[-1].split("_")[regions_position]
+    currentModel = os.path.split(vectorList[0])[-1].split("_")[
+        regions_position
+    ]
     seed = (
-        os.path.split(vectorList[0])[-1].split("_")[seed_position].replace("seed", "")
+        os.path.split(vectorList[0])[-1]
+        .split("_")[seed_position]
+        .replace("seed", "")
     )
 
-    shapeOut_name = "Samples_region_" + currentModel + "_seed" + str(seed) + "_learn"
+    shapeOut_name = (
+        "Samples_region_" + currentModel + "_seed" + str(seed) + "_learn"
+    )
 
     if is_sar(vectorList[0]):
         shapeOut_name = shapeOut_name + "_SAR"
@@ -148,7 +161,8 @@ def vectorSamplesMerge(cfg, vectorList, logger=logger):
 
     check_duplicates(
         os.path.join(
-            os.path.join(outputPath, "learningSamples"), shapeOut_name + ".sqlite"
+            os.path.join(outputPath, "learningSamples"),
+            shapeOut_name + ".sqlite",
         )
     )
     # ~ for vector in vectorList:
@@ -167,7 +181,10 @@ if __name__ == "__main__":
         required=True,
     )
     parser.add_argument(
-        "-vl", help="list of vectorFiles to merge (mandatory)", dest="vl", required=True
+        "-vl",
+        help="list of vectorFiles to merge (mandatory)",
+        dest="vl",
+        required=True,
     )
 
     args = parser.parse_args()

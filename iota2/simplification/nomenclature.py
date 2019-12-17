@@ -73,9 +73,15 @@ def convertDictToList(dictnomenc):
                         dictnomenc[level][classe]["code"]
                         == dictnomenc[lastlevel][cls]["parent"]
                     ):
-                        tabclasses[idx].insert(0, dictnomenc[level][classe]["alias"])
-                        tabclasses[idx].insert(0, dictnomenc[level][classe]["color"])
-                        tabclasses[idx].insert(0, dictnomenc[level][classe]["code"])
+                        tabclasses[idx].insert(
+                            0, dictnomenc[level][classe]["alias"]
+                        )
+                        tabclasses[idx].insert(
+                            0, dictnomenc[level][classe]["color"]
+                        )
+                        tabclasses[idx].insert(
+                            0, dictnomenc[level][classe]["code"]
+                        )
                         tabclasses[idx].insert(0, classe)
         tabclasses[idx] = tuple(tabclasses[idx])
 
@@ -125,9 +131,9 @@ def getClassesFromVectorQML(qml):
                                             classe[1],
                                             [
                                                 int(x)
-                                                for x in prop.attrib["v"].split(",")[
-                                                    0:3
-                                                ]
+                                                for x in prop.attrib[
+                                                    "v"
+                                                ].split(",")[0:3]
                                             ],
                                         ]
                                     )
@@ -139,7 +145,9 @@ def getClassesFromVectorQML(qml):
             convertRGBtoHEX(tuple(x[2])),
             "".join(
                 str(
-                    unicodedata.normalize("NFKD", x[0][0:11].decode("utf-8", "ignore"))
+                    unicodedata.normalize(
+                        "NFKD", x[0][0:11].decode("utf-8", "ignore")
+                    )
                     .encode("ascii", "ignore")
                     .split()
                 )
@@ -151,7 +159,9 @@ def getClassesFromVectorQML(qml):
         line[3] = "".join(e for e in line[3] if e.isalnum())
 
     duplicates = [
-        item for item, count in list(Counter([x[3] for x in out]).items()) if count > 1
+        item
+        for item, count in list(Counter([x[3] for x in out]).items())
+        if count > 1
     ]
 
     if duplicates is not None:
@@ -286,9 +296,9 @@ class Iota2Nomenclature:
 
     def __str__(self):
 
-        return "Nomenclature : %s level(s) with %s classes for the last level" % (
-            self.level,
-            len(self),
+        return (
+            "Nomenclature : %s level(s) with %s classes for the last level"
+            % (self.level, len(self))
         )
 
     def __repr__(self):
@@ -336,7 +346,9 @@ class Iota2Nomenclature:
                         ]
                     )
                 else:
-                    raise Exception("Color already in RGB format or in unknown format")
+                    raise Exception(
+                        "Color already in RGB format or in unknown format"
+                    )
             elif typec == "HEX":
                 return get_unique(
                     [x[2] for x in list(index.get_level_values(level - 1))]
@@ -362,7 +374,9 @@ class Iota2Nomenclature:
 
         if level <= self.level and level > 0:
             index = self.setHierarchicalNomenclature(self.nomenclature)
-            return get_unique([x[1] for x in list(index.get_level_values(level - 1))])
+            return get_unique(
+                [x[1] for x in list(index.get_level_values(level - 1))]
+            )
         else:
             raise Exception("Level %s does not exists" % (level))
 
@@ -382,7 +396,9 @@ class Iota2Nomenclature:
 
         if level <= self.level and level > 0:
             index = self.setHierarchicalNomenclature(self.nomenclature)
-            return get_unique([x[3] for x in list(index.get_level_values(level - 1))])
+            return get_unique(
+                [x[3] for x in list(index.get_level_values(level - 1))]
+            )
         else:
             raise Exception("Level %s does not exists" % (level))
 
@@ -440,7 +456,9 @@ class Iota2Nomenclature:
                     )
                 )
 
-        index = MultiIndex.from_tuples([tuple(x) for x in classeslist], names=levelname)
+        index = MultiIndex.from_tuples(
+            [tuple(x) for x in classeslist], names=levelname
+        )
 
         return index
 
@@ -542,7 +560,9 @@ class Iota2Nomenclature:
 
         return tabnomenc
 
-    def createVectorQML(self, outpath, codefield, level, outlinestyle="SolidLine"):
+    def createVectorQML(
+        self, outpath, codefield, level, outlinestyle="SolidLine"
+    ):
         """Create a QML QGIS style file for vector data
 
         Parameters
@@ -635,7 +655,10 @@ class Iota2Nomenclature:
         )
         rastershader = ET.SubElement(rasterrenderer, "rastershader")
         colorrampshader = ET.SubElement(
-            rastershader, "colorrampshader", colorRampType="INTERPOLATED", clip="0"
+            rastershader,
+            "colorrampshader",
+            colorRampType="INTERPOLATED",
+            clip="0",
         )
 
         if len(self.getClass(level)) == len(self.getColor(level)):
@@ -686,7 +709,9 @@ class Iota2Nomenclature:
                 pipe, "rasterresampler", maxOversampling="2"
             )
             tree = ET.ElementTree(intro)
-            tree.write(outpath, xml_declaration=True, encoding="utf-8", method="xml")
+            tree.write(
+                outpath, xml_declaration=True, encoding="utf-8", method="xml"
+            )
 
         else:
             raise Exception(
@@ -733,7 +758,9 @@ class Iota2Nomenclature:
         """
         tabcolors = [
             [x, y[0], y[1], y[2]]
-            for x, y in zip(self.getCode(self.level), self.getColor(self.level))
+            for x, y in zip(
+                self.getCode(self.level), self.getColor(self.level)
+            )
         ]
         tabcolors.insert(0, [0, 255, 255, 255])
         tabcolors.append([255, 0, 0, 0])
@@ -749,7 +776,9 @@ class Iota2Nomenclature:
         """
         tabclasses = [
             [x.encode("utf8"), y]
-            for x, y in zip(self.getClass(self.level), self.getCode(self.level))
+            for x, y in zip(
+                self.getClass(self.level), self.getCode(self.level)
+            )
         ]
         tabclasses.append([255, "autres"])
         with open(filenom, "w") as ofile:
