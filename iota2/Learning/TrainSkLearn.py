@@ -95,10 +95,6 @@ def sk_learn(data_set: Dict[str, str],
                                                               dataset_seed_num,
                                                               suffix))
 
-    scaler_path = os.path.join(model_directory,
-                               "scaler_{}_seed_{}{}.txt".format(dataset_model_name,
-                                                                dataset_seed_num,
-                                                                suffix))
     layer_name = getLayerName(dataset_path, "SQLite")
     conn = sqlite3.connect(dataset_path)
     df_features = pd.read_sql_query("select {} from {}".format(",".join(features_labels), layer_name),
@@ -142,4 +138,3 @@ def sk_learn(data_set: Dict[str, str],
     pickle.dump((model_cv.best_estimator_, scaler), model_file)
     model_file.close()
 
-    

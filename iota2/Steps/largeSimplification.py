@@ -18,25 +18,30 @@ import os
 from Steps import IOTA2Step
 from Cluster import get_RAM
 from Common import ServiceConfigFile as SCF
+from VectorTools import vector_functions as vf
 
-class crownSearch(IOTA2Step.Step):
+class largeSimplification(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
-        resources_block_name = "crownsearch"
-        super(crownSearch, self).__init__(cfg, cfg_resources_file, resources_block_name)
+        resources_block_name = "simplification"
+        super(largeSimplification, self).__init__(cfg, cfg_resources_file, resources_block_name)
 
         # step variables
         self.RAM = 1024.0 * get_RAM(self.resources["ram"])
-        self.CPU = self.resources["cpu"]
         self.workingDirectory = workingDirectory
         self.outputPath = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
-        self.gridsize = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'gridsize')
-
+        self.grasslib = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'grasslib')
+        self.douglas = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'douglas')
+        self.outmos = os.path.join(self.outputPath, 'final', 'simplification', 'mosaic')
+        self.clipfile = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'clipfile')
+        self.clipfield = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'clipfield')        
+        self.grid = os.path.join(self.outputPath, 'final', 'simplification', 'grid.shp')
+        
     def step_description(self):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Search crown entities for serialization process")
+        description = ("Douglas-Peucker simplification (Serialisation strategy)")
         return description
 
     def step_inputs(self):
@@ -45,9 +50,9 @@ class crownSearch(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
+        listfid = vf.getFIDSpatialFilter(self.clipfile, self.grid, self.clipfield)
 
-        return list(range(self.gridsize * self.gridsize))
-    
+        return [["%s/tile_%s_%s.shp"%(self.outmos, self.clipfield, x), "%s/tile_%s_%s_douglas.shp"%(self.outmos, self.clipfield, x)] for x in listfid]
 
     def step_execute(self):
         """
@@ -57,26 +62,20 @@ class crownSearch(IOTA2Step.Step):
             the function to execute as a lambda function. The returned object
             must be a lambda function.
         """
-        from simplification import searchCrownTile as sct
+        from simplification import VectAndSimp as vas
+
         tmpdir = os.path.join(self.outputPath, 'final', 'simplification', 'tmp')
         if self.workingDirectory:
             tmpdir = self.workingDirectory
-        outfileclp = os.path.join(self.outputPath, 'final', 'simplification',
-                                  'classif_regul_clump.tif')
-        inclump = os.path.join(self.outputPath, 'final', 'simplification',
-                               'clump32bits.tif')
-        outfilegrid = os.path.join(self.outputPath, 'final', 'simplification',
-                                   'grid.shp')
-        outseria = os.path.join(self.outputPath, 'final', 'simplification',
-                                'tiles') 
-        step_function = lambda x: sct.searchCrownTile(tmpdir,
-                                                      outfileclp,
-                                                      inclump,
-                                                      self.RAM,
-                                                      outfilegrid,
-                                                      outseria,
-                                                      self.CPU,
-                                                      x)
+
+
+        step_function = lambda x: vas.generalizeVector(tmpdir,
+                                                       self.grasslib,
+                                                       x[0],
+                                                       self.douglas,
+                                                       "douglas",
+                                                       out=x[1])
+
         return step_function
 
     def step_outputs(self):

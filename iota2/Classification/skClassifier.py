@@ -15,26 +15,82 @@
 # =========================================================================
 import logging
 import numpy as np
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 from iota2.Common.Utils import time_it
 
 logger = logging.getLogger(__name__)
 
 
-def do_predict(array, model, dtype="float"):
+def sk_classifications_to_merge(iota2_classif_directory: str) -> List[Dict[str, List[str]]]:
+    """feed function
+
+    Parameters
+    ----------
+    iota2_classif_directory : str
+        iota2's classification directory
+
+    TODO : manage probability map
+    """
+    import os
+    from iota2.Common.FileUtils import FileSearch_AND
+    from iota2.Common.FileUtils import sortByFirstElem
+
+    model_pos_classif = 3
+    seed_pos_classif = 5
+    tile_pos_classif = 1
+
+    model_pos_confidence = 2
+    seed_pos_confidence = 5
+    tile_pos_confidence = 0
+
+    rasters_to_merge = []
+
+    classifications = FileSearch_AND(iota2_classif_directory,
+                                     True,
+                                     "Classif", "_model_", "_seed_", "_SUBREGION_", ".tif")
+    classif_to_merge = []
+    for classification in classifications:
+        model = os.path.basename(classification).split("_")[model_pos_classif]
+        seed = os.path.basename(classification).split("_")[seed_pos_classif]
+        tile_name = os.path.basename(classification).split("_")[tile_pos_classif]
+        classif_to_merge.append(((model, seed, tile_name), classification))
+    classif_to_merge = sortByFirstElem(classif_to_merge)
+
+    confidences = FileSearch_AND(iota2_classif_directory,
+                                 True,
+                                 "_model_", "confidence", "_seed_", "_SUBREGION_", ".tif")
+    confidences_to_merge = []
+    for confidence in confidences:
+        model = os.path.basename(confidence).split("_")[model_pos_confidence]
+        seed = os.path.basename(confidence).split("_")[seed_pos_confidence]
+        tile_name = os.path.basename(confidence).split("_")[tile_pos_confidence]
+        confidences_to_merge.append(((model, seed, tile_name), confidence))
+    confidences_to_merge = sortByFirstElem(confidences_to_merge)
+
+    if not len(classif_to_merge) == len(confidences_to_merge):
+        raise ValueError("number of classification to merge : {} is different than number of confidence to merge : {}".format(len(classif_to_merge), len(confidences_to_merge)))
+    for (model_name, seed_num, tile_name), classif_list in classif_to_merge:
+        output_dir, _ = os.path.split(classif_list[0])
+        classif_name = "_".join(["Classif", tile_name, "model", model_name, "seed", seed_num]) + ".tif"
+        rasters_to_merge.append({"rasters_list": classif_list,
+                                 "merge_path": os.path.join(output_dir, classif_name)})
+    for (model_name, seed_num, tile_name), confidence_list in confidences_to_merge:
+        output_dir, _ = os.path.split(confidence_list[0])
+        confidence_name = "_".join([tile_name, "model", model_name, "confidence", "seed", seed_num]) + ".tif"
+        rasters_to_merge.append({"rasters_list": confidence_list,
+                                 "merge_path": os.path.join(output_dir, confidence_name)})
+    return rasters_to_merge
+
+
+def do_predict(array, model, scaler, dtype="float"):
     """
     """
-    import numpy as np
-    # ~ TODO : is there a more effective way to invoke model.predict_proba ?
-
-    def wrapper(*args, **kwargs):
-        return model.predict_proba([args[0]])
-
-    predicted_array = np.apply_along_axis(func1d=wrapper, axis=-1, arr=array)
-    predicted_array = np.reshape(predicted_array, (predicted_array.shape[0],
-                                                   predicted_array.shape[1],
-                                                   predicted_array.shape[-1]))
+    array_reshaped = array.reshape((array.shape[0] * array.shape[1]), array.shape[2])
+    predicted_array = model.predict_proba(scaler.transform(array_reshaped))
+    predicted_array = predicted_array.reshape(array.shape[0],
+                                              array.shape[1],
+                                              predicted_array.shape[-1])
     return predicted_array.astype(dtype)
 
 
@@ -51,21 +107,20 @@ def proba_to_label(proba_map: np.ndarray,
                    labels: List[int],
                    transform,
                    epsg_code: int,
-                   mask_path: Optional[str]=None) -> np.ndarray:
+                   mask_arr: Optional[np.ndarray] = None) -> np.ndarray:
     """
     """
     import rasterio
     import numpy as np
     from sklearn.preprocessing import binarize
-    from iota2.Tests.UnitTests.TestsUtils import rasterToArray
+
     labels_map = np.apply_along_axis(func1d=get_class,
                                      axis=0,
                                      arr=proba_map,
                                      labels=labels)
     labels_map = labels_map.astype("int32")
     labels_map = np.expand_dims(labels_map, axis=0)
-    if mask_path is not None:
-        mask_arr = rasterToArray(mask_path)
+    if mask_arr is not None:
         mask_arr = binarize(mask_arr)
         labels_map = labels_map * mask_arr
 
@@ -109,7 +164,8 @@ def probabilities_to_max_proba(proba_map: np.ndarray,
 
 def predict(mask: str, model: str, stat: str, out_classif: str, out_confidence: str,
             out_proba: str, working_dir: str, configuration_file: str, pixel_type: str,
-            ram: int, logger=logger) -> None:
+            number_of_chunks: Optional[int] = None, targeted_chunk: Optional[int] = None,
+            ram: Optional[int] = 128, logger=logger) -> None:
     """
     """
     import os
@@ -123,9 +179,13 @@ def predict(mask: str, model: str, stat: str, out_classif: str, out_confidence: 
     from iota2.Common.FileUtils import findCurrentTileInString
 
     with open(model, 'rb') as model_file:
-        model = pickle.load(model_file)
+        model, scaler = pickle.load(model_file)
 
-    function_partial = partial(do_predict, model=model)
+    if number_of_chunks and targeted_chunk:
+        if targeted_chunk > number_of_chunks - 1:
+            raise ValueError("targeted_chunk must be inferior to the number of chunks")
+
+    function_partial = partial(do_predict, model=model, scaler=scaler)
 
     cfg = serviceConf.serviceConfigFile(configuration_file)
     tile_name = findCurrentTileInString(mask, cfg.getParam("chain", "listTile").split(" "))
@@ -138,20 +198,31 @@ def predict(mask: str, model: str, stat: str, out_classif: str, out_confidence: 
     # ~ Then we have to compute the full probability vector to get the maximum
     # ~ confidence and generate the confidence map
 
-    predicted_proba, _, transform, epsg = rasterU.apply_function(feat_stack,
-                                                                 feat_labels,
-                                                                 working_dir,
-                                                                 function_partial,
-                                                                 out_proba,
-                                                                 mask=mask,
-                                                                 mask_value=0,
-                                                                 chunk_size_mode="auto",
-                                                                 chunck_size_x=5,
-                                                                 chunck_size_y=5,
-                                                                 ram=ram)
+    predicted_proba, _, transform, epsg, masks = rasterU.apply_function(feat_stack,
+                                                                        feat_labels,
+                                                                        working_dir,
+                                                                        function_partial,
+                                                                        out_proba,
+                                                                        mask=mask,
+                                                                        mask_value=0,
+                                                                        chunk_size_mode="split_number",
+                                                                        number_of_chunks=number_of_chunks,
+                                                                        targeted_chunk=targeted_chunk,
+                                                                        output_number_of_bands=len(model.classes_),
+                                                                        ram=ram)
+
     logger.info("predictions done")
+    if len(masks) > 1:
+        raise ValueError("Only one mask is expected")
+
+    # ~ print("predicted_proba.shape : {}".format(predicted_proba))
+    if targeted_chunk is not None:
+        out_classif = out_classif.replace(".tif", "_SUBREGION_{}.tif".format(targeted_chunk))
+        out_confidence = out_confidence.replace(".tif", "_SUBREGION_{}.tif".format(targeted_chunk))
+
     proba_to_label(predicted_proba, out_classif,
-                   model.classes_, transform, epsg, mask)
+                   model.classes_, transform,
+                   epsg, masks[0])
     probabilities_to_max_proba(predicted_proba, transform, epsg, out_confidence)
 
     if working_dir:

@@ -63,9 +63,11 @@ def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectforma
     # Check if shapefile (and convert in sqlite) or sqlite inputs
     if os.path.splitext(os.path.basename(t1))[1] == '.sqlite':
         t1type = vf.getGeomType(t1, "SQLite")
+        if t1type == 0:
+            t1type = vf.getGeomTypeFromFeat(t1, "SQLite")
         cursor.execute("ATTACH '%s' as db1;"%(t1))
     elif os.path.splitext(os.path.basename(t1))[1] == '.shp':
-        t1type = vf.getGeomType(t1)
+        t1type = vf.getGeomType(t1)           
         t1sqlite = os.path.join(tmp, layert1 + '.sqlite')
         if os.path.exists(t1sqlite):
             os.remove(t1sqlite)
@@ -79,6 +81,9 @@ def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectforma
     if os.path.splitext(os.path.basename(t2))[1] == '.sqlite':
         cursor.execute("ATTACH '%s' as db2;"%(t2))
         t2type = vf.getGeomType(t2, "SQLite")
+        if t2type == 0:
+            t2type = vf.getGeomTypeFromFeat(t2, "SQLite")
+
     elif os.path.splitext(os.path.basename(t2))[1] == '.shp':
         t2type = vf.getGeomType(t2)
         t2sqlite = os.path.join(tmp, layert2 + '.sqlite')
@@ -121,9 +126,9 @@ def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectforma
     cursor.execute("drop table tmpt2")
     cursor.execute('create table t1 (fid integer not null primary key autoincrement);')
     point1 = point2 = False
-    if t1type in (3, 6, 1003, 1006):
+    if t1type in (3, 6, 1003, 1006, 'POLYGON', 'MULTIPOLYGON'):
         cursor.execute('select AddGeometryColumn("t1", "geometry", %s, "MULTIPOLYGON", 2)'%(epsg))
-    elif t1type in (1, 4, 1001, 1004):
+    elif t1type in (1, 4, 1001, 1004, 'POINT', 'MULTIPOINT'):
         cursor.execute('select AddGeometryColumn("t1", "geometry", %s, "MULTIPOINT", 2)'%(epsg))
         point1 = True
     else:
@@ -251,8 +256,8 @@ def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectforma
     if os.path.splitext(os.path.basename(output))[1] == '.shp' and vectformat == 'SQLite':
         vectformat = "ESRI Shapefile"
 
-    cursor.execute("pragma table_info({})".format(layerout))
-    cursor.execute("select * from {} limit 1".format(layerout))
+    cursor.execute("pragma table_info('{}')".format(layerout))
+    cursor.execute("select * from '{}' limit 1".format(layerout))
     nb_features = cursor.fetchall()
     
     #check if there is intersection, if not return False and remove tmp files
@@ -264,13 +269,13 @@ def intersectSqlites(t1, t2, tmp, output, epsg, operation, keepfields, vectforma
 
     database = cursor = None
     if point1 or point2:        
-        os.system('ogr2ogr -explodecollections -nlt POINT -f "%s" -sql "select * from %s" %s %s -nln %s'%(vectformat,
+        os.system('ogr2ogr -explodecollections -nlt POINT -f "%s" -sql "select * from \"%s\"" %s %s -nln %s'%(vectformat,
                                                                                                             layerout,
                                                                                                             output,
                                                                                                             os.path.join(tmp, 'tmp%s.sqlite'%(layerout)),
                                                                                                             layerout))
     else:
-        os.system('ogr2ogr -explodecollections -nlt POLYGON -f "%s" -sql "select * from %s" %s %s -nln %s'%(vectformat,
+        os.system('ogr2ogr -explodecollections -nlt POLYGON -f "%s" -sql "select * from \"%s\"" %s %s -nln %s'%(vectformat,
                                                                                                             layerout,
                                                                                                             output,
                                                                                                             os.path.join(tmp, 'tmp%s.sqlite'%(layerout)),
