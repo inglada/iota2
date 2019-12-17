@@ -134,7 +134,7 @@ class Sentinel_2_S2C(Sensor):
         if size == 10:
             target_dir, _ = os.path.split(FileSearch_AND(date_dir, True, "10m.jp2")[0])
         elif size == 20:
-            target_dir, _ = os.path.split(FileSearch_AND(date_dir, True, "20m.jp2")[0])
+            target_dir, _ = os.path.split(FileSearch_AND(date_dir, True, "B02_20m.jp2")[0])
         else:
             raise Exception ("size not in [10, 20]")
         return target_dir
