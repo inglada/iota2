@@ -81,6 +81,7 @@ def sk_learn(data_set: Dict[str, str],
     from iota2.VectorTools.vector_functions import getLayerName
 
     from sklearn.model_selection import GridSearchCV
+    from sklearn.preprocessing import StandardScaler
     
     model_name = kwargs["model_type"]
     del kwargs["model_type"]
@@ -93,6 +94,11 @@ def sk_learn(data_set: Dict[str, str],
                               "model_{}_seed_{}{}.txt".format(dataset_model_name,
                                                               dataset_seed_num,
                                                               suffix))
+
+    scaler_path = os.path.join(model_directory,
+                               "scaler_{}_seed_{}{}.txt".format(dataset_model_name,
+                                                                dataset_seed_num,
+                                                                suffix))
     layer_name = getLayerName(dataset_path, "SQLite")
     conn = sqlite3.connect(dataset_path)
     df_features = pd.read_sql_query("select {} from {}".format(",".join(features_labels), layer_name),
@@ -102,14 +108,19 @@ def sk_learn(data_set: Dict[str, str],
     df_labels = pd.read_sql_query("select {} from {}".format(data_field, layer_name),
                                   conn)
     labels_values = np.ravel(df_labels.to_numpy())
-    clf, parameters = model_name_to_function(model_name, **kwargs) 
+    clf, parameters = model_name_to_function(model_name, **kwargs)
+
+    # Standardization
+    scaler = StandardScaler()
+    scaler.fit(features_values)  # TODO: if regression, we have to scale also labels_values
+    features_values_scaled = scaler.transform(features_values)
 
     # Cross validation
     model_cv = GridSearchCV(clf(),
                             parameters,
                             n_jobs=-1,
                             cv=5)
-    model_cv.fit(features_values, labels_values)
+    model_cv.fit(features_values_scaled, labels_values)
 
     # Save CV output
     with open("cv_results.txt", "w") as cv_results:
@@ -130,3 +141,7 @@ def sk_learn(data_set: Dict[str, str],
     model_file = open(model_path, 'wb')
     pickle.dump(model_cv.best_estimator_, model_file)
     model_file.close()
+
+    # Save scaler
+    with open(scaler_path, 'wb') as scaler_file:
+        pickle.dump(scaler, scaler_file)
