@@ -46,12 +46,24 @@ def model_name_to_function(model_name: str):
     """
     from sklearn.ensemble import RandomForestClassifier
     from sklearn.ensemble import ExtraTreesClassifier
-    dico = {"RandomForestClassifier": RandomForestClassifier,
-            "ExtraTreesClassifier": ExtraTreesClassifier}
-    if model_name not in dico:
+    from sklearn.svm import SVC
+    dico_clf = {"RandomForestClassifier": RandomForestClassifier,
+                "ExtraTreesClassifier": ExtraTreesClassifier,
+                "SupportVectorClassification": SVC}
+    dico_param = {"SupportVectorClassification": {'kernel': ['rbf'],
+                                                  'gamma': [0.0625, 0.125,
+                                                            0.25, 0.5, 1,
+                                                            2, 4, 8, 16],
+                                                  'C': [1, 10, 100, 1000]},
+                  "RandomForestClassifier": {'n_estimators': [50, 100, 200,
+                                                            400, 600]},
+                  "ExtraTreesClassifier": {'n_estimators': [50, 100, 200,
+                                                          400, 600]}}
+
+    if model_name not in dico_clf:
         raise ValueError("{} not suported in iota2 sklearn models : {}".format(model_name,
-                                                                               ", ".join(dico.keys())))
-    return dico[model_name]
+                                                                               ", ".join(dico_clf.keys())))
+    return dico_clf[model_name], dico_param[model_name]
 
 
 def sk_learn(data_set: Dict[str, str],
@@ -68,6 +80,9 @@ def sk_learn(data_set: Dict[str, str],
 
     from iota2.VectorTools.vector_functions import getLayerName
 
+    from sklearn.model_selection import GridSearchCV
+    from sklearn.preprocessing import StandardScaler
+    
     model_name = kwargs["model_type"]
     del kwargs["model_type"]
     dataset_path = data_set["learning_file"]
@@ -79,6 +94,11 @@ def sk_learn(data_set: Dict[str, str],
                               "model_{}_seed_{}{}.txt".format(dataset_model_name,
                                                               dataset_seed_num,
                                                               suffix))
+
+    scaler_path = os.path.join(model_directory,
+                               "scaler_{}_seed_{}{}.txt".format(dataset_model_name,
+                                                                dataset_seed_num,
+                                                                suffix))
     layer_name = getLayerName(dataset_path, "SQLite")
     conn = sqlite3.connect(dataset_path)
     df_features = pd.read_sql_query("select {} from {}".format(",".join(features_labels), layer_name),
@@ -88,9 +108,40 @@ def sk_learn(data_set: Dict[str, str],
     df_labels = pd.read_sql_query("select {} from {}".format(data_field, layer_name),
                                   conn)
     labels_values = np.ravel(df_labels.to_numpy())
-    clf = model_name_to_function(model_name)(**kwargs)
-    clf.fit(features_values, labels_values)
+    clf, parameters = model_name_to_function(model_name, **kwargs)
 
+    # Standardization
+    scaler = StandardScaler()
+    scaler.fit(features_values)  # TODO: if regression, we have to scale also labels_values
+    features_values_scaled = scaler.transform(features_values)
+
+    # Cross validation
+    model_cv = GridSearchCV(clf(),
+                            parameters,
+                            n_jobs=-1,
+                            cv=5)
+    model_cv.fit(features_values_scaled, labels_values)
+
+    # Save CV output
+    with open("cv_results.txt", "w") as cv_results:
+        cv_results.write("Best Score: {}\n".format(model_cv.best_score_))
+        cv_results.write("Best Parameters:\n")
+        cv_results.write("{}\n\n".format(model_cv.best_params_))
+
+        means = model_cv.cv_results_['mean_test_score']
+        stds = model_cv.cv_results_['std_test_score']
+        for mean, std, params in zip(means,
+                                     stds,
+                                     model_cv.cv_results_['params']):
+            cv_results.write("{0} (+/- {1}) for {2}\n".format(mean,
+                                                           2*std,
+                                                           params))
+
+    # Save model
     model_file = open(model_path, 'wb')
-    pickle.dump(clf, model_file)
+    pickle.dump(model_cv.best_estimator_, model_file)
     model_file.close()
+
+    # Save scaler
+    with open(scaler_path, 'wb') as scaler_file:
+        pickle.dump(scaler, scaler_file)
