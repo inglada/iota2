@@ -22,41 +22,68 @@ from Common import FileUtils as fut
 logger = logging.getLogger(__name__)
 
 
-def compute_fusion_options(iota2_dir_final, final_classifications, method,
-                           undecidedlabel, dempstershafer_mob, pixType,
-                           fusion_path):
+def compute_fusion_options(
+    iota2_dir_final,
+    final_classifications,
+    method,
+    undecidedlabel,
+    dempstershafer_mob,
+    pixType,
+    fusion_path,
+):
     """ use to determine fusion parameters
     """
 
     if method == "majorityvoting":
-        options = {"il": final_classifications,
-                   "method": method,
-                   "nodatalabel": "0",
-                   "undecidedlabel": str(undecidedlabel),
-                   "pixType": pixType,
-                   "out": fusion_path}
+        options = {
+            "il": final_classifications,
+            "method": method,
+            "nodatalabel": "0",
+            "undecidedlabel": str(undecidedlabel),
+            "pixType": pixType,
+            "out": fusion_path,
+        }
     else:
-        confusionSeed = sorted([fut.FileSearch_AND(os.path.join(iota2_dir_final, "TMP"),
-                                                   True,
-                                                   "Classif_Seed_{}.csv".format(run))[0] for run in range(len(final_classifications))])
+        confusionSeed = sorted(
+            [
+                fut.FileSearch_AND(
+                    os.path.join(iota2_dir_final, "TMP"),
+                    True,
+                    "Classif_Seed_{}.csv".format(run),
+                )[0]
+                for run in range(len(final_classifications))
+            ]
+        )
         final_classifications.sort()
-        options = {"il": final_classifications,
-                   "method": "dempstershafer",
-                   "nodatalabel": "0",
-                   "undecidedlabel": str(undecidedlabel),
-                   "method.dempstershafer.mob": dempstershafer_mob,
-                   "method.dempstershafer.cmfl": confusionSeed,
-                   "pixType": pixType,
-                   "out": fusion_path}
+        options = {
+            "il": final_classifications,
+            "method": "dempstershafer",
+            "nodatalabel": "0",
+            "undecidedlabel": str(undecidedlabel),
+            "method.dempstershafer.mob": dempstershafer_mob,
+            "method.dempstershafer.cmfl": confusionSeed,
+            "pixType": pixType,
+            "out": fusion_path,
+        }
     return options
 
 
-def mergeFinalClassifications(iota2_dir, dataField, nom_path, colorFile,
-                              runs=1, pixType='uint8', method="majorityvoting",
-                              undecidedlabel=255, dempstershafer_mob="precision",
-                              keep_runs_results=True, enableCrossValidation=False,
-                              validationShape=None,
-                              workingDirectory=None, logger=logger):
+def mergeFinalClassifications(
+    iota2_dir,
+    dataField,
+    nom_path,
+    colorFile,
+    runs=1,
+    pixType="uint8",
+    method="majorityvoting",
+    undecidedlabel=255,
+    dempstershafer_mob="precision",
+    keep_runs_results=True,
+    enableCrossValidation=False,
+    validationShape=None,
+    workingDirectory=None,
+    logger=logger,
+):
     """function use to merge classifications by majorityvoting or dempstershafer's method and evaluate it.
 
     get all classifications Classif_Seed_*.tif in the /final directory and fusion them
@@ -126,66 +153,89 @@ def mergeFinalClassifications(iota2_dir, dataField, nom_path, colorFile,
         wd = workingDirectory
         wd_merge = workingDirectory
 
-    final_classifications = [fut.FileSearch_AND(
-        iota2_dir_final, True, "Classif_Seed_{}.tif".format(run))[0] for run in range(runs)]
+    final_classifications = [
+        fut.FileSearch_AND(iota2_dir_final, True, "Classif_Seed_{}.tif".format(run))[0]
+        for run in range(runs)
+    ]
     fusion_path = os.path.join(wd, fusion_name)
 
-    fusion_options = compute_fusion_options(iota2_dir_final, final_classifications,
-                                            method, undecidedlabel,
-                                            dempstershafer_mob, pixType,
-                                            fusion_path)
+    fusion_options = compute_fusion_options(
+        iota2_dir_final,
+        final_classifications,
+        method,
+        undecidedlabel,
+        dempstershafer_mob,
+        pixType,
+        fusion_path,
+    )
     logger.debug("fusion options:")
     logger.debug(fusion_options)
-    fusion_app = otbApp.CreateFusionOfClassificationsApplication(
-        fusion_options)
+    fusion_app = otbApp.CreateFusionOfClassificationsApplication(fusion_options)
     logger.debug("START fusion of final classifications")
     fusion_app.ExecuteAndWriteOutput()
     logger.debug("END fusion of final classifications")
 
-    fusion_color_index = color.CreateIndexedColorImage(fusion_path,
-                                                       colorFile,
-                                                       co_option=[
-                                                           "COMPRESS=LZW"],
-                                                       output_pix_type=gdal.GDT_Byte if pixType == "uint8" else gdal.GDT_UInt16)
+    fusion_color_index = color.CreateIndexedColorImage(
+        fusion_path,
+        colorFile,
+        co_option=["COMPRESS=LZW"],
+        output_pix_type=gdal.GDT_Byte if pixType == "uint8" else gdal.GDT_UInt16,
+    )
 
     confusion_matrix = os.path.join(
-        iota2_dir_final, "merge_final_classifications", "confusion_mat_maj_vote.csv")
+        iota2_dir_final, "merge_final_classifications", "confusion_mat_maj_vote.csv"
+    )
     if enableCrossValidation is False:
-        vector_val = fut.FileSearch_AND(os.path.join(
-            iota2_dir_final, "merge_final_classifications"), True, "_majvote.sqlite")
+        vector_val = fut.FileSearch_AND(
+            os.path.join(iota2_dir_final, "merge_final_classifications"),
+            True,
+            "_majvote.sqlite",
+        )
     else:
-        vector_val = fut.FileSearch_AND(os.path.join(
-            iota2_dir, "dataAppVal"), True, "val.sqlite")
+        vector_val = fut.FileSearch_AND(
+            os.path.join(iota2_dir, "dataAppVal"), True, "val.sqlite"
+        )
     if validationShape:
         validation_vector = validationShape
     else:
         fut.mergeSQLite(fusion_vec_name, wd_merge, vector_val)
         validation_vector = os.path.join(wd_merge, fusion_vec_name + ".sqlite")
 
-    confusion = otbApp.CreateComputeConfusionMatrixApplication({"in": fusion_path,
-                                                                "out": confusion_matrix,
-                                                                "ref": "vector",
-                                                                "ref.vector.nodata": "0",
-                                                                "ref.vector.in": validation_vector,
-                                                                "ref.vector.field": dataField.lower(),
-                                                                "nodatalabel": "0",
-                                                                "ram": "5000"})
+    confusion = otbApp.CreateComputeConfusionMatrixApplication(
+        {
+            "in": fusion_path,
+            "out": confusion_matrix,
+            "ref": "vector",
+            "ref.vector.nodata": "0",
+            "ref.vector.in": validation_vector,
+            "ref.vector.field": dataField.lower(),
+            "nodatalabel": "0",
+            "ram": "5000",
+        }
+    )
     confusion.ExecuteAndWriteOutput()
 
     maj_vote_conf_mat = os.path.join(iota2_dir_final, confusion_matrix_name)
-    ru.gen_confusion_matrix_fig(csv_in=confusion_matrix, out_png=maj_vote_conf_mat,
-                                nomenclature_path=nom_path, undecidedlabel=undecidedlabel, dpi=900)
+    ru.gen_confusion_matrix_fig(
+        csv_in=confusion_matrix,
+        out_png=maj_vote_conf_mat,
+        nomenclature_path=nom_path,
+        undecidedlabel=undecidedlabel,
+        dpi=900,
+    )
 
     if keep_runs_results:
-        seed_results = fut.FileSearch_AND(
-            iota2_dir_final, True, "RESULTS.txt")[0]
-        shutil.copy(seed_results, os.path.join(
-            iota2_dir_final, new_results_seed_file))
+        seed_results = fut.FileSearch_AND(iota2_dir_final, True, "RESULTS.txt")[0]
+        shutil.copy(seed_results, os.path.join(iota2_dir_final, new_results_seed_file))
 
     maj_vote_report = os.path.join(iota2_dir_final, "RESULTS.txt")
 
-    ru.stats_report(csv_in=[confusion_matrix], nomenclature_path=nom_path, out_report=maj_vote_report,
-                    undecidedlabel=undecidedlabel)
+    ru.stats_report(
+        csv_in=[confusion_matrix],
+        nomenclature_path=nom_path,
+        out_report=maj_vote_report,
+        undecidedlabel=undecidedlabel,
+    )
 
     if workingDirectory:
         shutil.copy(fusion_path, iota2_dir_final)

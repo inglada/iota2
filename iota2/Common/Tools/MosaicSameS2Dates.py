@@ -14,12 +14,14 @@
 #
 # =========================================================================
 
-#import random
+# import random
 import os
-#from sys import argv
+
+# from sys import argv
 import argparse
 import shutil
-#from collections import defaultdict
+
+# from collections import defaultdict
 import osr
 import gdal
 from osgeo.gdalconst import *
@@ -56,8 +58,7 @@ def FileSearch_fast(PathToFolder, AllPath, *names):
         for i in range(len(files)):
             flag = 0
             for name in names:
-                if files[i].count(name) != 0 and files[i].count(
-                        ".aux.xml") == 0:
+                if files[i].count(name) != 0 and files[i].count(".aux.xml") == 0:
                     flag += 1
             if flag == len(names):
                 # if not AllPath:
@@ -66,7 +67,7 @@ def FileSearch_fast(PathToFolder, AllPath, *names):
                 #    return path+'/'+files[i]
                 retour = files[i].split(".")[0]
                 if AllPath:
-                    retour = path + '/' + files[i]
+                    retour = path + "/" + files[i]
                 return retour
 
 
@@ -96,7 +97,7 @@ def priorityOrigin(item):
         OUT :
             return tile origin (upper left corner) in order to manage tile's priority
     """
-    return(-item[2], item[1])  # upper left priority
+    return (-item[2], item[1])  # upper left priority
 
 
 def sortTiles(paths):
@@ -121,8 +122,9 @@ def addLineToFile(inputFile, line):
     svgFile.close()
 
 
-def launchFit(noDataM, noDataR, tileFolder, currentTile,
-              sensorName, S2Folder, S2Bands, masks):
+def launchFit(
+    noDataM, noDataR, tileFolder, currentTile, sensorName, S2Folder, S2Bands, masks
+):
     S2Bands = S2Bands + masks
     noDataM = dict(list(zip(masks, noDataM)))
     try:
@@ -145,8 +147,7 @@ def launchFit(noDataM, noDataR, tileFolder, currentTile,
             AllTiles = []
             for currentFolder in currentSameDate:
                 print(currentFolder)
-                path = FileSearch_fast(
-                    currentFolder, True, currentBand, ".tif")
+                path = FileSearch_fast(currentFolder, True, currentBand, ".tif")
                 tile = path.split("/")[-1].split("_")[-1].replace(".tif", "")
                 X, Y, inEPSG = getTileOrigin(tile, S2Folder)
                 X_conv, Y_conv = converCoord((X, Y), inEPSG, 2154)
@@ -160,15 +161,29 @@ def launchFit(noDataM, noDataR, tileFolder, currentTile,
                 if t not in AllTiles:
                     AllTiles.append(t)
 
-            outFolder = tileFolder + "/" + currentDestTile + "/" + sensorName + \
-                "_" + currentDestTile + "_" + \
-                currentDate + "_" + "_".join(AllTiles)
+            outFolder = (
+                tileFolder
+                + "/"
+                + currentDestTile
+                + "/"
+                + sensorName
+                + "_"
+                + currentDestTile
+                + "_"
+                + currentDate
+                + "_"
+                + "_".join(AllTiles)
+            )
             initVal = noDataR
             if currentBand in masks:
                 outFolder = outFolder + "/MASKS"
                 initVal = noDataM[currentBand]
-            outName = "_".join(buf[cpt][0][0].split(
-                "/")[-1].split("_")[0:-1]) + "_" + "_".join(AllTiles) + ".tif"
+            outName = (
+                "_".join(buf[cpt][0][0].split("/")[-1].split("_")[0:-1])
+                + "_"
+                + "_".join(AllTiles)
+                + ".tif"
+            )
             # case 2 acquisitions same day -> remove hours information
             tmp = []
             tmpList = outName.split("_")
@@ -182,56 +197,139 @@ def launchFit(noDataM, noDataR, tileFolder, currentTile,
             if not os.path.exists(outFolder):
                 os.mkdir(outFolder)
             priorityPaths = " ".join(
-                [currentPath for currentPath, X, Y in sortTiles(buf[cpt])])
+                [currentPath for currentPath, X, Y in sortTiles(buf[cpt])]
+            )
             if not os.path.exists(outFolder + "/" + outName):
                 workingFolder = outFolder
                 if workingDirectory:
                     workingFolder = workingDirectory
-                cmd = "gdal_merge.py -init " + \
-                    str(initVal) + " -n " + str(initVal) + " -o " + \
-                    workingFolder + "/" + outName + " " + priorityPaths
-                cmd2 = "gdal_merge.py -init " + str(initVal) + " -n " + str(
-                    initVal) + " -o " + workingFolder + "/" + outName + " " + priorityPaths + " | " + outFolder + "/" + outName
+                cmd = (
+                    "gdal_merge.py -init "
+                    + str(initVal)
+                    + " -n "
+                    + str(initVal)
+                    + " -o "
+                    + workingFolder
+                    + "/"
+                    + outName
+                    + " "
+                    + priorityPaths
+                )
+                cmd2 = (
+                    "gdal_merge.py -init "
+                    + str(initVal)
+                    + " -n "
+                    + str(initVal)
+                    + " -o "
+                    + workingFolder
+                    + "/"
+                    + outName
+                    + " "
+                    + priorityPaths
+                    + " | "
+                    + outFolder
+                    + "/"
+                    + outName
+                )
                 AllCmd.append(cmd)
                 addLineToFile(cmdPath, cmd2)
 
                 run(cmd)
                 if workingDirectory:
-                    shutil.copy(workingFolder + "/" + outName,
-                                outFolder + "/" + outName)
+                    shutil.copy(
+                        workingFolder + "/" + outName, outFolder + "/" + outName
+                    )
                     os.remove(workingFolder + "/" + outName)
             cpt += 1
-    #fu.writeCmds(cmdPath1, AllCmd, mode="w")
+    # fu.writeCmds(cmdPath1, AllCmd, mode="w")
 
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="")
-    parser.add_argument("-tiles.folder", dest="tileFolder",
-                        help="path to the folder which contain all tile's folder", default=None, required=True)
-    parser.add_argument("-current.tile", dest="currentTile",
-                        help="tile to be process (must refers to a folder)", default=None, required=True)
-    parser.add_argument("-sensor.name", dest="sensorName",
-                        help="", default=None, required=True)
-    parser.add_argument("-raw.folder", dest="S2Folder",
-                        help="folder which raw datas, before any process", default=None, required=True)
-    parser.add_argument("-raster.bands", nargs='+', dest="S2Bands",
-                        help="all bands to be process without data's mask", default=None, required=True)
-    parser.add_argument("-raster.masks", nargs='+', dest="masks",
-                        help="data's mask", default=None, required=True)
-    parser.add_argument("-bands.noData", dest="noDataR",
-                        help="no data's value in bands raster", default=None, required=True)
-    parser.add_argument("-masks.noData", nargs='+', dest="noDataM",
-                        help="no data's value in masks (respect raster.masks order)", default=None, required=True)
-    parser.add_argument("-cmd.path", dest="cmdPath",
-                        help="path to a saving file", default=None, required=True)
-    parser.add_argument("-date.position", dest="rasterPosDate",
-                        help="date position in raster name if split by '_' and start counting by 0", type=int, default=None, required=True)
+    parser.add_argument(
+        "-tiles.folder",
+        dest="tileFolder",
+        help="path to the folder which contain all tile's folder",
+        default=None,
+        required=True,
+    )
+    parser.add_argument(
+        "-current.tile",
+        dest="currentTile",
+        help="tile to be process (must refers to a folder)",
+        default=None,
+        required=True,
+    )
+    parser.add_argument(
+        "-sensor.name", dest="sensorName", help="", default=None, required=True
+    )
+    parser.add_argument(
+        "-raw.folder",
+        dest="S2Folder",
+        help="folder which raw datas, before any process",
+        default=None,
+        required=True,
+    )
+    parser.add_argument(
+        "-raster.bands",
+        nargs="+",
+        dest="S2Bands",
+        help="all bands to be process without data's mask",
+        default=None,
+        required=True,
+    )
+    parser.add_argument(
+        "-raster.masks",
+        nargs="+",
+        dest="masks",
+        help="data's mask",
+        default=None,
+        required=True,
+    )
+    parser.add_argument(
+        "-bands.noData",
+        dest="noDataR",
+        help="no data's value in bands raster",
+        default=None,
+        required=True,
+    )
+    parser.add_argument(
+        "-masks.noData",
+        nargs="+",
+        dest="noDataM",
+        help="no data's value in masks (respect raster.masks order)",
+        default=None,
+        required=True,
+    )
+    parser.add_argument(
+        "-cmd.path",
+        dest="cmdPath",
+        help="path to a saving file",
+        default=None,
+        required=True,
+    )
+    parser.add_argument(
+        "-date.position",
+        dest="rasterPosDate",
+        help="date position in raster name if split by '_' and start counting by 0",
+        type=int,
+        default=None,
+        required=True,
+    )
 
     args = parser.parse_args()
 
-    launchFit(args.noDataM, args.noDataR, args.tileFolder, args.currentTile,
-              args.sensorName, args.S2Folder, args.S2Bands, args.masks)
+    launchFit(
+        args.noDataM,
+        args.noDataR,
+        args.tileFolder,
+        args.currentTile,
+        args.sensorName,
+        args.S2Folder,
+        args.S2Bands,
+        args.masks,
+    )
     # python mosaicSameS2DatesL8.py -date.position 1 -cmd.path /cmd
     # -masks.noData 0 1 0 -bands.noData -10000 -raster.masks CLM_R1 EDG_R1
     # SAT_R1 -raster.bands B2 B3 B4 B5 B6 B7 B8 B8A B11 -raw.folder raw

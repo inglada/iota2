@@ -23,24 +23,21 @@ class VectorFormatting(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "samplesFormatting"
-        super(
-            VectorFormatting,
-            self).__init__(
-            cfg,
-            cfg_resources_file,
-            resources_block_name)
+        super(VectorFormatting, self).__init__(
+            cfg, cfg_resources_file, resources_block_name
+        )
 
         # step variables
         self.workingDirectory = workingDirectory
-        self.outputPath = SCF.serviceConfigFile(
-            self.cfg).getParam(
-            'chain', 'outputPath')
+        self.outputPath = SCF.serviceConfigFile(self.cfg).getParam(
+            "chain", "outputPath"
+        )
 
     def step_description(self):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Prepare samples")
+        description = "Prepare samples"
         return description
 
     def step_inputs(self):
@@ -49,9 +46,7 @@ class VectorFormatting(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
-        tiles = SCF.serviceConfigFile(
-            self.cfg).getParam(
-            'chain', 'listTile').split(" ")
+        tiles = SCF.serviceConfigFile(self.cfg).getParam("chain", "listTile").split(" ")
         return tiles
 
     def step_execute(self):
@@ -64,8 +59,9 @@ class VectorFormatting(IOTA2Step.Step):
         """
         from Sampling import VectorFormatting as VF
 
-        def step_function(x): return VF.VectorFormatting(
-            self.cfg, x, self.workingDirectory)
+        def step_function(x):
+            return VF.VectorFormatting(self.cfg, x, self.workingDirectory)
+
         return step_function
 
     def step_outputs(self):

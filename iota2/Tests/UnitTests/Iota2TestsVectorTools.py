@@ -36,7 +36,7 @@ import shutil
 import numpy as np
 import unittest
 
-IOTA2DIR = os.environ.get('IOTA2DIR')
+IOTA2DIR = os.environ.get("IOTA2DIR")
 
 if IOTA2DIR is None:
     raise Exception("IOTA2DIR environment variable must be set")
@@ -56,7 +56,8 @@ class iota_testVectortools(unittest.TestCase):
         # definition of local variables
         self.group_test_name = "iota_testVectortools"
         self.iota2_tests_directory = os.path.join(
-            IOTA2DIR, "data", self.group_test_name)
+            IOTA2DIR, "data", self.group_test_name
+        )
         self.all_tests_ok = []
 
         # Tests directory
@@ -68,12 +69,13 @@ class iota_testVectortools(unittest.TestCase):
         self.wd = os.path.join(self.iota2_tests_directory, "wd/")
         self.out = os.path.join(self.iota2_tests_directory, "out/")
         self.classif = os.path.join(
-            IOTA2DIR, "data", "references/vectortools/classif.shp")
-        self.inter = os.path.join(
-            IOTA2DIR, "data", "references/vectortools/region.shp")
+            IOTA2DIR, "data", "references/vectortools/classif.shp"
+        )
+        self.inter = os.path.join(IOTA2DIR, "data", "references/vectortools/region.shp")
         self.classifwd = os.path.join(self.out, "classif.shp")
         self.classifout = os.path.join(
-            IOTA2DIR, "data", "references/vectortools/classifout.shp")
+            IOTA2DIR, "data", "references/vectortools/classifout.shp"
+        )
         self.outinter = os.path.join(self.wd, "inter.shp")
 
     # after launching all tests
@@ -93,7 +95,8 @@ class iota_testVectortools(unittest.TestCase):
 
         test_name = self.id().split(".")[-1]
         self.test_working_directory = os.path.join(
-            self.iota2_tests_directory, test_name)
+            self.iota2_tests_directory, test_name
+        )
         if os.path.exists(self.test_working_directory):
             shutil.rmtree(self.test_working_directory)
         os.mkdir(self.test_working_directory)
@@ -120,10 +123,7 @@ class iota_testVectortools(unittest.TestCase):
             result = self.defaultTestResult()
             self._feedErrorsToResult(result, self._outcome.errors)
         else:
-            result = getattr(
-                self,
-                '_outcomeForDoCleanups',
-                self._resultForDoCleanups)
+            result = getattr(self, "_outcomeForDoCleanups", self._resultForDoCleanups)
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
         ok = not error and not failure
@@ -138,108 +138,113 @@ class iota_testVectortools(unittest.TestCase):
         """
 
         # Add Field
-        for ext in ['.shp', '.dbf', '.shx', '.prj']:
+        for ext in [".shp", ".dbf", ".shx", ".prj"]:
             shutil.copyfile(
-                os.path.splitext(
-                    self.classif)[0] + ext,
-                os.path.splitext(
-                    self.classifwd)[0] + ext)
+                os.path.splitext(self.classif)[0] + ext,
+                os.path.splitext(self.classifwd)[0] + ext,
+            )
 
         afp.addFieldPerimeter(self.classifwd)
         tmpbuff = os.path.join(self.wd, "tmpbuff.shp")
         bfo.bufferPoly(self.classifwd, tmpbuff, -10)
-        for ext in ['.shp', '.dbf', '.shx', '.prj']:
+        for ext in [".shp", ".dbf", ".shx", ".prj"]:
             shutil.copyfile(
                 os.path.splitext(tmpbuff)[0] + ext,
-                os.path.splitext(
-                    self.classifwd)[0] + ext)
+                os.path.splitext(self.classifwd)[0] + ext,
+            )
 
         cnf.changeName(self.classifwd, "Classe", "class")
 
-        self.assertEqual(vf.getNbFeat(self.classifwd), 144,
-                         "Number of features does not fit")
-        self.assertEqual(vf.getFields(self.classifwd),
-                         ['Validmean',
-                          'Validstd',
-                          'Confidence',
-                          'Hiver',
-                          'Ete',
-                          'Feuillus',
-                          'Coniferes',
-                          'Pelouse',
-                          'Landes',
-                          'UrbainDens',
-                          'UrbainDiff',
-                          'ZoneIndCom',
-                          'Route',
-                          'PlageDune',
-                          'SurfMin',
-                          'Eau',
-                          'GlaceNeige',
-                          'Prairie',
-                          'Vergers',
-                          'Vignes',
-                          'Perimeter',
-                          'class'],
-                         "List of fields does not fit")
-        self.assertEqual(vf.ListValueFields(self.classifwd,
-                                            "class"),
-                         ['11',
-                          '12',
-                          '211',
-                          '222',
-                          '31',
-                          '32',
-                          '36',
-                          '42',
-                          '43',
-                          '51'],
-                         "Values of field 'class' do not fit")
         self.assertEqual(
-            vf.getFieldType(
-                self.classifwd,
-                "class"),
+            vf.getNbFeat(self.classifwd), 144, "Number of features does not fit"
+        )
+        self.assertEqual(
+            vf.getFields(self.classifwd),
+            [
+                "Validmean",
+                "Validstd",
+                "Confidence",
+                "Hiver",
+                "Ete",
+                "Feuillus",
+                "Coniferes",
+                "Pelouse",
+                "Landes",
+                "UrbainDens",
+                "UrbainDiff",
+                "ZoneIndCom",
+                "Route",
+                "PlageDune",
+                "SurfMin",
+                "Eau",
+                "GlaceNeige",
+                "Prairie",
+                "Vergers",
+                "Vignes",
+                "Perimeter",
+                "class",
+            ],
+            "List of fields does not fit",
+        )
+        self.assertEqual(
+            vf.ListValueFields(self.classifwd, "class"),
+            ["11", "12", "211", "222", "31", "32", "36", "42", "43", "51"],
+            "Values of field 'class' do not fit",
+        )
+        self.assertEqual(
+            vf.getFieldType(self.classifwd, "class"),
             str,
-            "Type of field 'class' (%s) do not fit, 'str' expected" %
-            (vf.getFieldType(
-                self.classifwd,
-                "class")))
+            "Type of field 'class' (%s) do not fit, 'str' expected"
+            % (vf.getFieldType(self.classifwd, "class")),
+        )
 
         cfr.conFieldRecode(self.classifwd, "class", "mask", 11, 0)
-        so.intersectSqlites(self.classifwd,
-                            self.inter,
-                            self.wd,
-                            self.outinter,
-                            2154,
-                            "intersection",
-                            ['class',
-                             'Validmean',
-                             'Validstd',
-                             'Confidence',
-                             'ID',
-                             'Perimeter',
-                             'Aire',
-                             "mask"])
-        check.checkGeometryAreaThreshField(
-            self.outinter, 100, 1, self.classifwd)
-        self.assertEqual(vf.getNbFeat(self.classifwd), 102,
-                         "Number of features does not fit")
+        so.intersectSqlites(
+            self.classifwd,
+            self.inter,
+            self.wd,
+            self.outinter,
+            2154,
+            "intersection",
+            [
+                "class",
+                "Validmean",
+                "Validstd",
+                "Confidence",
+                "ID",
+                "Perimeter",
+                "Aire",
+                "mask",
+            ],
+        )
+        check.checkGeometryAreaThreshField(self.outinter, 100, 1, self.classifwd)
+        self.assertEqual(
+            vf.getNbFeat(self.classifwd), 102, "Number of features does not fit"
+        )
 
         sba.extractFeatureFromShape(self.classifwd, 3, "mask", self.wd)
 
-        mf.mergeVectors([os.path.join(self.wd, "classif0_0.shp"), os.path.join(
-            self.wd, "classif0_1.shp"), os.path.join(self.wd, "classif0_2.shp")], self.classifwd)
+        mf.mergeVectors(
+            [
+                os.path.join(self.wd, "classif0_0.shp"),
+                os.path.join(self.wd, "classif0_1.shp"),
+                os.path.join(self.wd, "classif0_2.shp"),
+            ],
+            self.classifwd,
+        )
         self.assertEqual(
-            vf.getFirstLayer(
-                self.classifwd),
-            'classif',
-            "Layer does not exist in this shapefile")
+            vf.getFirstLayer(self.classifwd),
+            "classif",
+            "Layer does not exist in this shapefile",
+        )
 
         self.assertTrue(
             testutils.compareVectorFile(
                 self.classifwd,
                 self.classifout,
-                'coordinates',
-                'polygon',
-                "ESRI Shapefile"),
-            "Generated shapefile vector does not fit with shapefile reference file")
+                "coordinates",
+                "polygon",
+                "ESRI Shapefile",
+            ),
+            "Generated shapefile vector does not fit with shapefile reference file",
+        )

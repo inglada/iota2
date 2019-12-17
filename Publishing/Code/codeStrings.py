@@ -1,8 +1,8 @@
 #!/usr/bin/python
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 
-JS_headers ="\n\
+JS_headers = "\n\
 /* =========================================================================\n\
    Program:   iota2\n\
 \n\
@@ -22,7 +22,7 @@ JS_headers ="\n\
 var selectOpa = document.getElementById('opa');\n\
 "
 
-var_Classif="\n\
+var_Classif = "\n\
 var %s = new ol.layer.Tile({\n\
 		title: '%s',\n\
 		visible: %s,\n\
@@ -201,7 +201,7 @@ var_mapEvent = "\n\
             {\n\
 "
 
-var_mapEventTAIL="\n\
+var_mapEventTAIL = "\n\
                 content.innerHTML = '<p>Confiance :&nbsp;&nbsp;<b>' + info.join(', ') + '&nbsp; %</b></p>' ;\n\
             }\n\
             }\n\
@@ -214,7 +214,8 @@ var_mapEventTAIL="\n\
 	});\n\
 "
 
-html_headers = '\n\
+html_headers = (
+    '\n\
 <!DOCTYPE html>\n\
 <html>\n\
   <head>\n\
@@ -235,9 +236,16 @@ html_headers = '\n\
 	<div id="left-panel"  style="color: #FFF">\n\
 	<div align = "right"><b>></b></div>\n\
 	<form name=form1 style="float: left;">\n\
-		<table border=0 BORDERCOLOR=RED width=''250'' cellspacing=''0'' cellpadding=''0'' align=center>\n\
+		<table border=0 BORDERCOLOR=RED width='
+    "250"
+    " cellspacing="
+    "0"
+    " cellpadding="
+    "0"
+    " align=center>\n\
 			<tr><td > </td><td ><b>display results</b></td></tr>\n\
-'
+"
+)
 
 html_headers_oneClassification = '\n\
 <!DOCTYPE html>\n\
@@ -333,54 +341,54 @@ html_end = '\n\
     </script>\n\
     <script src="layer.js"></script>\n\
 '
-htmlHEADER="\n\
+htmlHEADER = '\n\
 <!DOCTYPE html>\n\
 <html>\n\
   <head>\n\
-    <meta charset=\"utf-8\" />\n\
+    <meta charset="utf-8" />\n\
     <title>Visualisation des classifications</title>\n\
-    <meta name=\"viewport\" content=\"initial-scale=1.0, user-scalable=no, width=device-width\">\n\
-	<link rel=\"stylesheet\" href=\"https://openlayers.org/en/v4.1.0/css/ol.css\" type=\"text/css\">\n\
-    <script src=\"http://code.jquery.com/jquery-1.11.0.min.js\"></script>\n\
-    <link rel=\"stylesheet\" href=\"osgis-ol3-leaflet-master/ol3/lib/ol3-layerswitcher/src/ol3-layerswitcher.css\">\n\
-    <link rel=\"stylesheet\" href=\"layer.css\" />\n\
-    <script src=\"https://openlayers.org/en/v4.1.0/build/ol.js\"></script>\n\
-    <script src=\"ol3-popup.js\"></script>\n\
-    <script src=\"osgis-ol3-leaflet-master/ol3/lib/ol3-layerswitcher/src/ol3-layerswitcher.js\"></script>\n\
-    	<script src=\"https://mapbox.github.io/geojson-vt/geojson-vt-dev.js\"></script>\n\
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">\n\
+	<link rel="stylesheet" href="https://openlayers.org/en/v4.1.0/css/ol.css" type="text/css">\n\
+    <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>\n\
+    <link rel="stylesheet" href="osgis-ol3-leaflet-master/ol3/lib/ol3-layerswitcher/src/ol3-layerswitcher.css">\n\
+    <link rel="stylesheet" href="layer.css" />\n\
+    <script src="https://openlayers.org/en/v4.1.0/build/ol.js"></script>\n\
+    <script src="ol3-popup.js"></script>\n\
+    <script src="osgis-ol3-leaflet-master/ol3/lib/ol3-layerswitcher/src/ol3-layerswitcher.js"></script>\n\
+    	<script src="https://mapbox.github.io/geojson-vt/geojson-vt-dev.js"></script>\n\
     \n\
-	<script type=\"text/javascript\" src=\"filter.js\"></script>\n\
-	<script type=\"text/javascript\" src=\"maskfilter.js\"></script>\n\
-	<script type=\"text/javascript\" src=\"cropfilter.js\"></script>\n\
+	<script type="text/javascript" src="filter.js"></script>\n\
+	<script type="text/javascript" src="maskfilter.js"></script>\n\
+	<script type="text/javascript" src="cropfilter.js"></script>\n\
 \n\
-	<script type=\"text/javascript\" src=\"jqExportMap.js\"></script>\n\
-	<script type=\"text/javascript\" src=\"https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.3.2/jspdf.min.js\"></script>\n\
-	<script src=\"https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.3/FileSaver.min.js\"></script>\n\
+	<script type="text/javascript" src="jqExportMap.js"></script>\n\
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.3.2/jspdf.min.js"></script>\n\
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.3/FileSaver.min.js"></script>\n\
 \n\
   </head>\n\
   <body>\n\
 \n\
-    <div id=\"map\" style=\"border: 1px solid white;float: center;width:100%\">\n\
+    <div id="map" style="border: 1px solid white;float: center;width:100%">\n\
     </div>\n\
-	<div id=\"popup\" class=\"ol-popup\">\n\
-      <a href=\"#\" id=\"popup-closer\" class=\"ol-popup-closer\"></a>\n\
-      <div id=\"popup-content\"></div>\n\
+	<div id="popup" class="ol-popup">\n\
+      <a href="#" id="popup-closer" class="ol-popup-closer"></a>\n\
+      <div id="popup-content"></div>\n\
     </div>\n\
-    <div class = RES id=\"InfoPanel\" style = \"border: 1px solid white\" > \n\
-	<div style=\"float: left;border: 1px solid white;width:5%\">Opacité</div> \n\
-		<input id = \"opa\" type=\"range\" min=\"0\" max=\"1\" step=\"0.01\">\n\
-	<div id=\"Coordinates\" style=\"border: 1px solid white;float: right;width:50%\"></div>\n\
+    <div class = RES id="InfoPanel" style = "border: 1px solid white" > \n\
+	<div style="float: left;border: 1px solid white;width:5%">Opacité</div> \n\
+		<input id = "opa" type="range" min="0" max="1" step="0.01">\n\
+	<div id="Coordinates" style="border: 1px solid white;float: right;width:50%"></div>\n\
     </div>\n\
-"
-htmdRES = "\n\
-	<div id=resultat_2016 style=\"border: 1px solid white;float: left;width:100%\"></div>\n\
-	<div style=\"float: center;border: 1px solid white;width:100%\"> Les produits OSO sont diffusés sous licence ODC-BY 1.0 : <a href=\"https://opendatacommons.org/licenses/by/\">Open Data Commons License </a> </div>\n\
-<script src=\"layer.js\"></script>\n\
-"
-htmlTAIL = "\n\
-	<div style=\"float: center;border: 1px solid white;width:100%\"> Les produits OSO sont diffusés sous licence ODC-BY 1.0 : <a href=\"https://opendatacommons.org/licenses/by/\">Open Data Commons License </a> </div>\n\
-<script src=\"layer.js\"></script>\n\
-"
+'
+htmdRES = '\n\
+	<div id=resultat_2016 style="border: 1px solid white;float: left;width:100%"></div>\n\
+	<div style="float: center;border: 1px solid white;width:100%"> Les produits OSO sont diffusés sous licence ODC-BY 1.0 : <a href="https://opendatacommons.org/licenses/by/">Open Data Commons License </a> </div>\n\
+<script src="layer.js"></script>\n\
+'
+htmlTAIL = '\n\
+	<div style="float: center;border: 1px solid white;width:100%"> Les produits OSO sont diffusés sous licence ODC-BY 1.0 : <a href="https://opendatacommons.org/licenses/by/">Open Data Commons License </a> </div>\n\
+<script src="layer.js"></script>\n\
+'
 CSS_File = "\n\
 html, body {\n\
   height: 100%;\n\
@@ -468,13 +476,3 @@ html, body {\n\
 .legend .Rice { background-color: rgba(170,110,135,1); }\n\
 .legend .Maize { background-color: rgba(255,133,10,1); }\n\
 "
-
-
-
-
-
-
-
-
-
-

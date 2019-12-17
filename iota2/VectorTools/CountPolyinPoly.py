@@ -16,9 +16,9 @@ def count(shp1, shp2):
     lyr2 = ds2.GetLayer()
     lyr_defn = lyr.GetLayerDefn()
     field_names = [
-        lyr_defn.GetFieldDefn(i).GetName() for i in range(
-            lyr_defn.GetFieldCount())]
-    field = 'Count'
+        lyr_defn.GetFieldDefn(i).GetName() for i in range(lyr_defn.GetFieldCount())
+    ]
+    field = "Count"
     if field in field_names:
         i = field_names.index(field)
         lyr.DeleteField(i)
@@ -36,14 +36,14 @@ def count(shp1, shp2):
         lyr.SetFeature(feat)
 
 
-if __name__ == '__main__':
-    usage = 'usage: count <shpfile1> <shpfile2>'
+if __name__ == "__main__":
+    usage = "usage: count <shpfile1> <shpfile2>"
     if len(sys.argv) == 3:
         if count(sys.argv[1], sys.argv[2]):
-            print('Counting succeeded!')
+            print("Counting succeeded!")
             sys.exit(0)
         else:
-            print('Counting failed!')
+            print("Counting failed!")
             sys.exit(1)
     else:
         print(usage)

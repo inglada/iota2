@@ -35,7 +35,8 @@ def minimum_bounding_rectangle(hull):
     :rval: an nx2 matrix of coordinates
     """
     from scipy.ndimage.interpolation import rotate
-    pi2 = np.pi / 2.
+
+    pi2 = np.pi / 2.0
 
     # get the points of the convex hull boundary
     hull_points = hull.Boundary().GetPoints()
@@ -54,11 +55,9 @@ def minimum_bounding_rectangle(hull):
 
     # find rotation matrices
     # XXX both work
-    rotations = np.vstack([
-        np.cos(angles),
-        np.cos(angles - pi2),
-        np.cos(angles + pi2),
-        np.cos(angles)]).T
+    rotations = np.vstack(
+        [np.cos(angles), np.cos(angles - pi2), np.cos(angles + pi2), np.cos(angles)]
+    ).T
 
     rotations = rotations.reshape((-1, 2, 2))
 
@@ -90,6 +89,7 @@ def minimum_bounding_rectangle(hull):
 
     return rval
 
+
 # Ajout des champs de Convexité, Concavité et Elongation en une seule fois
 
 
@@ -97,11 +97,11 @@ def addDiscriminationFields(filein):
     source = ogr.Open(filein, 1)
     layer = source.GetLayer()
     # Definition des trois champs servant à la discrimination des forêts et ahf
-    new_field1 = ogr.FieldDefn('Convexity', ogr.OFTReal)
+    new_field1 = ogr.FieldDefn("Convexity", ogr.OFTReal)
     layer.CreateField(new_field1)
-    new_field2 = ogr.FieldDefn('Compacity', ogr.OFTReal)
+    new_field2 = ogr.FieldDefn("Compacity", ogr.OFTReal)
     layer.CreateField(new_field2)
-    new_field3 = ogr.FieldDefn('Elongation', ogr.OFTReal)
+    new_field3 = ogr.FieldDefn("Elongation", ogr.OFTReal)
     layer.CreateField(new_field3)
 
     # Calcul de leur valeur pour chaque polygone et enregistrement dans la
@@ -123,22 +123,22 @@ def addDiscriminationFields(filein):
             largeur = min(Point1.Distance(Point2), Point2.Distance(Point3))
             if areahull != 0 and peripoly != 0 and largeur != 0:
                 convexity = geom.GetArea() / areahull
-                compacity = 4 * math.pi * \
-                    (geom.GetArea() / math.pow(peripoly, 2))
+                compacity = 4 * math.pi * (geom.GetArea() / math.pow(peripoly, 2))
                 elongation = longueur / largeur
             else:
                 layer.DeleteFeature(feat.GetFID())
         else:
-            print('not geometry')
+            print("not geometry")
             convexity = 0
             compacity = 0
             elongation = 0
-        feat.SetField('Convexity', convexity)
-        feat.SetField('Compacity', compacity)
-        feat.SetField('Elongation', elongation)
+        feat.SetField("Convexity", convexity)
+        feat.SetField("Compacity", compacity)
+        feat.SetField("Elongation", elongation)
         layer.SetFeature(feat)
     source.Destroy()
     layer = None
+
 
 # Classification des polygones selon les différents critères Convexité,
 # Elongation et Compacité.
@@ -147,30 +147,29 @@ def addDiscriminationFields(filein):
 def addClassAHF(filein, convex=0.7, compa=0.4, elong=2.5):
     source = ogr.Open(filein, 1)
     layer = source.GetLayer()
-    new_field = ogr.FieldDefn('ClassAHF', ogr.OFTString)
+    new_field = ogr.FieldDefn("ClassAHF", ogr.OFTString)
     layer.CreateField(new_field)
 
     for feat in layer:
-        if feat.GetField('Convexity') <= convex:
-            if feat.GetField('Compacity') < compa:
-                feat.SetField('ClassAHF', 'Haie')
+        if feat.GetField("Convexity") <= convex:
+            if feat.GetField("Compacity") < compa:
+                feat.SetField("ClassAHF", "Haie")
                 layer.SetFeature(feat)
             else:
-                feat.SetField('ClassAHF', 'Foret')
+                feat.SetField("ClassAHF", "Foret")
                 layer.SetFeature(feat)
         else:
-            if feat.GetField('Elongation') > elong:
-                feat.SetField('ClassAHF', 'Haie')
+            if feat.GetField("Elongation") > elong:
+                feat.SetField("ClassAHF", "Haie")
                 layer.SetFeature(feat)
             else:
-                feat.SetField('ClassAHF', 'AutreAHF')
+                feat.SetField("ClassAHF", "AutreAHF")
                 layer.SetFeature(feat)
     source.Destroy()
     layer = None
 
 
-def foret_non_foret(chemin, FileInit, FileOut,
-                    convex=0.7, compa=0.4, elong=2.5):
+def foret_non_foret(chemin, FileInit, FileOut, convex=0.7, compa=0.4, elong=2.5):
 
     os.chdir(chemin)
     print(os.path.join(chemin, FileInit))
@@ -179,32 +178,29 @@ def foret_non_foret(chemin, FileInit, FileOut,
 
     # Erosion puis dilatation du fichier initial pour ne garder que les
     # contours (lissés) des forêts
-    bo.bufferPoly(FileInit, 'tmp_Erosion20.shp', -20)
-    bo.bufferPoly('tmp_Erosion20.shp', 'tmp_Dilatation20_poly.shp', 20)
+    bo.bufferPoly(FileInit, "tmp_Erosion20.shp", -20)
+    bo.bufferPoly("tmp_Erosion20.shp", "tmp_Dilatation20_poly.shp", 20)
 
     # Dilatation supplémentaire pour récupérer les objets qui disparaissent
     # suite à l'ouverture par selection spatiale
-    bo.bufferPoly('tmp_Dilatation20_poly.shp', 'tmp_Extra_Dila_poly.shp', 20)
+    bo.bufferPoly("tmp_Dilatation20_poly.shp", "tmp_Extra_Dila_poly.shp", 20)
 
-    mpp.multipoly2poly('tmp_Dilatation20_poly.shp', 'tmp_Dilatation20.shp')
-    mpp.multipoly2poly('tmp_Extra_Dila_poly.shp', 'tmp_Extra_Dila.shp')
+    mpp.multipoly2poly("tmp_Dilatation20_poly.shp", "tmp_Dilatation20.shp")
+    mpp.multipoly2poly("tmp_Extra_Dila_poly.shp", "tmp_Extra_Dila.shp")
 
     # Différentiation Forêt / Non-Forêt
     # Soustraction de l'ouverture par rapport au fichier Forêt non différencier
-    #os.system('python DifferenceQGIS.py ' + FileInit + ' tmp_Dilatation20.shp True tmp_Non_foret_temp_poly.shp')
+    # os.system('python DifferenceQGIS.py ' + FileInit + ' tmp_Dilatation20.shp True tmp_Non_foret_temp_poly.shp')
     sd.shapeDifference(
-        FileInit,
-        'tmp_Dilatation20.shp',
-        'tmp_Non_foret_temp_poly.shp',
-        False,
-        None)
+        FileInit, "tmp_Dilatation20.shp", "tmp_Non_foret_temp_poly.shp", False, None
+    )
     # Transformation des multipolygones en polygones simples
-    mpp.multipoly2poly('tmp_Non_foret_temp_poly.shp', 'tmp_Non_Foret_temp.shp')
+    mpp.multipoly2poly("tmp_Non_foret_temp_poly.shp", "tmp_Non_Foret_temp.shp")
 
     # Elimination des résidus de la symétries pour obtenir les vrais contours
     # de la forêt
-    NF = vf.openToWrite('tmp_Non_Foret_temp.shp')
-    ED = vf.openToRead('tmp_Extra_Dila.shp')
+    NF = vf.openToWrite("tmp_Non_Foret_temp.shp")
+    ED = vf.openToRead("tmp_Extra_Dila.shp")
     NFLayer = NF.GetLayer()
     EDLayer = ED.GetLayer()
     for fil in EDLayer:
@@ -223,18 +219,15 @@ def foret_non_foret(chemin, FileInit, FileOut,
     # Soustraction de la non-forêt par rapport au fichier initial, pour
     # obtenir les vrais contours de la forêt
     sd.shapeDifference(
-        FileInit,
-        'tmp_Non_Foret_temp.shp',
-        'tmp_Foret_temp_poly.shp',
-        False,
-        None)
+        FileInit, "tmp_Non_Foret_temp.shp", "tmp_Foret_temp_poly.shp", False, None
+    )
 
-    vf.checkValidGeom('tmp_Foret_temp_poly.shp')
+    vf.checkValidGeom("tmp_Foret_temp_poly.shp")
     # Transformation des multipolygones en polygones simples
-    mpp.multipoly2poly('tmp_Foret_temp_poly.shp', 'tmp_Foret_temp.shp')
+    mpp.multipoly2poly("tmp_Foret_temp_poly.shp", "tmp_Foret_temp.shp")
 
     # Tri des forêts, si inférieure à 5000m2, classée en non_forêt
-    F = vf.openToWrite('tmp_Foret_temp.shp')
+    F = vf.openToWrite("tmp_Foret_temp.shp")
     FLayer = F.GetLayer()
     for f in FLayer:
         g = f.GetGeometryRef()
@@ -244,44 +237,43 @@ def foret_non_foret(chemin, FileInit, FileOut,
     F.Destroy()
     FLayer = None
 
-    vf.checkValidGeom('tmp_Foret_temp.shp')
+    vf.checkValidGeom("tmp_Foret_temp.shp")
 
     # Soustraction des forêts du fichier original pour récupérer les bosquets
     # et boqueteaux dans la couche non-forêt
     sd.shapeDifference(
-        FileInit,
-        'tmp_Foret_temp.shp',
-        'tmp_Non_foret_full_poly.shp',
-        False,
-        None)
+        FileInit, "tmp_Foret_temp.shp", "tmp_Non_foret_full_poly.shp", False, None
+    )
 
-    vf.checkValidGeom('tmp_Non_foret_full_poly.shp')
+    vf.checkValidGeom("tmp_Non_foret_full_poly.shp")
 
     # Transformation des multipolygones en polygones simples
-    mpp.multipoly2poly('tmp_Non_foret_full_poly.shp', 'tmp_Non_Foret_full.shp')
-    vf.checkValidGeom('tmp_Non_Foret_full.shp')
+    mpp.multipoly2poly("tmp_Non_foret_full_poly.shp", "tmp_Non_Foret_full.shp")
+    vf.checkValidGeom("tmp_Non_Foret_full.shp")
 
     # Affinage Non-Forêt
     # Calcul des champs de discrimination Elongation, Convexité et Compacité
-    addDiscriminationFields('tmp_Non_Foret_full.shp')
+    addDiscriminationFields("tmp_Non_Foret_full.shp")
     # Ajout d'un champs classe qui détermine la classe des polygones en
     # fonction des champs discriminants
-    addClassAHF('tmp_Non_Foret_full.shp', convex, compa, elong)
+    addClassAHF("tmp_Non_Foret_full.shp", convex, compa, elong)
 
     # Post-processing
     # Si un polygone est classé en forêt est connecté à une plus grande forêt,
     # fusion des deux polygones en une seule et même forêt
-    F = vf.openToRead('tmp_Foret_temp.shp')
+    F = vf.openToRead("tmp_Foret_temp.shp")
     FL = F.GetLayer()
-    NF = vf.openToWrite('tmp_Non_Foret_full.shp')
+    NF = vf.openToWrite("tmp_Non_Foret_full.shp")
     NFL = NF.GetLayer()
     for foret in FL:
         gforet = foret.GetGeometryRef()
         for nonforet in NFL:
             fID = nonforet.GetFID()
             gnonforet = nonforet.GetGeometryRef()
-            if gnonforet.Distance(gforet) == 0 and (nonforet.GetField(
-                    'ClassAHF') == 'Foret' or nonforet.GetField('ClassAHF') == 'AutreAHF'):
+            if gnonforet.Distance(gforet) == 0 and (
+                nonforet.GetField("ClassAHF") == "Foret"
+                or nonforet.GetField("ClassAHF") == "AutreAHF"
+            ):
                 NFL.DeleteFeature(fID)
         NFL.ResetReading()
     F.Destroy()
@@ -289,60 +281,76 @@ def foret_non_foret(chemin, FileInit, FileOut,
     FL = None
     NFL = None
 
-    vf.checkValidGeom('tmp_Non_Foret_full.shp')
+    vf.checkValidGeom("tmp_Non_Foret_full.shp")
 
     # Différence entre le fichier imitial et les nouvelles forêts
     sd.shapeDifference(
-        FileInit,
-        'tmp_Non_Foret_full.shp',
-        'tmp_Foret_full_poly.shp',
-        False,
-        None)
-    vf.checkValidGeom('tmp_Foret_full_poly.shp')
+        FileInit, "tmp_Non_Foret_full.shp", "tmp_Foret_full_poly.shp", False, None
+    )
+    vf.checkValidGeom("tmp_Foret_full_poly.shp")
     # Transformation des multipolygones en polygones simples
-    mpp.multipoly2poly('tmp_Foret_full_poly.shp', 'tmp_Foret_full.shp')
+    mpp.multipoly2poly("tmp_Foret_full_poly.shp", "tmp_Foret_full.shp")
 
     # Ajout du champs classe pour les forêts
-    F = vf.openToWrite('tmp_Foret_full.shp')
+    F = vf.openToWrite("tmp_Foret_full.shp")
     FL = F.GetLayer()
-    new_field = ogr.FieldDefn('ClassAHF', ogr.OFTString)
+    new_field = ogr.FieldDefn("ClassAHF", ogr.OFTString)
     FL.CreateField(new_field)
     for f in FL:
-        f.SetField('ClassAHF', 'Foret')
+        f.SetField("ClassAHF", "Foret")
         FL.SetFeature(f)
     F.Destroy()
     FL = None
 
     # Fusion du fichier de forêts avec le fichier de non-forêt
-    mf.mergeVectors(['tmp_Foret_full.shp', 'tmp_Non_Foret_full.shp'], FileOut)
+    mf.mergeVectors(["tmp_Foret_full.shp", "tmp_Non_Foret_full.shp"], FileOut)
 
     # Suppression des fichiers intermédiaires
-    os.system('rm tmp_*')
+    os.system("rm tmp_*")
 
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         prog = os.path.basename(sys.argv[0])
-        print('      ' + sys.argv[0] + ' [options]')
+        print("      " + sys.argv[0] + " [options]")
         print("     Help : ", prog, " --help")
         print("        or : ", prog, " -h")
         sys.exit(-1)
     else:
         usage = "usage: %prog [options] "
         parser = argparse.ArgumentParser(
-            description="Extract forests, hedges, and trees based on an input forest shapefile")
-        parser.add_argument("-tmp", dest="tmp", action="store",
-                            help="List of input shapefiles", required=True)
-        parser.add_argument("-s", dest="inputshape", action="store",
-                            help="Folder of input shapefiles", required=True)
-        parser.add_argument("-o", dest="outshapefile", action="store",
-                            help="ESRI Shapefile output filename and path", required=True)
-        parser.add_argument("-conv", dest="conv", action="store",
-                            help="Convexity parameter")
-        parser.add_argument("-comp", dest="comp", action="store",
-                            help="Compacity parameter")
-        parser.add_argument("-elong", dest="elong", action="store",
-                            help="Elongation parameter")
+            description="Extract forests, hedges, and trees based on an input forest shapefile"
+        )
+        parser.add_argument(
+            "-tmp",
+            dest="tmp",
+            action="store",
+            help="List of input shapefiles",
+            required=True,
+        )
+        parser.add_argument(
+            "-s",
+            dest="inputshape",
+            action="store",
+            help="Folder of input shapefiles",
+            required=True,
+        )
+        parser.add_argument(
+            "-o",
+            dest="outshapefile",
+            action="store",
+            help="ESRI Shapefile output filename and path",
+            required=True,
+        )
+        parser.add_argument(
+            "-conv", dest="conv", action="store", help="Convexity parameter"
+        )
+        parser.add_argument(
+            "-comp", dest="comp", action="store", help="Compacity parameter"
+        )
+        parser.add_argument(
+            "-elong", dest="elong", action="store", help="Elongation parameter"
+        )
 
         args = parser.parse_args()
 

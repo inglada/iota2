@@ -14,7 +14,7 @@ distance = 10000
 
 
 def DifferenceFiles(shp1, shp2):
-    outShp = vf.copyShp(shp1, 'difference')
+    outShp = vf.copyShp(shp1, "difference")
     fields = vf.getFields(shp1)
     ds1 = vf.openToRead(shp1)
     ds2 = vf.openToRead(shp2)
@@ -32,11 +32,7 @@ def DifferenceFiles(shp1, shp2):
         minY = y - float(distance)
         maxX = x + float(distance)
         maxY = y + float(distance)
-        lyr2.SetSpatialFilterRect(
-            float(minX),
-            float(minY),
-            float(maxX),
-            float(maxY))
+        lyr2.SetSpatialFilterRect(float(minX), float(minY), float(maxX), float(maxY))
         nbfeat2 = lyr2.GetFeatureCount()
         intersection = False
         listFID = []
@@ -45,7 +41,8 @@ def DifferenceFiles(shp1, shp2):
             ds3 = vf.openToRead(outShp)
             lyr3 = ds3.GetLayer()
             lyr3.SetSpatialFilterRect(
-                float(minX), float(minY), float(maxX), float(maxY))
+                float(minX), float(minY), float(maxX), float(maxY)
+            )
             f2 = lyr2.GetFeature(i)
             print(str(f1.GetFID()) + " - " + str(i))
             geom2 = f2.GetGeometryRef()
@@ -87,11 +84,7 @@ def DifferenceFiles(shp1, shp2):
         minY = y - float(distance)
         maxX = x + float(distance)
         maxY = y + float(distance)
-        lyr2.SetSpatialFilterRect(
-            float(minX),
-            float(minY),
-            float(maxX),
-            float(maxY))
+        lyr2.SetSpatialFilterRect(float(minX), float(minY), float(maxX), float(maxY))
         nbfeat2 = lyr2.GetFeatureCount()
         intersection = False
         listFID = []
@@ -101,12 +94,12 @@ def DifferenceFiles(shp1, shp2):
             geom2 = f2.GetGeometryRef()
             if geom1.Intersect(geom2) == True:
                 lyr3.DeleteFeature(feat.GetFID())
-            ds3.ExecuteSQL('REPACK ' + lyr3.GetName())
+            ds3.ExecuteSQL("REPACK " + lyr3.GetName())
     return outShp
 
 
-if __name__ == '__main__':
-    usage = 'usage: <shpfile1> <shpfile2>'
+if __name__ == "__main__":
+    usage = "usage: <shpfile1> <shpfile2>"
     if len(sys.argv) != 3:
         print(usage)
         sys.exit(1)

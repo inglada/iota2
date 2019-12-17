@@ -31,8 +31,8 @@ class StepContainer(object):
             step.step_group = step_group
         else:
             raise Exception(
-                "step '{}' already present in container".format(
-                    step.step_name))
+                "step '{}' already present in container".format(step.step_name)
+            )
         # link steps
         if len(self.container) > 1:
             self.container[len(self.container) - 2].next_step = step
@@ -42,8 +42,7 @@ class StepContainer(object):
         """
         The __contains__ method is based on step's name
         """
-        return any(
-            [step.step_name == step_ask.step_name for step in self.container])
+        return any([step.step_name == step_ask.step_name for step in self.container])
 
     def __setitem__(self, index, val):
         self.container[index] = val
@@ -52,8 +51,7 @@ class StepContainer(object):
         return self.container[index]
 
     def __str__(self):
-        return "[{}]".format(
-            ", ".join(step.step_name for step in self.container))
+        return "[{}]".format(", ".join(step.step_name for step in self.container))
 
     def __len__(self):
         return len(self.container)
@@ -71,16 +69,20 @@ def return_decorator(validate_function, type_string="<class 'function'>"):
         python's type as string
     """
     import functools
+
     @functools.wraps(validate_function)
     def decorator_wrapper(*function_args):
-        accepted_return_type = accepted_return_type_tuple = (type_string)
+        accepted_return_type = accepted_return_type_tuple = type_string
         return_value = validate_function(*function_args)
         return_value_type = type(return_value)
         if str(return_value_type) != str(accepted_return_type):
-            raise Exception("function '{}' must return {} type instead of {}".format(validate_function.__name__,
-                                                                                     accepted_return_type,
-                                                                                     return_value_type))
+            raise Exception(
+                "function '{}' must return {} type instead of {}".format(
+                    validate_function.__name__, accepted_return_type, return_value_type
+                )
+            )
         return return_value
+
     return decorator_wrapper
 
 
@@ -93,6 +95,7 @@ class Step(object):
         """
         """
         from Common import ServiceConfigFile as SCF
+
         self.check_mandatory_methods()
 
         # attributes
@@ -102,16 +105,13 @@ class Step(object):
 
         # get resources needed
         self.resources = self.parse_resource_file(
-            resources_block_name, cfg_resources_file)
+            resources_block_name, cfg_resources_file
+        )
 
         # define log path
-        outputPath = SCF.serviceConfigFile(
-            self.cfg).getParam(
-            'chain', 'outputPath')
+        outputPath = SCF.serviceConfigFile(self.cfg).getParam("chain", "outputPath")
         log_dir = os.path.join(outputPath, "logs")
-        self.logFile = os.path.join(
-            log_dir, "{}_log.log".format(
-                self.step_name))
+        self.logFile = os.path.join(log_dir, "{}_log.log".format(self.step_name))
 
         self.previous_step = None
         self.next_step = None
@@ -139,12 +139,13 @@ class Step(object):
         cfg_step_resources = getattr(cfg_resources, str(step_name), {})
         resource["cpu"] = getattr(cfg_step_resources, "nb_cpu", default_cpu)
         resource["ram"] = getattr(cfg_step_resources, "ram", default_ram)
-        resource["walltime"] = getattr(
-            cfg_step_resources, "walltime", default_walltime)
+        resource["walltime"] = getattr(cfg_step_resources, "walltime", default_walltime)
         resource["process_min"] = getattr(
-            cfg_step_resources, "process_min", default_process_min)
+            cfg_step_resources, "process_min", default_process_min
+        )
         resource["process_max"] = getattr(
-            cfg_step_resources, "process_max", default_process_max)
+            cfg_step_resources, "process_max", default_process_max
+        )
         resource["resource_block_name"] = str(step_name)
         resource["resource_block_found"] = False
         if cfg_resources:
@@ -165,10 +166,14 @@ class Step(object):
         for attribute, value in list(self.__dict__.items()):
             if attribute in mandatory_type:
                 if value.__class__.__name__ != str(mandatory_type[attribute]):
-                    raise Exception("in {} class, attribute '{}' must be of type : {} not {}".format(self.__class__.__name__,
-                                                                                                     attribute,
-                                                                                                     mandatory_type[attribute],
-                                                                                                     value.__class__.__name__))
+                    raise Exception(
+                        "in {} class, attribute '{}' must be of type : {} not {}".format(
+                            self.__class__.__name__,
+                            attribute,
+                            mandatory_type[attribute],
+                            value.__class__.__name__,
+                        )
+                    )
 
     def check_mandatory_methods(self):
         """
@@ -179,7 +184,8 @@ class Step(object):
             # step_execute
             if self.step_execute.__code__ is Step.step_execute.__code__:
                 err_mess = "'step_execute' method as to be define in : {} class ".format(
-                    self.__class__)
+                    self.__class__
+                )
                 raise Exception(err_mess)
             else:
                 # check step_execute output type
@@ -188,35 +194,41 @@ class Step(object):
             # step_outputs
             if self.step_outputs.__code__ is Step.step_outputs.__code__:
                 err_mess = "'step_outputs' method as to be define in : {} class ".format(
-                    self.__class__)
+                    self.__class__
+                )
                 raise Exception(err_mess)
 
             # step_inputs
             if self.step_inputs.__code__ is Step.step_inputs.__code__:
                 err_mess = "'step_inputs' method as to be define in : {} class ".format(
-                    self.__class__)
+                    self.__class__
+                )
                 raise Exception(err_mess)
 
     def __str__(self):
         return "{}".format(self.step_name)
 
     def __repr__(self):
-        return ("IOTA² step definition : \n"
-                "\tname : {}\n"
-                "\tgroup : {}\n"
-                "\tcpu per tasks : {}\n"
-                "\tram per tasks : {}\n"
-                "\ttotal time to run tasks : {}\n"
-                "\tstatus : {}\n"
-                "\tprevious step's name : {}\n"
-                "\tnext step's name : {}\n").format(self.step_name,
-                                                    self.step_group,
-                                                    self.resources["cpu"],
-                                                    self.resources["ram"],
-                                                    self.resources["walltime"],
-                                                    self.step_status,
-                                                    self.previous_step,
-                                                    self.next_step)
+        return (
+            "IOTA² step definition : \n"
+            "\tname : {}\n"
+            "\tgroup : {}\n"
+            "\tcpu per tasks : {}\n"
+            "\tram per tasks : {}\n"
+            "\ttotal time to run tasks : {}\n"
+            "\tstatus : {}\n"
+            "\tprevious step's name : {}\n"
+            "\tnext step's name : {}\n"
+        ).format(
+            self.step_name,
+            self.step_group,
+            self.resources["cpu"],
+            self.resources["ram"],
+            self.resources["walltime"],
+            self.step_status,
+            self.previous_step,
+            self.next_step,
+        )
 
     def step_description(self):
         return "quick step description"
@@ -233,7 +245,7 @@ class Step(object):
         """
         function call to clean files after the success of the step
         """
-        #~ print("{}.step_clean Not define".format(self.__class__.__name__))
+        # ~ print("{}.step_clean Not define".format(self.__class__.__name__))
         pass
 
     @classmethod

@@ -23,28 +23,21 @@ class learnModel(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "training"
-        super(
-            learnModel,
-            self).__init__(
-            cfg,
-            cfg_resources_file,
-            resources_block_name)
+        super(learnModel, self).__init__(cfg, cfg_resources_file, resources_block_name)
 
         # step variables
         self.workingDirectory = workingDirectory
-        self.output_path = SCF.serviceConfigFile(
-            self.cfg).getParam(
-            'chain', 'outputPath')
-        self.data_field = SCF.serviceConfigFile(
-            self.cfg).getParam(
-            'chain', 'dataField')
-        self.runs = SCF.serviceConfigFile(self.cfg).getParam('chain', 'runs')
+        self.output_path = SCF.serviceConfigFile(self.cfg).getParam(
+            "chain", "outputPath"
+        )
+        self.data_field = SCF.serviceConfigFile(self.cfg).getParam("chain", "dataField")
+        self.runs = SCF.serviceConfigFile(self.cfg).getParam("chain", "runs")
 
     def step_description(self):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Learn model")
+        description = "Learn model"
         return description
 
     def step_inputs(self):
@@ -54,14 +47,16 @@ class learnModel(IOTA2Step.Step):
             the return could be and iterable or a callable
         """
         from Learning import TrainingCmd as TC
-        return TC.launchTraining(self.cfg,
-                                 self.data_field,
-                                 os.path.join(self.output_path + "stats"),
-                                 self.runs,
-                                 os.path.join(
-                                     self.output_path, "cmd", "train"),
-                                 os.path.join(self.output_path, "model"),
-                                 self.workingDirectory)
+
+        return TC.launchTraining(
+            self.cfg,
+            self.data_field,
+            os.path.join(self.output_path + "stats"),
+            self.runs,
+            os.path.join(self.output_path, "cmd", "train"),
+            os.path.join(self.output_path, "model"),
+            self.workingDirectory,
+        )
 
     def step_execute(self):
         """
@@ -72,8 +67,12 @@ class learnModel(IOTA2Step.Step):
             must be a lambda function.
         """
         from MPI import launch_tasks as tLauncher
+
         bashLauncherFunction = tLauncher.launchBashCmd
-        def step_function(x): return bashLauncherFunction(x)
+
+        def step_function(x):
+            return bashLauncherFunction(x)
+
         return step_function
 
     def step_outputs(self):

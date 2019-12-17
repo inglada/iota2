@@ -28,6 +28,7 @@ import argparse
 import shutil
 import time
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -37,13 +38,21 @@ try:
     from Common.OtbAppBank import executeApp
 
 except ImportError:
-    raise ImportError('Iota2 not well configured / installed')
+    raise ImportError("Iota2 not well configured / installed")
 
 # ------------------------------------------------------------------------------
 
 
-def rastToVectRecode(path, classif, vector, outputName,
-                     ram="10000", dtype="uint8", valvect=255, valrastout=255):
+def rastToVectRecode(
+    path,
+    classif,
+    vector,
+    outputName,
+    ram="10000",
+    dtype="uint8",
+    valvect=255,
+    valrastout=255,
+):
     """
     Convert vector in raster file and change background value
 
@@ -72,21 +81,26 @@ def rastToVectRecode(path, classif, vector, outputName,
         {
             "il": classif,
             "exp": "im1b1*0",
-            "ram": str(
-                1 * float(ram)),
+            "ram": str(1 * float(ram)),
             "pixType": dtype,
-            "out": os.path.join(
-                path,
-                'temp.tif')})
+            "out": os.path.join(path, "temp.tif"),
+        }
+    )
     # bandMathAppli.ExecuteAndWriteOutput()
     p = mp.Process(target=executeApp, args=[bmapp])
     p.start()
     p.join()
 
     # Burn
-    tifMasqueMerRecode = os.path.join(path, 'masque_mer_recode.tif')
-    rastApp = OtbAppBank.CreateRasterizationApplication({"in": vector, "im": os.path.join(
-        path, 'temp.tif'), "background": 1, "out": tifMasqueMerRecode})
+    tifMasqueMerRecode = os.path.join(path, "masque_mer_recode.tif")
+    rastApp = OtbAppBank.CreateRasterizationApplication(
+        {
+            "in": vector,
+            "im": os.path.join(path, "temp.tif"),
+            "background": 1,
+            "out": tifMasqueMerRecode,
+        }
+    )
 
     # bandMathAppli.ExecuteAndWriteOutput()
     p = mp.Process(target=executeApp, args=[rastApp])
@@ -96,16 +110,13 @@ def rastToVectRecode(path, classif, vector, outputName,
     # Differenciate inland water and sea water
     bandMathAppli = OtbAppBank.CreateBandMathApplication(
         {
-            "il": [
-                classif,
-                tifMasqueMerRecode],
-            "exp": "(im2b1=={})?im1b1:{}".format(
-                valvect,
-                valrastout),
-            "ram": str(
-                1 * float(ram)),
+            "il": [classif, tifMasqueMerRecode],
+            "exp": "(im2b1=={})?im1b1:{}".format(valvect, valrastout),
+            "ram": str(1 * float(ram)),
             "pixType": dtype,
-            "out": outputName})
+            "out": outputName,
+        }
+    )
 
     # bandMathAppli.ExecuteAndWriteOutput()
     p = mp.Process(target=executeApp, args=[bandMathAppli])
@@ -114,8 +125,18 @@ def rastToVectRecode(path, classif, vector, outputName,
     os.remove(tifMasqueMerRecode)
 
 
-def OSORegularization(classif, umc1, core, path, output, ram="10000",
-                      noSeaVector=None, rssize=None, umc2=None, logger=logger):
+def OSORegularization(
+    classif,
+    umc1,
+    core,
+    path,
+    output,
+    ram="10000",
+    noSeaVector=None,
+    rssize=None,
+    umc2=None,
+    logger=logger,
+):
 
     if not os.path.exists(output):
         # OTB Number of threads
@@ -123,10 +144,14 @@ def OSORegularization(classif, umc1, core, path, output, ram="10000",
 
         # first regularization
         regulClassif, time_regul1 = AdaptRegul23.regularisation(
-            classif, umc1, core, path, ram)
+            classif, umc1, core, path, ram
+        )
 
         logger.info(
-            " ".join([" : ".join(["First regularization", str(time_regul1)]), "seconds"]))
+            " ".join(
+                [" : ".join(["First regularization", str(time_regul1)]), "seconds"]
+            )
+        )
 
         # second regularization
         if umc2 is not None:
@@ -134,17 +159,29 @@ def OSORegularization(classif, umc1, core, path, output, ram="10000",
                 if os.path.exists(os.path.join(path, "reechantillonnee.tif")):
                     os.remove(os.path.join(path, "reechantillonnee.tif"))
 
-                command = "gdalwarp -q -multi -wo NUM_THREADS=%s -r mode -tr %s %s %s %s/reechantillonnee.tif" % (
-                    core, rssize, rssize, regulClassif, path)
+                command = (
+                    "gdalwarp -q -multi -wo NUM_THREADS=%s -r mode -tr %s %s %s %s/reechantillonnee.tif"
+                    % (core, rssize, rssize, regulClassif, path)
+                )
                 Utils.run(command)
-                logger.info(" ".join(
-                    [" : ".join(["Resample", str(time.time() - time_regul1)]), "seconds"]))
+                logger.info(
+                    " ".join(
+                        [
+                            " : ".join(["Resample", str(time.time() - time_regul1)]),
+                            "seconds",
+                        ]
+                    )
+                )
 
             regulClassif, time_regul2 = AdaptRegul23.regularisation(
-                os.path.join(path, "reechantillonnee.tif"), umc2, core, path, ram)
+                os.path.join(path, "reechantillonnee.tif"), umc2, core, path, ram
+            )
             os.remove(os.path.join(path, "reechantillonnee.tif"))
             logger.info(
-                " ".join([" : ".join(["Second regularization", str(time_regul2)]), "seconds"]))
+                " ".join(
+                    [" : ".join(["Second regularization", str(time_regul2)]), "seconds"]
+                )
+            )
 
         if noSeaVector is not None:
             outfilename = os.path.basename(output)
@@ -152,11 +189,10 @@ def OSORegularization(classif, umc1, core, path, output, ram="10000",
                 path,
                 regulClassif,
                 noSeaVector,
-                os.path.join(
-                    path,
-                    outfilename),
+                os.path.join(path, outfilename),
                 ram,
-                "uint8")
+                "uint8",
+            )
         else:
             outfilename = regulClassif
 
@@ -165,40 +201,50 @@ def OSORegularization(classif, umc1, core, path, output, ram="10000",
 
     else:
         logger.info(
-            "One regularised file '%s' already exists for this classification" %
-            (output))
+            "One regularised file '%s' already exists for this classification"
+            % (output)
+        )
 
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         prog = os.path.basename(sys.argv[0])
-        print('      ' + sys.argv[0] + ' [options]')
+        print("      " + sys.argv[0] + " [options]")
         print("     Help : ", prog, " --help")
         print("        or : ", prog, " -h")
         sys.exit(-1)
     else:
         usage = "usage: %prog [options] "
         parser = argparse.ArgumentParser(
-            description="Regularization and resampling a classification raster")
-        parser.add_argument("-wd", dest="path", action="store",
-                            help="Working directory", required=True)
+            description="Regularization and resampling a classification raster"
+        )
+        parser.add_argument(
+            "-wd", dest="path", action="store", help="Working directory", required=True
+        )
 
-        parser.add_argument("-in", dest="classif", action="store",
-                            help="Name of classification", required=True)
+        parser.add_argument(
+            "-in",
+            dest="classif",
+            action="store",
+            help="Name of classification",
+            required=True,
+        )
 
         parser.add_argument(
             "-inland",
             dest="inland",
             action="store",
             help="inland water limit shapefile",
-            required=False)
+            required=False,
+        )
 
         parser.add_argument(
             "-nbcore",
             dest="core",
             action="store",
             help="Number of CPU / Threads to use for OTB applications (ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS)",
-            required=True)
+            required=True,
+        )
 
         parser.add_argument(
             "-ram",
@@ -206,23 +252,40 @@ if __name__ == "__main__":
             action="store",
             help="RAM for otb applications",
             default="10000",
-            required=False)
+            required=False,
+        )
 
-        parser.add_argument("-umc1", dest="umc1", action="store",
-                            help="MMU for first regularization", required=True)
+        parser.add_argument(
+            "-umc1",
+            dest="umc1",
+            action="store",
+            help="MMU for first regularization",
+            required=True,
+        )
 
         parser.add_argument(
             "-umc2",
             dest="umc2",
             action="store",
             help="MMU for second regularization",
-            required=False)
+            required=False,
+        )
 
-        parser.add_argument("-rssize", dest="rssize", action="store",
-                            help="Pixel size for resampling", required=False)
+        parser.add_argument(
+            "-rssize",
+            dest="rssize",
+            action="store",
+            help="Pixel size for resampling",
+            required=False,
+        )
 
-        parser.add_argument("-outfile", dest="out", action="store",
-                            help="output file name", required=True)
+        parser.add_argument(
+            "-outfile",
+            dest="out",
+            action="store",
+            help="output file name",
+            required=True,
+        )
 
         args = parser.parse_args()
 
@@ -235,7 +298,8 @@ if __name__ == "__main__":
             args.ram,
             args.inland,
             args.rssize,
-            args.umc2)
+            args.umc2,
+        )
 
         # python regularization.py -wd
         # /home/thierionv/cluster/simplification/post-processing-oso/script_oso/wd

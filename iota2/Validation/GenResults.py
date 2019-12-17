@@ -36,26 +36,36 @@ def genResults(pathRes, pathNom):
     for seed_csv in all_csv:
         name, ext = os.path.splitext(os.path.basename(seed_csv))
         out_png = os.path.join(pathRes, "Confusion_Matrix_{}.png".format(name))
-        resU.gen_confusion_matrix_fig(seed_csv, out_png, pathNom,
-                                      undecidedlabel=None, dpi=200,
-                                      write_conf_score=True, grid_conf=True,
-                                      conf_score="count_sci", threshold=0.1)
+        resU.gen_confusion_matrix_fig(
+            seed_csv,
+            out_png,
+            pathNom,
+            undecidedlabel=None,
+            dpi=200,
+            write_conf_score=True,
+            grid_conf=True,
+            conf_score="count_sci",
+            threshold=0.1,
+        )
 
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(
-        description="This function shape classifications (fake fusion and tiles priority)")
+        description="This function shape classifications (fake fusion and tiles priority)"
+    )
     parser.add_argument(
         "-path.res",
         help="path to the folder which contains classification's results (mandatory)",
         dest="pathRes",
-        required=True)
+        required=True,
+    )
     parser.add_argument(
         "-path.nomenclature",
         help="path to the nomenclature (mandatory)",
         dest="pathNom",
-        required=True)
+        required=True,
+    )
     args = parser.parse_args()
 
     genResults(args.pathRes, args.pathNom)

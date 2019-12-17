@@ -60,13 +60,15 @@ class SecondStep(IOTA2Step.Step):
             must be a lambda function.
         """
 
-        def step_function(x): return write_something(self.output_dir, x)
+        def step_function(x):
+            return write_something(self.output_dir, x)
+
         return step_function
 
     def step_outputs(self):
         from Common import FileUtils
-        return FileUtils.FileSearch_AND(
-            self.output_dir, True, "test_dummy_", ".txt")
+
+        return FileUtils.FileSearch_AND(self.output_dir, True, "test_dummy_", ".txt")
 
     def step_clean(self):
         """
@@ -75,6 +77,7 @@ class SecondStep(IOTA2Step.Step):
         from Common import FileUtils
 
         tmp_files = FileUtils.FileSearch_AND(
-            self.output_dir, True, "TMP", "test_dummy_", ".txt")
+            self.output_dir, True, "TMP", "test_dummy_", ".txt"
+        )
         for tmp_file in tmp_files:
             os.remove(tmp_file)

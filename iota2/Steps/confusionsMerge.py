@@ -23,30 +23,25 @@ class confusionsMerge(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "confusionMatrixFusion"
-        super(
-            confusionsMerge,
-            self).__init__(
-            cfg,
-            cfg_resources_file,
-            resources_block_name)
+        super(confusionsMerge, self).__init__(
+            cfg, cfg_resources_file, resources_block_name
+        )
 
         # step variables
         self.workingDirectory = workingDirectory
-        self.output_path = SCF.serviceConfigFile(
-            self.cfg).getParam(
-            'chain', 'outputPath')
-        self.data_field = SCF.serviceConfigFile(
-            self.cfg).getParam(
-            'chain', 'dataField')
-        self.ground_truth = SCF.serviceConfigFile(
-            self.cfg).getParam(
-            'chain', 'groundTruth')
+        self.output_path = SCF.serviceConfigFile(self.cfg).getParam(
+            "chain", "outputPath"
+        )
+        self.data_field = SCF.serviceConfigFile(self.cfg).getParam("chain", "dataField")
+        self.ground_truth = SCF.serviceConfigFile(self.cfg).getParam(
+            "chain", "groundTruth"
+        )
 
     def step_description(self):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Merge all confusions")
+        description = "Merge all confusions"
         return description
 
     def step_inputs(self):
@@ -67,15 +62,16 @@ class confusionsMerge(IOTA2Step.Step):
         """
         from Validation import ConfusionFusion as confFus
 
-        def step_function(x): return confFus.confFusion(x,
-                                                        self.data_field,
-                                                        os.path.join(
-                                                            self.output_path, "final", "TMP"),
-                                                        os.path.join(
-                                                            self.output_path, "final", "TMP"),
-                                                        os.path.join(
-                                                            self.output_path, "final", "TMP"),
-                                                        self.cfg)
+        def step_function(x):
+            return confFus.confFusion(
+                x,
+                self.data_field,
+                os.path.join(self.output_path, "final", "TMP"),
+                os.path.join(self.output_path, "final", "TMP"),
+                os.path.join(self.output_path, "final", "TMP"),
+                self.cfg,
+            )
+
         return step_function
 
     def step_outputs(self):

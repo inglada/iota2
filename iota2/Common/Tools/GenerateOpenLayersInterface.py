@@ -30,6 +30,8 @@ def getStringBetween(string, ch1, ch2):
                     out = out + string[j]
             break
     return out
+
+
 # ---------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -49,8 +51,8 @@ def generate(listClassif, colorFile, pathOut, urlserveur):
         classifRes = []  # [(ClassNumber,FScore),...]
         resFile = open(results, "r")
         while True:
-            data = resFile.readline().rstrip('\n\r')
-            if data.count('Standard deviation is:') != 0:
+            data = resFile.readline().rstrip("\n\r")
+            if data.count("Standard deviation is:") != 0:
                 std = float(data.split(":")[-1])
                 break
             elif data.count("Class") != 0:
@@ -64,8 +66,11 @@ def generate(listClassif, colorFile, pathOut, urlserveur):
 
         htmlFile = open(pathOut + "/" + classifName + ".html", "w")
 
-        htmlFile.write('<!DOCTYPE html>\n<html>\n<head>\n<title>Prototype de produit</title>\n<script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>\n<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>\n<link rel="stylesheet" href="http://openlayers.org/en/v3.10.1/css/ol.css" type="text/css">\n<meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />\n<script src="http://openlayers.org/en/v3.10.1/build/ol.js"></script>\n<link rel="stylesheet" href="popup.css">\n')
-        htmlFile.write('<style type="text/css">\n\
+        htmlFile.write(
+            '<!DOCTYPE html>\n<html>\n<head>\n<title>Prototype de produit</title>\n<script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>\n<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>\n<link rel="stylesheet" href="http://openlayers.org/en/v3.10.1/css/ol.css" type="text/css">\n<meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />\n<script src="http://openlayers.org/en/v3.10.1/build/ol.js"></script>\n<link rel="stylesheet" href="popup.css">\n'
+        )
+        htmlFile.write(
+            '<style type="text/css">\n\
 #left-panel {\n\
 width: %s%%;\n\
 height: %s%%;\n\
@@ -165,55 +170,78 @@ font-weight: bold;\n\
 						<th scope="col" class="org-right">FScore</th>\n\
 						</tr>\n\
 					</thead>\n\
-					<tbody >\n' % (Size, panelHeight))
+					<tbody >\n'
+            % (Size, panelHeight)
+        )
 
         # Read the color's file and write into the html file
         color = open(colorFile, "r")
         lineData = []  # [(ClassNumber,ClassName,r,g,b,Fscore),[...],...]
         while True:
-            data = color.readline().rstrip('\n\r')
-            if data.count('</qgis>') != 0:
+            data = color.readline().rstrip("\n\r")
+            if data.count("</qgis>") != 0:
                 break
             elif data.count("colorRampEntry") != 0:
 
                 # Get the red value
                 ind = data.index("red")
-                redVal = int(getStringBetween(
-                    data[ind + len("red"):ind + len("red") + 7], '"', '"'))
+                redVal = int(
+                    getStringBetween(
+                        data[ind + len("red") : ind + len("red") + 7], '"', '"'
+                    )
+                )
                 # Get the green value
                 ind = data.index("green")
-                greenVal = int(getStringBetween(
-                    data[ind + len("green"):ind + len("green") + 7], '"', '"'))
+                greenVal = int(
+                    getStringBetween(
+                        data[ind + len("green") : ind + len("green") + 7], '"', '"'
+                    )
+                )
                 # Get the blue value
                 ind = data.index("blue")
-                blueVal = int(getStringBetween(
-                    data[ind + len("blue"):ind + len("blue") + 7], '"', '"'))
+                blueVal = int(
+                    getStringBetween(
+                        data[ind + len("blue") : ind + len("blue") + 7], '"', '"'
+                    )
+                )
                 # Get the Class Name
                 ind = data.index("label")
                 ClassName = getStringBetween(
-                    data[ind + len("label"):ind + len(data)], '"', '"')
+                    data[ind + len("label") : ind + len(data)], '"', '"'
+                )
                 # Get the Class Number
                 ind = data.index("value")
                 ClassNum = getStringBetween(
-                    data[ind + len("value"):ind + len(data)], '"', '"').split(".")[0]
+                    data[ind + len("value") : ind + len(data)], '"', '"'
+                ).split(".")[0]
 
                 # get the FScore
                 for ClassNumber, FScore in classifRes:
                     if ClassNumber == ClassNum:
                         lineData.append(
-                            (ClassNum, ClassName, redVal, greenVal, blueVal, FScore))
+                            (ClassNum, ClassName, redVal, greenVal, blueVal, FScore)
+                        )
                 if ClassName == "autres":
-                    lineData.append(
-                        (ClassNum, ClassName, redVal, greenVal, blueVal))
+                    lineData.append((ClassNum, ClassName, redVal, greenVal, blueVal))
 
         color.close()
         for i in range(len(lineData)):
             if lineData[i][1] != "autres":
-                htmlFile.write('\n\
+                htmlFile.write(
+                    '\n\
 					<tr>\n\
 					<td class="org-left"><FONT style="BACKGROUND-COLOR: rgb(%d,%d,%d)"> %s: %s</FONT></td>\n\
 					<td class="org-right">%f</td>\n\
-					</tr>' % (lineData[i][2], lineData[i][3], lineData[i][4], lineData[i][0], lineData[i][1], lineData[i][5]))
+					</tr>'
+                    % (
+                        lineData[i][2],
+                        lineData[i][3],
+                        lineData[i][4],
+                        lineData[i][0],
+                        lineData[i][1],
+                        lineData[i][5],
+                    )
+                )
             else:
                 """
                                 #pour respecter ce qui est dans le fichier de couleurs
@@ -223,12 +251,15 @@ font-weight: bold;\n\
                                         <td class="org-right">&#xa0;</td>\n\
                                         </tr>'%(lineData[i][2],lineData[i][3],lineData[i][4],lineData[i][0],lineData[i][1]))
                 """
-                htmlFile.write('\n\
+                htmlFile.write(
+                    '\n\
 					<tr>\n\
 					<td class="org-left"><FONT style="BACKGROUND-COLOR: rgb(255,255,255)"> 255/0: No data</FONT></td>\n\
 					<td class="org-right">&#xa0;</td>\n\
-					</tr>')
-        htmlFile.write('</tbody>\n\
+					</tr>'
+                )
+        htmlFile.write(
+            '</tbody>\n\
 					<tbody>\n\
 					<tr>\n\
 					<td class="org-left">OA</td>\n\
@@ -267,16 +298,25 @@ font-weight: bold;\n\
 </div>\n\
 <div id="left-panel"  style="color: #FFF">\n\
 	<div align = "right"><b>></b></div>\n\
-	<p><b>List of classifications :</b></p>' % (OA))
+	<p><b>List of classifications :</b></p>'
+            % (OA)
+        )
         for classifName2, results in listClassif:
             pathHref = pathOut + "/" + classifName2 + ".html"
             if classifName2 == classifName:
-                htmlFile.write('\n\
-	<p><a href="%s" style="color: #FFF">%s</a> <b><</b> </p>' % (pathHref, classifName2))
+                htmlFile.write(
+                    '\n\
+	<p><a href="%s" style="color: #FFF">%s</a> <b><</b> </p>'
+                    % (pathHref, classifName2)
+                )
             else:
-                htmlFile.write('\n\
-	<p><a href="%s" style="color: #FFF">%s</a></p>' % (pathHref, classifName2))
-        htmlFile.write('\n\
+                htmlFile.write(
+                    '\n\
+	<p><a href="%s" style="color: #FFF">%s</a></p>'
+                    % (pathHref, classifName2)
+                )
+        htmlFile.write(
+            '\n\
 </div>\n\
 <script type="text/javascript">\n\
   function showLeftPanel() {\n\
@@ -288,9 +328,15 @@ font-weight: bold;\n\
 \n\
 \n\
 var styles = [\n\
-  "'"Road"'",\n\
-  "'"Aerial"'",\n\
-  "'"AerialWithLabels"'"\n\
+  "'
+            "Road"
+            '",\n\
+  "'
+            "Aerial"
+            '",\n\
+  "'
+            "AerialWithLabels"
+            '"\n\
 ];\n\
 \n\
 var mousePositionControl = new ol.control.MousePosition({\n\
@@ -324,7 +370,9 @@ var view = new ol.View({\n\
 var map = new ol.Map({\n\
 	layers: layers,\n\
 	loadTilesWhileInteracting: true,\n\
-	target: "'"map"'",\n\
+	target: "'
+            "map"
+            '",\n\
 	view: view,\n\
 	controls: ol.control.defaults({\n\
     attributionOptions: /** @type {olx.control.AttributionOptions} */ ({\n\
@@ -342,14 +390,18 @@ var classif = new ol.layer.Tile({\n\
             	preload: Infinity,\n\
             	url: "%s",\n\
             	serverType:"geoserver",\n\
-            	params:{"LAYERS":"%s", "'"TILED"'":true}\n\
+            	params:{"LAYERS":"%s", "'
+            "TILED"
+            '":true}\n\
             })\n\
 \n\
 });\n\
 \n\
 var select = document.getElementById("layer-select");\n\
 var selectOpa = document.getElementById("opa");\n\
-var PixInfo = document.getElementById("'"information"'");\n\
+var PixInfo = document.getElementById("'
+            "information"
+            '");\n\
 \n\
 var viewProjection = view.getProjection();\n\
 var viewResolution = view.getResolution();\n\
@@ -366,7 +418,9 @@ function OpaChange() {\n\
 	classif.setOpacity(opcity)\n\
 }\n\
 \n\
-map.on("'"click"'", function(evt) {\n\
+map.on("'
+            "click"
+            '", function(evt) {\n\
   var viewResolution = /** @type {number} */ (view.getResolution());\n\
   var coordinate = evt.coordinate;\n\
   var url = classif.getSource().getGetFeatureInfoUrl(\n\
@@ -374,15 +428,31 @@ map.on("'"click"'", function(evt) {\n\
       {"INFO_FORMAT": "text/html",\n\
        "propertyName": "PALETTE_INDEX"});\n\
   if (url) {\n\
-   var iframe = '"'<iframe seamless src="'"'"' + url + '"'"'" width = "'"350"'" height = "'"150"'" style="'"border:none"'" ></iframe>'"';\n\
+   var iframe = '
+            "'<iframe seamless src="
+            '"'
+            "' + url + '"
+            '"'
+            " width = "
+            '"350"'
+            " height = "
+            '"150"'
+            " style="
+            '"border:none"'
+            " ></iframe>'"
+            ';\n\
     PixInfo.innerHTML = iframe\n\
 \n\
 \n\
   }\n\
 });\n\
 \n\
-select.addEventListener("'"change"'", onChange);\n\
-selectOpa.addEventListener("'"change"'", OpaChange);\n\
+select.addEventListener("'
+            "change"
+            '", onChange);\n\
+selectOpa.addEventListener("'
+            "change"
+            '", OpaChange);\n\
 \n\
 onChange();\n\
 OpaChange();\n\
@@ -390,20 +460,29 @@ map.addLayer(classif)\n\
 \n\
 </script>\n\
 </body>\n\
-</html>' % (urlserveur, classifName))
+</html>'
+            % (urlserveur, classifName)
+        )
         htmlFile.close()
 
 
 if __name__ == "__main__":
     if len(sys.argv) < 6:
         print(
-            "Usage: " + sys.argv[0] + " server_url style_file output_path classif_1 metrics_1 [classif_12 metrics_2 ... classif_n metrics_n]")
-        print("Example: python " +
-              sys.argv[0] + " \"http://cyan.ups-tlse.fr:8080/geoserver/SudOuest/wms?\" FR_ALLCLASSES.qml /tmp/html \"SudOuest:OSOV1\" MetricsV1.txt \"SudOuest:OSOV2\" MetricsV2.txt ")
+            "Usage: "
+            + sys.argv[0]
+            + " server_url style_file output_path classif_1 metrics_1 [classif_12 metrics_2 ... classif_n metrics_n]"
+        )
+        print(
+            "Example: python "
+            + sys.argv[0]
+            + ' "http://cyan.ups-tlse.fr:8080/geoserver/SudOuest/wms?" FR_ALLCLASSES.qml /tmp/html "SudOuest:OSOV1" MetricsV1.txt "SudOuest:OSOV2" MetricsV2.txt '
+        )
     else:
         urlserveur = sys.argv[1]
         colorFile = sys.argv[2]
         pathOut = sys.argv[3]
-        listClassif = [(sys.argv[i], sys.argv[i + 1])
-                       for i in range(4, len(sys.argv), 2)]
+        listClassif = [
+            (sys.argv[i], sys.argv[i + 1]) for i in range(4, len(sys.argv), 2)
+        ]
         generate(listClassif, colorFile, pathOut, urlserveur)

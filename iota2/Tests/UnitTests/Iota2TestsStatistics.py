@@ -27,7 +27,7 @@ import filecmp
 import numpy as np
 import unittest
 
-IOTA2DIR = os.environ.get('IOTA2DIR')
+IOTA2DIR = os.environ.get("IOTA2DIR")
 
 if IOTA2DIR is None:
     raise Exception("IOTA2DIR environment variable must be set")
@@ -47,7 +47,8 @@ class iota_testZonalStats(unittest.TestCase):
         # definition of local variables
         self.group_test_name = "iota_testZonalStats"
         self.iota2_tests_directory = os.path.join(
-            IOTA2DIR, "data", self.group_test_name)
+            IOTA2DIR, "data", self.group_test_name
+        )
         self.all_tests_ok = []
 
         # Tests directory
@@ -60,27 +61,32 @@ class iota_testZonalStats(unittest.TestCase):
         self.out = os.path.join(self.iota2_tests_directory, "out/")
 
         self.classif = os.path.join(
-            IOTA2DIR, "data", "references/sampler/final/Classif_Seed_0.tif")
+            IOTA2DIR, "data", "references/sampler/final/Classif_Seed_0.tif"
+        )
         self.validity = os.path.join(
-            IOTA2DIR, "data", "references/sampler/final/PixelsValidity.tif")
+            IOTA2DIR, "data", "references/sampler/final/PixelsValidity.tif"
+        )
         self.confid = os.path.join(
-            IOTA2DIR, "data", "references/sampler/final/PixelsValidity.tif")
+            IOTA2DIR, "data", "references/sampler/final/PixelsValidity.tif"
+        )
         self.vector = os.path.join(
-            IOTA2DIR, "data", "references/posttreat/vectors/classifsmooth.shp")
+            IOTA2DIR, "data", "references/posttreat/vectors/classifsmooth.shp"
+        )
         self.vectorstats = os.path.join(
-            self.iota2_tests_directory, self.out, "classifstats.shp")
+            self.iota2_tests_directory, self.out, "classifstats.shp"
+        )
         self.vectorstatsiota2 = os.path.join(
-            self.iota2_tests_directory, self.out, "classifiota2.shp")
-        self.outzip = os.path.join(
-            self.iota2_tests_directory,
-            self.out,
-            "classif.zip")
+            self.iota2_tests_directory, self.out, "classifiota2.shp"
+        )
+        self.outzip = os.path.join(self.iota2_tests_directory, self.out, "classif.zip")
         self.statslist = {1: "rate", 2: "statsmaj", 3: "statsmaj"}
         self.nomenclature = os.path.join(
-            IOTA2DIR, "data", "references/posttreat/nomenclature_17.cfg")
+            IOTA2DIR, "data", "references/posttreat/nomenclature_17.cfg"
+        )
 
         self.outzipref = os.path.join(
-            IOTA2DIR, "data", "references/posttreat/vectors/classif.zip")
+            IOTA2DIR, "data", "references/posttreat/vectors/classif.zip"
+        )
 
     # after launching all tests
     @classmethod
@@ -99,7 +105,8 @@ class iota_testZonalStats(unittest.TestCase):
 
         test_name = self.id().split(".")[-1]
         self.test_working_directory = os.path.join(
-            self.iota2_tests_directory, test_name)
+            self.iota2_tests_directory, test_name
+        )
         if os.path.exists(self.test_working_directory):
             shutil.rmtree(self.test_working_directory)
         os.mkdir(self.test_working_directory)
@@ -126,10 +133,7 @@ class iota_testZonalStats(unittest.TestCase):
             result = self.defaultTestResult()
             self._feedErrorsToResult(result, self._outcome.errors)
         else:
-            result = getattr(
-                self,
-                '_outcomeForDoCleanups',
-                self._resultForDoCleanups)
+            result = getattr(self, "_outcomeForDoCleanups", self._resultForDoCleanups)
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
         ok = not error and not failure
@@ -145,39 +149,34 @@ class iota_testZonalStats(unittest.TestCase):
         # Statistics test
 
         params = zs.splitVectorFeatures(self.vector, self.wd, 1)
-        zs.zonalstats(self.wd,
-                      [self.classif,
-                       self.confid,
-                       self.validity],
-                      params,
-                      self.vectorstats,
-                      self.statslist,
-                      classes=self.nomenclature)
-        zs.iota2Formatting(
+        zs.zonalstats(
+            self.wd,
+            [self.classif, self.confid, self.validity],
+            params,
             self.vectorstats,
-            self.nomenclature,
-            self.vectorstatsiota2)
+            self.statslist,
+            classes=self.nomenclature,
+        )
+        zs.iota2Formatting(self.vectorstats, self.nomenclature, self.vectorstatsiota2)
         zs.compressShape(self.vectorstatsiota2, self.outzip)
 
         # Final integration test
         os.system("unzip %s -d %s" % (self.outzipref, self.wd))
-        for ext in ['.shp', '.dbf', '.shx', '.prj', '.cpg']:
+        for ext in [".shp", ".dbf", ".shx", ".prj", ".cpg"]:
             os.remove(os.path.splitext(self.vectorstatsiota2)[0] + ext)
 
         os.system("unzip %s -d %s" % (self.outzip, self.out))
 
         self.assertTrue(
             testutils.compareVectorFile(
-                os.path.join(
-                    self.out,
-                    "classifiota2.shp"),
-                os.path.join(
-                    self.wd,
-                    "classifiota2.shp"),
-                'coordinates',
-                'polygon',
-                "ESRI Shapefile"),
-            "Generated shapefile vector does not fit with shapefile reference file")
+                os.path.join(self.out, "classifiota2.shp"),
+                os.path.join(self.wd, "classifiota2.shp"),
+                "coordinates",
+                "polygon",
+                "ESRI Shapefile",
+            ),
+            "Generated shapefile vector does not fit with shapefile reference file",
+        )
 
         # remove temporary folders
         if os.path.exists(self.wd):

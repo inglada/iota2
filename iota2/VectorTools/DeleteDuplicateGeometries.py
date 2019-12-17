@@ -48,23 +48,28 @@ def DeleteDupGeom(infile):
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         prog = os.path.basename(sys.argv[0])
-        print(('      ' + sys.argv[0] + ' [options]'))
+        print(("      " + sys.argv[0] + " [options]"))
         print(("     Help : ", prog, " --help"))
         print(("        or : ", prog, " -h"))
         sys.exit(-1)
     else:
         usage = "usage: %prog [options] "
         parser = argparse.ArgumentParser(
-            description="Delete double geometries in a shapefile")
-        parser.add_argument("-s", dest="shapefile", action="store",
-                            help="Input shapefile", required=True)
-        parser.add_argument("-o", dest="outpath", action="store",
-                            help="output path")
+            description="Delete double geometries in a shapefile"
+        )
+        parser.add_argument(
+            "-s",
+            dest="shapefile",
+            action="store",
+            help="Input shapefile",
+            required=True,
+        )
+        parser.add_argument("-o", dest="outpath", action="store", help="output path")
         args = parser.parse_args()
-        print('Delete duplicate geometries...')
+        print("Delete duplicate geometries...")
         newshp = DeleteDupGeom(args.shapefile)
         basenewshp = os.path.splitext(newshp)
         if args.outpath:
             fileUtils.cpShapeFile(
-                basenewshp, args.outpath, [
-                    ".prj", ".shp", ".dbf", ".shx"], True)
+                basenewshp, args.outpath, [".prj", ".shp", ".dbf", ".shx"], True
+            )

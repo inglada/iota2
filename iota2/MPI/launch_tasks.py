@@ -33,8 +33,8 @@ def launchBashCmd(bashCmd):
     """
     # using subprocess will be better.
     os.system(bashCmd)
-    #bashCmd.split(" ")
-    #subprocess.check_output(bashCmd, shell=False)
+    # bashCmd.split(" ")
+    # subprocess.check_output(bashCmd, shell=False)
 
 
 def launchPythonCmd(f, *arg):
@@ -44,7 +44,7 @@ def launchPythonCmd(f, *arg):
     f(*arg)
 
 
-class Tasks():
+class Tasks:
     """
     Class tasks definition : this class launch MPI process
     """
@@ -61,6 +61,8 @@ class Tasks():
         self.ressources = ressources
         self.nb_cpu = ressources.nb_cpu
 
-        self.logFile = os.path.join(iota2_config.getParam('chain', 'outputPath'),
-                                    "logs",
-                                    self.TaskName + "_log.log")
+        self.logFile = os.path.join(
+            iota2_config.getParam("chain", "outputPath"),
+            "logs",
+            self.TaskName + "_log.log",
+        )

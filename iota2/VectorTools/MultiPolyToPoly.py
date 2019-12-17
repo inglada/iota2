@@ -28,20 +28,22 @@ def manageMultiPoly2Poly(in_lyr, out_lyr, field_name_list, do_correction=True):
     for in_feat in in_lyr:
         geom = in_feat.GetGeometryRef()
         if geom is not None:
-            if geom.GetGeometryName() == 'MULTIPOLYGON':
+            if geom.GetGeometryName() == "MULTIPOLYGON":
                 multi_cpt += 1
                 if do_correction:
                     for geom_part in geom:
-                        addPolygon(in_feat, geom_part.ExportToWkb(),
-                                   in_lyr, out_lyr, field_name_list)
+                        addPolygon(
+                            in_feat,
+                            geom_part.ExportToWkb(),
+                            in_lyr,
+                            out_lyr,
+                            field_name_list,
+                        )
             else:
                 if do_correction:
                     addPolygon(
-                        in_feat,
-                        geom.ExportToWkb(),
-                        in_lyr,
-                        out_lyr,
-                        field_name_list)
+                        in_feat, geom.ExportToWkb(), in_lyr, out_lyr, field_name_list
+                    )
     return multi_cpt
 
 
@@ -65,7 +67,7 @@ def multipoly2poly(inshape, outshape, do_correction=True):
     field_name_list = vf.getFields(inshape)
 
     # Open input and output shapefile
-    driver = ogr.GetDriverByName('ESRI Shapefile')
+    driver = ogr.GetDriverByName("ESRI Shapefile")
     in_ds = driver.Open(inshape, 0)
     in_lyr = in_ds.GetLayer()
     inLayerDefn = in_lyr.GetLayerDefn()
@@ -75,7 +77,7 @@ def multipoly2poly(inshape, outshape, do_correction=True):
     out_lyr = None
     if do_correction:
         out_ds = driver.CreateDataSource(outshape)
-        out_lyr = out_ds.CreateLayer('poly', srsObj, geom_type=ogr.wkbPolygon)
+        out_lyr = out_ds.CreateLayer("poly", srsObj, geom_type=ogr.wkbPolygon)
         for i in range(0, len(field_name_list)):
             fieldDefn = inLayerDefn.GetFieldDefn(i)
             fieldName = fieldDefn.GetName()
@@ -83,25 +85,36 @@ def multipoly2poly(inshape, outshape, do_correction=True):
                 continue
             out_lyr.CreateField(fieldDefn)
 
-    multipoly = manageMultiPoly2Poly(
-        in_lyr, out_lyr, field_name_list, do_correction)
+    multipoly = manageMultiPoly2Poly(in_lyr, out_lyr, field_name_list, do_correction)
     return multipoly
 
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         prog = os.path.basename(sys.argv[0])
-        print('      ' + sys.argv[0] + ' [options]')
+        print("      " + sys.argv[0] + " [options]")
         print("     Help : ", prog, " --help")
         print("        or : ", prog, " -h")
         sys.exit(-1)
     else:
         usage = "usage: %prog [options] "
-        parser = argparse.ArgumentParser(description="Transform multipolygons shapefile"
-                                         "in single polygons shapefile")
-        parser.add_argument("-s", dest="inshapefile", action="store",
-                            help="Input shapefile", required=True)
-        parser.add_argument("-o", dest="outshapefile", action="store",
-                            help="Output shapefile without multipolygons", required=True)
+        parser = argparse.ArgumentParser(
+            description="Transform multipolygons shapefile"
+            "in single polygons shapefile"
+        )
+        parser.add_argument(
+            "-s",
+            dest="inshapefile",
+            action="store",
+            help="Input shapefile",
+            required=True,
+        )
+        parser.add_argument(
+            "-o",
+            dest="outshapefile",
+            action="store",
+            help="Output shapefile without multipolygons",
+            required=True,
+        )
         args = parser.parse_args()
         multipoly2poly(args.inshapefile, args.outshapefile)

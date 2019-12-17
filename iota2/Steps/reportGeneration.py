@@ -23,27 +23,24 @@ class reportGeneration(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "reportGen"
-        super(
-            reportGeneration,
-            self).__init__(
-            cfg,
-            cfg_resources_file,
-            resources_block_name)
+        super(reportGeneration, self).__init__(
+            cfg, cfg_resources_file, resources_block_name
+        )
 
         # step variables
         self.workingDirectory = workingDirectory
-        self.output_path = SCF.serviceConfigFile(
-            self.cfg).getParam(
-            'chain', 'outputPath')
-        self.nomenclature = SCF.serviceConfigFile(
-            self.cfg).getParam(
-            'chain', 'nomenclaturePath')
+        self.output_path = SCF.serviceConfigFile(self.cfg).getParam(
+            "chain", "outputPath"
+        )
+        self.nomenclature = SCF.serviceConfigFile(self.cfg).getParam(
+            "chain", "nomenclaturePath"
+        )
 
     def step_description(self):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Generate final report")
+        description = "Generate final report"
         return description
 
     def step_inputs(self):
@@ -63,8 +60,10 @@ class reportGeneration(IOTA2Step.Step):
             must be a lambda function.
         """
         from Validation import GenResults as GR
-        def step_function(x): return GR.genResults(x,
-                                                   self.nomenclature)
+
+        def step_function(x):
+            return GR.genResults(x, self.nomenclature)
+
         return step_function
 
     def step_outputs(self):

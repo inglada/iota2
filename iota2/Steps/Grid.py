@@ -24,31 +24,24 @@ class Grid(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "grid"
-        super(
-            Grid,
-            self).__init__(
-            cfg,
-            cfg_resources_file,
-            resources_block_name)
+        super(Grid, self).__init__(cfg, cfg_resources_file, resources_block_name)
 
         # step variables
         self.RAM = 1024.0 * get_RAM(self.resources["ram"])
         self.workingDirectory = workingDirectory
-        self.outputPath = SCF.serviceConfigFile(
-            self.cfg).getParam(
-            'chain', 'outputPath')
-        self.gridsize = SCF.serviceConfigFile(
-            self.cfg).getParam(
-            'Simplification', 'gridsize')
-        self.epsg = SCF.serviceConfigFile(
-            self.cfg).getParam(
-            'GlobChain', 'proj')
+        self.outputPath = SCF.serviceConfigFile(self.cfg).getParam(
+            "chain", "outputPath"
+        )
+        self.gridsize = SCF.serviceConfigFile(self.cfg).getParam(
+            "Simplification", "gridsize"
+        )
+        self.epsg = SCF.serviceConfigFile(self.cfg).getParam("GlobChain", "proj")
 
     def step_description(self):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Generation of grid for serialisation")
+        description = "Generation of grid for serialisation"
         return description
 
     def step_inputs(self):
@@ -57,8 +50,9 @@ class Grid(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
-        outfileclp = os.path.join(self.outputPath, 'final', 'simplification',
-                                  'classif_regul_clump.tif')
+        outfileclp = os.path.join(
+            self.outputPath, "final", "simplification", "classif_regul_clump.tif"
+        )
         return [outfileclp]
 
     def step_execute(self):
@@ -71,14 +65,15 @@ class Grid(IOTA2Step.Step):
         """
         from simplification import GridGenerator as gridg
 
-        outfilegrid = os.path.join(self.outputPath, 'final', 'simplification',
-                                   'grid.shp')
+        outfilegrid = os.path.join(
+            self.outputPath, "final", "simplification", "grid.shp"
+        )
 
-        def step_function(x): return gridg.grid_generate(outfilegrid,
-                                                         self.gridsize,
-                                                         int(self.epsg.split(
-                                                             ':')[1]),
-                                                         x)
+        def step_function(x):
+            return gridg.grid_generate(
+                outfilegrid, self.gridsize, int(self.epsg.split(":")[1]), x
+            )
+
         return step_function
 
     def step_outputs(self):

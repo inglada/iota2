@@ -89,15 +89,14 @@ def GetDataAugmentationByCopyParameters(iota2_dir_samples):
     """
     seed_pos = 3
     samples_set = [
-        (os.path.basename(samples).split("_")[seed_pos],
-         samples) for samples in fut.FileSearch_AND(
-            iota2_dir_samples,
-            True,
-            "Samples_region",
-            "sqlite")]
+        (os.path.basename(samples).split("_")[seed_pos], samples)
+        for samples in fut.FileSearch_AND(
+            iota2_dir_samples, True, "Samples_region", "sqlite"
+        )
+    ]
     samples_set = [
-        samplesSeed for seed,
-        samplesSeed in fut.sortByFirstElem(samples_set)]
+        samplesSeed for seed, samplesSeed in fut.sortByFirstElem(samples_set)
+    ]
     return samples_set
 
 
@@ -131,7 +130,7 @@ def getUserSamplesManagement(csv_path):
     """
     import csv
 
-    with open(csv_path, 'r') as csvfile:
+    with open(csv_path, "r") as csvfile:
         csv_reader = csv.reader(csvfile)
         extraction_rules = [line for line in csv_reader]
     return extraction_rules
@@ -155,17 +154,21 @@ def getSamplesFromModelName(model_name, samplesSet, logger=logger):
         path to the targeted sample-set.
     """
     model_pos = 2
-    sample = [path for path in samplesSet if os.path.basename(path).split("_")[
-        model_pos] == model_name]
+    sample = [
+        path
+        for path in samplesSet
+        if os.path.basename(path).split("_")[model_pos] == model_name
+    ]
 
     if len(sample) > 1:
         logger.error(
             "Too many files detected in {} for the model {}".format(
-                os.path.split(
-                    samplesSet[0])[0],
-                model_name))
+                os.path.split(samplesSet[0])[0], model_name
+            )
+        )
         raise Exception(
-            "ERROR in managementSamples.py, too many sample files detected for a given model name")
+            "ERROR in managementSamples.py, too many sample files detected for a given model name"
+        )
     elif not sample:
         logger.warning("Model {} not found".format(model_name))
         out_samples = None
@@ -175,8 +178,9 @@ def getSamplesFromModelName(model_name, samplesSet, logger=logger):
     return out_samples
 
 
-def countClassInSQLite(source_samples, dataField, class_name,
-                       table_name="output", logger=logger):
+def countClassInSQLite(
+    source_samples, dataField, class_name, table_name="output", logger=logger
+):
     """usage : In a SQLite file, count the appearance of a specific value
 
     Parameters
@@ -198,17 +202,19 @@ def countClassInSQLite(source_samples, dataField, class_name,
         occurrence of the class into the SQLite file
     """
     import sqlite3
+
     conn = sqlite3.connect(source_samples)
     cursor = conn.cursor()
-    sql = "select * from {} where {}={}".format(
-        table_name, dataField, class_name)
+    sql = "select * from {} where {}={}".format(table_name, dataField, class_name)
     cursor.execute(sql)
     features_number = cursor.fetchall()
     features_number = len(features_number)
     if not features_number:
         logger.warning(
             "There is no class with the label {} in {}".format(
-                class_name, source_samples))
+                class_name, source_samples
+            )
+        )
         features_number = 0
     return features_number
 
@@ -245,8 +251,7 @@ def GetRegionFromSampleName(samples):
     return os.path.basename(samples).split("_")[region_pos]
 
 
-def SamplesAugmentationCounter(
-        class_count, mode, minNumber=None, byClass=None):
+def SamplesAugmentationCounter(class_count, mode, minNumber=None, byClass=None):
     """Compute how many samples must be add into the sample-set according to user's request
 
     Parameters
@@ -294,28 +299,39 @@ def SamplesAugmentationCounter(
                 augmented_class[class_name] = minNumber - count
 
     elif mode.lower() == "balance":
-        max_class_count = class_count[max(
-            class_count, key=lambda key: class_count[key])]
+        max_class_count = class_count[
+            max(class_count, key=lambda key: class_count[key])
+        ]
         for class_name, count in list(class_count.items()):
             if count < max_class_count:
                 augmented_class[class_name] = max_class_count - count
 
     elif mode.lower() == "byclass":
         import csv
-        with open(byClass, 'r') as csvfile:
+
+        with open(byClass, "r") as csvfile:
             csv_reader = csv.reader(csvfile)
             for class_name, class_samples in csv_reader:
                 class_name = int(class_name)
                 class_samples = int(class_samples)
                 if class_samples > class_count[class_name]:
-                    augmented_class[class_name] = class_samples - \
-                        class_count[class_name]
+                    augmented_class[class_name] = (
+                        class_samples - class_count[class_name]
+                    )
     return augmented_class
 
 
-def DoAugmentation(samples, class_augmentation, strategy, field,
-                   excluded_fields=[], Jstdfactor=None, Sneighbors=None,
-                   workingDirectory=None, logger=logger):
+def DoAugmentation(
+    samples,
+    class_augmentation,
+    strategy,
+    field,
+    excluded_fields=[],
+    Jstdfactor=None,
+    Sneighbors=None,
+    workingDirectory=None,
+    logger=logger,
+):
     """perform data augmentation according to input parameters
 
     Parameters
@@ -354,22 +370,27 @@ def DoAugmentation(samples, class_augmentation, strategy, field,
     samples = os.path.join(samples_dir, samples_name)
 
     augmented_files = []
-    for class_name, class_samples_augmentation in list(
-            class_augmentation.items()):
-        logger.info("{} samples of class {} will be generated by data augmentation ({} method) in {}".format(class_samples_augmentation,
-                                                                                                             class_name,
-                                                                                                             strategy, samples))
-        sample_name_augmented = "_".join([os.path.splitext(samples_name)[0],
-                                          "aug_class_{}.sqlite".format(class_name)])
-        output_sample_augmented = os.path.join(
-            samples_dir, sample_name_augmented)
-        parameters = {"in": samples,
-                      "field": field,
-                      "out": output_sample_augmented,
-                      "label": class_name,
-                      "strategy": strategy,
-                      "samples": class_samples_augmentation
-                      }
+    for class_name, class_samples_augmentation in list(class_augmentation.items()):
+        logger.info(
+            "{} samples of class {} will be generated by data augmentation ({} method) in {}".format(
+                class_samples_augmentation, class_name, strategy, samples
+            )
+        )
+        sample_name_augmented = "_".join(
+            [
+                os.path.splitext(samples_name)[0],
+                "aug_class_{}.sqlite".format(class_name),
+            ]
+        )
+        output_sample_augmented = os.path.join(samples_dir, sample_name_augmented)
+        parameters = {
+            "in": samples,
+            "field": field,
+            "out": output_sample_augmented,
+            "label": class_name,
+            "strategy": strategy,
+            "samples": class_samples_augmentation,
+        }
         if excluded_fields:
             parameters["exclude"] = excluded_fields
         if strategy.lower() == "jitter":
@@ -378,17 +399,25 @@ def DoAugmentation(samples, class_augmentation, strategy, field,
             parameters["strategy.smote.neighbors"] = Sneighbors
 
         augmentation_application = OtbAppBank.CreateSampleAugmentationApplication(
-            parameters)
+            parameters
+        )
         augmentation_application.ExecuteAndWriteOutput()
-        logger.debug("{} samples of class {} were added in {}".format(class_samples_augmentation,
-                                                                      class_name, samples))
+        logger.debug(
+            "{} samples of class {} were added in {}".format(
+                class_samples_augmentation, class_name, samples
+            )
+        )
         augmented_files.append(output_sample_augmented)
 
-    outputVector = os.path.join(samples_dir, "_".join([os.path.splitext(samples_name)[0],
-                                                       "augmented.sqlite"]))
+    outputVector = os.path.join(
+        samples_dir, "_".join([os.path.splitext(samples_name)[0], "augmented.sqlite"])
+    )
 
-    fut.mergeSQLite("_".join([os.path.splitext(samples_name)[0], "augmented"]),
-                    samples_dir, [samples] + augmented_files)
+    fut.mergeSQLite(
+        "_".join([os.path.splitext(samples_name)[0], "augmented"]),
+        samples_dir,
+        [samples] + augmented_files,
+    )
     logger.info("Every data augmentation done in {}".format(samples))
     shutil.move(outputVector, os.path.join(samples_dir_o, samples_name))
 
@@ -415,6 +444,7 @@ def GetFieldsType(vectorFile):
         {'CODE': 'integer64', 'id': 'integer64', 'Area': 'integer64'}
     """
     from osgeo import ogr
+
     dataSource = ogr.Open(vectorFile)
     daLayer = dataSource.GetLayer(0)
     layerDefinition = daLayer.GetLayerDefn()
@@ -422,14 +452,14 @@ def GetFieldsType(vectorFile):
     for i in range(layerDefinition.GetFieldCount()):
         fieldName = layerDefinition.GetFieldDefn(i).GetName()
         fieldTypeCode = layerDefinition.GetFieldDefn(i).GetType()
-        fieldType = layerDefinition.GetFieldDefn(
-            i).GetFieldTypeName(fieldTypeCode)
+        fieldType = layerDefinition.GetFieldDefn(i).GetFieldTypeName(fieldTypeCode)
         field_dict[fieldName] = fieldType.lower()
     return field_dict
 
 
 def DataAugmentationSynthetic(
-        samples, groundTruth, dataField, strategies, workingDirectory=None):
+    samples, groundTruth, dataField, strategies, workingDirectory=None
+):
     """Compute how many samples should be add in the sample set and launch data augmentation method
 
     Parameters
@@ -446,37 +476,62 @@ def DataAugmentationSynthetic(
         path to a working directory
     """
 
-    if GetRegionFromSampleName(
-            samples) in strategies["target_models"] or "all" in strategies["target_models"]:
+    if (
+        GetRegionFromSampleName(samples) in strategies["target_models"]
+        or "all" in strategies["target_models"]
+    ):
         from collections import Counter
-        class_count = Counter(fut.getFieldElement(samples, driverName="SQLite", field=dataField,
-                                                  mode="all", elemType="int"))
 
-        class_augmentation = SamplesAugmentationCounter(class_count, mode=strategies["samples.strategy"],
-                                                        minNumber=strategies.get(
-                                                            "samples.strategy.minNumber", None),
-                                                        byClass=strategies.get("samples.strategy.byClass", None))
+        class_count = Counter(
+            fut.getFieldElement(
+                samples,
+                driverName="SQLite",
+                field=dataField,
+                mode="all",
+                elemType="int",
+            )
+        )
+
+        class_augmentation = SamplesAugmentationCounter(
+            class_count,
+            mode=strategies["samples.strategy"],
+            minNumber=strategies.get("samples.strategy.minNumber", None),
+            byClass=strategies.get("samples.strategy.byClass", None),
+        )
 
         fields_types = GetFieldsType(groundTruth)
 
-        excluded_fields_origin = [field_name.lower() for field_name, field_type in list(fields_types.items())
-                                  if "int" in field_type or "flaot" in field_type]
-        samples_fields = fut.getAllFieldsInShape(samples, driver='SQLite')
-        excluded_fields = list(
-            set(excluded_fields_origin).intersection(samples_fields))
+        excluded_fields_origin = [
+            field_name.lower()
+            for field_name, field_type in list(fields_types.items())
+            if "int" in field_type or "flaot" in field_type
+        ]
+        samples_fields = fut.getAllFieldsInShape(samples, driver="SQLite")
+        excluded_fields = list(set(excluded_fields_origin).intersection(samples_fields))
         excluded_fields.append("originfid")
 
-        DoAugmentation(samples, class_augmentation, strategy=strategies["strategy"],
-                       field=dataField, excluded_fields=excluded_fields,
-                       Jstdfactor=strategies.get(
-            "strategy.jitter.stdfactor", None),
-            Sneighbors=strategies.get(
-            "strategy.smote.neighbors", None),
-            workingDirectory=workingDirectory)
+        DoAugmentation(
+            samples,
+            class_augmentation,
+            strategy=strategies["strategy"],
+            field=dataField,
+            excluded_fields=excluded_fields,
+            Jstdfactor=strategies.get("strategy.jitter.stdfactor", None),
+            Sneighbors=strategies.get("strategy.smote.neighbors", None),
+            workingDirectory=workingDirectory,
+        )
 
 
-def DoCopy(source_samples, destination_samples, class_name, dataField, extract_quantity,
-           PRIM_KEY="ogc_fid", source_samples_tableName="output", logger=logger):
+def DoCopy(
+    source_samples,
+    destination_samples,
+    class_name,
+    dataField,
+    extract_quantity,
+    PRIM_KEY="ogc_fid",
+    source_samples_tableName="output",
+    logger=logger,
+):
     """copy samples to one subset to an other one using a SQLite query.
 
     Parameters
@@ -516,23 +571,23 @@ def DoCopy(source_samples, destination_samples, class_name, dataField, extract_q
     listfields = []
 
     for index, field in enumerate(fields):
-        if field[2] != '' and field[1].lower() != "geometry":
+        if field[2] != "" and field[1].lower() != "geometry":
             listfields.append(field[1])
         if field[1] == PRIM_KEY:
             PRIM_KEY_index = index
 
     fields = ",".join(listfields)
-    cursor.execute("SELECT MAX({}) FROM {}".format(PRIM_KEY,
-                                                   source_samples_tableName))
+    cursor.execute("SELECT MAX({}) FROM {}".format(PRIM_KEY, source_samples_tableName))
     destination_rows = cursor.fetchall()[0][0]
     cursor.execute(
-        "CREATE TABLE tmp as select * from db_source.{}".format(source_samples_tableName))
+        "CREATE TABLE tmp as select * from db_source.{}".format(
+            source_samples_tableName
+        )
+    )
 
-    random_sql = "SELECT {}, ASTEXT(geomfromwkb(geometry, {})) FROM tmp WHERE {}={} ORDER BY RANDOM() LIMIT {}".format(fields,
-                                                                                                                       proj,
-                                                                                                                       dataField,
-                                                                                                                       class_name,
-                                                                                                                       extract_quantity)
+    random_sql = "SELECT {}, ASTEXT(geomfromwkb(geometry, {})) FROM tmp WHERE {}={} ORDER BY RANDOM() LIMIT {}".format(
+        fields, proj, dataField, class_name, extract_quantity
+    )
 
     cursor.execute(random_sql)
     samples_to_extract = cursor.fetchall()
@@ -544,32 +599,38 @@ def DoCopy(source_samples, destination_samples, class_name, dataField, extract_q
         val = []
         for elem in sample:
             if isinstance(elem, str) or isinstance(elem, str):
-                val.append("\"{}\"".format(elem))
+                val.append('"{}"'.format(elem))
             else:
                 val.append(str(elem))
 
-        insert = "INSERT INTO {} ({}, GEOMETRY) VALUES ({}, ST_AsBinary(ST_GeomFromText({})))".format(source_samples_tableName,
-                                                                                                      fields,
-                                                                                                      ','.join(
-                                                                                                          val[:-1]),
-                                                                                                      val[-1])
+        insert = "INSERT INTO {} ({}, GEOMETRY) VALUES ({}, ST_AsBinary(ST_GeomFromText({})))".format(
+            source_samples_tableName, fields, ",".join(val[:-1]), val[-1]
+        )
 
         try:
             logger.debug(insert)
             cursor.execute(insert)
         except BaseException:
-            logger.error("failed to add the feature {} from {} to {}".format(old_FID,
-                                                                             source_samples,
-                                                                             destination_samples))
+            logger.error(
+                "failed to add the feature {} from {} to {}".format(
+                    old_FID, source_samples, destination_samples
+                )
+            )
         conn.commit()
     cursor.execute("DROP TABLE tmp")
 
     cursor = conn = None
 
 
-def DataAugmentationByCopy(dataField, csv_path, samplesSet, workingDirectory=None,
-                           PRIM_KEY="ogc_fid", source_samples_tableName="output",
-                           logger=logger):
+def DataAugmentationByCopy(
+    dataField,
+    csv_path,
+    samplesSet,
+    workingDirectory=None,
+    PRIM_KEY="ogc_fid",
+    source_samples_tableName="output",
+    logger=logger,
+):
     """use to copy samples between models
 
     Parameters
@@ -599,8 +660,7 @@ def DataAugmentationByCopy(dataField, csv_path, samplesSet, workingDirectory=Non
         for ind, sample in enumerate(samplesSet):
             shutil.copy(sample, workingDirectory)
             origin_dir.append(os.path.split(sample)[0])
-            samplesSet[ind] = os.path.join(
-                workingDirectory, os.path.split(sample)[-1])
+            samplesSet[ind] = os.path.join(workingDirectory, os.path.split(sample)[-1])
 
     extraction_rules = getUserSamplesManagement(csv_path)
 
@@ -612,13 +672,19 @@ def DataAugmentationByCopy(dataField, csv_path, samplesSet, workingDirectory=Non
         if source_samples == dst_samples:
             continue
         if extract_quantity == "-1":
-            extract_quantity = countClassInSQLite(
-                source_samples, dataField, class_name)
+            extract_quantity = countClassInSQLite(source_samples, dataField, class_name)
         if extract_quantity == 0:
             continue
 
-        DoCopy(source_samples, dst_samples, class_name, dataField, extract_quantity,
-               PRIM_KEY, source_samples_tableName)
+        DoCopy(
+            source_samples,
+            dst_samples,
+            class_name,
+            dataField,
+            extract_quantity,
+            PRIM_KEY,
+            source_samples_tableName,
+        )
 
     if workingDirectory:
         for o_dir, sample_aug in zip(origin_dir, samplesSet):

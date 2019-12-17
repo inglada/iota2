@@ -18,9 +18,8 @@ import os
 from Common import ServiceConfigFile as SCF
 
 
-class Ressources():
-    def __init__(self, name, nb_cpu, ram, walltime,
-                 process_min, process_max):
+class Ressources:
+    def __init__(self, name, nb_cpu, ram, walltime, process_min, process_max):
 
         self.name = name
         self.nb_cpu = str(nb_cpu)
@@ -34,8 +33,7 @@ class Ressources():
         os.environ["OMP_NUM_THREADS"] = str(self.nb_cpu)
 
 
-def iota2_ressources(
-        iota2_ressources_description="iota2_HPC_ressources_request.cfg"):
+def iota2_ressources(iota2_ressources_description="iota2_HPC_ressources_request.cfg"):
     """
     usage :
 
@@ -46,29 +44,28 @@ def iota2_ressources(
     iota2_HPC_requests [dic of Ressources Object] : dictionnary containing all
                                                     ressources request
     """
-    iota2_ressources_description = os.path.join(os.path.dirname(
-        os.path.realpath(__file__)), iota2_ressources_description)
-    cfg = SCF.serviceConfigFile(
-        iota2_ressources_description,
-        iota_config=False)
+    iota2_ressources_description = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)), iota2_ressources_description
+    )
+    cfg = SCF.serviceConfigFile(iota2_ressources_description, iota_config=False)
     available_steps = cfg.getAvailableSections()
 
     iota2_HPC_requests = {}
     for step in available_steps:
         try:
-            process_max = cfg.getParam(step, 'process_max')
+            process_max = cfg.getParam(step, "process_max")
         except BaseException:
             process_max = -1
         try:
-            process_min = cfg.getParam(step, 'process_min')
+            process_min = cfg.getParam(step, "process_min")
         except BaseException:
             process_min = 1
-        iota2_HPC_requests[step] = Ressources(name=cfg.getParam(step, 'name'),
-                                              nb_cpu=cfg.getParam(
-                                                  step, 'nb_cpu'),
-                                              ram=cfg.getParam(step, 'ram'),
-                                              walltime=cfg.getParam(
-                                                  step, 'walltime'),
-                                              process_min=process_min,
-                                              process_max=process_max)
+        iota2_HPC_requests[step] = Ressources(
+            name=cfg.getParam(step, "name"),
+            nb_cpu=cfg.getParam(step, "nb_cpu"),
+            ram=cfg.getParam(step, "ram"),
+            walltime=cfg.getParam(step, "walltime"),
+            process_min=process_min,
+            process_max=process_max,
+        )
     return iota2_HPC_requests

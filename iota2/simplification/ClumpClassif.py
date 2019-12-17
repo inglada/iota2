@@ -26,17 +26,19 @@ import argparse
 import time
 import shutil
 import logging
+
 logger = logging.getLogger(__name__)
 
 try:
     from Common import Utils
     from Common import OtbAppBank
 except ImportError:
-    raise ImportError('Iota2 not well configured / installed')
+    raise ImportError("Iota2 not well configured / installed")
 
 
-def clumpAndStackClassif(path, raster, outpath, ram,
-                         float64=False, exe64="", logger=logger):
+def clumpAndStackClassif(
+    path, raster, outpath, ram, float64=False, exe64="", logger=logger
+):
 
     begin_clump = time.time()
 
@@ -45,95 +47,154 @@ def clumpAndStackClassif(path, raster, outpath, ram,
     outfilename = os.path.basename(outpath)
 
     # Clump Classif with OTB segmentation algorithm
-    clumpAppli = OtbAppBank.CreateClumpApplication({"in": raster,
-                                                    "filter.cc.expr": 'distance<1',
-                                                    "ram": str(0.2 * float(ram)),
-                                                    "pixType": 'uint32',
-                                                    "mode": "raster",
-                                                    "filter": "cc",
-                                                    "mode.raster.out": os.path.join(path, 'clump.tif')})
+    clumpAppli = OtbAppBank.CreateClumpApplication(
+        {
+            "in": raster,
+            "filter.cc.expr": "distance<1",
+            "ram": str(0.2 * float(ram)),
+            "pixType": "uint32",
+            "mode": "raster",
+            "filter": "cc",
+            "mode.raster.out": os.path.join(path, "clump.tif"),
+        }
+    )
 
     if not float64:
         clumpAppli.Execute()
 
         clumptime = time.time()
-        logger.info(" ".join([" : ".join(
-            ["Input raster well clumped : ", str(clumptime - begin_clump)]), "seconds"]))
+        logger.info(
+            " ".join(
+                [
+                    " : ".join(
+                        ["Input raster well clumped : ", str(clumptime - begin_clump)]
+                    ),
+                    "seconds",
+                ]
+            )
+        )
 
         # Add 300 to all clump ID
-        bandMathAppli = OtbAppBank.CreateBandMathApplication({"il": clumpAppli,
-                                                              "exp": 'im1b1+300',
-                                                              "ram": str(0.2 * float(ram)),
-                                                              "pixType": 'uint32',
-                                                              "out": os.path.join(path, 'clump300.tif')})
+        bandMathAppli = OtbAppBank.CreateBandMathApplication(
+            {
+                "il": clumpAppli,
+                "exp": "im1b1+300",
+                "ram": str(0.2 * float(ram)),
+                "pixType": "uint32",
+                "out": os.path.join(path, "clump300.tif"),
+            }
+        )
         bandMathAppli.Execute()
 
-        dataRamAppli = OtbAppBank.CreateBandMathApplication({"il": raster,
-                                                             "exp": 'im1b1',
-                                                             "ram": str(0.2 * float(ram)),
-                                                             "pixType": 'uint8'})
+        dataRamAppli = OtbAppBank.CreateBandMathApplication(
+            {
+                "il": raster,
+                "exp": "im1b1",
+                "ram": str(0.2 * float(ram)),
+                "pixType": "uint8",
+            }
+        )
         dataRamAppli.Execute()
 
-        concatImages = OtbAppBank.CreateConcatenateImagesApplication({"il": [dataRamAppli, bandMathAppli],
-                                                                      "ram": str(0.2 * float(ram)),
-                                                                      "pixType": 'uint32',
-                                                                      "out": os.path.join(path, outfilename)})
+        concatImages = OtbAppBank.CreateConcatenateImagesApplication(
+            {
+                "il": [dataRamAppli, bandMathAppli],
+                "ram": str(0.2 * float(ram)),
+                "pixType": "uint32",
+                "out": os.path.join(path, outfilename),
+            }
+        )
         concatImages.ExecuteAndWriteOutput()
 
         concattime = time.time()
-        logger.info(" ".join([" : ".join(["Regularized and Clumped rasters concatenation : ", str(
-            concattime - clumptime)]), "seconds"]))
+        logger.info(
+            " ".join(
+                [
+                    " : ".join(
+                        [
+                            "Regularized and Clumped rasters concatenation : ",
+                            str(concattime - clumptime),
+                        ]
+                    ),
+                    "seconds",
+                ]
+            )
+        )
 
-        shutil.copyfile(
-            os.path.join(
-                path, outfilename), os.path.join(
-                out, outfilename))
+        shutil.copyfile(os.path.join(path, outfilename), os.path.join(out, outfilename))
 
     else:
         clumpAppli.ExecuteAndWriteOutput()
 
-        command = '%s/iota2BandMath %s "%s" %s %s' % (exe64,
-                                                      os.path.join(
-                                                          path, 'clump.tif'),
-                                                      "im1b1+300",
-                                                      os.path.join(
-                                                          path, 'clump300.tif'),
-                                                      10)
+        command = '%s/iota2BandMath %s "%s" %s %s' % (
+            exe64,
+            os.path.join(path, "clump.tif"),
+            "im1b1+300",
+            os.path.join(path, "clump300.tif"),
+            10,
+        )
         try:
             Utils.run(command)
             clumptime = time.time()
-            logger.info(" ".join([" : ".join(
-                ["Input raster well clumped : ", str(clumptime - begin_clump)]), "seconds"]))
+            logger.info(
+                " ".join(
+                    [
+                        " : ".join(
+                            [
+                                "Input raster well clumped : ",
+                                str(clumptime - begin_clump),
+                            ]
+                        ),
+                        "seconds",
+                    ]
+                )
+            )
         except BaseException:
             logger.error(
-                "Application 'iota2BandMath' for 64 bits does not exist, please change 64 bits binaries path")
+                "Application 'iota2BandMath' for 64 bits does not exist, please change 64 bits binaries path"
+            )
             sys.exit()
 
-        command = '%s/iota2ConcatenateImages %s %s %s %s' % ((exe64,
-                                                              raster,
-                                                              os.path.join(
-                                                                  path, 'clump300.tif'),
-                                                              os.path.join(
-                                                                  path, outfilename),
-                                                              10))
+        command = "%s/iota2ConcatenateImages %s %s %s %s" % (
+            (
+                exe64,
+                raster,
+                os.path.join(path, "clump300.tif"),
+                os.path.join(path, outfilename),
+                10,
+            )
+        )
         try:
             Utils.run(command)
             concattime = time.time()
-            logger.info(" ".join([" : ".join(["Regularized and Clumped rasters concatenation : ",
-                                              str(concattime - clumptime)]), "seconds"]))
+            logger.info(
+                " ".join(
+                    [
+                        " : ".join(
+                            [
+                                "Regularized and Clumped rasters concatenation : ",
+                                str(concattime - clumptime),
+                            ]
+                        ),
+                        "seconds",
+                    ]
+                )
+            )
             shutil.copyfile(
-                os.path.join(
-                    path, outfilename), os.path.join(
-                    out, outfilename))
-            os.remove(os.path.join(path, 'clump.tif'))
-            os.remove(os.path.join(path, 'clump300.tif'))
+                os.path.join(path, outfilename), os.path.join(out, outfilename)
+            )
+            os.remove(os.path.join(path, "clump.tif"))
+            os.remove(os.path.join(path, "clump300.tif"))
         except BaseException:
             logger.error(
-                "Application 'iota2ConcatenateImages' for 64 bits does not exist, please change 64 bits binaries path")
+                "Application 'iota2ConcatenateImages' for 64 bits does not exist, please change 64 bits binaries path"
+            )
             sys.exit()
 
     command = "gdal_translate -q -b 2 -ot Uint32 %s %s" % (
-        os.path.join(path, outfilename), os.path.join(path, "clump32bits.tif"))
+        os.path.join(path, outfilename),
+        os.path.join(path, "clump32bits.tif"),
+    )
     Utils.run(command)
     shutil.copy(os.path.join(path, "clump32bits.tif"), out)
     os.remove(os.path.join(path, "clump32bits.tif"))
@@ -142,39 +203,67 @@ def clumpAndStackClassif(path, raster, outpath, ram,
 
     clumptime = time.time()
     logger.info(
-        " ".join([" : ".join(["Clump : ", str(clumptime - begin_clump)]), "seconds"]))
+        " ".join([" : ".join(["Clump : ", str(clumptime - begin_clump)]), "seconds"])
+    )
 
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         prog = os.path.basename(sys.argv[0])
-        print('      ' + sys.argv[0] + ' [options]')
+        print("      " + sys.argv[0] + " [options]")
         print("     Help : ", prog, " --help")
         print("        or : ", prog, " -h")
         sys.exit(-1)
     else:
         usage = "usage: %prog [options] "
         parser = argparse.ArgumentParser(
-            description="Generete clumps raster from classification raster file")
+            description="Generete clumps raster from classification raster file"
+        )
 
-        parser.add_argument("-wd", dest="path", action="store",
-                            help="Working directory", required=True)
+        parser.add_argument(
+            "-wd", dest="path", action="store", help="Working directory", required=True
+        )
 
-        parser.add_argument("-classif", dest="classif", action="store",
-                            help="Input classification raster file", required=True)
+        parser.add_argument(
+            "-classif",
+            dest="classif",
+            action="store",
+            help="Input classification raster file",
+            required=True,
+        )
 
-        parser.add_argument("-outpath", dest="outpath", action="store",
-                            help="Output file name and path", required=True)
+        parser.add_argument(
+            "-outpath",
+            dest="outpath",
+            action="store",
+            help="Output file name and path",
+            required=True,
+        )
 
-        parser.add_argument("-ram", dest="ram", action="store",
-                            help="Ram for otb processes", required=True)
+        parser.add_argument(
+            "-ram",
+            dest="ram",
+            action="store",
+            help="Ram for otb processes",
+            required=True,
+        )
 
-        parser.add_argument("-float64", dest="float64", action='store_true', default=False,
-                            help="Use specific float 64 Bandmath application "
-                            "for huge landscape (clumps number > 2²³ bits for mantisse)")
+        parser.add_argument(
+            "-float64",
+            dest="float64",
+            action="store_true",
+            default=False,
+            help="Use specific float 64 Bandmath application "
+            "for huge landscape (clumps number > 2²³ bits for mantisse)",
+        )
 
-        parser.add_argument("-float64lib", dest="float64lib", action='store', required=False,
-                            help="float 64 exe path ")
+        parser.add_argument(
+            "-float64lib",
+            dest="float64lib",
+            action="store",
+            required=False,
+            help="float 64 exe path ",
+        )
 
         args = parser.parse_args()
 
@@ -184,4 +273,5 @@ if __name__ == "__main__":
             args.outpath,
             args.ram,
             args.float64,
-            args.float64lib)
+            args.float64lib,
+        )

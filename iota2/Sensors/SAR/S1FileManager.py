@@ -22,26 +22,25 @@ import ogr
 
 
 class S1FileManager(object):
-
     def __init__(self, configFile):
         import configparser
 
         config = configparser.ConfigParser()
         config.read(configFile)
 
-        self.mgrs_shapeFile = config.get('Processing', 'TilesShapefile')
+        self.mgrs_shapeFile = config.get("Processing", "TilesShapefile")
         if os.path.exists(self.mgrs_shapeFile) == False:
             print(("ERROR: " + self.mgrs_shapeFile + " is a wrong path"))
             exit(1)
 
-        self.srtm_shapeFile = config.get('Processing', 'SRTMShapefile')
+        self.srtm_shapeFile = config.get("Processing", "SRTMShapefile")
         if os.path.exists(self.srtm_shapeFile) == False:
             print(("ERROR: " + self.srtm_shapeFile + " is a wrong path"))
             exit(1)
 
-        self.raw_directory = config.get('Paths', 'S1Images')
+        self.raw_directory = config.get("Paths", "S1Images")
 
-        self.outputPreProcess = config.get('Paths', 'Output')
+        self.outputPreProcess = config.get("Paths", "Output")
 
         self.VH_pattern = "measurement/*vh*-???.tiff"
         self.VV_pattern = "measurement/*vv*-???.tiff"
@@ -49,13 +48,13 @@ class S1FileManager(object):
         self.HV_pattern = "measurement/*hv*-???.tiff"
         self.manifest_pattern = "manifest.safe"
 
-        self.tilesList = config.get('Processing', 'Tiles').split(",")
-        self.stdoutfile = open("/dev/null", 'w')
-        self.stderrfile = open("S1ProcessorErr.log", 'a')
-        if "logging" in config.get('Processing', 'Mode').lower():
-            self.stdoutfile = open("S1ProcessorOut.log", 'a')
-            self.stderrfile = open("S1ProcessorErr.log", 'a')
-        if "debug" in config.get('Processing', 'Mode').lower():
+        self.tilesList = config.get("Processing", "Tiles").split(",")
+        self.stdoutfile = open("/dev/null", "w")
+        self.stderrfile = open("S1ProcessorErr.log", "a")
+        if "logging" in config.get("Processing", "Mode").lower():
+            self.stdoutfile = open("S1ProcessorOut.log", "a")
+            self.stderrfile = open("S1ProcessorErr.log", "a")
+        if "debug" in config.get("Processing", "Mode").lower():
             self.stdoutfile = None
             self.stderrfile = None
 
@@ -72,6 +71,7 @@ class S1FileManager(object):
         import shlex
         import zipfile
         import time
+
         if self.pepsdownload == True:
             if self.ROIbyTiles is not None:
                 if "ALL" in self.ROIbyTiles:
@@ -87,33 +87,49 @@ class S1FileManager(object):
                 layer = dataSource.GetLayer()
                 for currentTile in layer:
 
-                    if currentTile.GetField('NAME') in tilesList:
+                    if currentTile.GetField("NAME") in tilesList:
                         tileFootPrint = currentTile.GetGeometryRef().GetGeometryRef(0)
-                        latmin = np.min([p[1]
-                                         for p in tileFootPrint.GetPoints()])
-                        latmax = np.max([p[1]
-                                         for p in tileFootPrint.GetPoints()])
-                        lonmin = np.min([p[0]
-                                         for p in tileFootPrint.GetPoints()])
-                        lonmax = np.max([p[0]
-                                         for p in tileFootPrint.GetPoints()])
-                        command = "python " + self.pepscommand + " --lonmin " + str(lonmin) + " --lonmax " + str(
-                            lonmax) + " --latmin " + str(latmin) + " --latmax " + str(latmax) + " -w " + self.raw_directory
+                        latmin = np.min([p[1] for p in tileFootPrint.GetPoints()])
+                        latmax = np.max([p[1] for p in tileFootPrint.GetPoints()])
+                        lonmin = np.min([p[0] for p in tileFootPrint.GetPoints()])
+                        lonmax = np.max([p[0] for p in tileFootPrint.GetPoints()])
+                        command = (
+                            "python "
+                            + self.pepscommand
+                            + " --lonmin "
+                            + str(lonmin)
+                            + " --lonmax "
+                            + str(lonmax)
+                            + " --latmin "
+                            + str(latmin)
+                            + " --latmax "
+                            + str(latmax)
+                            + " -w "
+                            + self.raw_directory
+                        )
                         print(command)
                         status = -1
                         while status != 0:
-                            pid = Popen(
-                                command, stdout=None, stderr=None, shell=True)
+                            pid = Popen(command, stdout=None, stderr=None, shell=True)
                             while pid.poll() is None:
                                 self.unzipImages()
                                 time.sleep(20)
                             status = pid.poll()
             else:
-                command = "python " + self.pepscommand + " --lonmin " + str(
-                    self.ROIbyCoordinates[0]) + " --lonmax " + str(
-                    self.ROIbyCoordinates[2]) + " --latmin " + str(
-                    self.ROIbyCoordinates[1]) + " --latmax " + str(
-                    self.ROIbyCoordinates[3]) + " -w " + self.raw_directory
+                command = (
+                    "python "
+                    + self.pepscommand
+                    + " --lonmin "
+                    + str(self.ROIbyCoordinates[0])
+                    + " --lonmax "
+                    + str(self.ROIbyCoordinates[2])
+                    + " --latmin "
+                    + str(self.ROIbyCoordinates[1])
+                    + " --latmax "
+                    + str(self.ROIbyCoordinates[3])
+                    + " -w "
+                    + self.raw_directory
+                )
                 print(command)
                 status = -1
                 while status != 0:
@@ -127,21 +143,27 @@ class S1FileManager(object):
 
     def unzipImages(self):
         import zipfile
+
         for f in os.walk(self.raw_directory).next()[2]:
             if ".zip" in f:
                 print("unzipping " + f)
                 try:
-                    zip_ref = zipfile.ZipFile(
-                        self.raw_directory + "/" + f, 'r')
+                    zip_ref = zipfile.ZipFile(self.raw_directory + "/" + f, "r")
                     zip_ref.extractall(self.raw_directory)
                     zip_ref.close()
                 except zipfile.BadZipfile:
-                    print("WARNING: " + self.raw_directory + "/" + f +
-                          " is corrupted. This file will be removed")
+                    print(
+                        "WARNING: "
+                        + self.raw_directory
+                        + "/"
+                        + f
+                        + " is corrupted. This file will be removed"
+                    )
                 os.remove(self.raw_directory + "/" + f)
 
     def getS1Img(self):
         import glob
+
         self.rawRasterList = []
         self.NbImages = 0
         if os.path.exists(self.raw_directory) == False:
@@ -153,38 +175,22 @@ class S1FileManager(object):
             if os.path.isdir(safeDir) == True:
                 manifest = os.path.join(safeDir, self.manifest_pattern)
                 acquisition = S1_DateAcquisition(manifest, [])
-                vv = [
-                    f for f in glob.glob(
-                        os.path.join(
-                            safeDir,
-                            self.VV_pattern))]
+                vv = [f for f in glob.glob(os.path.join(safeDir, self.VV_pattern))]
                 for vvImage in vv:
                     if vvImage not in self.ProcessedFilenames:
                         acquisition.AddImage(vvImage)
                         self.NbImages += 1
-                vh = [
-                    f for f in glob.glob(
-                        os.path.join(
-                            safeDir,
-                            self.VH_pattern))]
+                vh = [f for f in glob.glob(os.path.join(safeDir, self.VH_pattern))]
                 for vhImage in vh:
                     if vhImage not in self.ProcessedFilenames:
                         acquisition.AddImage(vhImage)
                         self.NbImages += 1
-                hh = [
-                    f for f in glob.glob(
-                        os.path.join(
-                            safeDir,
-                            self.HH_pattern))]
+                hh = [f for f in glob.glob(os.path.join(safeDir, self.HH_pattern))]
                 for hhImage in hh:
                     if hhImage not in self.ProcessedFilenames:
                         acquisition.AddImage(hhImage)
                         self.NbImages += 1
-                hv = [
-                    f for f in glob.glob(
-                        os.path.join(
-                            safeDir,
-                            self.HV_pattern))]
+                hv = [f for f in glob.glob(os.path.join(safeDir, self.HV_pattern))]
                 for hvImage in hv:
                     if hvImage not in self.ProcessedFilenames:
                         acquisition.AddImage(hvImage)
@@ -198,7 +204,7 @@ class S1FileManager(object):
         layer = dataSource.GetLayer()
 
         for currentTile in layer:
-            if currentTile.GetField('NAME') == tileNameField:
+            if currentTile.GetField("NAME") == tileNameField:
                 return True
                 break
         return False
@@ -210,7 +216,7 @@ class S1FileManager(object):
         layer = dataSource.GetLayer()
         found = False
         for currentTile in layer:
-            if currentTile.GetField('NAME') == tileNameField:
+            if currentTile.GetField("NAME") == tileNameField:
                 found = True
                 break
         if not found:
@@ -238,7 +244,8 @@ class S1FileManager(object):
                 area_polygon = tileFootPrint.GetGeometryRef(0)
                 points = area_polygon.GetPoints()
                 intersectRaster.append(
-                    (image, [(point[0], point[1]) for point in points[:-1]]))
+                    (image, [(point[0], point[1]) for point in points[:-1]])
+                )
 
         return intersectRaster
 
@@ -248,7 +255,7 @@ class S1FileManager(object):
         mgrs_layer = mgrs_ds.GetLayer()
 
         for mgrsTile in mgrs_layer:
-            if mgrsTile.GetField('NAME') == mgrsTileName:
+            if mgrsTile.GetField("NAME") == mgrsTileName:
                 return mgrsTile.GetGeometryRef().Clone()
         raise Exception("MGRS tile does not exist " + mgrsTileName)
 
@@ -269,20 +276,24 @@ class S1FileManager(object):
                 intersection = mgrs_footprint.Intersection(srtm_footprint)
                 if intersection.GetArea() > 0:
                     coverage = intersection.GetArea() / area
-                    srtm_tiles.append((srtm_tile.GetField('FILE'), coverage))
+                    srtm_tiles.append((srtm_tile.GetField("FILE"), coverage))
             needed_srtm_tiles[tile] = srtm_tiles
         return needed_srtm_tiles
 
     def RecordProcessedFilenames(self):
-        with open(os.path.join(self.outputPreProcess, "ProcessedFilenames.txt"), "a") as f:
+        with open(
+            os.path.join(self.outputPreProcess, "ProcessedFilenames.txt"), "a"
+        ) as f:
             for fic in self.ProcessedFilenames:
                 f.write(fic + "\n")
 
     def GetProcessedFilenames(self):
         try:
-            with open(os.path.join(self.outputPreProcess, "ProcessedFilenames.txt"), "r") as f:
+            with open(
+                os.path.join(self.outputPreProcess, "ProcessedFilenames.txt"), "r"
+            ) as f:
                 # return f.read().splitlines()
-                return[]
+                return []
         except BaseException:
             pass
             return []
@@ -294,20 +305,24 @@ class S1FileManager(object):
         with open(manifest, "r") as saveFile:
             for line in saveFile:
                 if "<gml:coordinates>" in line:
-                    coor = line.replace(
-                        "                <gml:coordinates>", "").replace(
-                        "</gml:coordinates>", "").split(" ")
+                    coor = (
+                        line.replace("                <gml:coordinates>", "")
+                        .replace("</gml:coordinates>", "")
+                        .split(" ")
+                    )
                     coord = [
-                        (float(
-                            val.replace(
-                                "\n", "").split(",")[0]), float(
-                            val.replace(
-                                "\n", "").split(",")[1]))for val in coor]
+                        (
+                            float(val.replace("\n", "").split(",")[0]),
+                            float(val.replace("\n", "").split(",")[1]),
+                        )
+                        for val in coor
+                    ]
                     return coord[0], coord[1], coord[2], coord[3]
             raise Exception("Coordinates not found in " + str(manifest))
 
     def getTileOriginIntersectByS1(GridPath, image):
         import itertools
+
         manifest = image.getManifest()
         S1FootPrint = getOrigin(manifest)
         poly = ogr.Geometry(ogr.wkbPolygon)
@@ -332,7 +347,7 @@ class S1FileManager(object):
             if intersection.GetArea() != 0:
                 area_polygon = tileFootPrint.GetGeometryRef(0)
                 points = area_polygon.GetPoints()
-                intersectTile.append(currentTile.GetField('NAME'))
+                intersectTile.append(currentTile.GetField("NAME"))
         return intersectTile
 
 

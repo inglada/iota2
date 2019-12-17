@@ -24,12 +24,9 @@ class PixelValidity(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "get_pixValidity"
-        super(
-            PixelValidity,
-            self).__init__(
-            cfg,
-            cfg_resources_file,
-            resources_block_name)
+        super(PixelValidity, self).__init__(
+            cfg, cfg_resources_file, resources_block_name
+        )
 
         # step variables
         self.RAM = 1024.0 * get_RAM(self.resources["ram"])
@@ -39,7 +36,7 @@ class PixelValidity(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Compute validity raster by tile")
+        description = "Compute validity raster by tile"
         return description
 
     def step_inputs(self):
@@ -48,9 +45,7 @@ class PixelValidity(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
-        tiles = SCF.serviceConfigFile(
-            self.cfg).getParam(
-            'chain', 'listTile').split(" ")
+        tiles = SCF.serviceConfigFile(self.cfg).getParam("chain", "listTile").split(" ")
         return tiles
 
     def step_execute(self):
@@ -63,17 +58,20 @@ class PixelValidity(IOTA2Step.Step):
         """
         from Sensors import ProcessLauncher
 
-        cloud_threshold = SCF.serviceConfigFile(
-            self.cfg).getParam(
-            'chain', 'cloud_threshold')
+        cloud_threshold = SCF.serviceConfigFile(self.cfg).getParam(
+            "chain", "cloud_threshold"
+        )
 
-        def step_function(x): return ProcessLauncher.validity(x,
-                                                              self.cfg,
-                                                              "CloudThreshold_{}.shp".format(
-                                                                  cloud_threshold),
-                                                              cloud_threshold,
-                                                              self.workingDirectory,
-                                                              self.RAM)
+        def step_function(x):
+            return ProcessLauncher.validity(
+                x,
+                self.cfg,
+                "CloudThreshold_{}.shp".format(cloud_threshold),
+                cloud_threshold,
+                self.workingDirectory,
+                self.RAM,
+            )
+
         return step_function
 
     def step_outputs(self):

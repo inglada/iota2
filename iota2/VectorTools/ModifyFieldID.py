@@ -18,11 +18,11 @@ def modifID(shapefile, fieldID):
         i += 1
 
 
-if __name__ == '__main__':
-    usage = 'usage: <infile> <fieldID>'
+if __name__ == "__main__":
+    usage = "usage: <infile> <fieldID>"
     if len(sys.argv) == 3:
         if modifID(sys.argv[1], sys.argv[2]) == 0:
-            print('Update of field succeeded!')
+            print("Update of field succeeded!")
             sys.exit(0)
     else:
         print(usage)

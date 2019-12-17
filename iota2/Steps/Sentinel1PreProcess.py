@@ -25,22 +25,19 @@ class Sentinel1PreProcess(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = None
-        super(
-            Sentinel1PreProcess,
-            self).__init__(
-            cfg,
-            cfg_resources_file,
-            resources_block_name)
+        super(Sentinel1PreProcess, self).__init__(
+            cfg, cfg_resources_file, resources_block_name
+        )
 
         # step variables
         self.workingDirectory = workingDirectory
-        self.Sentinel1 = SCF.serviceConfigFile(cfg).getParam('chain', 'S1Path')
+        self.Sentinel1 = SCF.serviceConfigFile(cfg).getParam("chain", "S1Path")
 
     def step_description(self):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Sentinel-1 pre-processing")
+        description = "Sentinel-1 pre-processing"
         return description
 
     def step_inputs(self):
@@ -50,9 +47,8 @@ class Sentinel1PreProcess(IOTA2Step.Step):
             the return could be and iterable or a callable
         """
         from Common import ServiceConfigFile as SCF
-        tiles = SCF.serviceConfigFile(
-            self.cfg).getParam(
-            'chain', 'listTile').split(" ")
+
+        tiles = SCF.serviceConfigFile(self.cfg).getParam("chain", "listTile").split(" ")
         return tiles
 
     def step_execute(self):
@@ -64,8 +60,10 @@ class Sentinel1PreProcess(IOTA2Step.Step):
             must be a lambda function.
         """
         from Sensors.SAR import S1Processor as SAR
-        def step_function(x): return SAR.S1PreProcess(
-            self.Sentinel1, x, self.workingDirectory)
+
+        def step_function(x):
+            return SAR.S1PreProcess(self.Sentinel1, x, self.workingDirectory)
+
         return step_function
 
     def step_outputs(self):

@@ -21,7 +21,7 @@ import shutil
 import unittest
 import numpy as np
 
-IOTA2DIR = os.environ.get('IOTA2DIR')
+IOTA2DIR = os.environ.get("IOTA2DIR")
 RM_IF_ALL_OK = True
 
 iota2_script = os.path.join(IOTA2DIR, "iota2")
@@ -36,7 +36,8 @@ class iota_testS2STSensor(unittest.TestCase):
         # definition of local variables
         self.group_test_name = "iota_testS2STSensor"
         self.iota2_tests_directory = os.path.join(
-            IOTA2DIR, "data", self.group_test_name)
+            IOTA2DIR, "data", self.group_test_name
+        )
         self.all_tests_ok = []
         self.test_working_directory = None
         if os.path.exists(self.iota2_tests_directory):
@@ -44,11 +45,14 @@ class iota_testS2STSensor(unittest.TestCase):
         os.mkdir(self.iota2_tests_directory)
 
         self.config_test = os.path.join(
-            IOTA2DIR, "config", "Config_4Tuiles_Multi_FUS_Confidence.cfg")
+            IOTA2DIR, "config", "Config_4Tuiles_Multi_FUS_Confidence.cfg"
+        )
 
         # generate fake input data
-        self.MTD_files = [os.path.join(IOTA2DIR, "data", "MTD_MSIL2A_20190506.xml"),
-                          os.path.join(IOTA2DIR, "data", "MTD_MSIL2A_20190501.xml")]
+        self.MTD_files = [
+            os.path.join(IOTA2DIR, "data", "MTD_MSIL2A_20190506.xml"),
+            os.path.join(IOTA2DIR, "data", "MTD_MSIL2A_20190501.xml"),
+        ]
 
     # after launching tests
     @classmethod
@@ -65,7 +69,8 @@ class iota_testS2STSensor(unittest.TestCase):
         # create directories
         test_name = self.id().split(".")[-1]
         self.test_working_directory = os.path.join(
-            self.iota2_tests_directory, test_name)
+            self.iota2_tests_directory, test_name
+        )
         if os.path.exists(self.test_working_directory):
             shutil.rmtree(self.test_working_directory)
         os.mkdir(self.test_working_directory)
@@ -82,10 +87,7 @@ class iota_testS2STSensor(unittest.TestCase):
             result = self.defaultTestResult()
             self._feedErrorsToResult(result, self._outcome.errors)
         else:
-            result = getattr(
-                self,
-                '_outcomeForDoCleanups',
-                self._resultForDoCleanups)
+            result = getattr(self, "_outcomeForDoCleanups", self._resultForDoCleanups)
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
         ok = not error and not failure
@@ -113,17 +115,26 @@ class iota_testS2STSensor(unittest.TestCase):
         DOMTree = xml.dom.minidom.parse(MTD_S2ST_date)
         collection = DOMTree.documentElement
         general_info_node = collection.getElementsByTagName("n1:General_Info")
-        date_dir = general_info_node[0].getElementsByTagName('PRODUCT_URI')[
-            0].childNodes[0].data
+        date_dir = (
+            general_info_node[0]
+            .getElementsByTagName("PRODUCT_URI")[0]
+            .childNodes[0]
+            .data
+        )
 
         products = []
         for Product_Organisation_nodes in general_info_node[0].getElementsByTagName(
-                'Product_Organisation'):
+            "Product_Organisation"
+        ):
             img_list_nodes = Product_Organisation_nodes.getElementsByTagName(
-                "IMAGE_FILE")
+                "IMAGE_FILE"
+            )
             for img_list in img_list_nodes:
-                new_prod = os.path.join(directory, date_dir, "{}.{}".format(img_list.childNodes[0].data,
-                                                                            s2st_ext))
+                new_prod = os.path.join(
+                    directory,
+                    date_dir,
+                    "{}.{}".format(img_list.childNodes[0].data, s2st_ext),
+                )
                 new_prod_dir, _ = os.path.split(new_prod)
                 ensure_dir(new_prod_dir)
                 products.append(new_prod)
@@ -134,31 +145,34 @@ class iota_testS2STSensor(unittest.TestCase):
         """
         from TestsUtils import arrayToRaster
 
-        fake_raster = [np.array([[10, 55, 61],
-                                 [100, 56, 42],
-                                 [1, 42, 29]][::-1])]
-        fake_scene_classification = [np.array([[2, 0, 4],
-                                               [0, 4, 2],
-                                               [1, 1, 10]][::-1])]
+        fake_raster = [np.array([[10, 55, 61], [100, 56, 42], [1, 42, 29]][::-1])]
+        fake_scene_classification = [np.array([[2, 0, 4], [0, 4, 2], [1, 1, 10]][::-1])]
         for mtd in MTD_files:
-            prod_list = self.generate_data_tree(os.path.join(self.test_working_directory, "T31TCJ"),
-                                                mtd)
+            prod_list = self.generate_data_tree(
+                os.path.join(self.test_working_directory, "T31TCJ"), mtd
+            )
             for prod in prod_list:
-                if '10m.jp2' in prod:
+                if "10m.jp2" in prod:
                     pixSize = 10
-                if '20m.jp2' in prod:
+                if "20m.jp2" in prod:
                     pixSize = 20
-                if '60m.jp2' in prod:
+                if "60m.jp2" in prod:
                     pixSize = 60
                 if "_SCL_" in prod:
                     array_raster = fake_scene_classification
                 else:
                     array_raster = fake_raster
                 # ~ output_driver has to be 'GTiff' even if S2ST are jp2
-                arrayToRaster(array_raster, prod, output_driver="GTiff",
-                              output_format="int",
-                              pixSize=pixSize, originX=300000, originY=4900020,
-                              epsg_code=32631)
+                arrayToRaster(
+                    array_raster,
+                    prod,
+                    output_driver="GTiff",
+                    output_format="int",
+                    pixSize=pixSize,
+                    originX=300000,
+                    originY=4900020,
+                    epsg_code=32631,
+                )
 
     # Tests definitions
     def test_Sensor(self):
@@ -177,8 +191,7 @@ class iota_testS2STSensor(unittest.TestCase):
         self.generate_data(self.MTD_files)
 
         # config file
-        config_path_test = os.path.join(
-            self.test_working_directory, "Config_TEST.cfg")
+        config_path_test = os.path.join(self.test_working_directory, "Config_TEST.cfg")
         shutil.copy(self.config_test, config_path_test)
 
         S2ST_data = self.test_working_directory
@@ -191,13 +204,13 @@ class iota_testS2STSensor(unittest.TestCase):
         cfg_test.chain.S2Path = "None"
         cfg_test.chain.S2_S2C_Path = S2ST_data
         cfg_test.chain.userFeatPath = "None"
-        cfg_test.chain.regionField = 'region'
+        cfg_test.chain.regionField = "region"
         cfg_test.argTrain.cropMix = False
         cfg_test.argTrain.samplesClassifMix = False
         cfg_test.argTrain.annualClassesExtractionSource = None
         cfg_test.GlobChain.useAdditionalFeatures = False
         cfg_test.GlobChain.writeOutputs = False
-        cfg_test.save(open(config_path_test, 'w'))
+        cfg_test.save(open(config_path_test, "w"))
 
         cfg = SCF.serviceConfigFile(config_path_test)
         IOTA2Directory.GenerateDirectories(cfg)
@@ -214,21 +227,19 @@ class iota_testS2STSensor(unittest.TestCase):
             time_s_app.ExecuteAndWriteOutput()
         # produce the time series gapFilled
         time_s_g = sensors.get_sensors_time_series_gapfilling()
-        for sensor_name, ((time_s_g_app, app_dep),
-                          features_labels) in time_s_g:
+        for sensor_name, ((time_s_g_app, app_dep), features_labels) in time_s_g:
             time_s_g_app.ExecuteAndWriteOutput()
         # produce features
         features = sensors.get_sensors_features()
-        for sensor_name, ((features_app, app_dep),
-                          features_labels) in features:
+        for sensor_name, ((features_app, app_dep), features_labels) in features:
             features_app.ExecuteAndWriteOutput()
 
         feature_array = rasterToArray(
-            FileSearch_AND(
-                os.path.join(testPath),
-                True,
-                "_Features.tif")[0])
-        data_value, brightness_value = feature_array[:,
-                                                     0, 2][0:-1], int(feature_array[:, 0, 2][-1])
+            FileSearch_AND(os.path.join(testPath), True, "_Features.tif")[0]
+        )
+        data_value, brightness_value = (
+            feature_array[:, 0, 2][0:-1],
+            int(feature_array[:, 0, 2][-1]),
+        )
         theorical_brightness = int(compute_brightness_from_vector(data_value))
         self.assertEqual(theorical_brightness, brightness_value)

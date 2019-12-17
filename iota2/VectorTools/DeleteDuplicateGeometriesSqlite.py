@@ -7,8 +7,7 @@ import sqlite3 as lite
 import argparse
 
 
-def deleteDuplicateGeometriesSqlite(
-        shapefile, do_corrections=True, output_file=None):
+def deleteDuplicateGeometriesSqlite(shapefile, do_corrections=True, output_file=None):
     """Check if a features is duplicates, then if it does it will not be copied in output shapeFile
 
     Parameters
@@ -38,9 +37,11 @@ def deleteDuplicateGeometriesSqlite(
 
     cursor.execute("create temporary table to_del (ogc_fid int, geom blob);")
     cursor.execute(
-        "insert into to_del(ogc_fid, geom) select min(ogc_fid), GEOMETRY from tmp group by GEOMETRY having count(*) > 1;")
+        "insert into to_del(ogc_fid, geom) select min(ogc_fid), GEOMETRY from tmp group by GEOMETRY having count(*) > 1;"
+    )
     cursor.execute(
-        "delete from tmp where exists(select * from to_del where to_del.geom = tmp.GEOMETRY and to_del.ogc_fid <> tmp.ogc_fid);")
+        "delete from tmp where exists(select * from to_del where to_del.geom = tmp.GEOMETRY and to_del.ogc_fid <> tmp.ogc_fid);"
+    )
 
     cursor.execute("select count(*) from tmp")
     nbfeat1 = cursor.fetchall()
@@ -59,8 +60,9 @@ def deleteDuplicateGeometriesSqlite(
 
         if nb_dupplicates != 0:
             print(
-                "Analyse of duplicated features done. %s duplicates found and deleted" %
-                (nb_dupplicates))
+                "Analyse of duplicated features done. %s duplicates found and deleted"
+                % (nb_dupplicates)
+            )
         else:
             print("Analyse of duplicated features done. No duplicates found")
 
@@ -73,17 +75,23 @@ def deleteDuplicateGeometriesSqlite(
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         prog = os.path.basename(sys.argv[0])
-        print('      ' + sys.argv[0] + ' [options]')
+        print("      " + sys.argv[0] + " [options]")
         print("     Help : ", prog, " --help")
         print("        or : ", prog, " -h")
         sys.exit(-1)
     else:
         usage = "usage: %prog [options] "
         parser = argparse.ArgumentParser(
-            description="Find geometries duplicates based on sqlite method")
+            description="Find geometries duplicates based on sqlite method"
+        )
 
-        parser.add_argument("-in", dest="inshape", action="store",
-                            help="Input shapefile to analyse", required=True)
+        parser.add_argument(
+            "-in",
+            dest="inshape",
+            action="store",
+            help="Input shapefile to analyse",
+            required=True,
+        )
 
         args = parser.parse_args()
 

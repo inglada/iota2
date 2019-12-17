@@ -25,50 +25,36 @@ class largeVectorization(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "vectorisation"
-        super(
-            largeVectorization,
-            self).__init__(
-            cfg,
-            cfg_resources_file,
-            resources_block_name)
+        super(largeVectorization, self).__init__(
+            cfg, cfg_resources_file, resources_block_name
+        )
 
         # step variables
         self.RAM = 1024.0 * get_RAM(self.resources["ram"])
         self.workingDirectory = workingDirectory
 
-        self.outputPath = SCF.serviceConfigFile(
-            self.cfg).getParam(
-            'chain', 'outputPath')
-        self.grasslib = SCF.serviceConfigFile(
-            self.cfg).getParam(
-            'Simplification', 'grasslib')
-        self.angle = SCF.serviceConfigFile(
-            self.cfg).getParam(
-            'Simplification', 'angle')
-        self.outmos = os.path.join(
-            self.outputPath,
-            'final',
-            'simplification',
-            'mosaic')
-        self.clipfile = SCF.serviceConfigFile(
-            self.cfg).getParam(
-            'Simplification', 'clipfile')
-        self.clipfield = SCF.serviceConfigFile(
-            self.cfg).getParam(
-            'Simplification', 'clipfield')
-        self.grid = os.path.join(
-            self.outputPath,
-            'final',
-            'simplification',
-            'grid.shp')
+        self.outputPath = SCF.serviceConfigFile(self.cfg).getParam(
+            "chain", "outputPath"
+        )
+        self.grasslib = SCF.serviceConfigFile(self.cfg).getParam(
+            "Simplification", "grasslib"
+        )
+        self.angle = SCF.serviceConfigFile(self.cfg).getParam("Simplification", "angle")
+        self.outmos = os.path.join(self.outputPath, "final", "simplification", "mosaic")
+        self.clipfile = SCF.serviceConfigFile(self.cfg).getParam(
+            "Simplification", "clipfile"
+        )
+        self.clipfield = SCF.serviceConfigFile(self.cfg).getParam(
+            "Simplification", "clipfield"
+        )
+        self.grid = os.path.join(self.outputPath, "final", "simplification", "grid.shp")
 
     def step_description(self):
         """
         function use to print a short description of the step's purpose
         """
 
-        description = (
-            "Vectorisation of classification (Serialisation strategy)")
+        description = "Vectorisation of classification (Serialisation strategy)"
         return description
 
     def step_inputs(self):
@@ -77,12 +63,15 @@ class largeVectorization(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
-        listfid = vf.getFIDSpatialFilter(
-            self.clipfile, self.grid, self.clipfield)
+        listfid = vf.getFIDSpatialFilter(self.clipfile, self.grid, self.clipfield)
 
-        return [["%s/tile_%s_%s.tif" %
-                 (self.outmos, self.clipfield, x), "%s/tile_%s_%s.shp" %
-                 (self.outmos, self.clipfield, x)] for x in listfid]
+        return [
+            [
+                "%s/tile_%s_%s.tif" % (self.outmos, self.clipfield, x),
+                "%s/tile_%s_%s.shp" % (self.outmos, self.clipfield, x),
+            ]
+            for x in listfid
+        ]
 
     def step_execute(self):
         """
@@ -95,19 +84,15 @@ class largeVectorization(IOTA2Step.Step):
 
         from simplification import VectAndSimp as vas
 
-        tmpdir = os.path.join(
-            self.outputPath,
-            'final',
-            'simplification',
-            'tmp')
+        tmpdir = os.path.join(self.outputPath, "final", "simplification", "tmp")
         if self.workingDirectory:
             tmpdir = self.workingDirectory
 
-        def step_function(x): return vas.topologicalPolygonize(tmpdir,
-                                                               self.grasslib,
-                                                               x[0],
-                                                               self.angle,
-                                                               x[1])
+        def step_function(x):
+            return vas.topologicalPolygonize(
+                tmpdir, self.grasslib, x[0], self.angle, x[1]
+            )
+
         return step_function
 
     def step_outputs(self):

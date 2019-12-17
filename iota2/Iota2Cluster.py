@@ -36,7 +36,8 @@ def get_qsub_cmd(cfg, config_ressources=None, parallel_mode="MPI"):
     job_dir = cfg.getParam("chain", "jobsPath")
     if job_dir is None:
         raise Exception(
-            "the parameter 'chain.jobsPath' is needed to launch IOTA2 on clusters")
+            "the parameter 'chain.jobsPath' is needed to launch IOTA2 on clusters"
+        )
 
     config_path = cfg.pathConf
     iota2_main = os.path.join(job_dir, "iota2.pbs")
@@ -58,38 +59,40 @@ def get_qsub_cmd(cfg, config_ressources=None, parallel_mode="MPI"):
     if os.path.exists(iota2_main):
         os.remove(iota2_main)
 
-    ressources = ("#!/bin/bash\n"
-                  "#PBS -N {}\n"
-                  "#PBS -l select=1"
-                  ":ncpus={}"
-                  ":mem={}\n"
-                  "#PBS -l walltime={}\n"
-                  "#PBS -o {}\n"
-                  "#PBS -e {}\n").format(chainName, cpu, ram, walltime, log_out, log_err)
+    ressources = (
+        "#!/bin/bash\n"
+        "#PBS -N {}\n"
+        "#PBS -l select=1"
+        ":ncpus={}"
+        ":mem={}\n"
+        "#PBS -l walltime={}\n"
+        "#PBS -o {}\n"
+        "#PBS -e {}\n"
+    ).format(chainName, cpu, ram, walltime, log_out, log_err)
 
-    py_path = os.environ.get('PYTHONPATH')
-    path = os.environ.get('PATH')
-    ld_lib_path = os.environ.get('LD_LIBRARY_PATH')
-    otb_app_path = os.environ.get('OTB_APPLICATION_PATH')
-    gdal_data = os.environ.get('GDAL_DATA')
-    geotiff_csv = os.environ.get('GEOTIFF_CSV')
+    py_path = os.environ.get("PYTHONPATH")
+    path = os.environ.get("PATH")
+    ld_lib_path = os.environ.get("LD_LIBRARY_PATH")
+    otb_app_path = os.environ.get("OTB_APPLICATION_PATH")
+    gdal_data = os.environ.get("GDAL_DATA")
+    geotiff_csv = os.environ.get("GEOTIFF_CSV")
 
-    modules = ("\nexport PYTHONPATH={}\n"
-               "export PATH={}\n"
-               "export LD_LIBRARY_PATH={}\n"
-               "export OTB_APPLICATION_PATH={}\n"
-               "export GDAL_DATA={}\n"
-               "export GEOTIFF_CSV={}\n").format(py_path, path, ld_lib_path,
-                                                 otb_app_path, gdal_data, geotiff_csv)
+    modules = (
+        "\nexport PYTHONPATH={}\n"
+        "export PATH={}\n"
+        "export LD_LIBRARY_PATH={}\n"
+        "export OTB_APPLICATION_PATH={}\n"
+        "export GDAL_DATA={}\n"
+        "export GEOTIFF_CSV={}\n"
+    ).format(py_path, path, ld_lib_path, otb_app_path, gdal_data, geotiff_csv)
 
-    exe = ("python {0}/Cluster.py -config {1} -mode {2}").format(scripts,
-                                                                 config_path,
-                                                                 parallel_mode)
+    exe = ("python {0}/Cluster.py -config {1} -mode {2}").format(
+        scripts, config_path, parallel_mode
+    )
     if config_ressources:
-        exe = ("python {0}/Cluster.py -config {1} -config_ressources {2} -mode {3}").format(scripts,
-                                                                                            config_path,
-                                                                                            config_ressources,
-                                                                                            parallel_mode)
+        exe = (
+            "python {0}/Cluster.py -config {1} -config_ressources {2} -mode {3}"
+        ).format(scripts, config_path, config_ressources, parallel_mode)
     pbs = ressources + modules + exe
 
     with open(iota2_main, "w") as iota2_f:
@@ -99,12 +102,12 @@ def get_qsub_cmd(cfg, config_ressources=None, parallel_mode="MPI"):
     return qsub
 
 
-def launchChain(cfg, config_ressources=None,
-                parallel_mode="MPI", only_summary=False):
+def launchChain(cfg, config_ressources=None, parallel_mode="MPI", only_summary=False):
     """
     launch iota2 to HPC
     """
     import Iota2Builder as chain
+
     # Check configuration file
     cfg.checkConfigParameters()
     # Starting of logging service
@@ -125,28 +128,39 @@ def launchChain(cfg, config_ressources=None,
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(
-        description="This function allows you launch the chain according to a configuration file")
-    parser.add_argument("-config", dest="config",
-                        help="path to IOTA2 configuration file", required=True)
-    parser.add_argument("-config_ressources", dest="config_ressources",
-                        help="path to IOTA2 HPC ressources configuration file",
-                        required=False, default=None)
-    parser.add_argument("-only_summary", dest="launchChain",
-                        help="if set, only the summary will be printed. The chain will not be launched",
-                        default=False,
-                        action='store_true',
-                        required=False)
-    parser.add_argument("-mode", dest="parallel_mode",
-                        help="parallel jobs strategy",
-                        required=False,
-                        default="JobArray",
-                        choices=["MPI", "JobArray"])
+        description="This function allows you launch the chain according to a configuration file"
+    )
+    parser.add_argument(
+        "-config", dest="config", help="path to IOTA2 configuration file", required=True
+    )
+    parser.add_argument(
+        "-config_ressources",
+        dest="config_ressources",
+        help="path to IOTA2 HPC ressources configuration file",
+        required=False,
+        default=None,
+    )
+    parser.add_argument(
+        "-only_summary",
+        dest="launchChain",
+        help="if set, only the summary will be printed. The chain will not be launched",
+        default=False,
+        action="store_true",
+        required=False,
+    )
+    parser.add_argument(
+        "-mode",
+        dest="parallel_mode",
+        help="parallel jobs strategy",
+        required=False,
+        default="JobArray",
+        choices=["MPI", "JobArray"],
+    )
     args = parser.parse_args()
     cfg = SCF.serviceConfigFile(args.config)
 
     try:
-        launchChain(cfg, args.config_ressources,
-                    args.parallel_mode, args.launchChain)
+        launchChain(cfg, args.config_ressources, args.parallel_mode, args.launchChain)
     # Exception manage by the chain
     # We only print the error message
     except sErr.osoError as e:

@@ -16,13 +16,13 @@ def totalArea(shapefile, sizepix):
         if feat.GetGeometryRef():
             geom = feat.GetGeometryRef()
             area = geom.GetArea()
-            size = (area / int(sizepix))
+            size = area / int(sizepix)
             sizeT = sizeT + size
     return sizeT
 
 
-if __name__ == '__main__':
-    usage = 'usage: <shapefile> <size of pixel>'
+if __name__ == "__main__":
+    usage = "usage: <shapefile> <size of pixel>"
     if len(sys.argv) == 3:
         print(totalArea(argv[1], argv[2]))
     else:

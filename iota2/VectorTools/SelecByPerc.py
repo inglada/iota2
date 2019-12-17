@@ -14,8 +14,8 @@ def shpPercentageSelection(infile, field, percentage, opath):
     classes = []
     shapefile = infile
     allFID = []
-    nameshp = shapefile.split('.')
-    namefile = nameshp[0].split('/')
+    nameshp = shapefile.split(".")
+    namefile = nameshp[0].split("/")
 
     driver = ogr.GetDriverByName("ESRI Shapefile")
     dataSource = driver.Open(shapefile, 0)
@@ -49,10 +49,10 @@ def shpPercentageSelection(infile, field, percentage, opath):
     listToCh = []
     for Fid in listFid:
         listToCh.append(Fid)
-        listToCh.append(' OR ')
+        listToCh.append(" OR ")
     listToCh.pop()
-    per = string.replace(str(percentage), '.', 'p')
-    finalCh = ''.join(listToCh)
+    per = string.replace(str(percentage), ".", "p")
+    finalCh = "".join(listToCh)
     layer.SetAttributeFilter(finalCh)
 
     outShapefile = opath + "/" + namefile[-1] + "-" + str(per) + "perc.shp"
@@ -74,7 +74,8 @@ def CreateNewLayer(layer, outShapefile):
     out_lyr_name = os.path.splitext(os.path.split(outShapefile)[1])[0]
     srsObj = layer.GetSpatialRef()
     outLayer = outDataSource.CreateLayer(
-        out_lyr_name, srsObj, geom_type=ogr.wkbMultiPolygon)
+        out_lyr_name, srsObj, geom_type=ogr.wkbMultiPolygon
+    )
     # Add input Layer Fields to the output Layer if it is the one we want
     inLayerDefn = layer.GetLayerDefn()
     for i in range(0, inLayerDefn.GetFieldCount()):
@@ -98,8 +99,9 @@ def CreateNewLayer(layer, outShapefile):
             if fieldName not in field_name_target:
                 continue
 
-            outFeature.SetField(outLayerDefn.GetFieldDefn(i).GetNameRef(),
-                                inFeature.GetField(i))
+            outFeature.SetField(
+                outLayerDefn.GetFieldDefn(i).GetNameRef(), inFeature.GetField(i)
+            )
         # Set geometry as centroid
         geom = inFeature.GetGeometryRef()
         outFeature.SetGeometry(geom.Clone())
@@ -107,8 +109,8 @@ def CreateNewLayer(layer, outShapefile):
         outLayer.CreateFeature(outFeature)
 
 
-if __name__ == '__main__':
-    usage = 'usage: <infile> <field> <percentage> <opath>'
+if __name__ == "__main__":
+    usage = "usage: <infile> <field> <percentage> <opath>"
     if len(sys.argv) != 5:
         print(usage)
         sys.exit(1)

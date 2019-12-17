@@ -24,23 +24,20 @@ class samplesByModels(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file):
         # heritage init
         resources_block_name = "mergeSample"
-        super(
-            samplesByModels,
-            self).__init__(
-            cfg,
-            cfg_resources_file,
-            resources_block_name)
+        super(samplesByModels, self).__init__(
+            cfg, cfg_resources_file, resources_block_name
+        )
 
         # step variables
-        self.output_path = SCF.serviceConfigFile(
-            self.cfg).getParam(
-            'chain', 'outputPath')
+        self.output_path = SCF.serviceConfigFile(self.cfg).getParam(
+            "chain", "outputPath"
+        )
 
     def step_description(self):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Merge samples dedicated to the same model")
+        description = "Merge samples dedicated to the same model"
         return description
 
     def step_inputs(self):
@@ -49,8 +46,12 @@ class samplesByModels(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
-        return VSM.tile_vectors_to_models(os.path.join(self.output_path, "learningSamples"),
-                                          SCF.serviceConfigFile(self.cfg).getParam('argTrain', 'dempster_shafer_SAR_Opt_fusion'))
+        return VSM.tile_vectors_to_models(
+            os.path.join(self.output_path, "learningSamples"),
+            SCF.serviceConfigFile(self.cfg).getParam(
+                "argTrain", "dempster_shafer_SAR_Opt_fusion"
+            ),
+        )
 
     def step_execute(self):
         """
@@ -61,7 +62,9 @@ class samplesByModels(IOTA2Step.Step):
             must be a lambda function.
         """
 
-        def step_function(x): return VSM.vectorSamplesMerge(self.cfg, x)
+        def step_function(x):
+            return VSM.vectorSamplesMerge(self.cfg, x)
+
         return step_function
 
     def step_outputs(self):

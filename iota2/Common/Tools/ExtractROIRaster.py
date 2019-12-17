@@ -78,8 +78,7 @@ def getFieldType(layer, field):
         fieldName = layerDefinition.GetFieldDefn(i).GetName()
         fieldList.append('"' + fieldName + '"')
         fieldTypeCode = layerDefinition.GetFieldDefn(i).GetType()
-        fieldType = layerDefinition.GetFieldDefn(
-            i).GetFieldTypeName(fieldTypeCode)
+        fieldType = layerDefinition.GetFieldDefn(i).GetFieldTypeName(fieldTypeCode)
         if fieldType == "Integer":
             fieldDef[fieldName] = int
         elif fieldType == "String":
@@ -89,8 +88,9 @@ def getFieldType(layer, field):
     try:
         retour = fieldDef[field]
     except BaseException:
-        raise Exception('Field : "' + field +
-                        '" not in field\'s list : ' + ' , '.join(fieldList))
+        raise Exception(
+            'Field : "' + field + "\" not in field's list : " + " , ".join(fieldList)
+        )
     return retour
 
 
@@ -101,7 +101,7 @@ def getAllGeom(layer, field, valField):
         for currentVal in valField:
             if currentFeat.GetField(field) == fieldType(currentVal):
                 geom = currentFeat.GetGeometryRef()
-                if geom.GetGeometryName() == 'MULTIPOLYGON':
+                if geom.GetGeometryName() == "MULTIPOLYGON":
                     for geom_part in geom:
                         allGeom.append(geom_part.Clone())
                 else:
@@ -134,8 +134,7 @@ def getBBox(raster_in, allGeom):
     return minX, maxX, minY, maxY
 
 
-def generateRaster(raster_path, features_path, driver,
-                   field, valField, output, epsg):
+def generateRaster(raster_path, features_path, driver, field, valField, output, epsg):
     """
     """
 
@@ -152,15 +151,41 @@ def generateRaster(raster_path, features_path, driver,
     sep = ""
     if not isinstance(fieldType, int):
         sep = "'"
-    valField = ["(" + field + "=" + sep + currentValToKeep + sep +
-                ")" for currentValToKeep in valField]
+    valField = [
+        "(" + field + "=" + sep + currentValToKeep + sep + ")"
+        for currentValToKeep in valField
+    ]
     csql = " OR ".join(valField)
 
     sizeX, sizeY = getRasterResolution(raster_path)
-    cmd = "gdalwarp -overwrite -t_srs EPSG:" + str(epsg) + " -tr " + str(sizeX) + " " + str(sizeX) + " -of GTiff -cl " + layerName + " -csql \"SELECT * FROM " + layerName + \
-        " WHERE (" + csql + ")\" -ot Byte -te " + str(minX) + " " + str(minY) + " " + str(maxX) + " " + \
-        str(maxY) + " -cutline " + features_path + \
-        " -crop_to_cutline " + raster_path + " " + output
+    cmd = (
+        "gdalwarp -overwrite -t_srs EPSG:"
+        + str(epsg)
+        + " -tr "
+        + str(sizeX)
+        + " "
+        + str(sizeX)
+        + " -of GTiff -cl "
+        + layerName
+        + ' -csql "SELECT * FROM '
+        + layerName
+        + " WHERE ("
+        + csql
+        + ')" -ot Byte -te '
+        + str(minX)
+        + " "
+        + str(minY)
+        + " "
+        + str(maxX)
+        + " "
+        + str(maxY)
+        + " -cutline "
+        + features_path
+        + " -crop_to_cutline "
+        + raster_path
+        + " "
+        + output
+    )
     run(cmd)
 
     ds = gdal.Open(output, GA_Update)
@@ -174,22 +199,63 @@ def generateRaster(raster_path, features_path, driver,
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(
-        description="extract ROI in raster defined by a shapeFile")
-    parser.add_argument("-in.raster", dest="raster_path",
-                        help="path to the classification.tif", default=None, required=True)
-    parser.add_argument("-in.vector", dest="features_path",
-                        help="vector's path", default=None, required=True)
-    parser.add_argument("-in.vector.type", dest="driver", help="vector's type",
-                        choices=["ESRI Shapefile", "SQLite"], required=True)
-    parser.add_argument("-in.vector.dataField", dest="field",
-                        help="data's field", default=None, required=True)
-    parser.add_argument("-in.vector.dataField.values", dest="valField",
-                        help="features to consider", default=None, required=True, nargs='+')
-    parser.add_argument("--out.EPSG.code", dest="epsg",
-                        help="epsg code, default : 2154", type=int, default=2154, required=False)
-    parser.add_argument("-out", dest="output",
-                        help="output raster", default=None, required=True)
+        description="extract ROI in raster defined by a shapeFile"
+    )
+    parser.add_argument(
+        "-in.raster",
+        dest="raster_path",
+        help="path to the classification.tif",
+        default=None,
+        required=True,
+    )
+    parser.add_argument(
+        "-in.vector",
+        dest="features_path",
+        help="vector's path",
+        default=None,
+        required=True,
+    )
+    parser.add_argument(
+        "-in.vector.type",
+        dest="driver",
+        help="vector's type",
+        choices=["ESRI Shapefile", "SQLite"],
+        required=True,
+    )
+    parser.add_argument(
+        "-in.vector.dataField",
+        dest="field",
+        help="data's field",
+        default=None,
+        required=True,
+    )
+    parser.add_argument(
+        "-in.vector.dataField.values",
+        dest="valField",
+        help="features to consider",
+        default=None,
+        required=True,
+        nargs="+",
+    )
+    parser.add_argument(
+        "--out.EPSG.code",
+        dest="epsg",
+        help="epsg code, default : 2154",
+        type=int,
+        default=2154,
+        required=False,
+    )
+    parser.add_argument(
+        "-out", dest="output", help="output raster", default=None, required=True
+    )
     args = parser.parse_args()
 
-    generateRaster(args.raster_path, args.features_path, args.driver,
-                   args.field, args.valField, args.output, args.epsg)
+    generateRaster(
+        args.raster_path,
+        args.features_path,
+        args.driver,
+        args.field,
+        args.valField,
+        args.output,
+        args.epsg,
+    )

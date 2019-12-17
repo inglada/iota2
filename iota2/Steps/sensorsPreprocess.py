@@ -24,12 +24,9 @@ class sensorsPreprocess(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "preprocess_data"
-        super(
-            sensorsPreprocess,
-            self).__init__(
-            cfg,
-            cfg_resources_file,
-            resources_block_name)
+        super(sensorsPreprocess, self).__init__(
+            cfg, cfg_resources_file, resources_block_name
+        )
 
         # step variables
         self.workingDirectory = workingDirectory
@@ -39,7 +36,7 @@ class sensorsPreprocess(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Sensors pre-processing")
+        description = "Sensors pre-processing"
         return description
 
     def step_inputs(self):
@@ -49,9 +46,8 @@ class sensorsPreprocess(IOTA2Step.Step):
             the return could be and iterable or a callable
         """
         from Common import ServiceConfigFile as SCF
-        tiles = SCF.serviceConfigFile(
-            self.cfg).getParam(
-            'chain', 'listTile').split(" ")
+
+        tiles = SCF.serviceConfigFile(self.cfg).getParam("chain", "listTile").split(" ")
         return tiles
 
     def step_execute(self):
@@ -63,8 +59,12 @@ class sensorsPreprocess(IOTA2Step.Step):
             must be a lambda function.
         """
         from Sensors import ProcessLauncher
-        def step_function(x): return ProcessLauncher.preprocess(
-            x, self.cfg, self.workingDirectory, self.RAM)
+
+        def step_function(x):
+            return ProcessLauncher.preprocess(
+                x, self.cfg, self.workingDirectory, self.RAM
+            )
+
         return step_function
 
     def step_outputs(self):

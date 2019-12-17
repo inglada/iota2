@@ -43,8 +43,13 @@ def get_models(formatting_vector_directory, regionField, runs):
     for tile in tiles:
         all_regions = []
         tile_name = os.path.splitext(os.path.basename(tile))[0]
-        r_tmp = fut.getFieldElement(tile, driverName="ESRI Shapefile", field=regionField, mode="unique",
-                                    elemType="str")
+        r_tmp = fut.getFieldElement(
+            tile,
+            driverName="ESRI Shapefile",
+            field=regionField,
+            mode="unique",
+            elemType="str",
+        )
         for r_tile in r_tmp:
             if r_tile not in all_regions:
                 all_regions.append(r_tile)
@@ -60,31 +65,34 @@ def get_models(formatting_vector_directory, regionField, runs):
         region_tile_dic[region] = list(set(region_tiles))
 
     all_regions_in_run = sorted(all_regions_in_run)
-    regions_tiles_seed = [(region, region_tile_dic[region], run)
-                          for run in range(runs) for region in all_regions_in_run]
+    regions_tiles_seed = [
+        (region, region_tile_dic[region], run)
+        for run in range(runs)
+        for region in all_regions_in_run
+    ]
     return regions_tiles_seed
 
 
-def extract_POI(tile_vector, region, seed, region_field, POI, POI_val,
-                force_seed_field=None):
+def extract_POI(
+    tile_vector, region, seed, region_field, POI, POI_val, force_seed_field=None
+):
     """
     """
     from Common.Utils import run
+
     learn_flag = "learn"
     validation_flag = "validation"
     seed_field = "seed_{}".format(seed)
-    cmd = "ogr2ogr -where \"{}='{}' AND {}='{}'\" {} {}".format(region_field,
-                                                                region, seed_field,
-                                                                learn_flag,
-                                                                POI, tile_vector)
+    cmd = "ogr2ogr -where \"{}='{}' AND {}='{}'\" {} {}".format(
+        region_field, region, seed_field, learn_flag, POI, tile_vector
+    )
     run(cmd)
     if POI_val:
         if force_seed_field:
             seed_field = force_seed_field
-        cmd = "ogr2ogr -where \"{}='{}' AND {}='{}'\" {} {}".format(region_field,
-                                                                    region, seed_field,
-                                                                    validation_flag,
-                                                                    POI_val, tile_vector)
+        cmd = "ogr2ogr -where \"{}='{}' AND {}='{}'\" {} {}".format(
+            region_field, region, seed_field, validation_flag, POI_val, tile_vector
+        )
         run(cmd)
 
 
@@ -101,14 +109,14 @@ def samples_merge(region_tiles_seed, cfg, workingDirectory):
 
     region, tiles, seed = region_tiles_seed
 
-    iota2_directory = cfg.getParam('chain', 'outputPath')
-    region_field = cfg.getParam('chain', 'regionField')
-    runs = cfg.getParam('chain', 'runs')
-    cross_validation = cfg.getParam('chain', 'enableCrossValidation')
+    iota2_directory = cfg.getParam("chain", "outputPath")
+    region_field = cfg.getParam("chain", "regionField")
+    runs = cfg.getParam("chain", "runs")
+    cross_validation = cfg.getParam("chain", "enableCrossValidation")
     formatting_vec_dir = os.path.join(iota2_directory, "formattingVectors")
     samples_selection_dir = os.path.join(iota2_directory, "samplesSelection")
     learn_val_dir = os.path.join(iota2_directory, "dataAppVal")
-    ds_sar_opt = cfg.getParam('argTrain', 'dempster_shafer_SAR_Opt_fusion')
+    ds_sar_opt = cfg.getParam("argTrain", "dempster_shafer_SAR_Opt_fusion")
 
     by_models_val = os.path.join(learn_val_dir, "bymodels")
     if not os.path.exists(by_models_val):
@@ -130,41 +138,48 @@ def samples_merge(region_tiles_seed, cfg, workingDirectory):
     vector_region = []
     vector_region_val = []
     for tile in tiles:
-        vector_tile = fut.FileSearch_AND(
-            formatting_vec_dir, True, tile, ".shp")[0]
-        POI_name = "{}_region_{}_seed_{}_samples.shp".format(
-            tile, region, seed)
+        vector_tile = fut.FileSearch_AND(formatting_vec_dir, True, tile, ".shp")[0]
+        POI_name = "{}_region_{}_seed_{}_samples.shp".format(tile, region, seed)
         POI_learn = os.path.join(wd, POI_name)
         POI_val = None
         # if SAR and Optical post-classification fusion extract validation
         # samples
         if ds_sar_opt:
             POI_val_name = "{}_region_{}_seed_{}_samples_val.shp".format(
-                tile, region, seed)
+                tile, region, seed
+            )
             POI_val = os.path.join(wd_val, POI_val_name)
             vector_region_val.append(POI_val)
-        extract_POI(vector_tile, region, seed, region_field, POI_learn,
-                    POI_val, cross_validation_field)
+        extract_POI(
+            vector_tile,
+            region,
+            seed,
+            region_field,
+            POI_learn,
+            POI_val,
+            cross_validation_field,
+        )
         vector_region.append(POI_learn)
 
     merged_POI_name = "samples_region_{}_seed_{}".format(region, seed)
     merged_POI = fut.mergeVectors(merged_POI_name, wd, vector_region)
 
     for vector_r in vector_region:
-        fut.removeShape(
-            vector_r.replace(
-                ".shp", ""), [
-                ".prj", ".shp", ".dbf", ".shx"])
+        fut.removeShape(vector_r.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"])
 
     if workingDirectory:
         fut.cpShapeFile(
-            merged_POI.replace(
-                ".shp", ""), samples_selection_dir, [
-                ".prj", ".shp", ".dbf", ".shx"], spe=True)
+            merged_POI.replace(".shp", ""),
+            samples_selection_dir,
+            [".prj", ".shp", ".dbf", ".shx"],
+            spe=True,
+        )
         if ds_sar_opt:
             for vector_validation in vector_region_val:
                 if os.path.exists(vector_validation):
                     fut.cpShapeFile(
-                        vector_validation.replace(
-                            ".shp", ""), by_models_val, [
-                            ".prj", ".shp", ".dbf", ".shx"], spe=True)
+                        vector_validation.replace(".shp", ""),
+                        by_models_val,
+                        [".prj", ".shp", ".dbf", ".shx"],
+                        spe=True,
+                    )

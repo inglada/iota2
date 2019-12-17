@@ -48,14 +48,16 @@ def CreateColorTable(fileLUT, logger_=logger):
             ct.SetColorEntry(int(classID[0]), tuple(codeColor))
         except BaseException:
             logger_.warning(
-                "a color entry was not recognize, default value set. Class label 0, RGB code : 255, 255, 255")
+                "a color entry was not recognize, default value set. Class label 0, RGB code : 255, 255, 255"
+            )
             ct.SetColorEntry(0, (255, 255, 255))
     filein.close()
     return ct
 
 
 def CreateIndexedColorImage(
-        pszFilename, fileL, co_option=[], output_pix_type=gdal.GDT_Byte):
+    pszFilename, fileL, co_option=[], output_pix_type=gdal.GDT_Byte
+):
     """
         from a labeled image (pszFilename), attribute a color described by fileL and save it next to pszFilename with the suffix _ColorIndexed
         IN :
@@ -64,20 +66,29 @@ def CreateIndexedColorImage(
     """
     indataset = gdal.Open(pszFilename, gdal.GA_ReadOnly)
     if indataset is None:
-        print('Could not open ' + pszFilename)
+        print("Could not open " + pszFilename)
         sys.exit(1)
-    outpath = pszFilename.split('/')
+    outpath = pszFilename.split("/")
     if len(outpath) == 1:
-        outname = os.getcwd() + '/' + \
-            outpath[0].split('.')[0] + '_ColorIndexed.tif'
+        outname = os.getcwd() + "/" + outpath[0].split(".")[0] + "_ColorIndexed.tif"
     else:
-        outname = '/'.join(outpath[0:-1]) + '/' + \
-            outpath[-1].split('.')[0] + '_ColorIndexed.tif'
+        outname = (
+            "/".join(outpath[0:-1])
+            + "/"
+            + outpath[-1].split(".")[0]
+            + "_ColorIndexed.tif"
+        )
     inband = indataset.GetRasterBand(1)
     gt = indataset.GetGeoTransform()
     driver = gdal.GetDriverByName("GTiff")
-    outdataset = driver.Create(outname, indataset.RasterXSize,
-                               indataset.RasterYSize, 1, output_pix_type, options=co_option)
+    outdataset = driver.Create(
+        outname,
+        indataset.RasterXSize,
+        indataset.RasterYSize,
+        1,
+        output_pix_type,
+        options=co_option,
+    )
     if gt is not None and gt != (0.0, 1.0, 0.0, 0.0, 0.0, 1.0):
         outdataset.SetGeoTransform(gt)
     prj = indataset.GetProjectionRef()
@@ -88,18 +99,27 @@ def CreateIndexedColorImage(
     outband = outdataset.GetRasterBand(1)
     outband.SetColorTable(ct)
     outband.WriteArray(inarray)
-    print('The file ' + outname + ' has been created')
+    print("The file " + outname + " has been created")
     return outname
 
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(
-        description="This function allow you to generate an image of classification with color")
-    parser.add_argument("-color ", dest="color",
-                        help="path to the color file (mandatory)", required=True)
-    parser.add_argument("-classification", dest="pathClassification",
-                        help="path to the image of classification", required=True)
+        description="This function allow you to generate an image of classification with color"
+    )
+    parser.add_argument(
+        "-color ",
+        dest="color",
+        help="path to the color file (mandatory)",
+        required=True,
+    )
+    parser.add_argument(
+        "-classification",
+        dest="pathClassification",
+        help="path to the image of classification",
+        required=True,
+    )
     args = parser.parse_args()
 
     CreateIndexedColorImage(args.pathClassification, args.color)

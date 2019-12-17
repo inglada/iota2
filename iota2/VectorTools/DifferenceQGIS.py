@@ -7,22 +7,23 @@ import sys
 from qgis.core import *
 from PyQt4.QtGui import *
 from osgeo import ogr
+
 app = QApplication([])
 QgsApplication.setPrefixPath("/usr", True)
 QgsApplication.initQgis()
 
 driver = ogr.GetDriverByName("ESRI Shapefile")
 # Prepare processing framework
-sys.path.append('/usr/share/qgis/python/plugins/')
+sys.path.append("/usr/share/qgis/python/plugins/")
 
 Processing.initialize()
 
 # Run the algorithm
-inLayer = QgsVectorLayer(sys.argv[1], 'layer1', 'ogr')
-overlay = QgsVectorLayer(sys.argv[2], 'layer2', 'ogr')
+inLayer = QgsVectorLayer(sys.argv[1], "layer1", "ogr")
+overlay = QgsVectorLayer(sys.argv[2], "layer2", "ogr")
 invalid = sys.argv[3]
 outLayer = sys.argv[4]
-general.runalg('qgis:difference', inLayer, overlay, invalid, outLayer)
+general.runalg("qgis:difference", inLayer, overlay, invalid, outLayer)
 
 # Exit applications
 QgsApplication.exitQgis()

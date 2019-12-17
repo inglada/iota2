@@ -19,13 +19,11 @@ import otbApplication as otb
 from Common import FileUtils as fu
 
 
-def extractMatrix(raster, shapeROI, fieldROI, valuesROI,
-                  groudTruth, dataField, outcsv):
+def extractMatrix(raster, shapeROI, fieldROI, valuesROI, groudTruth, dataField, outcsv):
 
     vecToRaster = otb.Registry.CreateApplication("Rasterization")
     vecToRaster.SetParameterString("im", raster)
-    vecToRaster.SetParameterString(
-        "epsg", str(fu.getRasterProjectionEPSG(raster)))
+    vecToRaster.SetParameterString("epsg", str(fu.getRasterProjectionEPSG(raster)))
     vecToRaster.SetParameterString("mode", "attribute")
     vecToRaster.SetParameterString("in", shapeROI)
     vecToRaster.SetParameterString("mode.attribute.field", fieldROI)
@@ -41,19 +39,23 @@ def extractMatrix(raster, shapeROI, fieldROI, valuesROI,
     #######
 
     maskVal = otb.Registry.CreateApplication("BandMath")
-    exp = "(" + "?1:".join(["im1b1==" +
-                            currentVal for currentVal in valuesROI]) + "?1:0)*im2b1"
+    exp = (
+        "("
+        + "?1:".join(["im1b1==" + currentVal for currentVal in valuesROI])
+        + "?1:0)*im2b1"
+    )
     maskVal.SetParameterString("exp", exp)
     maskVal.SetParameterString("ram", "10000")
     maskVal.AddImageToParameterInputImageList(
-        "il", vecToRaster.GetParameterOutputImage("out"))
+        "il", vecToRaster.GetParameterOutputImage("out")
+    )
     maskVal.AddImageToParameterInputImageList(
-        "il", useless.GetParameterOutputImage("out"))
+        "il", useless.GetParameterOutputImage("out")
+    )
     maskVal.Execute()
 
     confMatrix = otb.Registry.CreateApplication("ComputeConfusionMatrix")
-    confMatrix.SetParameterInputImage(
-        "in", maskVal.GetParameterOutputImage("out"))
+    confMatrix.SetParameterInputImage("in", maskVal.GetParameterOutputImage("out"))
     confMatrix.SetParameterString("ref.vector.in", groudTruth)
     confMatrix.SetParameterString("nodatalabel", "0")
     confMatrix.SetParameterString("ref", "vector")
@@ -68,50 +70,54 @@ def extractMatrix(raster, shapeROI, fieldROI, valuesROI,
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(
-        description="This script compute confusion matrix by region of interest.")
+        description="This script compute confusion matrix by region of interest."
+    )
     parser.add_argument(
         "-in.raster",
         dest="raster",
         help="path to the raster",
         default=None,
-        required=True)
+        required=True,
+    )
     parser.add_argument(
         "-in.shapeROI",
         dest="shapeROI",
         help="path to vector containing region of interest",
         default=None,
-        required=True)
+        required=True,
+    )
     parser.add_argument(
         "-in.shapeROI.field",
         dest="fieldROI",
         help="ROI's field",
         default=None,
-        required=True)
+        required=True,
+    )
     parser.add_argument(
         "-in.shapeROI.field.values",
         dest="valuesROI",
         help="ROI's values",
         default=None,
         required=True,
-        nargs='+')
+        nargs="+",
+    )
     parser.add_argument(
         "-in.ground.truth",
         dest="groudTruth",
         help="path to the ground truth shape",
         default=None,
-        required=True)
+        required=True,
+    )
     parser.add_argument(
         "-in.ground.truth.field",
         dest="dataField",
         help="ground truth field",
         default=None,
-        required=True)
+        required=True,
+    )
     parser.add_argument(
-        "-out",
-        dest="outcsv",
-        help="output csv file",
-        default=None,
-        required=True)
+        "-out", dest="outcsv", help="output csv file", default=None, required=True
+    )
     args = parser.parse_args()
 
     extractMatrix(
@@ -121,7 +127,8 @@ if __name__ == "__main__":
         args.valuesROI,
         args.groudTruth,
         args.dataField,
-        args.outcsv)
+        args.outcsv,
+    )
 
 # python regionConfusionMatrix.py -out
 # /mnt/data/home/vincenta/tmp/Matrix.csv -in.ground.truth.field CODE

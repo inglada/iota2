@@ -37,12 +37,8 @@ def splitByArea(Areas, folds):
         # to manage the end
         if offset + 1 > len(Areas) - folds:
             index_rand = random.sample(
-                list(
-                    range(
-                        offset,
-                        len(Areas))),
-                len(Areas) -
-                offset)
+                list(range(offset, len(Areas))), len(Areas) - offset
+            )
             flag = 1
         for cpt, ind in enumerate(index_rand):
             outputfolds[cpt].append(Areas[ind])
@@ -70,7 +66,9 @@ def getFidArea(shapefile, classf=""):
             print("The field {} does not exist in the input shapefile".format(classf))
             print(
                 "You must choose one of these existing fields : {}".format(
-                    ' / '.join(fieldlist)))
+                    " / ".join(fieldlist)
+                )
+            )
             sys.exit(-1)
 
     listid = []
@@ -79,8 +77,7 @@ def getFidArea(shapefile, classf=""):
 
         if geom is not None:
             if classf != "" and classf is not None:
-                listid.append(
-                    [feat.GetFID(), feat.GetField(classf), geom.GetArea()])
+                listid.append([feat.GetFID(), feat.GetField(classf), geom.GetArea()])
             else:
                 # fake class to 1 if no field class provided
                 listid.append([feat.GetFID(), 1, geom.GetArea()])
@@ -111,13 +108,15 @@ def extractFeatureFromShape(shapefile, folds, classf="", outpath=""):
     for statsclass in statsclasses:
         for idx, fold in enumerate(statsclass[1]):
 
-            suffix = str(statsclass[0]) + '_' + str(idx)
+            suffix = str(statsclass[0]) + "_" + str(idx)
 
             if outpath == "" or outpath is None:
                 outpath = os.path.dirname(shapefile)
 
-            outshape = os.path.join(outpath,
-                                    os.path.splitext(os.path.basename(shapefile))[0] + '%s.shp' % (suffix))
+            outshape = os.path.join(
+                outpath,
+                os.path.splitext(os.path.basename(shapefile))[0] + "%s.shp" % (suffix),
+            )
 
             if len(fold) != 0:
                 sublistfid = fu.splitList(fold, 1 + int(len(fold) / 1000))
@@ -125,62 +124,72 @@ def extractFeatureFromShape(shapefile, folds, classf="", outpath=""):
                 exp = "FID in "
                 for chunk in sublistfid:
                     filterfid.append(
-                        "(" + ",".join([str(currentFID[0]) for currentFID in chunk]) + ")")
+                        "("
+                        + ",".join([str(currentFID[0]) for currentFID in chunk])
+                        + ")"
+                    )
 
                 exp += " OR FID in ".join(filterfid)
 
-                os.system('ogr2ogr -overwrite -sql "select * from %s where %s" %s %s ' % (lyr,
-                                                                                          exp,
-                                                                                          outshape,
-                                                                                          shapefile))
+                os.system(
+                    'ogr2ogr -overwrite -sql "select * from %s where %s" %s %s '
+                    % (lyr, exp, outshape, shapefile)
+                )
                 tomerge.append([idx, outshape])
 
                 if classf != "" and classf is not None:
-                    print("subfile %s of classe %s has been produced with an total area of %s" % (outshape,
-                                                                                                  statsclass[2],
-                                                                                                  statsclass[2][idx][1]))
+                    print(
+                        "subfile %s of classe %s has been produced with an total area of %s"
+                        % (outshape, statsclass[2], statsclass[2][idx][1])
+                    )
                 else:
-                    print("subfile %s has been produced with an total area of %s" % (outshape,
-                                                                                     statsclass[2][idx][1]))
+                    print(
+                        "subfile %s has been produced with an total area of %s"
+                        % (outshape, statsclass[2][idx][1])
+                    )
 
     listfolds = set([x[0] for x in tomerge])
-    listfilesbyfold = [[x, [y[1] for y in tomerge if y[0] == x]]
-                       for x in listfolds]
+    listfilesbyfold = [[x, [y[1] for y in tomerge if y[0] == x]] for x in listfolds]
     for listfiles in listfilesbyfold:
-        finalfile = os.path.join(outpath,
-                                 os.path.splitext(
-                                     os.path.basename(shapefile))[0]
-                                 + str(listfiles[0]) + '.shp')
+        finalfile = os.path.join(
+            outpath,
+            os.path.splitext(os.path.basename(shapefile))[0]
+            + str(listfiles[0])
+            + ".shp",
+        )
         mf.mergeVectors(listfiles[1], finalfile)
 
-        for ext in ['.shp', '.prj', '.dbf', '.shx']:
+        for ext in [".shp", ".prj", ".dbf", ".shx"]:
             os.remove(os.path.splitext(listfiles[1][0])[0] + ext)
 
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         PROG = os.path.basename(sys.argv[0])
-        print('      ' + sys.argv[0] + ' [options]')
+        print("      " + sys.argv[0] + " [options]")
         print("     Help : ", PROG, " --help")
         print("        or : ", PROG, " -h")
         sys.exit(-1)
     else:
         USAGE = "usage: %prog [options] "
         PARSER = argparse.ArgumentParser(
-            description="Split polygons of each class of a shapefile in n folds")
-        PARSER.add_argument("-shape", dest="shape", action="store",
-                            help="Shapefile", required=True)
-        PARSER.add_argument("-folds", dest="folds", action="store", type=int,
-                            help="folds number", required=True)
-        PARSER.add_argument("-field", dest="field", action="store",
-
-                            help="class field")
-        PARSER.add_argument("-outpath", dest="outpath", action="store",
-                            help="outpath to store subsets")
+            description="Split polygons of each class of a shapefile in n folds"
+        )
+        PARSER.add_argument(
+            "-shape", dest="shape", action="store", help="Shapefile", required=True
+        )
+        PARSER.add_argument(
+            "-folds",
+            dest="folds",
+            action="store",
+            type=int,
+            help="folds number",
+            required=True,
+        )
+        PARSER.add_argument("-field", dest="field", action="store", help="class field")
+        PARSER.add_argument(
+            "-outpath", dest="outpath", action="store", help="outpath to store subsets"
+        )
 
         ARGS = PARSER.parse_args()
-        extractFeatureFromShape(
-            ARGS.shape,
-            ARGS.folds,
-            ARGS.field,
-            ARGS.outpath)
+        extractFeatureFromShape(ARGS.shape, ARGS.folds, ARGS.field, ARGS.outpath)

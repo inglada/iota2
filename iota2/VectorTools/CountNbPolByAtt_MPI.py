@@ -38,7 +38,7 @@ MPI.pickle.dumps = dill.dumps
 MPI.pickle.loads = dill.loads
 
 
-class MPIService():
+class MPIService:
     """
     Class for storing the MPI context
     """
@@ -49,7 +49,7 @@ class MPIService():
         self.size = self.comm.Get_size()
 
 
-class JobArray():
+class JobArray:
     """
     Class for storing a function to be applied to an array of parameters.
     - job is a callable object like a lambda expression; it takes a single parameter
@@ -89,13 +89,13 @@ def mpi_schedule_job_array(csvstore, job_array, mpi_service=MPIService()):
                     mpi_service.comm.send([job, task_param], dest=i, tag=0)
             while nb_completed_tasks < nb_tasks:
                 [slave_rank, [start, end, result]] = mpi_service.comm.recv(
-                    source=MPI.ANY_SOURCE, tag=0)
+                    source=MPI.ANY_SOURCE, tag=0
+                )
                 results += result
                 nb_completed_tasks += 1
                 if len(param_array) > 0:
                     task_param = param_array.pop(0)
-                    mpi_service.comm.send(
-                        [job, task_param], dest=slave_rank, tag=0)
+                    mpi_service.comm.send([job, task_param], dest=slave_rank, tag=0)
             print("All tasks sent")
             try:
                 kill_slaves(mpi_service)
@@ -108,18 +108,20 @@ def mpi_schedule_job_array(csvstore, job_array, mpi_service=MPIService()):
             mpi_status = MPI.Status()
             while True:
                 # waiting sending works by master
-                print('Slave ' + str(mpi_service.rank) + ' is ready...')
+                print("Slave " + str(mpi_service.rank) + " is ready...")
                 [task_job, task_param] = mpi_service.comm.recv(
-                    source=0, tag=MPI.ANY_TAG, status=mpi_status)
+                    source=0, tag=MPI.ANY_TAG, status=mpi_status
+                )
                 if mpi_status.Get_tag() == 1:
-                    print('Closed rank ' + str(mpi_service.rank))
+                    print("Closed rank " + str(mpi_service.rank))
                     break
                 start_date = datetime.datetime.now()
                 result = task_job(task_param)
                 end_date = datetime.datetime.now()
                 print(mpi_service.rank, task_param, "ended")
                 mpi_service.comm.send(
-                    [mpi_service.rank, [start_date, end_date, result]], dest=0, tag=0)
+                    [mpi_service.rank, [start_date, end_date, result]], dest=0, tag=0
+                )
 
     except BaseException:
         if mpi_service.rank == 0:
@@ -162,17 +164,17 @@ def countByAtt(params):
 
     stats = []
     if fieldTypeCode == 4:
-        layer.SetAttributeFilter(field + " = \'" + str(classe) + "\'")
+        layer.SetAttributeFilter(field + " = '" + str(classe) + "'")
         featureCount = layer.GetFeatureCount()
         area = 0
         for feat in layer:
             geom = feat.GetGeometryRef()
             area += geom.GetArea()
         partcl = area / totalarea * 100
-        print("Class # %s: %s features and a total area of %s (rate : %s)" % (str(classe),
-                                                                              str(featureCount),
-                                                                              str(area),
-                                                                              str(round(partcl, 4))))
+        print(
+            "Class # %s: %s features and a total area of %s (rate : %s)"
+            % (str(classe), str(featureCount), str(area), str(round(partcl, 4)))
+        )
         stats.append([classe, featureCount, area, partcl])
         layer.ResetReading()
     else:
@@ -183,10 +185,10 @@ def countByAtt(params):
             geom = feat.GetGeometryRef()
             area += geom.GetArea()
         partcl = area / totalarea * 100
-        print("Class # %s: %s features and a total area of %s (rate : %s)" % (str(classe),
-                                                                              str(featureCount),
-                                                                              str(area),
-                                                                              str(round(partcl, 4))))
+        print(
+            "Class # %s: %s features and a total area of %s (rate : %s)"
+            % (str(classe), str(featureCount), str(area), str(round(partcl, 4)))
+        )
         stats.append([classe, featureCount, area, partcl])
         layer.ResetReading()
 
@@ -210,7 +212,7 @@ def master(vector, field, csvstore):
     results = mpi_schedule_job_array(csvstore, ja, mpi_service=MPIService())
 
     if mpi_service.rank == 0:
-        with open(csvstore, 'a') as myfile:
+        with open(csvstore, "a") as myfile:
             writer = csv.writer(myfile)
             writer.writerows(results)
 
@@ -218,22 +220,30 @@ def master(vector, field, csvstore):
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         PROG = os.path.basename(sys.argv[0])
-        print('      ' + sys.argv[0] + ' [options]')
+        print("      " + sys.argv[0] + " [options]")
         print("     Help : ", PROG, " --help")
         print("        or : ", PROG, " -h")
         sys.exit(-1)
     else:
         USAGE = "usage: %prog [options] "
-        PARSER = argparse.ArgumentParser(
-            description="Extract shapefile records")
-        PARSER.add_argument("-ins", dest="ins", action="store",
-                            help="input shapefile",
-                            required=True)
-        PARSER.add_argument("-field", dest="field", action="store",
-                            help="input shapefile field to analyse",
-                            required=True)
-        PARSER.add_argument("-csv", dest="csv", action="store",
-                            help="csv file to store results", required=True)
+        PARSER = argparse.ArgumentParser(description="Extract shapefile records")
+        PARSER.add_argument(
+            "-ins", dest="ins", action="store", help="input shapefile", required=True
+        )
+        PARSER.add_argument(
+            "-field",
+            dest="field",
+            action="store",
+            help="input shapefile field to analyse",
+            required=True,
+        )
+        PARSER.add_argument(
+            "-csv",
+            dest="csv",
+            action="store",
+            help="csv file to store results",
+            required=True,
+        )
 
         args = PARSER.parse_args()
         master(args.ins, args.field, args.csv)

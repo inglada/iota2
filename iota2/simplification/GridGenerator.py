@@ -29,7 +29,7 @@ import numpy as np
 try:
     from Common import FileUtils as fut
 except ImportError:
-    raise ImportError('Iota2 not well configured / installed')
+    raise ImportError("Iota2 not well configured / installed")
 
 
 def createPolygonShape(name, epsg, driver):
@@ -42,7 +42,8 @@ def createPolygonShape(name, epsg, driver):
     out_coordsys.ImportFromEPSG(epsg)
     outDataSource = outDriver.CreateDataSource(name)
     outLayer = outDataSource.CreateLayer(
-        name, srs=out_coordsys, geom_type=ogr.wkbPolygon)
+        name, srs=out_coordsys, geom_type=ogr.wkbPolygon
+    )
 
     outDataSource.Destroy()
 
@@ -79,7 +80,7 @@ def grid_generate(outname, xysize, epsg=2154, raster=None, coordinates=None):
     intervalY = np.arange(ymin, ymax + ySize, ySize)
 
     # create output file
-    createPolygonShape(outname, epsg, 'ESRI Shapefile')
+    createPolygonShape(outname, epsg, "ESRI Shapefile")
     driver = ogr.GetDriverByName("ESRI Shapefile")
     shape = driver.Open(outname, 1)
     outLayer = shape.GetLayer()
@@ -123,36 +124,56 @@ def grid_generate(outname, xysize, epsg=2154, raster=None, coordinates=None):
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         prog = os.path.basename(sys.argv[0])
-        print('      ' + sys.argv[0] + ' [options]')
+        print("      " + sys.argv[0] + " [options]")
         print("     Help : ", prog, " --help")
         print("        or : ", prog, " -h")
         sys.exit(-1)
     else:
         usage = "usage: %prog [options] "
         parser = argparse.ArgumentParser(
-            description="Grid shapefile generation from an input raster")
-        parser.add_argument("-o", dest="outname", action="store",
-                            help="ouput grid shapefile path", required=True)
-        parser.add_argument("-epsg", dest="epsg", action="store",
-                            help="ouput grid shapefile projection (EPSG code)", type=int, required=True)
-        parser.add_argument("-r", dest="raster", action="store",
-                            help="Input raster file", default=None)
-        parser.add_argument("-c", dest="xysize", action="store", type=int,
-                            help="Number of vertical / horizontal tile", required=True)
-        parser.add_argument("-coords", dest="coords", nargs='*', action="store",
-                            help="xmin, xmax, ymin, ymax coordinates of the resulting bounding box")
+            description="Grid shapefile generation from an input raster"
+        )
+        parser.add_argument(
+            "-o",
+            dest="outname",
+            action="store",
+            help="ouput grid shapefile path",
+            required=True,
+        )
+        parser.add_argument(
+            "-epsg",
+            dest="epsg",
+            action="store",
+            help="ouput grid shapefile projection (EPSG code)",
+            type=int,
+            required=True,
+        )
+        parser.add_argument(
+            "-r", dest="raster", action="store", help="Input raster file", default=None
+        )
+        parser.add_argument(
+            "-c",
+            dest="xysize",
+            action="store",
+            type=int,
+            help="Number of vertical / horizontal tile",
+            required=True,
+        )
+        parser.add_argument(
+            "-coords",
+            dest="coords",
+            nargs="*",
+            action="store",
+            help="xmin, xmax, ymin, ymax coordinates of the resulting bounding box",
+        )
         args = parser.parse_args()
 
         if args.raster is not None:
-            nbtiles = grid_generate(
-                args.outname, args.xysize, args.epsg, args.raster)
+            nbtiles = grid_generate(args.outname, args.xysize, args.epsg, args.raster)
         elif args.coords is not None:
             nbtiles = grid_generate(
-                args.outname,
-                args.xysize,
-                args.epsg,
-                None,
-                args.coords)
+                args.outname, args.xysize, args.epsg, None, args.coords
+            )
         else:
             print("One of -r or coords option has to be filled")
             sys.exit()

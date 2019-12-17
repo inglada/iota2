@@ -37,10 +37,10 @@ def computeKappa(confMat):
         overallAccuracy = float(nbrGood) / float(nbrSample)
 
     # the lucky rate.
-    luckyRate = 0.
+    luckyRate = 0.0
     for i in range(0, confMat.shape[0]):
-        sum_ij = 0.
-        sum_ji = 0.
+        sum_ij = 0.0
+        sum_ji = 0.0
         for j in range(0, confMat.shape[0]):
             sum_ij += confMat[i][j]
             sum_ji += confMat[j][i]
@@ -48,8 +48,9 @@ def computeKappa(confMat):
 
     # Kappa.
     if float((nbrSample * nbrSample) - luckyRate) != 0:
-        kappa = float((overallAccuracy * nbrSample * nbrSample) -
-                      luckyRate) / float((nbrSample * nbrSample) - luckyRate)
+        kappa = float((overallAccuracy * nbrSample * nbrSample) - luckyRate) / float(
+            (nbrSample * nbrSample) - luckyRate
+        )
     else:
         kappa = 1000
 
@@ -69,7 +70,7 @@ def computePreByClass(confMat, AllClass):
         if denom != 0:
             currentPre = float(nom) / float(denom)
         else:
-            currentPre = 0.
+            currentPre = 0.0
         Pre.append((AllClass[i], currentPre))
     return Pre
 
@@ -85,7 +86,7 @@ def computeRecByClass(confMat, AllClass):
         if denom != 0:
             currentRec = float(nom) / float(denom)
         else:
-            currentRec = 0.
+            currentRec = 0.0
         Rec.append((AllClass[i], currentRec))
     return Rec
 
@@ -95,14 +96,11 @@ def computeFsByClass(Pre, Rec, AllClass):
     for i in range(len(AllClass)):
         if float(Rec[i][1] + Pre[i][1]) != 0:
             Fs.append(
-                (AllClass[i],
-                 float(
-                    2 *
-                    Rec[i][1] *
-                    Pre[i][1]) /
-                    float(
-                    Rec[i][1] +
-                    Pre[i][1])))
+                (
+                    AllClass[i],
+                    float(2 * Rec[i][1] * Pre[i][1]) / float(Rec[i][1] + Pre[i][1]),
+                )
+            )
         else:
             Fs.append((AllClass[i], 0.0))
     return Fs
@@ -145,21 +143,27 @@ def writeResults(Fs, Rec, Pre, kappa, overallAccuracy, AllClass, pathOut):
             resFile.write(str(AllClass[i]) + "\n\n")
 
     for i in range(len(AllClass)):
-        resFile.write("Precision of class [" +
-                      str(AllClass[i]) +
-                      "] vs all: " +
-                      str(Pre[i][1]) +
-                      "\n")
-        resFile.write("Recall of class [" +
-                      str(AllClass[i]) +
-                      "] vs all: " +
-                      str(Rec[i][1]) +
-                      "\n")
-        resFile.write("F-score of class [" +
-                      str(AllClass[i]) +
-                      "] vs all: " +
-                      str(Fs[i][1]) +
-                      "\n\n")
+        resFile.write(
+            "Precision of class ["
+            + str(AllClass[i])
+            + "] vs all: "
+            + str(Pre[i][1])
+            + "\n"
+        )
+        resFile.write(
+            "Recall of class ["
+            + str(AllClass[i])
+            + "] vs all: "
+            + str(Rec[i][1])
+            + "\n"
+        )
+        resFile.write(
+            "F-score of class ["
+            + str(AllClass[i])
+            + "] vs all: "
+            + str(Fs[i][1])
+            + "\n\n"
+        )
 
     resFile.write("Precision of the different classes: [")
     for i in range(len(AllClass)):
@@ -185,8 +189,7 @@ def writeResults(Fs, Rec, Pre, kappa, overallAccuracy, AllClass, pathOut):
     resFile.close()
 
 
-def replaceAnnualCropInConfMat(
-        confMat, AllClass, annualCrop, labelReplacement):
+def replaceAnnualCropInConfMat(confMat, AllClass, annualCrop, labelReplacement):
     """
         IN :
             confMat [np.array of np.array] : confusion matrix
@@ -324,14 +327,16 @@ def confusion_models_merge(csv_list, dataField):
     if "SAR" in csv_name:
         csv_suffix = "_SAR"
     output_merged_csv_name = "model_{}_seed_{}{}.csv".format(
-        csv_model, csv_seed, csv_suffix)
+        csv_model, csv_seed, csv_suffix
+    )
     output_merged_csv = os.path.join(csv_path, output_merged_csv_name)
     labels = []
     for csv in csv_list:
         conf_mat_dic = parse_csv(csv)
         labels_ref = list(conf_mat_dic.keys())
-        labels_prod = [lab for lab in list(
-            conf_mat_dic[list(conf_mat_dic.keys())[0]].keys())]
+        labels_prod = [
+            lab for lab in list(conf_mat_dic[list(conf_mat_dic.keys())[0]].keys())
+        ]
         all_labels = labels_ref + labels_prod
         labels = labels + all_labels
 
@@ -344,27 +349,24 @@ def confFusion(shapeIn, dataField, csv_out, txt_out, csvPath, cfg):
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
 
-    N = cfg.getParam('chain', 'runs')
-    enableCrossValidation = cfg.getParam('chain', 'enableCrossValidation')
+    N = cfg.getParam("chain", "runs")
+    enableCrossValidation = cfg.getParam("chain", "enableCrossValidation")
     if enableCrossValidation is True:
         N = N - 1
-    cropMix = cfg.getParam('argTrain', 'cropMix')
-    annualCrop = cfg.getParam('argTrain', 'annualCrop')
-    labelReplacement, labelName = cfg.getParam(
-        'argTrain', 'ACropLabelReplacement').data
-    enableCrossValidation = cfg.getParam('chain', 'enableCrossValidation')
+    cropMix = cfg.getParam("argTrain", "cropMix")
+    annualCrop = cfg.getParam("argTrain", "annualCrop")
+    labelReplacement, labelName = cfg.getParam("argTrain", "ACropLabelReplacement").data
+    enableCrossValidation = cfg.getParam("chain", "enableCrossValidation")
     labelReplacement = int(labelReplacement)
 
     for seed in range(N):
         # Recherche de toute les classes possible
         AllClass = []
-        AllClass = fu.getFieldElement(
-            shapeIn, "ESRI Shapefile", dataField, "unique")
+        AllClass = fu.getFieldElement(shapeIn, "ESRI Shapefile", dataField, "unique")
         AllClass = sorted(AllClass)
 
         # Initialisation de la matrice finale
-        AllConf = fu.FileSearch_AND(
-            csvPath, True, "seed_" + str(seed) + ".csv")
+        AllConf = fu.FileSearch_AND(csvPath, True, "seed_" + str(seed) + ".csv")
         csv = fu.confCoordinatesCSV(AllConf)
         csv_f = fu.sortByFirstElem(csv)
 
@@ -373,32 +375,19 @@ def confFusion(shapeIn, dataField, csv_out, txt_out, csvPath, cfg):
             writeCSV(
                 confMat,
                 AllClass,
-                csv_out +
-                "/MatrixBeforeClassMerge_" +
-                str(seed) +
-                ".csv")
+                csv_out + "/MatrixBeforeClassMerge_" + str(seed) + ".csv",
+            )
             confMat, AllClass = replaceAnnualCropInConfMat(
-                confMat, AllClass, annualCrop, labelReplacement)
-            writeCSV(
-                confMat,
-                AllClass,
-                csv_out +
-                "/Classif_Seed_" +
-                str(seed) +
-                ".csv")
+                confMat, AllClass, annualCrop, labelReplacement
+            )
+            writeCSV(confMat, AllClass, csv_out + "/Classif_Seed_" + str(seed) + ".csv")
         else:
-            writeCSV(
-                confMat,
-                AllClass,
-                csv_out +
-                "/Classif_Seed_" +
-                str(seed) +
-                ".csv")
+            writeCSV(confMat, AllClass, csv_out + "/Classif_Seed_" + str(seed) + ".csv")
 
         nbrGood = confMat.trace()
         nbrSample = confMat.sum()
 
-        if (nbrSample > 1):
+        if nbrSample > 1:
             overallAccuracy = float(nbrGood) / float(nbrSample)
         else:
             overallAccuracy = 0.0
@@ -414,55 +403,50 @@ def confFusion(shapeIn, dataField, csv_out, txt_out, csvPath, cfg):
             kappa,
             overallAccuracy,
             AllClass,
-            txt_out +
-            "/ClassificationResults_seed_" +
-            str(seed) +
-            ".txt")
+            txt_out + "/ClassificationResults_seed_" + str(seed) + ".txt",
+        )
 
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(
-        description="This function merge confusionMatrix.csv from different tiles")
+        description="This function merge confusionMatrix.csv from different tiles"
+    )
     parser.add_argument(
         "-path.shapeIn",
         help="path to the entire ground truth (mandatory)",
         dest="shapeIn",
-        required=True)
+        required=True,
+    )
     parser.add_argument(
         "-dataField",
         help="data's field inside the ground truth shape (mandatory)",
         dest="dataField",
-        required=True)
+        required=True,
+    )
     parser.add_argument(
-        "-path.csv.out",
-        help="csv out (mandatory)",
-        dest="csv_out",
-        required=True)
+        "-path.csv.out", help="csv out (mandatory)", dest="csv_out", required=True
+    )
     parser.add_argument(
-        "-path.txt.out",
-        help="results out (mandatory)",
-        dest="txt_out",
-        required=True)
+        "-path.txt.out", help="results out (mandatory)", dest="txt_out", required=True
+    )
     parser.add_argument(
         "-path.csv",
         help="where are stored all csv files by tiles (mandatory)",
         dest="csvPath",
-        required=True)
+        required=True,
+    )
     parser.add_argument(
         "-conf",
         help="path to the configuration file which describe the classification (mandatory)",
         dest="pathConf",
-        required=False)
+        required=False,
+    )
     args = parser.parse_args()
 
     # load configuration file
     cfg = SCF.serviceConfigFile(args.pathConf)
 
     confFusion(
-        args.shapeIn,
-        args.dataField,
-        args.csv_out,
-        args.txt_out,
-        args.csvPath,
-        cfg)
+        args.shapeIn, args.dataField, args.csv_out, args.txt_out, args.csvPath, cfg
+    )

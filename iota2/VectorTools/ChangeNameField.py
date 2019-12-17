@@ -50,25 +50,33 @@ def changeName(filein, fieldin, fieldout):
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         prog = os.path.basename(sys.argv[0])
-        print('      ' + sys.argv[0] + ' [options]')
+        print("      " + sys.argv[0] + " [options]")
         print("     Help : ", prog, " --help")
         print("        or : ", prog, " -h")
         sys.exit(-1)
     else:
         usage = "usage: %prog [options] "
-        parser = argparse.ArgumentParser(description="Change exsiting field name "
-                                         "of an input shapefile")
-        parser.add_argument("-s", dest="shapefile", action="store",
-                            help="Input shapefile", required=True)
-        parser.add_argument("-fi", dest="fieldi", action="store",
-                            help="Field to rename", required=True)
-        parser.add_argument("-fo", dest="fieldo", action="store",
-                            help="New field name", required=True)
+        parser = argparse.ArgumentParser(
+            description="Change exsiting field name " "of an input shapefile"
+        )
+        parser.add_argument(
+            "-s",
+            dest="shapefile",
+            action="store",
+            help="Input shapefile",
+            required=True,
+        )
+        parser.add_argument(
+            "-fi", dest="fieldi", action="store", help="Field to rename", required=True
+        )
+        parser.add_argument(
+            "-fo", dest="fieldo", action="store", help="New field name", required=True
+        )
         args = parser.parse_args()
         try:
             changeName(args.shapefile, args.fieldi, args.fieldo)
-            print('Field has been changed successfully')
+            print("Field has been changed successfully")
         except Exception as err:
-            print('Problem occured in the process')
-            sys.stderr.write('ERROR: %sn' % str(err))
+            print("Problem occured in the process")
+            sys.stderr.write("ERROR: %sn" % str(err))
             sys.exit(0)

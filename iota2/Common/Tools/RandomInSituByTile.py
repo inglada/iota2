@@ -15,13 +15,16 @@
 # =========================================================================
 
 import argparse
-#import sys
-#import os
+
+# import sys
+# import os
 import random
-#import shutil
+
+# import shutil
 import logging
 from osgeo import ogr
-#from config import Config
+
+# from config import Config
 from Common import FileUtils as fu
 from Common import ServiceConfigFile as SCF
 
@@ -51,16 +54,16 @@ def get_randomPoly(dataSource, field, classes, ratio, logger=logger):
                 listid.append(_id)
                 listid.sort()
             listToChoice = random.sample(listid, int(polbysel))
-            logger.debug("for class %s, list of choosen features : %s" %
-                         (cl, listToChoice))
+            logger.debug(
+                "for class %s, list of choosen features : %s" % (cl, listToChoice)
+            )
             for fid in listToChoice:
                 listallid.append(fid)
     listallid.sort()
     return listallid, listValid
 
 
-def RandomInSitu(vectorFile, field, nbdraws, opath, name,
-                 AllFields, ratio, pathWd):
+def RandomInSitu(vectorFile, field, nbdraws, opath, name, AllFields, ratio, pathWd):
     """
     """
 
@@ -72,8 +75,8 @@ def RandomInSitu(vectorFile, field, nbdraws, opath, name,
     dicoprop = {}
     allFID = []
     nbtirage = nbdraws
-    nameshp = shapefile.split('.')
-    namefile = nameshp[0].split('/')
+    nameshp = shapefile.split(".")
+    namefile = nameshp[0].split("/")
 
     driver = ogr.GetDriverByName("ESRI Shapefile")
     dataSource = driver.Open(shapefile, 0)
@@ -95,8 +98,7 @@ def RandomInSitu(vectorFile, field, nbdraws, opath, name,
     AllTrain = []
     AllValid = []
     for tirage in range(0, nbtirage):
-        listallid, listValid = get_randomPoly(
-            dataSource, field, classes, ratio)
+        listallid, listValid = get_randomPoly(dataSource, field, classes, ratio)
         ch = ""
         listFid = []
         for fid in listallid:
@@ -104,23 +106,23 @@ def RandomInSitu(vectorFile, field, nbdraws, opath, name,
         resultA = []
         for e in listFid:
             resultA.append(e)
-            resultA.append(' OR ')
+            resultA.append(" OR ")
         resultA.pop()
 
-        chA = ''.join(resultA)
+        chA = "".join(resultA)
         layer.SetAttributeFilter(chA)
-        learningShape = opath + "/" + name + \
-            "_seed" + str(tirage) + "_learn.shp"
+        learningShape = opath + "/" + name + "_seed" + str(tirage) + "_learn.shp"
         if pathWd is None:
-            outShapefile = opath + "/" + name + \
-                "_seed" + str(tirage) + "_learn.shp"
+            outShapefile = opath + "/" + name + "_seed" + str(tirage) + "_learn.shp"
             fu.CreateNewLayer(layer, outShapefile, AllFields)
         else:
-            outShapefile = pathWd + "/" + name + \
-                "_seed" + str(tirage) + "_learn.shp"
+            outShapefile = pathWd + "/" + name + "_seed" + str(tirage) + "_learn.shp"
             fu.CreateNewLayer(layer, outShapefile, AllFields)
-            fu.cpShapeFile(outShapefile.replace(".shp", ""), opath + "/" + name +
-                           "_seed" + str(tirage) + "_learn", [".prj", ".shp", ".dbf", ".shx"])
+            fu.cpShapeFile(
+                outShapefile.replace(".shp", ""),
+                opath + "/" + name + "_seed" + str(tirage) + "_learn",
+                [".prj", ".shp", ".dbf", ".shx"],
+            )
 
         for i in allFID:
             if i not in listallid:
@@ -134,34 +136,38 @@ def RandomInSitu(vectorFile, field, nbdraws, opath, name,
         resultV = []
         for e in listFidV:
             resultV.append(e)
-            resultV.append(' OR ')
+            resultV.append(" OR ")
         resultV.pop()
 
-        chV = ''.join(resultV)
+        chV = "".join(resultV)
         layer.SetAttributeFilter(chV)
-        validationShape = opath + "/" + name + \
-            "_seed" + str(tirage) + "_val.shp"
+        validationShape = opath + "/" + name + "_seed" + str(tirage) + "_val.shp"
         if pathWd is None:
-            outShapefile2 = opath + "/" + name + \
-                "_seed" + str(tirage) + "_val.shp"
+            outShapefile2 = opath + "/" + name + "_seed" + str(tirage) + "_val.shp"
             fu.CreateNewLayer(layer, outShapefile2, AllFields)
         else:
-            outShapefile2 = pathWd + "/" + name + \
-                "_seed" + str(tirage) + "_val.shp"
+            outShapefile2 = pathWd + "/" + name + "_seed" + str(tirage) + "_val.shp"
             fu.CreateNewLayer(layer, outShapefile2, AllFields)
-            fu.cpShapeFile(outShapefile2.replace(".shp", ""), opath + "/" + name +
-                           "_seed" + str(tirage) + "_val", [".prj", ".shp", ".dbf", ".shx"])
+            fu.cpShapeFile(
+                outShapefile2.replace(".shp", ""),
+                opath + "/" + name + "_seed" + str(tirage) + "_val",
+                [".prj", ".shp", ".dbf", ".shx"],
+            )
         AllTrain.append(learningShape)
         AllValid.append(validationShape)
     return AllTrain, AllValid
 
 
-def RandomInSituByTile(path_mod_tile, dataField, N, pathOut, ratio,
-                       cfg=None, pathWd=None, test=False):
+def RandomInSituByTile(
+    path_mod_tile, dataField, N, pathOut, ratio, cfg=None, pathWd=None, test=False
+):
 
     if not test:
-        name = path_mod_tile.split(
-            "/")[-1].split("_")[-3] + "_region_" + path_mod_tile.split("/")[-1].split("_")[-4]
+        name = (
+            path_mod_tile.split("/")[-1].split("_")[-3]
+            + "_region_"
+            + path_mod_tile.split("/")[-1].split("_")[-4]
+        )
     else:
         name = "test"
     dataSource = ogr.Open(path_mod_tile)
@@ -169,9 +175,9 @@ def RandomInSituByTile(path_mod_tile, dataField, N, pathOut, ratio,
     layerDefinition = daLayer.GetLayerDefn()
     ratio = float(ratio)
 
-    AllFields = fu.getAllFieldsInShape(path_mod_tile, 'ESRI Shapefile')
+    AllFields = fu.getAllFieldsInShape(path_mod_tile, "ESRI Shapefile")
 
-    driver = ogr.GetDriverByName('ESRI Shapefile')
+    driver = ogr.GetDriverByName("ESRI Shapefile")
     # 0 means read-only. 1 means writeable.
     dataSource = driver.Open(path_mod_tile, 0)
     # Check to see if shapefile is found.
@@ -181,9 +187,9 @@ def RandomInSituByTile(path_mod_tile, dataField, N, pathOut, ratio,
         layer = dataSource.GetLayer()
         featureCount = layer.GetFeatureCount()
         if featureCount != 0:
-            AllTrain, AllValid = RandomInSitu(path_mod_tile, dataField, N,
-                                              pathOut, name, AllFields,
-                                              ratio, pathWd)
+            AllTrain, AllValid = RandomInSitu(
+                path_mod_tile, dataField, N, pathOut, name, AllFields, ratio, pathWd
+            )
             return AllTrain, AllValid
         else:
             # Add default return None,None if featureCount==0
@@ -193,26 +199,61 @@ def RandomInSituByTile(path_mod_tile, dataField, N, pathOut, ratio,
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(
-        description="This function allow you to create N training and N validation shapes by regions cut by tiles")
+        description="This function allow you to create N training and N validation shapes by regions cut by tiles"
+    )
 
     parser.add_argument(
-        "-shape.dataTile", help="path to a shapeFile containing data's for one region in a tile (mandatory)", dest="path", required=True)
+        "-shape.dataTile",
+        help="path to a shapeFile containing data's for one region in a tile (mandatory)",
+        dest="path",
+        required=True,
+    )
     parser.add_argument(
-        "-shape.field", help="data's field into shapeFile (mandatory)", dest="dataField", required=True)
-    parser.add_argument("--sample", dest="N", help="number of random sample (default = 1)",
-                        default=1, type=int, required=False)
-    parser.add_argument("-out", dest="pathOut",
-                        help="path where to store all shapes by tiles (mandatory)", required=True)
-    parser.add_argument("-ratio", dest="ratio",
-                        help="Training and validation sample ratio  (mandatory, default value is 0.5)", default='0.5', required=True)
-    parser.add_argument("--wd", dest="pathWd",
-                        help="path to the working directory", default=None, required=False)
-    parser.add_argument("-conf", help="path to the configuration file (mandatory)",
-                        default=None, dest="pathConf", required=False)
+        "-shape.field",
+        help="data's field into shapeFile (mandatory)",
+        dest="dataField",
+        required=True,
+    )
+    parser.add_argument(
+        "--sample",
+        dest="N",
+        help="number of random sample (default = 1)",
+        default=1,
+        type=int,
+        required=False,
+    )
+    parser.add_argument(
+        "-out",
+        dest="pathOut",
+        help="path where to store all shapes by tiles (mandatory)",
+        required=True,
+    )
+    parser.add_argument(
+        "-ratio",
+        dest="ratio",
+        help="Training and validation sample ratio  (mandatory, default value is 0.5)",
+        default="0.5",
+        required=True,
+    )
+    parser.add_argument(
+        "--wd",
+        dest="pathWd",
+        help="path to the working directory",
+        default=None,
+        required=False,
+    )
+    parser.add_argument(
+        "-conf",
+        help="path to the configuration file (mandatory)",
+        default=None,
+        dest="pathConf",
+        required=False,
+    )
     args = parser.parse_args()
 
     # load configuration file
     cfg = SCF.serviceConfigFile(args.pathConf)
 
-    RandomInSituByTile(args.path, args.dataField, args.N, args.pathOut,
-                       args.ratio, cfg, args.pathWd)
+    RandomInSituByTile(
+        args.path, args.dataField, args.N, args.pathOut, args.ratio, cfg, args.pathWd
+    )

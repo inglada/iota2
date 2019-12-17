@@ -26,6 +26,7 @@ from osgeo.gdalconst import *
 from osgeo import ogr
 import numpy as np
 import matplotlib
+
 matplotlib.use("AGG")
 
 
@@ -108,10 +109,8 @@ def saveHisto(savePath, histo, bins):
     saveBins = " ".join([str(currentVal) for currentVal in bins])
     with open(savePath, "w") as saveFile:
         saveFile.write(
-            "Pixels validity\nBins:" +
-            saveBins +
-            "\nHistogram:" +
-            saveHistog)
+            "Pixels validity\nBins:" + saveBins + "\nHistogram:" + saveHistog
+        )
 
 
 def computeMeanStd(histo, bins):
@@ -119,7 +118,7 @@ def computeMeanStd(histo, bins):
     # Mean
     meanNom = 0.0
     for currentVal, currentBin in zip(histo, bins):
-        meanNom += (currentVal * currentBin)
+        meanNom += currentVal * currentBin
     mean = 0
     if np.sum(histo) != 0.0:
         mean = meanNom / (np.sum(histo))
@@ -127,7 +126,7 @@ def computeMeanStd(histo, bins):
     # Var
     varNom = 0.0
     for currentVal, currentBin in zip(histo, bins):
-        varNom += currentVal * (currentBin - mean)**2
+        varNom += currentVal * (currentBin - mean) ** 2
     var = 0
     if np.sum(histo) != 0.0:
         var = varNom / (np.sum(histo))
@@ -139,13 +138,14 @@ def mergeOutStats(cfg):
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
 
-    Testpath = cfg.getParam('chain', 'outputPath')
-    Nruns = cfg.getParam('chain', 'runs')
-    AllTiles = cfg.getParam('chain', 'listTile')
+    Testpath = cfg.getParam("chain", "outputPath")
+    Nruns = cfg.getParam("chain", "runs")
+    AllTiles = cfg.getParam("chain", "listTile")
 
     for seed in range(Nruns):
         seedStats = fu.fileSearchRegEx(
-            Testpath + "/final/TMP/*_stats_seed_" + str(seed) + ".cfg")
+            Testpath + "/final/TMP/*_stats_seed_" + str(seed) + ".cfg"
+        )
         AllDiffTest = Config(open(seedStats[0])).AllDiffStats
         AllDiffTest = AllDiffTest.split(",")
         VOK_buff = []
@@ -178,34 +178,32 @@ def mergeOutStats(cfg):
         plt.plot(
             binsVOK,
             SumVOK,
-            label="Valid OK\nmean: " +
-            "{0:.2f}".format(meanVOK) +
-            "\nstd: " +
-            "{0:.2f}".format(stdVOK) +
-            "\n",
-            color="green")
+            label="Valid OK\nmean: "
+            + "{0:.2f}".format(meanVOK)
+            + "\nstd: "
+            + "{0:.2f}".format(stdVOK)
+            + "\n",
+            color="green",
+        )
         plt.plot(
             binsVNOK,
             SumVNOK,
-            label="Valid NOK\nmean: " +
-            "{0:.2f}".format(meanVNOK) +
-            "\nstd: " +
-            "{0:.2f}".format(stdVNOK) +
-            "\n",
-            color="red")
+            label="Valid NOK\nmean: "
+            + "{0:.2f}".format(meanVNOK)
+            + "\nstd: "
+            + "{0:.2f}".format(stdVNOK)
+            + "\n",
+            color="red",
+        )
         plt.ylabel("Nb pix")
         plt.xlabel("Confidence")
-        lgd = plt.legend(
-            loc="center left", bbox_to_anchor=(
-                1, 0.8), numpoints=1)
-        plt.title('Histogram')
+        lgd = plt.legend(loc="center left", bbox_to_anchor=(1, 0.8), numpoints=1)
+        plt.title("Histogram")
         plt.savefig(
-            Testpath +
-            "/final/Stats_VOK_VNOK.png",
-            bbox_extra_artists=(
-                lgd,
-            ),
-            bbox_inches='tight')
+            Testpath + "/final/Stats_VOK_VNOK.png",
+            bbox_extra_artists=(lgd,),
+            bbox_inches="tight",
+        )
         # We clear the buffer and close the figure
         plt.clf()
         plt.close()
@@ -218,33 +216,31 @@ def mergeOutStats(cfg):
         plt.plot(
             binsAOK,
             SumAOK,
-            label="Learning OK\nmean: " +
-            "{0:.2f}".format(meanAOK) +
-            "\nstd: " +
-            "{0:.2f}".format(stdAOK) +
-            "\n",
-            color="yellow")
+            label="Learning OK\nmean: "
+            + "{0:.2f}".format(meanAOK)
+            + "\nstd: "
+            + "{0:.2f}".format(stdAOK)
+            + "\n",
+            color="yellow",
+        )
         plt.plot(
             binsANOK,
             SumANOK,
-            label="Learning NOK\nmean: " +
-            "{0:.2f}".format(meanANOK) +
-            "\nstd: " +
-            "{0:.2f}".format(stdANOK),
-            color="blue")
+            label="Learning NOK\nmean: "
+            + "{0:.2f}".format(meanANOK)
+            + "\nstd: "
+            + "{0:.2f}".format(stdANOK),
+            color="blue",
+        )
         plt.ylabel("Nb pix")
         plt.xlabel("Confidence")
-        lgd = plt.legend(
-            loc="center left", bbox_to_anchor=(
-                1, 0.8), numpoints=1)
-        plt.title('Histogram')
+        lgd = plt.legend(loc="center left", bbox_to_anchor=(1, 0.8), numpoints=1)
+        plt.title("Histogram")
         plt.savefig(
-            Testpath +
-            "/final/Stats_LOK_LNOK.png",
-            bbox_extra_artists=(
-                lgd,
-            ),
-            bbox_inches='tight')
+            Testpath + "/final/Stats_LOK_LNOK.png",
+            bbox_extra_artists=(lgd,),
+            bbox_inches="tight",
+        )
         # We clear the buffer and close the figure
         plt.clf()
         plt.close()
@@ -257,21 +253,20 @@ def mergeOutStats(cfg):
             SumValidity,
             label="pixels validity",
             color="red",
-            align="center")
+            align="center",
+        )
         plt.ylabel("Nb pix")
         plt.xlabel("Validity")
         plt.gca().yaxis.grid(True)
         plt.legend()
-        plt.title('Histogram')
+        plt.title("Histogram")
         plt.xticks(binsValidity, binsValidity)
         plt.xlim((0, max(binsValidity) + 1))
         plt.savefig(
-            Testpath +
-            "/final/Validity.png",
-            bbox_extra_artists=(
-                lgd,
-            ),
-            bbox_inches='tight')
+            Testpath + "/final/Validity.png",
+            bbox_extra_artists=(lgd,),
+            bbox_inches="tight",
+        )
         # We clear the buffer and close the figure
         plt.clf()
         plt.close()
@@ -281,12 +276,11 @@ def mergeOutStats(cfg):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(
-        description="This function merges tile's statistics")
+        description="This function merges tile's statistics"
+    )
     parser.add_argument(
-        "-conf",
-        dest="config",
-        help="path to configuration file",
-        required=True)
+        "-conf", dest="config", help="path to configuration file", required=True
+    )
     args = parser.parse_args()
 
     # load configuration file

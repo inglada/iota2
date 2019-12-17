@@ -22,8 +22,10 @@ def FileByClass(vectorlayer, field, value, opath):
     if os.path.splitext(opath)[1] != ".shp":
         print(
             "ESRI Shapefile required for output, output name will be replaced to {}.shp".format(
-                os.path.splitext(opath)[0]))
-        opath = os.path.splitext(opath)[0] + '.shp'
+                os.path.splitext(opath)[0]
+            )
+        )
+        opath = os.path.splitext(opath)[0] + ".shp"
 
     lyr_dfn = lyr.GetLayerDefn()
     inLayerDefn = lyr.GetLayerDefn()
@@ -42,8 +44,11 @@ def FileByClass(vectorlayer, field, value, opath):
         values = vf.ListValueFields(vectorlayer, field)
         if fieldType != "String":
             for v in values:
-                if isinstance(value, float) or isinstance(
-                        value, int) or isinstance(value, str):
+                if (
+                    isinstance(value, float)
+                    or isinstance(value, int)
+                    or isinstance(value, str)
+                ):
                     value = [float(value)]
                 else:
                     value = list(map(float, value))
@@ -53,17 +58,19 @@ def FileByClass(vectorlayer, field, value, opath):
                     lyr.SetAttributeFilter(None)
                 else:
                     print(
-                        "the value {} does not exist, vector file not created".format(v))
+                        "the value {} does not exist, vector file not created".format(v)
+                    )
         else:
             for v in values:
                 if v in value:
-                    lyr.SetAttributeFilter(field + "=\'" + v + "\'")
+                    lyr.SetAttributeFilter(field + "='" + v + "'")
                     print(opath)
                     vf.CreateNewLayer(lyr, opath)
                     lyr.SetAttributeFilter(None)
                 else:
                     print(
-                        "the value {} does not exist, vector file not created".format(v))
+                        "the value {} does not exist, vector file not created".format(v)
+                    )
     else:
         print("Field %s does not exist" % field)
         sys.exit(-1)
@@ -72,21 +79,39 @@ def FileByClass(vectorlayer, field, value, opath):
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         prog = os.path.basename(sys.argv[0])
-        print('      ' + sys.argv[0] + ' [options]')
+        print("      " + sys.argv[0] + " [options]")
         print("     Help : ", prog, " --help")
         print("        or : ", prog, " -h")
         sys.exit(-1)
     else:
         usage = "usage: %prog [options] "
-        parser = argparse.ArgumentParser(description="Create polygon file"
-                                         "for each field value of an input shapefile")
-        parser.add_argument("-s", dest="shapefile", action="store",
-                            help="Input shapefile", required=True)
-        parser.add_argument("-f", dest="field", action="store",
-                            help="Field to explore", required=True)
-        parser.add_argument("-v", dest="value", action="store",
-                            help="list of values of the given field", required=True)
-        parser.add_argument("-o", dest="outpath", action="store",
-                            help="ESRI Shapefile output filename and path", required=True)
+        parser = argparse.ArgumentParser(
+            description="Create polygon file"
+            "for each field value of an input shapefile"
+        )
+        parser.add_argument(
+            "-s",
+            dest="shapefile",
+            action="store",
+            help="Input shapefile",
+            required=True,
+        )
+        parser.add_argument(
+            "-f", dest="field", action="store", help="Field to explore", required=True
+        )
+        parser.add_argument(
+            "-v",
+            dest="value",
+            action="store",
+            help="list of values of the given field",
+            required=True,
+        )
+        parser.add_argument(
+            "-o",
+            dest="outpath",
+            action="store",
+            help="ESRI Shapefile output filename and path",
+            required=True,
+        )
         args = parser.parse_args()
         FileByClass(args.shapefile, args.field, args.value, args.outpath)

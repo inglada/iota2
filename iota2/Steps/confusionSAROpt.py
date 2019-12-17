@@ -24,21 +24,16 @@ class confusionSAROpt(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "SAROptConfusionMatrix"
-        super(
-            confusionSAROpt,
-            self).__init__(
-            cfg,
-            cfg_resources_file,
-            resources_block_name)
+        super(confusionSAROpt, self).__init__(
+            cfg, cfg_resources_file, resources_block_name
+        )
 
         # step variables
         self.workingDirectory = workingDirectory
-        self.output_path = SCF.serviceConfigFile(
-            self.cfg).getParam(
-            'chain', 'outputPath')
-        self.data_field = SCF.serviceConfigFile(
-            self.cfg).getParam(
-            'chain', 'dataField')
+        self.output_path = SCF.serviceConfigFile(self.cfg).getParam(
+            "chain", "outputPath"
+        )
+        self.data_field = SCF.serviceConfigFile(self.cfg).getParam("chain", "dataField")
         self.sar_opt_conf_ram = 1024.0 * get_RAM(self.resources["ram"])
 
     def step_description(self):
@@ -46,7 +41,8 @@ class confusionSAROpt(IOTA2Step.Step):
         function use to print a short description of the step's purpose
         """
         description = (
-            "Evaluate SAR vs optical classification's performance by tiles and models")
+            "Evaluate SAR vs optical classification's performance by tiles and models"
+        )
         return description
 
     def step_inputs(self):
@@ -56,6 +52,7 @@ class confusionSAROpt(IOTA2Step.Step):
             the return could be and iterable or a callable
         """
         from Validation import GenConfusionMatrix as GCM
+
         return GCM.confusion_sar_optical_parameter(self.output_path)
 
     def step_execute(self):
@@ -68,9 +65,9 @@ class confusionSAROpt(IOTA2Step.Step):
         """
         from Validation import GenConfusionMatrix as GCM
 
-        def step_function(x): return GCM.confusion_sar_optical(x,
-                                                               self.data_field,
-                                                               self.sar_opt_conf_ram)
+        def step_function(x):
+            return GCM.confusion_sar_optical(x, self.data_field, self.sar_opt_conf_ram)
+
         return step_function
 
     def step_outputs(self):

@@ -26,7 +26,7 @@ import shutil
 import numpy as np
 import unittest
 
-IOTA2DIR = os.environ.get('IOTA2DIR')
+IOTA2DIR = os.environ.get("IOTA2DIR")
 
 if IOTA2DIR is None:
     raise Exception("IOTA2DIR environment variable must be set")
@@ -46,7 +46,8 @@ class iota_testRegularisation(unittest.TestCase):
         # definition of local variables
         self.group_test_name = "iota_testRegularisation"
         self.iota2_tests_directory = os.path.join(
-            IOTA2DIR, "data", self.group_test_name)
+            IOTA2DIR, "data", self.group_test_name
+        )
         self.all_tests_ok = []
 
         # Tests directory
@@ -56,19 +57,21 @@ class iota_testRegularisation(unittest.TestCase):
         os.mkdir(self.iota2_tests_directory)
 
         self.raster10m = os.path.join(
-            IOTA2DIR, "data", "references/sampler/final/Classif_Seed_0.tif")
+            IOTA2DIR, "data", "references/sampler/final/Classif_Seed_0.tif"
+        )
         self.rasterregref = os.path.join(
-            IOTA2DIR, "data", "references/posttreat/classif_regul.tif")
+            IOTA2DIR, "data", "references/posttreat/classif_regul.tif"
+        )
         self.nomenclature = os.path.join(
-            IOTA2DIR, "data", "references/posttreat/nomenclature_17.cfg")
+            IOTA2DIR, "data", "references/posttreat/nomenclature_17.cfg"
+        )
         self.wd = os.path.join(self.iota2_tests_directory, "wd")
         self.out = os.path.join(self.iota2_tests_directory, "out")
         self.tmp = os.path.join(self.iota2_tests_directory, "tmp")
         self.outfile = os.path.join(
-            self.iota2_tests_directory,
-            self.out,
-            "classif_regul.tif")
-        #self.inland = os.path.join(IOTA2DIR, "data", "references/posttreat/masque_mer.shp")
+            self.iota2_tests_directory, self.out, "classif_regul.tif"
+        )
+        # self.inland = os.path.join(IOTA2DIR, "data", "references/posttreat/masque_mer.shp")
 
     # after launching all tests
     @classmethod
@@ -87,7 +90,8 @@ class iota_testRegularisation(unittest.TestCase):
 
         test_name = self.id().split(".")[-1]
         self.test_working_directory = os.path.join(
-            self.iota2_tests_directory, test_name)
+            self.iota2_tests_directory, test_name
+        )
         if os.path.exists(self.test_working_directory):
             shutil.rmtree(self.test_working_directory)
         os.mkdir(self.test_working_directory)
@@ -120,10 +124,7 @@ class iota_testRegularisation(unittest.TestCase):
             result = self.defaultTestResult()
             self._feedErrorsToResult(result, self._outcome.errors)
         else:
-            result = getattr(
-                self,
-                '_outcomeForDoCleanups',
-                self._resultForDoCleanups)
+            result = getattr(self, "_outcomeForDoCleanups", self._resultForDoCleanups)
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
         ok = not error and not failure
@@ -141,8 +142,13 @@ class iota_testRegularisation(unittest.TestCase):
 
         for rule in rules:
             mr.adaptRegularization(
-                self.wd, self.raster10m, os.path.join(
-                    self.tmp, rule[2]), "1000", rule, 2)
+                self.wd,
+                self.raster10m,
+                os.path.join(self.tmp, rule[2]),
+                "1000",
+                rule,
+                2,
+            )
 
         rasters = fut.FileSearch_AND(self.tmp, True, "mask", ".tif")
         mr.mergeRegularization(self.tmp, rasters, 10, self.outfile, "1000")

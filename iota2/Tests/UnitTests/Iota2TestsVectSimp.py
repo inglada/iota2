@@ -25,7 +25,7 @@ import shutil
 import numpy as np
 import unittest
 
-IOTA2DIR = os.environ.get('IOTA2DIR')
+IOTA2DIR = os.environ.get("IOTA2DIR")
 
 if IOTA2DIR is None:
     raise Exception("IOTA2DIR environment variable must be set")
@@ -45,7 +45,8 @@ class iota_testVectSimp(unittest.TestCase):
         # definition of local variables
         self.group_test_name = "iota_testVectSimp"
         self.iota2_tests_directory = os.path.join(
-            IOTA2DIR, "data", self.group_test_name)
+            IOTA2DIR, "data", self.group_test_name
+        )
         self.all_tests_ok = []
 
         # Tests directory
@@ -58,38 +59,38 @@ class iota_testVectSimp(unittest.TestCase):
         self.out = os.path.join(self.iota2_tests_directory, "out")
 
         self.rasterreg = os.path.join(
-            IOTA2DIR, "data", "references/posttreat/classif_regul.tif")
+            IOTA2DIR, "data", "references/posttreat/classif_regul.tif"
+        )
         self.outfilename = os.path.join(
-            self.iota2_tests_directory, self.out, "classif.shp")
+            self.iota2_tests_directory, self.out, "classif.shp"
+        )
         self.outfilenamesimp = os.path.join(
-            self.iota2_tests_directory, self.out, "classifsimp.shp")
+            self.iota2_tests_directory, self.out, "classifsimp.shp"
+        )
         self.outfilenamesmooth = os.path.join(
-            self.iota2_tests_directory, self.out, "classifsmooth.shp")
+            self.iota2_tests_directory, self.out, "classifsmooth.shp"
+        )
         self.vector = os.path.join(
-            os.path.join(
-                IOTA2DIR,
-                "data",
-                "references/posttreat/vectors/classif.shp"))
+            os.path.join(IOTA2DIR, "data", "references/posttreat/vectors/classif.shp")
+        )
         self.vectorsimp = os.path.join(
             os.path.join(
-                IOTA2DIR,
-                "data",
-                "references/posttreat/vectors/classifsimp.shp"))
+                IOTA2DIR, "data", "references/posttreat/vectors/classifsimp.shp"
+            )
+        )
         self.vectorsmooth = os.path.join(
             os.path.join(
-                IOTA2DIR,
-                "data",
-                "references/posttreat/vectors/classifsmooth.shp"))
+                IOTA2DIR, "data", "references/posttreat/vectors/classifsmooth.shp"
+            )
+        )
 
-        self.grasslib = os.environ.get('GRASSDIR')
+        self.grasslib = os.environ.get("GRASSDIR")
 
         if self.grasslib is None:
             raise Exception("GRASSDIR not initialized")
 
-        if not os.path.exists(os.path.join(self.grasslib, 'bin')):
-            raise Exception(
-                "GRASSDIR '%s' not well initialized" %
-                (self.grasslib))
+        if not os.path.exists(os.path.join(self.grasslib, "bin")):
+            raise Exception("GRASSDIR '%s' not well initialized" % (self.grasslib))
 
     # after launching all tests
     @classmethod
@@ -108,7 +109,8 @@ class iota_testVectSimp(unittest.TestCase):
 
         test_name = self.id().split(".")[-1]
         self.test_working_directory = os.path.join(
-            self.iota2_tests_directory, test_name)
+            self.iota2_tests_directory, test_name
+        )
         if os.path.exists(self.test_working_directory):
             shutil.rmtree(self.test_working_directory)
         os.mkdir(self.test_working_directory)
@@ -135,10 +137,7 @@ class iota_testVectSimp(unittest.TestCase):
             result = self.defaultTestResult()
             self._feedErrorsToResult(result, self._outcome.errors)
         else:
-            result = getattr(
-                self,
-                '_outcomeForDoCleanups',
-                self._resultForDoCleanups)
+            result = getattr(self, "_outcomeForDoCleanups", self._resultForDoCleanups)
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
         ok = not error and not failure
@@ -154,19 +153,18 @@ class iota_testVectSimp(unittest.TestCase):
 
         # polygonize
         vas.topologicalPolygonize(
-            self.wd,
-            self.grasslib,
-            self.rasterreg,
-            True,
-            self.outfilename)
+            self.wd, self.grasslib, self.rasterreg, True, self.outfilename
+        )
         self.assertTrue(
             testutils.compareVectorFile(
                 self.vector,
                 self.outfilename,
-                'coordinates',
-                'polygon',
-                "ESRI Shapefile"),
-            "Generated shapefile vector does not fit with shapefile reference file")
+                "coordinates",
+                "polygon",
+                "ESRI Shapefile",
+            ),
+            "Generated shapefile vector does not fit with shapefile reference file",
+        )
 
         # simplification
         vas.generalizeVector(
@@ -175,15 +173,18 @@ class iota_testVectSimp(unittest.TestCase):
             self.outfilename,
             10,
             "douglas",
-            out=self.outfilenamesimp)
+            out=self.outfilenamesimp,
+        )
         self.assertTrue(
             testutils.compareVectorFile(
                 self.vectorsimp,
                 self.outfilenamesimp,
-                'coordinates',
-                'polygon',
-                "ESRI Shapefile"),
-            "Generated shapefile vector does not fit with shapefile reference file")
+                "coordinates",
+                "polygon",
+                "ESRI Shapefile",
+            ),
+            "Generated shapefile vector does not fit with shapefile reference file",
+        )
 
         # smoothing
         vas.generalizeVector(
@@ -192,15 +193,18 @@ class iota_testVectSimp(unittest.TestCase):
             self.outfilenamesimp,
             10,
             "hermite",
-            out=self.outfilenamesmooth)
+            out=self.outfilenamesmooth,
+        )
         self.assertTrue(
             testutils.compareVectorFile(
                 self.vectorsmooth,
                 self.outfilenamesmooth,
-                'coordinates',
-                'polygon',
-                "ESRI Shapefile"),
-            "Generated shapefile vector does not fit with shapefile reference file")
+                "coordinates",
+                "polygon",
+                "ESRI Shapefile",
+            ),
+            "Generated shapefile vector does not fit with shapefile reference file",
+        )
 
         # remove temporary folders
         if os.path.exists(self.wd):

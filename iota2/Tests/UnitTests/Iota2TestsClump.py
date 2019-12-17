@@ -25,7 +25,7 @@ import shutil
 import numpy as np
 import unittest
 
-IOTA2DIR = os.environ.get('IOTA2DIR')
+IOTA2DIR = os.environ.get("IOTA2DIR")
 
 if IOTA2DIR is None:
     raise Exception("IOTA2DIR environment variable must be set")
@@ -45,7 +45,8 @@ class iota_testClump(unittest.TestCase):
         # definition of local variables
         self.group_test_name = "iota_testClump"
         self.iota2_tests_directory = os.path.join(
-            IOTA2DIR, "data", self.group_test_name)
+            IOTA2DIR, "data", self.group_test_name
+        )
         self.all_tests_ok = []
 
         # Tests directory
@@ -58,16 +59,14 @@ class iota_testClump(unittest.TestCase):
         self.out = os.path.join(self.iota2_tests_directory, "out")
 
         self.rasterreg = os.path.join(
-            IOTA2DIR, "data", "references/posttreat/classif_regul.tif")
+            IOTA2DIR, "data", "references/posttreat/classif_regul.tif"
+        )
         self.outfilename = os.path.join(
-            self.iota2_tests_directory,
-            self.out,
-            "classif_clump.tif")
+            self.iota2_tests_directory, self.out, "classif_clump.tif"
+        )
         self.rasterclump = os.path.join(
-            os.path.join(
-                IOTA2DIR,
-                "data",
-                "references/posttreat/classif_clump.tif"))
+            os.path.join(IOTA2DIR, "data", "references/posttreat/classif_clump.tif")
+        )
 
     # after launching all tests
     @classmethod
@@ -86,7 +85,8 @@ class iota_testClump(unittest.TestCase):
 
         test_name = self.id().split(".")[-1]
         self.test_working_directory = os.path.join(
-            self.iota2_tests_directory, test_name)
+            self.iota2_tests_directory, test_name
+        )
         if os.path.exists(self.test_working_directory):
             shutil.rmtree(self.test_working_directory)
         os.mkdir(self.test_working_directory)
@@ -113,10 +113,7 @@ class iota_testClump(unittest.TestCase):
             result = self.defaultTestResult()
             self._feedErrorsToResult(result, self._outcome.errors)
         else:
-            result = getattr(
-                self,
-                '_outcomeForDoCleanups',
-                self._resultForDoCleanups)
+            result = getattr(self, "_outcomeForDoCleanups", self._resultForDoCleanups)
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
         ok = not error and not failure
@@ -131,11 +128,8 @@ class iota_testClump(unittest.TestCase):
         """
 
         clump.clumpAndStackClassif(
-            self.wd,
-            self.rasterreg,
-            self.outfilename,
-            "1000",
-            False)
+            self.wd, self.rasterreg, self.outfilename, "1000", False
+        )
 
         # test
         outtest = testutils.rasterToArray(self.outfilename)

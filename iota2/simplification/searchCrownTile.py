@@ -35,6 +35,7 @@ import numpy as np
 from itertools import chain
 from subprocess import check_output
 import logging
+
 logger = logging.getLogger(__name__)
 
 try:
@@ -42,13 +43,13 @@ try:
     from skimage.future import graph
 
 except ImportError:
-    raise ImportError('Please install skimage library')
+    raise ImportError("Please install skimage library")
 
 try:
     from Common import FileUtils as fu
     from Common import Utils
 except ImportError:
-    raise ImportError('Iota2 not well configured / installed')
+    raise ImportError("Iota2 not well configured / installed")
 
 
 def cellCoords(feature, transform):
@@ -108,30 +109,32 @@ def listTileEntities(raster, outpath, feature):
 
     # Classification and Clump opening
     datas_classif, xsize_classif, ysize_classif, projection_classif, transform_classif = fu.readRaster(
-        raster, True, 1)
+        raster, True, 1
+    )
     datas_clump, xsize_clump, ysize_clump, projection_clump, transform_clump = fu.readRaster(
-        raster, True, 2)
+        raster, True, 2
+    )
 
     # Generate pixel coordinates of square feature corresponding to raster
     # transform
     cols_xmin_decoup, cols_xmax_decoup, cols_ymin_decoup, cols_ymax_decoup = cellCoords(
-        feature, transform_classif)
+        feature, transform_classif
+    )
 
     # subset raster data array based on feature coordinates
-    tile_classif = datas_classif[cols_ymin_decoup:cols_ymax_decoup,
-                                 cols_xmin_decoup:cols_xmax_decoup]
-    tile_id_all = datas_clump[cols_ymin_decoup:cols_ymax_decoup,
-                              cols_xmin_decoup:cols_xmax_decoup]
+    tile_classif = datas_classif[
+        cols_ymin_decoup:cols_ymax_decoup, cols_xmin_decoup:cols_xmax_decoup
+    ]
+    tile_id_all = datas_clump[
+        cols_ymin_decoup:cols_ymax_decoup, cols_xmin_decoup:cols_xmax_decoup
+    ]
 
     del datas_classif, datas_clump
 
     # entities ID list of tile (except nodata and sea)
     tile_id = np.unique(
-        np.where(
-            ((tile_classif > 1) & (
-                tile_classif < 250)),
-            tile_id_all,
-            0)).tolist()
+        np.where(((tile_classif > 1) & (tile_classif < 250)), tile_id_all, 0)
+    ).tolist()
 
     # delete 0 value
     tile_id = [int(x) for x in tile_id if x != 0]
@@ -179,21 +182,28 @@ def pixToGeo(raster, col, row):
     c, a, b, f, d, e = ds.GetGeoTransform()
     xp = a * col + b * row + c
     yp = d * col + e * row + f
-    return(xp, yp)
+    return (xp, yp)
+
 
 # ------------------------------------------------------------------------------
 
 
-def arraytoRaster(array, output, model, driver='GTiff'):
+def arraytoRaster(array, output, model, driver="GTiff"):
 
     driver = gdal.GetDriverByName(driver)
     cols = model.RasterXSize
     rows = model.RasterYSize
     outRaster = driver.Create(output, cols, rows, 1, gdal.GDT_Byte)
-    outRaster.SetGeoTransform((model.GetGeoTransform()[0],
-                               model.GetGeoTransform()[1], 0,
-                               model.GetGeoTransform()[3], 0,
-                               model.GetGeoTransform()[5]))
+    outRaster.SetGeoTransform(
+        (
+            model.GetGeoTransform()[0],
+            model.GetGeoTransform()[1],
+            0,
+            model.GetGeoTransform()[3],
+            0,
+            model.GetGeoTransform()[5],
+        )
+    )
     outband = outRaster.GetRasterBand(1)
     outband.WriteArray(array)
     outRasterSRS = osr.SpatialReference()
@@ -201,11 +211,13 @@ def arraytoRaster(array, output, model, driver='GTiff'):
     outRaster.SetProjection(outRasterSRS.ExportToWkt())
     outband.FlushCache()
 
+
 # ------------------------------------------------------------------------------
 
 
-def searchCrownTile(inpath, raster, clump, ram, grid,
-                    outpath, nbcore=4, ngrid=-1, logger=logger):
+def searchCrownTile(
+    inpath, raster, clump, ram, grid, outpath, nbcore=4, ngrid=-1, logger=logger
+):
     """
 
         in :
@@ -223,8 +235,10 @@ def searchCrownTile(inpath, raster, clump, ram, grid,
     begintime = time.time()
 
     if os.path.exists(os.path.join(outpath, "tile_%s.tif" % (ngrid))):
-        logger.error("Output file '%s' already exists" % (os.path.join(outpath,
-                                                                       "tile_%s.tif" % (ngrid))))
+        logger.error(
+            "Output file '%s' already exists"
+            % (os.path.join(outpath, "tile_%s.tif" % (ngrid)))
+        )
         sys.exit()
 
     rasterfile = gdal.Open(clump, 0)
@@ -240,8 +254,19 @@ def searchCrownTile(inpath, raster, clump, ram, grid,
     params = {x.label: x.bbox for x in clumpProps}
 
     timeextents = time.time()
-    logger.info(" ".join([" : ".join(["Get extents of all entities", str(
-        round(timeextents - begintime, 2))]), "seconds"]))
+    logger.info(
+        " ".join(
+            [
+                " : ".join(
+                    [
+                        "Get extents of all entities",
+                        str(round(timeextents - begintime, 2)),
+                    ]
+                ),
+                "seconds",
+            ]
+        )
+    )
 
     # Open Grid file
     driver = ogr.GetDriverByName("ESRI Shapefile")
@@ -274,41 +299,66 @@ def searchCrownTile(inpath, raster, clump, ram, grid,
             if len(listTileId) != 0:
 
                 timentities = time.time()
-                logger.info(" ".join([" : ".join(["Entities ID list of tile", str(
-                    round(timentities - timeextents, 2))]), "seconds"]))
-                logger.info(" : ".join(
-                    ["Entities number", str(len(listTileId))]))
+                logger.info(
+                    " ".join(
+                        [
+                            " : ".join(
+                                [
+                                    "Entities ID list of tile",
+                                    str(round(timentities - timeextents, 2)),
+                                ]
+                            ),
+                            "seconds",
+                        ]
+                    )
+                )
+                logger.info(" : ".join(["Entities number", str(len(listTileId))]))
 
                 # tile entities bounding box
-                listExtent = ExtentEntitiesTile(
-                    listTileId, params, xsize, ysize, False)
+                listExtent = ExtentEntitiesTile(listTileId, params, xsize, ysize, False)
                 timeextent = time.time()
-                logger.info(" ".join([" : ".join(["Compute geographical extent of entities", str(
-                    round(timeextent - timentities, 2))]), "seconds"]))
+                logger.info(
+                    " ".join(
+                        [
+                            " : ".join(
+                                [
+                                    "Compute geographical extent of entities",
+                                    str(round(timeextent - timentities, 2)),
+                                ]
+                            ),
+                            "seconds",
+                        ]
+                    )
+                )
 
                 # Extract classification raster on tile entities extent
                 tifRasterExtract = os.path.join(
-                    inpath,
-                    str(ngrid),
-                    "tile_%s.tif" %
-                    (ngrid))
+                    inpath, str(ngrid), "tile_%s.tif" % (ngrid)
+                )
                 if os.path.exists(tifRasterExtract):
                     os.remove(tifRasterExtract)
 
                 xmin, ymax = pixToGeo(raster, listExtent[1], listExtent[0])
                 xmax, ymin = pixToGeo(raster, listExtent[3], listExtent[2])
 
-                command = "gdalwarp -q -multi -wo NUM_THREADS={} -te {} {} {} {} -ot UInt32 {} {}".format(nbcore,
-                                                                                                          xmin,
-                                                                                                          ymin,
-                                                                                                          xmax,
-                                                                                                          ymax,
-                                                                                                          raster,
-                                                                                                          tifRasterExtract)
+                command = "gdalwarp -q -multi -wo NUM_THREADS={} -te {} {} {} {} -ot UInt32 {} {}".format(
+                    nbcore, xmin, ymin, xmax, ymax, raster, tifRasterExtract
+                )
                 Utils.run(command)
                 timeextract = time.time()
-                logger.info(" ".join([" : ".join(["Extract classification raster on tile entities extent", str(
-                    round(timeextract - timeextent, 2))]), "seconds"]))
+                logger.info(
+                    " ".join(
+                        [
+                            " : ".join(
+                                [
+                                    "Extract classification raster on tile entities extent",
+                                    str(round(timeextract - timeextent, 2)),
+                                ]
+                            ),
+                            "seconds",
+                        ]
+                    )
+                )
 
                 # Crown entities research
                 ds = gdal.Open(tifRasterExtract)
@@ -328,69 +378,83 @@ def searchCrownTile(inpath, raster, clump, ram, grid,
                 # Flat list and remove tile entities
                 flatneighbors = set(
                     chain(
-                        *
-                        list(
+                        *list(
                             dict(
-                                (key,
-                                 value) for key,
-                                value in list(
-                                    topo.items()) if key in listTileId).values())))
+                                (key, value)
+                                for key, value in list(topo.items())
+                                if key in listTileId
+                            ).values()
+                        )
+                    )
+                )
 
                 timecrownentities = time.time()
-                logger.info(" ".join([" : ".join(["List crown entities", str(
-                    round(timecrownentities - timeextract, 2))]), "seconds"]))
+                logger.info(
+                    " ".join(
+                        [
+                            " : ".join(
+                                [
+                                    "List crown entities",
+                                    str(round(timecrownentities - timeextract, 2)),
+                                ]
+                            ),
+                            "seconds",
+                        ]
+                    )
+                )
 
                 # Crown raster extraction
                 listExtentneighbors = ExtentEntitiesTile(
-                    flatneighbors, params, xsize, ysize, False)
+                    flatneighbors, params, xsize, ysize, False
+                )
                 xmin, ymax = pixToGeo(
-                    raster, listExtentneighbors[1], listExtentneighbors[0])
+                    raster, listExtentneighbors[1], listExtentneighbors[0]
+                )
                 xmax, ymin = pixToGeo(
-                    raster, listExtentneighbors[3], listExtentneighbors[2])
+                    raster, listExtentneighbors[3], listExtentneighbors[2]
+                )
 
                 rastEntitiesNeighbors = os.path.join(
-                    inpath, str(ngrid), "crown_%s.tif" % (ngrid))
+                    inpath, str(ngrid), "crown_%s.tif" % (ngrid)
+                )
                 if os.path.exists(rastEntitiesNeighbors):
                     os.remove(rastEntitiesNeighbors)
-                command = "gdalwarp -q -multi -wo NUM_THREADS={} -te {} {} {} {} -ot UInt32 {} {}".format(nbcore,
-                                                                                                          xmin,
-                                                                                                          ymin,
-                                                                                                          xmax,
-                                                                                                          ymax,
-                                                                                                          raster,
-                                                                                                          rastEntitiesNeighbors)
+                command = "gdalwarp -q -multi -wo NUM_THREADS={} -te {} {} {} {} -ot UInt32 {} {}".format(
+                    nbcore, xmin, ymin, xmax, ymax, raster, rastEntitiesNeighbors
+                )
 
                 Utils.run(command)
 
                 timeextractcrown = time.time()
-                logger.info(" ".join([" : ".join(["Extract classification raster on crown entities extent", str(
-                    round(timeextractcrown - timecrownentities, 2))]), "seconds"]))
+                logger.info(
+                    " ".join(
+                        [
+                            " : ".join(
+                                [
+                                    "Extract classification raster on crown entities extent",
+                                    str(round(timeextractcrown - timecrownentities, 2)),
+                                ]
+                            ),
+                            "seconds",
+                        ]
+                    )
+                )
 
                 shutil.copy(
                     rastEntitiesNeighbors,
-                    os.path.join(
-                        outpath,
-                        "crown_%s.tif" %
-                        (ngrid)))
+                    os.path.join(outpath, "crown_%s.tif" % (ngrid)),
+                )
 
-                with open(os.path.join(inpath, str(ngrid), "listid_%s" % (ngrid)), 'wb') as fp:
+                with open(
+                    os.path.join(inpath, str(ngrid), "listid_%s" % (ngrid)), "wb"
+                ) as fp:
                     pickle.dump([listTileId + list(flatneighbors)], fp)
 
                 shutil.copy(
-                    os.path.join(
-                        inpath,
-                        str(ngrid),
-                        "listid_%s" %
-                        (ngrid)),
-                    os.path.join(
-                        outpath,
-                        "listid_%s" %
-                        (ngrid)))
-                shutil.rmtree(
-                    os.path.join(
-                        inpath,
-                        str(ngrid)),
-                    ignore_errors=True)
+                    os.path.join(inpath, str(ngrid), "listid_%s" % (ngrid)),
+                    os.path.join(outpath, "listid_%s" % (ngrid)),
+                )
+                shutil.rmtree(os.path.join(inpath, str(ngrid)), ignore_errors=True)
 
             if allTile:
                 ngrid += 1
@@ -400,39 +464,70 @@ def searchCrownTile(inpath, raster, clump, ram, grid,
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         prog = os.path.basename(sys.argv[0])
-        print('      ' + sys.argv[0] + ' [options]')
+        print("      " + sys.argv[0] + " [options]")
         print("     Help : ", prog, " --help")
         print("        or : ", prog, " -h")
         sys.exit(-1)
     else:
         usage = "usage: %prog [options] "
-        parser = argparse.ArgumentParser(description="Manage tile clumps (in the ngrid th of the grid shapefile) and neighbors clumps "
-                                         ".i.e clumps in the crown. Result raster (tile_ngrid.tif) gets all clumps (tile and crown ones). "
-                                         "To differenciate them tile clumps have OSO classification codes while crown clumps have ID clumps ")
+        parser = argparse.ArgumentParser(
+            description="Manage tile clumps (in the ngrid th of the grid shapefile) and neighbors clumps "
+            ".i.e clumps in the crown. Result raster (tile_ngrid.tif) gets all clumps (tile and crown ones). "
+            "To differenciate them tile clumps have OSO classification codes while crown clumps have ID clumps "
+        )
 
-        parser.add_argument("-wd", dest="path", action="store",
-                            help="Working directory", required=True)
+        parser.add_argument(
+            "-wd", dest="path", action="store", help="Working directory", required=True
+        )
 
-        parser.add_argument("-in", dest="classif", action="store",
-                            help="Name of raster bi-bands : classification (regularized) + clump (patches of pixels)", required=True)
+        parser.add_argument(
+            "-in",
+            dest="classif",
+            action="store",
+            help="Name of raster bi-bands : classification (regularized) + clump (patches of pixels)",
+            required=True,
+        )
 
-        parser.add_argument("-clump", dest="classif", action="store",
-                            help="Name of clump raster clump (patches of pixels)", required=True)
+        parser.add_argument(
+            "-clump",
+            dest="classif",
+            action="store",
+            help="Name of clump raster clump (patches of pixels)",
+            required=True,
+        )
 
-        parser.add_argument("-nbcore", dest="core", action="store",
-                            help="Number of cores to use for OTB applications", required=True)
+        parser.add_argument(
+            "-nbcore",
+            dest="core",
+            action="store",
+            help="Number of cores to use for OTB applications",
+            required=True,
+        )
 
-        parser.add_argument("-ram", dest="ram", action="store",
-                            help="Ram for otb processes", required=True)
+        parser.add_argument(
+            "-ram",
+            dest="ram",
+            action="store",
+            help="Ram for otb processes",
+            required=True,
+        )
 
-        parser.add_argument("-grid", dest="grid", action="store",
-                            help="Grid file name", required=True)
+        parser.add_argument(
+            "-grid", dest="grid", action="store", help="Grid file name", required=True
+        )
 
-        parser.add_argument("-ngrid", dest="ngrid", action="store",
-                            help="Tile number", required=False, default=None)
+        parser.add_argument(
+            "-ngrid",
+            dest="ngrid",
+            action="store",
+            help="Tile number",
+            required=False,
+            default=None,
+        )
 
-        parser.add_argument("-out", dest="out", action="store",
-                            help="outname directory", required=True)
+        parser.add_argument(
+            "-out", dest="out", action="store", help="outname directory", required=True
+        )
 
         args = parser.parse_args()
         os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = str(args.core)
@@ -441,5 +536,13 @@ if __name__ == "__main__":
         logger.addHandler(logging.StreamHandler(sys.stdout))
         logger.setLevel(10)
 
-        serialisation(args.path, args.classif, args.clump, args.ram, args.grid,
-                      args.out, args.core, args.ngrid)
+        serialisation(
+            args.path,
+            args.classif,
+            args.clump,
+            args.ram,
+            args.grid,
+            args.out,
+            args.core,
+            args.ngrid,
+        )

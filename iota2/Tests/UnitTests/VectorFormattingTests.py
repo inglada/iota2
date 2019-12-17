@@ -22,7 +22,7 @@ import sys
 import shutil
 import unittest
 
-IOTA2DIR = os.environ.get('IOTA2DIR')
+IOTA2DIR = os.environ.get("IOTA2DIR")
 
 if not IOTA2DIR:
     raise Exception("IOTA2DIR environment variable must be set")
@@ -42,23 +42,45 @@ class iota_testVectorFormatting(unittest.TestCase):
         # definition of local variables
         self.group_test_name = "iota_testVectorFormatting"
         self.iota2_tests_directory = os.path.join(
-            IOTA2DIR, "data", self.group_test_name)
-        self.in_vector = os.path.join(IOTA2DIR, "data", "references",
-                                      "formatting_vectors", "Input",
-                                      "formattingVectors", "T31TCJ.shp")
-        self.ref_img = os.path.join(IOTA2DIR, "data", "references",
-                                    "selectionSamples", "Input",
-                                    "features", "T31TCJ", "tmp",
-                                    "MaskCommunSL.tif")
-        self.ref_region = os.path.join(IOTA2DIR, "data", "references",
-                                       "genResults", "Input", "classif",
-                                       "MASK", "Myregion_region_1_T31TCJ.shp")
+            IOTA2DIR, "data", self.group_test_name
+        )
+        self.in_vector = os.path.join(
+            IOTA2DIR,
+            "data",
+            "references",
+            "formatting_vectors",
+            "Input",
+            "formattingVectors",
+            "T31TCJ.shp",
+        )
+        self.ref_img = os.path.join(
+            IOTA2DIR,
+            "data",
+            "references",
+            "selectionSamples",
+            "Input",
+            "features",
+            "T31TCJ",
+            "tmp",
+            "MaskCommunSL.tif",
+        )
+        self.ref_region = os.path.join(
+            IOTA2DIR,
+            "data",
+            "references",
+            "genResults",
+            "Input",
+            "classif",
+            "MASK",
+            "Myregion_region_1_T31TCJ.shp",
+        )
 
         self.all_tests_ok = []
 
         # References
         self.config_test = os.path.join(
-            IOTA2DIR, "config", "Config_4Tuiles_Multi_FUS_Confidence.cfg")
+            IOTA2DIR, "config", "Config_4Tuiles_Multi_FUS_Confidence.cfg"
+        )
 
         # Tests directory
         self.test_working_directory = None
@@ -83,7 +105,8 @@ class iota_testVectorFormatting(unittest.TestCase):
 
         test_name = self.id().split(".")[-1]
         self.test_working_directory = os.path.join(
-            self.iota2_tests_directory, test_name)
+            self.iota2_tests_directory, test_name
+        )
         if os.path.exists(self.test_working_directory):
             shutil.rmtree(self.test_working_directory)
         os.mkdir(self.test_working_directory)
@@ -98,10 +121,7 @@ class iota_testVectorFormatting(unittest.TestCase):
             result = self.defaultTestResult()
             self._feedErrorsToResult(result, self._outcome.errors)
         else:
-            result = getattr(
-                self,
-                '_outcomeForDoCleanups',
-                self._resultForDoCleanups)
+            result = getattr(self, "_outcomeForDoCleanups", self._resultForDoCleanups)
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
         ok = not error and not failure
@@ -125,80 +145,106 @@ class iota_testVectorFormatting(unittest.TestCase):
         from VectorTools.ChangeNameField import changeName
 
         # define inputs
-        test_output = os.path.join(self.test_working_directory,
-                                   "IOTA2_dir_VectorFormatting")
+        test_output = os.path.join(
+            self.test_working_directory, "IOTA2_dir_VectorFormatting"
+        )
         # prepare ground truth
-        ground_truth = os.path.join(self.test_working_directory,
-                                    "groundTruth_test.shp")
-        cmd = "ogr2ogr -s_srs EPSG:2154 -t_srs EPSG:2154 -dialect 'SQLite' -sql 'select GEOMETRY,code from t31tcj' {} {}".format(ground_truth,
-                                                                                                                                 self.in_vector)
+        ground_truth = os.path.join(self.test_working_directory, "groundTruth_test.shp")
+        cmd = "ogr2ogr -s_srs EPSG:2154 -t_srs EPSG:2154 -dialect 'SQLite' -sql 'select GEOMETRY,code from t31tcj' {} {}".format(
+            ground_truth, self.in_vector
+        )
         run(cmd)
 
         # cfg instance
         runs = 2
         cfg = SCF.serviceConfigFile(self.config_test)
-        cfg.setParam('chain', 'outputPath', test_output)
-        cfg.setParam('chain', 'groundTruth', ground_truth)
-        cfg.setParam('chain', 'dataField', "code")
-        cfg.setParam('chain', 'cloud_threshold', 0)
-        cfg.setParam('chain', 'merge_final_classifications', False)
-        cfg.setParam('chain', 'runs', runs)
-        cfg.setParam('GlobChain', 'proj', "EPSG:2154")
-        cfg.setParam('chain', 'regionPath', self.ref_region)
+        cfg.setParam("chain", "outputPath", test_output)
+        cfg.setParam("chain", "groundTruth", ground_truth)
+        cfg.setParam("chain", "dataField", "code")
+        cfg.setParam("chain", "cloud_threshold", 0)
+        cfg.setParam("chain", "merge_final_classifications", False)
+        cfg.setParam("chain", "runs", runs)
+        cfg.setParam("GlobChain", "proj", "EPSG:2154")
+        cfg.setParam("chain", "regionPath", self.ref_region)
 
         IOTA2Directory.GenerateDirectories(cfg)
 
         # prepare expected function inputs
-        t31tcj_feat_dir = os.path.join(self.test_working_directory,
-                                       "IOTA2_dir_VectorFormatting",
-                                       "features",
-                                       "T31TCJ")
+        t31tcj_feat_dir = os.path.join(
+            self.test_working_directory,
+            "IOTA2_dir_VectorFormatting",
+            "features",
+            "T31TCJ",
+        )
         os.mkdir(t31tcj_feat_dir)
         # prepare ref img
         t31tcj_ref_img = os.path.join(t31tcj_feat_dir, "MaskCommunSL.tif")
         shutil.copy(self.ref_img, t31tcj_ref_img)
         # prepare envelope
         envelope_name = "T31TCJ.shp"
-        envelope_path = os.path.join(self.test_working_directory,
-                                     "IOTA2_dir_VectorFormatting",
-                                     "envelope", envelope_name)
-        fut.cpShapeFile(self.ref_region.replace(".shp", ""),
-                        envelope_path.replace(".shp", ""),
-                        [".prj", ".shp", ".dbf", ".shx"])
+        envelope_path = os.path.join(
+            self.test_working_directory,
+            "IOTA2_dir_VectorFormatting",
+            "envelope",
+            envelope_name,
+        )
+        fut.cpShapeFile(
+            self.ref_region.replace(".shp", ""),
+            envelope_path.replace(".shp", ""),
+            [".prj", ".shp", ".dbf", ".shx"],
+        )
         changeName(envelope_path, "region", "FID")
         # prepare cloud mask
         cloud_name = "CloudThreshold_0.shp"
-        cloud_path = os.path.join(self.test_working_directory,
-                                  "IOTA2_dir_VectorFormatting",
-                                  "features", "T31TCJ", cloud_name)
-        fut.cpShapeFile(self.ref_region.replace(".shp", ""),
-                        cloud_path.replace(".shp", ""),
-                        [".prj", ".shp", ".dbf", ".shx"])
+        cloud_path = os.path.join(
+            self.test_working_directory,
+            "IOTA2_dir_VectorFormatting",
+            "features",
+            "T31TCJ",
+            cloud_name,
+        )
+        fut.cpShapeFile(
+            self.ref_region.replace(".shp", ""),
+            cloud_path.replace(".shp", ""),
+            [".prj", ".shp", ".dbf", ".shx"],
+        )
         changeName(cloud_path, "region", "cloud")
 
         # launch function
         VectorFormatting(cfg, "T31TCJ", workingDirectory=None)
 
         # assert
-        nb_features_origin = len(fut.getFieldElement(ground_truth,
-                                                     driverName="ESRI Shapefile",
-                                                     field="code", mode="all",
-                                                     elemType="str"))
-        test_vector = fut.FileSearch_AND(os.path.join(test_output, "formattingVectors"),
-                                         True, "T31TCJ.shp")[0]
-        nb_features_test = len(fut.getFieldElement(test_vector,
-                                                   driverName="ESRI Shapefile",
-                                                   field="code", mode="all",
-                                                   elemType="str"))
+        nb_features_origin = len(
+            fut.getFieldElement(
+                ground_truth,
+                driverName="ESRI Shapefile",
+                field="code",
+                mode="all",
+                elemType="str",
+            )
+        )
+        test_vector = fut.FileSearch_AND(
+            os.path.join(test_output, "formattingVectors"), True, "T31TCJ.shp"
+        )[0]
+        nb_features_test = len(
+            fut.getFieldElement(
+                test_vector,
+                driverName="ESRI Shapefile",
+                field="code",
+                mode="all",
+                elemType="str",
+            )
+        )
         # check nb features
-        self.assertTrue(nb_features_origin == nb_features_test,
-                        msg="wrong number of features")
+        self.assertTrue(
+            nb_features_origin == nb_features_test, msg="wrong number of features"
+        )
 
         # check fields
         origin_fields = fut.getAllFieldsInShape(ground_truth)
         test_fields = fut.getAllFieldsInShape(test_vector)
 
-        new_fields = ['region', 'originfid', 'seed_0', 'seed_1', 'tile_o']
+        new_fields = ["region", "originfid", "seed_0", "seed_1", "tile_o"]
         expected_fields = origin_fields + new_fields
         self.assertTrue(len(expected_fields) == len(test_fields))
         self.assertTrue(all(field in test_fields for field in expected_fields))
@@ -213,43 +259,56 @@ class iota_testVectorFormatting(unittest.TestCase):
         # define inputs
         in_vector_name = os.path.basename(self.in_vector)
         extracted_vector_name = "extracted_samples.sqlite"
-        in_vector = os.path.join(self.test_working_directory,
-                                 in_vector_name)
-        extracted_vector = os.path.join(self.test_working_directory,
-                                        extracted_vector_name)
-        fut.cpShapeFile(self.in_vector.replace(".shp", ""),
-                        in_vector.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"])
+        in_vector = os.path.join(self.test_working_directory, in_vector_name)
+        extracted_vector = os.path.join(
+            self.test_working_directory, extracted_vector_name
+        )
+        fut.cpShapeFile(
+            self.in_vector.replace(".shp", ""),
+            in_vector.replace(".shp", ""),
+            [".prj", ".shp", ".dbf", ".shx"],
+        )
 
         # launch function
         dataField = "code"
         regionField = "region"
         extraction_ratio = 0.5
-        extract_maj_vote_samples(in_vector, extracted_vector, extraction_ratio, dataField,
-                                 regionField)
+        extract_maj_vote_samples(
+            in_vector, extracted_vector, extraction_ratio, dataField, regionField
+        )
         # assert
-        features_origin = fut.getFieldElement(self.in_vector,
-                                              driverName="ESRI Shapefile",
-                                              field=dataField, mode="all",
-                                              elemType="str")
+        features_origin = fut.getFieldElement(
+            self.in_vector,
+            driverName="ESRI Shapefile",
+            field=dataField,
+            mode="all",
+            elemType="str",
+        )
         by_class_origin = Counter(features_origin)
 
-        features_in_vector = fut.getFieldElement(in_vector,
-                                                 driverName="ESRI Shapefile",
-                                                 field=dataField, mode="all",
-                                                 elemType="str")
+        features_in_vector = fut.getFieldElement(
+            in_vector,
+            driverName="ESRI Shapefile",
+            field=dataField,
+            mode="all",
+            elemType="str",
+        )
         by_class_in_vector = Counter(features_in_vector)
 
-        features_extract_vector = fut.getFieldElement(extracted_vector,
-                                                      driverName="SQLite",
-                                                      field=dataField, mode="all",
-                                                      elemType="str")
+        features_extract_vector = fut.getFieldElement(
+            extracted_vector,
+            driverName="SQLite",
+            field=dataField,
+            mode="all",
+            elemType="str",
+        )
         by_class_extract_vector = Counter(features_extract_vector)
 
         buff = []
         for class_name, class_count in list(by_class_origin.items()):
             buff.append(
-                by_class_in_vector[class_name] == extraction_ratio *
-                class_count)
+                by_class_in_vector[class_name] == extraction_ratio * class_count
+            )
 
         self.assertTrue(all(buff), msg="extraction of samples failed")
 
@@ -275,51 +334,82 @@ class iota_testVectorFormatting(unittest.TestCase):
         from Sampling.VectorFormatting import splitbySets
 
         # launch function
-        s0_val, s0_learn, s1_val, s1_learn = splitbySets(self.in_vector, 2,
-                                                         self.test_working_directory,
-                                                         2154, 2154, "T31TCJ",
-                                                         crossValid=False,
-                                                         splitGroundTruth=True)
+        s0_val, s0_learn, s1_val, s1_learn = splitbySets(
+            self.in_vector,
+            2,
+            self.test_working_directory,
+            2154,
+            2154,
+            "T31TCJ",
+            crossValid=False,
+            splitGroundTruth=True,
+        )
         # assert
-        seed_0 = fut.getFieldElement(self.in_vector,
-                                     driverName="ESRI Shapefile",
-                                     field="seed_0", mode="all",
-                                     elemType="str")
-        seed_1 = fut.getFieldElement(self.in_vector,
-                                     driverName="ESRI Shapefile",
-                                     field="seed_1", mode="all",
-                                     elemType="str")
+        seed_0 = fut.getFieldElement(
+            self.in_vector,
+            driverName="ESRI Shapefile",
+            field="seed_0",
+            mode="all",
+            elemType="str",
+        )
+        seed_1 = fut.getFieldElement(
+            self.in_vector,
+            driverName="ESRI Shapefile",
+            field="seed_1",
+            mode="all",
+            elemType="str",
+        )
 
         seed_0_learn_ref = seed_0.count("learn")
         seed_0_val_ref = seed_0.count("validation")
         seed_1_learn_ref = seed_1.count("learn")
         seed_1_val_ref = seed_1.count("validation")
 
-        seed_0_learn_test = len(fut.getFieldElement(s0_learn,
-                                                    driverName="SQLite",
-                                                    field="region", mode="all",
-                                                    elemType="str"))
-        seed_0_val_test = len(fut.getFieldElement(s0_val,
-                                                  driverName="SQLite",
-                                                  field="region", mode="all",
-                                                  elemType="str"))
-        seed_1_learn_test = len(fut.getFieldElement(s1_learn,
-                                                    driverName="SQLite",
-                                                    field="region", mode="all",
-                                                    elemType="str"))
-        seed_1_val_test = len(fut.getFieldElement(s1_val,
-                                                  driverName="SQLite",
-                                                  field="region", mode="all",
-                                                  elemType="str"))
+        seed_0_learn_test = len(
+            fut.getFieldElement(
+                s0_learn,
+                driverName="SQLite",
+                field="region",
+                mode="all",
+                elemType="str",
+            )
+        )
+        seed_0_val_test = len(
+            fut.getFieldElement(
+                s0_val, driverName="SQLite", field="region", mode="all", elemType="str"
+            )
+        )
+        seed_1_learn_test = len(
+            fut.getFieldElement(
+                s1_learn,
+                driverName="SQLite",
+                field="region",
+                mode="all",
+                elemType="str",
+            )
+        )
+        seed_1_val_test = len(
+            fut.getFieldElement(
+                s1_val, driverName="SQLite", field="region", mode="all", elemType="str"
+            )
+        )
 
-        self.assertTrue(seed_0_learn_test == seed_0_learn_ref,
-                        msg="wrong number of learning samples in seed 0")
-        self.assertTrue(seed_1_learn_test == seed_1_learn_ref,
-                        msg="wrong number of learning samples in seed 1")
-        self.assertTrue(seed_0_val_test == seed_0_val_ref,
-                        msg="wrong number of validation samples in seed 0")
-        self.assertTrue(seed_1_val_test == seed_1_val_ref,
-                        msg="wrong number of validation samples in seed 1")
+        self.assertTrue(
+            seed_0_learn_test == seed_0_learn_ref,
+            msg="wrong number of learning samples in seed 0",
+        )
+        self.assertTrue(
+            seed_1_learn_test == seed_1_learn_ref,
+            msg="wrong number of learning samples in seed 1",
+        )
+        self.assertTrue(
+            seed_0_val_test == seed_0_val_ref,
+            msg="wrong number of validation samples in seed 0",
+        )
+        self.assertTrue(
+            seed_1_val_test == seed_1_val_ref,
+            msg="wrong number of validation samples in seed 1",
+        )
 
     def test_keepFields(self):
         """
@@ -330,18 +420,19 @@ class iota_testVectorFormatting(unittest.TestCase):
         # define inputs
         fields_to_keep = ["region", "code"]
         test_vector_name = "test_vector.sqlite"
-        test_vector = os.path.join(
-            self.test_working_directory,
-            test_vector_name)
+        test_vector = os.path.join(self.test_working_directory, test_vector_name)
 
         # launch function
         keepFields(self.in_vector, test_vector, fields=fields_to_keep)
 
         # assert
-        test_vector_fields = fut.getAllFieldsInShape(
-            test_vector, driver='SQLite')
-        self.assertTrue(all(current_field in fields_to_keep for current_field in test_vector_fields),
-                        msg="remove fields failed")
+        test_vector_fields = fut.getAllFieldsInShape(test_vector, driver="SQLite")
+        self.assertTrue(
+            all(
+                current_field in fields_to_keep for current_field in test_vector_fields
+            ),
+            msg="remove fields failed",
+        )
 
     def test_create_tile_region_masks(self):
         """
@@ -355,25 +446,31 @@ class iota_testVectorFormatting(unittest.TestCase):
 
         # define inputs
         test_vector_name = "T31TCJ.sqlite"
-        test_vector = os.path.join(
-            self.test_working_directory,
-            test_vector_name)
-        cmd = "ogr2ogr -nln t31tcj -f SQLite {} {}".format(
-            test_vector, self.ref_region)
+        test_vector = os.path.join(self.test_working_directory, test_vector_name)
+        cmd = "ogr2ogr -nln t31tcj -f SQLite {} {}".format(test_vector, self.ref_region)
         run(cmd)
 
         # launch function
-        create_tile_region_masks(test_vector, "region", "T31TCJ", self.test_working_directory,
-                                 "MyRegion", self.ref_img)
+        create_tile_region_masks(
+            test_vector,
+            "region",
+            "T31TCJ",
+            self.test_working_directory,
+            "MyRegion",
+            self.ref_img,
+        )
         # assert
         raster_region = fut.FileSearch_AND(
-            self.test_working_directory, True, "MyRegion", ".tif")[0]
+            self.test_working_directory, True, "MyRegion", ".tif"
+        )[0]
         raster_region_arr = rasterToArray(raster_region)
 
         ref_array = np.ones((50, 50))
 
-        self.assertTrue(np.allclose(ref_array, raster_region_arr),
-                        msg="problem with the normalization by ref")
+        self.assertTrue(
+            np.allclose(ref_array, raster_region_arr),
+            msg="problem with the normalization by ref",
+        )
 
     def test_split_vector_by_region(self):
         """
@@ -384,47 +481,57 @@ class iota_testVectorFormatting(unittest.TestCase):
         from Iota2Tests import random_update
 
         # define inputs
-        nb_features_origin = len(fut.getFieldElement(self.in_vector,
-                                                     driverName="ESRI shapefile",
-                                                     field="region", mode="all",
-                                                     elemType="str"))
+        nb_features_origin = len(
+            fut.getFieldElement(
+                self.in_vector,
+                driverName="ESRI shapefile",
+                field="region",
+                mode="all",
+                elemType="str",
+            )
+        )
         nb_features_new_region = 5
         test_vector_name = "T31TCJ_Samples.sqlite"
-        test_vector = os.path.join(
-            self.test_working_directory,
-            test_vector_name)
-        cmd = "ogr2ogr -nln output -f SQLite {} {}".format(
-            test_vector, self.in_vector)
+        test_vector = os.path.join(self.test_working_directory, test_vector_name)
+        cmd = "ogr2ogr -nln output -f SQLite {} {}".format(test_vector, self.in_vector)
         run(cmd)
 
-        random_update(test_vector, "output",
-                      "seed_0", "learn", nb_features_origin)
-        random_update(test_vector, "output",
-                      "region", "2", nb_features_new_region)
+        random_update(test_vector, "output", "seed_0", "learn", nb_features_origin)
+        random_update(test_vector, "output", "region", "2", nb_features_new_region)
 
         output_dir = self.test_working_directory
         region_field = "region"
 
         # launch function
-        split_vector_by_region(test_vector, output_dir,
-                               region_field, runs=1,
-                               driver="SQLite")
+        split_vector_by_region(
+            test_vector, output_dir, region_field, runs=1, driver="SQLite"
+        )
         # assert
         vector_reg_1 = fut.FileSearch_AND(
-            self.test_working_directory, True, "region_1")[0]
+            self.test_working_directory, True, "region_1"
+        )[0]
         vector_reg_2 = fut.FileSearch_AND(
-            self.test_working_directory, True, "region_2")[0]
+            self.test_working_directory, True, "region_2"
+        )[0]
 
-        feat_vect_reg_1 = len(fut.getFieldElement(vector_reg_1,
-                                                  driverName="SQLite",
-                                                  field="region", mode="all",
-                                                  elemType="str"))
-        feat_vect_reg_2 = len(fut.getFieldElement(vector_reg_2,
-                                                  driverName="SQLite",
-                                                  field="region", mode="all",
-                                                  elemType="str"))
+        feat_vect_reg_1 = len(
+            fut.getFieldElement(
+                vector_reg_1,
+                driverName="SQLite",
+                field="region",
+                mode="all",
+                elemType="str",
+            )
+        )
+        feat_vect_reg_2 = len(
+            fut.getFieldElement(
+                vector_reg_2,
+                driverName="SQLite",
+                field="region",
+                mode="all",
+                elemType="str",
+            )
+        )
 
         self.assertTrue(nb_features_new_region == feat_vect_reg_2)
-        self.assertTrue(
-            nb_features_origin == feat_vect_reg_1 +
-            feat_vect_reg_2)
+        self.assertTrue(nb_features_origin == feat_vect_reg_1 + feat_vect_reg_2)

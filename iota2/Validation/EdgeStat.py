@@ -20,21 +20,21 @@ import otbApplication as otb
 
 
 def edgeStat(image, outStat_directory, useFilter, ram):
-
     def getStatMeanAndStd(stat):
         """
         OTB statistics parser
         """
         import re
+
         with open(stat, "r") as xml:
             for inLine in xml:
-                if '<Statistic name="mean">' in inLine.rstrip('\n\r'):
+                if '<Statistic name="mean">' in inLine.rstrip("\n\r"):
                     for nextLine in xml:
-                        mean = nextLine.rstrip('\n\r')
+                        mean = nextLine.rstrip("\n\r")
                         break
-                if '<Statistic name="stddev">' in inLine.rstrip('\n\r'):
+                if '<Statistic name="stddev">' in inLine.rstrip("\n\r"):
                     for nextLine in xml:
-                        std = nextLine.rstrip('\n\r')
+                        std = nextLine.rstrip("\n\r")
                         break
         try:
             mean = float(re.findall(r"\d+\,\d+", mean)[0].replace(",", "."))
@@ -54,7 +54,8 @@ def edgeStat(image, outStat_directory, useFilter, ram):
 
     stat = otb.Registry.CreateApplication("ComputeImagesStatistics")
     stat.AddImageToParameterInputImageList(
-        "il", edgeDetec.GetParameterOutputImage("out"))
+        "il", edgeDetec.GetParameterOutputImage("out")
+    )
     stat.SetParameterString("ram", str(ram))
     stat.SetParameterString("out", outStat)
 
@@ -71,30 +72,25 @@ def edgeStat(image, outStat_directory, useFilter, ram):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(
-        description="This function compute statistics after an edge extraction.")
+        description="This function compute statistics after an edge extraction."
+    )
 
     parser.add_argument(
-        "-in",
-        help="image to extract statistics",
-        dest="image",
-        required=True)
+        "-in", help="image to extract statistics", dest="image", required=True
+    )
     parser.add_argument(
-        "-wd",
-        help="working directory",
-        dest="outStat_directory",
-        required=True)
+        "-wd", help="working directory", dest="outStat_directory", required=True
+    )
     parser.add_argument(
         "-filter",
         help="filter to use",
         dest="useFilter",
         default="sobel",
-        required=False)
+        required=False,
+    )
     parser.add_argument(
-        "-ram",
-        help="pipeline size",
-        dest="ram",
-        default="128",
-        required=False)
+        "-ram", help="pipeline size", dest="ram", default="128", required=False
+    )
     args = parser.parse_args()
 
     edgeStat(args.image, args.outStat_directory, args.useFilter, args.ram)

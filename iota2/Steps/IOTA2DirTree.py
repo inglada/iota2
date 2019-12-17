@@ -25,18 +25,15 @@ class IOTA2DirTree(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file):
         # heritage init
         resources_block_name = "iota2_dir"
-        super(
-            IOTA2DirTree,
-            self).__init__(
-            cfg,
-            cfg_resources_file,
-            resources_block_name)
+        super(IOTA2DirTree, self).__init__(
+            cfg, cfg_resources_file, resources_block_name
+        )
 
     def step_description(self):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Construct IOTA² output directories")
+        description = "Construct IOTA² output directories"
         return description
 
     def step_inputs(self):
@@ -55,12 +52,14 @@ class IOTA2DirTree(IOTA2Step.Step):
             the function to execute as a lambda function. The returned object
             must be a lambda function.
         """
-        def step_function(x): return IOTA2_dir.GenerateDirectories(x)
+
+        def step_function(x):
+            return IOTA2_dir.GenerateDirectories(x)
+
         return step_function
 
     def step_outputs(self):
         from Common import ServiceConfigFile as SCF
-        outputPath = SCF.serviceConfigFile(
-            self.cfg).getParam(
-            'chain', 'outputPath')
+
+        outputPath = SCF.serviceConfigFile(self.cfg).getParam("chain", "outputPath")
         return os.path.exists(outputPath)

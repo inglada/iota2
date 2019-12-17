@@ -54,7 +54,8 @@ def AddFieldModel(shpIn, modNum, fieldOut, logger=logger):
 
 
 def CreateModelShapeFromTiles(
-        tilesModel, pathTiles, proj, pathOut, OutSHPname, fieldOut, pathWd):
+    tilesModel, pathTiles, proj, pathOut, OutSHPname, fieldOut, pathWd
+):
     """
         create one shapeFile where all features belong to a model number according to the model description
 
@@ -94,12 +95,8 @@ def CreateModelShapeFromTiles(
     for i in range(len(tilesModel)):
         for j in range(len(tilesModel[i])):
             to_remove.append(
-                fu.renameShapefile(
-                    pathTiles,
-                    tilesModel[i][j],
-                    "",
-                    "",
-                    pathToTMP))
+                fu.renameShapefile(pathTiles, tilesModel[i][j], "", "", pathToTMP)
+            )
 
     AllTilePath = []
     AllTilePath_ER = []
@@ -107,12 +104,10 @@ def CreateModelShapeFromTiles(
     for i in range(len(tilesModel)):
         for j in range(len(tilesModel[i])):
             try:
-                ind = AllTilePath.index(
-                    pathTiles + "/" + tilesModel[i][j] + ".shp")
+                ind = AllTilePath.index(pathTiles + "/" + tilesModel[i][j] + ".shp")
             except ValueError:
                 AllTilePath.append(pathToTMP + "/" + tilesModel[i][j] + ".shp")
-                AllTilePath_ER.append(
-                    pathToTMP + "/" + tilesModel[i][j] + "_ERODE.shp")
+                AllTilePath_ER.append(pathToTMP + "/" + tilesModel[i][j] + "_ERODE.shp")
 
     for i in range(len(tilesModel)):
         for j in range(len(tilesModel[i])):
@@ -127,14 +122,12 @@ def CreateModelShapeFromTiles(
         run("rm -r " + pathToTMP)
     else:
         for rm in to_remove:
-            fu.removeShape(
-                rm.replace(
-                    ".shp", ""), [
-                    ".prj", ".shp", ".dbf", ".shx"])
+            fu.removeShape(rm.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"])
 
 
-def generateRegionShape(pathTiles, pathToModel, pathOut, fieldOut, cfg,
-                        pathWd, logger=logger):
+def generateRegionShape(
+    pathTiles, pathToModel, pathOut, fieldOut, cfg, pathWd, logger=logger
+):
     """
         create one shapeFile where all features belong to a model number according to the model description
 
@@ -164,7 +157,7 @@ def generateRegionShape(pathTiles, pathToModel, pathOut, fieldOut, cfg,
         cfg = SCF.serviceConfigFile(cfg)
     pathConf = cfg.pathConf
 
-    tmp_proj = cfg.getParam('GlobChain', 'proj')
+    tmp_proj = cfg.getParam("GlobChain", "proj")
     proj = int(tmp_proj.split(":")[-1])
 
     region = []
@@ -172,11 +165,7 @@ def generateRegionShape(pathTiles, pathToModel, pathOut, fieldOut, cfg,
     region.append(AllTiles)
 
     if not pathOut:
-        pathOut = os.path.join(
-            cfg.getParam(
-                "chain",
-                "outputPath"),
-            "MyRegion.shp")
+        pathOut = os.path.join(cfg.getParam("chain", "outputPath"), "MyRegion.shp")
 
     p_f = pathOut.replace(" ", "").split("/")
     outName = p_f[-1].split(".")[0]
@@ -186,35 +175,57 @@ def generateRegionShape(pathTiles, pathToModel, pathOut, fieldOut, cfg,
         pathMod = pathMod + "/" + p_f[i]
 
     CreateModelShapeFromTiles(
-        region,
-        pathTiles,
-        int(proj),
-        pathMod,
-        outName,
-        fieldOut,
-        pathWd)
+        region, pathTiles, int(proj), pathMod, outName, fieldOut, pathWd
+    )
 
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(
-        description="This function allow you to create a shape by tile for a given area and a given region")
-    parser.add_argument("-fieldOut", dest="fieldOut",
-                        help="field out (mandatory)", required=True)
-    parser.add_argument("-pathTiles", dest="pathTiles",
-                        help="path where are only stored tile's envelope (mandatory)", default="None", required=True)
-    parser.add_argument("--multi.models", dest="pathToModel",
-                        help="path to the text file which link tiles/models", default="None", required=False)
-    parser.add_argument("-out", dest="pathOut",
-                        help="path where to store all shape by tiles (mandatory)", default="None", required=True)
-    parser.add_argument("--wd", dest="pathWd",
-                        help="path to the working directory", default=None, required=True)
-    parser.add_argument("-conf", dest="pathConf",
-                        help="path to the configuration file which describe the learning method (mandatory)", required=True)
+        description="This function allow you to create a shape by tile for a given area and a given region"
+    )
+    parser.add_argument(
+        "-fieldOut", dest="fieldOut", help="field out (mandatory)", required=True
+    )
+    parser.add_argument(
+        "-pathTiles",
+        dest="pathTiles",
+        help="path where are only stored tile's envelope (mandatory)",
+        default="None",
+        required=True,
+    )
+    parser.add_argument(
+        "--multi.models",
+        dest="pathToModel",
+        help="path to the text file which link tiles/models",
+        default="None",
+        required=False,
+    )
+    parser.add_argument(
+        "-out",
+        dest="pathOut",
+        help="path where to store all shape by tiles (mandatory)",
+        default="None",
+        required=True,
+    )
+    parser.add_argument(
+        "--wd",
+        dest="pathWd",
+        help="path to the working directory",
+        default=None,
+        required=True,
+    )
+    parser.add_argument(
+        "-conf",
+        dest="pathConf",
+        help="path to the configuration file which describe the learning method (mandatory)",
+        required=True,
+    )
     args = parser.parse_args()
 
     # load configuration file
     cfg = SCF.serviceConfigFile(args.pathConf)
 
-    generateRegionShape(args.pathTiles, args.pathToModel, args.pathOut,
-                        args.fieldOut, cfg, args.pathWd)
+    generateRegionShape(
+        args.pathTiles, args.pathToModel, args.pathOut, args.fieldOut, cfg, args.pathWd
+    )

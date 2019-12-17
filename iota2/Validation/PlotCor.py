@@ -19,44 +19,44 @@ from matplotlib.ticker import NullFormatter, MaxNLocator
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib
+
 matplotlib.use("AGG")
 
 
 class Parametres:
-    '''
+    """
     This class contains all the paramater required by the plot
-    '''
+    """
 
     def __init__(self):
-        '''
+        """
         Initialise the class
-        '''
+        """
         self.xlims = [1000000, 0]
         self.ylims = [100, 0]
         self.xBinStep = 1
         self.yBinStep = 1
 
     def canWeUseXlims(self):
-        '''
+        """
         That method returns a boolean accordingly if we can use those values of xlims
-        '''
+        """
         retour = False
         if self.xlims[0] <= self.xlims[1]:
             retour = True
         return retour
 
     def canWeUseYlims(self):
-        '''
+        """
         That method returns a boolean accordingly if we can use those values of ylims
-        '''
+        """
         retour = False
         if self.ylims[0] <= self.ylims[1]:
             retour = True
         return retour
 
 
-def plotCorrelation(x, y, xLabel, yLabel, outputPath,
-                    forceParameter=Parametres()):
+def plotCorrelation(x, y, xLabel, yLabel, outputPath, forceParameter=Parametres()):
 
     # Define the locations for the axes
     left, width = 0.12, 0.50
@@ -125,20 +125,20 @@ def plotCorrelation(x, y, xLabel, yLabel, outputPath,
     ticklabels = axData.get_xticklabels()
     for label in ticklabels:
         label.set_fontsize(18)
-        label.set_family('serif')
+        label.set_family("serif")
 
     ticklabels = axData.get_yticklabels()
     for label in ticklabels:
         label.set_fontsize(18)
-        label.set_family('serif')
+        label.set_family("serif")
 
     # Set up the plot limits
     axData.set_xlim((xmin, xmax))
     axData.set_ylim((ymin, ymax))
 
     # Plot the histograms
-    axHistx.hist(x, bins=xbins, color='blue')
-    axHisty.hist(y, bins=ybins, orientation='horizontal', color='red')
+    axHistx.hist(x, bins=xbins, color="blue")
+    axHisty.hist(y, bins=ybins, orientation="horizontal", color="red")
 
     # Set up the histogram limits
     axHistx.set_xlim(min(xlims), max(xlims))
@@ -148,13 +148,13 @@ def plotCorrelation(x, y, xLabel, yLabel, outputPath,
     ticklabels = axHistx.get_yticklabels()
     for label in ticklabels:
         label.set_fontsize(12)
-        label.set_family('serif')
+        label.set_family("serif")
 
     # Make the tickmarks pretty
     ticklabels = axHisty.get_xticklabels()
     for label in ticklabels:
         label.set_fontsize(12)
-        label.set_family('serif')
+        label.set_family("serif")
 
     # Cool trick that changes the number of tickmarks for the histogram axes
     axHisty.xaxis.set_major_locator(MaxNLocator(4))

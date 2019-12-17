@@ -44,6 +44,7 @@ def get_geom_column_name(vector_file, driver="ESRI Shapefile"):
     """
     from osgeo import ogr
     import os
+
     column_name = None
     if os.path.exists(vector_file):
         driver = ogr.GetDriverByName(driver)
@@ -57,6 +58,7 @@ def get_geom_column_name(vector_file, driver="ESRI Shapefile"):
         column_name = "GEOMETRY"
 
     return column_name
+
 
 # ---------------------------------------------------------------------
 
@@ -72,6 +74,7 @@ def openToRead(shapefile, driver="ESRI Shapefile"):
         print("Not possible to open the file " + shapefile)
         sys.exit(1)
     return dataSource
+
 
 # --------------------------------------------------------------------
 
@@ -104,6 +107,7 @@ def openToWrite(shapefile, driver="ESRI Shapefile"):
         sys.exit(1)
     return dataSource
 
+
 # --------------------------------------------------------------------
 
 
@@ -116,6 +120,7 @@ def getNbFeat(shapefile, driver="ESRI Shapefile"):
     featureCount = layer.GetFeatureCount()
     return int(featureCount)
 
+
 # --------------------------------------------------------------------
 
 
@@ -126,6 +131,7 @@ def getGeomType(shapefile, driver="ESRI Shapefile"):
     ds = openToRead(shapefile, driver)
     layer = ds.GetLayer()
     return layer.GetGeomType()
+
 
 # --------------------------------------------------------------------
 
@@ -146,11 +152,20 @@ def getGeomTypeFromFeat(shapefile, driver="ESRI Shapefile"):
 
     return geometry.GetGeometryName()
 
+
 # --------------------------------------------------------------------
 
 
-def spatialFilter(vect, clipzone, clipfield, clipvalue, outvect,
-                  driverclip="ESRI Shapefile", drivervect="ESRI Shapefile", driverout="ESRI Shapefile"):
+def spatialFilter(
+    vect,
+    clipzone,
+    clipfield,
+    clipvalue,
+    outvect,
+    driverclip="ESRI Shapefile",
+    drivervect="ESRI Shapefile",
+    driverout="ESRI Shapefile",
+):
     """
     Return features of a vector file  which are intersected by a feature of another vector file
     """
@@ -162,11 +177,10 @@ def spatialFilter(vect, clipzone, clipfield, clipvalue, outvect,
 
     fields = getFields(clipzone, driverclip)
     layerDfnClip = lyrclip.GetLayerDefn()
-    fieldTypeCode = layerDfnClip.GetFieldDefn(
-        fields.index(clipfield)).GetType()
+    fieldTypeCode = layerDfnClip.GetFieldDefn(fields.index(clipfield)).GetType()
 
     if fieldTypeCode == 4:
-        lyrclip.SetAttributeFilter(clipfield + " = \'" + str(clipvalue) + "\'")
+        lyrclip.SetAttributeFilter(clipfield + " = '" + str(clipvalue) + "'")
     else:
         lyrclip.SetAttributeFilter(clipfield + " = " + str(clipvalue))
 
@@ -184,6 +198,7 @@ def spatialFilter(vect, clipzone, clipfield, clipvalue, outvect,
         print("No intersection between the two vector files")
         del lyrclip, lyrvect, dsvect, dsclip
 
+
 # --------------------------------------------------------------------
 
 
@@ -194,6 +209,7 @@ def getLayerName(shapefile, driver="ESRI Shapefile", layernb=0):
     ds = openToRead(shapefile, driver)
     layer = ds.GetLayer(layernb)
     return layer.GetName()
+
 
 # --------------------------------------------------------------------
 
@@ -216,6 +232,7 @@ def random_shp_points(shapefile, nbpoints, opath, driver="ESRI Shapefile"):
     outname = opath + "/" + str(nbpoints) + "points.shp"
     CreateNewLayerPoint(layer, outname)
     return outname
+
 
 # --------------------------------------------------------------------
 
@@ -244,6 +261,7 @@ def intersect(f1, fid1, f2, fid2):
         test = False
     return test
 
+
 # --------------------------------------------------------------------
 
 
@@ -264,6 +282,7 @@ def getFields(shp, driver="ESRI Shapefile"):
         field_name_list.append(field)
     return field_name_list
 
+
 # --------------------------------------------------------------------
 
 
@@ -276,10 +295,10 @@ def getFieldType(shp, field):
     for i in range(layerDefinition.GetFieldCount()):
         if layerDefinition.GetFieldDefn(i).GetName() == field:
             fieldTypeCode = layerDefinition.GetFieldDefn(i).GetType()
-            fieldType = layerDefinition.GetFieldDefn(
-                i).GetFieldTypeName(fieldTypeCode)
+            fieldType = layerDefinition.GetFieldDefn(i).GetFieldTypeName(fieldTypeCode)
 
     return dico[fieldType]
+
 
 # --------------------------------------------------------------------
 
@@ -292,6 +311,7 @@ def getFirstLayer(shp):
     layerName = layer.GetName()
 
     return layerName
+
 
 # --------------------------------------------------------------------
 
@@ -312,6 +332,7 @@ def ListValueFields(shp, field):
             values.append(feat.GetField(field))
     return values
 
+
 # --------------------------------------------------------------------
 
 
@@ -325,13 +346,10 @@ def copyShapefile(shape, outshape):
         for name in files:
             if os.path.splitext(name)[0] == basefile:
                 copyfile(
-                    folder +
-                    '/' +
-                    name,
-                    folderout +
-                    '/' +
-                    basefileout +
-                    os.path.splitext(name)[1].lower())
+                    folder + "/" + name,
+                    folderout + "/" + basefileout + os.path.splitext(name)[1].lower(),
+                )
+
 
 # --------------------------------------------------------------------
 
@@ -340,7 +358,7 @@ def copyShp(shp, keyname):
     """
     Creates an empty new layer based on the properties and attributs of an input file
     """
-    outShapefile = shp.split('.')[0] + '-' + keyname + '.shp'
+    outShapefile = shp.split(".")[0] + "-" + keyname + ".shp"
     print(outShapefile)
     ds = openToRead(shp)
     layer = ds.GetLayer()
@@ -356,7 +374,8 @@ def copyShp(shp, keyname):
     srsObj = layer.GetSpatialRef()
     # Creates the spatial reference of the output layer
     outLayer = outDataSource.CreateLayer(
-        out_lyr_name, srsObj, geom_type=getGeomType(shp))
+        out_lyr_name, srsObj, geom_type=getGeomType(shp)
+    )
     # Add input Layer Fields to the output Layer if it is the one we want
     for i in range(0, inLayerDefn.GetFieldCount()):
         fieldDefn = inLayerDefn.GetFieldDefn(i)
@@ -369,6 +388,8 @@ def copyShp(shp, keyname):
     # print layer.GetFeatureCount()
     print("New file created : %s" % (outShapefile))
     return outShapefile
+
+
 # --------------------------------------------------------------------
 
 
@@ -396,7 +417,8 @@ def CreateNewLayer(layer, outShapefile):
     srsObj = layer.GetSpatialRef()
     # Creates the spatial reference of the output layer
     outLayer = outDataSource.CreateLayer(
-        out_lyr_name, srsObj, geom_type=layer.GetGeomType())
+        out_lyr_name, srsObj, geom_type=layer.GetGeomType()
+    )
     # Add input Layer Fields to the output Layer if it is the one we want
 
     for i in range(0, inLayerDefn.GetFieldCount()):
@@ -420,8 +442,9 @@ def CreateNewLayer(layer, outShapefile):
             if fieldName not in field_name_target:
                 continue
 
-            outFeature.SetField(outLayerDefn.GetFieldDefn(i).GetNameRef(),
-                                inFeature.GetField(i))
+            outFeature.SetField(
+                outLayerDefn.GetFieldDefn(i).GetNameRef(), inFeature.GetField(i)
+            )
         # Set geometry as centroid
         geom = inFeature.GetGeometryRef()
         outFeature.SetGeometry(geom.Clone())
@@ -453,7 +476,7 @@ def copyFeatInShp(inFeat, shp):
         layer.CreateFeature(outFeat)
         layer.SetFeature(outFeat)
         print("Feature copied")
-        ds.ExecuteSQL('REPACK ' + layer.GetName())
+        ds.ExecuteSQL("REPACK " + layer.GetName())
     elif layer.GetFeatureCount() >= 1:
         layer2 = ds.GetLayer()
         layer2.SetSpatialFilter(inGeom)
@@ -476,7 +499,7 @@ def copyFeatInShp(inFeat, shp):
                 layer.CreateFeature(outFeat)
                 layer.SetFeature(outFeat)
                 print("Feature copied")
-                ds.ExecuteSQL('REPACK ' + layer.GetName())
+                ds.ExecuteSQL("REPACK " + layer.GetName())
 
 
 def copyFeatInShp2(inFeat, shp):
@@ -498,7 +521,8 @@ def copyFeatInShp2(inFeat, shp):
     layer.CreateFeature(outFeat)
     layer.SetFeature(outFeat)
     # print "Feature copied"
-    ds.ExecuteSQL('REPACK ' + layer.GetName())
+    ds.ExecuteSQL("REPACK " + layer.GetName())
+
 
 # --------------------------------------------------------------------
 
@@ -516,7 +540,7 @@ def deleteInvalidGeom(shp):
     fidl = []
     # for i in range(0,nbfeat):
     for feat in layer:
-        #feat = layer.GetFeature(i)
+        # feat = layer.GetFeature(i)
         fid = feat.GetFID()
         if feat.GetGeometryRef() is None:
             # print fid
@@ -536,9 +560,9 @@ def deleteInvalidGeom(shp):
         chain = []
         for f in listFid:
             chain.append(f)
-            chain.append(' AND ')
+            chain.append(" AND ")
         chain.pop()
-        fchain = ''.join(chain)
+        fchain = "".join(chain)
         layer.SetAttributeFilter(fchain)
         CreateNewLayer(layer, "valide_entities.shp")
         print("New file: valide_entities.shp was created")
@@ -546,6 +570,7 @@ def deleteInvalidGeom(shp):
         print("All geometries are valid. No file created")
 
     return 0
+
 
 # --------------------------------------------------------------------
 
@@ -573,12 +598,12 @@ def checkValidGeom(shp):
     fidl = []
 
     for feat in layer:
-        #feat = layer.GetFeature(i)
+        # feat = layer.GetFeature(i)
         fid = feat.GetFID()
         if feat.GetGeometryRef() is None:
             print(fid)
             layer.DeleteFeature(fid)
-            ds.ExecuteSQL('REPACK ' + layer.GetName())
+            ds.ExecuteSQL("REPACK " + layer.GetName())
             layer.ResetReading()
         else:
             geom = feat.GetGeometryRef()
@@ -597,8 +622,9 @@ def checkValidGeom(shp):
                 count += 1
 
     print("From %d invalid features, %d were corrected" % (count, corr))
-    ds.ExecuteSQL('REPACK ' + layer.GetName())
+    ds.ExecuteSQL("REPACK " + layer.GetName())
     return shp, count, corr
+
 
 # --------------------------------------------------------------------
 
@@ -645,16 +671,20 @@ def checkEmptyGeom(shp, do_corrections=True, output_file=None):
             allList = []
             for item in allFID:
                 allList.append(item)
-                allList.append(' OR ')
+                allList.append(" OR ")
             allList.pop()
 
-            ch = ' '.join(allList)
+            ch = " ".join(allList)
             layer.SetAttributeFilter(ch)
-            outShapefile = output_file if output_file is not None else shp.split('.')[
-                0] + "-NoEmpty.shp"
+            outShapefile = (
+                output_file
+                if output_file is not None
+                else shp.split(".")[0] + "-NoEmpty.shp"
+            )
             CreateNewLayer(layer, outShapefile)
             print("%d empty geometries were deleted") % (len(allFID))
     return (output_shape, count)
+
 
 # --------------------------------------------------------------------
 
@@ -667,12 +697,14 @@ def checkIsRingGeom(shp):
     layer = ds.GetLayer()
     nbfeat = getNbFeat(shp)
 
+
 # --------------------------------------------------------------------
 
 
 def explain_validity(shp):
     from shapely.wkt import loads
     from shapely.geos import lgeos
+
     """
 	Explains the validity reason of each feature in a shapefile
 	"""
@@ -686,6 +718,7 @@ def explain_validity(shp):
         a = input()
     return 0
 
+
 # --------------------------------------------------------------------
 
 
@@ -697,7 +730,7 @@ def checkIntersect(shp, distance, fieldin):
     ds = openToWrite(shp)
     layer = ds.GetLayer()
     nbfeat = getNbFeat(shp)
-    outShp = copyShp(shp, 'nointersct')
+    outShp = copyShp(shp, "nointersct")
     layerDef = layer.GetLayerDefn()
     fields = getFields(shp)
     for i in range(0, nbfeat):
@@ -711,11 +744,7 @@ def checkIntersect(shp, distance, fieldin):
         minY = y - float(distance)
         maxX = x + float(distance)
         maxY = y + float(distance)
-        layer.SetSpatialFilterRect(
-            float(minX),
-            float(minY),
-            float(maxX),
-            float(maxY))
+        layer.SetSpatialFilterRect(float(minX), float(minY), float(maxX), float(maxY))
         nbfeat2 = layer.GetFeatureCount()
         intersection = False
         listFID = []
@@ -728,7 +757,7 @@ def checkIntersect(shp, distance, fieldin):
             geom2 = feat2.GetGeometryRef()
             if geom1.Intersects(geom2) == True and not geom1.Equal(geom2):
                 listFID.append(feat2.GetFID())
-                listID.append(feat2.GetField('id'))
+                listID.append(feat2.GetField("id"))
 
         if len(listFID) == 0:
             outds = openToRead(outShp)
@@ -739,16 +768,16 @@ def checkIntersect(shp, distance, fieldin):
             for f in listFID:
                 feat2 = layer.GetFeature(f)
                 geom2 = feat2.GetGeometryRef()
-                if feat1.GetFieldAsString(
-                        fieldin) == feat2.GetFieldAsString(fieldin):
+                if feat1.GetFieldAsString(fieldin) == feat2.GetFieldAsString(fieldin):
                     print(
-                        feat1.GetFieldAsString('id') +
-                        " " +
-                        feat2.GetFieldAsString('id'))
+                        feat1.GetFieldAsString("id")
+                        + " "
+                        + feat2.GetFieldAsString("id")
+                    )
                     newgeom = Union(geom1, geom2)
                 else:
                     newgeom = Difference(geom1, geom2)
-                #newgeom =  Difference(geom1, geom2)
+                # newgeom =  Difference(geom1, geom2)
                 newgeom2 = ogr.CreateGeometryFromWkb(newgeom.wkb)
                 newFeature = ogr.Feature(layerDef)
                 newFeature.SetGeometry(newgeom2)
@@ -759,12 +788,11 @@ def checkIntersect(shp, distance, fieldin):
             for f in listFID:
                 feat2 = layer.GetFeature(f)
                 geom2 = feat2.GetGeometryRef()
-                if feat1.GetFieldAsString(
-                        fieldin) == feat2.GetFieldAsString(fieldin):
+                if feat1.GetFieldAsString(fieldin) == feat2.GetFieldAsString(fieldin):
                     newgeom = Union(geom1, geom2)
                 else:
                     newgeom = Difference(geom1, geom2)
-                #newgeom =  Difference(geom1, geom2)
+                # newgeom =  Difference(geom1, geom2)
                 newgeom2 = ogr.CreateGeometryFromWkb(newgeom.wkb)
                 newFeature = ogr.Feature(layerDef)
                 newFeature.SetGeometry(newgeom2)
@@ -774,6 +802,7 @@ def checkIntersect(shp, distance, fieldin):
                 copyFeatInShp(newFeature, outShp)
 
     return outShp
+
 
 # --------------------------------------------------------------------
 
@@ -786,7 +815,7 @@ def checkIntersect2(shp, fieldin, fieldinID):
     ds = openToWrite(shp)
     layer = ds.GetLayer()
     nbfeat = getNbFeat(shp)
-    outShp = copyShp(shp, 'nointersct')
+    outShp = copyShp(shp, "nointersct")
     layerDef = layer.GetLayerDefn()
     fields = getFields(shp)
     for i in range(0, nbfeat):
@@ -817,14 +846,16 @@ def checkIntersect2(shp, fieldin, fieldinID):
             for f in listFID:
                 feat2 = layer.GetFeature(f)
                 geom2 = feat2.GetGeometryRef()
-                if feat1.GetFieldAsString(
-                        fieldin) == feat2.GetFieldAsString(fieldin):
-                    print(feat1.GetFieldAsString(fieldinID) +
-                          " " + feat2.GetFieldAsString(fieldinID))
+                if feat1.GetFieldAsString(fieldin) == feat2.GetFieldAsString(fieldin):
+                    print(
+                        feat1.GetFieldAsString(fieldinID)
+                        + " "
+                        + feat2.GetFieldAsString(fieldinID)
+                    )
                     newgeom = Union(geom1, geom2)
                 else:
                     newgeom = Difference(geom1, geom2)
-                #newgeom =  Difference(geom1, geom2)
+                # newgeom =  Difference(geom1, geom2)
                 newgeom2 = ogr.CreateGeometryFromWkb(newgeom.wkb)
                 newFeature = ogr.Feature(layerDef)
                 newFeature.SetGeometry(newgeom2)
@@ -835,12 +866,11 @@ def checkIntersect2(shp, fieldin, fieldinID):
             for f in listFID:
                 feat2 = layer.GetFeature(f)
                 geom2 = feat2.GetGeometryRef()
-                if feat1.GetFieldAsString(
-                        fieldin) == feat2.GetFieldAsString(fieldin):
+                if feat1.GetFieldAsString(fieldin) == feat2.GetFieldAsString(fieldin):
                     newgeom = Union(geom1, geom2)
                 else:
                     newgeom = Difference(geom1, geom2)
-                #newgeom =  Difference(geom1, geom2)
+                # newgeom =  Difference(geom1, geom2)
                 newgeom2 = ogr.CreateGeometryFromWkb(newgeom.wkb)
                 newFeature = ogr.Feature(layerDef)
                 newFeature.SetGeometry(newgeom2)
@@ -850,6 +880,7 @@ def checkIntersect2(shp, fieldin, fieldinID):
                 copyFeatInShp2(newFeature, outShp)
 
     return outShp
+
 
 # --------------------------------------------------------------------
 
@@ -879,8 +910,7 @@ def checkIntersect3(shp, fieldin, fieldinID):
             geom2 = feat2.GetGeometryRef()
             if geom1.Intersects(geom2) == True and not geom1.Equal(geom2):
                 listFID.append(feat2.GetFID())
-                if feat1.GetFieldAsString(
-                        fieldin) == feat2.GetFieldAsString(fieldin):
+                if feat1.GetFieldAsString(fieldin) == feat2.GetFieldAsString(fieldin):
                     newgeom = Union(geom1, geom2)
                     newgeom2 = ogr.CreateGeometryFromWkb(newgeom.wkb)
                     newFeature = ogr.Feature(layerDef)
@@ -904,7 +934,8 @@ def checkIntersect3(shp, fieldin, fieldinID):
     for fid in range(0, len(listFID)):
         layer.DeleteFeature(listFID[fid])
 
-    ds.ExecuteSQL('REPACK ' + layer.GetName())
+    ds.ExecuteSQL("REPACK " + layer.GetName())
+
 
 # ------------------------------------------------------------------
 
@@ -919,12 +950,14 @@ def VerifyGeom(geom, layer):
 
     return verif
 
+
 # --------------------------------------------------------------------
 
 
 def Difference(geom1, geom2):
 
     from shapely.wkt import loads
+
     """
    Returns the difference of 2 geometries
    """
@@ -932,12 +965,14 @@ def Difference(geom1, geom2):
     obj2 = loads(geom2.ExportToWkt())
     return obj1.difference(obj2)
 
+
 # --------------------------------------------------------------------
 
 
 def Union(geom1, geom2):
 
     from shapely.wkt import loads
+
     """
    Returns the difference of 2 geometries
    """
@@ -945,6 +980,7 @@ def Union(geom1, geom2):
     obj2 = loads(geom2.ExportToWkt())
     print(obj1.union(obj2))
     return obj1.union(obj2)
+
 
 # --------------------------------------------------------------------
 
@@ -976,8 +1012,9 @@ def CheckDoubleGeomTwofiles(shp1, shp2):
                     geom2 = feat2.GetGeometryRef()
                     if geom1.Equal(geom2) == True:
                         lyr2.DeleteFeature(fid)
-                        ds2.ExecuteSQL('REPACK ' + lyr2.GetName())
+                        ds2.ExecuteSQL("REPACK " + lyr2.GetName())
             lyr2.ResetReading()
+
 
 # --------------------------------------------------------------------
 
@@ -1013,6 +1050,7 @@ def CheckDoubleGeomTwofilesCopy(shp1, shp2, field):
         for k2, v2 in dict2:
             new_feat = lyr1.GetFeat(k1)
             copyFeatInShp2(new_feat, newshp)
+
 
 # --------------------------------------------------------------------
 
@@ -1050,28 +1088,55 @@ none = False
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         prog = os.path.basename(sys.argv[0])
-        print('      ' + sys.argv[0] + ' [options]')
+        print("      " + sys.argv[0] + " [options]")
         print("     Help : ", prog, " --help")
         print("        or : ", prog, " -h")
         sys.exit(-1)
     else:
         usage = "usage: %prog [options] "
-        parser = argparse.ArgumentParser(description="Verify shapefile geometries."
-                                         "You have to choose only one option")
-        parser.add_argument("-s", dest="shapefile", action="store",
-                            help="Input shapefile", required=True)
-        parser.add_argument("-v", action='store_true',
-                            help="Check the validity of geometries of input file."
-                            "If geometry is not valid then buffer 0 to correct", default=False)
-        parser.add_argument("-e", action='store_true',
-                            help="Check if a geometry is empty and create a new file with no empty geometries", default=False)
-        parser.add_argument("-i", action='store_true',
-                            help="Check if each feature intersects another feature in the same file."
-                            "If True compute the difference. The common part is deleted", default=False)
-        parser.add_argument("-ev", action='store_true',
-                            help="Explains the validity reason of each feature in a shapefile", default=False)
-        parser.add_argument("-d", action='store_true',
-                            help="Delete the invalide geometries in a file", default=False)
+        parser = argparse.ArgumentParser(
+            description="Verify shapefile geometries."
+            "You have to choose only one option"
+        )
+        parser.add_argument(
+            "-s",
+            dest="shapefile",
+            action="store",
+            help="Input shapefile",
+            required=True,
+        )
+        parser.add_argument(
+            "-v",
+            action="store_true",
+            help="Check the validity of geometries of input file."
+            "If geometry is not valid then buffer 0 to correct",
+            default=False,
+        )
+        parser.add_argument(
+            "-e",
+            action="store_true",
+            help="Check if a geometry is empty and create a new file with no empty geometries",
+            default=False,
+        )
+        parser.add_argument(
+            "-i",
+            action="store_true",
+            help="Check if each feature intersects another feature in the same file."
+            "If True compute the difference. The common part is deleted",
+            default=False,
+        )
+        parser.add_argument(
+            "-ev",
+            action="store_true",
+            help="Explains the validity reason of each feature in a shapefile",
+            default=False,
+        )
+        parser.add_argument(
+            "-d",
+            action="store_true",
+            help="Delete the invalide geometries in a file",
+            default=False,
+        )
 
         args = parser.parse_args()
 
@@ -1096,7 +1161,7 @@ if __name__ == "__main__":
             checkEmptyGeom(args.shapefile)
 
         if intersect:
-            checkIntersect3(args.shapefile, 'CODE', 'ID')
+            checkIntersect3(args.shapefile, "CODE", "ID")
 
         if explain:
             explain_validity(args.shapefile)
@@ -1106,7 +1171,7 @@ if __name__ == "__main__":
 
         if none:
             prog = os.path.basename(sys.argv[0])
-            print('      ' + sys.argv[0] + ' [options]')
+            print("      " + sys.argv[0] + " [options]")
             print("     Help : ", prog, " --help")
             print("        or : ", prog, " -h")
             sys.exit(-1)

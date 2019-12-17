@@ -23,24 +23,21 @@ class classificationsFusion(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "fusion"
-        super(
-            classificationsFusion,
-            self).__init__(
-            cfg,
-            cfg_resources_file,
-            resources_block_name)
+        super(classificationsFusion, self).__init__(
+            cfg, cfg_resources_file, resources_block_name
+        )
 
         # step variables
         self.workingDirectory = workingDirectory
-        self.output_path = SCF.serviceConfigFile(
-            self.cfg).getParam(
-            'chain', 'outputPath')
+        self.output_path = SCF.serviceConfigFile(self.cfg).getParam(
+            "chain", "outputPath"
+        )
 
     def step_description(self):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Fusion of classifications")
+        description = "Fusion of classifications"
         return description
 
     def step_inputs(self):
@@ -50,8 +47,8 @@ class classificationsFusion(IOTA2Step.Step):
             the return could be and iterable or a callable
         """
         from Classification import Fusion as FUS
-        return FUS.fusion(os.path.join(
-            self.output_path, "classif"), self.cfg, None)
+
+        return FUS.fusion(os.path.join(self.output_path, "classif"), self.cfg, None)
 
     def step_execute(self):
         """
@@ -62,8 +59,12 @@ class classificationsFusion(IOTA2Step.Step):
             must be a lambda function.
         """
         from MPI import launch_tasks as tLauncher
+
         bashLauncherFunction = tLauncher.launchBashCmd
-        def step_function(x): return bashLauncherFunction(x)
+
+        def step_function(x):
+            return bashLauncherFunction(x)
+
         return step_function
 
     def step_outputs(self):

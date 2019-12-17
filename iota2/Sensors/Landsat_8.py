@@ -32,7 +32,7 @@ logger.addHandler(logging.NullHandler())
 
 class Landsat_8(Sensor):
 
-    name = 'Landsat8'
+    name = "Landsat8"
 
     def __init__(self, config_path, tile_name):
         """
@@ -48,36 +48,36 @@ class Landsat_8(Sensor):
         self.tile_name = tile_name
         self.cfg_IOTA2 = SCF.serviceConfigFile(config_path)
         cfg_sensors = os.path.join(
-            get_iota2_project_dir(),
-            "iota2",
-            "Sensors",
-            "sensors.cfg")
+            get_iota2_project_dir(), "iota2", "Sensors", "sensors.cfg"
+        )
         cfg_sensors = SCF.serviceConfigFile(cfg_sensors, iota_config=False)
 
         # running attributes
         self.target_proj = int(
-            self.cfg_IOTA2.getParam(
-                "GlobChain",
-                "proj").lower().replace(
-                " ",
-                "").replace(
-                "epsg:",
-                ""))
+            self.cfg_IOTA2.getParam("GlobChain", "proj")
+            .lower()
+            .replace(" ", "")
+            .replace("epsg:", "")
+        )
         self.all_tiles = self.cfg_IOTA2.getParam("chain", "listTile")
         self.l8_data = self.cfg_IOTA2.getParam("chain", "L8Path")
         self.tile_directory = os.path.join(self.l8_data, tile_name)
         self.struct_path_masks = cfg_sensors.getParam("Landsat8", "arbomask")
-        self.write_dates_stack = self.cfg_IOTA2.getParam("Landsat8",
-                                                         "write_reproject_resampled_input_dates_stack")
-        self.features_dir = os.path.join(self.cfg_IOTA2.getParam("chain", "outputPath"),
-                                         "features", tile_name)
+        self.write_dates_stack = self.cfg_IOTA2.getParam(
+            "Landsat8", "write_reproject_resampled_input_dates_stack"
+        )
+        self.features_dir = os.path.join(
+            self.cfg_IOTA2.getParam("chain", "outputPath"), "features", tile_name
+        )
         extract_bands = self.cfg_IOTA2.getParam("Landsat8", "keepBands")
         extract_bands_flag = self.cfg_IOTA2.getParam(
-            "iota2FeatureExtraction", "extractBands")
+            "iota2FeatureExtraction", "extractBands"
+        )
         output_target_dir = self.cfg_IOTA2.getParam("chain", "L8_output_path")
         if output_target_dir:
             self.output_preprocess_directory = os.path.join(
-                output_target_dir, tile_name)
+                output_target_dir, tile_name
+            )
             if not os.path.exists(self.output_preprocess_directory):
                 try:
                     os.mkdir(self.output_preprocess_directory)
@@ -94,7 +94,8 @@ class Landsat_8(Sensor):
         self.date_position = 1  # if date's name split by "_"
         self.NODATA_VALUE = -10000
         self.masks_rules = OrderedDict(
-            [("CLM_XS.tif", 0), ("SAT_XS.tif", 0), ("EDG_ALL.tif", 0)])  # 0 mean data, else noData
+            [("CLM_XS.tif", 0), ("SAT_XS.tif", 0), ("EDG_ALL.tif", 0)]
+        )  # 0 mean data, else noData
         self.border_pos = 2
         self.features_names_list = ["NDVI", "NDWI", "Brightness"]
 
@@ -105,39 +106,41 @@ class Landsat_8(Sensor):
             # TODO check every mandatory bands still selected -> def
             # check_mandatory bands() return True/False
             self.extracted_bands = [
-                (band_name,
-                 band_position +
-                 1) for band_position,
-                band_name in enumerate(
-                    self.stack_band_position) if band_name in self.cfg_IOTA2.getParam(
-                    "Landsat8",
-                    "keepBands")]
+                (band_name, band_position + 1)
+                for band_position, band_name in enumerate(self.stack_band_position)
+                if band_name in self.cfg_IOTA2.getParam("Landsat8", "keepBands")
+            ]
 
         # output's names
-        self.footprint_name = "{}_{}_footprint.tif".format(self.__class__.name,
-                                                           tile_name)
-        ref_image_name = "{}_{}_reference.tif".format(self.__class__.name,
-                                                      tile_name)
-        self.ref_image = os.path.join(self.cfg_IOTA2.getParam("chain", "outputPath"),
-                                      "features",
-                                      tile_name,
-                                      "tmp",
-                                      ref_image_name)
-        self.time_series_name = "{}_{}_TS.tif".format(self.__class__.name,
-                                                      tile_name)
-        self.time_series_masks_name = "{}_{}_MASKS.tif".format(self.__class__.name,
-                                                               tile_name)
-        self.time_series_gapfilling_name = "{}_{}_TSG.tif".format(self.__class__.name,
-                                                                  tile_name)
-        self.features_names = "{}_{}_Features.tif".format(self.__class__.name,
-                                                          tile_name)
+        self.footprint_name = "{}_{}_footprint.tif".format(
+            self.__class__.name, tile_name
+        )
+        ref_image_name = "{}_{}_reference.tif".format(self.__class__.name, tile_name)
+        self.ref_image = os.path.join(
+            self.cfg_IOTA2.getParam("chain", "outputPath"),
+            "features",
+            tile_name,
+            "tmp",
+            ref_image_name,
+        )
+        self.time_series_name = "{}_{}_TS.tif".format(self.__class__.name, tile_name)
+        self.time_series_masks_name = "{}_{}_MASKS.tif".format(
+            self.__class__.name, tile_name
+        )
+        self.time_series_gapfilling_name = "{}_{}_TSG.tif".format(
+            self.__class__.name, tile_name
+        )
+        self.features_names = "{}_{}_Features.tif".format(
+            self.__class__.name, tile_name
+        )
         # about gapFilling interpolations
-        self.temporal_res = self.cfg_IOTA2.getParam(
-            "Landsat8", "temporalResolution")
-        self.input_dates = "{}_{}_input_dates.txt".format(self.__class__.name,
-                                                          tile_name)
-        self.interpolated_dates = "{}_{}_interpolation_dates.txt".format(self.__class__.name,
-                                                                         tile_name)
+        self.temporal_res = self.cfg_IOTA2.getParam("Landsat8", "temporalResolution")
+        self.input_dates = "{}_{}_input_dates.txt".format(
+            self.__class__.name, tile_name
+        )
+        self.interpolated_dates = "{}_{}_interpolation_dates.txt".format(
+            self.__class__.name, tile_name
+        )
 
     def get_date_from_name(self, product_name):
         """
@@ -147,8 +150,12 @@ class Landsat_8(Sensor):
     def sort_dates_directories(self, dates_directories):
         """
         """
-        return sorted(dates_directories,
-                      key=lambda x: int(os.path.basename(x).split("_")[self.date_position].split("-")[0]))
+        return sorted(
+            dates_directories,
+            key=lambda x: int(
+                os.path.basename(x).split("_")[self.date_position].split("-")[0]
+            ),
+        )
 
     def get_available_dates(self):
         """
@@ -156,8 +163,14 @@ class Landsat_8(Sensor):
         """
         from Common.FileUtils import FileSearch_AND
 
-        stacks = sorted(FileSearch_AND(self.output_preprocess_directory, True, "{}.tif".format(self.suffix)),
-                        key=lambda x: int(os.path.basename(x).split("_")[self.date_position].split("-")[0]))
+        stacks = sorted(
+            FileSearch_AND(
+                self.output_preprocess_directory, True, "{}.tif".format(self.suffix)
+            ),
+            key=lambda x: int(
+                os.path.basename(x).split("_")[self.date_position].split("-")[0]
+            ),
+        )
         return stacks
 
     def get_available_dates_masks(self):
@@ -165,23 +178,35 @@ class Landsat_8(Sensor):
         return sorted available masks
         """
         from Common.FileUtils import FileSearch_AND
-        masks = sorted(FileSearch_AND(self.output_preprocess_directory, True, "{}.tif".format(self.masks_date_suffix)),
-                       key=lambda x: int(os.path.basename(x).split("_")[self.date_position].split("-")[0]))
+
+        masks = sorted(
+            FileSearch_AND(
+                self.output_preprocess_directory,
+                True,
+                "{}.tif".format(self.masks_date_suffix),
+            ),
+            key=lambda x: int(
+                os.path.basename(x).split("_")[self.date_position].split("-")[0]
+            ),
+        )
         return masks
 
     def build_stack_date_name(self, date_dir):
         """
         """
         from Common.FileUtils import FileSearch_AND
-        _, b2_name = os.path.split(
-            FileSearch_AND(
-                date_dir, True, "{}_B2.tif".format(
-                    self.data_type))[0])
-        return b2_name.replace("{}_B2.tif".format(
-            self.data_type), "{}_{}.tif".format(self.data_type, self.suffix))
 
-    def preprocess_date(self, date_dir, out_prepro, working_dir=None, ram=128,
-                        logger=logger):
+        _, b2_name = os.path.split(
+            FileSearch_AND(date_dir, True, "{}_B2.tif".format(self.data_type))[0]
+        )
+        return b2_name.replace(
+            "{}_B2.tif".format(self.data_type),
+            "{}_{}.tif".format(self.data_type, self.suffix),
+        )
+
+    def preprocess_date(
+        self, date_dir, out_prepro, working_dir=None, ram=128, logger=logger
+    ):
         """
         """
         import os
@@ -216,11 +241,10 @@ class Landsat_8(Sensor):
         # get bands
         date_bands = [
             FileSearch_AND(
-                date_dir,
-                True,
-                "{}_{}.tif".format(
-                    self.data_type,
-                    bands_name))[0] for bands_name in self.stack_band_position]
+                date_dir, True, "{}_{}.tif".format(self.data_type, bands_name)
+            )[0]
+            for bands_name in self.stack_band_position
+        ]
 
         # tile reference image generation
         base_ref = date_bands[0]
@@ -229,39 +253,49 @@ class Landsat_8(Sensor):
 
         if not os.path.exists(self.ref_image):
             logger.info(
-                "reference image generation {} from {}".format(
-                    self.ref_image, base_ref))
-            ds = Warp(self.ref_image, base_ref, multithread=True,
-                      format="GTiff", xRes=self.native_res, yRes=self.native_res,
-                      outputType=GDT_Byte, srcSRS="EPSG:{}".format(
-                          base_ref_projection),
-                      dstSRS="EPSG:{}".format(self.target_proj))
+                "reference image generation {} from {}".format(self.ref_image, base_ref)
+            )
+            ds = Warp(
+                self.ref_image,
+                base_ref,
+                multithread=True,
+                format="GTiff",
+                xRes=self.native_res,
+                yRes=self.native_res,
+                outputType=GDT_Byte,
+                srcSRS="EPSG:{}".format(base_ref_projection),
+                dstSRS="EPSG:{}".format(self.target_proj),
+            )
 
         # reproject / resample
         bands_proj = OrderedDict()
         all_reproj = []
         for band, band_name in zip(date_bands, self.stack_band_position):
-            superimp, _ = CreateSuperimposeApplication({"inr": self.ref_image,
-                                                        "inm": band,
-                                                        "ram": str(ram)})
+            superimp, _ = CreateSuperimposeApplication(
+                {"inr": self.ref_image, "inm": band, "ram": str(ram)}
+            )
             bands_proj[band_name] = superimp
             all_reproj.append(superimp)
 
         if self.write_dates_stack:
             for reproj in all_reproj:
                 reproj.Execute()
-            date_stack = CreateConcatenateImagesApplication({"il": all_reproj,
-                                                             "ram": str(ram),
-                                                             "pixType": "int16",
-                                                             "out": out_stack_processing})
+            date_stack = CreateConcatenateImagesApplication(
+                {
+                    "il": all_reproj,
+                    "ram": str(ram),
+                    "pixType": "int16",
+                    "out": out_stack_processing,
+                }
+            )
             same_proj = False
             if os.path.exists(out_stack):
-                same_proj = int(
-                    getRasterProjectionEPSG(out_stack)) == int(
-                    self.target_proj)
+                same_proj = int(getRasterProjectionEPSG(out_stack)) == int(
+                    self.target_proj
+                )
 
             if not os.path.exists(out_stack) or same_proj is False:
-                #~ date_stack.ExecuteAndWriteOutput()
+                # ~ date_stack.ExecuteAndWriteOutput()
                 p = mp.Process(target=executeApp, args=[date_stack])
                 p.start()
                 p.join()
@@ -270,9 +304,9 @@ class Landsat_8(Sensor):
                     os.remove(out_stack_processing)
         return bands_proj if self.write_dates_stack is False else out_stack
 
-    def preprocess_date_masks(self, date_dir, out_prepro,
-                              working_dir=None, ram=128,
-                              logger=logger):
+    def preprocess_date_masks(
+        self, date_dir, out_prepro, working_dir=None, ram=128, logger=logger
+    ):
         """
         """
         from gdal import Warp
@@ -288,21 +322,24 @@ class Landsat_8(Sensor):
             date_mask.append(
                 glob.glob(
                     os.path.join(
-                        date_dir,
-                        "{}{}".format(
-                            self.struct_path_masks,
-                            mask_name)))[0])
+                        date_dir, "{}{}".format(self.struct_path_masks, mask_name)
+                    )
+                )[0]
+            )
 
         # manage directories
         mask_dir = os.path.dirname(date_mask[0])
         logger.debug("preprocessing {} masks".format(mask_dir))
-        mask_name = os.path.basename(date_mask[0]).replace(list(self.masks_rules.items())[0][0],
-                                                           "{}.tif".format(self.masks_date_suffix))
+        mask_name = os.path.basename(date_mask[0]).replace(
+            list(self.masks_rules.items())[0][0],
+            "{}.tif".format(self.masks_date_suffix),
+        )
         out_mask = os.path.join(mask_dir, mask_name)
         if out_prepro:
             _, date_dir_name = os.path.split(mask_dir)
-            out_mask_dir = mask_dir.replace(os.path.join(
-                self.l8_data, self.tile_name), out_prepro)
+            out_mask_dir = mask_dir.replace(
+                os.path.join(self.l8_data, self.tile_name), out_prepro
+            )
             ensure_dir(out_mask_dir, raise_exe=False)
             out_mask = os.path.join(out_mask_dir, mask_name)
 
@@ -311,19 +348,21 @@ class Landsat_8(Sensor):
             out_mask_processing = os.path.join(working_dir, mask_name)
 
         # build binary mask
-        expr = "+".join(["im{}b1".format(cpt + 1)
-                         for cpt in range(len(date_mask))])
+        expr = "+".join(["im{}b1".format(cpt + 1) for cpt in range(len(date_mask))])
         expr = "({})==0?0:1".format(expr)
-        binary_mask_rule = CreateBandMathApplication({"il": date_mask,
-                                                      "exp": expr})
+        binary_mask_rule = CreateBandMathApplication({"il": date_mask, "exp": expr})
         binary_mask_rule.Execute()
         # reproject using reference image
-        superimp, _ = CreateSuperimposeApplication({"inr": self.ref_image,
-                                                    "inm": binary_mask_rule,
-                                                    "interpolator": "nn",
-                                                    "out": out_mask_processing,
-                                                    "pixType": "uint8",
-                                                    "ram": str(ram)})
+        superimp, _ = CreateSuperimposeApplication(
+            {
+                "inr": self.ref_image,
+                "inm": binary_mask_rule,
+                "interpolator": "nn",
+                "out": out_mask_processing,
+                "pixType": "uint8",
+                "ram": str(ram),
+            }
+        )
 
         # needed to travel throught iota2's library
         app_dep = [binary_mask_rule]
@@ -331,12 +370,12 @@ class Landsat_8(Sensor):
         if self.write_dates_stack:
             same_proj = False
             if os.path.exists(out_mask):
-                same_proj = int(
-                    getRasterProjectionEPSG(out_mask)) == int(
-                    self.target_proj)
+                same_proj = int(getRasterProjectionEPSG(out_mask)) == int(
+                    self.target_proj
+                )
 
             if not os.path.exists(out_mask) or same_proj is False:
-                #~ superimp.ExecuteAndWriteOutput()
+                # ~ superimp.ExecuteAndWriteOutput()
                 p = mp.Process(target=executeApp, args=[superimp])
                 p.start()
                 p.join()
@@ -350,22 +389,22 @@ class Landsat_8(Sensor):
         """
         """
         input_dates = [
-            os.path.join(
-                self.tile_directory,
-                cdir) for cdir in os.listdir(
-                self.tile_directory)]
+            os.path.join(self.tile_directory, cdir)
+            for cdir in os.listdir(self.tile_directory)
+        ]
         input_dates = self.sort_dates_directories(input_dates)
 
         preprocessed_dates = OrderedDict()
         for date in input_dates:
-            data_prepro = self.preprocess_date(date, self.output_preprocess_directory,
-                                               working_dir, ram)
-            data_mask = self.preprocess_date_masks(date, self.output_preprocess_directory,
-                                                   working_dir, ram)
+            data_prepro = self.preprocess_date(
+                date, self.output_preprocess_directory, working_dir, ram
+            )
+            data_mask = self.preprocess_date_masks(
+                date, self.output_preprocess_directory, working_dir, ram
+            )
             current_date = self.get_date_from_name(os.path.basename(date))
             # TODO check if current_date already exists
-            preprocessed_dates[current_date] = {"data": data_prepro,
-                                                "mask": data_mask}
+            preprocessed_dates[current_date] = {"data": data_prepro, "mask": data_mask}
         return preprocessed_dates
 
     def footprint(self, ram=128):
@@ -380,10 +419,9 @@ class Landsat_8(Sensor):
         footprint_out = os.path.join(footprint_dir, self.footprint_name)
 
         input_dates = [
-            os.path.join(
-                self.tile_directory,
-                cdir) for cdir in os.listdir(
-                self.tile_directory)]
+            os.path.join(self.tile_directory, cdir)
+            for cdir in os.listdir(self.tile_directory)
+        ]
         input_dates = self.sort_dates_directories(input_dates)
 
         # get date's footprint
@@ -392,23 +430,30 @@ class Landsat_8(Sensor):
             date_edge.append(
                 glob.glob(
                     os.path.join(
-                        date_dir, "{}{}".format(
-                            self.struct_path_masks, list(
-                                self.masks_rules.keys())[
-                                self.border_pos])))[0])
+                        date_dir,
+                        "{}{}".format(
+                            self.struct_path_masks,
+                            list(self.masks_rules.keys())[self.border_pos],
+                        ),
+                    )
+                )[0]
+            )
 
-        expr = " || ".join("1 - im{}b1".format(i + 1)
-                           for i in range(len(date_edge)))
-        s2_border = CreateBandMathApplication({"il": date_edge,
-                                               "exp": expr,
-                                               "ram": str(ram)})
+        expr = " || ".join("1 - im{}b1".format(i + 1) for i in range(len(date_edge)))
+        s2_border = CreateBandMathApplication(
+            {"il": date_edge, "exp": expr, "ram": str(ram)}
+        )
         s2_border.Execute()
         # superimpose footprint
-        superimp, _ = CreateSuperimposeApplication({"inr": reference_raster,
-                                                    "inm": s2_border,
-                                                    "out": footprint_out,
-                                                    "pixType": "uint8",
-                                                    "ram": str(ram)})
+        superimp, _ = CreateSuperimposeApplication(
+            {
+                "inr": reference_raster,
+                "inm": s2_border,
+                "out": footprint_out,
+                "pixType": "uint8",
+                "ram": str(ram),
+            }
+        )
 
         # needed to travel throught iota2's library
         app_dep = [s2_border, _]
@@ -419,15 +464,16 @@ class Landsat_8(Sensor):
         """
         """
         from Common.FileUtils import ensure_dir
+
         input_dates_dir = [
-            os.path.join(
-                self.tile_directory,
-                cdir) for cdir in os.listdir(
-                self.tile_directory)]
+            os.path.join(self.tile_directory, cdir)
+            for cdir in os.listdir(self.tile_directory)
+        ]
         date_file = os.path.join(self.features_dir, "tmp", self.input_dates)
         all_available_dates = [
-            os.path.basename(date).split("_")[
-                self.date_position].split("-")[0] for date in input_dates_dir]
+            os.path.basename(date).split("_")[self.date_position].split("-")[0]
+            for date in input_dates_dir
+        ]
         all_available_dates = sorted(all_available_dates, key=lambda x: int(x))
         if not os.path.exists(date_file):
             with open(date_file, "w") as input_date_file:
@@ -444,23 +490,22 @@ class Landsat_8(Sensor):
 
         interp_date_dir = os.path.join(self.features_dir, "tmp")
         ensure_dir(interp_date_dir, raise_exe=False)
-        interp_date_file = os.path.join(
-            interp_date_dir, self.interpolated_dates)
+        interp_date_file = os.path.join(interp_date_dir, self.interpolated_dates)
         # get dates in the whole L8 data-set (getDateS2 -> avail to L8)
         date_interp_min, date_interp_max = getDateS2(
-            self.l8_data, self.all_tiles.split(" "))
+            self.l8_data, self.all_tiles.split(" ")
+        )
         # force dates
         if not self.cfg_IOTA2.getParam("GlobChain", "autoDate"):
             date_interp_min = self.cfg_IOTA2.getParam("Landsat8", "startDate")
             date_interp_max = self.cfg_IOTA2.getParam("Landsat8", "endDate")
 
         dates = [
-            str(date).replace(
-                "-",
-                "") for date in dateInterval(
-                date_interp_min,
-                date_interp_max,
-                self.temporal_res)]
+            str(date).replace("-", "")
+            for date in dateInterval(
+                date_interp_min, date_interp_max, self.temporal_res
+            )
+        ]
         if not os.path.exists(interp_date_file):
             with open(interp_date_file, "w") as interpolation_date_file:
                 interpolation_date_file.write("\n".join(dates))
@@ -496,37 +541,39 @@ class Landsat_8(Sensor):
 
         time_series_dir = os.path.join(self.features_dir, "tmp")
         ensure_dir(time_series_dir, raise_exe=False)
-        times_series_raster = os.path.join(
-            time_series_dir, self.time_series_name)
-        dates_time_series = CreateConcatenateImagesApplication({"il": dates_concatenation,
-                                                                "out": times_series_raster,
-                                                                "pixType": "int16",
-                                                                "ram": str(ram)})
+        times_series_raster = os.path.join(time_series_dir, self.time_series_name)
+        dates_time_series = CreateConcatenateImagesApplication(
+            {
+                "il": dates_concatenation,
+                "out": times_series_raster,
+                "pixType": "int16",
+                "ram": str(ram),
+            }
+        )
         dates_in_file, dates_in = self.write_dates_file()
 
         # build labels
         features_labels = [
-            "{}_{}_{}".format(
-                self.__class__.name,
-                band_name,
-                date) for date in dates_in for band_name in self.stack_band_position]
+            "{}_{}_{}".format(self.__class__.name, band_name, date)
+            for date in dates_in
+            for band_name in self.stack_band_position
+        ]
 
         # if not all bands must be used
         if self.extracted_bands:
             app_dep.append(dates_time_series)
-            (dates_time_series,
-             features_labels) = self.extract_bands_time_series(dates_time_series,
-                                                               dates_in,
-                                                               len(self.stack_band_position),
-                                                               self.extracted_bands,
-                                                               ram)
+            (dates_time_series, features_labels) = self.extract_bands_time_series(
+                dates_time_series,
+                dates_in,
+                len(self.stack_band_position),
+                self.extracted_bands,
+                ram,
+            )
         return (dates_time_series, app_dep), features_labels
 
-    def extract_bands_time_series(self, dates_time_series,
-                                  dates_in,
-                                  comp,
-                                  extract_bands,
-                                  ram):
+    def extract_bands_time_series(
+        self, dates_time_series, dates_in, comp, extract_bands, ram
+    ):
         """
         TODO : mv to base class ?
         extract_bands : list
@@ -539,23 +586,24 @@ class Landsat_8(Sensor):
         channels_interest = []
         for date_number in range(nb_dates):
             for band_name, band_position in extract_bands:
-                channels_interest.append(
-                    band_position + int(date_number * comp))
+                channels_interest.append(band_position + int(date_number * comp))
 
         features_labels = [
-            "{}_{}_{}".format(
-                self.__class__.name,
-                band_name,
-                date) for date in dates_in for band_name,
-            band_pos in extract_bands]
-        channels_list = ["Channel{}".format(
-            channel) for channel in channels_interest]
+            "{}_{}_{}".format(self.__class__.name, band_name, date)
+            for date in dates_in
+            for band_name, band_pos in extract_bands
+        ]
+        channels_list = ["Channel{}".format(channel) for channel in channels_interest]
         time_series_out = dates_time_series.GetParameterString("out")
         dates_time_series.Execute()
-        extract = CreateExtractROIApplication({"in": dates_time_series,
-                                               "cl": channels_list,
-                                               "ram": str(ram),
-                                               "out": dates_time_series.GetParameterString("out")})
+        extract = CreateExtractROIApplication(
+            {
+                "in": dates_time_series,
+                "cl": channels_list,
+                "ram": str(ram),
+                "out": dates_time_series.GetParameterString("out"),
+            }
+        )
         return extract, features_labels
 
     def get_time_series_masks(self, ram=128, logger=logger):
@@ -590,12 +638,15 @@ class Landsat_8(Sensor):
 
         time_series_dir = os.path.join(self.features_dir, "tmp")
         ensure_dir(time_series_dir, raise_exe=False)
-        times_series_mask = os.path.join(
-            time_series_dir, self.time_series_masks_name)
-        dates_time_series_mask = CreateConcatenateImagesApplication({"il": dates_masks,
-                                                                     "out": times_series_mask,
-                                                                     "pixType": "uint8",
-                                                                     "ram": str(ram)})
+        times_series_mask = os.path.join(time_series_dir, self.time_series_masks_name)
+        dates_time_series_mask = CreateConcatenateImagesApplication(
+            {
+                "il": dates_masks,
+                "out": times_series_mask,
+                "pixType": "uint8",
+                "ram": str(ram),
+            }
+        )
         return dates_time_series_mask, app_dep, len(dates_masks)
 
     def get_time_series_gapFilling(self, ram=128):
@@ -617,19 +668,25 @@ class Landsat_8(Sensor):
         time_series.Execute()
         masks.Execute()
 
-        comp = len(
-            self.stack_band_position) if not self.extracted_bands else len(
-            self.extracted_bands)
+        comp = (
+            len(self.stack_band_position)
+            if not self.extracted_bands
+            else len(self.extracted_bands)
+        )
 
-        gap = CreateImageTimeSeriesGapFillingApplication({"in": time_series,
-                                                          "mask": masks,
-                                                          "comp": str(comp),
-                                                          "it": "linear",
-                                                          "id": dates_in_file,
-                                                          "od": dates_interp_file,
-                                                          "out": gap_out,
-                                                          "ram": str(ram),
-                                                          "pixType": "int16"})
+        gap = CreateImageTimeSeriesGapFillingApplication(
+            {
+                "in": time_series,
+                "mask": masks,
+                "comp": str(comp),
+                "it": "linear",
+                "id": dates_in_file,
+                "od": dates_interp_file,
+                "out": gap_out,
+                "ram": str(ram),
+                "pixType": "int16",
+            }
+        )
         app_dep = [time_series, masks, masks_dep, time_series_dep]
 
         bands = self.stack_band_position
@@ -637,14 +694,13 @@ class Landsat_8(Sensor):
             bands = [band_name for band_name, band_pos in self.extracted_bands]
 
         features_labels = [
-            "{}_{}_{}".format(
-                self.__class__.name,
-                band_name,
-                date) for date in dates_interp for band_name in bands]
+            "{}_{}_{}".format(self.__class__.name, band_name, date)
+            for date in dates_interp
+            for band_name in bands
+        ]
         return (gap, app_dep), features_labels
 
-    def get_features_labels(self, dates,
-                            rel_refl, keep_dupl, copy_in):
+    def get_features_labels(self, dates, rel_refl, keep_dupl, copy_in):
         """
         """
         if rel_refl and keep_dupl is False and copy_in is True:
@@ -653,11 +709,7 @@ class Landsat_8(Sensor):
 
         for feature in self.features_names_list:
             for date in dates:
-                out_labels.append(
-                    "{}_{}_{}".format(
-                        self.__class__.name,
-                        feature,
-                        date))
+                out_labels.append("{}_{}_{}".format(self.__class__.name, feature, date))
         return out_labels
 
     def get_features(self, ram=128, logger=logger):
@@ -673,12 +725,15 @@ class Landsat_8(Sensor):
         features_out = os.path.join(features_dir, self.features_names)
 
         features = self.cfg_IOTA2.getParam("GlobChain", "features")
-        enable_gapFilling = self.cfg_IOTA2.getParam(
-            "GlobChain", "useGapFilling")
+        enable_gapFilling = self.cfg_IOTA2.getParam("GlobChain", "useGapFilling")
         hand_features_flag = self.cfg_IOTA2.getParam(
-            'GlobChain', 'useAdditionalFeatures')
+            "GlobChain", "useAdditionalFeatures"
+        )
 
-        (in_stack, in_stack_dep), in_stack_features_labels = self.get_time_series_gapFilling()
+        (
+            in_stack,
+            in_stack_dep,
+        ), in_stack_features_labels = self.get_time_series_gapFilling()
         _, dates_enabled = self.write_interpolation_dates_file()
 
         if not enable_gapFilling:
@@ -688,61 +743,61 @@ class Landsat_8(Sensor):
         in_stack.Execute()
         app_dep = []
         if hand_features_flag:
-            hand_features = self.cfg_IOTA2.getParam(
-                "Landsat8", "additionalFeatures")
-            comp = len(
-                self.stack_band_position) if not self.extracted_bands else len(
-                self.extracted_bands)
-            userDateFeatures, fields_userFeat, a, b = computeUserFeatures(in_stack,
-                                                                          dates_enabled,
-                                                                          comp,
-                                                                          hand_features.split(","))
+            hand_features = self.cfg_IOTA2.getParam("Landsat8", "additionalFeatures")
+            comp = (
+                len(self.stack_band_position)
+                if not self.extracted_bands
+                else len(self.extracted_bands)
+            )
+            userDateFeatures, fields_userFeat, a, b = computeUserFeatures(
+                in_stack, dates_enabled, comp, hand_features.split(",")
+            )
             userDateFeatures.Execute()
             app_dep.append([userDateFeatures, a, b])
 
         if features:
             bands_avail = self.stack_band_position
             if self.extracted_bands:
-                bands_avail = [
-                    band_name for band_name,
-                    _ in self.extracted_bands]
+                bands_avail = [band_name for band_name, _ in self.extracted_bands]
                 # check mandatory bands
                 if not "B4" in bands_avail:
-                    raise Exception(
-                        "red band (B4) is needed to compute features")
+                    raise Exception("red band (B4) is needed to compute features")
                 if not "B5" in bands_avail:
-                    raise Exception(
-                        "nir band (B5) is needed to compute features")
+                    raise Exception("nir band (B5) is needed to compute features")
                 if not "B6" in bands_avail:
-                    raise Exception(
-                        "swir band (B6) is needed to compute features")
-            feat_parameters = {"in": in_stack,
-                               "out": features_out,
-                               "comp": len(bands_avail),
-                               "red": bands_avail.index("B4") + 1,
-                               "nir": bands_avail.index("B5") + 1,
-                               "swir": bands_avail.index("B6") + 1,
-                               "copyinput": self.cfg_IOTA2.getParam('iota2FeatureExtraction', 'copyinput'),
-                               "relrefl": self.cfg_IOTA2.getParam('iota2FeatureExtraction', 'relrefl'),
-                               "keepduplicates": self.cfg_IOTA2.getParam('iota2FeatureExtraction', 'keepduplicates'),
-                               "acorfeat": self.cfg_IOTA2.getParam('iota2FeatureExtraction', 'acorfeat'),
-                               "pixType": "int16",
-                               "ram": str(ram)}
-            copyinput = self.cfg_IOTA2.getParam(
-                'iota2FeatureExtraction', 'copyinput')
-            rel_refl = self.cfg_IOTA2.getParam(
-                'iota2FeatureExtraction', 'relrefl')
+                    raise Exception("swir band (B6) is needed to compute features")
+            feat_parameters = {
+                "in": in_stack,
+                "out": features_out,
+                "comp": len(bands_avail),
+                "red": bands_avail.index("B4") + 1,
+                "nir": bands_avail.index("B5") + 1,
+                "swir": bands_avail.index("B6") + 1,
+                "copyinput": self.cfg_IOTA2.getParam(
+                    "iota2FeatureExtraction", "copyinput"
+                ),
+                "relrefl": self.cfg_IOTA2.getParam("iota2FeatureExtraction", "relrefl"),
+                "keepduplicates": self.cfg_IOTA2.getParam(
+                    "iota2FeatureExtraction", "keepduplicates"
+                ),
+                "acorfeat": self.cfg_IOTA2.getParam(
+                    "iota2FeatureExtraction", "acorfeat"
+                ),
+                "pixType": "int16",
+                "ram": str(ram),
+            }
+            copyinput = self.cfg_IOTA2.getParam("iota2FeatureExtraction", "copyinput")
+            rel_refl = self.cfg_IOTA2.getParam("iota2FeatureExtraction", "relrefl")
             keep_dupl = self.cfg_IOTA2.getParam(
-                'iota2FeatureExtraction', 'keepduplicates')
+                "iota2FeatureExtraction", "keepduplicates"
+            )
 
-            features_app = CreateIota2FeatureExtractionApplication(
-                feat_parameters)
+            features_app = CreateIota2FeatureExtractionApplication(feat_parameters)
             if copyinput is False:
                 in_stack_features_labels = []
-            features_labels = in_stack_features_labels + self.get_features_labels(dates_enabled,
-                                                                                  rel_refl,
-                                                                                  keep_dupl,
-                                                                                  copyinput)
+            features_labels = in_stack_features_labels + self.get_features_labels(
+                dates_enabled, rel_refl, keep_dupl, copyinput
+            )
         else:
             features_app = in_stack
             features_labels = in_stack_features_labels
@@ -752,8 +807,12 @@ class Landsat_8(Sensor):
         if hand_features_flag:
             features_app.Execute()
             app_dep.append(features_app)
-            features_app = CreateConcatenateImagesApplication({"il": [features_app, userDateFeatures],
-                                                               "out": features_out,
-                                                               "ram": str(ram)})
+            features_app = CreateConcatenateImagesApplication(
+                {
+                    "il": [features_app, userDateFeatures],
+                    "out": features_out,
+                    "ram": str(ram),
+                }
+            )
             features_labels += fields_userFeat
         return (features_app, app_dep), features_labels

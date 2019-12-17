@@ -29,14 +29,14 @@ def zonal_stats(feat, input_zone_polygon, input_value_raster):
     targetSR = osr.SpatialReference()
     targetSR.ImportFromWkt(raster.GetProjectionRef())
     coordTrans = osr.CoordinateTransformation(sourceSR, targetSR)
-    #feat = lyr.GetNextFeature()
-    lyr.SetAttributeFilter('FID = ' + str(feat.GetFID()))
+    # feat = lyr.GetNextFeature()
+    lyr.SetAttributeFilter("FID = " + str(feat.GetFID()))
     geom = feat.GetGeometryRef()
     geom.Transform(coordTrans)
 
     # Get extent of feat
     geom = feat.GetGeometryRef()
-    if (geom.GetGeometryName() == 'MULTIPOLYGON'):
+    if geom.GetGeometryName() == "MULTIPOLYGON":
         count = 0
         pointsX = []
         pointsY = []
@@ -49,7 +49,7 @@ def zonal_stats(feat, input_zone_polygon, input_value_raster):
                 pointsX.append(lon)
                 pointsY.append(lat)
             count += 1
-    elif (geom.GetGeometryName() == 'POLYGON'):
+    elif geom.GetGeometryName() == "POLYGON":
         ring = geom.GetGeometryRef(0)
         numpoints = ring.GetPointCount()
         pointsX = []
@@ -76,12 +76,10 @@ def zonal_stats(feat, input_zone_polygon, input_value_raster):
     # print xmin, xmax, ymin, ymax, xoff, yoff, xcount, ycount
 
     # Create memory target raster
-    target_ds = gdal.GetDriverByName('GTiff').Create(
-        'test.tif', xcount, ycount, gdal.GDT_Byte)
-    target_ds.SetGeoTransform((
-        xmin, pixelWidth, 0,
-        ymax, 0, pixelHeight,
-    ))
+    target_ds = gdal.GetDriverByName("GTiff").Create(
+        "test.tif", xcount, ycount, gdal.GDT_Byte
+    )
+    target_ds.SetGeoTransform((xmin, pixelWidth, 0, ymax, 0, pixelHeight))
 
     # Create for target raster the same projection as for the value raster
     raster_srs = osr.SpatialReference()
@@ -93,9 +91,9 @@ def zonal_stats(feat, input_zone_polygon, input_value_raster):
 
     # Read raster as arrays
     banddataraster = raster.GetRasterBand(1)
-    dataraster = banddataraster.ReadAsArray(
-        xoff, yoff, xcount, ycount).astype(
-        numpy.int)
+    dataraster = banddataraster.ReadAsArray(xoff, yoff, xcount, ycount).astype(
+        numpy.int
+    )
 
     bandmask = target_ds.GetRasterBand(1)
     datamask = bandmask.ReadAsArray(0, 0, xcount, ycount).astype(numpy.float)
@@ -127,8 +125,7 @@ def loop_zonal_stats(input_zone_polygon, input_value_raster):
         ide = i.GetFID()
         feat = lyr.GetFeature(ide)
         if feat.GetGeometryRef():
-            statValue = zonal_stats(
-                feat, input_zone_polygon, input_value_raster)
+            statValue = zonal_stats(feat, input_zone_polygon, input_value_raster)
             FinalStat = FinalStat + statValue
     for i in range(0, len(FinalStat)):
         if FinalStat[i] != 0:
@@ -143,6 +140,8 @@ def main(input_zone_polygon, input_value_raster):
 if __name__ == "__main__":
 
     if len(sys.argv) != 3:
-        print("[ ERROR ] you must supply two arguments: input-zone-shapefile-name.shp input-value-raster-name.tif ")
+        print(
+            "[ ERROR ] you must supply two arguments: input-zone-shapefile-name.shp input-value-raster-name.tif "
+        )
         sys.exit(1)
     print(main(sys.argv[1], sys.argv[2]))

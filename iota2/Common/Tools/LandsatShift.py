@@ -46,17 +46,22 @@ def getLandsatRedBand(l8ImageIn, l8RedBandOut, channel=4):
     extractApp = otb.Registry.CreateApplication("ExtractROI")
     extractApp.SetParameterString("in", l8ImageIn)
     extractApp.SetParameterString("out", l8RedBandOut)
-    extractApp.SetParameterOutputImagePixelType(
-        "out", otb.ImagePixelType_int16)
+    extractApp.SetParameterOutputImagePixelType("out", otb.ImagePixelType_int16)
     extractApp.UpdateParameters()
     extractApp.SetParameterStringList("cl", ["Channel" + str(channel)])
     extractApp.ExecuteAndWriteOutput()
 
 
-def disparityMapEstimation(s2ImageIn, l8ImageIn, disparityMapOut,
-                           explorationRadius=2, metricRadius=5,
-                           validityLowerThreshold=0, subsamplingRate=3,
-                           metric="CCSM"):
+def disparityMapEstimation(
+    s2ImageIn,
+    l8ImageIn,
+    disparityMapOut,
+    explorationRadius=2,
+    metricRadius=5,
+    validityLowerThreshold=0,
+    subsamplingRate=3,
+    metric="CCSM",
+):
     """Estimate de disparity map between S2 and L8."""
     dmApp = otb.Registry.CreateApplication("FineRegistration")
     dmApp.SetParameterString("ref", s2ImageIn)
@@ -73,15 +78,17 @@ def disparityMapEstimation(s2ImageIn, l8ImageIn, disparityMapOut,
     dmApp.ExecuteAndWriteOutput()
 
 
-def filterDisparityMap(dmIn, dmComponentOut, metricThreshold=0.90,
-                       dmComponent="x", outputInvalidValue=-100):
+def filterDisparityMap(
+    dmIn, dmComponentOut, metricThreshold=0.90, dmComponent="x", outputInvalidValue=-100
+):
     """Filter a component (x or y) of the disparity map using a metric validity
     threshold. Only pixels above the threshold will be kept"""
     compStr = "im1b1"
     if dmComponent == "y":
         compStr = "im1b2"
-    expression = "im1b3>" + str(metricThreshold) + "?" + \
-        compStr + ":" + str(outputInvalidValue)
+    expression = (
+        "im1b3>" + str(metricThreshold) + "?" + compStr + ":" + str(outputInvalidValue)
+    )
     bmApp = otb.Registry.CreateApplication("BandMath")
     bmApp.SetParameterStringList("il", [dmIn])
     bmApp.SetParameterString("out", dmComponentOut)
@@ -89,9 +96,12 @@ def filterDisparityMap(dmIn, dmComponentOut, metricThreshold=0.90,
     bmApp.ExecuteAndWriteOutput()
 
 
-def estimateMeanShiftAndStdFromDisparityMap(dmComponentIn, backgroundValue=-100,
-                                            removeStatsFile=True,
-                                            statsFileName="/tmp/stats.xml"):
+def estimateMeanShiftAndStdFromDisparityMap(
+    dmComponentIn,
+    backgroundValue=-100,
+    removeStatsFile=True,
+    statsFileName="/tmp/stats.xml",
+):
     """Use image statistics (ignore backgroundValue) to estimate the mean and
     the std of the disparity map component"""
     cisApp = otb.Registry.CreateApplication("ComputeImagesStatistics")
@@ -105,19 +115,24 @@ def estimateMeanShiftAndStdFromDisparityMap(dmComponentIn, backgroundValue=-100,
         s = float(string.split(ls[6], '"')[1])
     if removeStatsFile:
         os.remove(statsFileName)
-    return(m, s)
+    return (m, s)
 
 
-def estimateMeanShiftAndStd(l8ImageIn, s2ImageIn, removeTemporaryFiles=True,
-                            workingDir="/tmp", s2SubsamplingRate=3, l8RedChannel=4):
+def estimateMeanShiftAndStd(
+    l8ImageIn,
+    s2ImageIn,
+    removeTemporaryFiles=True,
+    workingDir="/tmp",
+    s2SubsamplingRate=3,
+    l8RedChannel=4,
+):
     """Estimates the mean shift in X and Y together with standard deviations"""
     lowResS2 = workingDir + "/lrs2.tif"
     redl8 = workingDir + "/redl8.tif"
     disparityMap = workingDir + "/dm.tif"
     disparityMapX = workingDir + "/dmx.tif"
     disparityMapY = workingDir + "/dmy.tif"
-    filesToRemove = [lowResS2, redl8, disparityMap, disparityMapX,
-                     disparityMapY]
+    filesToRemove = [lowResS2, redl8, disparityMap, disparityMapX, disparityMapY]
     subsampleS2(s2ImageIn, lowResS2, l8ImageIn)
     getLandsatRedBand(l8ImageIn, redl8, l8RedChannel)
     disparityMapEstimation(lowResS2, redl8, disparityMap)
@@ -143,13 +158,23 @@ def shiftImage(l8ImageIn, dx, dy, backupOriginalImage=True):
     ds.SetGeoTransform(gt2)
 
 
-def landsatShift(l8ImageIn, s2ImageIn, removeTemporaryFiles=True,
-                 workingDir="/tmp", s2SubsamplingRate=3, l8RedChannel=4):
+def landsatShift(
+    l8ImageIn,
+    s2ImageIn,
+    removeTemporaryFiles=True,
+    workingDir="/tmp",
+    s2SubsamplingRate=3,
+    l8RedChannel=4,
+):
     """Estimates the shift and then applies the meta-data modification"""
-    (dx, stdx, dy, stdy) = estimateMeanShiftAndStd(l8ImageIn, s2ImageIn,
-                                                   removeTemporaryFiles,
-                                                   workingDir, s2SubsamplingRate,
-                                                   l8RedChannel)
+    (dx, stdx, dy, stdy) = estimateMeanShiftAndStd(
+        l8ImageIn,
+        s2ImageIn,
+        removeTemporaryFiles,
+        workingDir,
+        s2SubsamplingRate,
+        l8RedChannel,
+    )
     print("Estimated shift")
     print("dx (std) = ", str(dx) + "(" + str(stdx) + ")")
     print("dy (std) = ", str(dy) + "(" + str(stdy) + ")")
@@ -163,25 +188,46 @@ def landsatShift(l8ImageIn, s2ImageIn, removeTemporaryFiles=True,
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         prog = os.path.basename(sys.argv[0])
-        print('      ' + sys.argv[0] + ' [options]')
+        print("      " + sys.argv[0] + " [options]")
         print("     Help : ", prog, " --help")
         print("        or : ", prog, " -h")
         sys.exit(-1)
     else:
         usage = "usage: %prog [options] "
-        parser = argparse.ArgumentParser(description="Shifts a Landsat-8 \
+        parser = argparse.ArgumentParser(
+            description="Shifts a Landsat-8 \
         image by modifying its meta-data. The shift is estimated by \
-        correlation over a reference Sentinel-2 image")
-        parser.add_argument("-l8", dest="l8Image", action="store",
-                            help="Landsat-8 image to shift", required=True)
-        parser.add_argument("-s2", dest="s2Image", action="store",
-                            help="Reference Sentinel-2 image", required=True)
-        parser.add_argument("-rtf", dest="removeTemp", action="store",
-                            help="Remove temporary files (y/n)",
-                            default="n")
-        parser.add_argument("-wd", dest="workingDir", action="store",
-                            help="Working directory for temporary files",
-                            default="/tmp/")
+        correlation over a reference Sentinel-2 image"
+        )
+        parser.add_argument(
+            "-l8",
+            dest="l8Image",
+            action="store",
+            help="Landsat-8 image to shift",
+            required=True,
+        )
+        parser.add_argument(
+            "-s2",
+            dest="s2Image",
+            action="store",
+            help="Reference Sentinel-2 image",
+            required=True,
+        )
+        parser.add_argument(
+            "-rtf",
+            dest="removeTemp",
+            action="store",
+            help="Remove temporary files (y/n)",
+            default="n",
+        )
+        parser.add_argument(
+            "-wd",
+            dest="workingDir",
+            action="store",
+            help="Working directory for temporary files",
+            default="/tmp/",
+        )
         args = parser.parse_args()
-        landsatShift(args.l8Image, args.s2Image, bool(args.removeTemp == "y"),
-                     args.workingDir)
+        landsatShift(
+            args.l8Image, args.s2Image, bool(args.removeTemp == "y"), args.workingDir
+        )

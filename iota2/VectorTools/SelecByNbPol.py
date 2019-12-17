@@ -24,8 +24,8 @@ def RandomInSitu(vectorFile, field, nbdraws, opath, perc_learn):
     dicoprop = {}
     allFID = []
     nbtirage = nbdraws
-    nameshp = shapefile.split('.')
-    namefile = nameshp[0].split('/')
+    nameshp = shapefile.split(".")
+    namefile = nameshp[0].split("/")
 
     driver = ogr.GetDriverByName("ESRI Shapefile")
     dataSource = driver.Open(shapefile, 0)
@@ -76,13 +76,12 @@ def RandomInSitu(vectorFile, field, nbdraws, opath, perc_learn):
     resultA = []
     for e in listFid:
         resultA.append(e)
-        resultA.append(' OR ')
+        resultA.append(" OR ")
     resultA.pop()
 
-    chA = ''.join(resultA)
+    chA = "".join(resultA)
     layer.SetAttributeFilter(chA)
-    outShapefile = opath + "/" + \
-        namefile[-1] + "_seed" + str(tirage) + "_learn.shp"
+    outShapefile = opath + "/" + namefile[-1] + "_seed" + str(tirage) + "_learn.shp"
     vf.CreateNewLayer(layer, outShapefile)
 
     listValid = []
@@ -98,18 +97,17 @@ def RandomInSitu(vectorFile, field, nbdraws, opath, perc_learn):
     resultV = []
     for e in listFidV:
         resultV.append(e)
-        resultV.append(' OR ')
+        resultV.append(" OR ")
     resultV.pop()
 
-    chV = ''.join(resultV)
+    chV = "".join(resultV)
     layer.SetAttributeFilter(chV)
-    outShapefile2 = opath + "/" + \
-        namefile[-1] + "_seed" + str(tirage) + "_val.shp"
+    outShapefile2 = opath + "/" + namefile[-1] + "_seed" + str(tirage) + "_val.shp"
     vf.CreateNewLayer(layer, outShapefile2)
 
 
-if __name__ == '__main__':
-    usage = 'usage: <infile> <field_containing_class> <opath> <out_nb_polygons> '
+if __name__ == "__main__":
+    usage = "usage: <infile> <field_containing_class> <opath> <out_nb_polygons> "
     if len(sys.argv) != 6:
         print(usage)
         sys.exit(1)
@@ -122,7 +120,8 @@ if __name__ == '__main__':
         nbfeat = vf.getNbFeat(argv[1])
         if nbfeat < outpol:
             print(
-                "WARNING:Number of polygons wanted higher than total of polygons.90-10 percentages will be used")
+                "WARNING:Number of polygons wanted higher than total of polygons.90-10 percentages will be used"
+            )
             perc = 90
         else:
             perc = int((100 * float(argv[5])) / nbfeat)

@@ -25,10 +25,15 @@ def getModel(pathShapes):
     for path in pathAppVal:
         try:
             ind = sort.index(
-                (int(path.split("/")[-1].split("_")[-3]), path.split("/")[-1].split("_")[0]))
+                (
+                    int(path.split("/")[-1].split("_")[-3]),
+                    path.split("/")[-1].split("_")[0],
+                )
+            )
         except ValueError:
             sort.append(
-                (path.split("/")[-1].split("_")[-3], path.split("/")[-1].split("_")[0]))
+                (path.split("/")[-1].split("_")[-3], path.split("/")[-1].split("_")[0])
+            )
     # [(RegionNumber,[tile1,tile2,...]),(...),...]
     return fu.sortByFirstElem(sort)
 
@@ -36,12 +41,14 @@ def getModel(pathShapes):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(
-        description="This function link models and their tiles")
+        description="This function link models and their tiles"
+    )
     parser.add_argument(
         "-shapesIn",
         help="path to the folder which ONLY contains shapes for the classification (learning and validation) (mandatory)",
         dest="pathShapes",
-        required=True)
+        required=True,
+    )
     args = parser.parse_args()
 
     print(getModel(args.pathShapes))

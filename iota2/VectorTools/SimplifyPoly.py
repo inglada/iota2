@@ -26,8 +26,7 @@ def simplify(infile, outfile, tolerance):
             feat = lyr.GetFeature(i)
             lyr.DeleteFeature(i)
             geom = feat.GetGeometryRef()
-            if geom.Simplify(float(tolerance)).GetEnvelope() != (
-                    0.0, 0.0, 0.0, 0.0):
+            if geom.Simplify(float(tolerance)).GetEnvelope() != (0.0, 0.0, 0.0, 0.0):
                 feat.SetGeometry(geom.Simplify(float(tolerance)))
                 lyr.CreateFeature(feat)
             else:
@@ -35,21 +34,22 @@ def simplify(infile, outfile, tolerance):
         ds.Destroy()
 
         print(
-            "Simplification process created %s empty geometry. All these geometries have been deleted" %
-            (cpt))
+            "Simplification process created %s empty geometry. All these geometries have been deleted"
+            % (cpt)
+        )
     except BaseException:
         return False
     return True
 
 
-if __name__ == '__main__':
-    usage = 'usage: simplify <infile> <outfile> <tolerance>'
+if __name__ == "__main__":
+    usage = "usage: simplify <infile> <outfile> <tolerance>"
     if len(sys.argv) == 4:
         if simplify(sys.argv[1], sys.argv[2], sys.argv[3]):
-            print('Simplify succeeded!')
+            print("Simplify succeeded!")
             sys.exit(0)
         else:
-            print('Simplify failed!')
+            print("Simplify failed!")
             sys.exit(1)
     else:
         print(usage)

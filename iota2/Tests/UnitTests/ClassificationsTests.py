@@ -18,7 +18,7 @@
 import os
 import sys
 
-IOTA2DIR = os.environ.get('IOTA2DIR')
+IOTA2DIR = os.environ.get("IOTA2DIR")
 if not IOTA2DIR:
     raise Exception("IOTA2DIR environment variable must be set")
 iota2_script = os.path.join(IOTA2DIR, "iota2")
@@ -35,6 +35,7 @@ import numpy as np
 # sub-directory tests
 RM_IF_ALL_OK = True
 
+
 class iota_testClassifications(unittest.TestCase):
     # before launching tests
     @classmethod
@@ -42,12 +43,14 @@ class iota_testClassifications(unittest.TestCase):
         # definition of local variables
         self.group_test_name = "iota_testClassifications"
         self.iota2_tests_directory = os.path.join(
-            IOTA2DIR, "data", self.group_test_name)
+            IOTA2DIR, "data", self.group_test_name
+        )
         self.all_tests_ok = []
 
         # input data
         self.config_test = os.path.join(
-            IOTA2DIR, "config", "Config_4Tuiles_Multi_FUS_Confidence.cfg")
+            IOTA2DIR, "config", "Config_4Tuiles_Multi_FUS_Confidence.cfg"
+        )
 
         # Tests directory
         self.test_working_directory = None
@@ -72,7 +75,8 @@ class iota_testClassifications(unittest.TestCase):
 
         test_name = self.id().split(".")[-1]
         self.test_working_directory = os.path.join(
-            self.iota2_tests_directory, test_name)
+            self.iota2_tests_directory, test_name
+        )
         if os.path.exists(self.test_working_directory):
             shutil.rmtree(self.test_working_directory)
         os.mkdir(self.test_working_directory)
@@ -87,10 +91,7 @@ class iota_testClassifications(unittest.TestCase):
             result = self.defaultTestResult()
             self._feedErrorsToResult(result, self._outcome.errors)
         else:
-            result = getattr(
-                self,
-                '_outcomeForDoCleanups',
-                self._resultForDoCleanups)
+            result = getattr(self, "_outcomeForDoCleanups", self._resultForDoCleanups)
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
         ok = not error and not failure
@@ -108,65 +109,50 @@ class iota_testClassifications(unittest.TestCase):
         from Classification.ImageClassifier import iota2Classification
 
         # prepare inputs
-        probamap_arr = [np.array([[268, 528, 131],
-                                  [514, 299, 252],
-                                  [725, 427, 731]][::-1]),
-                        np.array([[119, 241, 543],
-                                  [974, 629, 626],
-                                  [3, 37, 819]][::-1]),
-                        np.array([[409, 534, 710],
-                                  [916, 43, 993],
-                                  [207, 68, 282]][::-1]),
-                        np.array([[820, 169, 423],
-                                  [710, 626, 525],
-                                  [377, 777, 461]][::-1]),
-                        np.array([[475, 116, 395],
-                                  [838, 297, 262],
-                                  [650, 828, 595]][::-1]),
-                        np.array([[0, 0, 0],
-                                  [0, 0, 0],
-                                  [0, 0, 0]][::-1])]
-        probamap_path = os.path.join(self.test_working_directory,
-                                     "PROBAMAP_T31TCJ_model_1_seed_0.tif")
+        probamap_arr = [
+            np.array([[268, 528, 131], [514, 299, 252], [725, 427, 731]][::-1]),
+            np.array([[119, 241, 543], [974, 629, 626], [3, 37, 819]][::-1]),
+            np.array([[409, 534, 710], [916, 43, 993], [207, 68, 282]][::-1]),
+            np.array([[820, 169, 423], [710, 626, 525], [377, 777, 461]][::-1]),
+            np.array([[475, 116, 395], [838, 297, 262], [650, 828, 595]][::-1]),
+            np.array([[0, 0, 0], [0, 0, 0], [0, 0, 0]][::-1]),
+        ]
+        probamap_path = os.path.join(
+            self.test_working_directory, "PROBAMAP_T31TCJ_model_1_seed_0.tif"
+        )
         arrayToRaster(probamap_arr, probamap_path)
 
         cfg = SCF.serviceConfigFile(self.config_test)
         fake_model = "model_1_seed_0.txt"
         fake_tile = "T31TCJ"
         fake_output_directory = "fake_output_directory"
-        classifier = iota2Classification(cfg, features_stack=None,
-                                         classifier_type=None, model=fake_model,
-                                         tile=fake_tile, output_directory=fake_output_directory,
-                                         models_class=None)
+        classifier = iota2Classification(
+            cfg,
+            features_stack=None,
+            classifier_type=None,
+            model=fake_model,
+            tile=fake_tile,
+            output_directory=fake_output_directory,
+            models_class=None,
+        )
         class_model = [1, 2, 3, 4, 6]
         all_class = [1, 2, 3, 4, 5, 6]
-        proba_map_path_out = os.path.join(self.test_working_directory,
-                                          "PROBAMAP_T31TCJ_model_1_seed_0_ORDERED.tif")
+        proba_map_path_out = os.path.join(
+            self.test_working_directory, "PROBAMAP_T31TCJ_model_1_seed_0_ORDERED.tif"
+        )
         classifier.reorder_proba_map(
-            probamap_path,
-            proba_map_path_out,
-            class_model,
-            all_class)
+            probamap_path, proba_map_path_out, class_model, all_class
+        )
 
         # assert
-        probamap_arr_ref = [np.array([[268, 528, 131],
-                                      [514, 299, 252],
-                                      [725, 427, 731]][::-1]),
-                            np.array([[119, 241, 543],
-                                      [974, 629, 626],
-                                      [3, 37, 819]][::-1]),
-                            np.array([[409, 534, 710],
-                                      [916, 43, 993],
-                                      [207, 68, 282]][::-1]),
-                            np.array([[820, 169, 423],
-                                      [710, 626, 525],
-                                      [377, 777, 461]][::-1]),
-                            np.array([[0, 0, 0],
-                                      [0, 0, 0],
-                                      [0, 0, 0]][::-1]),
-                            np.array([[475, 116, 395],
-                                      [838, 297, 262],
-                                      [650, 828, 595]][::-1])]
+        probamap_arr_ref = [
+            np.array([[268, 528, 131], [514, 299, 252], [725, 427, 731]][::-1]),
+            np.array([[119, 241, 543], [974, 629, 626], [3, 37, 819]][::-1]),
+            np.array([[409, 534, 710], [916, 43, 993], [207, 68, 282]][::-1]),
+            np.array([[820, 169, 423], [710, 626, 525], [377, 777, 461]][::-1]),
+            np.array([[0, 0, 0], [0, 0, 0], [0, 0, 0]][::-1]),
+            np.array([[475, 116, 395], [838, 297, 262], [650, 828, 595]][::-1]),
+        ]
         reordered_test_arr = rasterToArray(proba_map_path_out)
         self.assertEqual(len(all_class), len(reordered_test_arr))
         is_bands_ok = []
@@ -175,5 +161,4 @@ class iota_testClassifications(unittest.TestCase):
             band_test = reordered_test_arr[band]
             for ref_val, test_val in zip(band_ref.flat, band_test.flat):
                 is_bands_ok.append(int(ref_val) == int(test_val))
-        self.assertTrue(all(is_bands_ok),
-                        msg="reordering probability maps failed")
+        self.assertTrue(all(is_bands_ok), msg="reordering probability maps failed")

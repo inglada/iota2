@@ -26,10 +26,10 @@ def create_grid(base_shp, out_grid, distance_line):
     """
 
     # import ogr variable
-    data_source = ogr.GetDriverByName('ESRI Shapefile').Open(base_shp, 0)
+    data_source = ogr.GetDriverByName("ESRI Shapefile").Open(base_shp, 0)
 
     if data_source is None:
-        print('Could not open file')
+        print("Could not open file")
         sys.exit(1)
 
     shp_ogr = data_source.GetLayer()
@@ -53,12 +53,11 @@ def create_grid(base_shp, out_grid, distance_line):
     out_ds = data_source.GetDriver().CreateDataSource(out_grid)
 
     if out_ds is None:
-        print('Could not create file')
+        print("Could not create file")
         sys.exit(1)
 
     #  Specific output layer
-    out_layer = out_ds.CreateLayer(
-        str(out_grid), srsObj, geom_type=ogr.wkbLineString)
+    out_layer = out_ds.CreateLayer(str(out_grid), srsObj, geom_type=ogr.wkbLineString)
 
     # Add a integer field (ID)
     new_field = ogr.FieldDefn("ID", 0)
@@ -121,19 +120,36 @@ def create_grid(base_shp, out_grid, distance_line):
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         prog = os.path.basename(sys.argv[0])
-        print('      ' + sys.argv[0] + ' [options]')
+        print("      " + sys.argv[0] + " [options]")
         print("     Help : ", prog, " --help")
         print("        or : ", prog, " -h")
         sys.exit(-1)
     else:
         usage = "usage: %prog [options] "
-        parser = argparse.ArgumentParser(description="Function to build "
-                                         " a grid with the same extend that input shapefile")
-        parser.add_argument("-s", dest="shapefile", action="store",
-                            help="Reference shapefile", required=True)
-        parser.add_argument("-d", dest="distance", action="store",
-                            help="Distance between every line in meter", required=True)
-        parser.add_argument("-o", dest="outpath", action="store",
-                            help="ESRI Shapefile output filename and path", required=True)
+        parser = argparse.ArgumentParser(
+            description="Function to build "
+            " a grid with the same extend that input shapefile"
+        )
+        parser.add_argument(
+            "-s",
+            dest="shapefile",
+            action="store",
+            help="Reference shapefile",
+            required=True,
+        )
+        parser.add_argument(
+            "-d",
+            dest="distance",
+            action="store",
+            help="Distance between every line in meter",
+            required=True,
+        )
+        parser.add_argument(
+            "-o",
+            dest="outpath",
+            action="store",
+            help="ESRI Shapefile output filename and path",
+            required=True,
+        )
         args = parser.parse_args()
         create_grid(args.shapefile, args.outpath, args.distance)

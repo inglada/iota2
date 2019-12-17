@@ -84,50 +84,71 @@ def computeStatistics(finalDataBasePath, dataField):
     conn.create_aggregate("spearmanr", 2, spearmanrFunc)
     cursor = conn.cursor()
 
-    SQL = "SELECT " + dataField + ",avg(validity),stdev(validity),avg(confidence),\
+    SQL = (
+        "SELECT "
+        + dataField
+        + ",avg(validity),stdev(validity),avg(confidence),\
            stdev(confidence),spearmanr(validity,confidence)\
-           FROM " + tableName + " GROUP BY " + dataField + ";"
+           FROM "
+        + tableName
+        + " GROUP BY "
+        + dataField
+        + ";"
+    )
 
     cursor.execute(SQL)
     statistics = cursor.fetchall()
 
     statDico = OrderedDict()
     for currentClass, AVGval, STDval, AVGconf, STDconf, SPEAR in statistics:
-        statDico[str(currentClass)] = {"avgVal": AVGval, "stdVal": STDval,
-                                       "avgConf": AVGconf, "stdConf": STDconf,
-                                       "spearman": SPEAR}
+        statDico[str(currentClass)] = {
+            "avgVal": AVGval,
+            "stdVal": STDval,
+            "avgConf": AVGconf,
+            "stdConf": STDconf,
+            "spearman": SPEAR,
+        }
     return statDico
 
 
 def plotRelation(finalDataBasePath, dataField, seed, iota2Folder):
 
     outputs = []
-    nomenclature = {10: "annualCrop",
-                    11: "ete",
-                    12: "hiver",
-                    211: "prairie",
-                    221: "verger",
-                    222: "vigne",
-                    223: "olivier",
-                    224: "arboriculture",
-                    31: "foret feuillus",
-                    32: "foret coniferes",
-                    33: "forets melangees",
-                    34: "pelouses",
-                    35: "estives-landes",
-                    36: "lande ligneuse",
-                    41: "bati",
-                    42: "bati diffus",
-                    43: "zones ind et com",
-                    44: "surface route",
-                    45: "surfaces minerales",
-                    46: "plages et dunes",
-                    51: "eau",
-                    52: "mer et oceans",
-                    53: "glaciers ou neiges et",
-                    255: "autres"}
-    AllClasses = sorted(fut.getFieldElement(
-        finalDataBasePath, driverName="SQLite", field=dataField, mode="unique", elemType="int"))
+    nomenclature = {
+        10: "annualCrop",
+        11: "ete",
+        12: "hiver",
+        211: "prairie",
+        221: "verger",
+        222: "vigne",
+        223: "olivier",
+        224: "arboriculture",
+        31: "foret feuillus",
+        32: "foret coniferes",
+        33: "forets melangees",
+        34: "pelouses",
+        35: "estives-landes",
+        36: "lande ligneuse",
+        41: "bati",
+        42: "bati diffus",
+        43: "zones ind et com",
+        44: "surface route",
+        45: "surfaces minerales",
+        46: "plages et dunes",
+        51: "eau",
+        52: "mer et oceans",
+        53: "glaciers ou neiges et",
+        255: "autres",
+    }
+    AllClasses = sorted(
+        fut.getFieldElement(
+            finalDataBasePath,
+            driverName="SQLite",
+            field=dataField,
+            mode="unique",
+            elemType="int",
+        )
+    )
 
     # init
     valuesByClass = OrderedDict()
@@ -160,18 +181,24 @@ def plotRelation(finalDataBasePath, dataField, seed, iota2Folder):
     for cClass in valuesByClass:
         y = [cX for cX, cY in valuesByClass[cClass]]
         x = [cY for cX, cY in valuesByClass[cClass]]
-        outputPath = iota2Folder + "/final/TMP/" + \
-            nomenclature[cClass].replace(
-                " ", "_") + "_confFValid_Seed_" + str(seed) + ".png"
+        outputPath = (
+            iota2Folder
+            + "/final/TMP/"
+            + nomenclature[cClass].replace(" ", "_")
+            + "_confFValid_Seed_"
+            + str(seed)
+            + ".png"
+        )
         print("Creating : " + outputPath)
-        #title="Confidence = f( Validity ) : Class :"+nomenclature[cClass]
+        # title="Confidence = f( Validity ) : Class :"+nomenclature[cClass]
         parametres = correlation.Parametres()
         parametres.xlims = [minVal, maxVal]
         parametres.ylims = [minConf, maxConf]
         parametres.xBinStep = 1
         parametres.yBinStep = 1
         correlation.plotCorrelation(
-            x, y, "Validity", "Confidence", outputPath, parametres)
+            x, y, "Validity", "Confidence", outputPath, parametres
+        )
         outputs.append(outputPath)
     return outputs
 
@@ -190,10 +217,12 @@ def computeStats(pathConf, wD=None):
         # Get sqlites
         # stats only on learnt polygons
         dataBase = fut.FileSearch_AND(
-            iota2Folder + "/final/TMP", True, ".sqlite", "extraction", "learn")
-        #dataBase = fut.FileSearch_AND("/work/OT/theia/oso/TMP/sampleExtraction", True, ".sqlite", "extraction")
-        finalDataBaseName = "statsDataBase_run_" + \
-            str(seed) + ".sqlite"  # will contain all data base
+            iota2Folder + "/final/TMP", True, ".sqlite", "extraction", "learn"
+        )
+        # dataBase = fut.FileSearch_AND("/work/OT/theia/oso/TMP/sampleExtraction", True, ".sqlite", "extraction")
+        finalDataBaseName = (
+            "statsDataBase_run_" + str(seed) + ".sqlite"
+        )  # will contain all data base
         finalDataBasePath = workingDirectory + "/" + finalDataBaseName
 
         if os.path.exists(finalDataBasePath):
@@ -201,9 +230,9 @@ def computeStats(pathConf, wD=None):
 
         shutil.copy(dataBase[0], finalDataBasePath)
         del dataBase[0]
-        fields = "GEOMETRY," + \
-            ",".join(fut.getAllFieldsInShape(
-                finalDataBasePath, driver='SQLite'))
+        fields = "GEOMETRY," + ",".join(
+            fut.getAllFieldsInShape(finalDataBasePath, driver="SQLite")
+        )
 
         conn = lite.connect(finalDataBasePath)
         cursor = conn.cursor()
@@ -215,8 +244,15 @@ def computeStats(pathConf, wD=None):
             print(("Add dataBase : {}".format(currentDataBase)))
             cursor.execute("ATTACH '%s' as db2;" % (currentDataBase))
             cursor.execute("CREATE TABLE output2 AS SELECT * FROM db2.output;")
-            cursor.execute("INSERT INTO " + tableName +
-                           "(" + fields + ") SELECT " + fields + " FROM output2;")
+            cursor.execute(
+                "INSERT INTO "
+                + tableName
+                + "("
+                + fields
+                + ") SELECT "
+                + fields
+                + " FROM output2;"
+            )
             conn.commit()
             conn = cursor = None
             conn = lite.connect(finalDataBasePath)
@@ -224,8 +260,7 @@ def computeStats(pathConf, wD=None):
             cleanSqliteDatabase(finalDataBasePath, "output2")
 
         # plot relation
-        plotsSeed = plotRelation(
-            finalDataBasePath, dataField, seed, iota2Folder)
+        plotsSeed = plotRelation(finalDataBasePath, dataField, seed, iota2Folder)
         # Compute statistics
         print("Compute statistics")
         statsByClass = computeStatistics(finalDataBasePath, dataField)
@@ -236,12 +271,20 @@ def computeStats(pathConf, wD=None):
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(
-        description="from points vector, compute stats")
+    parser = argparse.ArgumentParser(description="from points vector, compute stats")
     parser.add_argument(
-        "-wd", dest="pathWd", help="path to the working directory", default=None, required=False)
+        "-wd",
+        dest="pathWd",
+        help="path to the working directory",
+        default=None,
+        required=False,
+    )
     parser.add_argument(
-        "-conf", help="path to the configuration file (mandatory)", dest="pathConf", required=True)
+        "-conf",
+        help="path to the configuration file (mandatory)",
+        dest="pathConf",
+        required=True,
+    )
     args = parser.parse_args()
 
     statsBySeed = computeStats(args.pathConf, args.pathWd)

@@ -24,30 +24,25 @@ class samplesMerge(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "samplesMerge"
-        super(
-            samplesMerge,
-            self).__init__(
-            cfg,
-            cfg_resources_file,
-            resources_block_name)
+        super(samplesMerge, self).__init__(
+            cfg, cfg_resources_file, resources_block_name
+        )
 
         # step variables
         self.workingDirectory = workingDirectory
-        self.output_path = SCF.serviceConfigFile(
-            self.cfg).getParam(
-            'chain', 'outputPath')
-        self.field_region = SCF.serviceConfigFile(
-            self.cfg).getParam(
-            'chain', 'regionField')
-        self.nb_runs = SCF.serviceConfigFile(
-            self.cfg).getParam(
-            'chain', 'runs')
+        self.output_path = SCF.serviceConfigFile(self.cfg).getParam(
+            "chain", "outputPath"
+        )
+        self.field_region = SCF.serviceConfigFile(self.cfg).getParam(
+            "chain", "regionField"
+        )
+        self.nb_runs = SCF.serviceConfigFile(self.cfg).getParam("chain", "runs")
 
     def step_description(self):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("merge samples by models")
+        description = "merge samples by models"
         return description
 
     def step_inputs(self):
@@ -56,8 +51,11 @@ class samplesMerge(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
-        return samples_merge.get_models(os.path.join(
-            self.output_path, "formattingVectors"), self.field_region, self.nb_runs)
+        return samples_merge.get_models(
+            os.path.join(self.output_path, "formattingVectors"),
+            self.field_region,
+            self.nb_runs,
+        )
 
     def step_execute(self):
         """
@@ -69,8 +67,9 @@ class samplesMerge(IOTA2Step.Step):
         """
         from Sampling import SplitSamples as splitS
 
-        def step_function(x): return samples_merge.samples_merge(
-            x, self.cfg, self.workingDirectory)
+        def step_function(x):
+            return samples_merge.samples_merge(x, self.cfg, self.workingDirectory)
+
         return step_function
 
     def step_outputs(self):

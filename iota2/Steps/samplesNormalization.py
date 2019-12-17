@@ -23,23 +23,20 @@ class samplesNormalization(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "stats_by_models"
-        super(
-            samplesNormalization,
-            self).__init__(
-            cfg,
-            cfg_resources_file,
-            resources_block_name)
+        super(samplesNormalization, self).__init__(
+            cfg, cfg_resources_file, resources_block_name
+        )
 
         # step variables
-        self.output_path = SCF.serviceConfigFile(
-            self.cfg).getParam(
-            'chain', 'outputPath')
+        self.output_path = SCF.serviceConfigFile(self.cfg).getParam(
+            "chain", "outputPath"
+        )
 
     def step_description(self):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Normalize samples")
+        description = "Normalize samples"
         return description
 
     def step_inputs(self):
@@ -49,12 +46,15 @@ class samplesNormalization(IOTA2Step.Step):
             the return could be and iterable or a callable
         """
         from Learning import ModelStat as MS
-        return MS.generateStatModel(os.path.join(self.output_path, "dataAppVal"),
-                                    os.path.join(self.output_path, "features"),
-                                    os.path.join(self.output_path, "stats"),
-                                    os.path.join(
-            self.output_path, "cmd", "stats"),
-            None, self.cfg)
+
+        return MS.generateStatModel(
+            os.path.join(self.output_path, "dataAppVal"),
+            os.path.join(self.output_path, "features"),
+            os.path.join(self.output_path, "stats"),
+            os.path.join(self.output_path, "cmd", "stats"),
+            None,
+            self.cfg,
+        )
 
     def step_execute(self):
         """
@@ -65,8 +65,12 @@ class samplesNormalization(IOTA2Step.Step):
             must be a lambda function.
         """
         from MPI import launch_tasks as tLauncher
+
         bashLauncherFunction = tLauncher.launchBashCmd
-        def step_function(x): return bashLauncherFunction(x)
+
+        def step_function(x):
+            return bashLauncherFunction(x)
+
         return step_function
 
     def step_outputs(self):

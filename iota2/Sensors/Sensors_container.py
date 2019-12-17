@@ -53,15 +53,17 @@ class Sensors_container(object):
 
         self.enabled_sensors = self.get_enabled_sensors()
         self.common_mask_name = "MaskCommunSL.tif"
-        self.features_dir = os.path.join(self.cfg.getParam("chain", "outputPath"),
-                                         "features", tile_name)
+        self.features_dir = os.path.join(
+            self.cfg.getParam("chain", "outputPath"), "features", tile_name
+        )
         self.common_mask_dir = os.path.join(self.features_dir, "tmp")
 
     def __str__(self):
         """return enabled sensors and the current tile
         """
-        return "tile's name : {}, available sensors : {}".format(self.tile_name,
-                                                                 ", ".join(self.print_enabled_sensors_name()))
+        return "tile's name : {}, available sensors : {}".format(
+            self.tile_name, ", ".join(self.print_enabled_sensors_name())
+        )
 
     def __repr__(self):
         """return enabled sensors and the current tile
@@ -76,14 +78,16 @@ class Sensors_container(object):
         list
             list of manageable sensors' name
         """
-        available_sensors_name = [Landsat5.name,
-                                  Landsat8.name,
-                                  Landsat_8_old.name,
-                                  Sentinel_1.name,
-                                  Sentinel_2.name,
-                                  Sentinel_2_S2C.name,
-                                  Sentinel_2_L3A.name,
-                                  User_features.name]
+        available_sensors_name = [
+            Landsat5.name,
+            Landsat8.name,
+            Landsat_8_old.name,
+            Sentinel_1.name,
+            Sentinel_2.name,
+            Sentinel_2_S2C.name,
+            Sentinel_2_L3A.name,
+            User_features.name,
+        ]
         return available_sensors_name
 
     def print_enabled_sensors_name(self):
@@ -142,7 +146,8 @@ class Sensors_container(object):
                 sensor_found.append(sensor)
         if len(sensor_found) > 1:
             raise Exception(
-                "Too many sensors found with the name {}".format(sensor_name))
+                "Too many sensors found with the name {}".format(sensor_name)
+            )
         return sensor_found[0] if sensor_found else None
 
     def remove_sensor(self, sensor_name):
@@ -180,44 +185,36 @@ class Sensors_container(object):
         enabled_sensors = []
         if not "none" in l5_old.lower():
             enabled_sensors.append(
-                Landsat_5_old(
-                    self.cfg.pathConf,
-                    tile_name=self.tile_name))
+                Landsat_5_old(self.cfg.pathConf, tile_name=self.tile_name)
+            )
         if not "none" in l8.lower():
             enabled_sensors.append(
-                Landsat_8(
-                    self.cfg.pathConf,
-                    tile_name=self.tile_name))
+                Landsat_8(self.cfg.pathConf, tile_name=self.tile_name)
+            )
         if not "none" in l8_old.lower():
             enabled_sensors.append(
-                Landsat_8_old(
-                    self.cfg.pathConf,
-                    tile_name=self.tile_name))
+                Landsat_8_old(self.cfg.pathConf, tile_name=self.tile_name)
+            )
         if not "none" in s1.lower():
             enabled_sensors.append(
-                Sentinel_1(
-                    self.cfg.pathConf,
-                    tile_name=self.tile_name))
+                Sentinel_1(self.cfg.pathConf, tile_name=self.tile_name)
+            )
         if not "none" in s2.lower():
             enabled_sensors.append(
-                Sentinel_2(
-                    self.cfg.pathConf,
-                    tile_name=self.tile_name))
+                Sentinel_2(self.cfg.pathConf, tile_name=self.tile_name)
+            )
         if not "none" in s2_s2c.lower():
             enabled_sensors.append(
-                Sentinel_2_S2C(
-                    self.cfg.pathConf,
-                    tile_name=self.tile_name))
+                Sentinel_2_S2C(self.cfg.pathConf, tile_name=self.tile_name)
+            )
         if not "none" in s2_l3a.lower():
             enabled_sensors.append(
-                Sentinel_2_L3A(
-                    self.cfg.pathConf,
-                    tile_name=self.tile_name))
+                Sentinel_2_L3A(self.cfg.pathConf, tile_name=self.tile_name)
+            )
         if not "none" in user_feat.lower():
             enabled_sensors.append(
-                User_features(
-                    self.cfg.pathConf,
-                    tile_name=self.tile_name))
+                User_features(self.cfg.pathConf, tile_name=self.tile_name)
+            )
         return enabled_sensors
 
     def sensors_preprocess(self, available_ram=128):
@@ -252,7 +249,8 @@ class Sensors_container(object):
         sensor_prepro_app = None
         if "preprocess" in dir(sensor):
             sensor_prepro_app = sensor.preprocess(
-                working_dir=working_dir, ram=available_ram)
+                working_dir=working_dir, ram=available_ram
+            )
         return sensor_prepro_app
 
     def sensors_dates(self):
@@ -294,7 +292,8 @@ class Sensors_container(object):
         sensors_footprint = []
         for sensor in self.enabled_sensors:
             sensors_footprint.append(
-                (sensor.__class__.name, sensor.footprint(available_ram)))
+                (sensor.__class__.name, sensor.footprint(available_ram))
+            )
         return sensors_footprint
 
     def get_common_sensors_footprint(self, available_ram=128):
@@ -314,6 +313,7 @@ class Sensors_container(object):
             (otbApplication, dependencies)
         """
         from Common.OtbAppBank import CreateBandMathApplication
+
         sensors_footprint = []
         all_dep = []
         for sensor in self.enabled_sensors:
@@ -323,16 +323,18 @@ class Sensors_container(object):
             all_dep.append(_)
             all_dep.append(footprint)
 
-        expr = "+".join("im{}b1".format(i + 1)
-                        for i in range(len(sensors_footprint)))
+        expr = "+".join("im{}b1".format(i + 1) for i in range(len(sensors_footprint)))
         expr = "{}=={}?1:0".format(expr, len(sensors_footprint))
-        common_mask_out = os.path.join(
-            self.common_mask_dir, self.common_mask_name)
-        common_mask = CreateBandMathApplication({"il": sensors_footprint,
-                                                 "exp": expr,
-                                                 "out": common_mask_out,
-                                                 "pixType": "uint8",
-                                                 "ram": str(available_ram)})
+        common_mask_out = os.path.join(self.common_mask_dir, self.common_mask_name)
+        common_mask = CreateBandMathApplication(
+            {
+                "il": sensors_footprint,
+                "exp": expr,
+                "out": common_mask_out,
+                "pixType": "uint8",
+                "ram": str(available_ram),
+            }
+        )
         return common_mask, all_dep
 
     def get_sensors_time_series(self, available_ram=128):
@@ -353,7 +355,8 @@ class Sensors_container(object):
         for sensor in self.enabled_sensors:
             if "get_time_series" in dir(sensor):
                 sensors_time_series.append(
-                    (sensor.__class__.name, sensor.get_time_series(available_ram)))
+                    (sensor.__class__.name, sensor.get_time_series(available_ram))
+                )
         return sensors_time_series
 
     def get_sensors_time_series_masks(self, available_ram=128):
@@ -373,7 +376,8 @@ class Sensors_container(object):
         for sensor in self.enabled_sensors:
             if "get_time_series_masks" in dir(sensor):
                 sensors_time_series_masks.append(
-                    (sensor.__class__.name, sensor.get_time_series_masks(available_ram)))
+                    (sensor.__class__.name, sensor.get_time_series_masks(available_ram))
+                )
         return sensors_time_series_masks
 
     def get_sensors_time_series_gapfilling(self, available_ram=128):
@@ -394,7 +398,11 @@ class Sensors_container(object):
         for sensor in self.enabled_sensors:
             if "get_time_series_gapFilling" in dir(sensor):
                 sensors_time_series.append(
-                    (sensor.__class__.name, sensor.get_time_series_gapFilling(available_ram)))
+                    (
+                        sensor.__class__.name,
+                        sensor.get_time_series_gapFilling(available_ram),
+                    )
+                )
         return sensors_time_series
 
     def get_sensors_features(self, available_ram=128):
@@ -414,5 +422,6 @@ class Sensors_container(object):
         sensors_features = []
         for sensor in self.enabled_sensors:
             sensors_features.append(
-                (sensor.__class__.name, sensor.get_features(available_ram)))
+                (sensor.__class__.name, sensor.get_features(available_ram))
+            )
         return sensors_features

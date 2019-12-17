@@ -22,20 +22,13 @@ from Common import ServiceConfigFile as SCF
 
 class Regularization(IOTA2Step.Step):
     def __init__(
-            self,
-            cfg,
-            cfg_resources_file,
-            umc,
-            stepname=None,
-            workingDirectory=None):
+        self, cfg, cfg_resources_file, umc, stepname=None, workingDirectory=None
+    ):
         # heritage init
         resources_block_name = "regularisation"
-        super(
-            Regularization,
-            self).__init__(
-            cfg,
-            cfg_resources_file,
-            resources_block_name)
+        super(Regularization, self).__init__(
+            cfg, cfg_resources_file, resources_block_name
+        )
 
         # step variables
         if stepname:
@@ -45,25 +38,21 @@ class Regularization(IOTA2Step.Step):
         self.CPU = self.resources["cpu"]
         self.workingDirectory = workingDirectory
 
-        self.outputPath = SCF.serviceConfigFile(
-            self.cfg).getParam(
-            'chain', 'outputPath')
-        self.rastclass = SCF.serviceConfigFile(
-            self.cfg).getParam(
-            'Simplification',
-            'classification')
-        self.seed = SCF.serviceConfigFile(
-            self.cfg).getParam(
-            'Simplification', 'seed')
+        self.outputPath = SCF.serviceConfigFile(self.cfg).getParam(
+            "chain", "outputPath"
+        )
+        self.rastclass = SCF.serviceConfigFile(self.cfg).getParam(
+            "Simplification", "classification"
+        )
+        self.seed = SCF.serviceConfigFile(self.cfg).getParam("Simplification", "seed")
         self.umc = umc
-        self.outtmpdir = os.path.join(
-            self.outputPath, 'final', 'simplification', 'tmp')
+        self.outtmpdir = os.path.join(self.outputPath, "final", "simplification", "tmp")
 
     def step_description(self):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("regularisation of classification raster")
+        description = "regularisation of classification raster"
         return description
 
     def step_inputs(self):
@@ -77,27 +66,31 @@ class Regularization(IOTA2Step.Step):
 
         rastclass = self.rastclass
 
-        if not os.path.exists(os.path.join(self.outtmpdir, 'regul1.tif')):
+        if not os.path.exists(os.path.join(self.outtmpdir, "regul1.tif")):
             if rastclass is None:
                 if self.seed is not None:
                     rastclass = os.path.join(
-                        self.outputPath, 'final', 'Classif_Seed_{}.tif'.format(seed))
+                        self.outputPath, "final", "Classif_Seed_{}.tif".format(seed)
+                    )
                 else:
                     if os.path.exists(
                         os.path.join(
-                            self.outputPath,
-                            'final',
-                            'Classifications_fusion.tif')):
+                            self.outputPath, "final", "Classifications_fusion.tif"
+                        )
+                    ):
                         rastclass = os.path.join(
-                            self.outputPath, 'final', 'Classifications_fusion.tif')
+                            self.outputPath, "final", "Classifications_fusion.tif"
+                        )
                     else:
                         rastclass = os.path.join(
-                            self.outputPath, 'final', 'Classif_Seed_0.tif')
+                            self.outputPath, "final", "Classif_Seed_0.tif"
+                        )
         else:
-            rastclass = os.path.join(self.outtmpdir, 'regul1.tif')
+            rastclass = os.path.join(self.outtmpdir, "regul1.tif")
 
         rules = mr.getMaskRegularisation(
-            "/home/qt/thierionv/dev/iota2/iota2/simplification/nomenclature.cfg")
+            "/home/qt/thierionv/dev/iota2/iota2/simplification/nomenclature.cfg"
+        )
 
         scenarios = [[rastclass, rule] for rule in rules]
 
@@ -116,12 +109,17 @@ class Regularization(IOTA2Step.Step):
         if self.workingDirectory:
             self.tmpdir = self.workingDirectory
 
-        #outfilereg = os.path.join(self.outputPath, 'final', 'simplification','classif_regul.tif')
+        # outfilereg = os.path.join(self.outputPath, 'final', 'simplification','classif_regul.tif')
 
-        def step_function(x): return mr.adaptRegularization(
-            self.tmpdir, x[0], os.path.join(
-                self.outtmpdir, x[1][2]), str(
-                self.RAM), x[1], self.umc)
+        def step_function(x):
+            return mr.adaptRegularization(
+                self.tmpdir,
+                x[0],
+                os.path.join(self.outtmpdir, x[1][2]),
+                str(self.RAM),
+                x[1],
+                self.umc,
+            )
 
         return step_function
 

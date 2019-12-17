@@ -14,14 +14,14 @@ QgsApplication.initQgis()
 
 driver = ogr.GetDriverByName("ESRI Shapefile")
 # Prepare processing framework
-sys.path.append('/usr/share/qgis/python/plugins/')
+sys.path.append("/usr/share/qgis/python/plugins/")
 Processing.initialize()
 
 # Run the algorithm
-inLayer = QgsVectorLayer(sys.argv[1], 'layer1', 'ogr')
-overlay = QgsVectorLayer(sys.argv[2], 'layer2', 'ogr')
+inLayer = QgsVectorLayer(sys.argv[1], "layer1", "ogr")
+overlay = QgsVectorLayer(sys.argv[2], "layer2", "ogr")
 outLayer = sys.argv[3]
-general.runalg('qgis:intersection', inLayer, overlay, outLayer)
+general.runalg("qgis:intersection", inLayer, overlay, outLayer)
 
 # Exit applications
 QgsApplication.exitQgis()

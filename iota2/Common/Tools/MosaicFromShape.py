@@ -40,8 +40,7 @@ def genRasterEnvelope(raster, outputShape):
     srs = osr.SpatialReference()
     srs.ImportFromEPSG(int(epsg))
 
-    out_lyr = data_source.CreateLayer(
-        rasterName, srs, geom_type=ogr.wkbPolygon)
+    out_lyr = data_source.CreateLayer(rasterName, srs, geom_type=ogr.wkbPolygon)
 
     field_ext = ogr.FieldDefn("ext", ogr.OFTString)
     field_ext.SetWidth(24)
@@ -83,7 +82,7 @@ def genIntersectionShape(vector1, vector2, vector_out):
     """
 
     # V1
-    driver1 = ogr.GetDriverByName('ESRI Shapefile')
+    driver1 = ogr.GetDriverByName("ESRI Shapefile")
     dataSource1 = driver1.Open(vector1, 0)
     layer1 = dataSource1.GetLayer()
     spatialRef = layer1.GetSpatialRef()
@@ -91,7 +90,7 @@ def genIntersectionShape(vector1, vector2, vector_out):
         geom1 = feature.GetGeometryRef()
 
     # V2
-    driver2 = ogr.GetDriverByName('ESRI Shapefile')
+    driver2 = ogr.GetDriverByName("ESRI Shapefile")
     dataSource2 = driver2.Open(vector2, 0)
     layer2 = dataSource2.GetLayer()
 
@@ -104,7 +103,8 @@ def genIntersectionShape(vector1, vector2, vector_out):
     driver = ogr.GetDriverByName("ESRI Shapefile")
     data_source = driver.CreateDataSource(vector_out)
     out_lyr = data_source.CreateLayer(
-        vector_out_name, spatialRef, geom_type=ogr.wkbPolygon)
+        vector_out_name, spatialRef, geom_type=ogr.wkbPolygon
+    )
 
     field_inter = ogr.FieldDefn("inters", ogr.OFTString)
     field_inter.SetWidth(24)
@@ -144,8 +144,9 @@ def mosaicFromShape(rasters, shape, rasterOut, workingDir=None):
     """
 
     # sort input raster by origin (upperLeft)
-    rasters_p = sorted([(raster, fut.getRasterExtent(raster))
-                        for raster in rasters], key=upperLeft)[::-1]
+    rasters_p = sorted(
+        [(raster, fut.getRasterExtent(raster)) for raster in rasters], key=upperLeft
+    )[::-1]
 
     outputDirectory = os.path.split(rasterOut)[0]
     wDir = outputDirectory
@@ -161,7 +162,8 @@ def mosaicFromShape(rasters, shape, rasterOut, workingDir=None):
         if os.path.exists(raster_footPrint):
             while os.path.exists(raster_footPrint):
                 raster_footPrint = raster_footPrint.replace(
-                    ".shp", "_" + str(random.randint(1, 1000)) + ".shp")
+                    ".shp", "_" + str(random.randint(1, 1000)) + ".shp"
+                )
 
         # raster footPrint
         genRasterEnvelope(raster, raster_footPrint)
@@ -171,8 +173,14 @@ def mosaicFromShape(rasters, shape, rasterOut, workingDir=None):
         clip_raster = raster_footPrint.replace(".shp", "_Clip.tif")
         inter = genIntersectionShape(raster_footPrint, shape, clip)
 
-        cmd = "gdalwarp -crop_to_cutline -cutline " + \
-            clip + " " + raster + " " + clip_raster
+        cmd = (
+            "gdalwarp -crop_to_cutline -cutline "
+            + clip
+            + " "
+            + raster
+            + " "
+            + clip_raster
+        )
         run(cmd)
         tmp_files_raster.append(clip_raster)
         tmp_files_vec.append(clip)
@@ -185,8 +193,7 @@ def mosaicFromShape(rasters, shape, rasterOut, workingDir=None):
 
     # clean tmp files
     for vec in tmp_files_vec:
-        fut.removeShape(vec.replace(".shp", ""), [
-                        ".prj", ".shp", ".dbf", ".shx"])
+        fut.removeShape(vec.replace(".shp", ""), [".prj", ".shp", ".dbf", ".shx"])
     for img in tmp_files_raster:
         os.remove(img)
 
@@ -197,15 +204,27 @@ def mosaicFromShape(rasters, shape, rasterOut, workingDir=None):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(
-        description="This function allow you to mosaic rasters thanks to shape extent")
-    parser.add_argument("-rasters", help="path to rasters to clip (mandatory)",
-                        dest="rasters", required=True, nargs='+')
-    parser.add_argument("-shape", help="path to the shape use to clip rasters. It must contain only one geometry (mandatory)",
-                        dest="shape", required=True)
-    parser.add_argument("-out", help="output raster path (mandatory)",
-                        dest="rasterOut", required=True)
-    parser.add_argument("-working.directory", help="working directory",
-                        dest="wD", required=False)
+        description="This function allow you to mosaic rasters thanks to shape extent"
+    )
+    parser.add_argument(
+        "-rasters",
+        help="path to rasters to clip (mandatory)",
+        dest="rasters",
+        required=True,
+        nargs="+",
+    )
+    parser.add_argument(
+        "-shape",
+        help="path to the shape use to clip rasters. It must contain only one geometry (mandatory)",
+        dest="shape",
+        required=True,
+    )
+    parser.add_argument(
+        "-out", help="output raster path (mandatory)", dest="rasterOut", required=True
+    )
+    parser.add_argument(
+        "-working.directory", help="working directory", dest="wD", required=False
+    )
 
     args = parser.parse_args()
     mosaicFromShape(args.rasters, args.shape, args.rasterOut, args.wD)

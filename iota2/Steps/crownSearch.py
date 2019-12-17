@@ -24,29 +24,24 @@ class crownSearch(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "crownsearch"
-        super(
-            crownSearch,
-            self).__init__(
-            cfg,
-            cfg_resources_file,
-            resources_block_name)
+        super(crownSearch, self).__init__(cfg, cfg_resources_file, resources_block_name)
 
         # step variables
         self.RAM = 1024.0 * get_RAM(self.resources["ram"])
         self.CPU = self.resources["cpu"]
         self.workingDirectory = workingDirectory
-        self.outputPath = SCF.serviceConfigFile(
-            self.cfg).getParam(
-            'chain', 'outputPath')
-        self.gridsize = SCF.serviceConfigFile(
-            self.cfg).getParam(
-            'Simplification', 'gridsize')
+        self.outputPath = SCF.serviceConfigFile(self.cfg).getParam(
+            "chain", "outputPath"
+        )
+        self.gridsize = SCF.serviceConfigFile(self.cfg).getParam(
+            "Simplification", "gridsize"
+        )
 
     def step_description(self):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Search crown entities for serialization process")
+        description = "Search crown entities for serialization process"
         return description
 
     def step_inputs(self):
@@ -57,7 +52,6 @@ class crownSearch(IOTA2Step.Step):
         """
 
         return list(range(self.gridsize * self.gridsize))
-    
 
     def step_execute(self):
         """
@@ -68,30 +62,33 @@ class crownSearch(IOTA2Step.Step):
             must be a lambda function.
         """
         from simplification import searchCrownTile as sct
-        tmpdir = os.path.join(
-            self.outputPath,
-            'final',
-            'simplification',
-            'tmp')
+
+        tmpdir = os.path.join(self.outputPath, "final", "simplification", "tmp")
         if self.workingDirectory:
             tmpdir = self.workingDirectory
-        outfileclp = os.path.join(self.outputPath, 'final', 'simplification',
-                                  'classif_regul_clump.tif')
-        inclump = os.path.join(self.outputPath, 'final', 'simplification',
-                               'clump32bits.tif')
-        outfilegrid = os.path.join(self.outputPath, 'final', 'simplification',
-                                   'grid.shp')
-        outseria = os.path.join(self.outputPath, 'final', 'simplification',
-                                'tiles')
+        outfileclp = os.path.join(
+            self.outputPath, "final", "simplification", "classif_regul_clump.tif"
+        )
+        inclump = os.path.join(
+            self.outputPath, "final", "simplification", "clump32bits.tif"
+        )
+        outfilegrid = os.path.join(
+            self.outputPath, "final", "simplification", "grid.shp"
+        )
+        outseria = os.path.join(self.outputPath, "final", "simplification", "tiles")
 
-        def step_function(x): return sct.searchCrownTile(tmpdir,
-                                                         outfileclp,
-                                                         inclump,
-                                                         self.RAM,
-                                                         outfilegrid,
-                                                         outseria,
-                                                         self.CPU,
-                                                         x)
+        def step_function(x):
+            return sct.searchCrownTile(
+                tmpdir,
+                outfileclp,
+                inclump,
+                self.RAM,
+                outfilegrid,
+                outseria,
+                self.CPU,
+                x,
+            )
+
         return step_function
 
     def step_outputs(self):

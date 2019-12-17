@@ -17,7 +17,9 @@
 
 class osoError(Exception):
     """ Base class for exceptions in oso chain"""
+
     pass
+
 
 # Error class definition configFileError inherits the osoError class
 
@@ -34,6 +36,7 @@ class configFileError(osoError):
 
     def __str__(self):
         return repr(self.msg)
+
 
 ####################################################################
 # List of error class definition for the configuration file,
@@ -96,6 +99,7 @@ class fileError(configFileError):
 
     def __str__(self):
         return "Error: " + repr(self.msg)
+
 
 ####################################################################
 ####################################################################

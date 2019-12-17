@@ -49,7 +49,10 @@ class ThirdStep(IOTA2Step.Step):
             the function to execute as a lambda function. The returned object
             must be a lambda function.
         """
-        def step_function(x): return awesome_function(x, "TUILE")
+
+        def step_function(x):
+            return awesome_function(x, "TUILE")
+
         return step_function
 
     def step_outputs(self):
@@ -59,6 +62,7 @@ class ThirdStep(IOTA2Step.Step):
         """
         """
         import os
+
         step_in = self.step_inputs()
         for in_file in step_in:
             if os.path.exists(in_file):
