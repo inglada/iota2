@@ -30,6 +30,7 @@ import errno
 import warnings
 import numpy as np
 from config import Config, Sequence
+import osgeo
 from osgeo import gdal
 from osgeo import ogr
 from osgeo import osr
@@ -41,8 +42,11 @@ from Common.Utils import run
 def get_iota2_project_dir():
     """
     """
-    parent = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                          os.pardir))
+    parent = os.path.abspath(
+        os.path.join(
+            os.path.dirname(
+                os.path.realpath(__file__)),
+            os.pardir))
     iota2dir = os.path.abspath(os.path.join(parent, os.pardir))
     return iota2dir
 
@@ -125,28 +129,62 @@ def parseClassifCmd(cmdPath):
 
     parser = argparse.ArgumentParser(
         description="Performs a classification of the input image (compute in RAM) according to a model file, ")
-    parser.add_argument("-in", dest="tempFolderSerie",
-                        help="path to the folder which contains temporal series", default=None, required=True)
     parser.add_argument(
-        "-mask", dest="mask", help="path to classification's mask", default=None, required=True)
+        "-in",
+        dest="tempFolderSerie",
+        help="path to the folder which contains temporal series",
+        default=None,
+        required=True)
+    parser.add_argument(
+        "-mask",
+        dest="mask",
+        help="path to classification's mask",
+        default=None,
+        required=True)
     parser.add_argument("-pixType", dest="pixType",
                         help="pixel format", default=None, required=True)
     parser.add_argument("-model", dest="model",
                         help="path to the model", default=None, required=True)
-    parser.add_argument("-imstat", dest="stats",
-                        help="path to statistics", default=None, required=False)
-    parser.add_argument("-out", dest="outputClassif",
-                        help="output classification's path", default=None, required=True)
-    parser.add_argument("-confmap", dest="confmap",
-                        help="output classification confidence map", default=None, required=True)
+    parser.add_argument(
+        "-imstat",
+        dest="stats",
+        help="path to statistics",
+        default=None,
+        required=False)
+    parser.add_argument(
+        "-out",
+        dest="outputClassif",
+        help="output classification's path",
+        default=None,
+        required=True)
+    parser.add_argument(
+        "-confmap",
+        dest="confmap",
+        help="output classification confidence map",
+        default=None,
+        required=True)
     parser.add_argument("-ram", dest="ram",
                         help="pipeline's size", default=128, required=False)
-    parser.add_argument("--wd", dest="pathWd",
-                        help="path to the working directory", default=None, required=False)
     parser.add_argument(
-        "-conf", help="path to the configuration file (mandatory)", dest="pathConf", required=True)
-    parser.add_argument("-maxCPU", help="True : Class all the image and after apply mask",
-                        dest="MaximizeCPU", default="False", choices=["True", "False"], required=False)
+        "--wd",
+        dest="pathWd",
+        help="path to the working directory",
+        default=None,
+        required=False)
+    parser.add_argument(
+        "-conf",
+        help="path to the configuration file (mandatory)",
+        dest="pathConf",
+        required=True)
+    parser.add_argument(
+        "-maxCPU",
+        help="True : Class all the image and after apply mask",
+        dest="MaximizeCPU",
+        default="False",
+        choices=[
+            "True",
+            "False"],
+        required=False)
     parameters = []
 
     with open(cmdPath, "r") as cmd_f:
@@ -199,8 +237,8 @@ def commonMaskSARgeneration(cfg, tile, cMaskName):
     if not os.path.exists(cMaskPath):
         os.system(cmd)
     cMaskPathVec = featureFolder + "/" + tile + "/tmp/" + cMaskName + ".shp"
-    VectorMask = "gdal_polygonize.py -f \"ESRI Shapefile\" -mask " + cMaskPath + " " + cMaskPath +\
-                 " " + cMaskPathVec
+    VectorMask = "gdal_polygonize.py -f \"ESRI Shapefile\" -mask " + \
+        cMaskPath + " " + cMaskPath + " " + cMaskPathVec
     print(VectorMask)
     if not os.path.exists(cMaskPathVec):
         os.system(VectorMask)
@@ -236,8 +274,10 @@ def commonMaskUserFeatures(cfg, tile, cMaskName):
     for dir_user in os.listdir(userFeatPath):
         if tile in dir_user and os.path.isdir(
                 os.path.join(userFeatPath, dir_user)):
-            ref_raster = FileSearch_AND(os.path.join(userFeatPath, dir_user),
-                                        True, userFeat_patterns[0].replace(" ", ""))[0]
+            ref_raster = FileSearch_AND(
+                os.path.join(
+                    userFeatPath, dir_user), True, userFeat_patterns[0].replace(
+                    " ", ""))[0]
     ref_raster_out = os.path.join(
         featuresPath, tile, "tmp", cMaskName + ".tif")
     ref_raster_app = OtbAppBank.CreateBandMathApplication({"il": ref_raster,
@@ -249,9 +289,8 @@ def commonMaskUserFeatures(cfg, tile, cMaskName):
 
     cMaskPathVec = ref_raster_out.replace(".tif", ".shp")
     if not os.path.exists(cMaskPathVec):
-        VectorMask = "gdal_polygonize.py -f \"ESRI Shapefile\" -mask {} {} {}".format(ref_raster_out,
-                                                                                      ref_raster_out,
-                                                                                      cMaskPathVec)
+        VectorMask = "gdal_polygonize.py -f \"ESRI Shapefile\" -mask {} {} {}".format(
+            ref_raster_out, ref_raster_out, cMaskPathVec)
         run(VectorMask)
 
 
@@ -597,8 +636,11 @@ def commonPixTypeToOTB(string):
     try:
         return dico[string]
     except BaseException:
-        raise Exception("Error in commonPixTypeToOTB function input parameter : " + string + " not available, choices are :"
-                        "'complexDouble','complexFloat','double','float','int16','int32','uint16','uint32','uint8'")
+        raise Exception(
+            "Error in commonPixTypeToOTB function input parameter : " +
+            string +
+            " not available, choices are :"
+            "'complexDouble','complexFloat','double','float','int16','int32','uint16','uint32','uint8'")
 
 
 def AddStringToFile(myString, writtingFile):
@@ -787,16 +829,29 @@ def getUserFeatInTile(userFeat_path, tile, userFeat_arbo, userFeat_pattern):
     allFeat = []
     fields = []
     for currentPattern in userFeat_pattern:
-        allFeat += fileSearchRegEx(userFeat_path + "/" + tile + "/" +
-                                   userFeat_arbo + currentPattern.replace(" ", "") + "*")
+        allFeat += fileSearchRegEx(userFeat_path +
+                                   "/" +
+                                   tile +
+                                   "/" +
+                                   userFeat_arbo +
+                                   currentPattern.replace(" ", "") +
+                                   "*")
         for band_num in range(getRasterNbands(allFeat[-1])):
-            fields.append("userFeature_Band{}_{}".format(band_num + 1,
-                                                         currentPattern.replace(" ", "")))
+            fields.append(
+                "userFeature_Band{}_{}".format(
+                    band_num + 1,
+                    currentPattern.replace(
+                        " ",
+                        "")))
     return allFeat, fields
 
 
-def getFieldElement(shape, driverName="ESRI Shapefile", field="CODE", mode="all",
-                    elemType="int"):
+def getFieldElement(
+        shape,
+        driverName="ESRI Shapefile",
+        field="CODE",
+        mode="all",
+        elemType="int"):
     """
     IN :
     shape [string] : shape to compute
@@ -871,8 +926,12 @@ def readRaster(name, data=False, band=1):
         projection : projection of raster dataset
         transform : coordinates and pixel size of raster dataset
     """
+
     try:
-        raster = gdal.Open(name, 0)
+        if isinstance(name, str):
+            raster = gdal.Open(name, 0)
+        elif isinstance(name, osgeo.gdal.Dataset):
+            raster = name
     except BaseException:
         print("Problem on raster file path")
         sys.exit()
@@ -893,6 +952,26 @@ def readRaster(name, data=False, band=1):
         return xsize, ysize, projection, transform
 
 
+def arraytoRaster(array, output, model, driver='GTiff'):
+
+    driver = gdal.GetDriverByName(driver)
+
+    modelfile = readRaster(model, False)
+    cols = modelfile[0]
+    rows = modelfile[1]
+    outRaster = driver.Create(output, cols, rows, 1, gdal.GDT_Byte)
+    outRaster.SetGeoTransform((modelfile[3][0],
+                               modelfile[3][1], 0,
+                               modelfile[3][3], 0,
+                               modelfile[3][5]))
+    outband = outRaster.GetRasterBand(1)
+    outband.WriteArray(array)
+    outRasterSRS = osr.SpatialReference()
+    outRasterSRS.ImportFromWkt(modelfile[2])
+    outRaster.SetProjection(outRasterSRS.ExportToWkt())
+    outband.FlushCache()
+
+
 def getRasterResolution(rasterIn):
     """
     IN :
@@ -901,7 +980,14 @@ def getRasterResolution(rasterIn):
     OUT :
     return pixelSizeX, pixelSizeY
     """
-    raster = gdal.Open(rasterIn, GA_ReadOnly)
+
+    if isinstance(rasterIn, str):
+        if not os.path.isfile(rasterIn):
+            return []
+        raster = gdal.Open(rasterIn, GA_ReadOnly)
+    elif isinstance(rasterIn, osgeo.gdal.Dataset):
+        raster = rasterIn
+
     if raster is None:
         raise Exception("can't open " + rasterIn)
     geotransform = raster.GetGeoTransform()
@@ -935,9 +1021,8 @@ def assembleTile_Merge(AllRaster, spatialResolution, out, ot="Int16", co=None):
     if os.path.exists(out):
         os.remove(out)
 
-    cmd = "gdal_merge.py {} -ps {} -{} -o {} -ot {} -n 0 {}".format(gdal_co, spatialResolution,
-                                                                    spatialResolution, out,
-                                                                    ot, AllRaster)
+    cmd = "gdal_merge.py {} -ps {} -{} -o {} -ot {} -n 0 {}".format(
+        gdal_co, spatialResolution, spatialResolution, out, ot, AllRaster)
     run(cmd)
 
 
@@ -1018,6 +1103,22 @@ def getGroundSpacing(pathToFeat, ImgInfo):
     return spx, spy
 
 
+def str2bool(v):
+    """
+    usage : use in argParse as function to parse options
+
+    IN:
+    v [string]
+    out [bool]
+    """
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
+
+
 def getRasterProjectionEPSG(FileName):
     """
     usage get raster EPSG projection code
@@ -1033,9 +1134,18 @@ def getRasterNbands(raster):
     """
     usage get raster's number of bands
     """
-    src_ds = gdal.Open(raster)
+    try:
+        if isinstance(raster, str):
+            src_ds = gdal.Open(raster)
+        elif isinstance(raster, osgeo.gdal.Dataset):
+            src_ds = raster
+    except BaseException:
+        print("Problem on raster file path")
+        sys.exit()
+
     if src_ds is None:
         raise Exception(raster + " doesn't exist")
+
     return int(src_ds.RasterCount)
 
 
@@ -1050,7 +1160,8 @@ def testVarConfigFile(obj, variable, varType, valeurs=""):
 
     if not hasattr(obj, variable):
         raise Exception(
-            "Mandatory variable is missing in the configuration file: " + str(variable))
+            "Mandatory variable is missing in the configuration file: " +
+            str(variable))
 
     tmpVar = getattr(obj, variable)
 
@@ -1297,7 +1408,9 @@ def mergeSqlite(vectorList, outputVector):
         for cpt, currentVector in enumerate(vectorList_cpy):
             cursor.execute("ATTACH '%s' as db%s;" % (currentVector, str(cpt)))
             cursor.execute(
-                "CREATE TABLE output2 AS SELECT * FROM db" + str(cpt) + ".output;")
+                "CREATE TABLE output2 AS SELECT * FROM db" +
+                str(cpt) +
+                ".output;")
             cursor.execute("INSERT INTO output SELECT * FROM output2;")
             conn.commit()
             cleanSqliteDatabase(outputVector, "output2")
@@ -1338,36 +1451,87 @@ def mergeVectors(outname, opath, files, ext="shp", out_Tbl_name=None):
 
 def getRasterExtent(raster_in):
     """
-    Get raster extent of raster_in from GetGeoTransform()
-    ARGs:
-    INPUT:
-        - raster_in: input raster
-    OUTPUT
-        - ex: extent with [minX,maxX,minY,maxY]
+        Get raster extent of raster_in from GetGeoTransform()
+        ARGs:
+            INPUT:
+                - raster_in: input raster
+            OUTPUT
+                - ex: extent with [minX,maxX,minY,maxY]
     """
 
-    retour = []
-    if not os.path.isfile(raster_in):
-        pass
-    else:
+    if isinstance(raster_in, str):
+        if not os.path.isfile(raster_in):
+            return []
         raster = gdal.Open(raster_in, GA_ReadOnly)
-        if raster is None:
-            pass
-        else:
-            geotransform = raster.GetGeoTransform()
-            originX = geotransform[0]
-            originY = geotransform[3]
-            spacingX = geotransform[1]
-            spacingY = geotransform[5]
-            r, c = raster.RasterYSize, raster.RasterXSize
+    elif isinstance(raster_in, osgeo.gdal.Dataset):
+        raster = raster_in
 
-            minX = originX
-            maxY = originY
-            maxX = minX + c * spacingX
-            minY = maxY + r * spacingY
+    if raster is None:
+        return []
+    geotransform = raster.GetGeoTransform()
+    originX = geotransform[0]
+    originY = geotransform[3]
+    spacingX = geotransform[1]
+    spacingY = geotransform[5]
+    r, c = raster.RasterYSize, raster.RasterXSize
 
-            retour = [minX, maxX, minY, maxY]
-    return retour
+    minX = originX
+    maxY = originY
+    maxX = minX + c * spacingX
+    minY = maxY + r * spacingY
+
+    return [minX, maxX, minY, maxY]
+
+
+def matchGrid(coordinate, grid):
+    """
+    """
+    interval_list = []
+    pix_coordinate = None
+    for cpt, value in enumerate(grid[:-1]):
+        interval_list.append((value, grid[cpt + 1]))
+    for index, (inf, sup) in enumerate(interval_list):
+        if (coordinate > inf and coordinate < sup) or (
+                coordinate < inf and coordinate > sup):
+            pix_coordinate = index
+    return pix_coordinate
+
+
+def geoToPix(raster, geoX, geoY, disp=False):
+    """conver geographical coordinates to pixels
+
+    Parameters
+    ----------
+    raster : string
+        absolute path to an image
+    geoX : float
+        X geographic coordinate
+    geoY : float
+        Y geographic coordinate
+    disp : bool
+        flag to print coordinates
+    """
+    minXe, maxXe, minYe, maxYe = getRasterExtent(raster)
+    spacingX, spacingY = getRasterResolution(raster)
+    stepX = spacingX
+    Xgrid = np.arange(minXe, maxXe + spacingX, spacingX)
+    Ygrid = np.arange(maxYe, minYe + spacingY, spacingY)
+
+    pixY = matchGrid(geoY, Ygrid)
+    pixX = matchGrid(geoX, Xgrid)
+
+    coordinates = pixX, pixY
+
+    if pixX is None or pixY is None:
+        coordinates = None
+
+    if disp:
+        disp_msg = "X : {}\nY : {}".format(pixX, pixY)
+        if coordinates is None:
+            disp_msg = "out of bounds"
+        print(disp_msg)
+
+    return coordinates
 
 
 def ResizeImage(imgIn, imout, spx, spy, imref, proj, pixType):
@@ -1875,8 +2039,8 @@ class serviceCompareImageFile:
             print(('Band %s color interpretation values differ.' % id))
             print(
                 ('  file1: ' + gdal.GetColorInterpretationName(file1_band.GetColorInterpretation())))
-            print(
-                ('  file2:    ' + gdal.GetColorInterpretationName(file2_band.GetColorInterpretation())))
+            print(('  file2:    ' +
+                   gdal.GetColorInterpretationName(file2_band.GetColorInterpretation())))
             found_diff += 1
 
         if file1_band.Checksum() != file2_band.Checksum():
@@ -1978,11 +2142,8 @@ class serviceCompareImageFile:
         # If so-far-so-good, then compare pixels
         if found_diff == 0:
             for i in range(file1_gdal.RasterCount):
-                found_diff += self.__compare_band(file1_gdal.GetRasterBand(i + 1),
-                                                  file2_gdal.GetRasterBand(
-                                                      i + 1),
-                                                  str(i + 1),
-                                                  options)
+                found_diff += self.__compare_band(file1_gdal.GetRasterBand(
+                    i + 1), file2_gdal.GetRasterBand(i + 1), str(i + 1), options)
 
         return found_diff
 
@@ -2118,8 +2279,9 @@ class serviceCompareVectorFile:
                 isEqual(layerDefinition1.GetFieldDefn(i).GetName(),
                         layerDefinition2.GetFieldDefn(i).GetName())
                 fieldTypeCode = layerDefinition1.GetFieldDefn(i).GetType()
-                isEqual(layerDefinition1.GetFieldDefn(i).GetFieldTypeName(fieldTypeCode),
-                        layerDefinition2.GetFieldDefn(i).GetFieldTypeName(fieldTypeCode))
+                isEqual(
+                    layerDefinition1.GetFieldDefn(i).GetFieldTypeName(fieldTypeCode),
+                    layerDefinition2.GetFieldDefn(i).GetFieldTypeName(fieldTypeCode))
                 isEqual(layerDefinition1.GetFieldDefn(i).GetWidth(),
                         layerDefinition2.GetFieldDefn(i).GetWidth())
                 isEqual(layerDefinition1.GetFieldDefn(i).GetPrecision(),

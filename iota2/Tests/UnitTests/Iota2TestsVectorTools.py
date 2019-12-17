@@ -155,16 +155,55 @@ class iota_testVectortools(unittest.TestCase):
                     self.classifwd)[0] + ext)
 
         cnf.changeName(self.classifwd, "Classe", "class")
+
         self.assertEqual(vf.getNbFeat(self.classifwd), 144,
                          "Number of features does not fit")
-        self.assertEqual(vf.getFields(self.classifwd), ['Validmean', 'Validstd', 'Confidence', 'Hiver', 'Ete',
-                                                        'Feuillus', 'Coniferes', 'Pelouse', 'Landes', 'UrbainDens', 'UrbainDiff',
-                                                        'ZoneIndCom', 'Route', 'PlageDune', 'SurfMin', 'Eau', 'GlaceNeige', 'Prairie',
-                                                        'Vergers', 'Vignes', 'Perimeter', 'class'], "List of fields does not fit")
-        self.assertEqual(vf.ListValueFields(self.classifwd, "class"), ['211', '31', '11', '42', '36', '32', '43', '12', '51', '222'],
+        self.assertEqual(vf.getFields(self.classifwd),
+                         ['Validmean',
+                          'Validstd',
+                          'Confidence',
+                          'Hiver',
+                          'Ete',
+                          'Feuillus',
+                          'Coniferes',
+                          'Pelouse',
+                          'Landes',
+                          'UrbainDens',
+                          'UrbainDiff',
+                          'ZoneIndCom',
+                          'Route',
+                          'PlageDune',
+                          'SurfMin',
+                          'Eau',
+                          'GlaceNeige',
+                          'Prairie',
+                          'Vergers',
+                          'Vignes',
+                          'Perimeter',
+                          'class'],
+                         "List of fields does not fit")
+        self.assertEqual(vf.ListValueFields(self.classifwd,
+                                            "class"),
+                         ['11',
+                          '12',
+                          '211',
+                          '222',
+                          '31',
+                          '32',
+                          '36',
+                          '42',
+                          '43',
+                          '51'],
                          "Values of field 'class' do not fit")
-        self.assertEqual(vf.getFieldType(self.classifwd, "class"), str,
-                         "Type of field 'class' (%s) do not fit, 'str' expected" % (vf.getFieldType(self.classifwd, "class")))
+        self.assertEqual(
+            vf.getFieldType(
+                self.classifwd,
+                "class"),
+            str,
+            "Type of field 'class' (%s) do not fit, 'str' expected" %
+            (vf.getFieldType(
+                self.classifwd,
+                "class")))
 
         cfr.conFieldRecode(self.classifwd, "class", "mask", 11, 0)
         so.intersectSqlites(self.classifwd,
@@ -187,13 +226,20 @@ class iota_testVectortools(unittest.TestCase):
                          "Number of features does not fit")
 
         sba.extractFeatureFromShape(self.classifwd, 3, "mask", self.wd)
-        mf.mergeVectors([os.path.join(self.wd, "classif00.shp"), os.path.join(
-            self.wd, "classif01.shp"), os.path.join(self.wd, "classif02.shp")], self.classifwd)
+
+        mf.mergeVectors([os.path.join(self.wd, "classif0_0.shp"), os.path.join(
+            self.wd, "classif0_1.shp"), os.path.join(self.wd, "classif0_2.shp")], self.classifwd)
         self.assertEqual(
             vf.getFirstLayer(
                 self.classifwd),
             'classif',
             "Layer does not exist in this shapefile")
 
-        self.assertTrue(testutils.compareVectorFile(self.classifwd, self.classifout, 'coordinates', 'polygon', "ESRI Shapefile"),
-                        "Generated shapefile vector does not fit with shapefile reference file")
+        self.assertTrue(
+            testutils.compareVectorFile(
+                self.classifwd,
+                self.classifout,
+                'coordinates',
+                'polygon',
+                "ESRI Shapefile"),
+            "Generated shapefile vector does not fit with shapefile reference file")

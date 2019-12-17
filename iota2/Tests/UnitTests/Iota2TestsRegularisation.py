@@ -16,6 +16,7 @@
 
 # python -m unittest Iota2TestsRegularisation
 
+from simplification import manageRegularization as mr
 from simplification import Regularization as regu
 import TestsUtils as testutils
 from Common import FileUtils as fut
@@ -56,16 +57,18 @@ class iota_testRegularisation(unittest.TestCase):
 
         self.raster10m = os.path.join(
             IOTA2DIR, "data", "references/sampler/final/Classif_Seed_0.tif")
-        self.rasterreg20m = os.path.join(
-            IOTA2DIR, "data", "references/posttreat/classif_regul_20m.tif")
+        self.rasterregref = os.path.join(
+            IOTA2DIR, "data", "references/posttreat/classif_regul.tif")
+        self.nomenclature = os.path.join(
+            IOTA2DIR, "data", "references/posttreat/nomenclature_17.cfg")
         self.wd = os.path.join(self.iota2_tests_directory, "wd")
         self.out = os.path.join(self.iota2_tests_directory, "out")
+        self.tmp = os.path.join(self.iota2_tests_directory, "tmp")
         self.outfile = os.path.join(
             self.iota2_tests_directory,
             self.out,
-            "classif_regul_20m.tif")
-        self.inland = os.path.join(
-            IOTA2DIR, "data", "references/posttreat/masque_mer.shp")
+            "classif_regul.tif")
+        #self.inland = os.path.join(IOTA2DIR, "data", "references/posttreat/masque_mer.shp")
 
     # after launching all tests
     @classmethod
@@ -101,6 +104,12 @@ class iota_testRegularisation(unittest.TestCase):
         else:
             os.mkdir(self.out)
 
+        if os.path.exists(self.tmp):
+            shutil.rmtree(self.tmp, ignore_errors=True)
+            os.mkdir(self.tmp)
+        else:
+            os.mkdir(self.tmp)
+
     def list2reason(self, exc_list):
         if exc_list and exc_list[-1][0] is self:
             return exc_list[-1][1]
@@ -125,23 +134,23 @@ class iota_testRegularisation(unittest.TestCase):
 
     # Tests definitions
     def test_iota2_regularisation(self):
-        """Test how many samples must be add to the sample set
+        """Test regularization
         """
 
-        regu.OSORegularization(
-            self.raster10m,
-            10,
-            2,
-            self.wd,
-            self.outfile,
-            "1000",
-            self.inland,
-            20,
-            3)
+        rules = mr.getMaskRegularisation(self.nomenclature)
+
+        for rule in rules:
+            mr.adaptRegularization(
+                self.wd, self.raster10m, os.path.join(
+                    self.tmp, rule[2]), "1000", rule, 2)
+
+        rasters = fut.FileSearch_AND(self.tmp, True, "mask", ".tif")
+        mr.mergeRegularization(self.tmp, rasters, 10, self.outfile, "1000")
 
         # test
         outtest = testutils.rasterToArray(self.outfile)
-        outref = testutils.rasterToArray(self.rasterreg20m)
+        outref = testutils.rasterToArray(self.rasterregref)
+
         self.assertTrue(np.array_equal(outtest, outref))
 
         # remove temporary folders

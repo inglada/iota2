@@ -136,8 +136,14 @@ def fitnessDateScore(dateVHR, datadir, datatype):
 
     elif datatype in ['S2', 'S2_S2C']:
         maxFitScore = None
-        for file in glob.glob(datadir + os.sep + '*' +
-                              os.sep + '*_MTD_ALL.xml'):
+        files = sorted(
+            glob.glob(
+                datadir +
+                os.sep +
+                '*' +
+                os.sep +
+                '*_MTD_ALL.xml'))
+        for file in files:
             inDate = os.path.basename(file).split("_")[1].split("-")[0]
             year = int(inDate[:4])
             month = int(inDate[4:6])
@@ -253,8 +259,23 @@ def launch_coregister(tile, cfg, workingDirectory, launch_mask=True):
         commonMasks(tile, cfg.pathConf)
 
 
-def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, minsiftpoints=40, iterate=1, prec=3,
-               mode=2, datadir=None, pattern='*STACK.tif', datatype='S2', writeFeatures=False, workingDirectory=None):
+def coregister(
+        insrc,
+        inref,
+        band,
+        bandref,
+        resample=1,
+        step=256,
+        minstep=16,
+        minsiftpoints=40,
+        iterate=1,
+        prec=3,
+        mode=2,
+        datadir=None,
+        pattern='*STACK.tif',
+        datatype='S2',
+        writeFeatures=False,
+        workingDirectory=None):
     """ register an image / a time series on a reference image
 
     Parameters
@@ -314,20 +335,21 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
     extractROIApp.ExecuteAndWriteOutput()
     # #SensorModel generation
     SensorModel = os.path.join(pathWd, 'SensorModel.geom')
-    PMCMApp = OtbAppBank.CreatePointMatchCoregistrationModel({"in": srcClip,
-                                                              "band1": band,
-                                                              "inref": inref,
-                                                              "bandref": bandref,
-                                                              "resample": resample,
-                                                              "precision": str(prec),
-                                                              "mfilter": "1",
-                                                              "backmatching": "1",
-                                                              "outgeom": SensorModel,
-                                                              "initgeobinstep": str(step),
-                                                              "mingeobinstep": str(minstep),
-                                                              "minsiftpoints": str(minsiftpoints),
-                                                              "iterate": iterate
-                                                              })
+    PMCMApp = OtbAppBank.CreatePointMatchCoregistrationModel(
+        {
+            "in": srcClip,
+            "band1": band,
+            "inref": inref,
+            "bandref": bandref,
+            "resample": resample,
+            "precision": str(prec),
+            "mfilter": "1",
+            "backmatching": "1",
+            "outgeom": SensorModel,
+            "initgeobinstep": str(step),
+            "mingeobinstep": str(minstep),
+            "minsiftpoints": str(minsiftpoints),
+            "iterate": iterate})
     PMCMApp.ExecuteAndWriteOutput()
 
     # mode 1 : application on the source image
@@ -342,13 +364,14 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
         code = srs.GetAuthorityCode(None)
         gsp = str(int(2 * round(max(abs(gt[1]), abs(gt[5])))))
         ds = None
-        orthoRecApp = OtbAppBank.CreateOrthoRectification({"in": io_Src,
-                                                           "io.out": outSrc,
-                                                           "map": "epsg",
-                                                           "map.epsg.code": code,
-                                                           "opt.gridspacing": gsp,
-                                                           "pixType": "uint16"
-                                                           })
+        orthoRecApp = OtbAppBank.CreateOrthoRectification(
+            {
+                "in": io_Src,
+                "io.out": outSrc,
+                "map": "epsg",
+                "map.epsg.code": code,
+                "opt.gridspacing": gsp,
+                "pixType": "uint16"})
 
         if writeFeatures:
             orthoRecApp[0].ExecuteAndWriteOutput()
@@ -383,13 +406,14 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                 extractROIApp.ExecuteAndWriteOutput()
                 outSrc = os.path.join(pathWd, 'temp_file.tif')
                 io_Src = str(mask + '?&skipcarto=true&geom=' + SensorModel)
-                orthoRecApp = OtbAppBank.CreateOrthoRectification({"in": io_Src,
-                                                                   "io.out": outSrc,
-                                                                   "map": "epsg",
-                                                                   "map.epsg.code": code,
-                                                                   "opt.gridspacing": gsp,
-                                                                   "pixType": "uint16"
-                                                                   })
+                orthoRecApp = OtbAppBank.CreateOrthoRectification(
+                    {
+                        "in": io_Src,
+                        "io.out": outSrc,
+                        "map": "epsg",
+                        "map.epsg.code": code,
+                        "opt.gridspacing": gsp,
+                        "pixType": "uint16"})
                 if writeFeatures:
                     orthoRecApp[0].ExecuteAndWriteOutput()
                 else:
@@ -398,10 +422,8 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                 ext = os.path.splitext(insrc)[1]
                 finalMask = os.path.join(pathWd, os.path.basename(
                     mask.replace(ext, ext.replace('.', '_COREG.'))))
-                superImposeApp = OtbAppBank.CreateSuperimposeApplication({"inr": mask,
-                                                                          "inm": orthoRecApp[0],
-                                                                          "out": finalMask,
-                                                                          "pixType": "uint16"})
+                superImposeApp = OtbAppBank.CreateSuperimposeApplication(
+                    {"inr": mask, "inm": orthoRecApp[0], "out": finalMask, "pixType": "uint16"})
                 superImposeApp[0].ExecuteAndWriteOutput()
 
                 if finalMask != mask.replace(ext, ext.replace('.', '_COREG.')):
@@ -440,25 +462,27 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                 outSensorModel = os.path.join(
                     pathWd, 'SensorModel_%s.geom' % date)
                 try:
-                    PMCMApp = OtbAppBank.CreatePointMatchCoregistrationModel({"in": srcClip,
-                                                                              "band1": band,
-                                                                              "inref": inref,
-                                                                              "bandref": bandref,
-                                                                              "resample": resample,
-                                                                              "precision": str(prec),
-                                                                              "mfilter": "1",
-                                                                              "backmatching": "1",
-                                                                              "outgeom": outSensorModel,
-                                                                              "initgeobinstep": str(step),
-                                                                              "mingeobinstep": str(minstep),
-                                                                              "minsiftpoints": str(minsiftpoints),
-                                                                              "iterate": iterate
-                                                                              })
+                    PMCMApp = OtbAppBank.CreatePointMatchCoregistrationModel(
+                        {
+                            "in": srcClip,
+                            "band1": band,
+                            "inref": inref,
+                            "bandref": bandref,
+                            "resample": resample,
+                            "precision": str(prec),
+                            "mfilter": "1",
+                            "backmatching": "1",
+                            "outgeom": outSensorModel,
+                            "initgeobinstep": str(step),
+                            "mingeobinstep": str(minstep),
+                            "minsiftpoints": str(minsiftpoints),
+                            "iterate": iterate})
                     PMCMApp.ExecuteAndWriteOutput()
                 except RuntimeError:
                     shutil.copy(SensorModel, outSensorModel)
-                    logger.warning('Coregistration failed, %s will be process with %s' % (
-                        insrc, outSensorModel))
+                    logger.warning(
+                        'Coregistration failed, %s will be process with %s' %
+                        (insrc, outSensorModel))
                     continue
 
                 outSrc = os.path.join(pathWd, 'temp_file.tif')
@@ -473,13 +497,14 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                 gsp = str(int(2 * round(max(abs(gt[1]), abs(gt[5])))))
                 ds = None
                 try:
-                    orthoRecApp = OtbAppBank.CreateOrthoRectification({"in": io_Src,
-                                                                       "io.out": outSrc,
-                                                                       "map": "epsg",
-                                                                       "map.epsg.code": code,
-                                                                       "opt.gridspacing": gsp,
-                                                                       "pixType": "uint16"
-                                                                       })
+                    orthoRecApp = OtbAppBank.CreateOrthoRectification(
+                        {
+                            "in": io_Src,
+                            "io.out": outSrc,
+                            "map": "epsg",
+                            "map.epsg.code": code,
+                            "opt.gridspacing": gsp,
+                            "pixType": "uint16"})
 
                     if writeFeatures:
                         orthoRecApp[0].ExecuteAndWriteOutput()
@@ -488,15 +513,17 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                 except RuntimeError:
                     os.remove(outSensorModel)
                     shutil.copy(SensorModel, outSensorModel)
-                    logger.warning('Coregistration failed, %s will be process with %s' % (
-                        insrc, outSensorModel))
-                    orthoRecApp = OtbAppBank.CreateOrthoRectification({"in": io_Src,
-                                                                       "io.out": outSrc,
-                                                                       "map": "epsg",
-                                                                       "map.epsg.code": code,
-                                                                       "opt.gridspacing": gsp,
-                                                                       "pixType": "uint16"
-                                                                       })
+                    logger.warning(
+                        'Coregistration failed, %s will be process with %s' %
+                        (insrc, outSensorModel))
+                    orthoRecApp = OtbAppBank.CreateOrthoRectification(
+                        {
+                            "in": io_Src,
+                            "io.out": outSrc,
+                            "map": "epsg",
+                            "map.epsg.code": code,
+                            "opt.gridspacing": gsp,
+                            "pixType": "uint16"})
                     continue
 
                     if writeFeatures:
@@ -533,13 +560,14 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                         outSrc = os.path.join(pathWd, 'temp_file.tif')
                         io_Src = str(
                             srcClip + '?&skipcarto=true&geom=' + outSensorModel)
-                        orthoRecApp = OtbAppBank.CreateOrthoRectification({"in": io_Src,
-                                                                           "io.out": outSrc,
-                                                                           "map": "epsg",
-                                                                           "map.epsg.code": code,
-                                                                           "opt.gridspacing": gsp,
-                                                                           "pixType": "uint16"
-                                                                           })
+                        orthoRecApp = OtbAppBank.CreateOrthoRectification(
+                            {
+                                "in": io_Src,
+                                "io.out": outSrc,
+                                "map": "epsg",
+                                "map.epsg.code": code,
+                                "opt.gridspacing": gsp,
+                                "pixType": "uint16"})
                         if writeFeatures:
                             orthoRecApp[0].ExecuteAndWriteOutput()
                         else:
@@ -592,25 +620,27 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                 outSensorModel = os.path.join(
                     pathWd, 'SensorModel_%s.geom' % date)
                 try:
-                    PMCMApp = OtbAppBank.CreatePointMatchCoregistrationModel({"in": srcClip,
-                                                                              "band1": band,
-                                                                              "inref": inref,
-                                                                              "bandref": bandref,
-                                                                              "resample": resample,
-                                                                              "precision": str(prec),
-                                                                              "mfilter": "1",
-                                                                              "backmatching": "1",
-                                                                              "outgeom": outSensorModel,
-                                                                              "initgeobinstep": str(step),
-                                                                              "mingeobinstep": str(minstep),
-                                                                              "minsiftpoints": str(minsiftpoints),
-                                                                              "iterate": iterate
-                                                                              })
+                    PMCMApp = OtbAppBank.CreatePointMatchCoregistrationModel(
+                        {
+                            "in": srcClip,
+                            "band1": band,
+                            "inref": inref,
+                            "bandref": bandref,
+                            "resample": resample,
+                            "precision": str(prec),
+                            "mfilter": "1",
+                            "backmatching": "1",
+                            "outgeom": outSensorModel,
+                            "initgeobinstep": str(step),
+                            "mingeobinstep": str(minstep),
+                            "minsiftpoints": str(minsiftpoints),
+                            "iterate": iterate})
                     PMCMApp.ExecuteAndWriteOutput()
                 except RuntimeError:
                     shutil.copy(SensorModel, outSensorModel)
-                    logger.warning('Coregistration failed, %s will be process with %s' % (
-                        insrc, outSensorModel))
+                    logger.warning(
+                        'Coregistration failed, %s will be process with %s' %
+                        (insrc, outSensorModel))
                     continue
 
                 outSrc = os.path.join(pathWd, 'temp_file.tif')
@@ -625,13 +655,14 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                 gsp = str(int(2 * round(max(abs(gt[1]), abs(gt[5])))))
                 ds = None
                 try:
-                    orthoRecApp = OtbAppBank.CreateOrthoRectification({"in": io_Src,
-                                                                       "io.out": outSrc,
-                                                                       "map": "epsg",
-                                                                       "map.epsg.code": code,
-                                                                       "opt.gridspacing": gsp,
-                                                                       "pixType": "uint16"
-                                                                       })
+                    orthoRecApp = OtbAppBank.CreateOrthoRectification(
+                        {
+                            "in": io_Src,
+                            "io.out": outSrc,
+                            "map": "epsg",
+                            "map.epsg.code": code,
+                            "opt.gridspacing": gsp,
+                            "pixType": "uint16"})
 
                     if writeFeatures:
                         orthoRecApp[0].ExecuteAndWriteOutput()
@@ -640,13 +671,14 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                 except RuntimeError:
                     os.remove(outSensorModel)
                     shutil.copy(SensorModel, outSensorModel)
-                    orthoRecApp = OtbAppBank.CreateOrthoRectification({"in": io_Src,
-                                                                       "io.out": outSrc,
-                                                                       "map": "epsg",
-                                                                       "map.epsg.code": code,
-                                                                       "opt.gridspacing": gsp,
-                                                                       "pixType": "uint16"
-                                                                       })
+                    orthoRecApp = OtbAppBank.CreateOrthoRectification(
+                        {
+                            "in": io_Src,
+                            "io.out": outSrc,
+                            "map": "epsg",
+                            "map.epsg.code": code,
+                            "opt.gridspacing": gsp,
+                            "pixType": "uint16"})
                     continue
 
                     if writeFeatures:
@@ -683,13 +715,14 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                         outSrc = os.path.join(pathWd, 'temp_file.tif')
                         io_Src = str(
                             srcClip + '?&skipcarto=true&geom=' + outSensorModel)
-                        orthoRecApp = OtbAppBank.CreateOrthoRectification({"in": io_Src,
-                                                                           "io.out": outSrc,
-                                                                           "map": "epsg",
-                                                                           "map.epsg.code": code,
-                                                                           "opt.gridspacing": gsp,
-                                                                           "pixType": "uint16"
-                                                                           })
+                        orthoRecApp = OtbAppBank.CreateOrthoRectification(
+                            {
+                                "in": io_Src,
+                                "io.out": outSrc,
+                                "map": "epsg",
+                                "map.epsg.code": code,
+                                "opt.gridspacing": gsp,
+                                "pixType": "uint16"})
                         if writeFeatures:
                             orthoRecApp[0].ExecuteAndWriteOutput()
                         else:
@@ -750,13 +783,14 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
             code = srs.GetAuthorityCode(None)
             gsp = str(int(2 * round(max(abs(gt[1]), abs(gt[5])))))
             ds = None
-            orthoRecApp = OtbAppBank.CreateOrthoRectification({"in": io_Src,
-                                                               "io.out": outSrc,
-                                                               "map": "epsg",
-                                                               "map.epsg.code": code,
-                                                               "opt.gridspacing": gsp,
-                                                               "pixType": "uint16"
-                                                               })
+            orthoRecApp = OtbAppBank.CreateOrthoRectification(
+                {
+                    "in": io_Src,
+                    "io.out": outSrc,
+                    "map": "epsg",
+                    "map.epsg.code": code,
+                    "opt.gridspacing": gsp,
+                    "pixType": "uint16"})
 
             if writeFeatures:
                 orthoRecApp[0].ExecuteAndWriteOutput()
@@ -792,13 +826,14 @@ def coregister(insrc, inref, band, bandref, resample=1, step=256, minstep=16, mi
                     outSrc = os.path.join(pathWd, 'temp_file.tif')
                     io_Src = str(
                         srcClip + '?&skipcarto=true&geom=' + SensorModel)
-                    orthoRecApp = OtbAppBank.CreateOrthoRectification({"in": io_Src,
-                                                                       "io.out": outSrc,
-                                                                       "map": "epsg",
-                                                                       "map.epsg.code": code,
-                                                                       "opt.gridspacing": gsp,
-                                                                       "pixType": "uint16"
-                                                                       })
+                    orthoRecApp = OtbAppBank.CreateOrthoRectification(
+                        {
+                            "in": io_Src,
+                            "io.out": outSrc,
+                            "map": "epsg",
+                            "map.epsg.code": code,
+                            "opt.gridspacing": gsp,
+                            "pixType": "uint16"})
                     if writeFeatures:
                         orthoRecApp[0].ExecuteAndWriteOutput()
                     else:
@@ -834,29 +869,64 @@ if __name__ == "__main__":
     parser.add_argument("-inref", dest="inref",
                         help="Reference raster", required=True)
     parser.add_argument(
-        "-band", dest="band", help="Band from the source raster", default=3, required=False)
-    parser.add_argument("-bandref", dest="bandref",
-                        help="Band from the reference raster", default=3, required=False)
-    parser.add_argument("-resample", type=str2bool, dest="resample",
-                        help="path to the working directory", default=False, required=False)
+        "-band",
+        dest="band",
+        help="Band from the source raster",
+        default=3,
+        required=False)
+    parser.add_argument(
+        "-bandref",
+        dest="bandref",
+        help="Band from the reference raster",
+        default=3,
+        required=False)
+    parser.add_argument(
+        "-resample",
+        type=str2bool,
+        dest="resample",
+        help="path to the working directory",
+        default=False,
+        required=False)
     parser.add_argument("-step", dest="step", help="",
                         default=256, required=False)
     parser.add_argument("-minstep", dest="minstep",
                         help="", default=16, required=False)
     parser.add_argument("-minsiftpoints", dest="minsiftpoints",
                         help="", default=40, required=False)
-    parser.add_argument("-iterate", type=str2bool, dest="iterate",
-                        help="path to the working directory", default=True, required=False)
+    parser.add_argument(
+        "-iterate",
+        type=str2bool,
+        dest="iterate",
+        help="path to the working directory",
+        default=True,
+        required=False)
     parser.add_argument("-prec", dest="prec", help="",
                         default=3, required=False)
     parser.add_argument(
-        "-mode", dest="mode", help="1 : simple registration ; 2 : time series registration ; 3 : time series cascade registration", default=1, required=False)
-    parser.add_argument("-dd", dest="datadir",
-                        help="path to the root data directory", default=None, required=False)
-    parser.add_argument("-pattern", dest="pattern",
-                        help="pattern of the file to register", default='*STACK', required=False)
-    parser.add_argument("-writeFeatures", type=str2bool, dest="writeFeatures",
-                        help="path to the working directory", default=False, required=False)
+        "-mode",
+        dest="mode",
+        help="1 : simple registration ; 2 : time series registration ; 3 : time series cascade registration",
+        default=1,
+        required=False)
+    parser.add_argument(
+        "-dd",
+        dest="datadir",
+        help="path to the root data directory",
+        default=None,
+        required=False)
+    parser.add_argument(
+        "-pattern",
+        dest="pattern",
+        help="pattern of the file to register",
+        default='*STACK',
+        required=False)
+    parser.add_argument(
+        "-writeFeatures",
+        type=str2bool,
+        dest="writeFeatures",
+        help="path to the working directory",
+        default=False,
+        required=False)
     args = parser.parse_args()
 
     args.mode = int(args.mode)
@@ -870,5 +940,18 @@ if __name__ == "__main__":
             sys.exit(
                 "A pattern is needed for time series registration (mode 2 and 3)")
 
-    coregister(args.insrc, args.inref, args.band, args.bandref, args.resample, args.step, args.minstep,
-               args.minsiftpoints, args.iterate, args.prec, args.mode, args.datadir, args.pattern, args.writeFeatures)
+    coregister(
+        args.insrc,
+        args.inref,
+        args.band,
+        args.bandref,
+        args.resample,
+        args.step,
+        args.minstep,
+        args.minsiftpoints,
+        args.iterate,
+        args.prec,
+        args.mode,
+        args.datadir,
+        args.pattern,
+        args.writeFeatures)

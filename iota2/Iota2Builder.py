@@ -45,7 +45,11 @@ class iota2():
         self.steps_group["validation"] = OrderedDict()
         self.steps_group["regularisation"] = OrderedDict()
         self.steps_group["crown"] = OrderedDict()
+        self.steps_group["mosaictiles"] = OrderedDict()
         self.steps_group["vectorisation"] = OrderedDict()
+        self.steps_group["simplification"] = OrderedDict()
+        self.steps_group["smoothing"] = OrderedDict()
+        self.steps_group["clipvectors"] = OrderedDict()
         self.steps_group["lcstatistics"] = OrderedDict()
 
         # build steps
@@ -53,8 +57,13 @@ class iota2():
         self.sort_step()
 
         # pickle's path
-        self.iota2_pickle = os.path.join(SCF.serviceConfigFile(self.cfg).getParam("chain", "outputPath"),
-                                         "logs", "iota2.txt")
+        self.iota2_pickle = os.path.join(
+            SCF.serviceConfigFile(
+                self.cfg).getParam(
+                "chain",
+                "outputPath"),
+            "logs",
+            "iota2.txt")
 
     def save_chain(self):
         """
@@ -98,17 +107,18 @@ class iota2():
                 highlight = "[ ]"
                 if key >= start and key <= end:
                     highlight = "[{}]".format(checked)
-                summarize += "\t {} Step {}: {}".format(highlight, key,
-                                                        self.steps_group[group][key])
+                summarize += "\t {} Step {}: {}".format(
+                    highlight, key, self.steps_group[group][key])
                 if show_resources:
                     cpu = self.steps[step_position].resources["cpu"]
                     ram = self.steps[step_position].resources["ram"]
                     walltime = self.steps[step_position].resources["walltime"]
                     resource_block_name = self.steps[step_position].resources["resource_block_name"]
                     resource_block_found = self.steps[step_position].resources["resource_block_found"]
+                    log_identifier = self.steps[step_position].step_name
                     resource_miss = "" if resource_block_found else " -> MISSING"
-                    summarize += "\n\t\t\tresources block name : {}{}\n\t\t\tcpu : {}\n\t\t\tram : {}\n\t\t\twalltime : {}".format(
-                        resource_block_name, resource_miss, cpu, ram, walltime)
+                    summarize += "\n\t\t\tresources block name : {}{}\n\t\t\tcpu : {}\n\t\t\tram : {}\n\t\t\twalltime : {}\n\t\t\tlog identifier : {}".format(
+                        resource_block_name, resource_miss, cpu, ram, walltime, log_identifier)
                 summarize += "\n"
                 step_position += 1
         summarize += "\n"
@@ -151,160 +161,55 @@ class iota2():
         from Common import ServiceConfigFile as SCF
         from Steps.IOTA2Step import StepContainer
 
-        from Steps import (IOTA2DirTree,
-                           CommonMasks, PixelValidity,
-                           Envelope, genRegionVector,
-                           VectorFormatting, splitSamples,
-                           samplesMerge, statsSamplesModel,
-                           samplingLearningPolygons, samplesByTiles,
-                           samplesExtraction, samplesByModels,
-                           copySamples, genSyntheticSamples,
-                           samplesDimReduction, samplesNormalization,
-                           learnModel, classiCmd,
-                           classification, confusionSAROpt,
-                           confusionSAROptMerge, SAROptFusion,
-                           classificationsFusion, fusionsIndecisions,
-                           mosaic, confusionCmd,
-                           confusionGeneration, confusionsMerge,
-                           reportGeneration, mergeSeedClassifications,
-                           additionalStatistics, additionalStatisticsMerge,
-                           sensorsPreprocess, Coregistration, Regularization,
-                           Clump, Grid, crownSearch, crownBuild,
-                           largeVectorization, VectSimplification,
-                           zonalStatistics, joinStatistics)
-
-        # will contains all IOTA² steps
-        s_container = StepContainer()
-
-        # class instance
-        step_build_tree = IOTA2DirTree.IOTA2DirTree(cfg, config_ressources)
-        step_PreProcess = sensorsPreprocess.sensorsPreprocess(cfg,
-                                                              config_ressources,
-                                                              self.workingDirectory)
-        step_CommonMasks = CommonMasks.CommonMasks(cfg,
-                                                   config_ressources,
-                                                   self.workingDirectory)
-        step_coregistration = Coregistration.Coregistration(cfg,
-                                                            config_ressources,
-                                                            self.workingDirectory)
-        step_pixVal = PixelValidity.PixelValidity(cfg,
-                                                  config_ressources,
-                                                  self.workingDirectory)
-        step_env = Envelope.Envelope(cfg,
-                                     config_ressources,
-                                     self.workingDirectory)
-        step_reg_vector = genRegionVector.genRegionVector(cfg,
-                                                          config_ressources,
-                                                          self.workingDirectory)
-        step_vector_form = VectorFormatting.VectorFormatting(cfg,
-                                                             config_ressources,
-                                                             self.workingDirectory)
-        step_split_huge_vec = splitSamples.splitSamples(cfg,
-                                                        config_ressources,
-                                                        self.workingDirectory)
-        step_merge_samples = samplesMerge.samplesMerge(cfg,
-                                                       config_ressources,
-                                                       self.workingDirectory)
-        step_models_samples_stats = statsSamplesModel.statsSamplesModel(cfg,
-                                                                        config_ressources,
-                                                                        self.workingDirectory)
-        step_samples_selection = samplingLearningPolygons.samplingLearningPolygons(cfg,
-                                                                                   config_ressources,
-                                                                                   self.workingDirectory)
-        step_prepare_selection = samplesByTiles.samplesByTiles(cfg,
-                                                               config_ressources,
-                                                               self.workingDirectory)
-        step_generate_learning_samples = samplesExtraction.samplesExtraction(cfg,
-                                                                             config_ressources,
-                                                                             self.workingDirectory)
-        step_merge_learning_samples = samplesByModels.samplesByModels(cfg,
-                                                                      config_ressources)
-        step_copy_sample_between_models = copySamples.copySamples(cfg,
-                                                                  config_ressources,
-                                                                  self.workingDirectory)
-        step_generate_samples = genSyntheticSamples.genSyntheticSamples(cfg,
-                                                                        config_ressources,
-                                                                        self.workingDirectory)
-        step_dimRed = samplesDimReduction.samplesDimReduction(cfg,
-                                                              config_ressources,
-                                                              self.workingDirectory)
-        step_normalize_samples = samplesNormalization.samplesNormalization(cfg,
-                                                                           config_ressources)
-        step_learning = learnModel.learnModel(cfg,
-                                              config_ressources,
-                                              self.workingDirectory)
-        step_classiCmd = classiCmd.classiCmd(cfg,
-                                             config_ressources,
-                                             self.workingDirectory)
-        step_classification = classification.classification(cfg,
-                                                            config_ressources,
-                                                            self.workingDirectory)
-        step_confusion_sar_opt = confusionSAROpt.confusionSAROpt(cfg,
-                                                                 config_ressources,
-                                                                 self.workingDirectory)
-        step_confusion_sar_opt_fusion = confusionSAROptMerge.confusionSAROptMerge(cfg,
-                                                                                  config_ressources,
-                                                                                  self.workingDirectory)
-        step_sar_opt_fusion = SAROptFusion.SAROptFusion(cfg,
-                                                        config_ressources,
-                                                        self.workingDirectory)
-        step_classif_fusion = classificationsFusion.classificationsFusion(cfg,
-                                                                          config_ressources,
-                                                                          self.workingDirectory)
-        step_manage_fus_indecision = fusionsIndecisions.fusionsIndecisions(cfg,
-                                                                           config_ressources,
-                                                                           self.workingDirectory)
-        step_mosaic = mosaic.mosaic(cfg,
-                                    config_ressources,
-                                    self.workingDirectory)
-        step_confusions_cmd = confusionCmd.confusionCmd(cfg,
-                                                        config_ressources,
-                                                        self.workingDirectory)
-        step_confusions = confusionGeneration.confusionGeneration(cfg,
-                                                                  config_ressources,
-                                                                  self.workingDirectory)
-        step_confusions_merge = confusionsMerge.confusionsMerge(cfg,
-                                                                config_ressources,
-                                                                self.workingDirectory)
-        step_report = reportGeneration.reportGeneration(cfg,
-                                                        config_ressources,
-                                                        self.workingDirectory)
-        step_merge_iota_classif = mergeSeedClassifications.mergeSeedClassifications(cfg,
-                                                                                    config_ressources,
-                                                                                    self.workingDirectory)
-        step_additional_statistics = additionalStatistics.additionalStatistics(cfg,
-                                                                               config_ressources,
-                                                                               self.workingDirectory)
-        step_additional_statistics_merge = additionalStatisticsMerge.additionalStatisticsMerge(cfg,
-                                                                                               config_ressources,
-                                                                                               self.workingDirectory)
-        step_regularization = Regularization.Regularization(cfg,
-                                                            config_ressources,
-                                                            self.workingDirectory)
-        step_clump = Clump.Clump(cfg,
-                                 config_ressources,
-                                 self.workingDirectory)
-        step_grid = Grid.Grid(cfg,
-                              config_ressources,
-                              self.workingDirectory)
-        step_crown_search = crownSearch.crownSearch(cfg,
-                                                    config_ressources,
-                                                    self.workingDirectory)
-        step_crown_build = crownBuild.crownBuild(cfg,
-                                                 config_ressources,
-                                                 self.workingDirectory)
-        step_large_vecto = largeVectorization.largeVectorization(cfg,
-                                                                 config_ressources,
-                                                                 self.workingDirectory)
-        step_simplification = VectSimplification.simplification(cfg,
-                                                                config_ressources,
-                                                                self.workingDirectory)
-        step_zonal_stats = zonalStatistics.zonalStatistics(cfg,
-                                                           config_ressources,
-                                                           self.workingDirectory)
-        step_join_stats = joinStatistics.joinStatistics(cfg,
-                                                        config_ressources,
-                                                        self.workingDirectory)
+        from Steps import (
+            IOTA2DirTree,
+            CommonMasks,
+            PixelValidity,
+            Envelope,
+            genRegionVector,
+            VectorFormatting,
+            splitSamples,
+            samplesMerge,
+            statsSamplesModel,
+            samplingLearningPolygons,
+            samplesByTiles,
+            samplesExtraction,
+            samplesByModels,
+            copySamples,
+            genSyntheticSamples,
+            samplesDimReduction,
+            samplesNormalization,
+            learnModel,
+            classiCmd,
+            classification,
+            confusionSAROpt,
+            confusionSAROptMerge,
+            SAROptFusion,
+            classificationsFusion,
+            fusionsIndecisions,
+            mosaic,
+            confusionCmd,
+            confusionGeneration,
+            confusionsMerge,
+            reportGeneration,
+            mergeSeedClassifications,
+            additionalStatistics,
+            additionalStatisticsMerge,
+            sensorsPreprocess,
+            Coregistration,
+            Regularization,
+            mergeRegularization,
+            Clump,
+            Grid,
+            crownSearch,
+            crownBuild,
+            mosaicTilesVectorization,
+            largeVectorization,
+            largeSimplification,
+            largeSmoothing,
+            clipVectors,
+            zonalStatistics,
+            prodVectors)
 
         # control variable
         Sentinel1 = SCF.serviceConfigFile(cfg).getParam('chain', 'S1Path')
@@ -314,8 +219,9 @@ class iota2():
             'argClassification', 'classifMode')
         sampleManagement = SCF.serviceConfigFile(
             cfg).getParam('argTrain', 'sampleManagement')
-        sample_augmentation = dict(SCF.serviceConfigFile(
-            cfg).getParam('argTrain', 'sampleAugmentation'))
+        sample_augmentation = dict(
+            SCF.serviceConfigFile(cfg).getParam(
+                'argTrain', 'sampleAugmentation'))
         sample_augmentation_flag = sample_augmentation["activate"]
         dimred = SCF.serviceConfigFile(cfg).getParam('dimRed', 'dimRed')
         classifier = SCF.serviceConfigFile(
@@ -334,12 +240,140 @@ class iota2():
         VHR = SCF.serviceConfigFile(cfg).getParam('coregistration', 'VHRPath')
         gridsize = SCF.serviceConfigFile(
             cfg).getParam('Simplification', 'gridsize')
+        umc1 = SCF.serviceConfigFile(cfg).getParam('Simplification', 'umc1')
+        umc2 = SCF.serviceConfigFile(cfg).getParam('Simplification', 'umc2')
+        rssize = SCF.serviceConfigFile(
+            self.cfg).getParam(
+            'Simplification',
+            'rssize')
+        inland = SCF.serviceConfigFile(
+            self.cfg).getParam(
+            'Simplification',
+            'inland')
+        iota2_outputs_dir = SCF.serviceConfigFile(
+            self.cfg).getParam('chain', 'outputPath')
+
+        # will contains all IOTA² steps
+        s_container = StepContainer()
+
+        # class instance
+        step_build_tree = IOTA2DirTree.IOTA2DirTree(cfg, config_ressources)
+        step_PreProcess = sensorsPreprocess.sensorsPreprocess(
+            cfg, config_ressources, self.workingDirectory)
+        step_CommonMasks = CommonMasks.CommonMasks(cfg,
+                                                   config_ressources,
+                                                   self.workingDirectory)
+        step_coregistration = Coregistration.Coregistration(
+            cfg, config_ressources, self.workingDirectory)
+        step_pixVal = PixelValidity.PixelValidity(cfg,
+                                                  config_ressources,
+                                                  self.workingDirectory)
+        step_env = Envelope.Envelope(cfg,
+                                     config_ressources,
+                                     self.workingDirectory)
+        step_reg_vector = genRegionVector.genRegionVector(
+            cfg, config_ressources, self.workingDirectory)
+        step_vector_form = VectorFormatting.VectorFormatting(
+            cfg, config_ressources, self.workingDirectory)
+        step_split_huge_vec = splitSamples.splitSamples(cfg,
+                                                        config_ressources,
+                                                        self.workingDirectory)
+        step_merge_samples = samplesMerge.samplesMerge(cfg,
+                                                       config_ressources,
+                                                       self.workingDirectory)
+        step_models_samples_stats = statsSamplesModel.statsSamplesModel(
+            cfg, config_ressources, self.workingDirectory)
+        step_samples_selection = samplingLearningPolygons.samplingLearningPolygons(
+            cfg, config_ressources, self.workingDirectory)
+        step_prepare_selection = samplesByTiles.samplesByTiles(
+            cfg, config_ressources, self.workingDirectory)
+        step_generate_learning_samples = samplesExtraction.samplesExtraction(
+            cfg, config_ressources, self.workingDirectory)
+        step_merge_learning_samples = samplesByModels.samplesByModels(
+            cfg, config_ressources)
+        step_copy_sample_between_models = copySamples.copySamples(
+            cfg, config_ressources, self.workingDirectory)
+        step_generate_samples = genSyntheticSamples.genSyntheticSamples(
+            cfg, config_ressources, self.workingDirectory)
+        step_dimRed = samplesDimReduction.samplesDimReduction(
+            cfg, config_ressources, self.workingDirectory)
+        step_normalize_samples = samplesNormalization.samplesNormalization(
+            cfg, config_ressources)
+        step_learning = learnModel.learnModel(cfg,
+                                              config_ressources,
+                                              self.workingDirectory)
+        step_classiCmd = classiCmd.classiCmd(cfg,
+                                             config_ressources,
+                                             self.workingDirectory)
+        step_classification = classification.classification(
+            cfg, config_ressources, self.workingDirectory)
+        step_confusion_sar_opt = confusionSAROpt.confusionSAROpt(
+            cfg, config_ressources, self.workingDirectory)
+        step_confusion_sar_opt_fusion = confusionSAROptMerge.confusionSAROptMerge(
+            cfg, config_ressources, self.workingDirectory)
+        step_sar_opt_fusion = SAROptFusion.SAROptFusion(cfg,
+                                                        config_ressources,
+                                                        self.workingDirectory)
+        step_classif_fusion = classificationsFusion.classificationsFusion(
+            cfg, config_ressources, self.workingDirectory)
+        step_manage_fus_indecision = fusionsIndecisions.fusionsIndecisions(
+            cfg, config_ressources, self.workingDirectory)
+        step_mosaic = mosaic.mosaic(cfg,
+                                    config_ressources,
+                                    self.workingDirectory)
+
+        step_confusions_cmd = confusionCmd.confusionCmd(cfg,
+                                                        config_ressources,
+                                                        self.workingDirectory)
+        step_confusions = confusionGeneration.confusionGeneration(
+            cfg, config_ressources, self.workingDirectory)
+        step_confusions_merge = confusionsMerge.confusionsMerge(
+            cfg, config_ressources, self.workingDirectory)
+        step_report = reportGeneration.reportGeneration(cfg,
+                                                        config_ressources,
+                                                        self.workingDirectory)
+        step_merge_iota_classif = mergeSeedClassifications.mergeSeedClassifications(
+            cfg, config_ressources, self.workingDirectory)
+        step_additional_statistics = additionalStatistics.additionalStatistics(
+            cfg, config_ressources, self.workingDirectory)
+        step_additional_statistics_merge = additionalStatisticsMerge.additionalStatisticsMerge(
+            cfg, config_ressources, self.workingDirectory)
+
+        step_clump = Clump.Clump(cfg,
+                                 config_ressources,
+                                 self.workingDirectory)
+        step_grid = Grid.Grid(cfg,
+                              config_ressources,
+                              self.workingDirectory)
+        step_crown_search = crownSearch.crownSearch(cfg,
+                                                    config_ressources,
+                                                    self.workingDirectory)
+        step_crown_build = crownBuild.crownBuild(cfg,
+                                                 config_ressources,
+                                                 self.workingDirectory)
+        step_mosaic_tiles = mosaicTilesVectorization.mosaicTilesVectorization(
+            cfg, config_ressources, self.workingDirectory)
+        step_large_vecto = largeVectorization.largeVectorization(
+            cfg, config_ressources, self.workingDirectory)
+        step_large_simp = largeSimplification.largeSimplification(
+            cfg, config_ressources, self.workingDirectory)
+        step_large_smoothing = largeSmoothing.largeSmoothing(
+            cfg, config_ressources, self.workingDirectory)
+        step_clip_vectors = clipVectors.clipVectors(cfg,
+                                                    config_ressources,
+                                                    self.workingDirectory)
+
+        step_zonal_stats = zonalStatistics.zonalStatistics(
+            cfg, config_ressources, self.workingDirectory)
+        step_prod_vectors = prodVectors.prodVectors(cfg,
+                                                    config_ressources,
+                                                    self.workingDirectory)
 
         # build chain
         # init steps
         s_container.append(step_build_tree, "init")
         s_container.append(step_PreProcess, "init")
-        if not "none" in VHR.lower():
+        if "none" not in VHR.lower():
             s_container.append(step_coregistration, "init")
 
         s_container.append(step_CommonMasks, "init")
@@ -393,19 +427,99 @@ class iota2():
         if outStat:
             s_container.append(step_additional_statistics, "validation")
             s_container.append(step_additional_statistics_merge, "validation")
+
         # regularisation steps
-        s_container.append(step_regularization, "regularisation")
+        if umc1:
+            # TODO : creer une variable adaptative / oso / regulier (avec
+            # "connection" en paramètre supplémentaire)
+            outregul = os.path.join(
+                iota2_outputs_dir,
+                "final",
+                "simplification",
+                "classif_regul.tif")
+
+            regulruns = 2 if umc2 else 1
+
+            if not os.path.exists(outregul):
+                lognamereg = 'regul1'
+                lognamemerge = "merge_regul1"
+                if regulruns == 2:
+
+                    outregul = os.path.join(
+                        iota2_outputs_dir,
+                        "final",
+                        "simplification",
+                        "tmp",
+                        "regul1.tif")
+                    s_container.append(
+                        Regularization.Regularization(
+                            cfg,
+                            config_ressources,
+                            umc=umc1,
+                            stepname="regul1",
+                            workingDirectory=self.workingDirectory),
+                        "regularisation")
+
+                    s_container.append(
+                        mergeRegularization.mergeRegularization(
+                            cfg,
+                            config_ressources,
+                            workingDirectory=self.workingDirectory,
+                            resample=rssize,
+                            umc=umc1,
+                            stepname="merge_regul1",
+                            output=outregul),
+                        "regularisation")
+                    umc1 = umc2
+                    rssize = None
+                    outregul = os.path.join(
+                        iota2_outputs_dir,
+                        "final",
+                        "simplification",
+                        "classif_regul.tif")
+                    logname = 'regul2'
+                    lognamemerge = "merge_regul2"
+
+                s_container.append(
+                    Regularization.Regularization(
+                        cfg,
+                        config_ressources,
+                        umc=umc1,
+                        stepname=logname,
+                        workingDirectory=self.workingDirectory),
+                    "regularisation")
+
+                s_container.append(
+                    mergeRegularization.mergeRegularization(
+                        cfg,
+                        config_ressources,
+                        workingDirectory=self.workingDirectory,
+                        resample=rssize,
+                        water=inland,
+                        umc=umc1,
+                        stepname=lognamemerge,
+                        output=outregul),
+                    "regularisation")
+
         if gridsize is not None:
             s_container.append(step_clump, "regularisation")
             # crown steps
             s_container.append(step_grid, "crown")
             s_container.append(step_crown_search, "crown")
             s_container.append(step_crown_build, "crown")
+            # mosaic step
+            s_container.append(step_mosaic_tiles, "mosaictiles")
             # vectorization step
             s_container.append(step_large_vecto, "vectorisation")
+            s_container.append(step_large_simp, "simplification")
+            s_container.append(step_large_smoothing, "smoothing")
+            s_container.append(step_clip_vectors, "clipvectors")
         else:
             # vectorization step
-            s_container.append(step_simplification, "vectorisation")
+            s_container.append(step_large_vecto, "vectorisation")
+            s_container.append(step_large_simp, "simplification")
+            s_container.append(step_large_smoothing, "smoothing")
+            s_container.append(step_clip_vectors, "clipvectors")
         s_container.append(step_zonal_stats, "lcstatistics")
-        s_container.append(step_join_stats, "lcstatistics")
+        s_container.append(step_prod_vectors, "lcstatistics")
         return s_container

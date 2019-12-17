@@ -8,7 +8,7 @@ from osgeo import ogr
 from VectorTools import vector_functions as vf
 
 
-def bufferPoly(inputfn, outputBufferfn, bufferDist):
+def bufferPoly(inputfn, outputBufferfn="", bufferDist=0):
 
     try:
         bufferDist = float(bufferDist)
@@ -47,7 +47,8 @@ def bufferPoly(inputfn, outputBufferfn, bufferDist):
 
     except BaseException:
         return False
-    return True
+
+    return bufferlyr
 
 
 if __name__ == "__main__":
@@ -59,8 +60,9 @@ if __name__ == "__main__":
         sys.exit(-1)
     else:
         usage = "usage: %prog [options] "
-        parser = argparse.ArgumentParser(description="Apply a buffer of a defined distance"
-                                         "on features of an input shapefile and create a new shapefile with same attributes")
+        parser = argparse.ArgumentParser(
+            description="Apply a buffer of a defined distance"
+            "on features of an input shapefile and create a new shapefile with same attributes")
         parser.add_argument("-s", dest="inshapefile", action="store",
                             help="Input shapefile", required=True)
         parser.add_argument("-o", dest="outshapefile", action="store",

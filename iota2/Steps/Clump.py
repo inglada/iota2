@@ -76,7 +76,7 @@ class Clump(IOTA2Step.Step):
             'tmp')
         if self.workingDirectory:
             tmpdir = self.workingDirectory
-        use64bit = False if self.lib64bit is not None else False
+        use64bit = True if self.lib64bit is not None else False
 
         def step_function(x): return clump.clumpAndStackClassif(tmpdir,
                                                                 x,

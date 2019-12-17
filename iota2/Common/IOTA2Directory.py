@@ -35,6 +35,7 @@ def GenerateDirectories(cfg):
             root) and root != "/" and rm_PathTEST and start_step == "init":
         shutil.rmtree(root, ignore_errors=False)
     ensure_dir(root)
+
     if os.path.exists(root + "/logs"):
         shutil.rmtree(root + "/logs")
     os.mkdir(root + "/logs")
@@ -62,9 +63,11 @@ def GenerateDirectories(cfg):
     if os.path.exists(root + "/final"):
         shutil.rmtree(root + "/final")
     os.mkdir(root + "/final")
+    os.mkdir(root + "/final/vectors")
     os.mkdir(root + "/final/simplification")
     os.mkdir(root + "/final/simplification/tiles")
     os.mkdir(root + "/final/simplification/vectors")
+    os.mkdir(root + "/final/simplification/mosaic")
     os.mkdir(root + "/final/simplification/tmp")
     if os.path.exists(root + "/features"):
         shutil.rmtree(root + "/features")

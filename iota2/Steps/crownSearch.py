@@ -55,7 +55,9 @@ class crownSearch(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
+
         return list(range(self.gridsize * self.gridsize))
+    
 
     def step_execute(self):
         """

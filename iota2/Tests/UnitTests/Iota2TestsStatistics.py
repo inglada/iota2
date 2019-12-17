@@ -58,6 +58,7 @@ class iota_testZonalStats(unittest.TestCase):
 
         self.wd = os.path.join(self.iota2_tests_directory, "wd/")
         self.out = os.path.join(self.iota2_tests_directory, "out/")
+
         self.classif = os.path.join(
             IOTA2DIR, "data", "references/sampler/final/Classif_Seed_0.tif")
         self.validity = os.path.join(
@@ -65,23 +66,21 @@ class iota_testZonalStats(unittest.TestCase):
         self.confid = os.path.join(
             IOTA2DIR, "data", "references/sampler/final/PixelsValidity.tif")
         self.vector = os.path.join(
-            IOTA2DIR, "data", "references/posttreat/vectors/")
-        self.nomenclature = os.path.join(
-            IOTA2DIR, "data", "references/posttreat/nomenclature.txt")
-        self.vectorfile = os.path.join(self.vector, "classif.shp")
-        self.outfilestats = os.path.join(
-            IOTA2DIR, "data", "references/posttreat/stats_classif")
-        self.outfilevector = os.path.join(
-            self.iota2_tests_directory, self.wd, "final.shp")
-        self.outfilevectorref = os.path.join(self.vector, "classifjoin.shp")
+            IOTA2DIR, "data", "references/posttreat/vectors/classifsmooth.shp")
+        self.vectorstats = os.path.join(
+            self.iota2_tests_directory, self.out, "classifstats.shp")
+        self.vectorstatsiota2 = os.path.join(
+            self.iota2_tests_directory, self.out, "classifiota2.shp")
         self.outzip = os.path.join(
-            self.iota2_tests_directory, self.wd, "classif.zip")
-        self.outzipref = os.path.join(self.vector, "classif.zip")
-        self.gdallib = os.environ.get('GDAL224DIR')
+            self.iota2_tests_directory,
+            self.out,
+            "classif.zip")
+        self.statslist = {1: "rate", 2: "statsmaj", 3: "statsmaj"}
+        self.nomenclature = os.path.join(
+            IOTA2DIR, "data", "references/posttreat/nomenclature_17.cfg")
 
-        if self.gdallib is None:
-            raise Exception(
-                "GDAL224DIR not initialized (Version of gdal greater or equal to 2.2.4")
+        self.outzipref = os.path.join(
+            IOTA2DIR, "data", "references/posttreat/vectors/classif.zip")
 
     # after launching all tests
     @classmethod
@@ -141,41 +140,45 @@ class iota_testZonalStats(unittest.TestCase):
 
     # Tests definitions
     def test_iota2_Statistics(self):
-        """Test how many samples must be add to the sample set
+        """Test vector statistics computing
         """
         # Statistics test
-        zs.computZonalStats(self.wd,
-                            [self.classif,
-                             self.confid,
-                             self.validity],
-                            self.vector,
-                            self.wd,
-                            self.gdallib)
 
-        self.assertTrue(filecmp.cmp(self.outfilestats, os.path.join(self.wd, "stats_classif")),
-                        msg="Statistics file does not fit the reference one")
-
-        for ext in ['.shp', '.dbf', '.shx', '.prj']:
-            shutil.copy(os.path.splitext(self.vectorfile)[0] + ext, self.wd)
+        params = zs.splitVectorFeatures(self.vector, self.wd, 1)
+        zs.zonalstats(self.wd,
+                      [self.classif,
+                       self.confid,
+                       self.validity],
+                      params,
+                      self.vectorstats,
+                      self.statslist,
+                      classes=self.nomenclature)
+        zs.iota2Formatting(
+            self.vectorstats,
+            self.nomenclature,
+            self.vectorstatsiota2)
+        zs.compressShape(self.vectorstatsiota2, self.outzip)
 
         # Final integration test
-        #cs.computeStats(self.wd, os.path.join(self.wd, "stats_classif"), self.nomenclature, self.wd, self.outfilevector, True)
-        cs.computeStats(
-            self.wd,
-            os.path.join(
-                self.wd,
-                "stats_classif"),
-            self.wd,
-            self.outfilevector,
-            True)
         os.system("unzip %s -d %s" % (self.outzipref, self.wd))
+        for ext in ['.shp', '.dbf', '.shx', '.prj', '.cpg']:
+            os.remove(os.path.splitext(self.vectorstatsiota2)[0] + ext)
+
         os.system("unzip %s -d %s" % (self.outzip, self.out))
 
-        self.assertTrue(testutils.compareVectorFile(self.outfilevectorref,
-                                                    os.path.join(
-                                                        self.wd, "classif.shp"),
-                                                    'coordinates', 'polygon', "ESRI Shapefile"),
-                        "Generated shapefile vector does not fit with shapefile reference file")
+        self.assertTrue(
+            testutils.compareVectorFile(
+                os.path.join(
+                    self.out,
+                    "classifiota2.shp"),
+                os.path.join(
+                    self.wd,
+                    "classifiota2.shp"),
+                'coordinates',
+                'polygon',
+                "ESRI Shapefile"),
+            "Generated shapefile vector does not fit with shapefile reference file")
+
         # remove temporary folders
         if os.path.exists(self.wd):
             shutil.rmtree(self.wd, ignore_errors=True)

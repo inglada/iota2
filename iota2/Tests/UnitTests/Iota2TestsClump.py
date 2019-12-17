@@ -56,8 +56,9 @@ class iota_testClump(unittest.TestCase):
 
         self.wd = os.path.join(self.iota2_tests_directory, "wd")
         self.out = os.path.join(self.iota2_tests_directory, "out")
-        self.rasterreg20m = os.path.join(
-            IOTA2DIR, "data", "references/posttreat/classif_regul_20m.tif")
+
+        self.rasterreg = os.path.join(
+            IOTA2DIR, "data", "references/posttreat/classif_regul.tif")
         self.outfilename = os.path.join(
             self.iota2_tests_directory,
             self.out,
@@ -128,9 +129,10 @@ class iota_testClump(unittest.TestCase):
     def test_iota2_clump(self):
         """Test how many samples must be add to the sample set
         """
+
         clump.clumpAndStackClassif(
             self.wd,
-            self.rasterreg20m,
+            self.rasterreg,
             self.outfilename,
             "1000",
             False)

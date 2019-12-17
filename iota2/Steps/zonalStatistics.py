@@ -34,10 +34,12 @@ class zonalStatistics(IOTA2Step.Step):
         # step variables
         self.RAM = 1024.0 * get_RAM(self.resources["ram"])
         self.workingDirectory = workingDirectory
+
         self.outputPath = SCF.serviceConfigFile(
             self.cfg).getParam(
             'chain', 'outputPath')
-
+        self.outfilesvectpath = os.path.join(
+            self.outputPath, 'final', 'simplification', 'vectors')
         self.rastclass = SCF.serviceConfigFile(
             self.cfg).getParam(
             'Simplification',
@@ -54,6 +56,15 @@ class zonalStatistics(IOTA2Step.Step):
         self.bingdal = SCF.serviceConfigFile(
             self.cfg).getParam(
             'Simplification', 'bingdal')
+        self.chunk = SCF.serviceConfigFile(
+            self.cfg).getParam(
+            'Simplification', 'chunk')
+        self.statslist = SCF.serviceConfigFile(
+            self.cfg).getParam(
+            'Simplification', 'statslist')
+        self.nomenclature = SCF.serviceConfigFile(
+            self.cfg).getParam(
+            'Simplification', 'nomenclature')
 
         if self.rastclass is None:
             if self.seed is not None:
@@ -69,8 +80,11 @@ class zonalStatistics(IOTA2Step.Step):
                         'Confidence_Seed_{}.tif'.format(
                             self.seed))
             else:
-                if os.path.exists(os.path.join(
-                        self.outputPath, 'final', 'Classifications_fusion.tif')):
+                if os.path.exists(
+                    os.path.join(
+                        self.outputPath,
+                        'final',
+                        'Classifications_fusion.tif')):
                     self.rastclass = os.path.join(
                         self.outputPath, 'final', 'Classifications_fusion.tif')
                 else:
@@ -99,9 +113,15 @@ class zonalStatistics(IOTA2Step.Step):
             the return could be and iterable or a callable
         """
         from simplification import ZonalStats as zs
-        outfilesvectpath = os.path.join(
-            self.outputPath, 'final', 'simplification', 'vectors')
-        return zs.getParameters(outfilesvectpath, outfilesvectpath)
+
+        tmpdir = os.path.join(
+            self.outputPath,
+            'final',
+            'simplification',
+            'tmp')
+
+        return zs.splitVectorFeatures(
+            self.outfilesvectpath, tmpdir, self.chunk)
 
     def step_execute(self):
         """
@@ -122,14 +142,21 @@ class zonalStatistics(IOTA2Step.Step):
             tmpdir = self.workingDirectory
 
         def step_function(x): return zs.zonalstats(tmpdir,
-                                                   [self.rastclass,
-                                                    self.rastconf, self.rastval],
-                                                   x,
-                                                   self.bingdal)
+                                                   [self.rastclass, self.rastconf, self.rastval],
+                                                   x[0:2],
+                                                   x[2],
+                                                   self.statslist,
+                                                   classes=self.nomenclature,
+                                                   gdalpath=self.bingdal)
 
         return step_function
 
     def step_outputs(self):
+        """
+        """
+        pass
+
+    def step_clean(self):
         """
         """
         pass

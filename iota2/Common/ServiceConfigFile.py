@@ -54,47 +54,48 @@ class serviceConfigFile:
         # set default values
         if iota_config:
             # init chain section
-            chain_default = {"outputStatistics": False,
-                             "L5Path_old": "None",
-                             "L5_old_output_path": None,
-                             "L8Path": "None",
-                             "L8_output_path": None,
-                             "L8Path_old": "None",
-                             "L8_old_output_path": None,
-                             "S2Path": "None",
-                             "S2_output_path": None,
-                             "S2_S2C_Path": "None",
-                             "S2_S2C_output_path": None,
-                             "S2_L3A_Path": "None",
-                             "S2_L3A_output_path": None,
-                             "S1Path": "None",
-                             "userFeatPath": "None",
-                             "jobsPath": None,
-                             "runs": 1,
-                             "enableCrossValidation": False,
-                             "model": "None",
-                             "cloud_threshold": 0,
-                             "splitGroundTruth": True,
-                             "ratio": 0.5,
-                             "random_seed": None,
-                             "firstStep": "init",
-                             "lastStep": "validation",
-                             "logFileLevel": "INFO",
-                             "mode_outside_RegionSplit": 0.1,
-                             "logFile": "iota2LogFile.log",
-                             "logConsoleLevel": "INFO",
-                             "regionPath": None,
-                             "regionField": "region",
-                             "logConsole": True,
-                             "enableConsole": False,
-                             "merge_final_classifications": False,
-                             "merge_final_classifications_method": "majorityvoting",
-                             "merge_final_classifications_undecidedlabel": 255,
-                             "fusionOfClassificationAllSamplesValidation": False,
-                             "dempstershafer_mob": "precision",
-                             "merge_final_classifications_ratio": 0.1,
-                             "keep_runs_results": True,
-                             "remove_tmp_files": False}
+            chain_default = {
+                "outputStatistics": False,
+                "L5Path_old": "None",
+                "L5_old_output_path": None,
+                "L8Path": "None",
+                "L8_output_path": None,
+                "L8Path_old": "None",
+                "L8_old_output_path": None,
+                "S2Path": "None",
+                "S2_output_path": None,
+                "S2_S2C_Path": "None",
+                "S2_S2C_output_path": None,
+                "S2_L3A_Path": "None",
+                "S2_L3A_output_path": None,
+                "S1Path": "None",
+                "userFeatPath": "None",
+                "jobsPath": None,
+                "runs": 1,
+                "enableCrossValidation": False,
+                "model": "None",
+                "cloud_threshold": 0,
+                "splitGroundTruth": True,
+                "ratio": 0.5,
+                "random_seed": None,
+                "firstStep": "init",
+                "lastStep": "validation",
+                "logFileLevel": "INFO",
+                "mode_outside_RegionSplit": 0.1,
+                "logFile": "iota2LogFile.log",
+                "logConsoleLevel": "INFO",
+                "regionPath": None,
+                "regionField": "region",
+                "logConsole": True,
+                "enableConsole": False,
+                "merge_final_classifications": False,
+                "merge_final_classifications_method": "majorityvoting",
+                "merge_final_classifications_undecidedlabel": 255,
+                "fusionOfClassificationAllSamplesValidation": False,
+                "dempstershafer_mob": "precision",
+                "merge_final_classifications_ratio": 0.1,
+                "keep_runs_results": True,
+                "remove_tmp_files": False}
             self.init_section("chain", chain_default)
             # init coregistration section
             coregistration_default = {"VHRPath": "None",
@@ -120,30 +121,37 @@ class serviceConfigFile:
             annualCrop = self.init_listSequence(["11", "12"])
             ACropLabelReplacement = self.init_listSequence(
                 ["10", "annualCrop"])
-            argTrain_default = {"sampleSelection": sampleSel_default,
-                                "sampleAugmentation": sampleAugmentationg_default,
-                                "sampleManagement": None,
-                                "dempster_shafer_SAR_Opt_fusion": False,
-                                "cropMix": False,
-                                "prevFeatures": "None",
-                                "outputPrevFeatures": "None",
-                                "annualCrop": annualCrop,
-                                "ACropLabelReplacement": ACropLabelReplacement,
-                                "samplesClassifMix": False,
-                                "annualClassesExtractionSource": "None",
-                                "validityThreshold": 1}
+            argTrain_default = {
+                "sampleSelection": sampleSel_default,
+                "sampleAugmentation": sampleAugmentationg_default,
+                "sampleManagement": None,
+                "dempster_shafer_SAR_Opt_fusion": False,
+                "cropMix": False,
+                "prevFeatures": "None",
+                "outputPrevFeatures": "None",
+                "annualCrop": annualCrop,
+                "ACropLabelReplacement": ACropLabelReplacement,
+                "samplesClassifMix": False,
+                "annualClassesExtractionSource": "None",
+                "validityThreshold": 1}
             self.init_section("argTrain", argTrain_default)
             # init argClassification section
-            argClassification_default = {"noLabelManagement": "maxConfidence",
-                                         "enable_probability_map": False,
-                                         "fusionOptions": "-nodatalabel 0 -method majorityvoting"}
+            argClassification_default = {
+                "noLabelManagement": "maxConfidence",
+                "enable_probability_map": False,
+                "fusionOptions": "-nodatalabel 0 -method majorityvoting"}
             self.init_section("argClassification", argClassification_default)
             # init GlobChain section
-            GlobChain_default = {"features": self.init_listSequence(["NDVI", "NDWI", "Brightness"]),
-                                 "autoDate": True,
-                                 "writeOutputs": False,
-                                 "useAdditionalFeatures": False,
-                                 "useGapFilling": True}
+            GlobChain_default = {
+                "features": self.init_listSequence(
+                    [
+                        "NDVI",
+                        "NDWI",
+                        "Brightness"]),
+                "autoDate": True,
+                "writeOutputs": False,
+                "useAdditionalFeatures": False,
+                "useGapFilling": True}
             self.init_section("GlobChain", GlobChain_default)
             # init iota2FeatureExtraction reduction
             iota2FeatureExtraction_default = {"copyinput": True,
@@ -164,35 +172,85 @@ class serviceConfigFile:
                                 "write_reproject_resampled_input_dates_stack": True,
                                 "startDate": "",
                                 "endDate": "",
-                                "keepBands": self.init_listSequence(["B1", "B2", "B3", "B4", "B5", "B6", "B7"])}
+                                "keepBands": self.init_listSequence(["B1",
+                                                                     "B2",
+                                                                     "B3",
+                                                                     "B4",
+                                                                     "B5",
+                                                                     "B6",
+                                                                     "B7"])}
             Landsat8_old_default = {"additionalFeatures": "",
                                     "temporalResolution": 16,
                                     "startDate": "",
                                     "endDate": "",
-                                    "keepBands": self.init_listSequence(["B1", "B2", "B3", "B4", "B5", "B6", "B7"])}
+                                    "keepBands": self.init_listSequence(["B1",
+                                                                         "B2",
+                                                                         "B3",
+                                                                         "B4",
+                                                                         "B5",
+                                                                         "B6",
+                                                                         "B7"])}
             Landsat5_old_default = {"additionalFeatures": "",
                                     "temporalResolution": 16,
                                     "startDate": "",
                                     "endDate": "",
-                                    "keepBands": self.init_listSequence(["B1", "B2", "B3", "B4", "B5", "B6"])}
+                                    "keepBands": self.init_listSequence(["B1",
+                                                                         "B2",
+                                                                         "B3",
+                                                                         "B4",
+                                                                         "B5",
+                                                                         "B6"])}
             Sentinel_2_default = {"additionalFeatures": "",
                                   "temporalResolution": 10,
                                   "write_reproject_resampled_input_dates_stack": True,
                                   "startDate": "",
                                   "endDate": "",
-                                  "keepBands": self.init_listSequence(["B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11", "B12"])}
-            Sentinel_2_S2C_default = {"additionalFeatures": "",
-                                      "temporalResolution": 10,
-                                      "write_reproject_resampled_input_dates_stack": True,
-                                      "startDate": "",
-                                      "endDate": "",
-                                      "keepBands": self.init_listSequence(["B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11", "B12"])}
-            Sentinel_2_L3A_default = {"additionalFeatures": "",
-                                      "temporalResolution": 10,
-                                      "write_reproject_resampled_input_dates_stack": True,
-                                      "startDate": "",
-                                      "endDate": "",
-                                      "keepBands": self.init_listSequence(["B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11", "B12"])}
+                                  "keepBands": self.init_listSequence(["B2",
+                                                                       "B3",
+                                                                       "B4",
+                                                                       "B5",
+                                                                       "B6",
+                                                                       "B7",
+                                                                       "B8",
+                                                                       "B8A",
+                                                                       "B11",
+                                                                       "B12"])}
+            Sentinel_2_S2C_default = {
+                "additionalFeatures": "",
+                "temporalResolution": 10,
+                "write_reproject_resampled_input_dates_stack": True,
+                "startDate": "",
+                "endDate": "",
+                "keepBands": self.init_listSequence(
+                    [
+                        "B2",
+                        "B3",
+                        "B4",
+                        "B5",
+                        "B6",
+                        "B7",
+                        "B8",
+                        "B8A",
+                        "B11",
+                        "B12"])}
+            Sentinel_2_L3A_default = {
+                "additionalFeatures": "",
+                "temporalResolution": 10,
+                "write_reproject_resampled_input_dates_stack": True,
+                "startDate": "",
+                "endDate": "",
+                "keepBands": self.init_listSequence(
+                    [
+                        "B2",
+                        "B3",
+                        "B4",
+                        "B5",
+                        "B6",
+                        "B7",
+                        "B8",
+                        "B8A",
+                        "B11",
+                        "B12"])}
 
             userFeat = {"arbo": "/*",
                         "patterns": "ALT,ASP,SLP"}
@@ -205,29 +263,36 @@ class serviceConfigFile:
             self.init_section("Sentinel_2_L3A", Sentinel_2_L3A_default)
             self.init_section("userFeat", userFeat)
 
-            simp_default = {"classification": None,
-                            "confidence": None,
-                            "validity": None,
-                            "seed": None,
-                            "umc1": 10,
-                            "umc2": 3,
-                            "inland": None,
-                            "rssize": 20,
-                            "lib64bit": None,
-                            "gridsize": 2,
-                            "grasslib": "/work/OT/theia/oso/OTB/GRASS/grass7.2.1svn-x86_64-pc-linux-gnu-13_03_2017",
-                            "douglas": 10,
-                            "hermite": 10,
-                            "mmu": 1000,
-                            "angle": True,
-                            "clipfile": None,
-                            "clipfield": None,
-                            "clipvalue": None,
-                            "outprefix": "dept",
-                            "lcfield": "Class",
-                            "blocksize": 2000,
-                            "dozip": True,
-                            "bingdal": None}
+            simp_default = {
+                "classification": None,
+                "confidence": None,
+                "validity": None,
+                "seed": None,
+                "umc1": None,
+                "umc2": None,
+                "inland": None,
+                "rssize": 20,
+                "lib64bit": None,
+                "gridsize": 2,
+                "grasslib": "/work/OT/theia/oso/OTB/GRASS/grass7.2.1svn-x86_64-pc-linux-gnu-13_03_2017",
+                "douglas": 10,
+                "hermite": 10,
+                "mmu": 1000,
+                "angle": True,
+                "clipfile": None,
+                "clipfield": None,
+                "clipvalue": None,
+                "outprefix": "dept",
+                "lcfield": "Class",
+                "blocksize": 2000,
+                "dozip": True,
+                "bingdal": None,
+                "chunk": 10,
+                "nomenclature": None,
+                "statslist": {
+                    1: "rate",
+                    2: "statsmaj",
+                    3: "statsmaj"}}
             self.init_section("Simplification", simp_default)
 
     def init_section(self, sectionName, sectionDefault):
@@ -272,8 +337,9 @@ class serviceConfigFile:
         avail_characters = string.ascii_letters
         first_character = os.path.basename(input_vector)[0]
         if first_character not in avail_characters:
-            raise sErr.configError("the file '{}' is containing a non-ascii letter at first position in it's name : {}".format(input_vector,
-                                                                                                                               first_character))
+            raise sErr.configError(
+                "the file '{}' is containing a non-ascii letter at first position in it's name : {}".format(
+                    input_vector, first_character))
 
     def testVarConfigFile(self, section, variable,
                           varType, valeurs="", valDefaut=""):
@@ -299,9 +365,11 @@ class serviceConfigFile:
             if valDefaut != "":
                 setattr(objSection, variable, valDefaut)
             else:
-                raise sErr.parameterError(section,
-                                          "mandatory variable '" + str(variable) +
-                                          "' is missing in the configuration file")
+                raise sErr.parameterError(
+                    section,
+                    "mandatory variable '" +
+                    str(variable) +
+                    "' is missing in the configuration file")
         else:
             tmpVar = getattr(objSection, variable)
 
@@ -395,8 +463,17 @@ class serviceConfigFile:
             """
             def check_parameters(sampleSel):
 
-                not_allowed_p = ["outrates", "in", "mask", "vec",
-                                 "out", "instats", "field", "layer", "rand", "inxml"]
+                not_allowed_p = [
+                    "outrates",
+                    "in",
+                    "mask",
+                    "vec",
+                    "out",
+                    "instats",
+                    "field",
+                    "layer",
+                    "rand",
+                    "inxml"]
                 strats = ["byclass", "constant",
                           "percent", "total", "smallest", "all"]
                 for p in not_allowed_p:
@@ -504,10 +581,42 @@ class serviceConfigFile:
             self.testVarConfigFile('chain', 'S2Path', str)
             self.testVarConfigFile('chain', 'S1Path', str)
 
-            self.testVarConfigFile('chain', 'firstStep', str, [
-                                   "init", "sampling", "dimred", "learning", "classification", "mosaic", "validation", "regularisation", "crown", "vectorisation", "lcstatistics"])
-            self.testVarConfigFile('chain', 'lastStep', str, [
-                                   "init", "sampling", "dimred", "learning", "classification", "mosaic", "validation", "regularisation", "crown", "vectorisation", "lcstatistics"])
+            self.testVarConfigFile('chain',
+                                   'firstStep',
+                                   str,
+                                   ["init",
+                                    "sampling",
+                                    "dimred",
+                                    "learning",
+                                    "classification",
+                                    "mosaic",
+                                    "validation",
+                                    "regularisation",
+                                    "crown",
+                                    "mosaictiles",
+                                    "vectorisation",
+                                    "simplification",
+                                    "smoothing",
+                                    "clipvectors",
+                                    "lcstatistics"])
+            self.testVarConfigFile('chain',
+                                   'lastStep',
+                                   str,
+                                   ["init",
+                                    "sampling",
+                                    "dimred",
+                                    "learning",
+                                    "classification",
+                                    "mosaic",
+                                    "validation",
+                                    "regularisation",
+                                    "crown",
+                                    "mosaictiles",
+                                    "vectorisation",
+                                    "simplification",
+                                    "smoothing",
+                                    "clipvectors",
+                                    "lcstatistics"])
 
             if self.getParam("chain", "regionPath"):
                 check_region_vector(self.cfg)
@@ -531,10 +640,12 @@ class serviceConfigFile:
                     'chain', 'merge_final_classifications_undecidedlabel', int)
                 self.testVarConfigFile(
                     'chain', 'merge_final_classifications_ratio', float)
-                self.testVarConfigFile('chain', 'merge_final_classifications_method',
-                                       str, ["majorityvoting", "dempstershafer"])
-                self.testVarConfigFile('chain', 'dempstershafer_mob',
-                                       str, ["precision", "recall", "accuracy", "kappa"])
+                self.testVarConfigFile(
+                    'chain', 'merge_final_classifications_method', str, [
+                        "majorityvoting", "dempstershafer"])
+                self.testVarConfigFile(
+                    'chain', 'dempstershafer_mob', str, [
+                        "precision", "recall", "accuracy", "kappa"])
                 self.testVarConfigFile('chain', 'keep_runs_results', bool)
                 self.testVarConfigFile(
                     'chain', 'fusionOfClassificationAllSamplesValidation', bool)
@@ -559,8 +670,9 @@ class serviceConfigFile:
                                    "separate", "fusion"])
             self.testVarConfigFile('argClassification',
                                    'enable_probability_map', bool)
-            self.testVarConfigFile('argClassification', 'noLabelManagement', str, [
-                                   "maxConfidence", "learningPriority"])
+            self.testVarConfigFile(
+                'argClassification', 'noLabelManagement', str, [
+                    "maxConfidence", "learningPriority"])
 
             self.testVarConfigFile('GlobChain', 'proj', str)
             self.testVarConfigFile('GlobChain', 'features', Sequence)
@@ -638,25 +750,31 @@ class serviceConfigFile:
                 if currentField == self.cfg.chain.dataField:
                     flag = 1
                     if "Integer" not in fieldType:
-                        raise sErr.fileError("the data's field " +
-                                             currentField + " must be an integer in " +
-                                             self.cfg.chain.groundTruth)
+                        raise sErr.fileError(
+                            "the data's field " +
+                            currentField +
+                            " must be an integer in " +
+                            self.cfg.chain.groundTruth)
             if flag == 0:
-                raise sErr.fileError("field name '" +
-                                     self.cfg.chain.dataField + "' doesn't exist in " +
-                                     self.cfg.chain.groundTruth)
+                raise sErr.fileError(
+                    "field name '" +
+                    self.cfg.chain.dataField +
+                    "' doesn't exist in " +
+                    self.cfg.chain.groundTruth)
 
             # parameters compatibilities check
             classier_probamap_avail = ["sharkrf"]
-            if (self.getParam("argClassification", "enable_probability_map") is True
-                    and self.getParam("argTrain", "classifier").lower() not in classier_probamap_avail):
+            if (self.getParam("argClassification",
+                              "enable_probability_map") is True and self.getParam("argTrain",
+                                                                                  "classifier").lower() not in classier_probamap_avail):
                 raise sErr.configError(
                     "'enable_probability_map:True' only available with the 'sharkrf' classifier")
             if self.getParam("chain", "enableCrossValidation") is True:
                 raise sErr.configError(
                     "enableCrossValidation not available, please set it to False\n")
             if self.getParam(
-                    "chain", "regionPath") is None and self.cfg.argClassification.classifMode == "fusion":
+                "chain",
+                    "regionPath") is None and self.cfg.argClassification.classifMode == "fusion":
                 raise sErr.configError(
                     "you can't chose 'one_region' mode and ask a fusion of classifications\n")
             if self.cfg.chain.merge_final_classifications and self.cfg.chain.runs == 1:

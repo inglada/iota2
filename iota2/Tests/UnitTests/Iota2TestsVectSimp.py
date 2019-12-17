@@ -56,15 +56,31 @@ class iota_testVectSimp(unittest.TestCase):
 
         self.wd = os.path.join(self.iota2_tests_directory, "wd")
         self.out = os.path.join(self.iota2_tests_directory, "out")
-        self.rasterreg20m = os.path.join(
-            IOTA2DIR, "data", "references/posttreat/classif_regul_20m.tif")
+
+        self.rasterreg = os.path.join(
+            IOTA2DIR, "data", "references/posttreat/classif_regul.tif")
         self.outfilename = os.path.join(
             self.iota2_tests_directory, self.out, "classif.shp")
+        self.outfilenamesimp = os.path.join(
+            self.iota2_tests_directory, self.out, "classifsimp.shp")
+        self.outfilenamesmooth = os.path.join(
+            self.iota2_tests_directory, self.out, "classifsmooth.shp")
         self.vector = os.path.join(
             os.path.join(
                 IOTA2DIR,
                 "data",
+                "references/posttreat/vectors/classif.shp"))
+        self.vectorsimp = os.path.join(
+            os.path.join(
+                IOTA2DIR,
+                "data",
                 "references/posttreat/vectors/classifsimp.shp"))
+        self.vectorsmooth = os.path.join(
+            os.path.join(
+                IOTA2DIR,
+                "data",
+                "references/posttreat/vectors/classifsmooth.shp"))
+
         self.grasslib = os.environ.get('GRASSDIR')
 
         if self.grasslib is None:
@@ -133,21 +149,58 @@ class iota_testVectSimp(unittest.TestCase):
 
     # Tests definitions
     def test_iota2_VectSimp(self):
-        """Test how many samples must be add to the sample set
+        """Test polygonize, simplification and smoothing operations
         """
 
-        # test
-        vas.simplification(
+        # polygonize
+        vas.topologicalPolygonize(
             self.wd,
-            self.rasterreg20m,
+            self.grasslib,
+            self.rasterreg,
+            True,
+            self.outfilename)
+        self.assertTrue(
+            testutils.compareVectorFile(
+                self.vector,
+                self.outfilename,
+                'coordinates',
+                'polygon',
+                "ESRI Shapefile"),
+            "Generated shapefile vector does not fit with shapefile reference file")
+
+        # simplification
+        vas.generalizeVector(
+            self.wd,
             self.grasslib,
             self.outfilename,
             10,
+            "douglas",
+            out=self.outfilenamesimp)
+        self.assertTrue(
+            testutils.compareVectorFile(
+                self.vectorsimp,
+                self.outfilenamesimp,
+                'coordinates',
+                'polygon',
+                "ESRI Shapefile"),
+            "Generated shapefile vector does not fit with shapefile reference file")
+
+        # smoothing
+        vas.generalizeVector(
+            self.wd,
+            self.grasslib,
+            self.outfilenamesimp,
             10,
-            1000,
-            True)
-        self.assertTrue(testutils.compareVectorFile(self.vector, self.outfilename, 'coordinates', 'polygon', "ESRI Shapefile"),
-                        "Generated shapefile vector does not fit with shapefile reference file")
+            "hermite",
+            out=self.outfilenamesmooth)
+        self.assertTrue(
+            testutils.compareVectorFile(
+                self.vectorsmooth,
+                self.outfilenamesmooth,
+                'coordinates',
+                'polygon',
+                "ESRI Shapefile"),
+            "Generated shapefile vector does not fit with shapefile reference file")
 
         # remove temporary folders
         if os.path.exists(self.wd):
