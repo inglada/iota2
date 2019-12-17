@@ -139,9 +139,7 @@ def sk_learn(data_set: Dict[str, str],
 
     # Save model
     model_file = open(model_path, 'wb')
-    pickle.dump(model_cv.best_estimator_, model_file)
+    pickle.dump((model_cv.best_estimator_, scaler), model_file)
     model_file.close()
 
-    # Save scaler
-    with open(scaler_path, 'wb') as scaler_file:
-        pickle.dump(scaler, scaler_file)
+    
