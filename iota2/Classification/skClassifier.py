@@ -180,6 +180,8 @@ def predict(mask: str, model: str, stat: str, out_classif: str, out_confidence: 
 
     with open(model, 'rb') as model_file:
         model, scaler = pickle.load(model_file)
+    if hasattr(model, "n_jobs"):
+        model.n_jobs = -1
 
     if number_of_chunks and targeted_chunk:
         if targeted_chunk > number_of_chunks - 1:
