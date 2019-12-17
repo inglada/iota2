@@ -229,6 +229,7 @@ def process_function(otb_pipeline: otbApplication,
         (np.ndarray, dict)
     """
     import osr
+    from sklearn.preprocessing import binarize
 
     roi_to_ignore = False
     roi_contains_mask_part = False
@@ -415,17 +416,19 @@ def merge_rasters(rasters: List[str],
     tuple
         merged array, rasterio output transform
     """
-    rasters_datasets = [rasterio.open(raster) for raster in rasters]
-    out_arr, out_trans = merge(rasters_datasets)
-    if output_path:
-        with rasterio.open(output_path,
-                           "w",
-                           driver='GTiff',
-                           height=out_arr.shape[1],
-                           width=out_arr.shape[2],
-                           count=out_arr.shape[0],
-                           crs="EPSG:{}".format(epsg_code),
-                           transform=out_trans,
-                           dtype=out_arr.dtype) as dest:
-            dest.write(out_arr)
-    return out_arr, out_trans
+    from iota2.Common.FileUtils import assembleTile_Merge
+    assembleTile_Merge(rasters, 10, output_path, ot="Int16", co=None)
+    # ~ rasters_datasets = [rasterio.open(raster) for raster in rasters]
+    # ~ out_arr, out_trans = merge(rasters_datasets)
+    # ~ if output_path:
+        # ~ with rasterio.open(output_path,
+                           # ~ "w",
+                           # ~ driver='GTiff',
+                           # ~ height=out_arr.shape[1],
+                           # ~ width=out_arr.shape[2],
+                           # ~ count=out_arr.shape[0],
+                           # ~ crs="EPSG:{}".format(epsg_code),
+                           # ~ transform=out_trans,
+                           # ~ dtype=out_arr.dtype) as dest:
+            # ~ dest.write(out_arr)
+    # ~ return out_arr, out_trans
