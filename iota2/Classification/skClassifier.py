@@ -22,6 +22,22 @@ from iota2.Common.Utils import time_it
 logger = logging.getLogger(__name__)
 
 
+def merge_sk_classifications(rasters_to_merge_dic:List[Dict[str, str]],
+                             epsg_code: int,
+                             working_dir: str,
+                             logger=logger) -> None:
+    """
+    """
+    from iota2.POC.rasterUtils import merge_rasters
+
+    for element in rasters_to_merge_dic:
+        logger.info("creating : {}".format(element["merge_path"]))
+        merge_rasters(element["rasters_list"],
+                      element["merge_path"],
+                      epsg_code,
+                      working_dir)
+
+
 def sk_classifications_to_merge(iota2_classif_directory: str) -> List[Dict[str, List[str]]]:
     """feed function
 
@@ -183,6 +199,9 @@ def predict(mask: str, model: str, stat: str, out_classif: str, out_confidence: 
     if hasattr(model, "n_jobs"):
         model.n_jobs = -1
 
+    # ~ if hasattr(model, "n_jobs"):
+        # ~ model.n_jobs = -1
+
     if number_of_chunks and targeted_chunk:
         if targeted_chunk > number_of_chunks - 1:
             raise ValueError("targeted_chunk must be inferior to the number of chunks")
@@ -212,7 +231,6 @@ def predict(mask: str, model: str, stat: str, out_classif: str, out_confidence: 
                                                                         targeted_chunk=targeted_chunk,
                                                                         output_number_of_bands=len(model.classes_),
                                                                         ram=ram)
-
     logger.info("predictions done")
     if len(masks) > 1:
         raise ValueError("Only one mask is expected")

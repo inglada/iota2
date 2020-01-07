@@ -46,6 +46,8 @@ class ScikitClassificationsMerge(IOTA2Step.Step):
         """
         from iota2.Classification.skClassifier import sk_classifications_to_merge
         parameters = sk_classifications_to_merge(os.path.join(self.output_path, "classif"))
+        # ~ in order to get only one task and iterate over raster to merge
+        parameters = [parameters]
         return parameters
 
     def step_execute(self):
@@ -56,11 +58,12 @@ class ScikitClassificationsMerge(IOTA2Step.Step):
             the function to execute as a lambda function. The returned object
             must be a lambda function.
         """
+        from iota2.Classification.skClassifier import merge_sk_classifications
+        
         from iota2.POC.rasterUtils import merge_rasters
-        step_function = lambda x: merge_rasters(x["rasters_list"],
-                                                x["merge_path"],
-                                                self.epsg_code,
-                                                self.working_directory)
+        step_function = lambda x: merge_sk_classifications(x,
+                                                           self.epsg_code,
+                                                           self.working_directory)
         return step_function
 
     def step_clean(self):
@@ -68,10 +71,9 @@ class ScikitClassificationsMerge(IOTA2Step.Step):
         """
         from iota2.Classification.skClassifier import sk_classifications_to_merge
         rasters = sk_classifications_to_merge(os.path.join(self.output_path, "classif"))
-        for rasters_all_ready_merged in rasters:
-            for raster in rasters_all_ready_merged["rasters_list"]:
-                # ~ os.remove(raster)
-                pass
+        for rasters_already_merged in rasters:
+            for raster in rasters_already_merged["rasters_list"]:
+                os.remove(raster)
 
     def step_outputs(self):
         """

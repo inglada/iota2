@@ -46,7 +46,12 @@ def apply_function(otb_pipeline: otbApplication,
                    output_number_of_bands: Optional[int] = None,
                    ram: Optional[int] = 128,
                    logger=logger) -> Tuple[np.ndarray, List[str], Affine, int]:
-    """
+    """Apply a python function to an otb pipeline
+
+    If a mask is provided (values not to be taken into account are 'mask_value'),
+    then the resulting output could be define as the following :
+    output = output * mask
+    
     Parameters
     ----------
     otb_pipeline: otbApplication
@@ -233,6 +238,7 @@ def process_function(otb_pipeline: otbApplication,
 
     roi_to_ignore = False
     roi_contains_mask_part = False
+    mask_roi = None
     if mask_arr is not None:
         start_x, size_x, start_y, size_y = mask_box
         mask_roi = mask_arr[start_y:start_y + size_y, start_x:start_x + size_x]

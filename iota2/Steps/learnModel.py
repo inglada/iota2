@@ -35,8 +35,6 @@ class learnModel(IOTA2Step.Step):
         self.tiles = SCF.serviceConfigFile(self.cfg).getParam('chain', 'listTile').split("_")
         
         self.use_scikitlearn = SCF.serviceConfigFile(self.cfg).getParam('scikit_models_parameters', 'model_type') is not None
-
-        _, self.feat_labels, _ = generateFeatures(workingDirectory, self.tiles[0], SCF.serviceConfigFile(self.cfg))
         self.model_directory = os.path.join(self.output_path, "model")
 
     def step_description(self):
@@ -64,7 +62,8 @@ class learnModel(IOTA2Step.Step):
 
         if self.use_scikitlearn:
             parameters = TrainSkLearn.get_learning_samples(os.path.join(self.output_path,
-                                                           "learningSamples"))
+                                                                        "learningSamples"),
+                                                           self.cfg)
         else:
             parameters = TC.launchTraining(self.cfg,
                                            self.data_field,
@@ -91,7 +90,6 @@ class learnModel(IOTA2Step.Step):
         if self.use_scikitlearn:
             step_function = lambda x: TrainSkLearn.sk_learn(x,
                                                             self.data_field,
-                                                            self.feat_labels, 
                                                             self.model_directory,
                                                             **SCF.serviceConfigFile(self.cfg).getSection("scikit_models_parameters"))
         else:
