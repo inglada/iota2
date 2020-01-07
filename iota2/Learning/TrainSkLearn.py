@@ -80,11 +80,11 @@ def sk_learn(data_set: Dict[str, str],
 
     from iota2.VectorTools.vector_functions import getLayerName
 
-    from sklearn.model_selection import GridSearchCV
+    from sklearn.model_selection import GridSearchCV, KFold, GroupKFold
     from sklearn.preprocessing import StandardScaler
     
     model_name = kwargs["model_type"]
-    del kwargs["model_type"]
+    del kwargs["model_type"] ## ??
     dataset_path = data_set["learning_file"]
     dataset_model_name = data_set["model"]
     dataset_seed_num = data_set["seed"]
@@ -104,7 +104,12 @@ def sk_learn(data_set: Dict[str, str],
     df_labels = pd.read_sql_query("select {} from {}".format(data_field, layer_name),
                                   conn)
     labels_values = np.ravel(df_labels.to_numpy())
+
     clf, parameters = model_name_to_function(model_name, **kwargs)
+
+    # Options
+    grouped = True
+    n_splits = 5
 
     # Standardization
     scaler = StandardScaler()
@@ -112,10 +117,29 @@ def sk_learn(data_set: Dict[str, str],
     features_values_scaled = scaler.transform(features_values)
 
     # Cross validation
-    model_cv = GridSearchCV(clf(),
-                            parameters,
-                            n_jobs=-1,
-                            cv=5)
+    if grouped:
+        df_groups = pd.read_sql_query("select {} from {}".format("originfid",
+                                                                 layer_name),
+                                      conn)
+        groups = np.ravel(df_groups.to_numpy())
+        
+        splitter = list(GroupKFold(n_splits=n_splits).split(features_values_scaled,
+                                                            labels_values,
+                                                            groups))
+
+        model_cv = GridSearchCV(clf(),
+                                parameters,
+                                n_jobs=-1,
+                                cv=splitter,
+                                return_train_score=True)
+    else:
+        splitter = KFold(n_splits=n_splits)
+        model_cv = GridSearchCV(clf(),
+                                parameters,
+                                n_jobs=-1,
+                                cv=splitter,
+                                return_train_score=True)
+
     model_cv.fit(features_values_scaled, labels_values)
 
     # Save CV output
