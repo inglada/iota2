@@ -233,6 +233,7 @@ def process_function(otb_pipeline: otbApplication,
 
     roi_to_ignore = False
     roi_contains_mask_part = False
+    mask_roi = None
     if mask_arr is not None:
         start_x, size_x, start_y, size_y = mask_box
         mask_roi = mask_arr[start_y:start_y + size_y, start_x:start_x + size_x]
