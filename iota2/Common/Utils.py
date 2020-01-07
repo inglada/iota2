@@ -19,9 +19,29 @@ import datetime
 import subprocess
 import sys
 import logging
+from functools import wraps
+
 from timeit import default_timer as timer
 
 logger = logging.getLogger(__name__)
+
+
+class time_it(object):
+    """chronometer decorator
+    """
+    def __init__(self, f):
+        self.f = f
+    
+    def __call__(self, *args, **kwargs):
+        import time
+        start = time.time()
+        results = self.f(*args, **kwargs)
+        end = time.time()
+        self.time_elapse = end - start
+        print("ELAPSED time during the call of {} : {} [sec]".format(self.f.__name__,
+                                                                     self.time_elapse))
+        return results
+
 
 def run(cmd, desc=None, env=os.environ, logger=logger):
 

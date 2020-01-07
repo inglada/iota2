@@ -18,6 +18,7 @@
 
 import os
 import sys
+import pickle
 import shutil
 import unittest
 import numpy as np
@@ -34,8 +35,9 @@ class Iota2TestNumpyFeatures(unittest.TestCase):
     def setUpClass(cls):
         # definition of local variables
         cls.group_test_name = "iota_testNumpyFeatures"
-        cls.iota2_tests_directory = os.path.join(os.path.split(__file__)[0],
-                                                 cls.group_test_name)
+        cls.iota2_tests_directory = os.path.join(
+            os.path.split(__file__)[0], cls.group_test_name
+        )
         cls.all_tests_ok = []
 
         # Tests directory
@@ -60,8 +62,9 @@ class Iota2TestNumpyFeatures(unittest.TestCase):
         # it changes for each tests
 
         test_name = self.id().split(".")[-1]
-        self.test_working_directory = os.path.join(self.iota2_tests_directory,
-                                                   test_name)
+        self.test_working_directory = os.path.join(
+            self.iota2_tests_directory, test_name
+        )
         if os.path.exists(self.test_working_directory):
             shutil.rmtree(self.test_working_directory)
         os.mkdir(self.test_working_directory)
@@ -76,9 +79,9 @@ class Iota2TestNumpyFeatures(unittest.TestCase):
             result = self.defaultTestResult()
             self._feedErrorsToResult(result, self._outcome.errors)
         else:
-            result = getattr(self,
-                             '_outcomeForDoCleanups',
-                             self._resultForDoCleanups)
+            result = getattr(
+                self, "_outcomeForDoCleanups", self._resultForDoCleanups
+            )
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
         ok = not error and not failure
@@ -103,28 +106,33 @@ class Iota2TestNumpyFeatures(unittest.TestCase):
             return array + array
 
         # First create some dummy data on disk
-        dummy_raster_path = os.path.join(self.test_working_directory,
-                                         "DUMMY.tif")
+        dummy_raster_path = os.path.join(
+            self.test_working_directory, "DUMMY.tif"
+        )
         array_to_rasterize = TestsUtils.fun_array("iota2_binary")
         TestsUtils.arrayToRaster(array_to_rasterize, dummy_raster_path)
 
         # Get it in a otbApplication (simulating full iota2 features pipeline)
-        band_math = CreateBandMathXApplication({"il": [dummy_raster_path],
-                                                "exp": "im1b1;im1b1"})
+        band_math = CreateBandMathXApplication(
+            {"il": [dummy_raster_path], "exp": "im1b1;im1b1"}
+        )
         # Then apply function
         function_partial = partial(custom_features)
 
         labels_features_name = ["NDVI_20200101"]
-        new_features_path = os.path.join(self.test_working_directory,
-                                         "DUMMY_test.tif")
-        test_array, new_labels = rasterU.apply_function(otb_pipeline=band_math,
-                                                        labels=labels_features_name,
-                                                        working_dir=self.test_working_directory,
-                                                        function=function_partial,
-                                                        output_path=new_features_path,
-                                                        chunck_size_x=5,
-                                                        chunck_size_y=5,
-                                                        ram=128)
+        new_features_path = os.path.join(
+            self.test_working_directory, "DUMMY_test.tif"
+        )
+        test_array, new_labels, _, _ = rasterU.apply_function(
+            otb_pipeline=band_math,
+            labels=labels_features_name,
+            working_dir=self.test_working_directory,
+            function=function_partial,
+            output_path=new_features_path,
+            chunck_size_x=5,
+            chunck_size_y=5,
+            ram=128,
+        )
         # asserts
 
         # check array' shape consistency
@@ -134,14 +142,20 @@ class Iota2TestNumpyFeatures(unittest.TestCase):
         # rasterio : [bands, row, cols]
         band_math.Execute()
         pipeline_shape = band_math.GetVectorImageAsNumpyArray("out").shape
-        pipeline_shape = (pipeline_shape[2], pipeline_shape[0],
-                          pipeline_shape[1])
+        pipeline_shape = (
+            pipeline_shape[2],
+            pipeline_shape[0],
+            pipeline_shape[1],
+        )
         self.assertTrue(pipeline_shape == test_array.shape)
 
         # check if the input function is well applied
         pipeline_array = band_math.GetVectorImageAsNumpyArray("out")
-        self.assertTrue(np.allclose(np.moveaxis(custom_features(pipeline_array),
-                                                -1, 0), test_array))
+        self.assertTrue(
+            np.allclose(
+                np.moveaxis(custom_features(pipeline_array), -1, 0), test_array
+            )
+        )
 
         # purposely not implemented
         self.assertTrue(new_labels is None)
@@ -160,41 +174,55 @@ class Iota2TestNumpyFeatures(unittest.TestCase):
             """
             # ~ TODO : is there a more effective way to invoke model.predict ?
             def wrapper(*args, **kwargs):
-                return(model.predict([args[0]]))
-            predicted_array = np.apply_along_axis(func1d=wrapper, axis=-1,
-                                                  arr=array)
+                return model.predict([args[0]])
+
+            predicted_array = np.apply_along_axis(
+                func1d=wrapper, axis=-1, arr=array
+            )
             return predicted_array.astype(dtype)
 
         # build data to learn RF model
         from sklearn.datasets import make_classification
-        X, y = make_classification(n_samples=1000, n_features=2,
-                                   n_informative=2, n_redundant=0,
-                                   random_state=0, shuffle=True)
+
+        X, y = make_classification(
+            n_samples=1000,
+            n_features=2,
+            n_informative=2,
+            n_redundant=0,
+            random_state=0,
+            shuffle=True,
+        )
         # learning
-        clf = RandomForestClassifier(n_estimators=100, max_depth=2,
-                                     random_state=0)
+        clf = RandomForestClassifier(
+            n_estimators=100, max_depth=2, random_state=0
+        )
         clf.fit(X, y)
 
         # create some data on disk in order to predict them
-        dummy_raster_path = os.path.join(self.test_working_directory,
-                                         "DUMMY.tif")
+        dummy_raster_path = os.path.join(
+            self.test_working_directory, "DUMMY.tif"
+        )
         array_to_rasterize = TestsUtils.fun_array("iota2_binary")
         TestsUtils.arrayToRaster(array_to_rasterize, dummy_raster_path)
 
         # Get it in a otbApplication (simulating full iota2 features pipeline)
-        band_math = CreateBandMathXApplication({"il": [dummy_raster_path],
-                                                "exp": "im1b1;im1b1"})
+        band_math = CreateBandMathXApplication(
+            {"il": [dummy_raster_path], "exp": "im1b1;im1b1"}
+        )
         # prediction
         function_partial = partial(do_predict, model=clf)
-        prediction_path = os.path.join(self.test_working_directory,
-                                       "Classif_test.tif")
-        test_array, new_labels = rasterU.apply_function(otb_pipeline=band_math,
-                                                        labels=[""],
-                                                        working_dir=self.test_working_directory,
-                                                        function=function_partial,
-                                                        output_path=prediction_path,
-                                                        chunck_size_x=5,
-                                                        chunck_size_y=5,
-                                                        ram=128)
+        prediction_path = os.path.join(
+            self.test_working_directory, "Classif_test.tif"
+        )
+        test_array, new_labels, _, _ = rasterU.apply_function(
+            otb_pipeline=band_math,
+            labels=[""],
+            working_dir=self.test_working_directory,
+            function=function_partial,
+            output_path=prediction_path,
+            chunck_size_x=5,
+            chunck_size_y=5,
+            ram=128,
+        )
         self.assertTrue(os.path.exists(prediction_path))
         self.assertTrue(test_array.shape == (1, 16, 86))

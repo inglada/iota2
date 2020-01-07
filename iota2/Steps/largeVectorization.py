@@ -18,6 +18,7 @@ import os
 from Steps import IOTA2Step
 from Cluster import get_RAM
 from Common import ServiceConfigFile as SCF
+from VectorTools import vector_functions as vf
 
 class largeVectorization(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
@@ -30,35 +31,17 @@ class largeVectorization(IOTA2Step.Step):
         self.workingDirectory = workingDirectory
         self.outputPath = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
         self.grasslib = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'grasslib')
-        self.mmu = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'mmu')
-        self.lcfield = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'lcfield')
-        self.clipfile = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'clipfile')
-        self.clipfield = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'clipfield')
-        self.clipvalue = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'clipvalue')
-        self.outprefix = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'outprefix')
-        self.douglas = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'douglas')
-        self.hermite = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'hermite')
         self.angle = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'angle')
-        self.shapeRegion = SCF.serviceConfigFile(self.cfg).getParam('chain', 'regionPath')
-        self.field_Region = SCF.serviceConfigFile(self.cfg).getParam('chain', 'regionField')
-
-        self.checkvalue = False
-        if not self.clipfile:
-            if self.shapeRegion:
-                self.clipfile = self.shapeRegion
-            else:
-                self.clipfile = os.path.join(self.outputPath, 'MyRegion.shp')
-            self.clipfield = self.field_Region
-            self.checkvalue = True
-        else:
-            if self.clipvalue is None:
-                self.checkvalue = True
-
+        self.outmos = os.path.join(self.outputPath, 'final', 'simplification', 'mosaic')
+        self.clipfile = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'clipfile')
+        self.clipfield = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'clipfield')        
+        self.grid = os.path.join(self.outputPath, 'final', 'simplification', 'grid.shp')
+        
     def step_description(self):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Vectorisation and simplification of classification (Serialisation strategy)")
+        description = ("Vectorisation of classification (Serialisation strategy)")
         return description
 
     def step_inputs(self):
@@ -67,11 +50,9 @@ class largeVectorization(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
-        from simplification import MergeTileRasters as mtr
-        return mtr.getListValues(self.checkvalue, self.clipfile, self.clipfield,
-                                 os.path.join(self.outputPath, 'final',
-                                              'simplification', 'vectors'),
-                                 self.outprefix, self.clipvalue)
+        listfid = vf.getFIDSpatialFilter(self.clipfile, self.grid, self.clipfield)
+
+        return [["%s/tile_%s_%s.tif"%(self.outmos, self.clipfield, x), "%s/tile_%s_%s.shp"%(self.outmos, self.clipfield, x)] for x in listfid]
 
     def step_execute(self):
         """
@@ -81,33 +62,17 @@ class largeVectorization(IOTA2Step.Step):
             the function to execute as a lambda function. The returned object
             must be a lambda function.
         """
-        from simplification import MergeTileRasters as mtr
+        from simplification import VectAndSimp as vas
+        
         tmpdir = os.path.join(self.outputPath, 'final', 'simplification', 'tmp')
         if self.workingDirectory:
             tmpdir = self.workingDirectory
 
-        outfilegrid = os.path.join(self.outputPath, 'final', 'simplification',
-                                   'grid.shp')
-        outfilevect = os.path.join(self.outputPath, 'final', 'simplification',
-                                   'vectors', '%s_.shp'%(self.outprefix))
-        outserial = os.path.join(self.outputPath, 'final', 'simplification',
-                                 'tiles') 
-
-        step_function = lambda x: mtr.tilesRastersMergeVectSimp(tmpdir,
-                                                                outfilegrid,
-                                                                outfilevect,
-                                                                self.grasslib,
-                                                                self.mmu,
-                                                                self.lcfield,
-                                                                self.clipfile,
-                                                                self.clipfield,
-                                                                x,
-                                                                "FID",
-                                                                "tile_",
-                                                                outserial,
-                                                                self.douglas,
-                                                                self.hermite,
-                                                                self.angle)
+        step_function = lambda x: vas.topologicalPolygonize(tmpdir,
+                                                            self.grasslib,
+                                                            x[0],
+                                                            self.angle,
+                                                            x[1])
         return step_function
 
     def step_outputs(self):
