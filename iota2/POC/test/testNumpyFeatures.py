@@ -18,7 +18,6 @@
 
 import os
 import sys
-import pickle
 import shutil
 import unittest
 import numpy as np
@@ -123,7 +122,7 @@ class Iota2TestNumpyFeatures(unittest.TestCase):
         new_features_path = os.path.join(
             self.test_working_directory, "DUMMY_test.tif"
         )
-        test_array, new_labels, _, _ = rasterU.apply_function(
+        test_array, new_labels, _, _, _ = rasterU.apply_function(
             otb_pipeline=band_math,
             labels=labels_features_name,
             working_dir=self.test_working_directory,
@@ -214,7 +213,7 @@ class Iota2TestNumpyFeatures(unittest.TestCase):
         prediction_path = os.path.join(
             self.test_working_directory, "Classif_test.tif"
         )
-        test_array, new_labels, _, _ = rasterU.apply_function(
+        test_array, new_labels, _, _, _ = rasterU.apply_function(
             otb_pipeline=band_math,
             labels=[""],
             working_dir=self.test_working_directory,

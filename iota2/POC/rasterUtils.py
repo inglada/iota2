@@ -48,7 +48,7 @@ def apply_function(
     output_number_of_bands: Optional[int] = None,
     ram: Optional[int] = 128,
     logger=logger,
-) -> Tuple[np.ndarray, List[str], Affine, int]:
+) -> Tuple[np.ndarray, List[str], Affine, int, List[np.ndarray]]:
     """
     Parameters
     ----------
@@ -82,7 +82,7 @@ def apply_function(
     Return
     ------
     tuple
-        (np.array, new_labels, affine transform, epsg code)
+        (np.array, new_labels, affine transform, epsg code, chunks mask)
     """
     from iota2.Tests.UnitTests.TestsUtils import rasterToArray
 
@@ -252,6 +252,7 @@ def process_function(
 
     roi_to_ignore = False
     roi_contains_mask_part = False
+    mask_roi = None
     if mask_arr is not None:
         start_x, size_x, start_y, size_y = mask_box
         mask_roi = mask_arr[
