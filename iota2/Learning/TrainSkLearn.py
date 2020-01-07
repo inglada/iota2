@@ -19,10 +19,16 @@ import operator
 from typing import List, Dict
 
 
-def get_learning_samples(learning_samples_dir: str) -> List[str]:
+def get_learning_samples(learning_samples_dir: str, config_path: str) -> List[str]:
     """get sorted learning samples files from samples directory
     """
+    from Common import ServiceConfigFile
     from iota2.Common.FileUtils import FileSearch_AND
+    from iota2.Common.GenerateFeatures import generateFeatures
+
+    first_tile = ServiceConfigFile.serviceConfigFile(config_path).getParam("chain", "listTile").split(" ")[0]
+    _, feat_labels, _ = generateFeatures(None, first_tile, ServiceConfigFile.serviceConfigFile(config_path))
+    
     parameters = []
     seed_pos = 3
     model_pos = 2
@@ -37,6 +43,7 @@ def get_learning_samples(learning_samples_dir: str) -> List[str]:
     learning_files_sorted = sorted(learning_files_sorted, key=operator.itemgetter(0, 1))
     parameters = [{"learning_file": learning_file,
                    "seed": seed,
+                   "feat_labels": feat_labels,
                    "model": model} for seed, model, learning_file in learning_files_sorted]
     return parameters
 
@@ -56,7 +63,6 @@ def model_name_to_function(model_name: str):
 
 def sk_learn(data_set: Dict[str, str],
              data_field: str,
-             features_labels: List[str],
              model_directory: str,
              **kwargs):
     """
@@ -73,7 +79,7 @@ def sk_learn(data_set: Dict[str, str],
     dataset_path = data_set["learning_file"]
     dataset_model_name = data_set["model"]
     dataset_seed_num = data_set["seed"]
-
+    features_labels = data_set["feat_labels"]
     suffix = ""
     model_path = os.path.join(model_directory,
                               "model_{}_seed_{}{}.txt".format(dataset_model_name,
