@@ -301,7 +301,6 @@ if __name__ == "__main__":
         args.end = len(steps)
 
     if MPIService().rank == 0:
-        print (args.start,args.end,)
         print(chain_to_process.print_step_summarize(args.start,
                                                     args.end,
                                                     args.config_ressources is not None))
@@ -345,8 +344,6 @@ if __name__ == "__main__":
         #~ if steps[step-1].previous_step:
             #~ print "Etape précédente : {}".format(steps[step-1].previous_step.step_status)
         steps[step-1].step_status = "running"
-
-        
         logFile = steps[step-1].logFile
         
         if not os.path.exists(steps[step-1].log_step_dir):
