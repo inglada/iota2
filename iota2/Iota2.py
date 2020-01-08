@@ -28,6 +28,7 @@ import time
 import numpy as np
 from mpi4py import MPI
 from Common import ServiceLogger as sLog
+from Common.FileUtils import ensure_dir
 import os
 
 
@@ -314,7 +315,13 @@ if __name__ == "__main__":
 
     # Start worker processes
     start_workers(mpi_service)
-
+    # Remove all existing outputs 
+    root = cfg.getParam('chain', 'outputPath')
+    rm_PathTEST = cfg.getParam("chain", "remove_outputPath")
+    start_step = cfg.getParam("chain", "firstStep")
+    if os.path.exists(root) and root != "/" and rm_PathTEST and start_step == "init": 
+        shutil.rmtree(root,ignore_errors=False)
+    ensure_dir(root)
     for step in np.arange(args.start, args.end+1):
         params = steps[step-1].step_inputs()
         param_array = []
@@ -336,6 +343,14 @@ if __name__ == "__main__":
             #~ print "Etape précédente : {}".format(steps[step-1].previous_step.step_status)
         steps[step-1].step_status = "running"
         logFile = steps[step-1].logFile
+        print (steps[step-1].log_step_dir)
+        if not os.path.exists(steps[step-1].log_step_dir):
+            os.makedirs(steps[step-1].log_step_dir)
+        try: 
+            logFileTmp = open(steps[step-1].logFile,"w")
+        except Exception as e:
+            print (e)
+            raise
         if param_index is not None:
             params = [params[param_index]]
             logFile = (steps[step-1].logFile).replace(".log", "_{}.log".format(param_index))
