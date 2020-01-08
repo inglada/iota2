@@ -98,10 +98,19 @@ class Step(object):
         outputPath = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
         log_dir = os.path.join(outputPath, "logs")
         self.logFile = os.path.join(log_dir, "{}_log.log".format(self.step_name))
-
+        
+        try:
+            logFile = open(self.logFile,"w")
+        except Exception as e:
+            print (e)
+            raise
+        else:
+            with logFile:
+                logFile.close();
+                os.remove(self.logFile)
         self.previous_step = None
         self.next_step = None
-
+        
         # "waiting", "running", "success", "fail"
         self.step_status = "waiting"
 
