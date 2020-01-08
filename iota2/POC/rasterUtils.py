@@ -123,10 +123,10 @@ def apply_function(otb_pipeline: otbApplication,
                                                                 function=function,
                                                                 mask_arr=mask_array,
                                                                 mask_value=mask_value,
-                                                                mask_box=(start_x,
-                                                                          size_x,
-                                                                          start_y,
-                                                                          size_y))
+                                                                stream_bbox=(start_x,
+                                                                             size_x,
+                                                                             start_y,
+                                                                             size_y))
         new_arrays.append((roi_array, proj_geotransform))
         chunks_mask.append(mask)
 
@@ -213,7 +213,7 @@ def process_function(otb_pipeline: otbApplication,
                      function: partial,
                      mask_arr: Optional[np.ndarray] = None,
                      mask_value: Optional[int] = 0,
-                     mask_box: Optional[Tuple[int, int, int, int]] = None) -> Tuple[np.ndarray, Dict]:
+                     stream_bbox: Optional[Tuple[int, int, int, int]] = None) -> Tuple[np.ndarray, Dict]:
     """apply python function to the output of an otbApplication
 
     Parameters
@@ -226,8 +226,8 @@ def process_function(otb_pipeline: otbApplication,
         mask raster array
     mask_value: int
         every pixels under 'mask_value' will be ignored
-    mask_box : tuple
-        mask bbox
+    stream_bbox : tuple
+        stream bounding box
     Return
     ------
     tuple
@@ -240,7 +240,7 @@ def process_function(otb_pipeline: otbApplication,
     roi_contains_mask_part = False
     mask_roi = None
     if mask_arr is not None:
-        start_x, size_x, start_y, size_y = mask_box
+        start_x, size_x, start_y, size_y = stream_bbox
         mask_roi = mask_arr[start_y:start_y + size_y, start_x:start_x + size_x]
         mask_roi = binarize(mask_roi)
         unique_mask_values = np.unique(mask_roi)
