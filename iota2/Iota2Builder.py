@@ -58,7 +58,7 @@ class iota2():
         self.iota2_pickle = os.path.join(SCF.serviceConfigFile(self.cfg).getParam("chain", "outputPath"),
                                          "logs", "iota2.txt")
 
-
+       
     def save_chain(self):
         """
         use dill to save chain instance
@@ -86,19 +86,25 @@ class iota2():
         for step_place, step in enumerate(self.steps):
             self.steps_group[step.step_group][step_place + 1] = step.step_description()
 
-    def print_step_summarize(self, start, end, show_resources=False, checked="x"):
+    def print_step_summarize(self, start, end, show_resources=False, checked="x", log=False, running_step=False):
         """
         print iota2 steps that will be run
         """
-        summarize = "Full processing include the following steps (checked steps will be run):\n"
+        if log:
+            summarize = "Full processing include the following steps (checked steps have run):\n"
+        else:
+            summarize = "Full processing include the following steps (checked steps will be run):\n"
         step_position = 0
         for group in list(self.steps_group.keys()):
             if len(self.steps_group[group]) > 0:
                 summarize += "Group {}:\n".format(group)
+            
             for key in self.steps_group[group]:
                 highlight = "[ ]"
                 if key >= start and key<=end:
                     highlight="[{}]".format(checked)
+                if key == end and running_step:
+                    highlight="[{}]".format("r")
                 summarize += "\t {} Step {}: {}".format(highlight, key ,
                                                         self.steps_group[group][key])
                 if show_resources:
