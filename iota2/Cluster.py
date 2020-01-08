@@ -221,7 +221,7 @@ def write_PBS_JA(job_directory, log_directory, task_name, step_to_compute,
         step_log_directory = os.path.join(log_directory, task_name)
         log_err = step_log_directory
         if not os.path.exists(step_log_directory):
-            os.mkdir(step_log_directory)
+            os.makedirs(step_log_directory)
 
         ressources = ("#!/bin/bash\n"
                       "#PBS -N {0}\n"
