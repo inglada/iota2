@@ -30,7 +30,7 @@ from mpi4py import MPI
 from Common import ServiceLogger as sLog
 from Common.FileUtils import ensure_dir
 import os
-
+import shutil
 
 # This is needed in order to be able to send python objects throug MPI send
 import mpi4py
@@ -319,10 +319,12 @@ if __name__ == "__main__":
     root = cfg.getParam('chain', 'outputPath')
     rm_PathTEST = cfg.getParam("chain", "remove_outputPath")
     start_step = cfg.getParam("chain", "firstStep")
-    if os.path.exists(root) and root != "/" and rm_PathTEST and start_step == "init": 
-        shutil.rmtree(root,ignore_errors=False)
-    ensure_dir(root)
+
     for step in np.arange(args.start, args.end+1):
+
+        if os.path.exists(root) and root != "/" and rm_PathTEST and start_step == "init" and steps[step-1].step_name == "IOTA2DirTree": 
+            shutil.rmtree(root,ignore_errors=False)
+        ensure_dir(root)
         params = steps[step-1].step_inputs()
         param_array = []
         if callable(params):

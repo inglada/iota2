@@ -358,7 +358,7 @@ def launchChain(cfg, config_ressources=None, parallel_mode="MPI"):
     end_step = cfg.getParam("chain", "lastStep")
     scripts = os.path.join(fut.get_iota2_project_dir(), "iota2")
     job_dir = cfg.getParam("chain", "jobsPath")
-    log_dir = os.path.join(PathTEST, "logs")
+    #log_dir = os.path.join(PathTEST, "logs")
 
 
     chain_to_process = chain.iota2(cfg.pathConf, config_ressources)
@@ -380,9 +380,9 @@ def launchChain(cfg, config_ressources=None, parallel_mode="MPI"):
     for step_num in np.arange(start_step, end_step):
 
         nbParameter = len(steps[step_num].step_inputs())
-
+        
         ressources = steps[step_num].resources
-
+        log_dir = steps[step_num].log_step_dir
         if parallel_mode == "MPI":
             pbs, log_err = write_PBS_MPI(job_directory=job_dir, log_directory=log_dir,
                                          task_name=steps[step_num].step_name, step_to_compute=step_num+1,
