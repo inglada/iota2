@@ -376,8 +376,7 @@ def split_raster(otb_pipeline: otbApplication,
 
     roi = CreateExtractROIApplication({"in": otb_pipeline,
                                        "cl": ["Channel1"],
-                                       "ram": "60000",
-                                       "out": "/work/OT/theia/oso/arthur/TMP/test_ROI.tif"})
+                                       "ram": "60000"})
     boundaries = get_chunks_boundaries(chunk_size,
                                        shape=(x_size, y_size),
                                        chunk_size_mode=chunk_size_mode,
