@@ -20,7 +20,7 @@ from Cluster import get_RAM
 from Common import ServiceConfigFile as SCF
 
 class Regularization(IOTA2Step.Step):
-    def __init__(self, cfg, cfg_resources_file, umc, stepname=None, workingDirectory=None):
+    def __init__(self, cfg, cfg_resources_file, umc, nomenclature=None, stepname=None, workingDirectory=None):
         # heritage init
         resources_block_name = "regularisation"
         super(Regularization, self).__init__(cfg, cfg_resources_file, resources_block_name)
@@ -38,6 +38,7 @@ class Regularization(IOTA2Step.Step):
         self.seed = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'seed')
         self.umc = umc
         self.outtmpdir = os.path.join(self.outputPath, 'final', 'simplification', 'tmp')
+        self.nomenclature = nomenclature
         
     def step_description(self):
         """
@@ -68,7 +69,7 @@ class Regularization(IOTA2Step.Step):
         else:
             rastclass = os.path.join(self.outtmpdir, 'regul1.tif')
                     
-        rules = mr.getMaskRegularisation("/home/qt/thierionv/dev/iota2/iota2/simplification/nomenclature.cfg")
+        rules = mr.getMaskRegularisation(self.nomenclature)
 
         scenarios = [[rastclass, rule] for rule in rules]
 
