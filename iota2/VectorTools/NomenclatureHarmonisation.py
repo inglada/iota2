@@ -10,7 +10,7 @@ import ogr
 
 def harmonisationCodeIota(shapefile, csvfile, delimiter, fieldin, fieldout):
 
-    with open(csvfile, 'rb') as csvfile:
+    with open(csvfile, 'r') as csvfile:
         csvreader = csv.DictReader(csvfile, delimiter = delimiter)
         for row in csvreader:
             ConditionalFieldRecode.conFieldRecode(shapefile, fieldin, fieldout, row[fieldin], row[fieldout])

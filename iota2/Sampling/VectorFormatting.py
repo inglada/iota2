@@ -488,7 +488,7 @@ def VectorFormatting(cfg, tile_name, workingDirectory=None, logger=logger):
                                           "shapeRegion"), region_vector_name, img_ref)
 
     logger.info("launch intersection between tile's envelopeRegion and groundTruth")
-    tileRegionGroundTruth = os.path.join(wd, "tileRegionGroundTruth_" + tile_name + ".sqlite")
+    tileRegionGroundTruth = os.path.join(wd, "tileRegionGroundTruth_" + tile_name + ".sqlite")    
 
     if intersect.intersectSqlites(tileRegion, groundTruth_vec, wd, tileRegionGroundTruth,
                                   epsg, "intersection", [dataField, regionField, "ogc_fid"], vectformat='SQLite') is False:
