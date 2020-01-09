@@ -456,6 +456,7 @@ class iota2():
                                                                            stepname=lognamemerge,
                                                                            output=outregul), "regularisation")
 
+
         s_container.append(step_clump, "regularisation")
                 
         if gridsize is not None:
