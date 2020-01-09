@@ -91,7 +91,7 @@ class iota2():
         print iota2 steps that will be run
         """
         if log:
-            summarize = "Full processing include the following steps (checked steps have run):\n"
+            summarize = "Full processing include the following steps (x : done; r : running):\n"
         else:
             summarize = "Full processing include the following steps (checked steps will be run):\n"
         step_position = 0
