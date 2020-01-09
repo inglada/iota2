@@ -8,7 +8,7 @@ from VectorTools import ConditionalFieldRecode
 import csv
 import ogr
 
-def harmonisationCodeIota(shapefile, csvfile, delimiter, fieldin, fieldout):
+def labelRecoding(shapefile, csvfile, delimiter, fieldin, fieldout):
 
     with open(csvfile, 'r') as csvfile:
         csvreader = csv.DictReader(csvfile, delimiter = delimiter)
@@ -46,6 +46,6 @@ if __name__ == "__main__":
         parser.add_argument("-of", dest="ofield", action="store", \
                             help="Field to create and populate", required = True)
         args = parser.parse_args()
-        harmonisationCodeIota(args.shapefile, args.csv, args.delimiter, args.ifield, args.ofield)
+        labelRecoding(args.shapefile, args.csv, args.delimiter, args.ifield, args.ofield)
 
 # python ../echantillons/harmonisation_code_iota2.py -s /home/thierion/Documents/OSO/iota2/Echantillons/references_2016/preparation/OSO_2016_dynafor.shp -csv /home/thierion/Documents/OSO/iota2/Echantillons/references_2016/preparation/Agrosolutions.csv -d , -if ros2016 -of CODE
