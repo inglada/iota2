@@ -5,8 +5,8 @@ iota2 is fully configurable by using one file given to iota2 at launch.
 This file is called the 'configuration file' throughout the documentation.
 This section is dedicated to the description of each parameter in it.
 
-iota2 parameters are split in 4 families: ``chain``, ``argTrain``,
-``argClassification``, ``GlobChain`` and ``coregistration``. 
+iota2 parameters are split in families: ``chain``, ``argTrain``,
+``argClassification``, ``GlobChain``, ``coregistration``, ``scikit_models_parameters``. 
 
 chain available parameters
 **************************
@@ -971,8 +971,29 @@ Sensor.keepBands
 
         keepBands:["B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11", "B12"] # Sentinel-2 case
 
+Use scikit-learn machine learning algorithms
+********************************************
+
+scikit_models_parameters.model_type
+===================================
+*Description*
+    machine learning algorthm's name
+*Type*
+    string
+*Default value*
+    None
+*Example*
+    .. code-block:: python
+
+        scikit_models_parameters.model_type : "ExtraTreesClassifier"
+    
+*Notes*
+    Models comming from scikit-learn are use if scikit_models_parameters.model_type
+    is different from ``None``. More informations about how to use scikit-learn
+    is available at :doc:`iota2 and scikit-learn machine learning algorithms<use_scikit_learn>`.
+    
 coregistration available parameters
-**************************
+***********************************
 
 coregistration.VHRPath
 ======================
