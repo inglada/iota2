@@ -18,11 +18,12 @@ import os
 from Steps import IOTA2Step
 from Cluster import get_RAM
 from Common import ServiceConfigFile as SCF
+from VectorTools import vector_functions as vf
 
 class largeSmoothing(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
-        resources_block_name = "vectorisation"
+        resources_block_name = "smoothing"
         super(largeSmoothing, self).__init__(cfg, cfg_resources_file, resources_block_name)
 
         # step variables
@@ -33,7 +34,10 @@ class largeSmoothing(IOTA2Step.Step):
         self.hermite = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'hermite')
         self.mmu = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'mmu')
         self.outmos = os.path.join(self.outputPath, 'final', 'simplification', 'mosaic')
-
+        self.clipfile = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'clipfile')
+        self.clipfield = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'clipfield')
+        self.grid = os.path.join(self.outputPath, 'final', 'simplification', 'grid.shp')
+        
     def step_description(self):
         """
         function use to print a short description of the step's purpose
@@ -47,8 +51,9 @@ class largeSmoothing(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
-        from simplification import MergeTileRasters as mtr
-        return mtr.getListVectToSmooth(self.outmos)
+        listfid = vf.getFIDSpatialFilter(self.clipfile, self.grid, self.clipfield)
+        
+        return [["%s/tile_%s_%s_douglas.shp"%(self.outmos, self.clipfield, x), "%s/tile_%s_%s_douglas_hermite.shp"%(self.outmos, self.clipfield, x)] for x in listfid]
 
     def step_execute(self):
         """
@@ -67,10 +72,11 @@ class largeSmoothing(IOTA2Step.Step):
 
         step_function = lambda x: vas.generalizeVector(tmpdir,
                                                        self.grasslib,
-                                                       x,
+                                                       x[0],
                                                        self.hermite,
                                                        "hermite",
-                                                       self.mmu)
+                                                       self.mmu,
+                                                       out=x[1])
 
         return step_function
 

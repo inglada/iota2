@@ -203,8 +203,8 @@ class serviceConfigFile:
                             "confidence": None,
                             "validity": None,
                             "seed": None,
-                            "umc1": 10,
-                            "umc2": 3,
+                            "umc1": None,
+                            "umc2": None,
                             "inland": None,
                             "rssize": 20,
                             "lib64bit": None,
@@ -222,6 +222,8 @@ class serviceConfigFile:
                             "blocksize" : 2000,
                             "dozip": True,
                             "bingdal": None,
+                            "chunk":10,
+                            "nomenclature":None,
                             "statslist" : {1:"rate", 2:"statsmaj", 3:"statsmaj"}}
             self.init_section("Simplification", simp_default)
             

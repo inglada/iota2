@@ -22,7 +22,7 @@ from Common import ServiceConfigFile as SCF
 class clipVectors(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
-        resources_block_name = "vectorisation"
+        resources_block_name = "clipvectors"
         super(clipVectors, self).__init__(cfg, cfg_resources_file, resources_block_name)
 
         # step variables
@@ -50,6 +50,7 @@ class clipVectors(IOTA2Step.Step):
             the return could be and iterable or a callable
         """
         from simplification import MergeTileRasters as mtr
+
         return mtr.getListVectToClip(self.outmos, self.clipfield, self.outfilevect)
 
     def step_execute(self):

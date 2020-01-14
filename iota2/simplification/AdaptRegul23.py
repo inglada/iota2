@@ -21,11 +21,13 @@ Adaptative and majority voting regularization process based on landscape rules
 
 import sys, os, argparse, time, shutil
 import numpy as np
-from multiprocessing import Pool
+import multiprocessing as mp
 from functools import partial
 try:
     from Common import Utils
     from Common import OtbAppBank
+    from Common.OtbAppBank import executeApp
+    
 except ImportError:
     raise ImportError('Iota2 not well configured / installed')
 
@@ -42,75 +44,102 @@ def regularisation(raster, threshold, nbcores, path, ram = "128"):
     # Agricultuture
     bandMathAppli = OtbAppBank.CreateBandMathApplication({"il": raster,
                                                           "exp": '(im1b1==5 || im1b1==6 || im1b1==7 || im1b1==8 || im1b1==9 || im1b1==10 || im1b1==11 || im1b1==12)?im1b1:0',
-                                                          "ram": str(0.2 * float(ram)),
+                                                          "ram": str(1 * float(ram)),
                                                           "pixType": "uint8",
                                                           "out": os.path.join(path, 'mask_1.tif')})
-    bandMathAppli.ExecuteAndWriteOutput()
+    p = mp.Process(target=executeApp, args=[bandMathAppli])
+    p.start()
+    p.join()
+    #bandMathAppli.ExecuteAndWriteOutput()
     filetodelete.append(os.path.join(path, 'mask_1.tif'))
 
     # Forest    
     bandMathAppli = OtbAppBank.CreateBandMathApplication({"il": raster,
                                                           "exp": '(im1b1==16 || im1b1==17)?im1b1:0', 
-                                                          "ram": str(0.2 * float(ram)),
+                                                          "ram": str(1 * float(ram)),
                                                           "pixType": "uint8",
                                                           "out": os.path.join(path, 'mask_2.tif')})
-    bandMathAppli.ExecuteAndWriteOutput()
+    p = mp.Process(target=executeApp, args=[bandMathAppli])
+    p.start()
+    p.join()
+    #bandMathAppli.ExecuteAndWriteOutput()
     filetodelete.append(os.path.join(path, 'mask_2.tif'))    
     # Urban    
     bandMathAppli = OtbAppBank.CreateBandMathApplication({"il": raster,
                                                           "exp": '(im1b1==1 || im1b1==2 || im1b1==3)?im1b1:0',
-                                                          "ram": str(0.2 * float(ram)),
+                                                          "ram": str(1 * float(ram)),
                                                           "pixType": "uint8",
                                                           "out": os.path.join(path, 'mask_3.tif')})
-    bandMathAppli.ExecuteAndWriteOutput()
+    p = mp.Process(target=executeApp, args=[bandMathAppli])
+    p.start()
+    p.join()
+    #bandMathAppli.ExecuteAndWriteOutput()
     filetodelete.append(os.path.join(path, 'mask_3.tif'))    
     # Open natural areas     
     bandMathAppli = OtbAppBank.CreateBandMathApplication({"il": raster,
                                                           "exp": '(im1b1==18 || im1b1==19 || im1b1==13)?im1b1:0',
-                                                          "ram": str(0.2 * float(ram)),
+                                                          "ram": str(1 * float(ram)),
                                                           "pixType": "uint8",
                                                           "out": os.path.join(path, 'mask_4.tif')})
-    bandMathAppli.ExecuteAndWriteOutput()
+    p = mp.Process(target=executeApp, args=[bandMathAppli])
+    p.start()
+    p.join()
+    #bandMathAppli.ExecuteAndWriteOutput()
     filetodelete.append(os.path.join(path, 'mask_4.tif'))    
     # Bare soil    
     bandMathAppli = OtbAppBank.CreateBandMathApplication({"il": raster,
                                                           "exp": '(im1b1==20 || im1b1==21)?im1b1:0',
-                                                          "ram": str(0.2 * float(ram)),
+                                                          "ram": str(1 * float(ram)),
                                                           "pixType": "uint8",
                                                           "out": os.path.join(path, 'mask_5.tif')})
-    bandMathAppli.ExecuteAndWriteOutput()
+    p = mp.Process(target=executeApp, args=[bandMathAppli])
+    p.start()
+    p.join()
+    #bandMathAppli.ExecuteAndWriteOutput()
     filetodelete.append(os.path.join(path, 'mask_5.tif'))    
     # Perennial agriculture    
     bandMathAppli = OtbAppBank.CreateBandMathApplication({"il": raster,
                                                           "exp": '(im1b1==14 || im1b1==15)?im1b1:0',
-                                                          "ram": str(0.2 * float(ram)),
+                                                          "ram": str(1 * float(ram)),
                                                           "pixType": "uint8",
                                                           "out": os.path.join(path, 'mask_6.tif')})
-    bandMathAppli.ExecuteAndWriteOutput()
+    p = mp.Process(target=executeApp, args=[bandMathAppli])
+    p.start()
+    p.join()
+    #bandMathAppli.ExecuteAndWriteOutput()
     filetodelete.append(os.path.join(path, 'mask_6.tif'))    
     # Road
     bandMathAppli = OtbAppBank.CreateBandMathApplication({"il": raster,
                                                         "exp": '(im1b1==4)?im1b1:0',
-                                                        "ram": str(0.2 * float(ram)),
+                                                        "ram": str(1 * float(ram)),
                                                         "pixType": "uint8",
                                                         "out": os.path.join(path, 'mask_7.tif')})
-    bandMathAppli.ExecuteAndWriteOutput()
+    p = mp.Process(target=executeApp, args=[bandMathAppli])
+    p.start()
+    p.join()
+    #bandMathAppli.ExecuteAndWriteOutput()
     filetodelete.append(os.path.join(path, 'mask_7.tif'))    
     # Water
     bandMathAppli = OtbAppBank.CreateBandMathApplication({"il": raster,
                                                           "exp": '(im1b1==23)?im1b1:0',
-                                                          "ram": str(0.2 * float(ram)),
+                                                          "ram": str(1 * float(ram)),
                                                           "pixType": "uint8",
                                                           "out": os.path.join(path, 'mask_8.tif')})
-    bandMathAppli.ExecuteAndWriteOutput()
+    p = mp.Process(target=executeApp, args=[bandMathAppli])
+    p.start()
+    p.join()
+    #bandMathAppli.ExecuteAndWriteOutput()
     filetodelete.append(os.path.join(path, 'mask_8.tif'))        
     # Snow and glacier    
     bandMathAppli = OtbAppBank.CreateBandMathApplication({"il": raster,
                                                           "exp": '(im1b1==22)?im1b1:0',
-                                                          "ram": str(0.2 * float(ram)),
+                                                          "ram": str(1 * float(ram)),
                                                           "pixType": "uint8",
                                                           "out": os.path.join(path, 'mask_9.tif')})
-    bandMathAppli.ExecuteAndWriteOutput()
+    p = mp.Process(target=executeApp, args=[bandMathAppli])
+    p.start()
+    p.join()
+    #bandMathAppli.ExecuteAndWriteOutput()
     filetodelete.append(os.path.join(path, 'mask_9.tif'))
     
     for i in range(9):        
@@ -134,7 +163,7 @@ def regularisation(raster, threshold, nbcores, path, ram = "128"):
             connexion = 4
    
         # Tiles number to treat in parralel
-        pool = Pool(processes = 6)
+        pool = mp.Pool(processes = 6)
         iterable = (np.arange(6)).tolist()
         function = partial(gdal_sieve, threshold, connexion, path)
         pool.map(function, iterable)
@@ -171,10 +200,13 @@ def regularisation(raster, threshold, nbcores, path, ram = "128"):
                                                                 im5b1+im6b1+\
                                                                 im7b1+im8b1+\
                                                                 im9b1',
-                                                        "ram": str(0.2 * float(ram)),
+                                                        "ram": str(1 * float(ram)),
                                                         "pixType": "uint8",
                                                         "out": os.path.join(path, 'mask_regul_adapt.tif')})
-    bandMathAppli.ExecuteAndWriteOutput()
+    p = mp.Process(target=executeApp, args=[bandMathAppli])
+    p.start()
+    p.join()
+    #bandMathAppli.ExecuteAndWriteOutput()
         
     for filemask in rastersList:
         os.remove(filemask)

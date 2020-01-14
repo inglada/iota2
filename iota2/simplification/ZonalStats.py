@@ -17,6 +17,7 @@
 import os, sys, argparse
 import shutil
 from collections import OrderedDict
+from zipfile import ZipFile
 import osgeo
 import ogr
 import gdal
@@ -25,9 +26,12 @@ import geopandas as gpad
 from skimage.measure import label
 from skimage.measure import regionprops
 import numpy as np
+import logging
+logger = logging.getLogger(__name__)
 
 try:
     from VectorTools import vector_functions as vf
+    from VectorTools import checkGeometryAreaThreshField as checkGeom    
     from VectorTools import BufferOgr as bfo
     from VectorTools import splitByArea as sba
     from VectorTools import MergeFiles as mf
@@ -41,7 +45,7 @@ def getFidList(vect):
 
     shape = vf.openToRead(vect)
     lyr = shape.GetLayer()
-    fidlist = []
+    fidlist = []    
     for feat in lyr:
         fidlist.append(feat.GetFID())
 
@@ -142,6 +146,7 @@ def countPixelByClass(databand, fid=0, band=0, nodata=0):
             # Transposition pour jointure directe
             listlabT = listlab.T
             classStats = pad.DataFrame(data=[listlabT.loc['rate'].values], index=[fid], columns=[str(int(x)) for x in listlabT.loc['value']])
+
     else:
         classStats = pad.DataFrame(index=[fid], columns=[])
         classmaj = 0
@@ -253,7 +258,7 @@ def definePandasDf(geoframe, idvals, paramstats={}, classes=""):
     cols = []
     for param in paramstats:
         if paramstats[param] == "rate":
-            if classes != "" or classes is not None:
+            if classes != "" and classes is not None:
                 nomenc = nomenclature.Iota2Nomenclature(classes, 'cfg')
                 desclasses = nomenc.HierarchicalNomenclature.get_level_values(int(nomenc.getLevelNumber() - 1))
                 [cols.append(str(x)) for x, y, w, z in desclasses]
@@ -491,7 +496,6 @@ def extractRasterArray(rasters, paramstats, vector, vectorgeomtype, fid, gdalpat
 
     # Get rasters resolution
     res = abs(fut.getRasterResolution(rasters[0])[0])
-    print(fid)
     # Get vector name 
     vectorname = os.path.splitext(os.path.basename(vector))[0]
     for idx, raster in enumerate(rasters):
@@ -523,7 +527,7 @@ def extractRasterArray(rasters, paramstats, vector, vectorgeomtype, fid, gdalpat
                                                                 fid, \
                                                                 raster, \
                                                                 tmpfile)
-                    Utils.run(cmd)
+                    Utils.run(cmd)            
                     todel.append(tmpfile)
                 else:
                     gdal.SetConfigOption("GDAL_CACHEMAX", gdalcachemax)
@@ -537,7 +541,7 @@ def extractRasterArray(rasters, paramstats, vector, vectorgeomtype, fid, gdalpat
 
                 bands.append(tmpfile)
                 todel = []
-                
+
                 # store rasters in ndarray
                 ndbands = storeRasterInArray(bands)
                 
@@ -550,10 +554,9 @@ def extractRasterArray(rasters, paramstats, vector, vectorgeomtype, fid, gdalpat
         os.remove(filtodel)
 
     if not success:
-        nbbands = None
+        ndbands = None
 
     return success, ndbands
-
 
 
 def getClassMaj(bands, methodstat, idxcatraster):
@@ -643,11 +646,17 @@ def computeStats(bands, paramstats, dataframe, idval, nodata=0):
                 classStats, classmaj, posclassmaj = countPixelByClass(band, idval, nbband)
                 dataframe.update(classStats)
 
+                # Get majority class and add it in columns "majority"
+                try:
+                    classStats["majority"] = classStats.idxmax(axis=1)
+                except:
+                    classStats["majority"] = None
+                
                 # Add columns when pixel values are not identified in nomenclature file
                 if list(classStats.columns) != list(dataframe.columns):
                     newcols = list(set(list(classStats.columns)).difference(set(list(dataframe.columns))))
                     dataframe = pad.concat([dataframe, classStats[newcols]], axis=1)
-
+                
                 dataframe.fillna(np.nan, inplace=True)
                 
             elif methodstat == 'stats':
@@ -748,7 +757,7 @@ def extractPixelValue(rasters, bands, paramstats, xpt, ypt, dataframe, idval=0):
     return dataframe
 
 
-def formatDataFrame(geodataframe, schema, categorical=False, classes="", floatdec=2, intsize=10):
+def formatDataFrame(geodataframe, schema, fidToDel, categorical=False, classes="", floatdec=2, intsize=10):
     """Format columns name and format of a GeoPandas DataFrame
 
     Parameters
@@ -796,7 +805,11 @@ def formatDataFrame(geodataframe, schema, categorical=False, classes="", floatde
     schema['properties'] = OrderedDict([(x, 'float:%s.%s'%(intsize, floatdec)) for x in list(geodataframe.columns) \
                                         if x != 'geometry'])
 
+    # drop unused index
+    geodataframe.drop(fidToDel, inplace=True)
+    
     return geodataframe, schema
+
 
 def dataframeExport(geodataframe, output, schema):
     """Export a GeoPandas DataFrame as a vector file (shapefile, sqlite and geojson)
@@ -834,9 +847,9 @@ def dataframeExport(geodataframe, output, schema):
         geodataframe.to_file(outputinter, driver=driver, schema=schema, encoding='utf-8')
         output = os.path.splitext(output)[0] + '.sqlite'
         Utils.run('ogr2ogr -f SQLite %s %s'%(output, outputinter))
-        
 
-def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist=None, nodata=0, gdalpath="", systemcall=True, gdalcachemax="9000"):
+
+def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist=None, nodata=0, gdalpath="", systemcall=True, gdalcachemax="9000", logger=logger):
     """Compute zonal statistitics (descriptive and categorical)
        on multi-band raster or multi-rasters
        based on Point (buffered or not) or Polygon zonal vector
@@ -881,6 +894,9 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
         gdal cache for wrapping operation (in Mb)
 
     """
+
+    logger.info("Begin to compute zonal statistics for vector file %s"%(output))
+    
     if os.path.exists(output):
         return
     
@@ -894,11 +910,18 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
     paramstats = checkmethodstats(rasters, paramstats, nbbands)
 
     # Get vector file and FID list
-    vector, idvals = params
+    if len(params) > 1:
+        vector, idvals = params
+    else:
+        vector = params[0][0]
+        idvals = params[0][1]
     
     # if no vector subsetting (all features)
+    fullfid = getFidList(vector)    
     if not idvals:
-        idvals = getFidList(vector)
+        idvals = fullfid
+    else:
+        novals = [x for x in fullfid if x not in idvals]
     
     # vector open and iterate features and/or buffer geom
     vectorname = os.path.splitext(os.path.basename(vector))[0]
@@ -922,6 +945,9 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
     # Iterate FID list
     dataset = vf.openToRead(vector)
     lyr = dataset.GetLayer()
+
+    if "fid" in [x.lower() for x in vf.getFields(vector)]:
+        raise ValueError("FID field not allowed. This field name is reserved by gdal binary.")
 
     for idval in idvals:
         if vectorgeomtype in (1, 4, 1001, 1004):
@@ -947,23 +973,22 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
                 stats = computeStats(bands, paramstats, stats, idval, nodata)
 
         else:
-            print("gdalwarp problem for feature %s (geometry error, too small area, etc.)"%(idval))
-
+            print("gdalwarp problem for feature %s (geometry error, too small area, gdal version, etc.) : No statistic computed"%(idval))
+            
     # Prepare columns name and format of output dataframe
     if "rate" in list(paramstats.values()) and classes != "":
-        stats, schema = formatDataFrame(stats, schema, True, classes)
+        stats, schema = formatDataFrame(stats, schema, novals, True, classes)
     else:
-        stats, schema = formatDataFrame(stats, schema)
+        stats, schema = formatDataFrame(stats, schema, novals)
 
     # exportation
     dataframeExport(stats, output, schema)
 
+    logger.info("End to compute zonal statistics for vector file %s"%(output))
 
+    
 def iota2Formatting(invector, classes, outvector=""):
 
-    '''
-    python simplification/ZonalStats.py -wd ~/tmp/ -inr /work/OT/theia/oso/vincent/testmpi/mini_SAR_pad/final/Classif_Seed_0.tif /work/OT/theia/oso/vincent/testmpi/mini_SAR_pad/final/Confidence_Seed_0.tif /work/OT/theia/oso/vincent/testmpi/mini_SAR_pad/final/PixelsValidity.tif -shape /work/OT/theia/oso/vincent/testmpi/mini_SAR_pad/final/simplification/vectors/dept_1.shp -output /work/OT/theia/oso/vincent/outstats_oso.sqlite -params 1:rate 2:statsmaj 3:statsmaj -classes simplification/nomenclature17.cfg -iota2
-    '''
     def Sort(sub_li): 
         sub_li.sort(key = lambda x: x[0]) 
         return sub_li 
@@ -978,10 +1003,13 @@ def iota2Formatting(invector, classes, outvector=""):
         exp += "CAST(%s AS NUMERIC(6,2)) AS %s, "%(name, name)
 
 
+    layerin = os.path.splitext(os.path.basename(invector))[0]        
     if outvector == "":
-        layerout = os.path.splitext(os.path.basename(invector))[0]        
+        layerin = os.path.splitext(os.path.basename(invector))[0]        
         outvector = os.path.splitext(invector)[0] + '_tmp.shp'
+        layerout = layerin + "_tmp"
     else:
+        layerin = os.path.splitext(os.path.basename(invector))[0]                
         layerout = os.path.splitext(os.path.basename(outvector))[0]
 
     command = "ogr2ogr -lco ENCODING=UTF-8 -overwrite -q -f 'ESRI Shapefile' -nln %s -sql "\
@@ -991,7 +1019,7 @@ def iota2Formatting(invector, classes, outvector=""):
               "CAST(meanmajb2 AS INTEGER(4)) AS Confidence, %s"\
               "CAST(area AS NUMERIC(10,2)) AS Aire "\
               "FROM %s' "\
-              "%s %s"%(layerout, exp, layerout, outvector, invector)
+              "%s %s"%(layerout, exp, layerin, outvector, invector)
 
     Utils.run(command)
 
@@ -1003,6 +1031,9 @@ def splitVectorFeatures(vectorpath, outputPath, chunk=1, byarea=False):
     ----------
     vectorpath : string
         vector file or folder of vector files
+
+    outputPath : string
+        path to chunked vector files
 
     chunk : integer
         number of FID groups
@@ -1020,6 +1051,7 @@ def splitVectorFeatures(vectorpath, outputPath, chunk=1, byarea=False):
     params = []
     if os.path.isdir(vectorpath):
         for vect in listvectors:
+            
             listfid = getFidList(vect)
             #TODO : split in chunks with sum of feature areas quite equal
             if byarea:
@@ -1036,9 +1068,13 @@ def splitVectorFeatures(vectorpath, outputPath, chunk=1, byarea=False):
                 listfid = [listfid[i::chunk] for i in range(chunk)]
                 listfid = list(filter(None, listfid))
 
-            for idchunk, fidlist in enumerate(listfid):
-                outfile = os.path.splitext(os.path.basename(vect))[0] + '_chk' + str(idchunk) + ".shp"
-                params.append((vect, fidlist, os.path.join(outputPath, outfile)))
+            if len(listfid) == 1:
+                outfile = os.path.splitext(os.path.basename(vect))[0] + "_stats.shp"
+                params.append((vect, listfid[0], os.path.join(outputPath, outfile)))
+            else:
+                for idchunk, fidlist in enumerate(listfid):                    
+                    outfile = os.path.splitext(os.path.basename(vect))[0] + '_chk' + str(idchunk) + ".shp"                
+                    params.append((vect, fidlist, os.path.join(outputPath, outfile)))
 
     else:
         vect = vectorpath
@@ -1049,27 +1085,71 @@ def splitVectorFeatures(vectorpath, outputPath, chunk=1, byarea=False):
 
     return params
 
-def computZonalStats(path, inr, shape, params, outputpath, classes="", bufferdist="", nodata=0, gdalpath="", chunk=1, byarea=False, cache="1000", systemcall=True, iota2=False):
+def computZonalStats(path, inr, shape, params, output, classes="", bufferdist="", nodata=0, gdalpath="", chunk=1, byarea=False, cache="1000", systemcall=True, iota2=False):
 
-    chunks = splitVectorFeatures(shape, path, chunk, byarea)
+    # clean geometries of input vector file
+    if os.path.splitext(shape)[1] == ".shp":
+        tmp = os.path.join(path, "tmp.shp")    
+        checkGeom.checkGeometryAreaThreshField(shape, 1, 0, tmp)    
 
+        for ext in ['.shp', '.dbf', '.shx', '.prj', '.cpg']:            
+            try:
+                shutil.copy(os.path.splitext(tmp)[0] + ext, os.path.splitext(shape)[0] + ext)
+                os.remove(os.path.splitext(tmp)[0] + ext)
+            except:
+                pass
+            
+    else:
+        raise Exception("Only shapefile allowed for input vector file")
+    
+    chunks = splitVectorFeatures(shape, path, chunk, byarea)    
+    
     for block in chunks:
         zonalstats(path, inr, block, output, params, classes, bufferdist, nodata, gdalpath, systemcall, cache)
 
     if iota2:
         iota2Formatting(output, classes)
 
-def mergeSubVector(inpath, classes="", inbase="dept_", outbase="departement_"):
-        
+
+def getVectorsChunks(inpath, inbase="dept_"):
+    
     listout = fut.FileSearch_AND(inpath, True, inbase, ".shp", "chk")
     listofchkofzones = fut.sortByFirstElem([("_".join(x.split('_')[0:len(x.split('_'))-1]), x) for x in listout])
+    
+    return listofchkofzones
 
+        
+def mergeSubVector(listofchkofzones, outpath, classes="", outbase="departement_", outzip=True, logger=logger):
+        
+    zoneval = listofchkofzones[0].split('_')[len(listofchkofzones[0].split('_'))-1:len(listofchkofzones[0].split('_'))]
+    outfile = os.path.join(outpath, outbase + zoneval[0] + '.shp')
 
-    for zone in listofchkofzones:
-        zoneval = zone[0].split('_')[len(zone[0].split('_'))-1:len(zone[0].split('_'))]
-        outfile = os.path.join(inpath, outbase + zoneval[0] + '.shp')
-        mf.mergeVectors(zone[1], outfile)
+    logger.info("Production of vector file %"%(outfile))
+
+    mf.mergeVectors(listofchkofzones[1], outfile)
+
+    if os.path.exists(outfile):
+        for subzone in listofchkofzones[1]:
+            for ext in ['.shp', '.dbf', '.shx', '.prj', '.cpg']:
+                try:
+                    os.remove(os.path.splitext(subzone)[0] + ext)
+                except:
+                    pass
+
         iota2Formatting(outfile, classes, outfile)
+
+        if outzip:
+            outzip = os.path.splitext(outfile)[0] + '.zip'
+            compressShape(outfile, outzip)        
+
+def compressShape(shapefile, outzip):
+
+    with ZipFile(outzip, 'w') as myzip:
+        for ext in ['.shp', '.dbf', '.shx', '.prj', '.cpg']:
+            try:
+                myzip.write(os.path.splitext(shapefile)[0] + ext, os.path.basename(os.path.splitext(shapefile)[0] + ext))
+            except:
+                pass
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:

@@ -86,7 +86,7 @@ class iota2():
         for step_place, step in enumerate(self.steps):
             self.steps_group[step.step_group][step_place + 1] = step.step_description()
 
-    def print_step_summarize(self, start, end, show_resources=False):
+    def print_step_summarize(self, start, end, show_resources=False, checked="x"):
         """
         print iota2 steps that will be run
         """
@@ -98,7 +98,7 @@ class iota2():
             for key in self.steps_group[group]:
                 highlight = "[ ]"
                 if key >= start and key<=end:
-                    highlight="[x]"
+                    highlight="[{}]".format(checked)
                 summarize += "\t {} Step {}: {}".format(highlight, key ,
                                                         self.steps_group[group][key])
                 if show_resources:
@@ -107,8 +107,14 @@ class iota2():
                     walltime = self.steps[step_position].resources["walltime"]
                     resource_block_name = self.steps[step_position].resources["resource_block_name"]
                     resource_block_found = self.steps[step_position].resources["resource_block_found"]
+                    log_identifier = self.steps[step_position].step_name
                     resource_miss = "" if resource_block_found else " -> MISSING"
-                    summarize += "\n\t\t\tresources block name : {}{}\n\t\t\tcpu : {}\n\t\t\tram : {}\n\t\t\twalltime : {}".format(resource_block_name, resource_miss, cpu, ram, walltime)
+                    summarize += "\n\t\t\tresources block name : {}{}\n\t\t\tcpu : {}\n\t\t\tram : {}\n\t\t\twalltime : {}\n\t\t\tlog identifier : {}".format(resource_block_name,
+                                                                                                                                                              resource_miss,
+                                                                                                                                                              cpu,
+                                                                                                                                                              ram,
+                                                                                                                                                              walltime,
+                                                                                                                                                              log_identifier)
                 summarize += "\n"
                 step_position += 1
         summarize += "\n"
@@ -168,10 +174,34 @@ class iota2():
                            confusionGeneration, confusionsMerge,
                            reportGeneration, mergeSeedClassifications,
                            additionalStatistics, additionalStatisticsMerge,
-                           sensorsPreprocess, Coregistration, Regularization,
+                           sensorsPreprocess, Coregistration, Regularization, mergeRegularization,
                            Clump, Grid, crownSearch, crownBuild, mosaicTilesVectorization,
                            largeVectorization, largeSimplification, largeSmoothing,
-                           clipVectors, zonalStatistics)
+                           clipVectors, zonalStatistics, prodVectors)
+
+        # control variable
+        Sentinel1 = SCF.serviceConfigFile(cfg).getParam('chain', 'S1Path')
+        shapeRegion = SCF.serviceConfigFile(cfg).getParam('chain', 'regionPath')
+        classif_mode = SCF.serviceConfigFile(cfg).getParam('argClassification', 'classifMode')
+        sampleManagement = SCF.serviceConfigFile(cfg).getParam('argTrain', 'sampleManagement')
+        sample_augmentation = dict(SCF.serviceConfigFile(cfg).getParam('argTrain', 'sampleAugmentation'))
+        sample_augmentation_flag = sample_augmentation["activate"]
+        dimred = SCF.serviceConfigFile(cfg).getParam('dimRed', 'dimRed')
+        classifier = SCF.serviceConfigFile(cfg).getParam('argTrain', 'classifier')
+        ds_sar_opt = SCF.serviceConfigFile(cfg).getParam('argTrain', 'dempster_shafer_SAR_Opt_fusion')
+        keep_runs_results = SCF.serviceConfigFile(cfg).getParam('chain', 'keep_runs_results')
+        merge_final_classifications = SCF.serviceConfigFile(cfg).getParam('chain', 'merge_final_classifications')
+        ground_truth = SCF.serviceConfigFile(cfg).getParam('chain', 'groundTruth')
+        runs = SCF.serviceConfigFile(cfg).getParam('chain', 'runs')
+        outStat = SCF.serviceConfigFile(cfg).getParam('chain', 'outputStatistics')
+        VHR = SCF.serviceConfigFile(cfg).getParam('coregistration', 'VHRPath')
+        gridsize = SCF.serviceConfigFile(cfg).getParam('Simplification', 'gridsize')
+        umc1 = SCF.serviceConfigFile(cfg).getParam('Simplification', 'umc1')
+        umc2 = SCF.serviceConfigFile(cfg).getParam('Simplification', 'umc2')        
+        rssize = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'rssize')
+        inland = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'inland')
+        iota2_outputs_dir = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
+        nomenclature = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'nomenclature')
 
         # will contains all IOTA² steps
         s_container = StepContainer()
@@ -279,9 +309,7 @@ class iota2():
         step_additional_statistics_merge = additionalStatisticsMerge.additionalStatisticsMerge(cfg,
                                                                                                config_ressources,
                                                                                                self.workingDirectory)
-        step_regularization = Regularization.Regularization(cfg,
-                                                            config_ressources,
-                                                            self.workingDirectory)
+
         step_clump = Clump.Clump(cfg,
                                  config_ressources,
                                  self.workingDirectory)
@@ -314,23 +342,11 @@ class iota2():
                                                            config_ressources,
                                                            self.workingDirectory)
         
-        # control variable
-        Sentinel1 = SCF.serviceConfigFile(cfg).getParam('chain', 'S1Path')
-        shapeRegion = SCF.serviceConfigFile(cfg).getParam('chain', 'regionPath')
-        classif_mode = SCF.serviceConfigFile(cfg).getParam('argClassification', 'classifMode')
-        sampleManagement = SCF.serviceConfigFile(cfg).getParam('argTrain', 'sampleManagement')
-        sample_augmentation = dict(SCF.serviceConfigFile(cfg).getParam('argTrain', 'sampleAugmentation'))
-        sample_augmentation_flag = sample_augmentation["activate"]
-        dimred = SCF.serviceConfigFile(cfg).getParam('dimRed', 'dimRed')
-        classifier = SCF.serviceConfigFile(cfg).getParam('argTrain', 'classifier')
-        ds_sar_opt = SCF.serviceConfigFile(cfg).getParam('argTrain', 'dempster_shafer_SAR_Opt_fusion')
-        keep_runs_results = SCF.serviceConfigFile(cfg).getParam('chain', 'keep_runs_results')
-        merge_final_classifications = SCF.serviceConfigFile(cfg).getParam('chain', 'merge_final_classifications')
-        ground_truth = SCF.serviceConfigFile(cfg).getParam('chain', 'groundTruth')
-        runs = SCF.serviceConfigFile(cfg).getParam('chain', 'runs')
-        outStat = SCF.serviceConfigFile(cfg).getParam('chain', 'outputStatistics')
-        VHR = SCF.serviceConfigFile(cfg).getParam('coregistration', 'VHRPath')
-        gridsize = SCF.serviceConfigFile(cfg).getParam('Simplification', 'gridsize')
+        step_prod_vectors = prodVectors.prodVectors(cfg,
+                                                    config_ressources,
+                                                    self.workingDirectory)
+        
+
 
         # build chain
         # init steps
@@ -390,10 +406,60 @@ class iota2():
         if outStat:
             s_container.append(step_additional_statistics, "validation")
             s_container.append(step_additional_statistics_merge, "validation")
+
         # regularisation steps
-        s_container.append(step_regularization, "regularisation")
+        if umc1:
+            # TODO : creer une variable adaptative / oso / regulier (avec "connection" en paramètre supplémentaire)
+            outregul = os.path.join(iota2_outputs_dir, "final", "simplification", "classif_regul.tif")
+
+            regulruns = 2 if umc2 else 1
+
+            if not os.path.exists(outregul):
+                lognamereg = 'regul1'
+                lognamemerge = "merge_regul1"
+                if regulruns == 2:
+
+                    outregul = os.path.join(iota2_outputs_dir, "final", "simplification", "tmp", "regul1.tif")
+                    s_container.append(Regularization.Regularization(cfg,
+                                                                     config_ressources,
+                                                                     umc=umc1,
+                                                                     nomenclature=nomenclature,
+                                                                     stepname="regul1",
+                                                                     workingDirectory=self.workingDirectory), "regularisation")
+
+                    s_container.append(mergeRegularization.mergeRegularization(cfg,
+                                                                               config_ressources,
+                                                                               workingDirectory=self.workingDirectory,
+                                                                               resample=rssize,
+                                                                               umc=umc1,
+                                                                               stepname="merge_regul1",                                                                               
+                                                                               output=outregul), "regularisation")
+                    umc1 = umc2
+                    rssize = None
+                    outregul = os.path.join(iota2_outputs_dir, "final", "simplification", "classif_regul.tif")
+                    logname = 'regul2'
+                    lognamemerge = "merge_regul2"
+                    
+                s_container.append(Regularization.Regularization(cfg,
+                                                                 config_ressources,
+                                                                 umc=umc1,
+                                                                 nomenclature=nomenclature,                                                                 
+                                                                 stepname=logname,                                                                 
+                                                                 workingDirectory=self.workingDirectory), "regularisation")
+
+                s_container.append(mergeRegularization.mergeRegularization(cfg,
+                                                                           config_ressources,
+                                                                           workingDirectory=self.workingDirectory,
+                                                                           resample=rssize,
+                                                                           water=inland,
+                                                                           umc=umc1,
+                                                                           stepname=lognamemerge,
+                                                                           output=outregul), "regularisation")
+
+
+        s_container.append(step_clump, "regularisation")
+                
         if gridsize is not None:
-            s_container.append(step_clump, "regularisation")
             # crown steps
             s_container.append(step_grid, "crown")
             s_container.append(step_crown_search, "crown")
@@ -407,6 +473,10 @@ class iota2():
             s_container.append(step_clip_vectors, "clipvectors")            
         else:
             # vectorization step
-            s_container.append(step_simplification, "vectorisation")
+            s_container.append(step_large_vecto, "vectorisation")            
+            s_container.append(step_large_simp, "simplification")
+            s_container.append(step_large_smoothing, "smoothing")
+            s_container.append(step_clip_vectors, "clipvectors")    
         s_container.append(step_zonal_stats, "lcstatistics")
+        s_container.append(step_prod_vectors, "lcstatistics")        
         return s_container

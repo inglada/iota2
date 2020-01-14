@@ -15,12 +15,15 @@
 # =========================================================================
 
 import argparse
+import logging
 import os
 from config import Config
 import numpy as np
 from Common import FileUtils as fu
 from osgeo import ogr
 from Common import ServiceConfigFile as SCF
+
+logger = logging.getLogger(__name__)
 
 def getStatsFromSamples(InSamples, ground_truth, region_field):
     """
@@ -77,6 +80,13 @@ def get_svm_normalization_stats(stats_dir, region_name, seed):
                              True,
                              "samples_region_{}_seed_{}.xml".format(region_name, seed))[0]
 
+def sqlite_to_geojson(input_db: str, output_db: str, logger=logger) -> None:
+    """sqlite database to geojson database
+    """
+    from Common.Utils import run
+    logger.info("changin input data format {} to {}".format(input_db, output_db))
+    run('ogr2ogr -f "GeoJSON" {} {}'.format(output_db, input_db))
+
 def buildTrainCmd_points(r, paths, classif, options, dataField, out,
                          stat, features_labels, model_name):
 
@@ -84,6 +94,17 @@ def buildTrainCmd_points(r, paths, classif, options, dataField, out,
     shape_ref [param] [string] path to a shape use to determine how many fields
                                are already present before adding features
     """
+    nb_columns_limit = 999
+    nb_features = len(features_labels.split(" "))
+    if nb_features >= nb_columns_limit:
+        output_geojson = paths.replace(".sqlite", ".geojson")
+        try:
+            sqlite_to_geojson(paths, output_geojson)
+            os.remove(paths)
+            paths = output_geojson
+        except :
+            raise Exception ("changing input dataBase format failed")
+
     cmd = "otbcli_TrainVectorClassifier -io.vd "
     if paths.count("learn") != 0:
         cmd = cmd +" "+paths 

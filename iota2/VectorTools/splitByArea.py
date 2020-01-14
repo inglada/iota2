@@ -32,10 +32,10 @@ def splitByArea(Areas, folds):
     offset = 0
     flag = 0
     while flag == 0:
-        index_rand = random.sample(xrange(offset, offset + folds), folds)
+        index_rand = random.sample(list(range(offset, offset + folds)), folds)
         # to manage the end
         if offset + 1 > len(Areas) - folds:
-            index_rand = random.sample(xrange(offset, len(Areas)), len(Areas) - offset)
+            index_rand = random.sample(list(range(offset, len(Areas))), len(Areas) - offset)
             flag = 1
         for cpt, ind in enumerate(index_rand):
             outputfolds[cpt].append(Areas[ind])
