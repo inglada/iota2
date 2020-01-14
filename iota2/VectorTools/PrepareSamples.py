@@ -32,7 +32,7 @@ def traitEchantillons(shapefile, outfile, outpath, areapix, pix_thresh, tmp, fie
 
     if csvfile != 1:
         # manage nomenclature (field CODE)
-        nh.harmonisationCodeIota(newshapefile, csvfile, delimiter, fieldin, fieldout)
+        nh.labelRecoding(newshapefile, csvfile, delimiter, fieldin, fieldout)
 
     # Refresh Id and Area fields, keep landcover field and delete other ones
     manageFieldShapefile(newshapefile, fieldout, areapix)

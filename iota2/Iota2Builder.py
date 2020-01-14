@@ -202,6 +202,8 @@ class iota2():
         inland = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'inland')
         iota2_outputs_dir = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
         use_scikitlearn = SCF.serviceConfigFile(self.cfg).getParam('scikit_models_parameters', 'model_type') is not None
+        nomenclature = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'nomenclature')
+
 
         # will contains all IOTA² steps
         s_container = StepContainer()
@@ -427,6 +429,7 @@ class iota2():
                     s_container.append(Regularization.Regularization(cfg,
                                                                      config_ressources,
                                                                      umc=umc1,
+                                                                     nomenclature=nomenclature,
                                                                      stepname="regul1",
                                                                      workingDirectory=self.workingDirectory), "regularisation")
 
@@ -446,6 +449,7 @@ class iota2():
                 s_container.append(Regularization.Regularization(cfg,
                                                                  config_ressources,
                                                                  umc=umc1,
+                                                                 nomenclature=nomenclature,                                                                 
                                                                  stepname=logname,                                                                 
                                                                  workingDirectory=self.workingDirectory), "regularisation")
 
@@ -459,8 +463,9 @@ class iota2():
                                                                            output=outregul), "regularisation")
 
 
+        s_container.append(step_clump, "regularisation")
+                
         if gridsize is not None:
-            s_container.append(step_clump, "regularisation")
             # crown steps
             s_container.append(step_grid, "crown")
             s_container.append(step_crown_search, "crown")
