@@ -99,11 +99,11 @@ def sk_classifications_to_merge(iota2_classif_directory: str) -> List[Dict[str, 
     return rasters_to_merge
 
 
-def do_predict(array, model, dtype="float"):
+def do_predict(array, model, scaler, dtype="float"):
     """
     """
     array_reshaped = array.reshape((array.shape[0] * array.shape[1]), array.shape[2])
-    predicted_array = model.predict_proba(array_reshaped)
+    predicted_array = model.predict_proba(scaler.transform(array_reshaped))
     predicted_array = predicted_array.reshape(array.shape[0],
                                               array.shape[1],
                                               predicted_array.shape[-1])
@@ -195,7 +195,9 @@ def predict(mask: str, model: str, stat: str, out_classif: str, out_confidence: 
     from iota2.Common.FileUtils import findCurrentTileInString
 
     with open(model, 'rb') as model_file:
-        model = pickle.load(model_file)
+        model, scaler = pickle.load(model_file)
+    if hasattr(model, "n_jobs"):
+        model.n_jobs = -1
 
     # ~ if hasattr(model, "n_jobs"):
         # ~ model.n_jobs = -1
@@ -204,7 +206,7 @@ def predict(mask: str, model: str, stat: str, out_classif: str, out_confidence: 
         if targeted_chunk > number_of_chunks - 1:
             raise ValueError("targeted_chunk must be inferior to the number of chunks")
 
-    function_partial = partial(do_predict, model=model)
+    function_partial = partial(do_predict, model=model, scaler=scaler)
 
     cfg = serviceConf.serviceConfigFile(configuration_file)
     tile_name = findCurrentTileInString(mask, cfg.getParam("chain", "listTile").split(" "))
