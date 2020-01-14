@@ -1,17 +1,27 @@
 #!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
+import os, sys, argparse
 from osgeo import ogr
-import sys
-import argparse
 from VectorTools import vector_functions as vf
 
 def selectBySize(filein, col, nbpix, fileout):
+        
 	source = ogr.Open(filein, 0)
+	        
+	baseext = os.path.splitext(fileout)[1]
+	if baseext == ".shp":
+		outformat = "ESRI Shapefile"
+	elif baseext == ".sqlite":
+		outformat = "SQlite"
+	else:
+		print("Output format not managed" )
+		sys.exit()
+
 	layer = source.GetLayer()
 	request = col+" >= "+str(nbpix)
 	layer.SetAttributeFilter(request)
-	vf.CreateNewLayer(layer, fileout)
+	vf.CreateNewLayer(layer, fileout, outformat)
 	return 0
 
 if __name__ == "__main__":
