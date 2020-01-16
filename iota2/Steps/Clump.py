@@ -44,8 +44,11 @@ class Clump(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
-        outfilereg = os.path.join(self.outputPath, 'final', 'simplification',
-                                  'classif_regul.tif')
+        if os.path.exists(os.path.join(self.outputPath, 'final', 'simplification', 'classif_regul.tif')):            
+            outfilereg = os.path.join(self.outputPath, 'final', 'simplification', 'classif_regul.tif')
+        else:
+            outfilereg = os.path.join(self.outputPath, 'final', 'Classif_Seed_0.tif')
+            
         return [outfilereg]
 
     def step_execute(self):

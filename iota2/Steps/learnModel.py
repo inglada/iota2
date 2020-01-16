@@ -84,14 +84,35 @@ class learnModel(IOTA2Step.Step):
         """
         from MPI import launch_tasks as tLauncher
         from Learning import TrainSkLearn
+        from Learning.TrainSkLearn import cast_config_cv_parameters
 
         bashLauncherFunction = tLauncher.launchBashCmd
-        
+             
         if self.use_scikitlearn:
+            model_parameters = SCF.serviceConfigFile(self.cfg).getSection("scikit_models_parameters")
+            sk_model = model_parameters['model_type']
+            del model_parameters['model_type']
+            del model_parameters['standardization']
+            del model_parameters['cross_validation_grouped']
+            del model_parameters['cross_validation_folds']
+            del model_parameters['cross_validation_parameters']
+
+            cv_params = SCF.serviceConfigFile(self.cfg).getParam("scikit_models_parameters",
+                                                                 "cross_validation_parameters")
+            cv_params = cast_config_cv_parameters(cv_params)
+
             step_function = lambda x: TrainSkLearn.sk_learn(x,
                                                             self.data_field,
                                                             self.model_directory,
-                                                            **SCF.serviceConfigFile(self.cfg).getSection("scikit_models_parameters"))
+                                                            sk_model,
+                                                            SCF.serviceConfigFile(self.cfg).getParam("scikit_models_parameters",
+                                                                                                     "standardization"),
+                                                            cv_params,
+                                                            SCF.serviceConfigFile(self.cfg).getParam("scikit_models_parameters",
+                                                                                                     "cross_validation_grouped"),
+                                                            SCF.serviceConfigFile(self.cfg).getParam("scikit_models_parameters",
+                                                                                                     "cross_validation_folds"),
+                                                            **model_parameters)
         else:
             step_function = lambda x: bashLauncherFunction(x)
         return step_function
