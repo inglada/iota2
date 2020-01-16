@@ -191,7 +191,11 @@ class serviceConfigFile:
             userFeat =  {"arbo": "/*",
                          "patterns":"ALT,ASP,SLP"}
 
-            sklearn_default = {"model_type": None}
+            sklearn_default = {"model_type": None,
+                               "cross_validation_folds": 5,
+                               "cross_validation_grouped": False,
+                               "standardization": False,
+                               "cross_validation_parameters": self.init_dicoMapping({})}
                                       
             self.init_section("Landsat5_old", Landsat5_old_default)
             self.init_section("Landsat8", Landsat8_default)
@@ -551,6 +555,23 @@ class serviceConfigFile:
             self.testVarConfigFile('dimRed', 'reductionMode', str)
 
             self.testVarConfigFile('chain', 'remove_tmp_files', bool)
+            
+            self.testVarConfigFile('chain', 'remove_tmp_files', bool)
+            
+            self.testVarConfigFile('chain', 'remove_tmp_files', bool)
+
+            if self.cfg.scikit_models_parameters.model_type is not None:
+                self.testVarConfigFile('scikit_models_parameters',
+                                       'model_type', str)
+                self.testVarConfigFile('scikit_models_parameters',
+                                       'cross_validation_folds', int)
+                self.testVarConfigFile('scikit_models_parameters',
+                                       'cross_validation_grouped', bool)
+                self.testVarConfigFile('scikit_models_parameters',
+                                       'standardization', bool)
+                self.testVarConfigFile('scikit_models_parameters',
+                                       'cross_validation_parameters', Mapping)
+                                       
 
             if self.cfg.chain.L5Path_old != "None":
                 #L5 variable check
