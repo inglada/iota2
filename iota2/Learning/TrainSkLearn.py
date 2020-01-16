@@ -124,11 +124,10 @@ def force_proba(sk_classifier) -> None:
     """force the classifier model to be able of generate proabilities
     """
     from sklearn.svm import SVC
-    
+    sk_classifier_parameters = sk_classifier.get_params()
     if isinstance(sk_classifier, SVC):
-        svm_parameter = sk_classifier.get_params()
-        svm_parameter["probability"] = True
-    sk_classifier.set_params(**svm_parameter)
+        sk_classifier_parameters["probability"] = True
+    sk_classifier.set_params(**sk_classifier_parameters)
 
 
 def sk_learn(data_set: Dict[str, str],
