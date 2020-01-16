@@ -355,7 +355,7 @@ def copyShp(shp, keyname):
    print("New file created : %s" %(outShapefile))
    return outShapefile
 #--------------------------------------------------------------------
-def CreateNewLayer(layer, outShapefile):
+def CreateNewLayer(layer, outShapefile, outformat="ESRI Shapefile"):
       """
       This function creates a new shapefile with a layer as input
           ARGs:
@@ -369,10 +369,11 @@ def CreateNewLayer(layer, outShapefile):
           field =  inLayerDefn.GetFieldDefn(i).GetName()
           field_name_target.append(field)
 
-      outDriver = ogr.GetDriverByName("ESRI Shapefile")
+      outDriver = ogr.GetDriverByName(outformat)
       #if file already exists, delete it
       if os.path.exists(outShapefile):
         outDriver.DeleteDataSource(outShapefile)
+
       outDataSource = outDriver.CreateDataSource(outShapefile)
       out_lyr_name = os.path.splitext( os.path.split( outShapefile )[1] )[0]
       #Get the spatial reference of the input layer
@@ -530,7 +531,7 @@ def deleteInvalidGeom(shp):
 
 
 #--------------------------------------------------------------------
-def checkValidGeom(shp):
+def checkValidGeom(shp, outformat="ESRI shapefile"):
     """Check the validity of geometries in a file. If geometry is not valid then
     apply buffer 0 to correct. Works for files with polygons
 
@@ -548,9 +549,9 @@ def checkValidGeom(shp):
     print("Verifying geometries validity")
     
 
-    ds = openToWrite(shp)
+    ds = openToWrite(shp, outformat)
     layer = ds.GetLayer()
-    nbfeat = getNbFeat(shp)
+    nbfeat = getNbFeat(shp, outformat)
     count = 0
     corr = 0
     fidl = []
@@ -581,11 +582,17 @@ def checkValidGeom(shp):
         
     print("From %d invalid features, %d were corrected" %(count, corr))
 
-    ds.ExecuteSQL('REPACK '+layer.GetName())
+    if outformat == "ESRI shapefile":
+        ds.ExecuteSQL('REPACK %s'%(layer.GetName()))
+    elif outformat == "SQlite":
+        ds = layer = None
+    else:
+        pass
+
     return shp, count, corr
 
 #--------------------------------------------------------------------
-def checkEmptyGeom(shp, do_corrections=True, output_file=None):
+def checkEmptyGeom(shp, informat="ESRI shapefile", do_corrections=True, output_file=None):
     """Check if a geometry is empty, then if it does it will not be copied in output shapeFile
 
     Parameters
@@ -601,7 +608,7 @@ def checkEmptyGeom(shp, do_corrections=True, output_file=None):
     tuple
         (output_shape, invalid_geom_number) where invalid_geom_number is the number of empty geometries
     """
-    ds = openToRead(shp)
+    ds = openToRead(shp, informat)
     layer = ds.GetLayer()
     allFID = []
     count = 0
@@ -1035,6 +1042,14 @@ if __name__ == "__main__":
         
        args = parser.parse_args()
 
+       if os.path.splitext(args.shapefile)[1] == ".shp":
+           outformat = "ESRI shapefile"
+       elif os.path.splitext(args.shapefile)[1] == ".sqlite":
+           outformat = "SQlite"
+       else:
+           print("Output format not managed" )
+           sys.exit()           
+           
        if args.v or args.e or args.i or args.ev or args.d:
          if args.v:
             valid = True
@@ -1050,10 +1065,10 @@ if __name__ == "__main__":
           none = True
             
        if valid:
-       	  checkValidGeom(args.shapefile)
+       	  checkValidGeom(args.shapefile, outformat)
 
        if empty:
-          checkEmptyGeom(args.shapefile)	
+          checkEmptyGeom(args.shapefile, outformat)	
 
        if intersect:
           checkIntersect3(args.shapefile, 'CODE','ID')

@@ -22,7 +22,17 @@ def traitEchantillons(shapefile, outfile, outpath, areapix, pix_thresh, tmp, fie
 
     # copy input shapefile into the outpath folder
     basefile = os.path.splitext(os.path.basename(shapefile))[0]
-    newshapefile = outpath + '/' + basefile + '.shp'
+    baseext = os.path.splitext(os.path.basename(shapefile))[1]
+    newshapefile = outpath + '/' + basefile + baseext
+    
+    if baseext == ".shp":
+        outformat = "ESRI Shapefile"
+    elif baseext == ".sqlite":
+        outformat = "SQlite"
+    else:
+        print("Output format not managed" )
+        sys.exit()
+        
     vf.copyShapefile(shapefile, newshapefile)
 
     # Table to store intermediate files paths
@@ -35,7 +45,7 @@ def traitEchantillons(shapefile, outfile, outpath, areapix, pix_thresh, tmp, fie
         nh.labelRecoding(newshapefile, csvfile, delimiter, fieldin, fieldout)
 
     # Refresh Id and Area fields, keep landcover field and delete other ones
-    manageFieldShapefile(newshapefile, fieldout, areapix)
+    manageFieldShapefile(newshapefile, fieldout, areapix, outformat)
 
     #newshapefile = "/datalocal/tmp/PARCELLES_GRAPHIQUES.shp"
     # Simplify geometries
@@ -51,7 +61,7 @@ def traitEchantillons(shapefile, outfile, outpath, areapix, pix_thresh, tmp, fie
 
     # Empty geometry identification
     try:
-        outShapefile, _ = vf.checkEmptyGeom(simplyFile)
+        outShapefile, _ = vf.checkEmptyGeom(simplyFile, outformat)
         print('Check empty geometries succeeded')
     except Exception as e:
         print('Check empty geometries did not work for the following error :')
@@ -65,10 +75,10 @@ def traitEchantillons(shapefile, outfile, outpath, areapix, pix_thresh, tmp, fie
     # Apply erosion (negative buffer)
     if bufferdist is not None:
         outbuffer = os.path.splitext(outShapefile)[0] + '_buff{}'.format(bufferdist) + '.shp'
-        #outbuffer = "/home/vthierion/tmp/test.shp"
+
         intermediate.append(outbuffer)
         try:
-            BufferOgr.bufferPoly(outShapefile, outbuffer, bufferdist)
+            BufferOgr.bufferPoly(outShapefile, outbuffer, bufferdist, outformat)
             print('Negative buffer of {} m succeeded'.format(bufferdist))
         except Exception as e:
             print('Negative buffer did not work for the following error :')
@@ -90,15 +100,14 @@ def traitEchantillons(shapefile, outfile, outpath, areapix, pix_thresh, tmp, fie
     else:
         print('Intermediate files are preserved in folder {}'.format(os.path.dirname(os.path.realpath(intermediate[0]))))
 
-def manageFieldShapefile(shapefile, fieldout, areapix):
+def manageFieldShapefile(shapefile, fieldout, areapix, outformat="ESRI shapefile"):
 
     # existing fields
-    fieldList = vf.getFields(shapefile)
+    fieldList = vf.getFields(shapefile, outformat)
     #fieldList = [x.lower() for x in fieldList]
     #fieldList.remove(fieldout.lower())
     fieldList.remove(fieldout)
 
-    print(fieldList)
     # FID creation
     if 'ID' not in fieldList:
         AddFieldID.addFieldID(shapefile)
