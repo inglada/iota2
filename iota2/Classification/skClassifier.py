@@ -22,7 +22,7 @@ from iota2.Common.Utils import time_it
 logger = logging.getLogger(__name__)
 
 
-def merge_sk_classifications(rasters_to_merge_dic:List[Dict[str, str]],
+def merge_sk_classifications(rasters_to_merge_dic: List[Dict[str, str]],
                              epsg_code: int,
                              working_dir: str,
                              logger=logger) -> None:
@@ -103,7 +103,11 @@ def do_predict(array, model, scaler, dtype="float"):
     """
     """
     array_reshaped = array.reshape((array.shape[0] * array.shape[1]), array.shape[2])
-    predicted_array = model.predict_proba(scaler.transform(array_reshaped))
+    if scaler is not None:
+        predicted_array = model.predict_proba(scaler.transform(array_reshaped))
+    else:
+        predicted_array = model.predict_proba(array_reshaped)
+
     predicted_array = predicted_array.reshape(array.shape[0],
                                               array.shape[1],
                                               predicted_array.shape[-1])
@@ -196,11 +200,8 @@ def predict(mask: str, model: str, stat: str, out_classif: str, out_confidence: 
 
     with open(model, 'rb') as model_file:
         model, scaler = pickle.load(model_file)
-    if hasattr(model, "n_jobs"):
-        model.n_jobs = -1
-
-    # ~ if hasattr(model, "n_jobs"):
-        # ~ model.n_jobs = -1
+    #~ if hasattr(model, "n_jobs"):
+        #~ model.n_jobs = -1
 
     if number_of_chunks and targeted_chunk:
         if targeted_chunk > number_of_chunks - 1:
@@ -235,7 +236,6 @@ def predict(mask: str, model: str, stat: str, out_classif: str, out_confidence: 
     if len(masks) > 1:
         raise ValueError("Only one mask is expected")
 
-    # ~ print("predicted_proba.shape : {}".format(predicted_proba))
     if targeted_chunk is not None:
         out_classif = out_classif.replace(".tif", "_SUBREGION_{}.tif".format(targeted_chunk))
         out_confidence = out_confidence.replace(".tif", "_SUBREGION_{}.tif".format(targeted_chunk))
