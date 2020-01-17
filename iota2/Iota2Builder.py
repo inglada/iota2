@@ -389,6 +389,8 @@ class iota2():
         # classifications steps
         s_container.append(step_classiCmd, "classification")
         s_container.append(step_classification, "classification")
+        if use_scikitlearn:
+            s_container.append(step_sk_classifications_merge, "classification")
         if ds_sar_opt:
             s_container.append(step_confusion_sar_opt, "classification")
             s_container.append(step_confusion_sar_opt_fusion, "classification")
@@ -396,8 +398,7 @@ class iota2():
         if classif_mode == "fusion" and shapeRegion:
             s_container.append(step_classif_fusion, "classification")
             s_container.append(step_manage_fus_indecision, "classification")
-        if use_scikitlearn:
-            s_container.append(step_sk_classifications_merge, "classification")
+        
         # mosaic step
         s_container.append(step_mosaic, "mosaic")
 
