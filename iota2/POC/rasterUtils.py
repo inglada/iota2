@@ -268,8 +268,7 @@ def process_function(otb_pipeline: otbApplication,
     if roi_to_ignore is False:
         output_arr = function(array)
         if roi_contains_mask_part:
-            mask_roi_bands = np.repeat(mask_roi[:, :, np.newaxis], output_arr.shape[-1], axis=2)
-            output_arr = output_arr * mask_roi_bands
+            output_arr = output_arr * mask_roi[:, :, np.newaxis]
         output = (output_arr,
                   {"projection": projection, "geo_transform": geo_transform})
     else:
