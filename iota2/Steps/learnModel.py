@@ -100,7 +100,9 @@ class learnModel(IOTA2Step.Step):
                                                                  "cross_validation_parameters")
             cv_params = cast_config_cv_parameters(cv_params)
 
-            step_function = lambda x: TrainSkLearn.sk_learn(x,
+            step_function = lambda x: TrainSkLearn.sk_learn(x["learning_file"],
+                                                            x["feat_labels"],
+                                                            x["model_path"],
                                                             self.data_field,
                                                             sk_model,
                                                             SCF.serviceConfigFile(self.cfg).getParam("scikit_models_parameters",
