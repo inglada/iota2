@@ -46,7 +46,6 @@ def sk_classifications_to_merge(iota2_classif_directory: str) -> List[Dict[str, 
     iota2_classif_directory : str
         iota2's classification directory
 
-    TODO : manage probability map
     """
     import os
     from iota2.Common.FileUtils import FileSearch_AND
@@ -70,7 +69,11 @@ def sk_classifications_to_merge(iota2_classif_directory: str) -> List[Dict[str, 
         model = os.path.basename(classification).split("_")[model_pos_classif]
         seed = os.path.basename(classification).split("_")[seed_pos_classif]
         tile_name = os.path.basename(classification).split("_")[tile_pos_classif]
-        classif_to_merge.append(((model, seed, tile_name), classification))
+        suffix = ""
+        if "_SAR_SUBREGION_" in classification:
+            suffix = "_SAR_"
+        classif_to_merge.append(((model, seed, tile_name, suffix), classification))
+
     classif_to_merge = sortByFirstElem(classif_to_merge)
 
     confidences = FileSearch_AND(iota2_classif_directory,
@@ -81,19 +84,28 @@ def sk_classifications_to_merge(iota2_classif_directory: str) -> List[Dict[str, 
         model = os.path.basename(confidence).split("_")[model_pos_confidence]
         seed = os.path.basename(confidence).split("_")[seed_pos_confidence]
         tile_name = os.path.basename(confidence).split("_")[tile_pos_confidence]
-        confidences_to_merge.append(((model, seed, tile_name), confidence))
+        suffix = ""
+        if "_SAR_SUBREGION_" in confidence:
+            suffix = "_SAR_"
+        confidences_to_merge.append(((model, seed, tile_name, suffix), confidence))
     confidences_to_merge = sortByFirstElem(confidences_to_merge)
 
     if not len(classif_to_merge) == len(confidences_to_merge):
         raise ValueError("number of classification to merge : {} is different than number of confidence to merge : {}".format(len(classif_to_merge), len(confidences_to_merge)))
-    for (model_name, seed_num, tile_name), classif_list in classif_to_merge:
+    for (model_name, seed_num, tile_name, suffix), classif_list in classif_to_merge:
         output_dir, _ = os.path.split(classif_list[0])
-        classif_name = "_".join(["Classif", tile_name, "model", model_name, "seed", seed_num]) + ".tif"
+        if suffix == "":
+            classif_name = "_".join(["Classif", tile_name, "model", model_name, "seed", seed_num]) + ".tif"
+        else:
+            classif_name = "_".join(["Classif", tile_name, "model", model_name, "seed", seed_num, "SAR"]) + ".tif"
         rasters_to_merge.append({"rasters_list": classif_list,
                                  "merge_path": os.path.join(output_dir, classif_name)})
-    for (model_name, seed_num, tile_name), confidence_list in confidences_to_merge:
+    for (model_name, seed_num, tile_name, suffix), confidence_list in confidences_to_merge:
         output_dir, _ = os.path.split(confidence_list[0])
-        confidence_name = "_".join([tile_name, "model", model_name, "confidence", "seed", seed_num]) + ".tif"
+        if suffix == "":
+            confidence_name = "_".join([tile_name, "model", model_name, "confidence", "seed", seed_num]) + ".tif"
+        else:
+            confidence_name = "_".join([tile_name, "model", model_name, "confidence", "seed", seed_num, "SAR"]) + ".tif"
         rasters_to_merge.append({"rasters_list": confidence_list,
                                  "merge_path": os.path.join(output_dir, confidence_name)})
     return rasters_to_merge
@@ -198,10 +210,12 @@ def predict(mask: str, model: str, stat: str, out_classif: str, out_confidence: 
     from iota2.Common.GenerateFeatures import generateFeatures
     from iota2.Common.FileUtils import findCurrentTileInString
 
+    mode = "usually" if "SAR.txt" not in model else "SAR"
+
     with open(model, 'rb') as model_file:
         model, scaler = pickle.load(model_file)
-    #~ if hasattr(model, "n_jobs"):
-        #~ model.n_jobs = -1
+    # if hasattr(model, "n_jobs"):
+        # model.n_jobs = -1
 
     if number_of_chunks and targeted_chunk:
         if targeted_chunk > number_of_chunks - 1:
@@ -212,7 +226,8 @@ def predict(mask: str, model: str, stat: str, out_classif: str, out_confidence: 
     cfg = serviceConf.serviceConfigFile(configuration_file)
     tile_name = findCurrentTileInString(mask, cfg.getParam("chain", "listTile").split(" "))
     classification_dir = os.path.join(cfg.getParam("chain", "outputPath"), "classif")
-    feat_stack, feat_labels, _ = generateFeatures(working_dir, tile_name, cfg)
+
+    feat_stack, feat_labels, _ = generateFeatures(working_dir, tile_name, cfg, mode=mode)
 
     logger.info("producing {}".format(out_classif))
 
