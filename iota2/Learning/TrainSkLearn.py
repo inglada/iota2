@@ -18,13 +18,38 @@ import logging
 import pickle
 import operator
 import os
-from typing import List, Dict, Optional
+from sklearn.svm import SVC
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import ExtraTreesClassifier
+
+from typing import List, Dict, Optional, Union
+from config import Mapping
 
 logger = logging.getLogger(__name__)
 
 
-def get_learning_samples(learning_samples_dir: str, config_path: str) -> List[str]:
+def get_learning_samples(learning_samples_dir: str,
+                         config_path: str) -> List[Dict[str, str]]:
     """get sorted learning samples files from samples directory
+
+    Parameters
+    ----------
+    learning_samples_dir : str
+        path to iota2 output directory containing learning data base
+    config_path : str
+        path to iota2 configuration file
+
+    Return
+    ------
+    list
+        ist of dictionaries
+        example : 
+        get_learning_samples() = [{"learning_file": path to the learning file data base,
+                                   "feat_labels": feature's labels,
+                                   "model_path": output model path
+                                  },
+                                  ...
+                                 ]
     """
     from Common import ServiceConfigFile
     from iota2.Common.FileUtils import FileSearch_AND
@@ -83,12 +108,23 @@ def get_learning_samples(learning_samples_dir: str, config_path: str) -> List[st
     return parameters
 
 
-def model_name_to_function(model_name: str):
+def model_name_to_function(model_name: str) -> Union[SVC,
+                                                     RandomForestClassifier,
+                                                     ExtraTreesClassifier]:
+    """cast the model'name from string to sklearn object
+
+    This function must be fill-in with new scikit-learn classifier we want to
+    manage in iota2
+
+    Parameters
+    ----------
+    model_name : str
+        scikit-learn model's name (ex: "RandomForestClassifier")
+
+    Return
+    ------
+    a scikit-learn classifier object
     """
-    """
-    from sklearn.ensemble import RandomForestClassifier
-    from sklearn.ensemble import ExtraTreesClassifier
-    from sklearn.svm import SVC
     dico_clf = {"RandomForestClassifier": RandomForestClassifier,
                 "ExtraTreesClassifier": ExtraTreesClassifier,
                 "SupportVectorClassification": SVC}
@@ -111,8 +147,7 @@ def can_perform_cv(cv_paramerters, clf) -> bool:
     Return
     ------
     bool
-        True if all user cross validation parameters can be estimate
-        else False
+        True if all user cross validation parameters can be estimate, else False
     """
     # get_params is comming from scikit-learn BaseEstimator class -> Base class for all estimators
     user_cv_parameters = list(cv_paramerters.keys())
@@ -122,8 +157,18 @@ def can_perform_cv(cv_paramerters, clf) -> bool:
     return all(check)
 
 
-def cast_config_cv_parameters(config_cv_parameters):
+def cast_config_cv_parameters(config_cv_parameters: Mapping) -> Dict[str, List[int]]:
     """cast cross validation parameters coming from config to a compatible sklearn type
+
+    Parameters
+    ----------
+    config_cv_parameters : config.Mapping
+        cross validation parameters from iota2's configuration file
+
+    Return
+    ------
+    dict
+        cross validation parameters as a dictionary containing lists
     """
     sklearn_cv_parameters = dict(config_cv_parameters)
     for k, v in sklearn_cv_parameters.items():
@@ -131,8 +176,17 @@ def cast_config_cv_parameters(config_cv_parameters):
     return sklearn_cv_parameters
 
 
-def save_cross_val_best_param(output_path: str, clf) -> None:
+def save_cross_val_best_param(output_path: str, clf: Union[SVC,
+                                                           RandomForestClassifier,
+                                                           ExtraTreesClassifier]) -> None:
     """save cross validation parameters in a text file
+
+    Parameters
+    ----------
+    output_path : str
+        output path
+    clf : SVC / RandomForestClassifier / ExtraTreesClassifier
+        classifier comming from scikit-learn
     """
     with open(output_path, "w") as cv_results:
         cv_results.write("Best Score: {}\n".format(clf.best_score_))
@@ -149,8 +203,16 @@ def save_cross_val_best_param(output_path: str, clf) -> None:
                                                               params))
 
 
-def force_proba(sk_classifier) -> None:
+def force_proba(sk_classifier: Union[SVC,
+                                     RandomForestClassifier,
+                                     ExtraTreesClassifier]) -> None:
     """force the classifier model to be able of generate proabilities
+
+    change the classifier parameter in place
+    Parameters
+    ----------
+    sk_classifier : SVC / RandomForestClassifier / ExtraTreesClassifier
+        classifier comming from scikit-learn
     """
     from sklearn.svm import SVC
     sk_classifier_parameters = sk_classifier.get_params()
@@ -159,7 +221,9 @@ def force_proba(sk_classifier) -> None:
     sk_classifier.set_params(**sk_classifier_parameters)
 
 
-def sk_learn(data_set: Dict[str, str],
+def sk_learn(dataset_path: str,
+             features_labels: List[str],
+             model_path: str,
              data_field: str,
              sk_model_name: str,
              apply_standardization: Optional[bool] = False,
@@ -167,7 +231,31 @@ def sk_learn(data_set: Dict[str, str],
              cv_grouped: Optional[bool] = False,
              cv_folds: Optional[int] = 5,
              **kwargs):
-    """
+    """Train a model thanks to scikit-learn
+
+    Parameters
+    ----------
+    dataset_path: str
+        input data base (SQLite format)
+    features_labels : list
+        column's name into the data base to consider in order to learn the model
+    model_path : str
+        output model path
+    data_field: str
+        label data field
+    sk_model_name: str
+        scikit-learn classifier's name
+        availabale ones are "SVC", "RandomForestClassifier" or "ExtraTreesClassifier"
+    apply_standardization: bool
+        flag to apply feature standardization
+    cv_parameters: dict
+        cross validation dictionary
+    cv_grouped: bool
+        if true, each cross validation folds are constitute of samples inside polygons.
+    cv_folds: int
+        number of cross validation folds
+    kwargs : dict
+        scikit-learn models parameters
     """
     import sqlite3
     import numpy as np
@@ -177,10 +265,6 @@ def sk_learn(data_set: Dict[str, str],
 
     from sklearn.model_selection import GridSearchCV, KFold, GroupKFold
     from sklearn.preprocessing import StandardScaler
-
-    dataset_path = data_set["learning_file"]
-    features_labels = data_set["feat_labels"]
-    model_path = data_set["model_path"]
 
     logger.info("Features use to build model : {}".format(features_labels))
     layer_name = getLayerName(dataset_path, "SQLite")
