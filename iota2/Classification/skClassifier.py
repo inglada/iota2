@@ -15,18 +15,36 @@
 # =========================================================================
 import logging
 import numpy as np
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Union
+from sklearn.svm import SVC
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import ExtraTreesClassifier
+from sklearn.preprocessing import StandardScaler
+from rasterio.transform import Affine
 
 from iota2.Common.Utils import time_it
 
 logger = logging.getLogger(__name__)
 
 
-def merge_sk_classifications(rasters_to_merge_dic: List[Dict[str, str]],
+def merge_sk_classifications(rasters_to_merge_dic: List[Dict[str, Union[str, List[str]]]],
                              epsg_code: int,
                              working_dir: str,
                              logger=logger) -> None:
-    """
+    """mosaic rasters
+
+    Parameters
+    ----------
+    rasters_to_merge_dic : dict
+        dictionary containing the two keys 'rasters_list', 'merge_path'
+        example :
+        [{'rasters_list':[list of raster to mosaic], 'merge_path': output mosaic path}, ...]
+    epsg_code : int
+        epsg code
+    working_dir : str
+        working direction
+    logger : logging
+        root logger
     """
     from iota2.POC.rasterUtils import merge_rasters
 
@@ -38,14 +56,13 @@ def merge_sk_classifications(rasters_to_merge_dic: List[Dict[str, str]],
                       working_dir)
 
 
-def sk_classifications_to_merge(iota2_classif_directory: str) -> List[Dict[str, List[str]]]:
-    """feed function
+def sk_classifications_to_merge(iota2_classif_directory: str) -> List[Dict[str, Union[str, List[str]]]]:
+    """feed function merge_sk_classifications
 
     Parameters
     ----------
     iota2_classif_directory : str
         iota2's classification directory
-
     """
     import os
     from iota2.Common.FileUtils import FileSearch_AND
@@ -111,8 +128,27 @@ def sk_classifications_to_merge(iota2_classif_directory: str) -> List[Dict[str, 
     return rasters_to_merge
 
 
-def do_predict(array, model, scaler, dtype="float"):
-    """
+def do_predict(array: np.ndarray,
+               model: Union[SVC, RandomForestClassifier, ExtraTreesClassifier],
+               scaler: Optional[StandardScaler] = None,
+               dtype: Optional[str] = "float") -> np.ndarray:
+    """perform scikit-learn prediction
+
+    Parameters
+    ----------
+    array : np.array
+        array of features to predict, shape = (y, x, features)
+    model : SVC / RandomForestClassifier / ExtraTreesClassifier
+        scikit-learn classifier
+    scaler : StandardScaler
+        scaler to standardize features
+    dtype : str
+        output array format
+
+    Return
+    ------
+    np.array
+        predictions
     """
     array_reshaped = array.reshape((array.shape[0] * array.shape[1]), array.shape[2])
     if scaler is not None:
@@ -137,10 +173,25 @@ def get_class(*args, **kwargs):
 def proba_to_label(proba_map: np.ndarray,
                    out_classif: str,
                    labels: List[int],
-                   transform,
+                   transform: Affine,
                    epsg_code: int,
                    mask_arr: Optional[np.ndarray] = None) -> np.ndarray:
-    """
+    """from the prediction probabilities, get the class' label
+
+    Parameters
+    ----------
+    proba_map: numpy.array
+        array of predictions probabilities (one probability for each class)
+    out_classif: str
+        output classification
+    labels: list
+        list of class labels
+    transform: Affine
+        geo transform
+    epsg_code: int
+        epsg code
+    mask_arr: numpy.array
+        mask
     """
     import rasterio
     import numpy as np
@@ -170,10 +221,26 @@ def proba_to_label(proba_map: np.ndarray,
 
 
 def probabilities_to_max_proba(proba_map: np.ndarray,
-                               transform,
+                               transform: Affine,
                                epsg_code: int,
-                               out_max_confidence: str) -> np.ndarray:
-    """
+                               out_max_confidence: Optional[str] = None) -> np.ndarray:
+    """from the prediction probabilities vector, get the max probility
+
+    Parameters
+    ----------
+    proba_map: numpy.array
+        array of probilities
+    transform: Affine
+        geo transform
+    epsg_code: int
+        epsg code
+    out_max_confidence: str
+        output raster path
+
+    Return
+    ------
+    numpy.array
+        confidence
     """
     import rasterio
     import numpy as np
@@ -198,7 +265,41 @@ def predict(mask: str, model: str, stat: str, out_classif: str, out_confidence: 
             out_proba: str, working_dir: str, configuration_file: str, pixel_type: str,
             number_of_chunks: Optional[int] = None, targeted_chunk: Optional[int] = None,
             ram: Optional[int] = 128, logger=logger) -> None:
-    """
+    """perform scikit-learn prediction
+
+    This function will produce 2 rasters, the classification map and the
+    confidence map. The confidence map represent the classifier confidence in
+    the chosen class.
+
+    Parameters
+    ----------
+    mask: str
+        raster mask path
+    model: str
+        input model path
+    stat: str
+        statistics path
+    out_classif: str
+        output classification raster path
+    out_confidence: str
+        output confidence raster path
+    out_proba: str
+        output confidence raster path
+    working_dir: str
+        path to a working direction to store temporary data
+    configuration_file: str
+        path to the iota2 configuration file
+    pixel_type: str
+        output pixel type
+    number_of_chunks: int
+        The prediction process can be done by strips. This parameter
+        set the number of strips
+    targeted_chunk: int
+        If this parameter is provided, only the targeted strip will be compute (parallelization).
+    ram: int
+        ram (in mb) available
+    logger : logging
+        root logger
     """
     import os
     import shutil
