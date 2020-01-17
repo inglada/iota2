@@ -30,9 +30,17 @@ def get_learning_samples(learning_samples_dir: str, config_path: str) -> List[st
     from iota2.Common.FileUtils import FileSearch_AND
     from iota2.Common.FileUtils import getVectorFeatures
 
-    first_tile = ServiceConfigFile.serviceConfigFile(config_path).getParam("chain", "listTile").split(" ")[0]
-    ground_truth = ServiceConfigFile.serviceConfigFile(config_path).getParam("chain", "groundTruth")
-    region_field = ServiceConfigFile.serviceConfigFile(config_path).getParam("chain", "regionField")
+    sar_suffix = "SAR"
+
+    ground_truth = ServiceConfigFile.serviceConfigFile(config_path).getParam("chain",
+                                                                             "groundTruth")
+    region_field = ServiceConfigFile.serviceConfigFile(config_path).getParam("chain",
+                                                                             "regionField")
+    sar_opt_post_fusion = ServiceConfigFile.serviceConfigFile(config_path).getParam("argTrain",
+                                                                                    "dempster_shafer_SAR_Opt_fusion")
+    iota2_outputs = ServiceConfigFile.serviceConfigFile(config_path).getParam("chain",
+                                                                              "outputPath")
+    iota2_models_dir = os.path.join(iota2_outputs, "model")
 
     parameters = []
     seed_pos = 3
@@ -40,17 +48,38 @@ def get_learning_samples(learning_samples_dir: str, config_path: str) -> List[st
     learning_files = FileSearch_AND(learning_samples_dir,
                                     True,
                                     "Samples_region_", "_learn.sqlite")
-    feat_labels = getVectorFeatures(ground_truth, region_field, learning_files[0])
+    if sar_opt_post_fusion:
+        learning_files_sar = FileSearch_AND(learning_samples_dir,
+                                            True,
+                                            "Samples_region_", "_learn_{}.sqlite".format(sar_suffix))
+        learning_files += learning_files_sar
+
     learning_files_sorted = []
+    output_model_files_sorted = []
+    features_labels_sorted = []
     for learning_file in learning_files:
         seed = os.path.basename(learning_file).split("_")[seed_pos].replace("seed", "")
         model = os.path.basename(learning_file).split("_")[model_pos]
         learning_files_sorted.append((seed, model, learning_file))
+
     learning_files_sorted = sorted(learning_files_sorted, key=operator.itemgetter(0, 1))
+
+    for _, _, learning_file in learning_files_sorted:
+        seed = os.path.basename(learning_file).split("_")[seed_pos].replace("seed", "")
+        model = os.path.basename(learning_file).split("_")[model_pos]
+        model_name = "model_{}_seed_{}.txt".format(model, seed)
+        if "{}.sqlite".format(sar_suffix) in learning_file:
+            model_name = model_name.replace(".txt", "_{}.txt".format(sar_suffix))
+        model_path = os.path.join(iota2_models_dir, model_name)
+        output_model_files_sorted.append(model_path)
+        features_labels_sorted.append(getVectorFeatures(ground_truth, region_field, learning_file))
+
     parameters = [{"learning_file": learning_file,
-                   "seed": seed,
-                   "feat_labels": feat_labels,
-                   "model": model} for seed, model, learning_file in learning_files_sorted]
+                   "feat_labels": features_labels,
+                   "model_path": model_path
+                   } for (seed, model, learning_file), model_path, features_labels in zip(learning_files_sorted,
+                                                                                          output_model_files_sorted,
+                                                                                          features_labels_sorted)]
     return parameters
 
 
@@ -132,15 +161,13 @@ def force_proba(sk_classifier) -> None:
 
 def sk_learn(data_set: Dict[str, str],
              data_field: str,
-             model_directory: str,
              sk_model_name: str,
-             apply_Standardization: Optional[bool] = False,
+             apply_standardization: Optional[bool] = False,
              cv_parameters: Optional[Dict] = None,
              cv_grouped: Optional[bool] = False,
              cv_folds: Optional[int] = 5,
              **kwargs):
     """
-    TODO : manage SAR and optical post classifications
     """
     import sqlite3
     import numpy as np
@@ -152,16 +179,10 @@ def sk_learn(data_set: Dict[str, str],
     from sklearn.preprocessing import StandardScaler
 
     dataset_path = data_set["learning_file"]
-    dataset_model_name = data_set["model"]
-    dataset_seed_num = data_set["seed"]
     features_labels = data_set["feat_labels"]
+    model_path = data_set["model_path"]
 
     logger.info("Features use to build model : {}".format(features_labels))
-    suffix = ""
-    model_path = os.path.join(model_directory,
-                              "model_{}_seed_{}{}.txt".format(dataset_model_name,
-                                                              dataset_seed_num,
-                                                              suffix))
     layer_name = getLayerName(dataset_path, "SQLite")
     conn = sqlite3.connect(dataset_path)
     df_features = pd.read_sql_query("select {} from {}".format(",".join(features_labels),
@@ -178,7 +199,8 @@ def sk_learn(data_set: Dict[str, str],
     if cv_parameters:
         if not can_perform_cv(cv_parameters, clf):
             fail_msg = ("ERROR : impossible to cross validate the model `{}` "
-                        "with the parameters {}".format(model_name, list(cv_parameters.keys())))
+                        "with the parameters {}".format(sk_model_name,
+                                                        list(cv_parameters.keys())))
             logger.error(fail_msg)
             raise ValueError(fail_msg)
 
@@ -186,7 +208,7 @@ def sk_learn(data_set: Dict[str, str],
     force_proba(clf)
 
     scaler = None
-    if apply_Standardization:
+    if apply_standardization:
         logger.info("Apply standardization")
         scaler = StandardScaler()
         scaler.fit(features_values)  # TODO: if regression, we have to scale also labels_values
@@ -223,6 +245,7 @@ def sk_learn(data_set: Dict[str, str],
         cross_val_path = model_path.replace(".txt", "_cross_val_param.cv")
         save_cross_val_best_param(cross_val_path, clf)
         sk_model = clf.best_estimator_
+
     logger.info("Save model")
     model_file = open(model_path, 'wb')
     pickle.dump((sk_model, scaler), model_file)
