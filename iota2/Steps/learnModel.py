@@ -35,7 +35,6 @@ class learnModel(IOTA2Step.Step):
         self.tiles = SCF.serviceConfigFile(self.cfg).getParam('chain', 'listTile').split("_")
         
         self.use_scikitlearn = SCF.serviceConfigFile(self.cfg).getParam('scikit_models_parameters', 'model_type') is not None
-        self.model_directory = os.path.join(self.output_path, "model")
 
     def step_description(self):
         """
@@ -103,7 +102,6 @@ class learnModel(IOTA2Step.Step):
 
             step_function = lambda x: TrainSkLearn.sk_learn(x,
                                                             self.data_field,
-                                                            self.model_directory,
                                                             sk_model,
                                                             SCF.serviceConfigFile(self.cfg).getParam("scikit_models_parameters",
                                                                                                      "standardization"),
