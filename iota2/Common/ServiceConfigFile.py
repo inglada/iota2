@@ -115,6 +115,7 @@ class serviceConfigFile:
             sampleAugmentationg_default = self.init_dicoMapping({"activate":False})
             annualCrop = self.init_listSequence(["11", "12"])
             ACropLabelReplacement = self.init_listSequence(["10", "annualCrop"])
+
             argTrain_default = {"sampleSelection": sampleSel_default,
                                 "sampleAugmentation": sampleAugmentationg_default,
                                 "sampleManagement": None,
@@ -125,6 +126,8 @@ class serviceConfigFile:
                                 "annualCrop": annualCrop,
                                 "ACropLabelReplacement": ACropLabelReplacement,
                                 "samplesClassifMix": False,
+                                "classifier": "rf",
+                                "options": " -classifier.rf.min 5 -classifier.rf.max 25 ",
                                 "annualClassesExtractionSource":"None",
                                 "validityThreshold": 1}
             self.init_section("argTrain", argTrain_default)
@@ -190,7 +193,7 @@ class serviceConfigFile:
                                       
             userFeat =  {"arbo": "/*",
                          "patterns":"ALT,ASP,SLP"}
-
+    
             sklearn_default = {"model_type": None,
                                "cross_validation_folds": 5,
                                "cross_validation_grouped": False,
