@@ -109,6 +109,14 @@ class serviceConfigFile:
                               "pattern":"None"
                               }
             self.init_section("coregistration",coregistration_default)
+            
+            sklearn_default = {"model_type": None,
+                               "cross_validation_folds": 5,
+                               "cross_validation_grouped": False,
+                               "standardization": False,
+                               "cross_validation_parameters": self.init_dicoMapping({})}
+            self.init_section("scikit_models_parameters", sklearn_default)
+
             #init argTrain section
             sampleSel_default = self.init_dicoMapping({"sampler":"random",
                                                        "strategy":"all"})
@@ -130,6 +138,10 @@ class serviceConfigFile:
                                 "options": " -classifier.rf.min 5 -classifier.rf.max 25 ",
                                 "annualClassesExtractionSource":"None",
                                 "validityThreshold": 1}
+            if self.cfg.scikit_models_parameters.model_type is None:
+                del argTrain_default["classifier"]
+                del argTrain_default["options"]
+
             self.init_section("argTrain", argTrain_default)
             #init argClassification section
             argClassification_default = {"noLabelManagement": "maxConfidence",
@@ -194,11 +206,7 @@ class serviceConfigFile:
             userFeat =  {"arbo": "/*",
                          "patterns":"ALT,ASP,SLP"}
     
-            sklearn_default = {"model_type": None,
-                               "cross_validation_folds": 5,
-                               "cross_validation_grouped": False,
-                               "standardization": False,
-                               "cross_validation_parameters": self.init_dicoMapping({})}
+
                                       
             self.init_section("Landsat5_old", Landsat5_old_default)
             self.init_section("Landsat8", Landsat8_default)
@@ -207,7 +215,6 @@ class serviceConfigFile:
             self.init_section("Sentinel_2_S2C", Sentinel_2_S2C_default)
             self.init_section("Sentinel_2_L3A", Sentinel_2_L3A_default)
             self.init_section("userFeat", userFeat)
-            self.init_section("scikit_models_parameters", sklearn_default)
 
             simp_default = {"classification": None,
                             "confidence": None,
