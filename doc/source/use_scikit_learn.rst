@@ -91,6 +91,6 @@ Then the configuration file could contains :
 Configuration file example
 **************************
 
-Here is an example of configuration file :download:`configuration <./config/config_scikitLearn.cfg>`
+Here is an example of a configuration file :download:`configuration <./config/config_scikitLearn.cfg>`
 fully operational with the downloadable `data-set <http://osr-cesbio.ups-tlse.fr/echangeswww/TheiaOSO/IOTA2_TEST_S2.tar.bz2>`_ 
 implementing scikit-learn machine learning algorithms.
