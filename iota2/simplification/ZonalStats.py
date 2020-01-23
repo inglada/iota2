@@ -64,7 +64,7 @@ def getVectorsList(path):
 def countPixelByClass(databand, fid=0, band=0, nodata=0):
     """Compute rates of unique values of a categorical raster and store them in a Pandas DataFrame:
 
-    Parameters
+
     ----------
     databand : gdal raster file or osgeo.gdal.Dataset
         categorical raster
@@ -493,7 +493,6 @@ def extractRasterArray(rasters, paramstats, vector, vectorgeomtype, fid, gdalpat
     bands = []
     todel = []
     success = True
-
     # Get rasters resolution
     res = abs(fut.getRasterResolution(rasters[0])[0])
     # Get vector name 
@@ -508,6 +507,7 @@ def extractRasterArray(rasters, paramstats, vector, vectorgeomtype, fid, gdalpat
             else:
                 bands.append(raster)
                 todel = []
+                ndbands = storeRasterInArray(bands)
 
         # Stats Extraction
         else:            
@@ -537,7 +537,6 @@ def extractRasterArray(rasters, paramstats, vector, vectorgeomtype, fid, gdalpat
                                         cutlineWhere="FID=%s"%(fid), format='MEM', \
                                         warpMemoryLimit=gdalcachemax, \
                                         warpOptions=[["NUM_THREADS=ALL_CPUS"], ["CUTLINE_ALL_TOUCHED=YES"]])
-
 
                 bands.append(tmpfile)
                 todel = []
@@ -736,7 +735,7 @@ def extractPixelValue(rasters, bands, paramstats, xpt, ypt, dataframe, idval=0):
     GeoPandas or Pandas DataFrame
         
     """
-
+ 
     for param in paramstats:    
 
         band = bands[:, :, int(param) - 1]
@@ -920,6 +919,7 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
     fullfid = getFidList(vector)    
     if not idvals:
         idvals = fullfid
+        novals = []
     else:
         novals = [x for x in fullfid if x not in idvals]
     
@@ -935,6 +935,7 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
     if bufferDist and vectorgeomtype in (1, 4, 1001, 1004):        
         vectorbuff = os.path.join(path, vectorname + "buff.shp")
         _ = bfo.bufferPoly(vector, vectorbuff, bufferDist=bufferDist)
+        vectorgeomtype = vf.getGeomType(vectorbuff)
         
     # Store input vector in output geopandas dataframe
     vectgpad = gpad.read_file(vector)
@@ -956,7 +957,12 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
                 for feat in lyr:
                     geom = feat.GetGeometryRef()
                     if geom:
-                        xpt, ypt, _ = geom.GetPoint()
+                        if vectorgeomtype == 4:
+                            point = geom.GetGeometryRef(0)
+                            xpt = point.GetX()
+                            ypt = point.GetY()
+                        else:
+                            xpt, ypt, _ = geom.GetPoint()
 
             # Switch to buffered vector (Point and bufferDist)
             if bufferDist:
@@ -1088,21 +1094,23 @@ def splitVectorFeatures(vectorpath, outputPath, chunk=1, byarea=False):
 def computZonalStats(path, inr, shape, params, output, classes="", bufferdist="", nodata=0, gdalpath="", chunk=1, byarea=False, cache="1000", systemcall=True, iota2=False):
 
     # clean geometries of input vector file
-    if os.path.splitext(shape)[1] == ".shp":
-        tmp = os.path.join(path, "tmp.shp")    
-        checkGeom.checkGeometryAreaThreshField(shape, 1, 0, tmp)    
+    if vf.getGeomType(shape) not in (1, 4, 1001, 1004):
+        if os.path.splitext(shape)[1] == ".shp":
+            tmp = os.path.join(path, "tmp.shp")
 
-        for ext in ['.shp', '.dbf', '.shx', '.prj', '.cpg']:            
-            try:
-                shutil.copy(os.path.splitext(tmp)[0] + ext, os.path.splitext(shape)[0] + ext)
-                os.remove(os.path.splitext(tmp)[0] + ext)
-            except:
-                pass
-            
-    else:
-        raise Exception("Only shapefile allowed for input vector file")
+            checkGeom.checkGeometryAreaThreshField(shape, 1, 0, tmp)    
+
+            for ext in ['.shp', '.dbf', '.shx', '.prj', '.cpg']:            
+                try:
+                    shutil.copy(os.path.splitext(tmp)[0] + ext, os.path.splitext(shape)[0] + ext)
+                    os.remove(os.path.splitext(tmp)[0] + ext)
+                except:
+                    pass
+
+        else:
+            raise Exception("Only shapefile allowed for input vector file")
     
-    chunks = splitVectorFeatures(shape, path, chunk, byarea)    
+    chunks = splitVectorFeatures(shape, path, chunk, byarea)
     
     for block in chunks:
         zonalstats(path, inr, block, output, params, classes, bufferdist, nodata, gdalpath, systemcall, cache)

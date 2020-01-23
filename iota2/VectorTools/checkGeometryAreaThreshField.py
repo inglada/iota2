@@ -28,7 +28,8 @@ def checkGeometryAreaThreshField(shapefile, pixelArea, pix_thresh, outshape = ""
     else:
         print("Output format not managed" )
         sys.exit()           
-        
+    print(outshape)
+    input("pause")
     # Empty geometry identification
     try:
         outShapefileGeom, _ = vf.checkEmptyGeom(shapefile, outformat)
@@ -75,7 +76,18 @@ def checkGeometryAreaThreshField(shapefile, pixelArea, pix_thresh, outshape = ""
         print('Selection by size upper {} pixel(s) succeeded'.format(pix_thresh))
     except Exception as e:
         print('Selection by size did not work for the following error :')
-        print(e)
+        print(e)    
+
+    if pix_thresh > 0:
+        try:
+            SelectBySize.selectBySize(shapefileNoDupspoly, 'Area', pix_thresh, outshape)
+            print('Selection by size upper {} pixel(s) succeeded'.format(pix_thresh))
+        except Exception as e:
+            print('Selection by size did not work for the following error :')
+            print(e)
+    elif pix_thresh < 0:
+        print("Area threshold has to be positive !")
+        sys.exit()
 
     # Check geometry
     vf.checkValidGeom(outshape, outformat)

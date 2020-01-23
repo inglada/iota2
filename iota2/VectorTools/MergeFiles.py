@@ -24,7 +24,7 @@ def mergeVectors(infiles, outfile, outformat='ESRI Shapefile'):
 
    if os.path.exists(outfile):
       driver.DeleteDataSource(outfile)
-      
+ 
    if not isinstance(infiles, list):
       print(infiles)
       files = glob.glob(infiles + '/' + "*.shp")
@@ -37,7 +37,7 @@ def mergeVectors(infiles, outfile, outformat='ESRI Shapefile'):
 
    # Append first file to the output file 
    file1 = files[0]
-   fusion = "ogr2ogr -f %s "%(outformat) + outfile + " " + file1
+   fusion = "ogr2ogr -f '%s' "%(outformat) + outfile + " " + file1
    os.system(fusion)
 
    layername = os.path.splitext(os.path.basename(outfile))[0]
@@ -46,7 +46,7 @@ def mergeVectors(infiles, outfile, outformat='ESRI Shapefile'):
    progress = 0
    for f in range(1, nbfiles):
       if not isinstance(files[f], list):
-         fusion2 = "ogr2ogr -f %s -update -append "%(outformat) + outfile + " " + files[f] + " -nln " + layername
+         fusion2 = "ogr2ogr -f '%s' -update -append "%(outformat) + outfile + " " + files[f] + " -nln " + layername
          os.system(fusion2)
       progress += 1
       print("Progress : %s"%(float(progress) / float(nbfiles) * 100.))
@@ -70,7 +70,7 @@ if __name__ == "__main__":
         parser.add_argument("-o", dest="outshapefile", action="store", \
                             help="ESRI Shapefile output filename and path", required = True)
         parser.add_argument("-format", dest="outformat", action="store", \
-                            help="output format (default : ESRI Shapefile)")        
+                            help="output format (default : ESRI Shapefile)", default="ESRI Shapefile")        
         args = parser.parse_args()
         if args.opath is None:
            if args.shapefiles is None:

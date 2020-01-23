@@ -15,9 +15,9 @@
 # =========================================================================
 
 """ 
-	Bibliothèque pour des traitements sur fichier vector
-	Dépendances : rtree
-	Rq: field name should contain 10 characters maximum, otherwise field name is cutting
+        Bibliothèque pour des traitements sur fichier vector
+        Dépendances : rtree
+        Rq: field name should contain 10 characters maximum, otherwise field name is cutting
 """
 
 import os, sys, osr
@@ -44,7 +44,7 @@ def init_fields(in_lyr1, in_lyr2, out_lyr, keepfields=""):
         try:
                 if len(listtokeep) == 0:
                         raise ValueError("No field to keep. Vector file without field not possible")
-        except ValueError, e:
+        except ValueError as e:
                 exit(str(e))
                 
         for lyr in (in_lyr1, in_lyr2):
@@ -66,22 +66,22 @@ def init_fields(in_lyr1, in_lyr2, out_lyr, keepfields=""):
                                 
         return listtokeep
                                                 
-#--------------------------------------------------------------				
+#--------------------------------------------------------------                         
 def addMultiPolygon(simplePolygon, valuesfields, out_lyr):
-	"""
-		Link with multipart2singlepart (above)
-	"""
-	featureDefn = out_lyr.GetLayerDefn()
-	polygon = ogr.CreateGeometryFromWkb(simplePolygon)
-	out_feat = ogr.Feature(featureDefn)
-	out_feat.SetGeometry(polygon)
-
-	# Loop over each field from the source, and copy onto the new feature
+        """
+        Link with multipart2singlepart (above)
+        """
+        featureDefn = out_lyr.GetLayerDefn()
+        polygon = ogr.CreateGeometryFromWkb(simplePolygon)
+        out_feat = ogr.Feature(featureDefn)
+        out_feat.SetGeometry(polygon)
+        
+        # Loop over each field from the source, and copy onto the new feature
         for idx in range(len(valuesfields)):
                 out_feat.SetField(idx, valuesfields[idx][2])
-	out_lyr.CreateFeature(out_feat) 
-
-#--------------------------------------------------------------				
+        out_lyr.CreateFeature(out_feat)
+        
+#--------------------------------------------------------------                         
 def getFieldValues(lyr, feature):
 
         fieldList = vf.getFields(lyr)
@@ -92,208 +92,230 @@ def getFieldValues(lyr, feature):
 
         return listFieldValues
 
-#--------------------------------------------------------------		
+#--------------------------------------------------------------         
 def diffBetweenLayers(layer1, layer2, layer_out, operation, listfieldstokeep=""):
-	"""
-		Difference of layer1 with layer2, save is done in layer_out
-		ARGs:
-			INPUT:
-				- layer1: layer 1 
-				- layer2: layer 2
-				- layer_out: output layer
-	"""
-	layer1.ResetReading()
-	layer2.ResetReading()
-	feature1 = layer1.GetNextFeature()
-	while feature1:
+        """
+                Difference of layer1 with layer2, save is done in layer_out
+                ARGs:
+                        INPUT:
+                                - layer1: layer 1 
+                                - layer2: layer 2
+                                - layer_out: output layer
+        """
+        layer1.ResetReading()
+        layer2.ResetReading()
+        feature1 = layer1.GetNextFeature()
+        while feature1:
                 valuesfields1 = getFieldValues(layer1, feature1)
-		layer2.ResetReading()
-		geom1 = feature1.GetGeometryRef()
-		if geom1 == None:
-			continue
-		feature2 = layer2.GetNextFeature()
-		newgeom = geom1
-		while feature2:
-			geom2 = feature2.GetGeometryRef()
-			if geom2 == None:
-				continue
-			if newgeom == None:
-				continue
-						
-			if geom1.Intersects(geom2) == 1:
+                layer2.ResetReading()
+                geom1 = feature1.GetGeometryRef()
+                if geom1 == None:
+                        continue
+                feature2 = layer2.GetNextFeature()
+                newgeom = geom1
+                while feature2:
+                        geom2 = feature2.GetGeometryRef()
+                        if geom2 == None:
+                                continue
+                        if newgeom == None:
+                                continue
+                                                
+                        if geom1.Intersects(geom2) == 1:
                                 if operation == "intersection":
-				        newgeom = newgeom.Intersection(geom2)
+                                        newgeom = newgeom.Intersection(geom2)
                                 elif operation == "difference":
-				        newgeom = newgeom.Difference(geom2)
+                                        newgeom = newgeom.Difference(geom2)
                                 elif operation == "union":
-				        newgeom = newgeom.Union(geom2)
+                                        newgeom = newgeom.Union(geom2)
 
                         valuesfields2 = getFieldValues(layer2, feature2)
                         feature2.Destroy()
-	                feature2 = layer2.GetNextFeature()
+                        feature2 = layer2.GetNextFeature()
 
                 valuesfields = [(x, y, z) for x, y, z in valuesfields1 if y in [tok[2] for tok in listfieldstokeep]] + \
                                [(x, y, z) for x, y, z in valuesfields2 if y in [tok[2] for tok in listfieldstokeep]]
 
 
-		if newgeom.GetGeometryName() == 'MULTIPOLYGON':
-			for geom_part in newgeom:
-				addMultiPolygon(geom_part.ExportToWkb(), valuesfields, layer_out)
-		else:
-			addMultiPolygon(newgeom.ExportToWkb(), valuesfields, layer_out)                              
+                if newgeom.GetGeometryName() == 'MULTIPOLYGON':
+                        for geom_part in newgeom:
+                                addMultiPolygon(geom_part.ExportToWkb(), valuesfields, layer_out)
+                else:
+                        addMultiPolygon(newgeom.ExportToWkb(), valuesfields, layer_out)                              
                         
 
-		feature1.Destroy()
-		feature1 = layer1.GetNextFeature()
+                feature1.Destroy()
+                feature1 = layer1.GetNextFeature()
 
-#--------------------------------------------------------------		
+#--------------------------------------------------------------         
 
-def diffBetweenLayersSpeedUp(layer2, layer1, layer_out, operation, listfieldstokeep="", field_name=""):	
-	"""
-		Difference of layer1 with layer2, save is done in layer_out
-		ARGs:
-			INPUT:
-				- layer1: layer 1 
-				- layer2: layer 2
-				- layer_out: output layer
-		(Inspire from http://snorf.net/blog/2014/05/12/using-rtree-spatial-indexing-with-ogr/)
-	"""
-	# RTree Spatial Indexing with OGR
-	#-- Index creation
-	try:
-		import rtree
-	except ImportError as e:
-		raise ImportError(str(e) + "\n\n Please install rtree module if it isn't installed yet")
+def diffBetweenLayersSpeedUp(layer2, layer1, layer_out, operation, listfieldstokeep="", field_name=""): 
+        """
+                Difference of layer1 with layer2, save is done in layer_out
+                ARGs:
+                        INPUT:
+                                - layer1: layer 1 
+                                - layer2: layer 2
+                                - layer_out: output layer
+                (Inspire from http://snorf.net/blog/2014/05/12/using-rtree-spatial-indexing-with-ogr/)
+        """
 
-	print("Index creation...")
-	index = rtree.index.Index(interleaved=False)
+        try:
+                import rtree
+        except ImportError as e:
+                raise ImportError(str(e) + "\n\n Please install rtree module if it isn't installed yet")
 
-	for fid1 in range(0,layer1.GetFeatureCount()):
-		feat1 = layer1.GetFeature(fid1)
-		geom1 = feat1.GetGeometryRef()
-		if geom1 == None:
-			continue
-		xmin, xmax, ymin, ymax = geom1.GetEnvelope()
-		index.insert(fid1, (xmin, xmax, ymin, ymax))
-		feat1.Destroy()
-	#-- Search for all features in layer1 that intersect each feature in layer2
-	print "Research..."
-	for fid2 in range(0, layer2.GetFeatureCount()):
+        print("Index creation...")
+        index = rtree.index.Index(interleaved=False)
 
-		feat2 = layer2.GetFeature(fid2)
+        for fid1 in range(0,layer1.GetFeatureCount()):
+                feat1 = layer1.GetFeature(fid1)
+                geom1 = feat1.GetGeometryRef()
+                if geom1 == None:
+                        continue
+                xmin, xmax, ymin, ymax = geom1.GetEnvelope()
+                index.insert(fid1, (xmin, xmax, ymin, ymax))
+                feat1.Destroy()
+                
+        #-- Search for all features in layer1 that intersect each feature in layer2
+        print("Research...")
+
+        for fid2 in range(0, layer2.GetFeatureCount()):
+
+                feat2 = layer2.GetFeature(fid2)
                 valuesfields2 = getFieldValues(layer2, feat2)
-		geom2 = feat2.GetGeometryRef()
-		if geom2 == None:
-			continue
-		newgeom = geom2
-		xmin, xmax, ymin, ymax = geom2.GetEnvelope()
-		for fid1 in list(index.intersection((xmin, xmax, ymin, ymax))):
-			# if fid1 != fid2: ???
-			feat1 = layer1.GetFeature(fid1)
+                geom2 = feat2.GetGeometryRef()
+
+                if geom2 == None:
+                        continue
+                newgeom = geom2
+                xmin, xmax, ymin, ymax = geom2.GetEnvelope()
+                
+                for fid1 in list(index.intersection((xmin, xmax, ymin, ymax))):                               
+
+                        intersect = False
+                        feat1 = layer1.GetFeature(fid1)
                         valuesfields1 = getFieldValues(layer1, feat1)
-			geom1 = feat1.GetGeometryRef()
-			if geom1 == None:
-				continue
+                        geom1 = feat1.GetGeometryRef()
+
+                        if geom1 == None:
+                                continue
+                        
                         if field_name is not None and field_name != "":
                                 if (geom2.Intersects(geom1)) and (feat1.GetField(field_name) != feat2.GetField(field_name)):
-				        if newgeom == None:
-					        continue
+                                        if newgeom == None:
+                                                continue
                                         if operation == "intersection":
-				                newgeom = newgeom.Intersection(geom1)
+                                                newgeom = newgeom.Intersection(geom1)
                                         elif operation == "difference":
-				                newgeom = newgeom.Difference(geom1)
+                                                newgeom = newgeom.Difference(geom1)
                                         elif operation == "union":
-				                newgeom = newgeom.Union(geom1)                                      
+                                                newgeom = newgeom.Union(geom1)
+                                else:
+                                        intersect = False                                                
                         else:
                                 if (geom2.Intersects(geom1)):
-				        if newgeom == None:
-					        continue
+                                        if newgeom == None:
+                                                continue
                                         if operation == "intersection":
-				                newgeom = newgeom.Intersection(geom1)
+                                                newgeom = newgeom.Intersection(geom1)
                                         elif operation == "difference":
-				                newgeom = newgeom.Difference(geom1)
+                                                newgeom = newgeom.Difference(geom1)
                                         elif operation == "union":
-				                newgeom = newgeom.Union(geom1)                                      
+                                                newgeom = newgeom.Union(geom1)
+                                        else:
+                                                print("the operation %s is not implemented"%(operation))
+                                else:
+                                        intersect = False
+
+                        if intersect:
+                                valuesfields = [(x, y, z) for x, y, z in valuesfields1 if y in [tok[2] for tok in listfieldstokeep]] + \
+                                               [(x, y, z) for x, y, z in valuesfields2 if y in [tok[2] for tok in listfieldstokeep]]
+                        else:
+                                valuesfields = [(x, y, z) for x, y, z in valuesfields2 if y in [tok[2] for tok in listfieldstokeep]]
+                                newgeom = geom2
+
+                        feat1.Destroy()
+                        
+                if not list(index.intersection((xmin, xmax, ymin, ymax))):
+                        valuesfields = [(x, y, z) for x, y, z in valuesfields2 if y in [tok[2] for tok in listfieldstokeep]]                        
                                         
-
-			feat1.Destroy()
-                        
-                valuesfields = [(x, y, z) for x, y, z in valuesfields1 if y in [tok[2] for tok in listfieldstokeep]] + \
-                               [(x, y, z) for x, y, z in valuesfields2 if y in [tok[2] for tok in listfieldstokeep]]
-                
-		if newgeom == None:
-			continue
-		if newgeom.GetGeometryName() == 'MULTIPOLYGON':
-			for geom_part in newgeom:
+                if newgeom == None:
+                        continue
+                if newgeom.GetGeometryName() == 'MULTIPOLYGON':
+                        for geom_part in newgeom:
                                 addMultiPolygon(geom_part.ExportToWkb(), valuesfields, layer_out)
-		else:
-			addMultiPolygon(newgeom.ExportToWkb(), valuesfields, layer_out)          
-                        
-		feat2.Destroy()
+                elif newgeom.GetGeometryName() == 'POLYGON':
+                        addMultiPolygon(newgeom.ExportToWkb(), valuesfields, layer_out)
+                else:
+                        pass
 
-#--------------------------------------------------------------		
+                        #376614
+                        
+                feat2.Destroy()
+
+#--------------------------------------------------------------         
 def shapeDifference(shp_in1, shp_in2, shp_out, speed, outformat, epsg, operation, keepfields = "", field = ""):
-	"""
-		Merge by taking account field_name attribute
-		ARGs:
-			INPUT:
-				- shp_in1: input filename 1
-				- shp_in2: input filename 2
-				- shp_out: name of output file
-		Use of R Tree Spatial Index (faster)
-	"""
+        """
+                Merge by taking account field_name attribute
+                ARGs:
+                        INPUT:
+                                - shp_in1: input filename 1
+                                - shp_in2: input filename 2
+                                - shp_out: name of output file
+                Use of R Tree Spatial Index (faster)
+        """
         try:
-	        driver = ogr.GetDriverByName(outformat)
+                driver = ogr.GetDriverByName(outformat)
         except Exception as e:
                 raise Exception(
                         str(e)
                         + "\n\n Output format '%s' not exists"%(outformat))
         
-	shp1 = driver.Open(shp_in1, 0)
-	shp2 = driver.Open(shp_in2, 0)
+        shp1 = driver.Open(shp_in1, 0)
+        shp2 = driver.Open(shp_in2, 0)
 
-	if shp1 is None:
-		print("Could not open file ", shp_in1)
-		sys.exit(1)
+        if shp1 is None:
+                print("Could not open file ", shp_in1)
+                sys.exit(1)
 
-	if shp2 is None:
-		print("Could not open file ", shp_in2)
-		sys.exit(1)
+        if shp2 is None:
+                print("Could not open file ", shp_in2)
+                sys.exit(1)
 
-	layer1 = shp1.GetLayer()
-	layer2 = shp2.GetLayer()
+        layer1 = shp1.GetLayer()
+        layer2 = shp2.GetLayer()
 
-	#-- Create output file
-	if os.path.exists(shp_out):
-		os.remove(shp_out)
-	try:
-		output = driver.CreateDataSource(shp_out)
+        #-- Create output file
+        if os.path.exists(shp_out):
+                os.remove(shp_out)
+        try:
+                output = driver.CreateDataSource(shp_out)
                 srs = osr.SpatialReference()
                 srs.ImportFromEPSG(epsg)                
-	except:
-		print('Could not create output datasource ', shp_out)
-		sys.exit(1)
+        except:
+                print('Could not create output datasource ', shp_out)
+                sys.exit(1)
 
         newLayerName = os.path.splitext(os.path.basename(shp_out))[0]
-	newLayer = output.CreateLayer('%s'%(newLayerName), geom_type = ogr.wkbPolygon, srs=layer1.GetSpatialRef())
+        newLayer = output.CreateLayer('%s'%(newLayerName), geom_type = ogr.wkbPolygon, srs=layer1.GetSpatialRef())
 
 
-	if newLayer is None:
-		print("Could not create output layer")
-		sys.exit(1)
+        if newLayer is None:
+                print("Could not create output layer")
+                sys.exit(1)
 
         newLayerDef = newLayer.GetLayerDefn()
         
         listfieldstokeep = init_fields(layer1, layer2, newLayer, keepfields)
-	
-	#-- Processing
+        
+        #-- Processing
         if not speed:
                 diffBetweenLayers(layer1, layer2, newLayer, operation, listfieldstokeep, field)                        
         else:
                 diffBetweenLayersSpeedUp(layer1, layer2, newLayer, operation, listfieldstokeep, field)
                 
-	shp1.Destroy()
-	shp2.Destroy()
+        shp1.Destroy()
+        shp2.Destroy()
 
 speed = False
 
@@ -317,7 +339,7 @@ if __name__ == "__main__":
         parser.add_argument("-speed", action="store_true", \
                             help="Use of R Tree Spatial Index (faster)", default = False)
         parser.add_argument("-format", dest="outformat", action="store", \
-                            help="OGR format (ogrinfo --formats). Default : SQLite ")
+                            help="OGR format (ogrinfo --formats). Default : ESRI shapefile ", default="ESRI shapefile")
         parser.add_argument("-epsg", dest="epsg", action="store", \
                             help="EPSG code for projection. Default : 2154 - Lambert 93 ", type = int, default = 2154)        
         parser.add_argument("-operation", dest="operation", action="store", \
@@ -326,7 +348,7 @@ if __name__ == "__main__":
                             help="list of fields to keep in resulted vector file. Default : All fields")
         parser.add_argument("-f", dest="field", action="store", \
                             help="field to look for difference")                
-	args = parser.parse_args()
+        args = parser.parse_args()
 
         if not args.speed:
                 shapeDifference(args.s1, args.s2, args.output, False, args.outformat, args.epsg, args.operation, args.keepfields, args.field)
