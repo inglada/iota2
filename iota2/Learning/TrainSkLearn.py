@@ -21,15 +21,27 @@ import os
 from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import ExtraTreesClassifier
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.ensemble import BaggingClassifier
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.ensemble import VotingClassifier
 
 from typing import List, Dict, Optional, Union
 from config import Mapping
 
 logger = logging.getLogger(__name__)
 
+AVAIL_SKL_CLF = Union[SVC,
+                      RandomForestClassifier,
+                      ExtraTreesClassifier,
+                      AdaBoostClassifier,
+                      BaggingClassifier,
+                      GradientBoostingClassifier,
+                      VotingClassifier]
+
 
 def get_learning_samples(learning_samples_dir: str,
-                         config_path: str) -> List[Dict[str, str]]:
+                         config_path: str) -> List[Dict[str, Union[str, List[str]]]]:
     """get sorted learning samples files from samples directory
 
     Parameters
@@ -43,7 +55,7 @@ def get_learning_samples(learning_samples_dir: str,
     ------
     list
         ist of dictionaries
-        example : 
+        example :
         get_learning_samples() = [{"learning_file": path to the learning file data base,
                                    "feat_labels": feature's labels,
                                    "model_path": output model path
@@ -108,9 +120,7 @@ def get_learning_samples(learning_samples_dir: str,
     return parameters
 
 
-def model_name_to_function(model_name: str) -> Union[SVC,
-                                                     RandomForestClassifier,
-                                                     ExtraTreesClassifier]:
+def model_name_to_function(model_name: str) -> AVAIL_SKL_CLF:
     """cast the model'name from string to sklearn object
 
     This function must be fill-in with new scikit-learn classifier we want to
@@ -126,7 +136,11 @@ def model_name_to_function(model_name: str) -> Union[SVC,
     a scikit-learn classifier object
     """
     dico_clf = {"RandomForestClassifier": RandomForestClassifier,
+                "AdaBoostClassifier": AdaBoostClassifier,
+                "BaggingClassifier": BaggingClassifier,
                 "ExtraTreesClassifier": ExtraTreesClassifier,
+                "GradientBoostingClassifier": GradientBoostingClassifier,
+                "VotingClassifier": VotingClassifier,
                 "SupportVectorClassification": SVC}
     if model_name not in dico_clf:
         raise ValueError("{} not suported in iota2 sklearn models : {}".format(model_name,
@@ -176,9 +190,7 @@ def cast_config_cv_parameters(config_cv_parameters: Mapping) -> Dict[str, List[i
     return sklearn_cv_parameters
 
 
-def save_cross_val_best_param(output_path: str, clf: Union[SVC,
-                                                           RandomForestClassifier,
-                                                           ExtraTreesClassifier]) -> None:
+def save_cross_val_best_param(output_path: str, clf: AVAIL_SKL_CLF) -> None:
     """save cross validation parameters in a text file
 
     Parameters
@@ -203,9 +215,7 @@ def save_cross_val_best_param(output_path: str, clf: Union[SVC,
                                                               params))
 
 
-def force_proba(sk_classifier: Union[SVC,
-                                     RandomForestClassifier,
-                                     ExtraTreesClassifier]) -> None:
+def force_proba(sk_classifier: AVAIL_SKL_CLF) -> None:
     """force the classifier model to be able of generate proabilities
 
     change the classifier parameter in place
@@ -230,8 +240,12 @@ def sk_learn(dataset_path: str,
              cv_parameters: Optional[Dict] = None,
              cv_grouped: Optional[bool] = False,
              cv_folds: Optional[int] = 5,
+             available_ram: Optional[int] = None,
              **kwargs):
     """Train a model thanks to scikit-learn
+
+    The resulting model is serialized and save thanks to pickle. The serialized
+    object at 'model_path' is a tuple as (scikit-learn model, scaler)
 
     Parameters
     ----------
@@ -254,13 +268,17 @@ def sk_learn(dataset_path: str,
         if true, each cross validation folds are constitute of samples inside polygons.
     cv_folds: int
         number of cross validation folds
+    available_ram : int
+        available ram in Mb
     kwargs : dict
         scikit-learn models parameters
     """
+    import math
     import sqlite3
     import numpy as np
     import pandas as pd
 
+    from iota2.Common.FileUtils import memory_usage_psutil
     from iota2.VectorTools.vector_functions import getLayerName
 
     from sklearn.model_selection import GridSearchCV, KFold, GroupKFold
@@ -280,6 +298,7 @@ def sk_learn(dataset_path: str,
     labels_values = np.ravel(df_labels.to_numpy())
 
     clf = model_name_to_function(sk_model_name)
+
     if cv_parameters:
         if not can_perform_cv(cv_parameters, clf):
             fail_msg = ("ERROR : impossible to cross validate the model `{}` "
@@ -317,16 +336,25 @@ def sk_learn(dataset_path: str,
 
         clf = GridSearchCV(clf,
                            cv_parameters,
-                           n_jobs=-1,
                            cv=splitter,
                            return_train_score=True)
+    jobs = 1
+    if available_ram:
+        current_ram = memory_usage_psutil()
+        jobs = int(math.floor(available_ram / current_ram))
+        jobs = jobs if jobs >= 1 else 1
+        if hasattr(clf, "n_jobs"):
+            clf.n_jobs = jobs
+        if hasattr(clf, "pre_dispatch"):
+            clf.pre_dispatch = jobs
 
-    logger.info("Fit model")
+    logger.info("Fit model using {} jobs".format(jobs))
     clf.fit(features_values, labels_values)
 
     sk_model = clf
     if cv_parameters:
-        cross_val_path = model_path.replace(".txt", "_cross_val_param.cv")
+        file_name, file_ext = os.path.splitext(os.path.basename(model_path))
+        cross_val_path = model_path.replace(file_ext, "_cross_val_param.cv")
         save_cross_val_best_param(cross_val_path, clf)
         sk_model = clf.best_estimator_
 
