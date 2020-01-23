@@ -21,8 +21,7 @@ from iota2.Sensors.Sensors_container import Sensors_container
 from iota2.Common.GenerateFeatures import generateFeatures
 from iota2.Common import ServiceConfigFile as SCF
 from iota2.Common import IOTA2Directory
-
-import rasterUtils
+from iota2.Common import rasterUtils
 
 
 def smart_scientific_function(array, increment, *args, **kwargs):

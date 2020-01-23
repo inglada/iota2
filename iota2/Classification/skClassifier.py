@@ -46,7 +46,7 @@ def merge_sk_classifications(rasters_to_merge_dic: List[Dict[str, Union[str, Lis
     logger : logging
         root logger
     """
-    from iota2.POC.rasterUtils import merge_rasters
+    from iota2.Common.rasterUtils import merge_rasters
 
     for element in rasters_to_merge_dic:
         logger.info("creating : {}".format(element["merge_path"]))
@@ -306,7 +306,7 @@ def predict(mask: str, model: str, stat: str, out_classif: str, out_confidence: 
     import pickle
     from functools import partial
 
-    from iota2.POC import rasterUtils as rasterU
+    from iota2.Common import rasterUtils as rasterU
     from iota2.Common import ServiceConfigFile as serviceConf
     from iota2.Common.GenerateFeatures import generateFeatures
     from iota2.Common.FileUtils import findCurrentTileInString

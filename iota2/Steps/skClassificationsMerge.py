@@ -60,7 +60,7 @@ class ScikitClassificationsMerge(IOTA2Step.Step):
         """
         from iota2.Classification.skClassifier import merge_sk_classifications
         
-        from iota2.POC.rasterUtils import merge_rasters
+        from iota2.Common.rasterUtils import merge_rasters
         step_function = lambda x: merge_sk_classifications(x,
                                                            self.epsg_code,
                                                            self.working_directory)

@@ -145,7 +145,7 @@ class Iota2TestNumpyFeatures(unittest.TestCase):
         TEST : check the whole workflow
         """
         from functools import partial
-        from iota2.POC import rasterUtils as rasterU
+        from iota2.Common import rasterUtils as rasterU
         from iota2.Tests.UnitTests import TestsUtils
         from iota2.Common.OtbAppBank import CreateBandMathXApplication
 
@@ -231,7 +231,7 @@ class Iota2TestNumpyFeatures(unittest.TestCase):
             test_cross_val = [line.rstrip() for line in cross_val_f]
 
         test_cv_val = all([val_to_find in test_cross_val for val_to_find in self.ref_cross_validation])
-        self.assertTrue(test_cv_val)
+        self.assertTrue(test_cv_val, msg="cross validation failed")
 
     def test_sk_standardization(self):
         """test standardization
@@ -268,7 +268,7 @@ class Iota2TestNumpyFeatures(unittest.TestCase):
         """
         from functools import partial
         from sklearn.ensemble import RandomForestClassifier
-        from iota2.POC import rasterUtils as rasterU
+        from iota2.Common import rasterUtils as rasterU
         from iota2.Tests.UnitTests import TestsUtils
         from iota2.Common.OtbAppBank import CreateBandMathXApplication
 
