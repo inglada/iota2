@@ -16,6 +16,7 @@
 import os
 
 from Steps import IOTA2Step
+from Cluster import get_RAM
 from Common import ServiceConfigFile as SCF
 from Learning.TrainingCmd import config_model
 from iota2.Common.GenerateFeatures import generateFeatures
@@ -33,7 +34,7 @@ class learnModel(IOTA2Step.Step):
         self.region_field = SCF.serviceConfigFile(self.cfg).getParam('chain', 'regionField')
         self.runs = SCF.serviceConfigFile(self.cfg).getParam('chain', 'runs')
         self.tiles = SCF.serviceConfigFile(self.cfg).getParam('chain', 'listTile').split("_")
-        
+        self.available_ram = 1024.0 * get_RAM(self.resources["ram"])
         self.use_scikitlearn = SCF.serviceConfigFile(self.cfg).getParam('scikit_models_parameters', 'model_type') is not None
 
     def step_description(self):
@@ -112,6 +113,7 @@ class learnModel(IOTA2Step.Step):
                                                                                                      "cross_validation_grouped"),
                                                             SCF.serviceConfigFile(self.cfg).getParam("scikit_models_parameters",
                                                                                                      "cross_validation_folds"),
+                                                            self.available_ram,
                                                             **model_parameters)
         else:
             step_function = lambda x: bashLauncherFunction(x)
