@@ -2,7 +2,7 @@ Auto-context
 ============
 
 First, a summary of auto-content workflow will be exposed. Then, we will see 
-how to activate it in the iotaÂ² configuration file, 
+how to activate it in the iota² configuration file, 
 to finish with a tutorial showing inputs and outputs related to it.
 
 .. Note::
