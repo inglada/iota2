@@ -14,15 +14,29 @@ from VectorTools import SelectBySize
 from VectorTools import SimplifyPoly
 import argparse
 
-def checkGeometryAreaThreshField(shapefile, pixelArea, pix_thresh, outshape):
+def checkGeometryAreaThreshField(shapefile, pixelArea, pix_thresh, outshape = "", outformat = "ESRI shapefile"):
 
     tmpfile = []
 
+    if outshape == "":
+        outshape = shapefile
+
+    if os.path.splitext(outshape)[1] == ".shp":
+        outformat = "ESRI shapefile"
+    elif os.path.splitext(outshape)[1] == ".sqlite":
+        outformat = "SQlite"
+    else:
+        print("Output format not managed" )
+        sys.exit()           
+        
     # Empty geometry identification
     try:
-        outShapefileGeom, _ = vf.checkEmptyGeom(shapefile)
-        tmpfile.append(outShapefileGeom)        
+        outShapefileGeom, _ = vf.checkEmptyGeom(shapefile, outformat)
+        if shapefile != outshape:
+            tmpfile.append(outShapefileGeom)        
+
         print('Check empty geometries succeeded')
+
     except Exception as e:
         print('Check empty geometries did not work for the following error :')
         print(e)  
@@ -40,7 +54,7 @@ def checkGeometryAreaThreshField(shapefile, pixelArea, pix_thresh, outshape):
         print('Conversion of multipolygons shapefile to single polygons did not work for the following error :')
         print(e)
 
-    # recalcul des superficies
+    # recompute areas
     try:
         AddFieldArea.addFieldArea(shapefileNoDupspoly, pixelArea)       
     except Exception as e:
@@ -64,7 +78,7 @@ def checkGeometryAreaThreshField(shapefile, pixelArea, pix_thresh, outshape):
         print(e)
 
     # Check geometry
-    vf.checkValidGeom(outshape)
+    vf.checkValidGeom(outshape, outformat)
 
     # delete tmp file
     for fileDel in tmpfile:

@@ -29,13 +29,16 @@ class zonalStatistics(IOTA2Step.Step):
         self.RAM = 1024.0 * get_RAM(self.resources["ram"])
         self.workingDirectory = workingDirectory
         self.outputPath = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
-        
+        self.outfilesvectpath = os.path.join(self.outputPath, 'final', 'simplification', 'vectors')
         self.rastclass = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'classification')
         self.rastconf = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'confidence')
         self.rastval = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'validity')
         self.seed = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'seed')
         self.bingdal = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'bingdal')
-
+        self.chunk = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'chunk')        
+        self.statslist = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'statslist')
+        self.nomenclature = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'nomenclature')
+        
         if self.rastclass is None:
             if self.seed is not None:
                 self.rastclass = os.path.join(self.outputPath, 'final', 'Classif_Seed_{}.tif'.format(self.seed))
@@ -66,9 +69,10 @@ class zonalStatistics(IOTA2Step.Step):
             the return could be and iterable or a callable
         """
         from simplification import ZonalStats as zs
-        outfilesvectpath = os.path.join(self.outputPath, 'final', 'simplification', 'vectors')
-        return zs.getParameters(outfilesvectpath, outfilesvectpath)
-
+        
+        tmpdir = os.path.join(self.outputPath, 'final', 'simplification', 'tmp')
+        
+        return zs.splitVectorFeatures(self.outfilesvectpath, tmpdir, self.chunk)
 
     def step_execute(self):
         """
@@ -83,15 +87,23 @@ class zonalStatistics(IOTA2Step.Step):
         tmpdir = os.path.join(self.outputPath, 'final', 'simplification', 'tmp')
         if self.workingDirectory:
             tmpdir = self.workingDirectory
-
+        
         step_function = lambda x: zs.zonalstats(tmpdir,
                                                 [self.rastclass, self.rastconf, self.rastval],
-                                                x,
-                                                self.bingdal)
+                                                x[0:2],
+                                                x[2],
+                                                self.statslist,
+                                                classes=self.nomenclature,
+                                                gdalpath=self.bingdal)
 
         return step_function
 
     def step_outputs(self):
+        """
+        """
+        pass
+    
+    def step_clean(self):
         """
         """
         pass

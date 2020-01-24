@@ -6,14 +6,14 @@ import argparse
 from osgeo import ogr
 from VectorTools import vector_functions as vf
 
-def bufferPoly(inputfn, outputBufferfn, bufferDist):
+def bufferPoly(inputfn, outputBufferfn="", bufferDist=0, outformat="ESRI shapefile"):
 
     try :
         bufferDist=float(bufferDist)
         inputds = ogr.Open(inputfn)
         inputlyr = inputds.GetLayer()
 
-        shpdriver = ogr.GetDriverByName('ESRI Shapefile')
+        shpdriver = ogr.GetDriverByName(outformat)
         if os.path.exists(outputBufferfn):
             shpdriver.DeleteDataSource(outputBufferfn)
         outputBufferds = shpdriver.CreateDataSource(outputBufferfn)
@@ -39,7 +39,8 @@ def bufferPoly(inputfn, outputBufferfn, bufferDist):
                 bufferlyr.CreateFeature(outFeature)
 
     except : return False    
-    return True
+
+    return bufferlyr
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
@@ -58,5 +59,7 @@ if __name__ == "__main__":
                             help="Ouput shapefile", required = True)
         parser.add_argument("-b", dest="buff", action="store", \
                             help="Buffer size (m)", required = True)
+        parser.add_argument("-format", dest="outformat", action="store", \
+                            help="output format (default : ESRI Shapefile)")                
         args = parser.parse_args()
-        bufferPoly(args.inshapefile, args.outshapefile, args.buff)
+        bufferPoly(args.inshapefile, args.outshapefile, args.buff, args.outformat)

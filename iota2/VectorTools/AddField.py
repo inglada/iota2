@@ -5,8 +5,7 @@ from osgeo import ogr
 import os, sys
 import argparse
 
-def addField(filein, nameField, valueField, valueType=None,
-             driver_name="ESRI Shapefile", fWidth=None):
+def addField(filein, nameField, valueField, valueType=None, driver_name="ESRI Shapefile", fWidth=None):
 
     driver = ogr.GetDriverByName(driver_name)
     source = driver.Open(filein, 1)

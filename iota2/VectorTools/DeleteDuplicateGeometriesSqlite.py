@@ -6,7 +6,7 @@ import os
 import sqlite3 as lite
 import argparse
 
-def deleteDuplicateGeometriesSqlite(shapefile, do_corrections=True, output_file=None):
+def deleteDuplicateGeometriesSqlite(shapefile, outformat = "ESRI shapefile", do_corrections=True, output_file=None):
     """Check if a features is duplicates, then if it does it will not be copied in output shapeFile
 
     Parameters
@@ -23,10 +23,13 @@ def deleteDuplicateGeometriesSqlite(shapefile, do_corrections=True, output_file=
         (output_shape, duplicates_features_number) where duplicates_features_number
         is the number of duplicated features
     """
-    tmpnamelyr = "tmp" + os.path.splitext(os.path.basename(shapefile))[0]
-    tmpname = "%s.sqlite"%(tmpnamelyr)
-    outsqlite = os.path.join(os.path.dirname(shapefile), tmpname)
-    os.system("ogr2ogr -f SQLite %s %s -nln tmp"%(outsqlite, shapefile))
+    if outformat != "SQlite":
+        tmpnamelyr = "tmp" + os.path.splitext(os.path.basename(shapefile))[0]
+        tmpname = "%s.sqlite"%(tmpnamelyr)
+        outsqlite = os.path.join(os.path.dirname(shapefile), tmpname)
+        os.system("ogr2ogr -f SQLite %s %s -nln tmp"%(outsqlite, shapefile))
+    else:
+        outsqlite = shapefile
 
     conn = lite.connect(outsqlite)
     cursor = conn.cursor()
@@ -46,12 +49,13 @@ def deleteDuplicateGeometriesSqlite(shapefile, do_corrections=True, output_file=
     if do_corrections:
         conn.commit()
 
-        if output_file is None:
+        if output_file is None and outformat != "SQlite":
             os.system("rm %s"%(shapefile))
 
         shapefile = output_file if output_file is not None else shapefile
-
-        os.system("ogr2ogr -f 'ESRI Shapefile' %s %s"%(shapefile, outsqlite))
+        
+        if output_file is None and outformat != "SQlite":
+            os.system("ogr2ogr -f 'ESRI Shapefile' %s %s"%(shapefile, outsqlite))
 
         if nb_dupplicates != 0:
             print("Analyse of duplicated features done. %s duplicates found and deleted"%(nb_dupplicates))
@@ -59,8 +63,10 @@ def deleteDuplicateGeometriesSqlite(shapefile, do_corrections=True, output_file=
             print("Analyse of duplicated features done. No duplicates found")
             
         cursor = conn = None
-
-    os.remove(outsqlite)
+        
+    if outformat != "SQlite":
+        os.remove(outsqlite)
+        
     return shapefile, nb_dupplicates
 
 if __name__ == "__main__":

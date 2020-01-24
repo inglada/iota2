@@ -111,12 +111,21 @@ class serviceConfigFile:
                               "pattern":"None"
                               }
             self.init_section("coregistration",coregistration_default)
+            
+            sklearn_default = {"model_type": None,
+                               "cross_validation_folds": 5,
+                               "cross_validation_grouped": False,
+                               "standardization": False,
+                               "cross_validation_parameters": self.init_dicoMapping({})}
+            self.init_section("scikit_models_parameters", sklearn_default)
+
             #init argTrain section
             sampleSel_default = self.init_dicoMapping({"sampler":"random",
                                                        "strategy":"all"})
             sampleAugmentationg_default = self.init_dicoMapping({"activate":False})
             annualCrop = self.init_listSequence(["11", "12"])
             ACropLabelReplacement = self.init_listSequence(["10", "annualCrop"])
+
             argTrain_default = {"sampleSelection": sampleSel_default,
                                 "sampleAugmentation": sampleAugmentationg_default,
                                 "sampleManagement": None,
@@ -127,8 +136,14 @@ class serviceConfigFile:
                                 "annualCrop": annualCrop,
                                 "ACropLabelReplacement": ACropLabelReplacement,
                                 "samplesClassifMix": False,
+                                "classifier": "rf",
+                                "options": " -classifier.rf.min 5 -classifier.rf.max 25 ",
                                 "annualClassesExtractionSource":"None",
                                 "validityThreshold": 1}
+            if self.cfg.scikit_models_parameters.model_type is None:
+                del argTrain_default["classifier"]
+                del argTrain_default["options"]
+
             self.init_section("argTrain", argTrain_default)
             #init argClassification section
             argClassification_default = {"noLabelManagement": "maxConfidence",
@@ -192,7 +207,9 @@ class serviceConfigFile:
                                       
             userFeat =  {"arbo": "/*",
                          "patterns":"ALT,ASP,SLP"}
+    
 
+                                      
             self.init_section("Landsat5_old", Landsat5_old_default)
             self.init_section("Landsat8", Landsat8_default)
             self.init_section("Landsat8_old", Landsat8_old_default)
@@ -205,8 +222,8 @@ class serviceConfigFile:
                             "confidence": None,
                             "validity": None,
                             "seed": None,
-                            "umc1": 10,
-                            "umc2": 3,
+                            "umc1": None,
+                            "umc2": None,
                             "inland": None,
                             "rssize": 20,
                             "lib64bit": None,
@@ -223,7 +240,10 @@ class serviceConfigFile:
                             "lcfield" : "Class",
                             "blocksize" : 2000,
                             "dozip": True,
-                            "bingdal": None}
+                            "bingdal": None,
+                            "chunk":10,
+                            "nomenclature":None,
+                            "statslist" : {1:"rate", 2:"statsmaj", 3:"statsmaj"}}
             self.init_section("Simplification", simp_default)
             
     def init_section(self, sectionName, sectionDefault):
@@ -479,8 +499,10 @@ class serviceConfigFile:
             self.testVarConfigFile('chain', 'S2Path', str)
             self.testVarConfigFile('chain', 'S1Path', str)
 
-            self.testVarConfigFile('chain', 'firstStep', str, ["init", "sampling", "dimred", "learning", "classification", "mosaic", "validation", "regularisation", "crown", "vectorisation", "lcstatistics"])
-            self.testVarConfigFile('chain', 'lastStep', str, ["init", "sampling", "dimred", "learning", "classification", "mosaic", "validation", "regularisation", "crown", "vectorisation", "lcstatistics"])
+            self.testVarConfigFile('chain', 'firstStep', str, ["init", "sampling", "dimred", "learning", "classification", "mosaic", \
+                                                               "validation", "regularisation", "crown", "mosaictiles", "vectorisation", "simplification", "smoothing", "clipvectors", "lcstatistics"])
+            self.testVarConfigFile('chain', 'lastStep', str, ["init", "sampling", "dimred", "learning", "classification", "mosaic", \
+                                                              "validation", "regularisation", "crown", "mosaictiles", "vectorisation", "simplification", "smoothing", "clipvectors", "lcstatistics"])
 
             if self.getParam("chain", "regionPath"):
                 check_region_vector(self.cfg)
@@ -547,6 +569,23 @@ class serviceConfigFile:
             self.testVarConfigFile('dimRed', 'reductionMode', str)
 
             self.testVarConfigFile('chain', 'remove_tmp_files', bool)
+            
+            self.testVarConfigFile('chain', 'remove_tmp_files', bool)
+            
+            self.testVarConfigFile('chain', 'remove_tmp_files', bool)
+
+            if self.cfg.scikit_models_parameters.model_type is not None:
+                self.testVarConfigFile('scikit_models_parameters',
+                                       'model_type', str)
+                self.testVarConfigFile('scikit_models_parameters',
+                                       'cross_validation_folds', int)
+                self.testVarConfigFile('scikit_models_parameters',
+                                       'cross_validation_grouped', bool)
+                self.testVarConfigFile('scikit_models_parameters',
+                                       'standardization', bool)
+                self.testVarConfigFile('scikit_models_parameters',
+                                       'cross_validation_parameters', Mapping)
+                                       
 
             if self.cfg.chain.L5Path_old != "None":
                 #L5 variable check
@@ -648,6 +687,14 @@ class serviceConfigFile:
         :return: list of available section
         """
         return [section for section in list(self.cfg.keys())]
+
+    def getSection(self, section):
+        """
+        """
+        if not hasattr(self.cfg, section):
+            # not an osoError class because it should NEVER happened
+            raise Exception("Section {} is not in the configuration file ".format(section))
+        return getattr(self.cfg, section)
 
     def getParam(self, section, variable):
         """

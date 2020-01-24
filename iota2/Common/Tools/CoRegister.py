@@ -128,7 +128,7 @@ def fitnessDateScore(dateVHR, datadir, datatype):
     elif datatype in ['S2','S2_S2C']:
         maxFitScore = None
         files = sorted(glob.glob(datadir+os.sep+'*'+os.sep+'*_MTD_ALL.xml'))
-        for file in glob.glob(datadir+os.sep+'*'+os.sep+'*_MTD_ALL.xml'):
+        for file in files:
             inDate = os.path.basename(file).split("_")[1].split("-")[0]
             year = int(inDate[:4])
             month = int(inDate[4:6])

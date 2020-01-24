@@ -8,17 +8,19 @@ import os.path
 from os.path import basename
 import glob
 
-def mergeVectors(infiles, outfile):
+def mergeVectors(infiles, outfile, outformat='ESRI Shapefile'):
    """
    Merge a list of vector files in one 
    """
 
+   '''
    if(not outfile.lower().endswith('.shp')):
       print(basename(outfile) + " is not a valid name for shapefile output." \
       "It will be replaced by " + basename(outfile)[:-4] + ".shp")
       outfile = basename(outfile)[:-4] + '.shp'
+   '''
 
-   driver = ogr.GetDriverByName('ESRI Shapefile')
+   driver = ogr.GetDriverByName(outformat)
 
    if os.path.exists(outfile):
       driver.DeleteDataSource(outfile)
@@ -26,15 +28,16 @@ def mergeVectors(infiles, outfile):
    if not isinstance(infiles, list):
       print(infiles)
       files = glob.glob(infiles + '/' + "*.shp")
+      files.append(glob.glob(infiles + '/' + "*.sqlite"))
       if not files:
-         print("Folder " + infiles + "does not contain shapefiles")
+         print("Folder " + infiles + "does not contain vector files")
          sys.exit(-1)
    else:
       files = infiles
 
    # Append first file to the output file 
    file1 = files[0]
-   fusion = "ogr2ogr " + outfile + " " + file1
+   fusion = "ogr2ogr -f %s "%(outformat) + outfile + " " + file1
    os.system(fusion)
 
    layername = os.path.splitext(os.path.basename(outfile))[0]
@@ -42,10 +45,9 @@ def mergeVectors(infiles, outfile):
    nbfiles = len(files)
    progress = 0
    for f in range(1, nbfiles):
-      fusion2 = "ogr2ogr -update -append " + outfile + " " + files[f] + " -nln " + layername
-      print(fusion2)
-      print(outfile)
-      os.system(fusion2)
+      if not isinstance(files[f], list):
+         fusion2 = "ogr2ogr -f %s -update -append "%(outformat) + outfile + " " + files[f] + " -nln " + layername
+         os.system(fusion2)
       progress += 1
       print("Progress : %s"%(float(progress) / float(nbfiles) * 100.))
 
@@ -67,12 +69,14 @@ if __name__ == "__main__":
                             help="Folder of input shapefiles")        
         parser.add_argument("-o", dest="outshapefile", action="store", \
                             help="ESRI Shapefile output filename and path", required = True)
+        parser.add_argument("-format", dest="outformat", action="store", \
+                            help="output format (default : ESRI Shapefile)")        
         args = parser.parse_args()
         if args.opath is None:
            if args.shapefiles is None:
               print("Either folder of input shapefiles or list of input shapefiles have to be given")
               sys.exit(-1)
            else:
-              mergeVectors(args.shapefiles, args.outshapefile)
+              mergeVectors(args.shapefiles, args.outshapefile, args.outformat)
         else:
-           mergeVectors(args.opath, args.outshapefile)
+           mergeVectors(args.opath, args.outshapefile, args.outformat)
