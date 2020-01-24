@@ -971,11 +971,11 @@ Sensor.keepBands
 
         keepBands:["B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11", "B12"] # Sentinel-2 case
 
-Use scikit-learn machine learning algorithms
-********************************************
+Use scikit-learn machine learning algorithms [NOT AVAILABLE]
+************************************************************
 
-scikit_models_parameters.model_type
-===================================
+scikit_models_parameters.model_type [NOT AVAILABLE]
+===================================================
 *Description*
     machine learning algorthm's name
 *Type*
