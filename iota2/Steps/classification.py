@@ -51,11 +51,13 @@ class classification(IOTA2Step.Step):
         """
         from Common import FileUtils as fut
         from Classification.ImageClassifier import autoContext_classification_param
-        parameters = fut.parseClassifCmd(os.path.join(self.output_path, "cmd", "cla", "class.txt"))
-        if self.enable_autoContext is True:
+        if self.enable_autoContext is False and self.use_scikitlearn is False:
+            parameters = fut.parseClassifCmd(os.path.join(self.output_path, "cmd", "cla", "class.txt"))
+        elif self.enable_autoContext is True:
             parameters = autoContext_classification_param(self.output_path,
                                                           self.data_field)
         elif self.use_scikitlearn:
+            parameters = fut.parseClassifCmd(os.path.join(self.output_path, "cmd", "cla", "class.txt"))
             parameters = [{"mask": param[1],
                            "model": param[2],
                            "stat": param[3],

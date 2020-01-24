@@ -177,9 +177,10 @@ class iota2():
                            sensorsPreprocess, Coregistration, Regularization,
                            mergeRegularization, Clump, Grid, crownSearch,
                            crownBuild, mosaicTilesVectorization, largeVectorization,
-                           mosaicTilesVectorization, largeSmoothing, clipVectors,
-                           zonalStatistics, prodVectors, slicSegmentation,
-                           superPixPos, superPixSplit, skClassificationsMerge)
+                           mosaicTilesVectorization, largeSimplification, 
+                           largeSmoothing, clipVectors, zonalStatistics,
+                           prodVectors, slicSegmentation, superPixPos,
+                           superPixSplit, skClassificationsMerge)
         # control variable
         Sentinel1 = SCF.serviceConfigFile(cfg).getParam('chain', 'S1Path')
         shapeRegion = SCF.serviceConfigFile(cfg).getParam('chain', 'regionPath')

@@ -58,6 +58,7 @@ class learnModel(IOTA2Step.Step):
         """
         from Learning import TrainingCmd as TC
         from Learning import TrainSkLearn
+        from Learning.trainAutoContext import train_autoContext_parameters
         parameters = []
 
         pathToModelConfig = os.path.join(self.output_path, "config_model", "configModel.cfg")
@@ -71,9 +72,9 @@ class learnModel(IOTA2Step.Step):
             parameters = TrainSkLearn.get_learning_samples(os.path.join(self.output_path,
                                                                         "learningSamples"),
                                                            self.cfg)
-        elif self.enable_autoContext if True:
-            parameter_list = train_autoContext_parameters(self.output_path, 
-                                                          self.regionField)
+        elif self.enable_autoContext is True:
+            parameters = train_autoContext_parameters(self.output_path, 
+                                                      self.region_field)
         else:
             parameters = TC.launchTraining(self.cfg,
                                            self.data_field,
@@ -124,7 +125,7 @@ class learnModel(IOTA2Step.Step):
                                                                                                      "cross_validation_folds"),
                                                             self.available_ram,
                                                             **model_parameters)
-        elif self.enable_autoContext if True:
+        elif self.enable_autoContext is True:
             step_function = lambda x: train_autoContext(x,
                                                         self.cfg,
                                                         self.superpix_data_field,
