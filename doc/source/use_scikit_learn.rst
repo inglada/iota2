@@ -42,7 +42,7 @@ Standardize features by removing the mean and scaling to unit variance.
 Cross validation parameters
 ***************************
 
-Cross validation [https://en.wikipedia.org/wiki/Cross-validation_(statistics)] is a method used to find the best optimized estimator's parameters according to a scorer function (overall-accuracy).
+`Cross validation <https://en.wikipedia.org/wiki/Cross-validation_(statistics)>`_ is a method used to find the best optimized estimator's parameters according to a scorer function (overall-accuracy).
 The user has to provide a list of estimator's parameters to optimize. This list
 of parameters must be provided through a python dictionary. For instance , considering
 a ``RandomForestClassifier`` machine learning classifier, the configuration file
