@@ -48,7 +48,7 @@ class iota_testAutoContext(unittest.TestCase):
         self.all_tests_ok = []
         self.test_working_directory = None
         if os.path.exists(self.iota2_tests_directory):
-            shutil.rmtree(self.iota2_tests_directory)
+            shutil.rmtree(self.iota2_tests_directory, ignore_errors=True)
         os.mkdir(self.iota2_tests_directory)
 
         # generate permanent fake data
@@ -61,7 +61,7 @@ class iota_testAutoContext(unittest.TestCase):
     def tearDownClass(self):
         print("{} ended".format(self.group_test_name))
         if RM_IF_ALL_OK and all(self.all_tests_ok):
-            shutil.rmtree(self.iota2_tests_directory)
+            shutil.rmtree(self.iota2_tests_directory, ignore_errors=True)
 
     #before launching a test
     def setUp(self):
@@ -92,7 +92,7 @@ class iota_testAutoContext(unittest.TestCase):
 
         self.all_tests_ok.append(ok)
         if ok:
-            shutil.rmtree(self.test_working_directory)
+            shutil.rmtree(self.test_working_directory, ignore_errors=True)
 
     def generate_cfg_file(self, ref_cfg, test_cfg):
         """
@@ -320,7 +320,7 @@ class iota_testAutoContext(unittest.TestCase):
 
         # Launch test
         segmentation.slicSegmentation(self.tile_name, config_path_test, ram=128, working_dir=slic_working_dir, force_spw=1)
-        
+
         # as SLIC algorithm contains random variables, the raster's content could
         # not be tested
         self.assertTrue(len(FileSearch_AND(os.path.join(testPath,
