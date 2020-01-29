@@ -5,8 +5,7 @@ from osgeo import ogr
 import os, sys
 import argparse
 
-def addField(filein, nameField, valueField, valueType=None,
-             driver_name="ESRI Shapefile", fWidth=None):
+def addField(filein, nameField, valueField, valueType=None, driver_name="ESRI Shapefile", fWidth=None):
 
     driver = ogr.GetDriverByName(driver_name)
     source = driver.Open(filein, 1)
@@ -26,6 +25,9 @@ def addField(filein, nameField, valueField, valueType=None,
     elif valueType == int:
         new_field1 = ogr.FieldDefn(nameField, ogr.OFTInteger)
         sqlite_type = 'int'
+    elif valueType == "int64":
+        new_field1 = ogr.FieldDefn(nameField, ogr.OFTInteger64)
+        sqlite_type = 'BIGINT'
     elif valueType == float:
         new_field1 = ogr.FieldDefn(nameField, ogr.OFTFLOAT)
         sqlite_type = 'float'

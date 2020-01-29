@@ -53,26 +53,26 @@ class iota_testOpticalSARFusion(unittest.TestCase):
         self.opt_confusion = os.path.join(IOTA2DIR, "data", "references", "opt_confusion.csv")
         self.sar_classif = np.array([[11, 12, 31],
                                      [42, 51, 11],
-                                     [11, 43, 11]][::-1])
+                                     [11, 43, 11]])
         self.optical_classif = np.array([[12, 42, 31],
                                          [11, 43, 51],
-                                         [43, 51, 42]][::-1])
+                                         [43, 51, 42]])
         self.sar_confidence = np.array([[0.159699, 0.872120, 0.610836],
                                         [0.657606, 0.110224, 0.675240],
-                                        [0.263030, 0.623490, 0.517019]][::-1])
+                                        [0.263030, 0.623490, 0.517019]])
         self.optical_confidence = np.array([[0.208393, 0.674579, 0.507099],
                                             [0.214745, 0.962130, 0.779217],
-                                            [0.858645, 0.258679, 0.015593]][::-1])
+                                            [0.858645, 0.258679, 0.015593]])
         # References
         self.ds_fusion_ref = np.array([[11, 42, 31],
                                        [42, 43, 11],
-                                       [11, 51, 11]][::-1])
+                                       [11, 51, 11]])
         self.choice_map_ref = np.array([[2, 3, 1],
                                         [2, 3, 2],
-                                        [2, 3, 2]][::-1])
+                                        [2, 3, 2]])
         self.ds_fus_confidence_ref = np.array([[0.15969899, 0.67457902, 0.61083603],
                                                [0.65760601, 0.96213001, 0.67523998],
-                                               [0.26302999, 0.258679,   0.51701897]][::-1])
+                                               [0.26302999, 0.258679,   0.51701897]])
         self.parameter_ref = [{'sar_classif': '/classif/Classif_T31TCJ_model_1_seed_0_SAR.tif',
                                'opt_model': '/dataAppVal/bymodels/model_1_seed_0.csv',
                                'opt_classif': '/classif/Classif_T31TCJ_model_1_seed_0.tif',
@@ -326,40 +326,40 @@ class iota_testOpticalSARFusion(unittest.TestCase):
         # random probability maps
         sar_probamap_arr = [np.array([[253, 874, 600],
                                       [947, 812, 941],
-                                      [580, 94, 192]][::-1]),
+                                      [580, 94, 192]]),
                             np.array([[541, 711, 326],
                                       [273, 915, 698],
-                                      [296, 1000, 624]][::-1]),
+                                      [296, 1000, 624]]),
                             np.array([[253, 290, 610],
                                       [406, 685, 333],
-                                      [302, 410, 515]][::-1]),
+                                      [302, 410, 515]]),
                             np.array([[216, 766, 98],
                                       [914, 288, 504],
-                                      [70, 631, 161]][::-1]),
+                                      [70, 631, 161]]),
                             np.array([[371, 873, 134],
                                       [477, 701, 765],
-                                      [549, 301, 847]][::-1]),
+                                      [549, 301, 847]]),
                             np.array([[870, 201, 85],
                                       [555, 644, 802],
-                                      [98, 807, 77]][::-1])]
+                                      [98, 807, 77]])]
         opt_probamap_arr = [np.array([[268, 528, 131],
                                       [514, 299, 252],
-                                      [725, 427, 731]][::-1]),
+                                      [725, 427, 731]]),
                             np.array([[119, 241, 543],
                                       [974, 629, 626],
-                                      [3, 37, 819]][::-1]),
+                                      [3, 37, 819]]),
                             np.array([[409, 534, 710],
                                       [916, 43, 993],
-                                      [207, 68, 282]][::-1]),
+                                      [207, 68, 282]]),
                             np.array([[820, 169, 423],
                                       [710, 626, 525],
-                                      [377, 777, 461]][::-1]),
+                                      [377, 777, 461]]),
                             np.array([[475, 116, 395],
                                       [838, 297, 262],
-                                      [650, 828, 595]][::-1]),
+                                      [650, 828, 595]]),
                             np.array([[940, 261, 20],
                                       [339, 934, 278],
-                                      [444, 326, 219]][::-1])]
+                                      [444, 326, 219]])]
         # to rasters
         sar_probamap_path = os.path.join(self.test_working_directory, "PROBAMAP_T31TCJ_model_1_seed_0_SAR.tif")
         arrayToRaster(sar_probamap_arr, sar_probamap_path)

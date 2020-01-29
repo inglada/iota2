@@ -180,11 +180,13 @@ class iota2():
                            confusionGeneration, confusionsMerge,
                            reportGeneration, mergeSeedClassifications,
                            additionalStatistics, additionalStatisticsMerge,
-                           sensorsPreprocess, Coregistration, Regularization, mergeRegularization,
-                           Clump, Grid, crownSearch, crownBuild, mosaicTilesVectorization,
-                           largeVectorization, largeSimplification, largeSmoothing,
-                           clipVectors, zonalStatistics, prodVectors)
-
+                           sensorsPreprocess, Coregistration, Regularization,
+                           mergeRegularization, Clump, Grid, crownSearch,
+                           crownBuild, mosaicTilesVectorization, largeVectorization,
+                           mosaicTilesVectorization, largeSimplification, 
+                           largeSmoothing, clipVectors, zonalStatistics,
+                           prodVectors, slicSegmentation, superPixPos,
+                           superPixSplit, skClassificationsMerge)
         # control variable
         Sentinel1 = SCF.serviceConfigFile(cfg).getParam('chain', 'S1Path')
         shapeRegion = SCF.serviceConfigFile(cfg).getParam('chain', 'regionPath')
@@ -207,7 +209,9 @@ class iota2():
         rssize = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'rssize')
         inland = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'inland')
         iota2_outputs_dir = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
+        use_scikitlearn = SCF.serviceConfigFile(self.cfg).getParam('scikit_models_parameters', 'model_type') is not None
         nomenclature = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'nomenclature')
+        enable_autoContext = SCF.serviceConfigFile(cfg).getParam('chain', 'enable_autoContext')
 
         # will contains all IOTA² steps
         s_container = StepContainer()
@@ -275,6 +279,9 @@ class iota2():
         step_classification = classification.classification(cfg,
                                                             config_ressources,
                                                             self.workingDirectory)
+        step_sk_classifications_merge = skClassificationsMerge.ScikitClassificationsMerge(cfg,
+                                                                                          config_ressources,
+                                                                                          self.workingDirectory)
         step_confusion_sar_opt = confusionSAROpt.confusionSAROpt(cfg,
                                                                  config_ressources,
                                                                  self.workingDirectory)
@@ -347,22 +354,28 @@ class iota2():
         step_zonal_stats = zonalStatistics.zonalStatistics(cfg,
                                                            config_ressources,
                                                            self.workingDirectory)
-        
+        step_SLIC_seg = slicSegmentation.slicSegmentation(cfg,
+                                                          config_ressources,
+                                                          self.workingDirectory)
+        step_add_superPix_pos = superPixPos.superPixPos(cfg,
+                                                        config_ressources,
+                                                        self.workingDirectory)
+        step_split_superPix_ref = superPixSplit.superPixSplit(cfg,
+                                                              config_ressources,
+                                                              self.workingDirectory)
         step_prod_vectors = prodVectors.prodVectors(cfg,
                                                     config_ressources,
                                                     self.workingDirectory)
-        
-
-
         # build chain
         # init steps
         s_container.append(step_build_tree, "init")
         s_container.append(step_PreProcess, "init")
         if not "none" in VHR.lower():
             s_container.append(step_coregistration, "init")
-
         s_container.append(step_CommonMasks, "init")       
         s_container.append(step_pixVal, "init")
+        if enable_autoContext:
+            s_container.append(step_SLIC_seg, "init")
 
         # sampling steps
         s_container.append(step_env, "sampling")
@@ -374,22 +387,35 @@ class iota2():
         s_container.append(step_merge_samples, "sampling")
         s_container.append(step_models_samples_stats, "sampling")
         s_container.append(step_samples_selection, "sampling")
-        s_container.append(step_prepare_selection, "sampling")
-        s_container.append(step_generate_learning_samples, "sampling")
-        s_container.append(step_merge_learning_samples, "sampling")
-        if sampleManagement and sampleManagement.lower() != 'none':
-            s_container.append(step_copy_sample_between_models, "sampling")
-        if sample_augmentation_flag:
-            s_container.append(step_generate_samples, "sampling")
-        if dimred:
-            s_container.append(step_dimRed, "sampling")
 
-        # learning step
+        if enable_autoContext is True:
+            s_container.append(step_add_superPix_pos, "sampling")
+
+        s_container.append(step_prepare_selection, "sampling")
+
+        s_container.append(step_generate_learning_samples, "sampling")
+
+        if enable_autoContext is False:
+            s_container.append(step_merge_learning_samples, "sampling")
+            if sampleManagement and sampleManagement.lower() != 'none':
+                s_container.append(step_copy_sample_between_models, "sampling")
+            if sample_augmentation_flag:
+                s_container.append(step_generate_samples, "sampling")
+            if dimred:
+                s_container.append(step_dimRed, "sampling")
+        
+        if enable_autoContext is True:
+            s_container.append(step_split_superPix_ref, "sampling")
+
+        #~ # learning step
         s_container.append(step_learning, "learning")
 
-        # classifications steps
-        s_container.append(step_classiCmd, "classification")
+        #~ # classifications steps
+        if enable_autoContext is False:
+            s_container.append(step_classiCmd, "classification")
         s_container.append(step_classification, "classification")
+        if use_scikitlearn:
+            s_container.append(step_sk_classifications_merge, "classification")
         if ds_sar_opt:
             s_container.append(step_confusion_sar_opt, "classification")
             s_container.append(step_confusion_sar_opt_fusion, "classification")
@@ -397,7 +423,7 @@ class iota2():
         if classif_mode == "fusion" and shapeRegion:
             s_container.append(step_classif_fusion, "classification")
             s_container.append(step_manage_fus_indecision, "classification")
-
+        
         # mosaic step
         s_container.append(step_mosaic, "mosaic")
 

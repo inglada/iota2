@@ -129,10 +129,10 @@ class iota_testS2STSensor(unittest.TestCase):
         
         fake_raster = [np.array([[10, 55, 61],
                                  [100, 56, 42],
-                                 [1, 42, 29]][::-1])]
+                                 [1, 42, 29]])]
         fake_scene_classification = [np.array([[2, 0, 4],
                                                [0, 4, 2],
-                                               [1, 1, 10]][::-1])]
+                                               [1, 1, 10]])]
         for mtd in MTD_files:
             prod_list = self.generate_data_tree(os.path.join(self.test_working_directory, "T31TCJ"),
                                                 mtd)
