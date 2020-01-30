@@ -32,6 +32,7 @@ RM_IF_ALL_OK = True
 IOTA2_SCRIPTS = IOTA2DIR + "/iota2"
 sys.path.append(IOTA2_SCRIPTS)
 
+
 class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
 
     # before launching tests
@@ -44,7 +45,7 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
         )
         cls.all_tests_ok = []
         cls.config_test = os.path.join(IOTA2DIR, "data", "numpy_features",
-                                        "config_plugins.cfg")
+                                       "config_plugins.cfg")
         cls.code_path = os.path.join(IOTA2DIR, "data", "numpy_features")
         # Tests directory
         cls.test_working_directory = None
@@ -104,27 +105,21 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
         from functools import partial
         from iota2.Tests.UnitTests import TestsUtils
         from iota2.Common import rasterUtils as rasterU
-        from iota2.Common import OtbAppBank as otb
         from iota2.Common.customNumpyFeatures import customNumpyFeatures
-        from Common import ServiceConfigFile as SCF
-        from Common import IOTA2Directory
+        from iota2.Common import ServiceConfigFile as SCF
+        from iota2.Common import IOTA2Directory
         from config import Config
-        from Sensors.Sensors_container import Sensors_container
-        print(self.test_working_directory)
-        #dummy_raster_path = os.path.join(self.test_working_directory,
-        #                                 "DUMMY.tif")
+        from iota2.Sensors.Sensors_container import Sensors_container
 
-        
         array_to_rasterize = TestsUtils.generate_fake_s2_data(
             self.test_working_directory, "T31TCJ",
             ["20200101", "20200102"])
         # TestsUtils.fun_array("iota2_binary")
         # TestsUtils.arrayToRaster(array_to_rasterize, dummy_raster_path)
-        #self.config_test = ("./config_plugins.cfg")
-        
+        # self.config_test = ("./config_plugins.cfg")
         config_path_test = os.path.join(self.test_working_directory,
                                         "Config_TEST.cfg")
-        
+
         shutil.copy(self.config_test, config_path_test)
         S2ST_data = self.test_working_directory
         testPath = os.path.join(self.test_working_directory, "RUN")
@@ -163,7 +158,7 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
         labels_features_name = ["NDVI_20200101", "NDVI_20200102"]
         new_features_path = os.path.join(self.test_working_directory,
                                          "DUMMY_test.tif")
-        test_array, new_labels, _, _ , _= rasterU.apply_function(
+        test_array, new_labels, _, _, _ = rasterU.apply_function(
             otb_pipeline=time_s_app,
             labels=labels_features_name,
             working_dir=self.test_working_directory,
@@ -177,7 +172,7 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
         pipeline_shape = time_s_app.GetVectorImageAsNumpyArray("out").shape
         pipeline_shape = (pipeline_shape[2], pipeline_shape[0],
                           pipeline_shape[1])
-        #self.assertTrue(pipeline_shape == test_array.shape)
+        # self.assertTrue(pipeline_shape == test_array.shape)
 
         # check if the input function is well apply
         pipeline_array = time_s_app.GetVectorImageAsNumpyArray("out")
@@ -187,4 +182,3 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
 
         # purposely not implemented
         self.assertTrue(new_labels is None)
-        

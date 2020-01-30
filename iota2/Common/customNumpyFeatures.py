@@ -26,7 +26,6 @@ class dataContainer():
         for band, indices in zip(bands, time_series_indices):
             def get_band(band=band, indices=indices):
                 import numpy as np
-                #print("GET BAND {}".format(band), indices, self.data.shape)
                 data = np.take(self.data, indices, axis=2)
                 return data
             setattr(dataContainer, 'get_band_{}'.format(band), get_band)
