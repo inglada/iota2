@@ -31,8 +31,14 @@ class learnModel(IOTA2Step.Step):
         self.workingDirectory = workingDirectory
         self.output_path = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
         self.data_field = SCF.serviceConfigFile(self.cfg).getParam('chain', 'dataField')
+
         self.region_field = SCF.serviceConfigFile(self.cfg).getParam('chain', 'regionField')
         self.runs = SCF.serviceConfigFile(self.cfg).getParam('chain', 'runs')
+        
+        self.enable_autoContext = SCF.serviceConfigFile(self.cfg).getParam('chain', 'enable_autoContext')
+        self.autoContext_iterations = SCF.serviceConfigFile(self.cfg).getParam('chain', 'autoContext_iterations')
+        self.RAM = 1024.0 * get_RAM(self.resources["ram"])
+        self.superpix_data_field = "superpix"
         self.tiles = SCF.serviceConfigFile(self.cfg).getParam('chain', 'listTile').split("_")
         self.available_ram = 1024.0 * get_RAM(self.resources["ram"])
         self.use_scikitlearn = SCF.serviceConfigFile(self.cfg).getParam('scikit_models_parameters', 'model_type') is not None
@@ -52,6 +58,7 @@ class learnModel(IOTA2Step.Step):
         """
         from Learning import TrainingCmd as TC
         from Learning import TrainSkLearn
+        from Learning.trainAutoContext import train_autoContext_parameters
         parameters = []
 
         pathToModelConfig = os.path.join(self.output_path, "config_model", "configModel.cfg")
@@ -59,11 +66,15 @@ class learnModel(IOTA2Step.Step):
         if not os.path.exists(pathToModelConfig):
             with open(pathToModelConfig, "w") as configFile:
                 configFile.write(configModel)
-
-        if self.use_scikitlearn:
+        if self.use_scikitlearn is True and self.enable_autoContext is True:
+            raise ValueError("scikit-learn and autoContext modes are not compatibles")
+        elif self.use_scikitlearn is True and self.enable_autoContext is False:
             parameters = TrainSkLearn.get_learning_samples(os.path.join(self.output_path,
                                                                         "learningSamples"),
                                                            self.cfg)
+        elif self.enable_autoContext is True:
+            parameters = train_autoContext_parameters(self.output_path, 
+                                                      self.region_field)
         else:
             parameters = TC.launchTraining(self.cfg,
                                            self.data_field,
@@ -85,10 +96,9 @@ class learnModel(IOTA2Step.Step):
         from MPI import launch_tasks as tLauncher
         from Learning import TrainSkLearn
         from Learning.TrainSkLearn import cast_config_cv_parameters
+        from Learning.trainAutoContext import train_autoContext
 
-        bashLauncherFunction = tLauncher.launchBashCmd
-             
-        if self.use_scikitlearn:
+        if self.use_scikitlearn is True and self.enable_autoContext is False:
             model_parameters = SCF.serviceConfigFile(self.cfg).getSection("scikit_models_parameters")
             sk_model = model_parameters['model_type']
             del model_parameters['model_type']
@@ -115,8 +125,17 @@ class learnModel(IOTA2Step.Step):
                                                                                                      "cross_validation_folds"),
                                                             self.available_ram,
                                                             **model_parameters)
+        elif self.enable_autoContext is True:
+            step_function = lambda x: train_autoContext(x,
+                                                        self.cfg,
+                                                        self.superpix_data_field,
+                                                        self.autoContext_iterations,
+                                                        self.RAM,
+                                                        self.workingDirectory)
         else:
+            bashLauncherFunction = tLauncher.launchBashCmd
             step_function = lambda x: bashLauncherFunction(x)
+
         return step_function
 
     def step_outputs(self):

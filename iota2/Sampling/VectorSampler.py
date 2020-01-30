@@ -918,6 +918,8 @@ def generateSamples(train_shape_dic, pathWd, cfg, RAM=128, wMode=False,
     prevFeatures = cfg.getParam('argTrain', 'outputPrevFeatures')
     configPrevClassif = cfg.getParam('argTrain', 'annualClassesExtractionSource')
     config_annual_data = cfg.getParam('argTrain', 'prevFeatures')
+    
+    auto_context_enable = cfg.getParam('chain', 'enable_autoContext')
 
     folderSample = TestPath + "/learningSamples"
     if not os.path.exists(folderSample):
@@ -930,7 +932,7 @@ def generateSamples(train_shape_dic, pathWd, cfg, RAM=128, wMode=False,
     if pathWd:
         workingDirectory = pathWd
 
-    if cropMix is False:
+    if cropMix is False or auto_context_enable:
         samples = generateSamples_simple(folderSample, workingDirectory,
                                          trainShape, pathWd, folderFeatures,
                                          cfg, dataField, RAM,

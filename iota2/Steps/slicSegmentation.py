@@ -16,24 +16,26 @@
 import os
 
 from Steps import IOTA2Step
+from Cluster import get_RAM
 from Common import ServiceConfigFile as SCF
 
-class samplesByTiles(IOTA2Step.Step):
+class slicSegmentation(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
-        resources_block_name = "samplesSelection_tiles"
-        super(samplesByTiles, self).__init__(cfg, cfg_resources_file, resources_block_name)
+        resources_block_name = "slic_segmentation"
+        super(slicSegmentation, self).__init__(cfg, cfg_resources_file, resources_block_name)
 
         # step variables
+        self.RAM = 1024.0 * get_RAM(self.resources["ram"])
         self.workingDirectory = workingDirectory
-        self.output_path = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
-        self.tile_name_pos = 0
 
     def step_description(self):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Split pixels selected to learn models by tiles")
+        description = ("Compute SLIC segmentation by tile")
+        #~ About SLIC segmentation implementation :
+        #~     https://ieeexplore.ieee.org/document/8606448
         return description
 
     def step_inputs(self):
@@ -42,16 +44,7 @@ class samplesByTiles(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
-        from Common.FileUtils import FileSearch_AND
-        sample_sel_directory = os.path.join(SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath'),
-                                            "samplesSelection")
-        sampled_vectors = FileSearch_AND(sample_sel_directory, True, "selection.sqlite")
-        tiles = []
-        for sampled_vector in sampled_vectors:
-            tile_name = os.path.splitext(os.path.basename(sampled_vector))[0].split("_")[self.tile_name_pos]
-            if not tile_name in tiles and tile_name != "samples":
-                tiles.append(tile_name)
-        tiles = sorted(tiles)
+        tiles = SCF.serviceConfigFile(self.cfg).getParam('chain', 'listTile').split(" ")
         return tiles
 
     def step_execute(self):
@@ -62,10 +55,9 @@ class samplesByTiles(IOTA2Step.Step):
             the function to execute as a lambda function. The returned object
             must be a lambda function.
         """
-        from Sampling import SamplesSelection
-        step_function = lambda x: SamplesSelection.prepareSelection(os.path.join(self.output_path, "samplesSelection"),
-                                                                    x,
-                                                                    self.workingDirectory)
+        from Segmentation import segmentation
+        
+        step_function = lambda x: segmentation.slicSegmentation(x, self.cfg, self.RAM, self.workingDirectory)
         return step_function
 
     def step_outputs(self):

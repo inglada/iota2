@@ -37,7 +37,7 @@ def mergeVectors(infiles, outfile, outformat='ESRI Shapefile'):
 
    # Append first file to the output file 
    file1 = files[0]
-   fusion = "ogr2ogr -f %s "%(outformat) + outfile + " " + file1
+   fusion = "ogr2ogr -f '%s' "%(outformat) + outfile + " " + file1
    os.system(fusion)
 
    layername = os.path.splitext(os.path.basename(outfile))[0]
@@ -46,7 +46,7 @@ def mergeVectors(infiles, outfile, outformat='ESRI Shapefile'):
    progress = 0
    for f in range(1, nbfiles):
       if not isinstance(files[f], list):
-         fusion2 = "ogr2ogr -f %s -update -append "%(outformat) + outfile + " " + files[f] + " -nln " + layername
+         fusion2 = "ogr2ogr -f '%s' -update -append "%(outformat) + outfile + " " + files[f] + " -nln " + layername
          os.system(fusion2)
       progress += 1
       print("Progress : %s"%(float(progress) / float(nbfiles) * 100.))

@@ -91,6 +91,8 @@ class serviceConfigFile:
                              "dempstershafer_mob": "precision",
                              "merge_final_classifications_ratio": 0.1,
                              "keep_runs_results": True,
+                             "enable_autoContext": False,
+                             "autoContext_iterations": 3,
                              "remove_tmp_files": False}
             self.init_section("chain", chain_default)
             #init coregistration section
@@ -518,6 +520,8 @@ class serviceConfigFile:
             self.testVarConfigFile('chain', 'colorTable', str)
             self.testVarConfigFile('chain', 'mode_outside_RegionSplit', float)
             self.testVarConfigFile('chain', 'merge_final_classifications', bool)
+            self.testVarConfigFile('chain', 'enable_autoContext', bool)
+            self.testVarConfigFile('chain', 'autoContext_iterations', int)
             if self.getParam("chain", "merge_final_classifications"):
                 self.testVarConfigFile('chain', 'merge_final_classifications_undecidedlabel', int)
                 self.testVarConfigFile('chain', 'merge_final_classifications_ratio', float)
@@ -600,10 +604,10 @@ class serviceConfigFile:
                 #S2 variable check
                 self.testVarConfigFile('Sentinel_2', 'temporalResolution', int)
                 self.testVarConfigFile('Sentinel_2', 'keepBands', Sequence)
-            
+
             if self.cfg.chain.random_seed != None:
                 self.testVarConfigFile('chain', 'random_seed', int)
-
+                
             nbTile = len(self.cfg.chain.listTile.split(" "))
 
             # directory tests
@@ -666,6 +670,8 @@ class serviceConfigFile:
                 raise sErr.configError("these parameters are incompatible dempster_shafer_SAR_Opt_fusion : True and S1Path : 'None'")
             if self.cfg.argTrain.dempster_shafer_SAR_Opt_fusion and 'None' in self.cfg.chain.userFeatPath and 'None' in self.cfg.chain.L5Path_old and 'None' in self.cfg.chain.L8Path and 'None' in self.cfg.chain.L8Path_old and 'None' in self.cfg.chain.S2Path and 'None' in self.cfg.chain.S2_S2C_Path:
                 raise sErr.configError("to perform post-classification fusion, optical data must be used")
+            if self.cfg.scikit_models_parameters.model_type is not None and self.cfg.chain.enable_autoContext is True:
+                raise sErr.configError("these parameters are incompatible enable_autoContext : True and model_type")
         # Error managed
         except sErr.configFileError:
             print("Error in the configuration file " + self.pathConf)
