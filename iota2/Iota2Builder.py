@@ -86,12 +86,12 @@ class iota2():
         for step_place, step in enumerate(self.steps):
             self.steps_group[step.step_group][step_place + 1] = step.step_description()
 
-    def print_step_summarize(self, start, end, show_resources=False, checked="x", log=False, running_step=False):
+    def print_step_summarize(self, start, end, show_resources=False, checked="x", log=False, running_step=False, running_sym='r'):
         """
         print iota2 steps that will be run
         """
         if log:
-            summarize = "Full processing include the following steps (x : done; r : running):\n"
+            summarize = "Full processing include the following steps (x : done; r : running; f : failed):\n"
         else:
             summarize = "Full processing include the following steps (checked steps will be run):\n"
         step_position = 0
@@ -104,7 +104,7 @@ class iota2():
                 if key >= start and key<=end:
                     highlight="[{}]".format(checked)
                 if key == end and running_step:
-                    highlight="[{}]".format("r")
+                    highlight="[{}]".format(running_sym)
                 summarize += "\t {} Step {}: {}".format(highlight, key ,
                                                         self.steps_group[group][key])
                 if show_resources:

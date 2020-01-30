@@ -240,7 +240,7 @@ def remove_tmp_files(cfg, current_step, chain):
 if __name__ == "__main__":
 
     from Common import ServiceConfigFile as SCF
-
+    from Common import DebugUtils as du
     parser = argparse.ArgumentParser(description = "This function allow you to"
                                                    "launch iota2 processing chain"
                                                    "as MPI process or not")
@@ -367,6 +367,20 @@ if __name__ == "__main__":
                                          logger_lvl)
         if not step_completed:
             steps[step-1].step_status = "fail"
+            states = chain_to_process.print_step_summarize(key_init, step,
+                                                           log=True,
+                                                           running_step=True,
+                                                           running_sym='f')
+            global_log_file = os.path.join(cfg.getParam('chain', 'outputPath'),
+                                           "logs/Global_status.log")
+            global_log = open(global_log_file,"w")
+            global_log.write(states)
+            log_info= du.get_log_info(cfg.getParam('chain',
+                                                          'outputPath'),
+                                      args.configPath, logFile)
+            global_log.write(log_info)
+            global_log.close()
+            
             break
         else :
             steps[step-1].step_status = "success"            
