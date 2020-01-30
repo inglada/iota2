@@ -39,6 +39,15 @@ from osgeo.gdalconst import *
 from Common.Utils import run
 from Common.Utils import remove_in_string_list
 
+def is_writable_directory(directory_path):
+    """
+    """
+    out = True
+    try:
+        ensure_dir(directory_path)
+    except:
+        pause = input("nn")
+
 def get_iota2_project_dir():
     """
     """

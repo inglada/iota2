@@ -438,7 +438,7 @@ if __name__ == "__main__":
     cfg = SCF.serviceConfigFile(args.config)
     try:
         launchChain(cfg, args.config_ressources, args.parallel_mode)
-    except sErr.osoError as e:
+    except sErr.i2Error as e:
         print(e)
     except Exception as e:
         print(e)
