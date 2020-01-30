@@ -100,11 +100,11 @@ segments_ as new features.
 
 +--------------------------------------------------+--------------------------------------------------+
 | .. figure:: ./Images/superpixel_segment.jpg      | .. figure:: ./Images/autoContextHistograms.jpg   |
-|   :alt: superpixel segment and classification     |   :alt: histogram feature                       |
+|   :alt: superpixel segment and classification    |   :alt: histogram feature                        |
 |   :scale: 50 %                                   |   :scale: 50 %                                   |
 |   :align: center                                 |   :align: center                                 |
 |                                                  |                                                  |
-|   superpixel segment and classification           |   histogram feature                             |
+|   superpixel segment and classification          |   histogram feature                              |
 +--------------------------------------------------+--------------------------------------------------+
 
 Once every histogram is calculated over the whole segments, a new model
