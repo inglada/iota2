@@ -116,34 +116,6 @@ def get_config_file(configfile):
     return chain_log + "\n"*3
 
 
-def color_file_from_config(configfile):
-    from Common import ServiceConfigFile as SCF
-    cfg = SCF.serviceConfigFile(configfile)
-    colorfile = cfg.getParam("chain", "colorTable")
-    cont_color = "Unable to open colorTable file \n"
-    with open(colorfile, "r") as clt:
-        cont_color = clt.read()
-    chain_log = "=" * 79 + "\n"
-    chain_log += " " * 34 + "Color Table" + " " * 34 + "\n"
-    chain_log += "=" * 79 + "\n"
-    chain_log += cont_color
-    return chain_log + "\n"*3
-
-
-def nomenclature_file_from_config(configfile):
-    from Common import ServiceConfigFile as SCF
-    cfg = SCF.serviceConfigFile(configfile)
-    colorfile = cfg.getParam("chain", "nomenclaturePath")
-    cont_nomen = "Unable to open nomenclature file \n"
-    with open(colorfile, "r") as clt:
-        cont_nomen = clt.read()
-    chain_log = "=" * 79 + "\n"
-    chain_log += " " * 31 + "Nomenclature file" + " " * 31 + "\n"
-    chain_log += "=" * 79 + "\n"
-    chain_log += cont_nomen
-    return chain_log + "\n"*3
-
-
 def get_cont_path_from_config(configfile):
     import os
     from Common import ServiceConfigFile as SCF
@@ -210,8 +182,6 @@ def get_log_info(path, configfile, logfile):
     chain += get_log_file(logfile)
     chain += get_cont_path_from_config(configfile)
     chain += get_cont_file_from_config(configfile)
-    # chain += color_file_from_config(configfile)
-    # chain += nomenclature_file_from_config(configfile)
     chain += get_locale(path)
     chain += get_package_version(path)
     return chain
