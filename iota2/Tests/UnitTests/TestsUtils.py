@@ -180,7 +180,7 @@ def generate_fake_s2_data(root_directory, tile_name, dates):
     originX = 566377
     originY = 6284029
     array_name = "iota2_binary"
-    for date in dates:
+    for cpt, date in enumerate(dates):
         date_dir = os.path.join(tile_dir,
                                 ("SENTINEL2B_{}-000000-"
                                  "000_L2A_{}_D_V1-7".format(date, tile_name)))
@@ -189,7 +189,7 @@ def generate_fake_s2_data(root_directory, tile_name, dates):
         ensure_dir(date_dir)
         ensure_dir(mask_date_dir)
         all_bands = []
-        for cpt, mask in enumerate(masks_of_interest):
+        for mask in masks_of_interest:
             new_mask = os.path.join(mask_date_dir,
                                     ("SENTINEL2B_{}-000000-000_L2A"
                                      "_{}_D_V1-7_FRE_{}.tif".format(date,
@@ -315,7 +315,7 @@ def fun_array(fun):
 
 def arrayToRaster(inArray, outRaster_path, output_format="int",
                   output_driver="GTiff",
-                  pixSize=30, originX=777225.58, originY=6825084.53,
+                  pixSize=10, originX=777225.58, originY=6825084.53,
                   epsg_code=2154):
     """usage : from an array of a list of array, create a raster
 
