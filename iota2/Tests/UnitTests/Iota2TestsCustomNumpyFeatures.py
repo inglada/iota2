@@ -111,9 +111,9 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
         from config import Config
         from iota2.Sensors.Sensors_container import Sensors_container
 
-        array_to_rasterize = TestsUtils.generate_fake_s2_data(
-            self.test_working_directory, "T31TCJ",
-            ["20200101", "20200102"])
+        TestsUtils.generate_fake_s2_data(self.test_working_directory, "T31TCJ",
+                                         ["20200101", "20200512", "20200702",
+                                          "20201002"])
         # TestsUtils.fun_array("iota2_binary")
         # TestsUtils.arrayToRaster(array_to_rasterize, dummy_raster_path)
         # self.config_test = ("./config_plugins.cfg")
@@ -142,14 +142,25 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
         cfg_test.Features.function = 'get_identity'
         cfg_test.save(open(config_path_test, 'w'))
         cfg = SCF.serviceConfigFile(config_path_test)
-        IOTA2Directory.GenerateDirectories(cfg)
+        IOTA2Directory.GenerateDirectories(config_path_test)
         tile_name = "T31TCJ"
         working_dir = None
         sensors = Sensors_container(config_path_test, tile_name, working_dir)
         sensors.sensors_preprocess()
-        time_s = sensors.get_sensors_time_series()
+        list_sensors = sensors.get_enabled_sensors()
+        sensor = list_sensors[0]
+        ((time_s_app, app_dep), features_labels) = sensor.get_time_series()
+
+        time_s_app.ExecuteAndWriteOutput()
+        time_s = sensor.get_time_series_masks()
+        time_s_app, app_dep, nbdates = time_s
+        time_s_app.ExecuteAndWriteOutput()
+
+        input("wait")
+        ((time_s_app, app_dep), features_labels) = sensor.get_time_series_gapFilling()
         # only one sensor for test
-        sensor_name, ((time_s_app, app_dep), features_labels) = time_s[0]
+        # sensor_name, ((time_s_app, app_dep), features_labels) = time_s[0]
+        # ( (time_s_app, app_dep), features_labels) = time_s
 
         # Then apply function
         cust = customNumpyFeatures(config_path_test)
@@ -168,7 +179,7 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
             chunck_size_y=5,
             ram=128)
         time_s_app.ExecuteAndWriteOutput()
-        time_s_app.Execute()
+        #time_s_app.Execute()
         pipeline_shape = time_s_app.GetVectorImageAsNumpyArray("out").shape
         pipeline_shape = (pipeline_shape[2], pipeline_shape[0],
                           pipeline_shape[1])
@@ -182,3 +193,4 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
 
         # purposely not implemented
         self.assertTrue(new_labels is None)
+        self.assertTrue(False)

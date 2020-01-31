@@ -1,7 +1,7 @@
 
 def get_identity(self):
-    print(self.get_band_b1())
-    return self.get_band_b1()
+    print(self.get_band_B2())
+    return self.get_band_B2()
 
 
 def custom_function(self):
