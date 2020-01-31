@@ -63,7 +63,7 @@ class customNumpyFeatures(dataContainer):
         import sys
         import importlib
         import types  # solves issues about type and inheritance
-        from Common import ServiceConfigFile as SCF
+        from ioa2.Common import ServiceConfigFile as SCF
         super(customNumpyFeatures, self).__init__(cfg_file)
         cfg = SCF.serviceConfigFile(cfg_file)
         path = cfg.getParam("Features", "codePath")
