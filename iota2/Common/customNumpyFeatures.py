@@ -79,7 +79,6 @@ class customNumpyFeatures(dataContainer):
                                               "functions").split(" ")
             for fun_name in self.fun_name_list:
                 func = (getattr(mod, fun_name))
-                # self.custom_features = types.MethodType(func, dataContainer)
                 setattr(self, fun_name, types.MethodType(func, dataContainer))
 
     def process(self, data):
