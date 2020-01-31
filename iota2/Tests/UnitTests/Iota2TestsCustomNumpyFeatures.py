@@ -139,7 +139,7 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
         cfg_test.GlobChain.writeOutputs = False
         cfg_test.Features.codePath = self.code_path
         cfg_test.Features.namefile = 'user_custom_function'  # whithout .py ?
-        cfg_test.Features.function = 'get_identity'
+        cfg_test.Features.functions = 'get_identity get_ndvi'
         cfg_test.save(open(config_path_test, 'w'))
         cfg = SCF.serviceConfigFile(config_path_test)
         IOTA2Directory.GenerateDirectories(config_path_test)
@@ -156,7 +156,7 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
         time_s_app, app_dep, nbdates = time_s
         time_s_app.ExecuteAndWriteOutput()
 
-        input("wait")
+
         ((time_s_app, app_dep), features_labels) = sensor.get_time_series_gapFilling()
         # only one sensor for test
         # sensor_name, ((time_s_app, app_dep), features_labels) = time_s[0]

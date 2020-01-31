@@ -61,12 +61,17 @@ class customNumpyFeatures(dataContainer):
 
     def __init__(self, cfg_file):
         import sys
+        import os
         import importlib
         import types  # solves issues about type and inheritance
         from iota2.Common import ServiceConfigFile as SCF
         super(customNumpyFeatures, self).__init__(cfg_file)
         cfg = SCF.serviceConfigFile(cfg_file)
         path = cfg.getParam("Features", "codePath")
+        if path is None:
+            raise ("For use custom features, the codePath must no be None")
+        if not os.isdir(path):
+            raise ("Error: {} is not a correct path".format(path))
         module = cfg.getParam("Features", "namefile")
         sys.path.insert(0, path)
         # TODO: check if module is a module and func a function
