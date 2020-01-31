@@ -342,7 +342,7 @@ class Sentinel_2_L3A(Sensor):
 
         return s2_l3a_border, app_dep
 
-    def write_interpolation_dates_file(self):
+    def write_interpolation_dates_file(self, write=True):
         """
         TODO : mv to base-class
         """

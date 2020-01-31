@@ -377,7 +377,7 @@ class Sentinel_2_S2C(Sensor):
                        key=lambda x : os.path.basename(x).split("_")[self.date_position].split("T")[0])
         return masks
 
-    def write_interpolation_dates_file(self):
+    def write_interpolation_dates_file(self, write=True):
         """
         TODO : mv to base-class
         """

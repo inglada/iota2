@@ -192,7 +192,7 @@ class Landsat_8_old(Sensor):
                 input_date_file.write("\n".join(all_available_dates))
         return date_file, all_available_dates
 
-    def write_interpolation_dates_file(self):
+    def write_interpolation_dates_file(self, write=True):
         """
         TODO : mv to base-class
         """
