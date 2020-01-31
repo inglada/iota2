@@ -361,7 +361,7 @@ class Sentinel_2_L3A(Sensor):
             date_interp_max = self.cfg_IOTA2.getParam("Sentinel_2_L3A", "endDate")
 
         dates = [str(date).replace("-","") for date in dateInterval(date_interp_min, date_interp_max, self.temporal_res)]
-        if not os.path.exists(interp_date_file):
+        if not os.path.exists(interp_date_file) and write:
             with open(interp_date_file, "w") as interpolation_date_file:
                 interpolation_date_file.write("\n".join(dates))
         return interp_date_file, dates
