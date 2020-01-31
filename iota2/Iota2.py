@@ -40,6 +40,7 @@ if MPI_VERSION == 200:
 elif MPI_VERSION >= 300:
     MPI.pickle.__init__(dill.dumps, dill.loads)
 
+
 class MPIService():
     """
     Class for storing the MPI context
@@ -49,10 +50,12 @@ class MPIService():
         self.rank = self.comm.Get_rank()
         self.size = self.comm.Get_size()
 
+
 class JobArray():
     """
     Class for storing a function to be applied to an array of parameters.
-    - job is a callable object like a lambda expression; it takes a single parameter
+    - job is a callable object like a lambda expression;
+      it takes a single parameter
     - param_array is a list of the parameters for each call to job
     """
     def __init__(self, job, param_array):
@@ -61,7 +64,8 @@ class JobArray():
 
 
 def str2bool(v):
-    if v.lower() not in ('yes', 'true', 't', 'y', '1', 'no', 'false', 'f', 'n', '0'):
+    if v.lower() not in ('yes', 'true', 't', 'y', '1', 'no', 'false',
+                         'f', 'n', '0'):
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
     retour = True
@@ -69,19 +73,21 @@ def str2bool(v):
         retour = False
     return retour
 
+
 def stop_workers(mpi_service):
     """
     stop workers
     :param mpi_service
     """
     for i in range(1, mpi_service.size):
-        print("Worker process with rank {}/{} stopped".format(i,mpi_service.size-1))
+        print("Worker process with rank {}/{} "
+              "stopped".format(i, mpi_service.size-1))
         mpi_service.comm.send(None, dest=i, tag=1)
 
 
 def launchTask(function, parameter, logger, mpi_services=None):
     """
-    usage : 
+    usage :
     IN
     OUT
     """
@@ -287,7 +293,7 @@ if __name__ == "__main__":
         rm_tmp = cfg.getParam('chain', 'remove_tmp_files')
     except:
         rm_tmp = False
-            
+
     if args.start == args.end == 0:
         all_steps = chain_to_process.get_steps_number()
         args.start = all_steps[0]
@@ -323,7 +329,7 @@ if __name__ == "__main__":
                 print ("Running step {}: {} ({} tasks)".format(step, chain_to_process.steps_group[group][step],
                                                                len(param_array)))
                 break
-        
+
         if args.parameters:
             params = args.parameters
         else:
