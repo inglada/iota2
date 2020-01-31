@@ -63,7 +63,7 @@ class customNumpyFeatures(dataContainer):
         import sys
         import importlib
         import types  # solves issues about type and inheritance
-        from ioa2.Common import ServiceConfigFile as SCF
+        from iota2.Common import ServiceConfigFile as SCF
         super(customNumpyFeatures, self).__init__(cfg_file)
         cfg = SCF.serviceConfigFile(cfg_file)
         path = cfg.getParam("Features", "codePath")
@@ -71,17 +71,28 @@ class customNumpyFeatures(dataContainer):
         sys.path.insert(0, path)
         # TODO: check if module is a module and func a function
         mod = importlib.import_module(module)
-        self.fun_name = cfg.getParam("Features", "function")
-        func = (getattr(mod, self.fun_name))
-        self.custom_features = types.MethodType(func, dataContainer)
+        # Function can be multiple
+        self.fun_name_list = []
+        param = cfg.getParam("Features", "functions")
+        if (param is not None and len(param) != 0):
+            self.fun_name_list = cfg.getParam("Features",
+                                              "functions").split(" ")
+            for fun_name in self.fun_name_list:
+                func = (getattr(mod, fun_name))
+                # self.custom_features = types.MethodType(func, dataContainer)
+                setattr(self, fun_name, types.MethodType(func, dataContainer))
 
     def process(self, data):
         import numpy as np
         self.data = data
+
         try:
-            feat = self.custom_features()
-            return np.concatenate((data, feat), axis=2)
+            for fun_name in self.fun_name_list:
+                func = (getattr(self, fun_name))
+                feat = func()
+                self.data = np.concatenate((self.data, feat), axis=2)
+            return self.data
         except Exception as e:
             print("Error during custom_features computation : {}".format(
-                self.fun_name))
+                fun_name))
             print(e)
