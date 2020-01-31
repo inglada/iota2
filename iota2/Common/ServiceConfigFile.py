@@ -91,6 +91,7 @@ class serviceConfigFile:
                              "dempstershafer_mob": "precision",
                              "merge_final_classifications_ratio": 0.1,
                              "keep_runs_results": True,
+                             "check_inputs": True,
                              "enable_autoContext": False,
                              "autoContext_iterations": 3,
                              "remove_tmp_files": False}
@@ -507,6 +508,7 @@ class serviceConfigFile:
             if self.getParam("chain", "regionPath"):
                 check_region_vector(self.cfg)
             self.testVarConfigFile('chain', 'regionField', str)
+            self.testVarConfigFile('chain', 'check_inputs', bool)
             self.testVarConfigFile('chain', 'model', str)
             self.testVarConfigFile('chain', 'enableCrossValidation', bool)
             self.testVarConfigFile('chain', 'groundTruth', str)

@@ -180,7 +180,7 @@ class iota2():
                            mosaicTilesVectorization, largeSimplification, 
                            largeSmoothing, clipVectors, zonalStatistics,
                            prodVectors, slicSegmentation, superPixPos,
-                           superPixSplit, skClassificationsMerge, checkInputs)
+                           superPixSplit, skClassificationsMerge)
         # control variable
         Sentinel1 = SCF.serviceConfigFile(cfg).getParam('chain', 'S1Path')
         shapeRegion = SCF.serviceConfigFile(cfg).getParam('chain', 'regionPath')
@@ -211,7 +211,6 @@ class iota2():
         s_container = StepContainer()
 
         # class instance
-        step_data_check = checkInputs.CheckInputs(cfg, config_ressources)
         step_build_tree = IOTA2DirTree.IOTA2DirTree(cfg, config_ressources)
         step_PreProcess = sensorsPreprocess.sensorsPreprocess(cfg,
                                                               config_ressources,
@@ -363,7 +362,6 @@ class iota2():
                                                     self.workingDirectory)
         # build chain
         # init steps
-        s_container.append(step_data_check, "init")
         s_container.append(step_build_tree, "init")
         s_container.append(step_PreProcess, "init")
         if not "none" in VHR.lower():

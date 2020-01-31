@@ -157,6 +157,7 @@ def mpi_schedule(iota2_step, param_array_origin, mpi_service=MPIService(),logPat
                 returned_data_list.append(returned_data)
                 parameters_success.append(success)
                 #Write worker log
+                fut.ensure_dir(os.path.split(logPath)[0])
                 with open(logPath,"a+") as log_f:
                     log_f.write(worker_complete_log)
                 nb_completed_tasks += 1
@@ -164,19 +165,22 @@ def mpi_schedule(iota2_step, param_array_origin, mpi_service=MPIService(),logPat
                     task_param = param_array.pop(0)
                     mpi_service.comm.send([job, task_param,logger_lvl, enable_console], dest=worker_rank, tag=0)
         else:
-            #if not launch thanks to mpirun, launch each parameters one by one
+            #if not lanch thanks to mpirun, launch each parameters one by one
             for param in param_array:
                 worker_log = sLog.Log_task(logger_lvl, enable_console)
                 worker_complete_log, start_date, end_date, returned_data, success = launchTask(job,
                                                                                                param,
                                                                                                worker_log)
+                fut.ensure_dir(os.path.split(logPath)[0])
                 with open(logPath,"a+") as log_f:
                     log_f.write(worker_complete_log)
                 returned_data_list.append(returned_data)
                 parameters_success.append(success)
     except KeyboardInterrupt:
         raise
-    except:
+    except Exception as e:
+        print(e)
+        parameters_success.append(False)
         if mpi_service.rank == 0 and mpi_service.size > 1:
             print("Something went wrong, we should log errors.")
             traceback.print_exc()

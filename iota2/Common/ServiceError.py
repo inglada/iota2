@@ -18,6 +18,20 @@ class i2Error(Exception):
     """ Base class for exceptions in iota2 chain"""
     pass
 
+
+class directoryError(i2Error):
+    """ Base subclass for exception in the configuration file
+        IN :
+            msg [string] : explanation of the error
+    """
+    def __init__(self, directory_path):
+        msg = "directory : {} cannot be created".format(directory_path)
+        i2Error.__init__(self, msg)
+        self.msg = msg
+    def __str__(self):
+        return repr(self.msg)
+
+
 class configFileError(i2Error):
     """ Base subclass for exception in the configuration file
         IN :
@@ -27,7 +41,8 @@ class configFileError(i2Error):
         i2Error.__init__(self, msg)
         self.msg = msg
     def __str__(self):
-        return repr(self.msg)
+        return repr("iota2 ERROR : {}".format(self.msg))
+
 
 class dataBaseError(i2Error):
     """
@@ -38,6 +53,7 @@ class dataBaseError(i2Error):
     def __str__(self):
         return repr(self.msg)
 
+
 class invalidGeometry(dataBaseError):
     """
     """
@@ -46,6 +62,7 @@ class invalidGeometry(dataBaseError):
         self.msg = msg
     def __str__(self):
         return repr(self.msg)
+
 
 class invalidProjection(dataBaseError):
     """
@@ -56,6 +73,7 @@ class invalidProjection(dataBaseError):
     def __str__(self):
         return repr(self.msg)
 
+
 class emptyFeatures(dataBaseError):
     """
     """
@@ -64,6 +82,7 @@ class emptyFeatures(dataBaseError):
         self.msg = msg
     def __str__(self):
         return repr(self.msg)
+
 
 class emptyGeometry(dataBaseError):
     """
@@ -74,6 +93,7 @@ class emptyGeometry(dataBaseError):
     def __str__(self):
         return repr(self.msg)
 
+
 class duplicatedFeatures(dataBaseError):
     """
     """
@@ -82,6 +102,7 @@ class duplicatedFeatures(dataBaseError):
         self.msg = msg
     def __str__(self):
         return repr(self.msg)
+
 
 class containsMultipolygon(dataBaseError):
     """

@@ -46,7 +46,9 @@ def is_writable_directory(directory_path):
     try:
         ensure_dir(directory_path)
     except:
-        pause = input("nn")
+        out = False
+    return out
+
 
 def get_iota2_project_dir():
     """
