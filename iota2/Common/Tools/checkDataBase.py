@@ -84,6 +84,7 @@ def remove_invalid_features(shapefile):
     layer.ResetReading()
     return none_geom
 
+
 def check_region_shape(input_vector, output_vector, field, epsg, do_corrections, display=False):
     """
     """
