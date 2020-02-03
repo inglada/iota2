@@ -39,6 +39,7 @@ class remove_in_string_list(object):
                     if pattern not in elem:
                         if elem not in results_filtered:
                             results_filtered.append(elem)
+                    results = results_filtered
             return results_filtered
         return wrapped_f
 
