@@ -32,6 +32,19 @@ class directoryError(i2Error):
         return repr(self.msg)
 
 
+class intersectionError(i2Error):
+    """ Base subclass for exception in the configuration file
+        IN :
+            msg [string] : explanation of the error
+    """
+    def __init__(self):
+        msg = "no intersection between georeferenced inputs"
+        i2Error.__init__(self, msg)
+        self.msg = msg
+    def __str__(self):
+        return repr(self.msg)
+
+
 class configFileError(i2Error):
     """ Base subclass for exception in the configuration file
         IN :
