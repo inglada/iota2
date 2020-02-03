@@ -192,7 +192,7 @@ def check_ground_truth(input_vector, output_vector, data_field, epsg, do_correct
     errors = []
     # check vector's projection
     vector_projection = get_vector_proj(input_vector)
-    if not epsg == vector_projection:
+    if not int(epsg) == int(vector_projection):
         error_msg = "{} projection ({}) incorrect".format(input_vector, vector_projection)
         errors.append(ServiceError.invalidProjection(error_msg))
 
@@ -205,11 +205,11 @@ def check_ground_truth(input_vector, output_vector, data_field, epsg, do_correct
     # check field
     if not data_field in input_vector_fields:
         errors.append(ServiceError.missingField(input_vector, data_field))
-
-    # check field's type
-    label_field_type = getFieldType(input_vector, data_field)
-    if not label_field_type is int:
-        errors.append(ServiceError.fieldType(input_vector, data_field, int))
+    else:
+        # check field's type
+        label_field_type = getFieldType(input_vector, data_field)
+        if not label_field_type is int:
+            errors.append(ServiceError.fieldType(input_vector, data_field, int))
 
     # geometries checks 
     shape_no_empty_name = "no_empty.shp"
