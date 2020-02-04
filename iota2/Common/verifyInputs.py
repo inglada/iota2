@@ -133,6 +133,14 @@ def exist_intersection(geom_raster_envelope,
     return intersection_found
 
 
+def check_sqlite_db(i2_output_path):
+    """check if every sqlite database could be open
+    """
+    from Common.FileUtils import FileSearch_AND
+    # explicit call to the undecorate function thanks to __wrapped__
+    return [ServiceError.sqliteCorrupted(elem) for elem in FileSearch_AND.__wrapped__(i2_output_path, True, "sqlite-journal")]
+
+
 def check_data_intersection(configuration_file_path: str) -> List:
     """ check if there is an intersection between the ground truth, the regions
         and tiles
@@ -225,10 +233,13 @@ def check_iota2_inputs(configuration_file_path: str):
     if not error_output_i2_dir:
         path_errors.append(ServiceError.directoryError(i2_output_path))
 
+    # check if every sqlite database could be read
+    sql_db_errors = check_sqlite_db(i2_output_path)
+
     # check if the intersection of the ground truth, the region shape, tiles is not empty
     errors_instersection = check_data_intersection(configuration_file_path)
 
-    errors = gt_errors + regions_errors + path_errors + errors_instersection
+    errors = gt_errors + regions_errors + path_errors + errors_instersection + sql_db_errors
     if errors:
         sys.tracebacklimit = 0
         errors_sum = "\n".join(["ERROR : {}".format(error.msg) for error in errors])
