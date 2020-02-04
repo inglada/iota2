@@ -199,8 +199,8 @@ def check_iota2_inputs(configuration_file_path: str):
         - the region shape (if exists)
         - if an intersection exists between data
         - reachable paths
-    TODO :
         - check corrupted data
+    TODO :
         - check if all expected sensors data exists, new sensors methods ?
     """
 
