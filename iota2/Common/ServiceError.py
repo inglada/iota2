@@ -64,6 +64,18 @@ class dataBaseError(i2Error):
         i2Error.__init__(self, msg)
         self.msg = msg
     def __str__(self):
+        return repr("dataBaseError : {}".format(self.msg))
+
+
+class sqliteCorrupted(dataBaseError):
+    """
+    """
+    def __init__(self, journalsqlite_path):
+        sqlite_path = journalsqlite_path.replace("-journal", "")
+        msg = "'.sqlite-journal' file detetected, please remove {} and {}".format(journalsqlite_path, sqlite_path)
+        i2Error.__init__(self, msg)
+        self.msg = msg
+    def __str__(self):
         return repr(self.msg)
 
 
