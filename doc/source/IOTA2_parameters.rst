@@ -39,7 +39,7 @@ chain.check_inputs
 *Notes*
     If set, iota2 will spend time to check it's inputs.
     If errors comes during the iota² run, please send it back to us. We will
-    add it as new check
+    add it as new check.
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
