@@ -125,7 +125,7 @@ def generateFeatures(
         AllFeatures = sensor_features
         output_param_name = getInputParameterOutput(sensor_features)
         AllFeatures.SetParameterString(output_param_name, features_raster)
-    if customFeature:
+    if customFeatures:
         cust = customNumpyFeatures(config_path)
         function_partial = partial(cust.process)
         labels_features_name = ""  # TODO : how to feel labels_features_name ?
