@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -15,9 +15,7 @@
 # =========================================================================
 
 import os
-import datetime
 import subprocess
-import sys
 import logging
 from typing import List
 from functools import wraps
@@ -25,13 +23,13 @@ from timeit import default_timer as timer
 
 logger = logging.getLogger(__name__)
 
+
 class remove_in_string_list(object):
     """decorator use to remove element in return list according to strings
     """
     def __init__(self, *args: List[str]):
         self.pattern_list = args
 
-    
     def __call__(self, f):
         @wraps(f)
         def wrapped_f(*args):
@@ -54,7 +52,7 @@ class time_it(object):
     """
     def __init__(self, f):
         self.f = f
-    
+
     def __call__(self, *args, **kwargs):
         import time
         start = time.time()
@@ -83,14 +81,14 @@ def run(cmd, desc=None, env=os.environ, logger=logger):
 
     # Log outputs
     logger.debug("out/err: {}".format(out.rstrip()))
-    logger.debug("Done in {} seconds".format(stop-start))
-
+    logger.debug("Done in {} seconds".format(stop - start))
 
     # Log error code
     if rc != 0:
         logger.error("Command {}  exited with non-zero return code {}".format(cmd, rc))
         exception_msg = "Launch command fail : {} {}".format(cmd, out)
         raise Exception(exception_msg)
+
 
 class Opath(object):
 
@@ -100,8 +98,8 @@ class Opath(object):
         """
 
         self.opath = opath
-        self.opathT = opath+"/tmp"
-        self.opathF = opath+"/Final"
+        self.opathT = opath + "/tmp"
+        self.opathF = opath + "/Final"
         if create:
             if not os.path.exists(self.opath):
                 try:
@@ -115,11 +113,11 @@ class Opath(object):
                 except OSError:
                     logger.debug(self.opathT + "allready exists")
 
-            if not os.path.exists(self.opathT+"/REFL"):
+            if not os.path.exists(self.opathT + "/REFL"):
                 try:
-                    os.mkdir(self.opathT+"/REFL")
+                    os.mkdir(self.opathT + "/REFL")
                 except OSError:
-                    logger.debug(self.opathT+"/REFL"+ "allready exists")
+                    logger.debug(self.opathT + "/REFL" + "allready exists")
 
             if not os.path.exists(self.opathF):
                 try:
