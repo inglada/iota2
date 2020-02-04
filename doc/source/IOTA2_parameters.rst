@@ -37,7 +37,8 @@ chain.check_inputs
 *Example*
     check_inputs : False
 *Notes*
-    if an errors comes during the iota² run, please send it back to us. We will
+    If set, iota2 will spend time to check it's inputs.
+    If errors comes during the iota² run, please send it back to us. We will
     add it as new check
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
