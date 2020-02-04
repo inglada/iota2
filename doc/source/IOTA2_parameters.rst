@@ -918,11 +918,11 @@ Sensor.write_reproject_resampled_input_dates_stack
 Sensor.startDate
 ================
 *Description*
-    first insterpolation date
+    First insterpolation date
 *Type*
     string
 *Default value*
-    None
+    None, which corresponds to the last of the first available date for all tiles.
 *Example*
     .. code-block:: python
 
@@ -935,7 +935,7 @@ Sensor.endDate
 *Type*
     string
 *Default value*
-    None
+    None, which corresponds to the first of the last available date for all tiles.
 *Example*
     .. code-block:: python
 
@@ -960,8 +960,8 @@ Sensor.temporalResolution
 Sensor.additionalFeatures
 =========================
 *Description*
-    iota2 allow adding features by dates. Format is the one provided by OTB's BandMath 
-    application.
+    iota2 allows adding features by dates. Format is the one provided by OTB's BandMath 
+    application. NDVI, NDWI and Brightness are always computed, so the user does not need to declare them here.
 
 *Type*
     string
