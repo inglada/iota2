@@ -145,7 +145,7 @@ if __name__ == "__main__":
         launchChain(cfg, args.config_ressources, args.parallel_mode, args.launchChain)
     # Exception manage by the chain
     # We only print the error message
-    except sErr.osoError as e:
+    except sErr.i2Error as e:
         print (e)
     # Exception not manage (bug)
     # print error message + all stack
