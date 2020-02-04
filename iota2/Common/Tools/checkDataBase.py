@@ -103,7 +103,7 @@ def check_region_shape(input_vector, output_vector, field, epsg, do_corrections,
 
     # check vector's projection
     vector_projection = get_vector_proj(input_vector)
-    if not epsg == vector_projection:
+    if not int(epsg) == int(vector_projection):
         error_msg = "{} projection ({}) incorrect".format(input_vector, vector_projection)
         errors.append(ServiceError.invalidProjection(error_msg))
 
