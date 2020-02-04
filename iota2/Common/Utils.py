@@ -20,6 +20,7 @@ import subprocess
 import sys
 import logging
 from typing import List
+from functools import wraps
 from timeit import default_timer as timer
 
 logger = logging.getLogger(__name__)
@@ -30,16 +31,20 @@ class remove_in_string_list(object):
     def __init__(self, *args: List[str]):
         self.pattern_list = args
 
+    
     def __call__(self, f):
+        @wraps(f)
         def wrapped_f(*args):
             results = f(*args)
             results_filtered = []
-            for pattern in self.pattern_list:
-                for elem in results:
-                    if pattern not in elem:
-                        if elem not in results_filtered:
-                            results_filtered.append(elem)
-                    results = results_filtered
+            for elem in results:
+                pattern_found = False
+                for pattern in self.pattern_list:
+                    if pattern in elem:
+                        pattern_found = True
+                        break
+                if pattern_found is False:
+                    results_filtered.append(elem)
             return results_filtered
         return wrapped_f
 
