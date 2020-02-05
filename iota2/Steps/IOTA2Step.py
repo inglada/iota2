@@ -96,12 +96,15 @@ class Step(object):
 
         # define log path
         outputPath = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
+        
         log_dir = os.path.join(outputPath, "logs")
-        self.logFile = os.path.join(log_dir, "{}_log.log".format(self.step_name))
-
+        self.log_dir = log_dir
+        self.log_step_dir = os.path.join(self.log_dir, "{}".format(self.step_name))
+        self.logFile = os.path.join(self.log_step_dir, "{}_log.log".format(self.step_name))
+        
         self.previous_step = None
         self.next_step = None
-
+        
         # "waiting", "running", "success", "fail"
         self.step_status = "waiting"
 

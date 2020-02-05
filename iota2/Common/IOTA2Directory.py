@@ -39,12 +39,12 @@ def GenerateDirectories(cfg_path, check_inputs=True):
     rm_PathTEST = cfg.getParam("chain", "remove_outputPath")
     start_step = cfg.getParam("chain", "firstStep")
 
-    if os.path.exists(root) and root != "/" and rm_PathTEST and start_step == "init":
-        shutil.rmtree(root,ignore_errors=False)
-    ensure_dir(root)
-    if os.path.exists(root+"/logs"):
-        shutil.rmtree(root+"/logs")
-    os.mkdir(root+"/logs")
+    # if os.path.exists(root) and root != "/" and rm_PathTEST and start_step == "init":
+    #     shutil.rmtree(root,ignore_errors=False)
+    # ensure_dir(root)
+    # if os.path.exists(root+"/logs"):
+    #     shutil.rmtree(root+"/logs")
+    # os.mkdir(root+"/logs")
     if os.path.exists(root+"/samplesSelection"):
         shutil.rmtree(root+"/samplesSelection")
     os.mkdir(root+"/samplesSelection")

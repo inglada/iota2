@@ -28,8 +28,9 @@ import time
 import numpy as np
 from mpi4py import MPI
 from Common import ServiceLogger as sLog
+from Common.FileUtils import ensure_dir
 import os
-
+import shutil
 
 # This is needed in order to be able to send python objects throug MPI send
 import mpi4py
@@ -243,7 +244,7 @@ def remove_tmp_files(cfg, current_step, chain):
 if __name__ == "__main__":
 
     from Common import ServiceConfigFile as SCF
-
+    from Common import DebugUtils as du
     parser = argparse.ArgumentParser(description = "This function allow you to"
                                                    "launch iota2 processing chain"
                                                    "as MPI process or not")
@@ -314,8 +315,16 @@ if __name__ == "__main__":
 
     # Start worker processes
     start_workers(mpi_service)
-
+    # Remove all existing outputs 
+    root = cfg.getParam('chain', 'outputPath')
+    rm_PathTEST = cfg.getParam("chain", "remove_outputPath")
+    start_step = cfg.getParam("chain", "firstStep")
+    
     for step in np.arange(args.start, args.end+1):
+
+        if os.path.exists(root) and root != "/" and rm_PathTEST and start_step == "init" and steps[step-1].step_name == "IOTA2DirTree": 
+            shutil.rmtree(root,ignore_errors=False)
+        ensure_dir(root)
         params = steps[step-1].step_inputs()
         param_array = []
         if callable(params):
@@ -336,6 +345,24 @@ if __name__ == "__main__":
             #~ print "Etape précédente : {}".format(steps[step-1].previous_step.step_status)
         steps[step-1].step_status = "running"
         logFile = steps[step-1].logFile
+        
+        if not os.path.exists(steps[step-1].log_step_dir):
+            os.makedirs(steps[step-1].log_step_dir)
+        try: 
+            logFileTmp = open(steps[step-1].logFile,"w")
+        except Exception as e:
+            print (e)
+            raise
+
+        dico_tmp = chain_to_process.steps_group[cfg.getParam('chain', 'firstStep')].copy()
+        key_init = dico_tmp.popitem(last=False)[0]
+        states = chain_to_process.print_step_summarize(key_init, step, log=True, running_step=True)
+        global_log_file = os.path.join(cfg.getParam('chain', 'outputPath'), "logs/Global_status.log")
+        global_log = open(global_log_file,"w")
+        global_log.write(states)
+        global_log.close()
+        
+
         if param_index is not None:
             params = [params[param_index]]
             logFile = (steps[step-1].logFile).replace(".log", "_{}.log".format(param_index))
@@ -344,9 +371,29 @@ if __name__ == "__main__":
                                          logger_lvl)
         if not step_completed:
             steps[step-1].step_status = "fail"
+            states = chain_to_process.print_step_summarize(key_init, step,
+                                                           log=True,
+                                                           running_step=True,
+                                                           running_sym='f')
+            global_log_file = os.path.join(cfg.getParam('chain', 'outputPath'),
+                                           "logs/Global_status.log")
+            global_log = open(global_log_file,"w")
+            global_log.write(states)
+            log_info= du.get_log_info(cfg.getParam('chain',
+                                                          'outputPath'),
+                                      args.configPath, logFile)
+            global_log.write(log_info)
+            global_log.close()
+            
             break
         else :
-            steps[step-1].step_status = "success"
+            steps[step-1].step_status = "success"            
+            states = chain_to_process.print_step_summarize(key_init, step, log=True)
+            global_log_file = os.path.join(cfg.getParam('chain', 'outputPath'), "logs/Global_status.log")
+            global_log = open(global_log_file,"w")
+            global_log.write(states)
+            global_log.close()
+            
         if rm_tmp and param_index is None:
             remove_tmp_files(cfg, current_step=step, chain=chain_to_process)
     #~ chain_to_process.save_chain()
