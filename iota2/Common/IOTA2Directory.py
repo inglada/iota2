@@ -20,16 +20,20 @@ import shutil
 from Common import ServiceConfigFile as SCF
 from Common.verifyInputs import check_iota2_inputs
 
-def GenerateDirectories(cfg_path):
+def GenerateDirectories(cfg_path, check_inputs=True):
     """
     generate IOTA2 output directories
     """
     from Common.FileUtils import ensure_dir
     if not isinstance(cfg_path, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg_path)
+    else:
+        cfg = cfg_path
 
-    if cfg.getParam('chain', 'check_inputs'):
-        check_iota2_inputs(cfg_path)
+    configuration_file_path = cfg.pathConf
+
+    if check_inputs:
+        check_iota2_inputs(configuration_file_path)
 
     root = cfg.getParam('chain', 'outputPath')
     rm_PathTEST = cfg.getParam("chain", "remove_outputPath")
