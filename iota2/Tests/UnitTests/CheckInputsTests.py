@@ -102,11 +102,17 @@ class Iota2CheckInputs(unittest.TestCase):
         """
         from iota2.Common import ServiceError
         from iota2.Common.Tools import checkDataBase
+        from iota2.Common.FileUtils import cpShapeFile
         from TestsUtils import random_ground_truth_generator
 
+        _, ground_truth_name = os.path.split(self.ground_truth)
+        test_ground_truth = os.path.join(self.test_working_directory, ground_truth_name)
+        cpShapeFile(self.ground_truth.replace(".shp",""),
+                    test_ground_truth.replace(".shp",""),
+                    [".prj",".shp",".dbf",".shx"])
         data_field = "code"
         epsg = 2154
-        gt_errors = checkDataBase.check_ground_truth(self.ground_truth,
+        gt_errors = checkDataBase.check_ground_truth(test_ground_truth,
                                                      "",
                                                      data_field,
                                                      epsg,
@@ -119,7 +125,7 @@ class Iota2CheckInputs(unittest.TestCase):
                         msg="multipolygons undetected")
         # wrong projection
         epsg = 2155
-        gt_errors = checkDataBase.check_ground_truth(self.ground_truth,
+        gt_errors = checkDataBase.check_ground_truth(test_ground_truth,
                                                      "",
                                                      data_field,
                                                      epsg,
@@ -135,7 +141,7 @@ class Iota2CheckInputs(unittest.TestCase):
         # no field detected
         data_field = "error"
         epsg = 2154
-        gt_errors = checkDataBase.check_ground_truth(self.ground_truth,
+        gt_errors = checkDataBase.check_ground_truth(test_ground_truth,
                                                      "",
                                                      data_field,
                                                      epsg,
@@ -151,7 +157,7 @@ class Iota2CheckInputs(unittest.TestCase):
         # field type
         data_field = "region"
         epsg = 2154
-        gt_errors = checkDataBase.check_ground_truth(self.ground_truth,
+        gt_errors = checkDataBase.check_ground_truth(test_ground_truth,
                                                      "",
                                                      data_field,
                                                      epsg,
@@ -201,9 +207,17 @@ class Iota2CheckInputs(unittest.TestCase):
         """
         from iota2.Common import ServiceError
         from iota2.Common.Tools import checkDataBase
+        from iota2.Common.FileUtils import cpShapeFile
+
+        _, ground_truth_name = os.path.split(self.ground_truth)
+        test_ground_truth = os.path.join(self.test_working_directory, ground_truth_name)
+        cpShapeFile(self.ground_truth.replace(".shp",""),
+                    test_ground_truth.replace(".shp",""),
+                    [".prj",".shp",".dbf",".shx"])
+
         data_field = "region"
         epsg = 2154
-        region_errors = checkDataBase.check_region_shape(self.ground_truth,
+        region_errors = checkDataBase.check_region_shape(test_ground_truth,
                                                          "",
                                                          data_field,
                                                          epsg,
