@@ -285,18 +285,12 @@ def sk_learn(dataset_path: str,
     from sklearn.preprocessing import StandardScaler
 
     logger.info("Features use to build model : {}".format(features_labels))
-    print("Features use to build model : {}".format(features_labels))
     layer_name = getLayerName(dataset_path, "SQLite")
     conn = sqlite3.connect(dataset_path)
-    print("Avant read_sql_query")
-    print(dataset_path)
     df_features = pd.read_sql_query("select {} from {}".format(",".join(features_labels),
                                                                layer_name),
                                     conn)
-                                    
-    print("Avant df_features.to_numpy()")
     features_values = df_features.to_numpy()
-    print("Apres df_features.to_numpy()")
 
     df_labels = pd.read_sql_query("select {} from {}".format(data_field,
                                                              layer_name),
@@ -319,7 +313,6 @@ def sk_learn(dataset_path: str,
     scaler = None
     if apply_standardization:
         logger.info("Apply standardization")
-        print("Apply standardization")
         scaler = StandardScaler()
         scaler.fit(features_values)  # TODO: if regression, we have to scale also labels_values
         if .0 in scaler.var_:
@@ -329,7 +322,6 @@ def sk_learn(dataset_path: str,
 
     if cv_parameters:
         logger.info("Cross validation in progress")
-        print("Cross validation in progress")
         if cv_grouped:
             df_groups = pd.read_sql_query("select {} from {}".format("originfid",
                                                                      layer_name),
@@ -346,44 +338,19 @@ def sk_learn(dataset_path: str,
                            cv_parameters,
                            cv=splitter,
                            return_train_score=True)
-    jobs = -1
-    # ~ if available_ram:
-        # ~ current_ram = memory_usage_psutil()
-        # ~ jobs = int(math.floor(available_ram / current_ram))
-        # ~ jobs = jobs if jobs >= 1 else 1
-        # ~ if hasattr(clf, "n_jobs"):
-            # ~ clf.n_jobs = jobs
-        # ~ if hasattr(clf, "pre_dispatch"):
-            # ~ clf.pre_dispatch = jobs
-    clf.n_jobs = jobs
-    from dask.distributed import Client, progress
-    from dask_jobqueue import PBSCluster
-    from dask.distributed import Client
-    from sklearn.externals.joblib import Parallel, parallel_backend
-    
-    cluster = PBSCluster(cores=2,
-                         memory="10GB",
-                         project='iota2',
-                         name='CrossValidation_worker',
-                         walltime='04:00:00',
-                         interface='ib0',
-                         n_worker=10,
-                         local_directory='$TMPDIR')
+    jobs = 1
+    if available_ram:
+        current_ram = memory_usage_psutil()
+        jobs = int(math.floor(available_ram / current_ram))
+        jobs = jobs if jobs >= 1 else 1
+        if hasattr(clf, "n_jobs"):
+            clf.n_jobs = jobs
+        if hasattr(clf, "pre_dispatch"):
+            clf.pre_dispatch = jobs
 
-    # ~ client = Client(processes=False, threads_per_worker=4,
-                    # ~ n_workers=6, memory_limit='10GB')
-    client = Client(cluster)
-
-    import joblib
     logger.info("Fit model using {} jobs".format(jobs))
-    print("Fit model using {} jobs".format(jobs))
-    
-    # ~ with joblib.parallel_backend('dask'):
-    with parallel_backend('dask', wait_for_workers_timeout=50):
-        print("FIT in progress !!")
-        # ~ fit()
-        clf.fit(features_values, labels_values)
-    pause = input("client ??")
+    clf.fit(features_values, labels_values)
+
     sk_model = clf
     if cv_parameters:
         file_name, file_ext = os.path.splitext(os.path.basename(model_path))
