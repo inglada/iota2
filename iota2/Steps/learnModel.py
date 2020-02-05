@@ -20,8 +20,6 @@ from Cluster import get_RAM
 from Common import ServiceConfigFile as SCF
 from Learning.TrainingCmd import config_model
 
-# from iota2.Common.GenerateFeatures import generateFeatures
-
 
 class learnModel(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):

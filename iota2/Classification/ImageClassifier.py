@@ -562,6 +562,7 @@ def launchClassification(
     RAM=500,
     auto_context={},
     logger=logger,
+    customFeatures=False,
 ):
     """
     """
@@ -601,8 +602,6 @@ def launchClassification(
                 os.mkdir(wd)
             except:
                 logger.warning(wd + "Allready exists")
-    # TODO: change how mode and customFeatures are set
-    customFeatures = False
     mode = "usually"
     if "SAR.tif" in outputClassif:
         mode = "SAR"
@@ -726,6 +725,14 @@ if __name__ == "__main__":
         choices=["True", "False"],
         required=False,
     )
+    parser.add_argument(
+        "-customFeatures",
+        help="True: activate custom features computation",
+        dest="customFeatures",
+        default="False",
+        choices=["True", "False"],
+        required=False,
+    )
     args = parser.parse_args()
 
     # load configuration file
@@ -742,4 +749,5 @@ if __name__ == "__main__":
         cfg,
         args.pixType,
         args.MaximizeCPU,
+        customFeatures=args.customFeatures,
     )
