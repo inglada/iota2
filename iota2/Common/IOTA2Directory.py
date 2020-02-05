@@ -41,7 +41,7 @@ def GenerateDirectories(cfg_path, check_inputs=True):
 
     # if os.path.exists(root) and root != "/" and rm_PathTEST and start_step == "init":
     #     shutil.rmtree(root,ignore_errors=False)
-    # ensure_dir(root)
+    ensure_dir(root)
     # if os.path.exists(root+"/logs"):
     #     shutil.rmtree(root+"/logs")
     # os.mkdir(root+"/logs")
