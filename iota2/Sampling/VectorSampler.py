@@ -74,7 +74,8 @@ def get_vectors_to_sample(iota2_formatting_dir, ds_fusion_sar_opt=False):
 
 def verifPolyStats(inXML):
     """
-    due to OTB error, use this parser to check '0 values' in class sampling and remove them
+    due to OTB error, use this parser to check '0 values' in class sampling
+    and remove them
     IN : xml polygons statistics
     OUT : same xml without 0 values
     """
@@ -179,12 +180,12 @@ def gapFillingToSample(
         cfg [ConfigObject/string] : config Obj OR path to configuation file
         onlyMaskComm [bool] :  flag to stop the script after common Mask computation
         onlySensorsMasks [bool] : compute only masks
-
+        customFeatures [bool] : compute custom features
     OUT:
         sampleExtr [SampleExtraction OTB's object]:
     """
     # const
-    seed_position = -1
+    # seed_position = -1
 
     from Common import GenerateFeatures as genFeatures
     from Sensors.ProcessLauncher import commonMasks
@@ -198,25 +199,27 @@ def gapFillingToSample(
     iota2_directory = cfg.getParam("chain", "outputPath")
     cMaskDirectory = os.path.join(iota2_directory, "features", tile, "tmp")
 
-    sample_sel_directory = os.path.join(iota2_directory, "samplesSelection")
+    # sample_sel_directory = os.path.join(iota2_directory, "samplesSelection")
 
     if not os.path.exists(workingDirectoryFeatures):
         try:
             os.mkdir(workingDirectoryFeatures)
         except OSError:
             logger.warning(workingDirectoryFeatures + "allready exists")
-    try:
-        useGapFilling = cfg.getParam("GlobChain", "useGapFilling")
-    except:
-        useGapFilling = True
+    # try:
+    #     useGapFilling = cfg.getParam("GlobChain", "useGapFilling")
+    # except:
+    #     useGapFilling = True
 
     (AllFeatures, feat_labels, dep_features) = genFeatures.generateFeatures(
-        workingDirectoryFeatures, tile, cfg, mode=mode, customFeatures=customFeatures
+        workingDirectoryFeatures, tile, cfg, mode=mode,
+        customFeatures=customFeatures
     )
 
     if onlySensorsMasks:
         # return AllRefl,AllMask,datesInterp,realDates
-        return dep_features[1], dep_features[2], dep_features[3], dep_features[4]
+        return (dep_features[1], dep_features[2],
+                dep_features[3], dep_features[4])
 
     AllFeatures.Execute()
 
@@ -244,24 +247,24 @@ def gapFillingToSample(
     return sampleExtr, All_dep
 
 
-def generateSamples_simple(
-    folderSample,
-    workingDirectory,
-    trainShape,
-    pathWd,
-    featuresPath,
-    cfg,
-    dataField,
-    RAM=128,
-    wMode=False,
-    folderFeatures=None,
-    testMode=False,
-    sampleSel=None,
-    mode="usually",
-    logger=logger,
-):
+def generateSamples_simple(folderSample,
+                           workingDirectory,
+                           trainShape,
+                           pathWd,
+                           featuresPath,
+                           cfg,
+                           dataField,
+                           RAM=128,
+                           wMode=False,
+                           folderFeatures=None,
+                           testMode=False,
+                           sampleSel=None,
+                           mode="usually",
+                           customFeatures=False,
+                           logger=logger):
     """
-    usage : from a strack of data generate samples containing points with features
+    usage : from a strack of data generate samples containing points
+            with features
 
     IN:
     folderSample [string] : output folder
@@ -286,24 +289,18 @@ def generateSamples_simple(
     dataField = (cfg.getParam("chain", "dataField")).lower()
     regionField = (cfg.getParam("chain", "regionField")).lower()
     outputPath = cfg.getParam("chain", "outputPath")
-    userFeatPath = cfg.getParam("chain", "userFeatPath")
-    outFeatures = cfg.getParam("GlobChain", "features")
+    # userFeatPath = cfg.getParam("chain", "userFeatPath")
+    # outFeatures = cfg.getParam("GlobChain", "features")
     runs = cfg.getParam("chain", "runs")
     if cfg.getParam("chain", "enableCrossValidation"):
         runs = runs - 1
     sample_sel_directory = os.path.join(outputPath, "samplesSelection")
 
-    samples = (
-        workingDirectory
-        + "/"
-        + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")
-    )
+    samples = (workingDirectory + "/" + trainShape.split("/")[-1].replace(
+        ".shp", "_Samples.sqlite"))
     if mode == "SAR":
-        samples = (
-            workingDirectory
-            + "/"
-            + trainShape.split("/")[-1].replace(".shp", "_Samples_SAR.sqlite")
-        )
+        samples = (workingDirectory + "/" + trainShape.split("/")[-1].replace(
+            ".shp", "_Samples_SAR.sqlite"))
 
     if sampleSel:
         sampleSelection = sampleSel
@@ -313,8 +310,8 @@ def generateSamples_simple(
         )
 
     sampleExtr, dep_gapSample = gapFillingToSample(
-        sampleSelection, workingDirectory, samples, dataField, cfg, wMode, RAM, mode
-    )
+        sampleSelection, workingDirectory, samples, dataField, cfg,
+        wMode, RAM, mode, customFeatures)
 
     sample_extraction_output = os.path.join(
         folderSample, os.path.basename(sampleExtr.GetParameterValue("out"))
@@ -323,15 +320,19 @@ def generateSamples_simple(
     if not os.path.exists(sample_extraction_output):
         logger.info("--------> Start Sample Extraction <--------")
         logger.info(
-            "RAM before features extraction : {} MB".format(fu.memory_usage_psutil())
+            "RAM before features extraction : {} MB".format(
+                fu.memory_usage_psutil())
         )
-        print("RAM before features extraction : {} MB".format(fu.memory_usage_psutil()))
+        print("RAM before features extraction : {} MB".format(
+            fu.memory_usage_psutil()))
         p = mp.Process(target=executeApp, args=[sampleExtr])
         p.start()
         p.join()
-        print("RAM after features extraction : {} MB".format(fu.memory_usage_psutil()))
+        print("RAM after features extraction : {} MB".format(
+            fu.memory_usage_psutil()))
         logger.info(
-            "RAM after features extraction : {} MB".format(fu.memory_usage_psutil())
+            "RAM after features extraction : {} MB".format(
+                fu.memory_usage_psutil())
         )
         logger.info("--------> END Sample Extraction <--------")
         proj = cfg.getParam("GlobChain", "proj")
@@ -397,29 +398,29 @@ def extract_class(vec_in, vec_out, target_class, dataField):
     )
 
 
-def generateSamples_cropMix(
-    folderSample,
-    workingDirectory,
-    trainShape,
-    pathWd,
-    nonAnnualData,
-    annualData,
-    annualCrop,
-    AllClass,
-    dataField,
-    cfg,
-    folderFeature,
-    folderFeaturesAnnual,
-    Aconfig,
-    RAM=128,
-    wMode=False,
-    testMode=False,
-    sampleSel=None,
-    mode="usually",
-    logger=logger,
-):
+def generateSamples_cropMix(folderSample,
+                            workingDirectory,
+                            trainShape,
+                            pathWd,
+                            nonAnnualData,
+                            annualData,
+                            annualCrop,
+                            AllClass,
+                            dataField,
+                            cfg,
+                            folderFeature,
+                            folderFeaturesAnnual,
+                            Aconfig,
+                            RAM=128,
+                            wMode=False,
+                            testMode=False,
+                            sampleSel=None,
+                            mode="usually",
+                            customFeatures=False,
+                            logger=logger,):
     """
-    usage : from stracks A and B, generate samples containing points where annual crop are compute with A
+    usage : from stracks A and B, generate samples containing points where
+            annual crop are compute with A
     and non annual crop with B.
 
     IN:
@@ -428,30 +429,29 @@ def generateSamples_cropMix(
     trainShape [string] : vector shape (polygons) to sample
     pathWd [string] : if different from None, enable HPC mode (copy at ending)
     featuresPath [string] : path to all stack
-    prevFeatures [string] : path to the configuration file which compute features A
+    prevFeatures [string] : path to the configuration file which
+                            compute features A
     annualCrop [list of string/int] : list containing annual crops ex : [11,12]
-    AllClass [list of string/int] : list containing permanant classes in vector shape ex : [51..]
+    AllClass [list of string/int] : list containing permanant classes in
+                                    vector shape ex : [51..]
     cfg [string] : configuration file class
     dataField [string] : data's field into vector shape
     testMode [bool] : enable testMode -> iota2tests.py
     testFeatures [string] : path to features allready compute (refl + NDVI ...)
-    testFeaturePath [string] : path to the stack of data, without features dedicated to non
-                               annual crops
-    testAnnualFeaturePath [string] : path to the stack of data, without features dedicated to
-                                     annual crops
+    testFeaturePath [string] : path to the stack of data, without features
+                               dedicated to non annual crops
+    testAnnualFeaturePath [string] : path to the stack of data,
+                                     without features dedicated to annual crops
 
     OUT:
     samples [string] : vector shape containing points
     """
 
-    if os.path.exists(
-        folderSample
-        + "/"
-        + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")
-    ):
+    if os.path.exists(folderSample + "/" + trainShape.split("/")[-1].replace(
+            ".shp", "_Samples.sqlite")):
         return None
 
-    outFeatures = cfg.getParam("GlobChain", "features")
+    # outFeatures = cfg.getParam("GlobChain", "features")
     outputPath = cfg.getParam("chain", "outputPath")
     regionField = (cfg.getParam("chain", "regionField")).lower()
     dataField = dataField.lower()
@@ -459,9 +459,9 @@ def generateSamples_cropMix(
     if cfg.getParam("chain", "enableCrossValidation"):
         runs = runs - 1
 
-    featuresFind_NA = ""
-    featuresFind_A = ""
-    userFeatPath = cfg.getParam("chain", "userFeatPath")
+    # featuresFind_NA = ""
+    # featuresFind_A = ""
+    # userFeatPath = cfg.getParam("chain", "userFeatPath")
     sample_sel_directory = os.path.join(outputPath, "samplesSelection")
     currentTile = os.path.splitext(os.path.basename(trainShape))[0]
 
@@ -493,11 +493,12 @@ def generateSamples_cropMix(
     SampleExtr_NA = os.path.join(
         wd, "{}_nonAnnual_extraction.sqlite".format(currentTile)
     )
-    SampleExtr_A = os.path.join(wd, "{}_annual_extraction.sqlite".format(currentTile))
+    SampleExtr_A = os.path.join(wd, "{}_annual_extraction"
+                                ".sqlite".format(currentTile))
 
     start_extraction = time.time()
     if nb_feat_Nannu > 0:
-        Na_workingDirectory = workingDirectory + "/" + currentTile + "_nonAnnual"
+        Na_workingDirectory = (workingDirectory + "/" + currentTile + "_nonAnnual")
         if not os.path.exists(Na_workingDirectory):
             try:
                 os.mkdir(Na_workingDirectory)
@@ -513,6 +514,7 @@ def generateSamples_cropMix(
             wMode,
             RAM,
             mode,
+            customFeatures,
         )
         # ~ sampleExtr_NA.ExecuteAndWriteOutput()
         p = mp.Process(target=executeApp, args=[sampleExtr_NA])
@@ -536,6 +538,7 @@ def generateSamples_cropMix(
             Aconfig,
             wMode,
             mode=mode,
+            customFeatures=customFeatures
         )
         # ~ sampleExtr_A.ExecuteAndWriteOutput()
         p = mp.Process(target=executeApp, args=[sampleExtr_A])
@@ -545,11 +548,8 @@ def generateSamples_cropMix(
     # if not sampleSel:
     #    os.remove(sampleSelection)
     end_extraction = time.time()
-    logger.debug(
-        "Samples Extraction time : "
-        + str(end_extraction - start_extraction)
-        + " seconds"
-    )
+    logger.debug("Samples Extraction time : " + str(
+        end_extraction - start_extraction) + " seconds")
     # rename annual fields in order to fit non annual dates
     if os.path.exists(SampleExtr_A):
         annual_fields = fu.getAllFieldsInShape(SampleExtr_A, "SQLite")
@@ -558,7 +558,8 @@ def generateSamples_cropMix(
     if os.path.exists(SampleExtr_NA) and os.path.exists(SampleExtr_A):
         if len(annual_fields) != len(non_annual_fields):
             raise Exception(
-                "annual data's fields and non annual data's fields can" "not fitted"
+                "annual data's fields and non annual data's"
+                " fields can" "not fitted"
             )
 
     if os.path.exists(SampleExtr_A):
@@ -581,15 +582,7 @@ def generateSamples_cropMix(
             non_annual_fields = [x.replace("2016", "2017") for x in annual_fields]
 
         for field_non_a, field_a in zip(non_annual_fields, annual_fields):
-            cursor.execute(
-                "UPDATE sqlite_master SET SQL=REPLACE(SQL, '"
-                + field_a
-                + "', '"
-                + field_non_a
-                + "') WHERE name='"
-                + layer.GetName()
-                + "'"
-            )
+            cursor.execute("UPDATE sqlite_master SET SQL=REPLACE(SQL, '" + field_a + "', '" + field_non_a + "') WHERE name='" + layer.GetName() + "'")
         cursor.execute("PRAGMA writable_schema=0")
         conn.commit()
         conn.close()
@@ -698,7 +691,7 @@ def extractROI(
     """
 
     outputPath = cfg.getParam("chain", "outputPath")
-    featuresPath = os.path.join(outputPath, "features")
+    # featuresPath = os.path.join(outputPath, "features")
 
     workingDirectory = outputPath + "/learningSamples/"
     if pathWd:
@@ -835,40 +828,46 @@ def get_number_annual_sample(annu_repartition):
     return nb_feat_annu
 
 
-def generateSamples_classifMix(
-    folderSample,
-    workingDirectory,
-    trainShape,
-    pathWd,
-    annualCrop,
-    AllClass,
-    dataField,
-    cfg,
-    previousClassifPath,
-    folderFeatures=None,
-    RAM=128,
-    wMode=False,
-    testMode=None,
-    testShapeRegion=None,
-    sampleSel=None,
-    mode="usually",
-):
+def generateSamples_classifMix(folderSample,
+                               workingDirectory,
+                               trainShape,
+                               pathWd,
+                               annualCrop,
+                               AllClass,
+                               dataField,
+                               cfg,
+                               previousClassifPath,
+                               folderFeatures=None,
+                               RAM=128,
+                               wMode=False,
+                               testMode=None,
+                               testShapeRegion=None,
+                               sampleSel=None,
+                               mode="usually",
+                               customFeatures=False,):
     """
-    usage : from one classification, chose randomly annual sample merge with non annual sample and extract features.
+    usage : from one classification, chose randomly annual
+            sample merge with non annual sample and extract features.
     IN:
         folderSample [string] : output folder
         workingDirectory [string] : computation folder
         trainShape [string] : vector shape (polygons) to sample
-        pathWd [string] : if different from None, enable HPC mode (copy at ending)
+        pathWd [string] : if different from None, enable HPC mode
+                          (copy at ending)
         featuresPath [string] : path to all stack
-        annualCrop [list of string/int] : list containing annual crops ex : [11,12]
-        AllClass [list of string/int] : list containing all classes in vector shape ex : [11,12,51..]
+        annualCrop [list of string/int] : list containing annual crops
+                                        ex : [11,12]
+        AllClass [list of string/int] : list containing all classes in vector
+                                        shape ex : [11,12,51..]
         cfg [string] : configuration file class
-        previousClassifPath [string] : path to the iota2 output directory which generate previous classification
+        previousClassifPath [string] : path to the iota2 output directory
+                                       which generate previous classification
         dataField [string] : data's field into vector shape
         testMode [bool] : enable testMode -> iota2tests.py
-        testPrevConfig [string] : path to the configuration file which generate previous classification
-        testShapeRegion [string] : path to the shapefile representing region in the tile.
+        testPrevConfig [string] : path to the configuration file which
+                                  generate previous classification
+        testShapeRegion [string] : path to the shapefile representing
+                                   region in the tile.
         testFeaturePath [string] : path to the stack of data
 
     OUT:
@@ -886,8 +885,8 @@ def generateSamples_classifMix(
     validityThreshold = cfg.getParam("argTrain", "validityThreshold")
     projEPSG = cfg.getParam("GlobChain", "proj")
     projOut = int(projEPSG.split(":")[-1])
-    userFeatPath = cfg.getParam("chain", "userFeatPath")
-    outFeatures = cfg.getParam("GlobChain", "features")
+    # userFeatPath = cfg.getParam("chain", "userFeatPath")
+    # outFeatures = cfg.getParam("GlobChain", "features")
     runs = cfg.getParam("chain", "runs")
     if cfg.getParam("chain", "enableCrossValidation"):
         runs = runs - 1
@@ -912,8 +911,10 @@ def generateSamples_classifMix(
     nonAnnualShape = os.path.join(
         wd, "{}_nonAnnual_selection.sqlite".format(currentTile)
     )
-    AnnualShape = os.path.join(wd, "{}_annual_selection.sqlite".format(currentTile))
-    nb_feat_Nannu = extract_class(sampleSelection, nonAnnualShape, AllClass, dataField)
+    AnnualShape = os.path.join(wd, "{}_annual_selection.sqlite".format(
+        currentTile))
+    nb_feat_Nannu = extract_class(sampleSelection, nonAnnualShape,
+                                  AllClass, dataField)
 
     regions = fu.getFieldElement(
         trainShape,
@@ -924,7 +925,8 @@ def generateSamples_classifMix(
     )
     print(sampleSelection)
     print(trainShape)
-    # avoir la répartition des classes anuelles par seed et par region -> pouvoir faire annu_repartition[11][R][S]
+    # avoir la répartition des classes anuelles par seed et
+    # par region -> pouvoir faire annu_repartition[11][R][S]
     annu_repartition = get_repartition(
         sampleSelection, annualCrop, dataField, regionField, regions, runs
     )
@@ -1016,9 +1018,9 @@ def generateSamples_classifMix(
         + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")
     )
 
-    sampleExtr, dep_tmp = gapFillingToSample(
-        sampleSelection, workingDirectory, samples, dataField, cfg, wMode, RAM, mode
-    )
+    sampleExtr, dep_tmp = gapFillingToSample(sampleSelection, workingDirectory,
+                                             samples, dataField, cfg, wMode,
+                                             RAM, mode, customFeatures)
 
     # ~ sampleExtr.ExecuteAndWriteOutput()
     p = mp.Process(target=executeApp, args=[sampleExtr])
@@ -1096,6 +1098,7 @@ def generateSamples(
     testShapeRegion=None,
     sampleSelection=None,
     logger=logger,
+    customFeatures=False
 ):
     """
     usage : generation of vector shape of points with features
@@ -1169,43 +1172,41 @@ def generateSamples(
         workingDirectory = pathWd
 
     if cropMix is False or auto_context_enable:
-        samples = generateSamples_simple(
-            folderSample,
-            workingDirectory,
-            trainShape,
-            pathWd,
-            folderFeatures,
-            cfg,
-            dataField,
-            RAM,
-            wMode,
-            folderFeatures,
-            testMode,
-            sampleSelection,
-            mode,
-        )
+        samples = generateSamples_simple(folderSample,
+                                         workingDirectory,
+                                         trainShape,
+                                         pathWd,
+                                         folderFeatures,
+                                         cfg,
+                                         dataField,
+                                         RAM,
+                                         wMode,
+                                         folderFeatures,
+                                         testMode,
+                                         sampleSelection,
+                                         mode,
+                                         customFeatures,)
 
     elif cropMix is True and samplesClassifMix is False:
-        samples = generateSamples_cropMix(
-            folderSample,
-            workingDirectory,
-            trainShape,
-            pathWd,
-            featuresPath,
-            prevFeatures,
-            annualCrop,
-            AllClass,
-            dataField,
-            cfg,
-            folderFeatures,
-            folderFeaturesAnnual,
-            config_annual_data,
-            RAM,
-            wMode,
-            testMode,
-            sampleSelection,
-            mode,
-        )
+        samples = generateSamples_cropMix(folderSample,
+                                          workingDirectory,
+                                          trainShape,
+                                          pathWd,
+                                          featuresPath,
+                                          prevFeatures,
+                                          annualCrop,
+                                          AllClass,
+                                          dataField,
+                                          cfg,
+                                          folderFeatures,
+                                          folderFeaturesAnnual,
+                                          config_annual_data,
+                                          RAM,
+                                          wMode,
+                                          testMode,
+                                          sampleSelection,
+                                          mode,
+                                          customFeatures,)
 
     elif cropMix is True and samplesClassifMix is True:
         samples = generateSamples_classifMix(
@@ -1225,6 +1226,7 @@ def generateSamples(
             testShapeRegion,
             sampleSelection,
             mode,
+            customFeatures,
         )
     if testMode:
         return samples

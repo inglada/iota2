@@ -75,7 +75,7 @@ class customNumpyFeatures(dataContainer):
         path = cfg.getParam("Features", "codePath")
         if path is None:
             raise ("For use custom features, the codePath must no be None")
-        if not os.isdir(path):
+        if not os.path.isdir(path):
             raise ("Error: {} is not a correct path".format(path))
         module = cfg.getParam("Features", "namefile")
         sys.path.insert(0, path)
@@ -102,5 +102,5 @@ class customNumpyFeatures(dataContainer):
                 self.data = np.concatenate((self.data, feat), axis=2)
             return self.data
         except Exception as e:
-            print("Error during custom_features computation : {}".format(fun_name))
+            print(f"Error during custom_features computation : {fun_name}")
             print(e)
