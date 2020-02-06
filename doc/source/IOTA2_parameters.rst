@@ -26,6 +26,23 @@ chain.outputPath
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+chain.check_inputs
+==================
+*Description*
+    check iota² inputs
+*Type*
+    bool
+*Default value*
+    True
+*Example*
+    check_inputs : False
+*Notes*
+    If set, iota2 will spend time to check it's inputs.
+    If errors comes during the iota² run, please send it back to us. We will
+    add it as new check.
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 chain.remove_outputPath
 =======================
 *Description*

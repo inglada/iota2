@@ -91,6 +91,7 @@ class serviceConfigFile:
                              "dempstershafer_mob": "precision",
                              "merge_final_classifications_ratio": 0.1,
                              "keep_runs_results": True,
+                             "check_inputs": True,
                              "enable_autoContext": False,
                              "autoContext_iterations": 3,
                              "remove_tmp_files": False}
@@ -507,6 +508,7 @@ class serviceConfigFile:
             if self.getParam("chain", "regionPath"):
                 check_region_vector(self.cfg)
             self.testVarConfigFile('chain', 'regionField', str)
+            self.testVarConfigFile('chain', 'check_inputs', bool)
             self.testVarConfigFile('chain', 'model', str)
             self.testVarConfigFile('chain', 'enableCrossValidation', bool)
             self.testVarConfigFile('chain', 'groundTruth', str)
@@ -614,6 +616,11 @@ class serviceConfigFile:
             if self.getParam("chain", "jobsPath"):
                 self.testDirectory(self.getParam("chain", "jobsPath"))
 
+            try:
+                epsg = int(self.getParam('GlobChain', 'proj').split(":")[-1])
+            except ValueError:
+                raise ValueError("parameter GlobChain.proj not in the right format (proj:\"EPSG:2154\")")
+        
             self.testDirectory(os.path.join(get_iota2_project_dir(), "iota2"))
             self.testDirectory(self.cfg.chain.nomenclaturePath)
             self.testDirectory(self.cfg.chain.groundTruth)
