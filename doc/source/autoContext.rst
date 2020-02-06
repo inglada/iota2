@@ -193,7 +193,7 @@ References
 
 .. _authors:
 
-.. [1] `Derksen, D et al. Geometry Aware Evaluation Of Handcrafted Superpixel-Based Features and Convolutional Neural Networks For Land Cover Mapping Using Satellite Imagery. <https://sciprofiles.com/publication/view/81fc5f500a01082b88539c0d255c458a>`_
+.. [1] `Derksen, D.; Inglada, J.; Michel, J. Geometry Aware Evaluation of Handcrafted Superpixel-Based Features and Convolutional Neural Networks for Land Cover Mapping Using Satellite Imagery. Remote Sens. 2020, 12, 513. <https://doi.org/10.3390/rs12030513>`_
 
 .. [2] `D. Derksen, J. Inglada and J. Michel, "Spatially Precise Contextual Features Based on Superpixel Neighborhoods for Land Cover Mapping with High Resolution Satellite Image Time Series," IGARSS 2018 - 2018 IEEE International Geoscience and Remote Sensing Symposium, Valencia, 2018, pp. 200-203. <http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8518961&isnumber=8517275>`_
 
