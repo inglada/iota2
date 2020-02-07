@@ -47,8 +47,7 @@ class Iota2TestNumpyFeatures(unittest.TestCase):
             shutil.rmtree(cls.iota2_tests_directory)
         os.mkdir(cls.iota2_tests_directory)
 
-        cls.ref_cross_validation = ["Best Parameters:",
-                                    "{'n_estimators': 50}"]
+        cls.ref_cross_validation = ["Best Parameters:"]
         cls.ref_scale = np.array([2.26379081, 1.88323221, 0.7982067, 0.60191847, 0.39085819, 0.19637141,
                                   2.26379081, 1.88323221, 0.7982067, 0.60191847, 0.39085819, 0.19637141,
                                   2.2770817, 1.88356701, 0.82879011, 0.52570417, 0.37130111, 0.18286401,
