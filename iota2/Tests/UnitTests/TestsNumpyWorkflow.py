@@ -28,7 +28,7 @@ RM_IF_ALL_OK = True
 IOTA2DIR = os.environ.get("IOTA2DIR")
 
 
-class Iota2TestNumpyFeatures(unittest.TestCase):
+class Iota2TestsNumpyWorkflow(unittest.TestCase):
 
     # before launching tests
     @classmethod
@@ -46,8 +46,7 @@ class Iota2TestNumpyFeatures(unittest.TestCase):
         if os.path.exists(cls.iota2_tests_directory):
             shutil.rmtree(cls.iota2_tests_directory)
         os.mkdir(cls.iota2_tests_directory)
-
-        cls.ref_cross_validation = ["Best Parameters:", "{'n_estimators': 50}"]
+        cls.ref_cross_validation = ["Best Parameters:"]
         cls.ref_scale = np.array(
             [
                 2.26379081,
