@@ -158,7 +158,6 @@ def apply_function(
             dtype=mosaic.dtype,
         ) as dest:
             dest.write(mosaic)
-    # TODO : new_labels definition
     return mosaic, new_labels, out_trans, epsg_code, chunks_mask
 
 
@@ -265,7 +264,6 @@ def process_function(
 
     otb_pipeline.Execute()
     array = otb_pipeline.GetVectorImageAsNumpyArray("out")
-    print("array", array.shape)
     proj = otb_pipeline.GetImageProjection("out")
     projection = osr.SpatialReference()
     projection.ImportFromWkt(proj)

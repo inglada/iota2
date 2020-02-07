@@ -65,6 +65,7 @@ def generateFeatures(
     from functools import partial
     from Common.customNumpyFeatures import customNumpyFeatures
     import otbApplication as otb
+    import numpy as np
 
     logger.info("prepare features for tile : " + tile)
     wMode = cfg.getParam("GlobChain", "writeOutputs")
@@ -116,7 +117,7 @@ def generateFeatures(
         cfg.getParam("chain", "outputPath"), "features", tile, "tmp"
     )
     features_raster = os.path.join(features_dir, features_name)
-
+    features_raster1 = os.path.join(features_dir, "{}_Features1.tif".format(tile))
     if len(feat_app) > 1:
         AllFeatures = CreateConcatenateImagesApplication(
             {"il": feat_app, "out": features_raster}
@@ -135,14 +136,17 @@ def generateFeatures(
             labels=labels_features_name,
             working_dir=pathWd,
             function=function_partial,
-            output_path=features_raster,
+            output_path=features_raster1,
             chunck_size_x=5,
             chunck_size_y=5,
             ram=128,
         )
+        AllFeatures.Execute()
         otbImage = AllFeatures.ExportImage(output_param_name)
-        # Boom ?
-        otbImage["array"] = test_array[:]
+        arr_resh = np.moveaxis(test_array, [0, 1, 2], [2, 0, 1])
+        # ensure c order in memory
+        arr_2 = np.copy(arr_resh, order="C")
+        otbImage["array"] = arr_2
         bandMath = otb.Registry.CreateApplication("BandMathX")
         bandMath.ImportVectorImage("il", otbImage)
         bandMath.SetParameterString("out", features_raster)

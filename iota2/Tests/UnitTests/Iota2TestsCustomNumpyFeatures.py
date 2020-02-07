@@ -115,9 +115,6 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
             "T31TCJ",
             ["20200101", "20200512", "20200702", "20201002"],
         )
-        # TestsUtils.fun_array("iota2_binary")
-        # TestsUtils.arrayToRaster(array_to_rasterize, dummy_raster_path)
-        # self.config_test = ("./config_plugins.cfg")
         config_path_test = os.path.join(self.test_working_directory, "Config_TEST.cfg")
 
         shutil.copy(self.config_test, config_path_test)
@@ -130,7 +127,6 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
         cfg_test.chain.L8Path = "None"
         cfg_test.chain.check_inputs = False
         cfg_test.chain.S2Path = S2ST_data
-        # cfg_test.chain.S2_S2C_Path = S2ST_data
         cfg_test.chain.userFeatPath = "None"
         cfg_test.chain.regionField = "region"
         cfg_test.argTrain.cropMix = False
@@ -196,4 +192,93 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
         # self.assertTrue(False)
 
     def test_generates_features_with_custom_features(self):
-        pass
+        """
+        TEST : check the whole workflow
+        """
+        from functools import partial
+        from iota2.Tests.UnitTests import TestsUtils
+        from iota2.Common import rasterUtils as rasterU
+        from iota2.Common.customNumpyFeatures import customNumpyFeatures
+        from iota2.Common import ServiceConfigFile as SCF
+        from iota2.Common import IOTA2Directory
+        from config import Config
+        from iota2.Sensors.Sensors_container import Sensors_container
+        from iota2.Common.GenerateFeatures import generateFeatures
+
+        TestsUtils.generate_fake_s2_data(
+            self.test_working_directory,
+            "T31TCJ",
+            ["20200101", "20200512", "20200702", "20201002"],
+        )
+        config_path_test = os.path.join(self.test_working_directory, "Config_TEST.cfg")
+
+        shutil.copy(self.config_test, config_path_test)
+        S2ST_data = self.test_working_directory
+        testPath = os.path.join(self.test_working_directory, "RUN")
+        cfg_test = Config(open(config_path_test))
+        cfg_test.chain.outputPath = testPath
+        cfg_test.chain.listTile = "T31TCJ"
+        cfg_test.chain.L8Path_old = "None"
+        cfg_test.chain.L8Path = "None"
+        cfg_test.chain.check_inputs = False
+        cfg_test.chain.S2Path = S2ST_data
+        cfg_test.chain.userFeatPath = "None"
+        cfg_test.chain.regionField = "region"
+        cfg_test.argTrain.cropMix = False
+        cfg_test.argTrain.samplesClassifMix = False
+        cfg_test.argTrain.annualClassesExtractionSource = None
+        cfg_test.GlobChain.useAdditionalFeatures = False
+        cfg_test.GlobChain.writeOutputs = False
+        cfg_test.Features.codePath = self.code_path
+        cfg_test.Features.namefile = "user_custom_function"  # whithout .py ?
+        cfg_test.Features.functions = "get_identity"  # " get_ndvi"
+        cfg_test.save(open(config_path_test, "w"))
+        cfg = SCF.serviceConfigFile(config_path_test)
+
+        IOTA2Directory.GenerateDirectories(config_path_test, check_inputs=False)
+        tile_name = "T31TCJ"
+        working_dir = None
+        sensors = Sensors_container(config_path_test, tile_name, working_dir)
+        sensors.sensors_preprocess()
+        list_sensors = sensors.get_enabled_sensors()
+        sensor = list_sensors[0]
+        ((time_s_app, app_dep), features_labels) = sensor.get_time_series()
+
+        time_s_app.ExecuteAndWriteOutput()
+        time_s = sensor.get_time_series_masks()
+        time_s_app, app_dep, nbdates = time_s
+        time_s_app.ExecuteAndWriteOutput()
+
+        ((time_s_app, app_dep), features_labels) = sensor.get_time_series_gapFilling()
+        # Then apply function
+        cust = customNumpyFeatures(config_path_test)
+        function_partial = partial(cust.process)
+
+        labels_features_name = ["NDVI_20200101", "NDVI_20200102"]
+        new_features_path = os.path.join(self.test_working_directory, "DUMMY_test.tif")
+        test_array, new_labels, _, _, _ = rasterU.apply_function(
+            otb_pipeline=time_s_app,
+            labels=labels_features_name,
+            working_dir=self.test_working_directory,
+            function=function_partial,
+            output_path=new_features_path,
+            chunck_size_x=5,
+            chunck_size_y=5,
+            ram=128,
+        )
+        time_s_app.ExecuteAndWriteOutput()
+        features, feat_labels, dep = generateFeatures(
+            None, "T31TCJ", cfg, customFeatures=True
+        )
+        features.ExecuteAndWriteOutput()
+        # self.assertTrue(pipeline_shape == test_array.shape)
+        pipeline_shape = time_s_app.GetVectorImageAsNumpyArray("out").shape
+        print(pipeline_shape)
+        pipeline_shape = (pipeline_shape[2], pipeline_shape[0], pipeline_shape[1])
+
+        # check if the input function is well apply
+        pipeline_array = features.GetVectorImageAsNumpyArray("out")
+        print(pipeline_array.shape)
+        # purposely not implemented
+        self.assertTrue(new_labels is not None)
+        self.assertTrue(False)
