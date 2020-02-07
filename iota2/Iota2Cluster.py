@@ -35,7 +35,7 @@ def get_qsub_cmd(cfg, config_ressources=None, parallel_mode="MPI"):
     scripts = os.path.join(get_iota2_project_dir(), "iota2")
     job_dir = cfg.getParam("chain", "jobsPath")
     if job_dir is None:
-        raise Exception("the parameter 'chain.jobsPath' is needed to launch IOTA2 on clusters")
+        raise Exception("the parameter 'chain.jobsPath' is needed in '-config ' file to launch IOTA2 on clusters")
 
     config_path = cfg.pathConf
     iota2_main = os.path.join(job_dir, "iota2.pbs")
@@ -145,7 +145,7 @@ if __name__ == "__main__":
         launchChain(cfg, args.config_ressources, args.parallel_mode, args.launchChain)
     # Exception manage by the chain
     # We only print the error message
-    except sErr.osoError as e:
+    except sErr.i2Error as e:
         print (e)
     # Exception not manage (bug)
     # print error message + all stack

@@ -14,7 +14,35 @@
 #
 # =========================================================================
 import os
-from typing import List
+from typing import List, Optional
+
+
+def add_empty_geom(db_path, driver_name: Optional[str] = "ESRI Shapefile"):
+    """add inplace an empty geometry
+    """
+    raise Exception("add_empty_geom does not work")
+
+    import osgeo.ogr as ogr
+
+    driver = ogr.GetDriverByName(driver_name)
+    data_src = driver.Open(db_path, 1)
+    layer_src = data_src.GetLayer()
+
+    field_name = layer_src.GetLayerDefn().GetFieldDefn(0).GetName()
+    field_type = layer_src.GetLayerDefn().GetFieldDefn(0).GetTypeName()
+
+    new_feature = ogr.Feature(layer_src.GetLayerDefn())
+    empty_geom = ogr.Geometry(type=ogr.wkbPolygon)
+    print(empty_geom.IsEmpty())
+
+    if "Interger" in field_type:
+        new_feature.SetField(field_name, 1)
+    else:
+        new_feature.SetField(field_name, "1")
+    new_feature.SetGeometry(empty_geom)
+    layer_src.CreateFeature(new_feature)
+    layer_src.SyncToDisk()
+    new_feature = layer_src = data_src = None
 
 
 def compare_vector_raster(in_vec: str, vec_field: str, field_values: List[int],
@@ -71,7 +99,7 @@ def test_raster_unique_value(raster_path, value, band_num=-1):
 def random_ground_truth_generator(output_shape, data_field, number_of_class,
                                   region_field=None,
                                   min_cl_samples=10, max_cl_samples=100,
-                                  epsg_code=2154):
+                                  epsg_code=2154, set_geom=True):
     """generate a shape file with random integer values in appropriate field
 
     Parameters
@@ -90,6 +118,8 @@ def random_ground_truth_generator(output_shape, data_field, number_of_class,
         maximum samples per class
     epsg_code : int
         epsg code
+    set_geom : bool
+        set a fake geometry
     """
     message = "max_cl_samples must be superior to min_cl_samples"
     assert max_cl_samples > min_cl_samples, message
@@ -130,7 +160,8 @@ def random_ground_truth_generator(output_shape, data_field, number_of_class,
                 feature.SetField(region_field, "1")
             wkt = "POLYGON ((1 2, 2 2, 2 1, 1 1, 1 2))"
             point = ogr.CreateGeometryFromWkt(wkt)
-            feature.SetGeometry(point)
+            if set_geom:
+                feature.SetGeometry(point)
             layer.CreateFeature(feature)
             feature = None
     data_source = None

@@ -192,7 +192,7 @@ class iota_testS2STSensor(unittest.TestCase):
         cfg_test.save(open(config_path_test, 'w'))
         
         cfg = SCF.serviceConfigFile(config_path_test)
-        IOTA2Directory.GenerateDirectories(cfg)
+        IOTA2Directory.GenerateDirectories(cfg, check_inputs=False)
 
         # Launch test
         tile_name = "T31TCJ"

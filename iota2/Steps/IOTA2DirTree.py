@@ -49,7 +49,7 @@ class IOTA2DirTree(IOTA2Step.Step):
             the function to execute as a lambda function. The returned object
             must be a lambda function.
         """
-        step_function = lambda x: IOTA2_dir.GenerateDirectories(x)
+        step_function = lambda x: IOTA2_dir.GenerateDirectories(x, check_inputs=SCF.serviceConfigFile(self.cfg).getParam('chain', 'check_inputs'))
         return step_function
 
     def step_outputs(self):

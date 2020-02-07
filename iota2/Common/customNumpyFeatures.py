@@ -98,9 +98,9 @@ class customNumpyFeatures(dataContainer):
         try:
             for fun_name in self.fun_name_list:
                 func = getattr(self, fun_name)
-                feat = func()
+                feat, new_labels = func()
                 self.data = np.concatenate((self.data, feat), axis=2)
-            return self.data
+            return self.data, new_labels
         except Exception as e:
             print(f"Error during custom_features computation : {fun_name}")
             print(e)

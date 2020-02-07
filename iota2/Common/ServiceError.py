@@ -14,18 +14,166 @@
 #
 # =========================================================================
 
-class osoError(Exception):
-    """ Base class for exceptions in oso chain"""
+class i2Error(Exception):
+    """ Base class for exceptions in iota2 chain"""
     pass
 
-# Error class definition configFileError inherits the osoError class
-class configFileError(osoError):
+
+class directoryError(i2Error):
+    """ Base subclass for exception in the configuration file
+        IN :
+            msg [string] : explanation of the error
+    """
+    def __init__(self, directory_path):
+        msg = "directory : {} cannot be created".format(directory_path)
+        i2Error.__init__(self, msg)
+        self.msg = msg
+    def __str__(self):
+        return repr(self.msg)
+
+
+class intersectionError(i2Error):
+    """ Base subclass for exception in the configuration file
+        IN :
+            msg [string] : explanation of the error
+    """
+    def __init__(self):
+        msg = "no intersection between georeferenced inputs"
+        i2Error.__init__(self, msg)
+        self.msg = msg
+    def __str__(self):
+        return repr(self.msg)
+
+
+class configFileError(i2Error):
     """ Base subclass for exception in the configuration file
         IN :
             msg [string] : explanation of the error
     """
     def __init__(self, msg):
-        osoError.__init__(self, msg)
+        i2Error.__init__(self, msg)
+        self.msg = msg
+    def __str__(self):
+        return repr("iota2 ERROR : {}".format(self.msg))
+
+
+class dataBaseError(i2Error):
+    """
+    """
+    def __init__(self, msg):
+        i2Error.__init__(self, msg)
+        self.msg = msg
+    def __str__(self):
+        return repr("dataBaseError : {}".format(self.msg))
+
+
+class sqliteCorrupted(dataBaseError):
+    """
+    """
+    def __init__(self, journalsqlite_path):
+        sqlite_path = journalsqlite_path.replace("-journal", "")
+        msg = "'.sqlite-journal' file detetected, please remove {} and {}".format(journalsqlite_path, sqlite_path)
+        i2Error.__init__(self, msg)
+        self.msg = msg
+    def __str__(self):
+        return repr(self.msg)
+
+
+class invalidGeometry(dataBaseError):
+    """
+    """
+    def __init__(self, msg):
+        i2Error.__init__(self, msg)
+        self.msg = msg
+    def __str__(self):
+        return repr(self.msg)
+
+
+class invalidProjection(dataBaseError):
+    """
+    """
+    def __init__(self, msg):
+        i2Error.__init__(self, msg)
+        self.msg = msg
+    def __str__(self):
+        return repr(self.msg)
+
+
+class emptyFeatures(dataBaseError):
+    """
+    """
+    def __init__(self, msg):
+        i2Error.__init__(self, msg)
+        self.msg = msg
+    def __str__(self):
+        return repr(self.msg)
+
+
+class emptyGeometry(dataBaseError):
+    """
+    """
+    def __init__(self, msg):
+        i2Error.__init__(self, msg)
+        self.msg = msg
+    def __str__(self):
+        return repr(self.msg)
+
+
+class duplicatedFeatures(dataBaseError):
+    """
+    """
+    def __init__(self, msg):
+        i2Error.__init__(self, msg)
+        self.msg = msg
+    def __str__(self):
+        return repr(self.msg)
+
+
+class containsMultipolygon(dataBaseError):
+    """
+    """
+    def __init__(self, msg):
+        i2Error.__init__(self, msg)
+        self.msg = msg
+    def __str__(self):
+        return repr(self.msg)
+
+class namingConvention(dataBaseError):
+    """
+    """
+    def __init__(self, msg):
+        i2Error.__init__(self, msg)
+        self.msg = msg
+
+    def __str__(self):
+        return repr(self.msg)
+
+class missingField(dataBaseError):
+    """
+    """
+    def __init__(self, database_path, missing_field):
+        msg = "{} does not contains the field '{}'".format(database_path, missing_field)
+        i2Error.__init__(self, msg)
+        self.msg = msg
+    def __str__(self):
+        return repr(self.msg)
+
+class fieldType(dataBaseError):
+    """
+    """
+    def __init__(self, input_vector, data_field, expected_type):
+        msg = "the field '{}' in {} must be {} type".format(data_field, input_vector, expected_type)
+        i2Error.__init__(self, msg)
+        self.msg = msg
+    def __str__(self):
+        return repr(self.msg)
+
+class tooSmallRegion(dataBaseError):
+    """
+    """
+    def __init__(self, input_vector, area_threshold, nb_too_small_geoms):
+        msg = "the region shape '{}' contains {} regions or sub-regions inferior than {}, please remove them.".format(input_vector, nb_too_small_geoms, area_threshold)
+        i2Error.__init__(self, msg)
         self.msg = msg
     def __str__(self):
         return repr(self.msg)

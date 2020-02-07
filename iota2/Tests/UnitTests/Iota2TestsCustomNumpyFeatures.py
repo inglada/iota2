@@ -97,7 +97,7 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
             shutil.rmtree(self.test_working_directory)
 
     # Tests definitions
-    def test_apply_function(self):
+    def test_apply_function_with_custom_features(self):
         """
         TEST : check the whole workflow
         """
@@ -128,6 +128,7 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
         cfg_test.chain.listTile = "T31TCJ"
         cfg_test.chain.L8Path_old = "None"
         cfg_test.chain.L8Path = "None"
+        cfg_test.chain.check_inputs = False
         cfg_test.chain.S2Path = S2ST_data
         # cfg_test.chain.S2_S2C_Path = S2ST_data
         cfg_test.chain.userFeatPath = "None"
@@ -139,10 +140,11 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
         cfg_test.GlobChain.writeOutputs = False
         cfg_test.Features.codePath = self.code_path
         cfg_test.Features.namefile = "user_custom_function"  # whithout .py ?
-        cfg_test.Features.functions = "get_identity get_ndvi"
+        cfg_test.Features.functions = "get_identity"  # " get_ndvi"
         cfg_test.save(open(config_path_test, "w"))
         cfg = SCF.serviceConfigFile(config_path_test)
-        IOTA2Directory.GenerateDirectories(config_path_test)
+
+        IOTA2Directory.GenerateDirectories(config_path_test, check_inputs=False)
         tile_name = "T31TCJ"
         working_dir = None
         sensors = Sensors_container(config_path_test, tile_name, working_dir)
@@ -190,5 +192,8 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
         # )
 
         # purposely not implemented
-        self.assertTrue(new_labels is None)
+        self.assertTrue(new_labels is not None)
         # self.assertTrue(False)
+
+    def test_generates_features_with_custom_features(self):
+        pass
