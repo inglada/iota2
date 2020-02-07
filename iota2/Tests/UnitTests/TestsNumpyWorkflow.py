@@ -28,7 +28,7 @@ RM_IF_ALL_OK = True
 IOTA2DIR = os.environ.get('IOTA2DIR')
 
 
-class Iota2TestNumpyFeatures(unittest.TestCase):
+class Iota2TestsNumpyWorkflow(unittest.TestCase):
 
     # before launching tests
     @classmethod
