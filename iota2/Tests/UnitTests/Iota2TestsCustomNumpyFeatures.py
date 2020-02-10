@@ -20,7 +20,6 @@ import os
 import sys
 import shutil
 import unittest
-import numpy as np
 
 IOTA2DIR = os.environ.get("IOTA2DIR")
 
@@ -41,12 +40,10 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
         # definition of local variables
         cls.group_test_name = "Iota2TestsCustomNumpyFeatures"
         cls.iota2_tests_directory = os.path.join(
-            os.path.split(__file__)[0], cls.group_test_name
-        )
+            os.path.split(__file__)[0], cls.group_test_name)
         cls.all_tests_ok = []
-        cls.config_test = os.path.join(
-            IOTA2DIR, "data", "numpy_features", "config_plugins.cfg"
-        )
+        cls.config_test = os.path.join(IOTA2DIR, "data", "numpy_features",
+                                       "config_plugins.cfg")
         cls.code_path = os.path.join(IOTA2DIR, "data", "numpy_features")
         # Tests directory
         cls.test_working_directory = None
@@ -70,9 +67,8 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
         # it changes for each tests
 
         test_name = self.id().split(".")[-1]
-        self.test_working_directory = os.path.join(
-            self.iota2_tests_directory, test_name
-        )
+        self.test_working_directory = os.path.join(self.iota2_tests_directory,
+                                                   test_name)
         if os.path.exists(self.test_working_directory):
             shutil.rmtree(self.test_working_directory)
         os.mkdir(self.test_working_directory)
@@ -87,7 +83,8 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
             result = self.defaultTestResult()
             self._feedErrorsToResult(result, self._outcome.errors)
         else:
-            result = getattr(self, "_outcomeForDoCleanups", self._resultForDoCleanups)
+            result = getattr(self, "_outcomeForDoCleanups",
+                             self._resultForDoCleanups)
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
         ok = not error and not failure
@@ -115,7 +112,8 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
             "T31TCJ",
             ["20200101", "20200512", "20200702", "20201002"],
         )
-        config_path_test = os.path.join(self.test_working_directory, "Config_TEST.cfg")
+        config_path_test = os.path.join(self.test_working_directory,
+                                        "Config_TEST.cfg")
 
         shutil.copy(self.config_test, config_path_test)
         S2ST_data = self.test_working_directory
@@ -140,7 +138,8 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
         cfg_test.save(open(config_path_test, "w"))
         cfg = SCF.serviceConfigFile(config_path_test)
 
-        IOTA2Directory.GenerateDirectories(config_path_test, check_inputs=False)
+        IOTA2Directory.GenerateDirectories(config_path_test,
+                                           check_inputs=False)
         tile_name = "T31TCJ"
         working_dir = None
         sensors = Sensors_container(config_path_test, tile_name, working_dir)
@@ -154,7 +153,8 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
         time_s_app, app_dep, nbdates = time_s
         time_s_app.ExecuteAndWriteOutput()
 
-        ((time_s_app, app_dep), features_labels) = sensor.get_time_series_gapFilling()
+        ((time_s_app, app_dep),
+         features_labels) = sensor.get_time_series_gapFilling()
         # only one sensor for test
         # sensor_name, ((time_s_app, app_dep), features_labels) = time_s[0]
         # ( (time_s_app, app_dep), features_labels) = time_s
@@ -164,7 +164,8 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
         function_partial = partial(cust.process)
 
         labels_features_name = ["NDVI_20200101", "NDVI_20200102"]
-        new_features_path = os.path.join(self.test_working_directory, "DUMMY_test.tif")
+        new_features_path = os.path.join(self.test_working_directory,
+                                         "DUMMY_test.tif")
         test_array, new_labels, _, _, _ = rasterU.apply_function(
             otb_pipeline=time_s_app,
             labels=labels_features_name,
@@ -178,7 +179,8 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
         time_s_app.ExecuteAndWriteOutput()
         # time_s_app.Execute()
         pipeline_shape = time_s_app.GetVectorImageAsNumpyArray("out").shape
-        pipeline_shape = (pipeline_shape[2], pipeline_shape[0], pipeline_shape[1])
+        pipeline_shape = (pipeline_shape[2], pipeline_shape[0],
+                          pipeline_shape[1])
         # self.assertTrue(pipeline_shape == test_array.shape)
 
         # check if the input function is well apply
@@ -210,7 +212,8 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
             "T31TCJ",
             ["20200101", "20200512", "20200702", "20201002"],
         )
-        config_path_test = os.path.join(self.test_working_directory, "Config_TEST.cfg")
+        config_path_test = os.path.join(self.test_working_directory,
+                                        "Config_TEST.cfg")
 
         shutil.copy(self.config_test, config_path_test)
         S2ST_data = self.test_working_directory
@@ -231,11 +234,12 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
         cfg_test.GlobChain.writeOutputs = False
         cfg_test.Features.codePath = self.code_path
         cfg_test.Features.namefile = "user_custom_function"  # whithout .py ?
-        cfg_test.Features.functions = "get_identity"  # " get_ndvi"
+        cfg_test.Features.functions = "get_identity get_ndvi"
         cfg_test.save(open(config_path_test, "w"))
         cfg = SCF.serviceConfigFile(config_path_test)
 
-        IOTA2Directory.GenerateDirectories(config_path_test, check_inputs=False)
+        IOTA2Directory.GenerateDirectories(config_path_test,
+                                           check_inputs=False)
         tile_name = "T31TCJ"
         working_dir = None
         sensors = Sensors_container(config_path_test, tile_name, working_dir)
@@ -249,15 +253,20 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
         time_s_app, app_dep, nbdates = time_s
         time_s_app.ExecuteAndWriteOutput()
 
-        ((time_s_app, app_dep), features_labels) = sensor.get_time_series_gapFilling()
-        # Then apply function
+        ((time_s_app, app_dep),
+         features_labels) = sensor.get_time_series_gapFilling()
+        # Compute custom features outside generateFeatures
+        # 1. generate iota2 features
+        ori_features, ori_feat_labels, ori_dep = generateFeatures(
+            None, "T31TCJ", cfg, customFeatures=False)
         cust = customNumpyFeatures(config_path_test)
         function_partial = partial(cust.process)
 
         labels_features_name = ["NDVI_20200101", "NDVI_20200102"]
-        new_features_path = os.path.join(self.test_working_directory, "DUMMY_test.tif")
+        new_features_path = os.path.join(self.test_working_directory,
+                                         "Custom_feature_outside.tif")
         test_array, new_labels, _, _, _ = rasterU.apply_function(
-            otb_pipeline=time_s_app,
+            otb_pipeline=ori_features,
             labels=labels_features_name,
             working_dir=self.test_working_directory,
             function=function_partial,
@@ -266,19 +275,30 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
             chunck_size_y=5,
             ram=128,
         )
+        # write gapfilled time series
         time_s_app.ExecuteAndWriteOutput()
-        features, feat_labels, dep = generateFeatures(
-            None, "T31TCJ", cfg, customFeatures=True
-        )
+        features, feat_labels, dep = generateFeatures(None,
+                                                      "T31TCJ",
+                                                      cfg,
+                                                      customFeatures=True)
+        # write time series features and custom features
         features.ExecuteAndWriteOutput()
         # self.assertTrue(pipeline_shape == test_array.shape)
-        pipeline_shape = time_s_app.GetVectorImageAsNumpyArray("out").shape
-        print(pipeline_shape)
-        pipeline_shape = (pipeline_shape[2], pipeline_shape[0], pipeline_shape[1])
-
+        # pipeline_shape = features.GetVectorImageAsNumpyArray("out").shape
+        # print(pipeline_shape)
+        # pipeline_shape = (pipeline_shape[2], pipeline_shape[0], pipeline_shape[1])
         # check if the input function is well apply
         pipeline_array = features.GetVectorImageAsNumpyArray("out")
-        print(pipeline_array.shape)
+
+        # print(pipeline_array.shape)
+        # check if the outside result have the same shape
+        # print(test_array.shape)
+        # Check if the two output images have the same shape
+        # WARNING: rasterio shape is in different order than OTB shape
+        self.assertTrue(pipeline_array.shape[2] == test_array.shape[0])
+        self.assertTrue(pipeline_array.shape[0] == test_array.shape[1])
+        self.assertTrue(pipeline_array.shape[1] == test_array.shape[2])
         # purposely not implemented
+
         self.assertTrue(new_labels is not None)
-        self.assertTrue(False)
+        print(new_labels)

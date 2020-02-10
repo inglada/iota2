@@ -94,11 +94,16 @@ class customNumpyFeatures(dataContainer):
         import numpy as np
 
         self.data = data
-
+        new_labels = []
         try:
-            for fun_name in self.fun_name_list:
+            for i, fun_name in enumerate(self.fun_name_list):
                 func = getattr(self, fun_name)
-                feat, new_labels = func()
+                feat, labels = func()
+                # feat is a numpy array with shape [row, cols, bands]
+                # check if user defined well labels
+                if len(labels) != feat.shape[2]:
+                    labels = [f"custFeat_{i+1}_b{j+1}" for j in range(feat.shape[2])]
+                new_labels += labels
                 self.data = np.concatenate((self.data, feat), axis=2)
             return self.data, new_labels
         except Exception as e:
