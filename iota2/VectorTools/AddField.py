@@ -5,19 +5,24 @@ from osgeo import ogr
 import os, sys
 import argparse
 
-def addField(filein, nameField, valueField, valueType=None, driver_name="ESRI Shapefile", fWidth=None):
+
+def addField(filein,
+             nameField,
+             valueField,
+             valueType=None,
+             driver_name="ESRI Shapefile",
+             fWidth=None):
 
     driver = ogr.GetDriverByName(driver_name)
     source = driver.Open(filein, 1)
     layer = source.GetLayer()
     layer_name = layer.GetName()
     layer_defn = layer.GetLayerDefn()
-    field_names = [layer_defn.GetFieldDefn(i).GetName() for i in range(layer_defn.GetFieldCount())]
     if not valueType:
-        try :
+        try:
             int(valueField)
             new_field1 = ogr.FieldDefn(nameField, ogr.OFTInteger)
-        except :
+        except:
             new_field1 = ogr.FieldDefn(nameField, ogr.OFTString)
     elif valueType == str:
         new_field1 = ogr.FieldDefn(nameField, ogr.OFTString)
@@ -44,12 +49,12 @@ def addField(filein, nameField, valueField, valueType=None, driver_name="ESRI Sh
         import sqlite3
         conn = sqlite3.connect(filein)
         c = conn.cursor()
-        c.execute("alter table {} add column {} {} default '{}'".format(layer_name, nameField, sqlite_type, valueField))
+        c.execute("alter table {} add column {} {} default '{}'".format(
+            layer_name, nameField, sqlite_type, valueField))
         conn.commit()
         c.close()
 
     return 0
-
 
 
 if __name__ == "__main__":
