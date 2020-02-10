@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 from osgeo import ogr
-import os, sys
+import os
+import sys
 import argparse
 
 
@@ -17,12 +18,11 @@ def addField(filein,
     source = driver.Open(filein, 1)
     layer = source.GetLayer()
     layer_name = layer.GetName()
-    layer_defn = layer.GetLayerDefn()
     if not valueType:
         try:
             int(valueField)
             new_field1 = ogr.FieldDefn(nameField, ogr.OFTInteger)
-        except:
+        except BaseException():
             new_field1 = ogr.FieldDefn(nameField, ogr.OFTString)
     elif valueType == str:
         new_field1 = ogr.FieldDefn(nameField, ogr.OFTString)
@@ -60,19 +60,28 @@ def addField(filein,
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         prog = os.path.basename(sys.argv[0])
-        print('      '+sys.argv[0]+' [options]')
+        print('      ' + sys.argv[0] + ' [options]')
         print("     Help : ", prog, " --help")
         print("        or : ", prog, " -h")
         sys.exit(-1)
     else:
         usage = "usage: %prog [options] "
-        parser = argparse.ArgumentParser(description = "Create a field and" \
-        "populate it of an input shapefile")
-        parser.add_argument("-s", dest="shapefile", action="store", \
-                            help="Input shapefile", required = True)
-        parser.add_argument("-f", dest="field", action="store", \
-                            help="Field to add", required = True)
-        parser.add_argument("-v", dest="value", action="store", \
-                            help="Value to insert in the field", required = True)
+        parser = argparse.ArgumentParser(description="Create a field and"
+                                         "populate it of an input shapefile")
+        parser.add_argument("-s",
+                            dest="shapefile",
+                            action="store",
+                            help="Input shapefile",
+                            required=True)
+        parser.add_argument("-f",
+                            dest="field",
+                            action="store",
+                            help="Field to add",
+                            required=True)
+        parser.add_argument("-v",
+                            dest="value",
+                            action="store",
+                            help="Value to insert in the field",
+                            required=True)
         args = parser.parse_args()
         addField(args.shapefile, args.field, args.value)
