@@ -44,15 +44,13 @@ def str2bool(v):
         raise argparse.ArgumentTypeError("Boolean value expected.")
 
 
-def generateFeatures(
-        pathWd,
-        tile,
-        cfg,
-        writeFeatures=False,
-        mode="usually",
-        customFeatures=False,
-        force_standard_labels=False,
-):
+def generateFeatures(pathWd,
+                     tile,
+                     cfg,
+                     writeFeatures=False,
+                     mode="usually",
+                     customFeatures=False,
+                     force_standard_labels=False):
     """
     usage : Function use to compute features according to a configuration file.
 

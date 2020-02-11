@@ -15,10 +15,10 @@
 # =========================================================================
 import os
 
-from Steps import IOTA2Step
-from Common import ServiceConfigFile as SCF
-from Cluster import get_RAM
-from Sampling import VectorSampler as vs
+from iota2.Steps import IOTA2Step
+from iota2.Common import ServiceConfigFile as SCF
+from iota2.Cluster import get_RAM
+from iota2.Sampling import VectorSampler as vs
 
 
 class samplesExtraction(IOTA2Step.Step):
@@ -33,8 +33,9 @@ class samplesExtraction(IOTA2Step.Step):
         self.output_path = SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'outputPath')
         self.ram_extraction = 1024.0 * get_RAM(self.resources["ram"])
-        # TODO: read config file to init custom features and check validity
-        self.customFeatures = False
+        # read config file to init custom features and check validity
+        self.custom_features = SCF.serviceConfigFile(
+            self.cfg).checkCustomFeature()
 
     def step_description(self):
         """
@@ -49,12 +50,10 @@ class samplesExtraction(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
-        return vs.get_vectors_to_sample(os.path.join(self.output_path,
-                                                     "formattingVectors"),
-                                        SCF.serviceConfigFile(
-                                            self.cfg).getParam(
-                                                'argTrain',
-                                                'dempster_shafer_SAR_Opt_fusion'))
+        return vs.get_vectors_to_sample(
+            os.path.join(self.output_path, "formattingVectors"),
+            SCF.serviceConfigFile(self.cfg).getParam(
+                'argTrain', 'dempster_shafer_SAR_Opt_fusion'))
 
     def step_execute(self):
         """
@@ -64,10 +63,12 @@ class samplesExtraction(IOTA2Step.Step):
             the function to execute as a lambda function. The returned object
             must be a lambda function.
         """
-        step_function = lambda x: vs.generateSamples(x, self.workingDirectory,
+        step_function = lambda x: vs.generateSamples(x,
+                                                     self.workingDirectory,
                                                      self.cfg,
                                                      self.ram_extraction,
-                                                     customFeatures=self.customFeatures)
+                                                     customFeatures=self.
+                                                     custom_features)
         return step_function
 
     def step_outputs(self):
