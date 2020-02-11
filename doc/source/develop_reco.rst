@@ -117,6 +117,10 @@ It's format must be in NumPy style:
         """
         return True
 
+.. Warning::
+
+    developers must use the pre-commit hook. It could be setup by the script enable_hooks.sh
+
 TESTS
 *****
 
