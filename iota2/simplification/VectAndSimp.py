@@ -24,7 +24,7 @@ except ImportError:
 
 #------------------------------------------------------------------------------
             
-def init_grass(path, grasslib, debuglvl):
+def init_grass(path, grasslib, debuglvl, epsg="2154"):
 
     """
     Initialisation of Grass GIS in lambert 93.
@@ -64,7 +64,7 @@ def init_grass(path, grasslib, debuglvl):
         shutil.rmtree(os.path.join(gisdb, "demolocation"))
     
     # Create the location in Lambert 93
-    gscript.run_command("g.proj", flags="c", epsg="2154", location="demolocation")    
+    gscript.run_command("g.proj", flags="c", epsg, location="demolocation")    
     
     # Create datas mapset
     if not os.path.exists(os.path.join(gisdb, "/demolocation/datas")) :
@@ -73,7 +73,7 @@ def init_grass(path, grasslib, debuglvl):
         except:
             raise Exception("Folder '%s' does not own to current user")%(gisdb)
 
-def topologicalPolygonize(path, grasslib, raster, angle, out="", outformat = "ESRI_Shapefile", debulvl="info", logger=logger):
+def topologicalPolygonize(path, grasslib, raster, angle, out="", outformat = "ESRI_Shapefile", debulvl="info", epsg = "2154", logger=logger):
 
     timeinit = time.time()
     
@@ -127,7 +127,7 @@ def topologicalPolygonize(path, grasslib, raster, angle, out="", outformat = "ES
     
     return out
 
-def generalizeVector(path, grasslib, vector, paramgene, method, mmu="", ncolumns="cat", out="", outformat = "ESRI_Shapefile", debulvl="info", logger=logger):
+def generalizeVector(path, grasslib, vector, paramgene, method, mmu="", ncolumns="cat", out="", outformat = "ESRI_Shapefile", debulvl="info", epsg = "2154", logger=logger):
 
     timeinit = time.time()
     
@@ -141,7 +141,7 @@ def generalizeVector(path, grasslib, vector, paramgene, method, mmu="", ncolumns
         localenv = os.path.join(path, "tmp%s"%(layer))
         if os.path.exists(localenv):shutil.rmtree(localenv)
         os.mkdir(localenv)
-        init_grass(localenv, grasslib,  debulvl)
+        init_grass(localenv, grasslib,  debulvl, epsg)
 
         # remove non "cat" fields
         for field in vf.getFields(vector):
