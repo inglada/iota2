@@ -195,6 +195,40 @@ class Sensors_container(object):
             enabled_sensors.append(User_features(self.cfg.pathConf, tile_name=self.tile_name))
         return enabled_sensors
 
+    def get_enabled_sensors_path(self):
+        """
+        """
+        self.enabled_sensors
+        
+        l5_old = self.cfg.getParam("chain", "L5Path_old")
+        l8 = self.cfg.getParam("chain", "L8Path")
+        l8_old = self.cfg.getParam("chain", "L8Path_old")
+        s1 = self.cfg.getParam("chain", "S1Path")
+        s2 = self.cfg.getParam("chain", "S2Path")
+        s2_s2c = self.cfg.getParam("chain", "S2_S2C_Path")
+        s2_l3a = self.cfg.getParam("chain", "S2_L3A_Path")
+        user_feat = self.cfg.getParam("chain", "userFeatPath")
+
+        paths = []
+        for sensor in self.enabled_sensors:
+            if Landsat_5_old.name ==  sensor.__class__.name:
+                paths.append(l5_old)
+            elif Landsat_8.name ==  sensor.__class__.name:
+                paths.append(l8)
+            elif Landsat_8_old.name ==  sensor.__class__.name:
+                paths.append(l8_old)
+            elif Sentinel_1.name ==  sensor.__class__.name:
+                paths.append(s1)
+            elif Sentinel_2.name ==  sensor.__class__.name:
+                paths.append(s2)
+            elif Sentinel_2_S2C.name ==  sensor.__class__.name:
+                paths.append(s2_s2c)
+            elif Sentinel_2_L3A.name ==  sensor.__class__.name:
+                paths.append(s2_l3a)
+            elif User_features.name ==  sensor.__class__.name:
+                paths.append(user_feat)
+            return paths
+
     def sensors_preprocess(self, available_ram=128):
         """preprocessing every enabled sensors
 

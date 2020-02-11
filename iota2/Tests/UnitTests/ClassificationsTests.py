@@ -107,22 +107,22 @@ class iota_testClassifications(unittest.TestCase):
         # prepare inputs 
         probamap_arr = [np.array([[268, 528, 131],
                                   [514, 299, 252],
-                                  [725, 427, 731]][::-1]),
+                                  [725, 427, 731]]),
                         np.array([[119, 241, 543],
                                   [974, 629, 626],
-                                  [3, 37, 819]][::-1]),
+                                  [3, 37, 819]]),
                         np.array([[409, 534, 710],
                                   [916, 43, 993],
-                                  [207, 68, 282]][::-1]),
+                                  [207, 68, 282]]),
                         np.array([[820, 169, 423],
                                   [710, 626, 525],
-                                  [377, 777, 461]][::-1]),
+                                  [377, 777, 461]]),
                         np.array([[475, 116, 395],
                                   [838, 297, 262],
-                                  [650, 828, 595]][::-1]),
+                                  [650, 828, 595]]),
                         np.array([[0, 0, 0],
                                   [0, 0, 0],
-                                  [0, 0, 0]][::-1])]
+                                  [0, 0, 0]])]
         probamap_path = os.path.join(self.test_working_directory,
                                      "PROBAMAP_T31TCJ_model_1_seed_0.tif")
         arrayToRaster(probamap_arr, probamap_path)
@@ -144,22 +144,22 @@ class iota_testClassifications(unittest.TestCase):
         # assert
         probamap_arr_ref = [np.array([[268, 528, 131],
                                       [514, 299, 252],
-                                      [725, 427, 731]][::-1]),
+                                      [725, 427, 731]]),
                             np.array([[119, 241, 543],
                                       [974, 629, 626],
-                                      [3, 37, 819]][::-1]),
+                                      [3, 37, 819]]),
                             np.array([[409, 534, 710],
                                       [916, 43, 993],
-                                      [207, 68, 282]][::-1]),
+                                      [207, 68, 282]]),
                             np.array([[820, 169, 423],
                                       [710, 626, 525],
-                                      [377, 777, 461]][::-1]),
+                                      [377, 777, 461]]),
                             np.array([[0, 0, 0],
                                       [0, 0, 0],
-                                      [0, 0, 0]][::-1]),
+                                      [0, 0, 0]]),
                             np.array([[475, 116, 395],
                                       [838, 297, 262],
-                                      [650, 828, 595]][::-1])]
+                                      [650, 828, 595]])]
         reordered_test_arr = rasterToArray(proba_map_path_out)
         self.assertEqual(len(all_class), len(reordered_test_arr))
         is_bands_ok = []

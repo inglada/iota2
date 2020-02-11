@@ -129,10 +129,10 @@ class iota_testS2STSensor(unittest.TestCase):
         
         fake_raster = [np.array([[10, 55, 61],
                                  [100, 56, 42],
-                                 [1, 42, 29]][::-1])]
+                                 [1, 42, 29]])]
         fake_scene_classification = [np.array([[2, 0, 4],
                                                [0, 4, 2],
-                                               [1, 1, 10]][::-1])]
+                                               [1, 1, 10]])]
         for mtd in MTD_files:
             prod_list = self.generate_data_tree(os.path.join(self.test_working_directory, "T31TCJ"),
                                                 mtd)
@@ -192,7 +192,7 @@ class iota_testS2STSensor(unittest.TestCase):
         cfg_test.save(open(config_path_test, 'w'))
         
         cfg = SCF.serviceConfigFile(config_path_test)
-        IOTA2Directory.GenerateDirectories(cfg)
+        IOTA2Directory.GenerateDirectories(cfg, check_inputs=False)
 
         # Launch test
         tile_name = "T31TCJ"

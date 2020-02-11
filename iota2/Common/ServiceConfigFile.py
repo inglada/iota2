@@ -91,6 +91,9 @@ class serviceConfigFile:
                              "dempstershafer_mob": "precision",
                              "merge_final_classifications_ratio": 0.1,
                              "keep_runs_results": True,
+                             "check_inputs": True,
+                             "enable_autoContext": False,
+                             "autoContext_iterations": 3,
                              "remove_tmp_files": False}
             self.init_section("chain", chain_default)
             #init coregistration section
@@ -109,12 +112,21 @@ class serviceConfigFile:
                               "pattern":"None"
                               }
             self.init_section("coregistration",coregistration_default)
+            
+            sklearn_default = {"model_type": None,
+                               "cross_validation_folds": 5,
+                               "cross_validation_grouped": False,
+                               "standardization": False,
+                               "cross_validation_parameters": self.init_dicoMapping({})}
+            self.init_section("scikit_models_parameters", sklearn_default)
+
             #init argTrain section
             sampleSel_default = self.init_dicoMapping({"sampler":"random",
                                                        "strategy":"all"})
             sampleAugmentationg_default = self.init_dicoMapping({"activate":False})
             annualCrop = self.init_listSequence(["11", "12"])
             ACropLabelReplacement = self.init_listSequence(["10", "annualCrop"])
+
             argTrain_default = {"sampleSelection": sampleSel_default,
                                 "sampleAugmentation": sampleAugmentationg_default,
                                 "sampleManagement": None,
@@ -125,8 +137,14 @@ class serviceConfigFile:
                                 "annualCrop": annualCrop,
                                 "ACropLabelReplacement": ACropLabelReplacement,
                                 "samplesClassifMix": False,
+                                "classifier": "rf",
+                                "options": " -classifier.rf.min 5 -classifier.rf.max 25 ",
                                 "annualClassesExtractionSource":"None",
                                 "validityThreshold": 1}
+            if self.cfg.scikit_models_parameters.model_type is None:
+                del argTrain_default["classifier"]
+                del argTrain_default["options"]
+
             self.init_section("argTrain", argTrain_default)
             #init argClassification section
             argClassification_default = {"noLabelManagement": "maxConfidence",
@@ -190,7 +208,9 @@ class serviceConfigFile:
                                       
             userFeat =  {"arbo": "/*",
                          "patterns":"ALT,ASP,SLP"}
+    
 
+                                      
             self.init_section("Landsat5_old", Landsat5_old_default)
             self.init_section("Landsat8", Landsat8_default)
             self.init_section("Landsat8_old", Landsat8_old_default)
@@ -488,6 +508,7 @@ class serviceConfigFile:
             if self.getParam("chain", "regionPath"):
                 check_region_vector(self.cfg)
             self.testVarConfigFile('chain', 'regionField', str)
+            self.testVarConfigFile('chain', 'check_inputs', bool)
             self.testVarConfigFile('chain', 'model', str)
             self.testVarConfigFile('chain', 'enableCrossValidation', bool)
             self.testVarConfigFile('chain', 'groundTruth', str)
@@ -501,6 +522,8 @@ class serviceConfigFile:
             self.testVarConfigFile('chain', 'colorTable', str)
             self.testVarConfigFile('chain', 'mode_outside_RegionSplit', float)
             self.testVarConfigFile('chain', 'merge_final_classifications', bool)
+            self.testVarConfigFile('chain', 'enable_autoContext', bool)
+            self.testVarConfigFile('chain', 'autoContext_iterations', int)
             if self.getParam("chain", "merge_final_classifications"):
                 self.testVarConfigFile('chain', 'merge_final_classifications_undecidedlabel', int)
                 self.testVarConfigFile('chain', 'merge_final_classifications_ratio', float)
@@ -548,6 +571,23 @@ class serviceConfigFile:
             self.testVarConfigFile('dimRed', 'reductionMode', str)
 
             self.testVarConfigFile('chain', 'remove_tmp_files', bool)
+            
+            self.testVarConfigFile('chain', 'remove_tmp_files', bool)
+            
+            self.testVarConfigFile('chain', 'remove_tmp_files', bool)
+
+            if self.cfg.scikit_models_parameters.model_type is not None:
+                self.testVarConfigFile('scikit_models_parameters',
+                                       'model_type', str)
+                self.testVarConfigFile('scikit_models_parameters',
+                                       'cross_validation_folds', int)
+                self.testVarConfigFile('scikit_models_parameters',
+                                       'cross_validation_grouped', bool)
+                self.testVarConfigFile('scikit_models_parameters',
+                                       'standardization', bool)
+                self.testVarConfigFile('scikit_models_parameters',
+                                       'cross_validation_parameters', Mapping)
+                                       
 
             if self.cfg.chain.L5Path_old != "None":
                 #L5 variable check
@@ -566,16 +606,21 @@ class serviceConfigFile:
                 #S2 variable check
                 self.testVarConfigFile('Sentinel_2', 'temporalResolution', int)
                 self.testVarConfigFile('Sentinel_2', 'keepBands', Sequence)
-            
+
             if self.cfg.chain.random_seed != None:
                 self.testVarConfigFile('chain', 'random_seed', int)
-
+                
             nbTile = len(self.cfg.chain.listTile.split(" "))
 
             # directory tests
             if self.getParam("chain", "jobsPath"):
                 self.testDirectory(self.getParam("chain", "jobsPath"))
 
+            try:
+                epsg = int(self.getParam('GlobChain', 'proj').split(":")[-1])
+            except ValueError:
+                raise ValueError("parameter GlobChain.proj not in the right format (proj:\"EPSG:2154\")")
+        
             self.testDirectory(os.path.join(get_iota2_project_dir(), "iota2"))
             self.testDirectory(self.cfg.chain.nomenclaturePath)
             self.testDirectory(self.cfg.chain.groundTruth)
@@ -632,6 +677,8 @@ class serviceConfigFile:
                 raise sErr.configError("these parameters are incompatible dempster_shafer_SAR_Opt_fusion : True and S1Path : 'None'")
             if self.cfg.argTrain.dempster_shafer_SAR_Opt_fusion and 'None' in self.cfg.chain.userFeatPath and 'None' in self.cfg.chain.L5Path_old and 'None' in self.cfg.chain.L8Path and 'None' in self.cfg.chain.L8Path_old and 'None' in self.cfg.chain.S2Path and 'None' in self.cfg.chain.S2_S2C_Path:
                 raise sErr.configError("to perform post-classification fusion, optical data must be used")
+            if self.cfg.scikit_models_parameters.model_type is not None and self.cfg.chain.enable_autoContext is True:
+                raise sErr.configError("these parameters are incompatible enable_autoContext : True and model_type")
         # Error managed
         except sErr.configFileError:
             print("Error in the configuration file " + self.pathConf)
@@ -649,6 +696,14 @@ class serviceConfigFile:
         :return: list of available section
         """
         return [section for section in list(self.cfg.keys())]
+
+    def getSection(self, section):
+        """
+        """
+        if not hasattr(self.cfg, section):
+            # not an osoError class because it should NEVER happened
+            raise Exception("Section {} is not in the configuration file ".format(section))
+        return getattr(self.cfg, section)
 
     def getParam(self, section, variable):
         """

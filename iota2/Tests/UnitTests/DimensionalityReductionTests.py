@@ -48,7 +48,7 @@ class DimensionalityReductionTests(unittest.TestCase):
         self.testJointReducedFile = os.path.join(iota2_dataTest, 'tmp', 'joint.sqlite')
         self.jointReducedFile = os.path.join(iota2_dataTest, 'joint.sqlite')
         self.outputSampleFileName = 'reduced_output_samples.sqlite'
-        self.testOutputSampleFileName = 'reduced_output_samples.sqlite'
+        self.testOutputSampleFileName = 'reduced_output_samples_test.sqlite'
         self.configFile = os.path.join(iota2dir, "config", "Config_4Tuiles_Multi_FUS_Confidence.cfg")
 
     def test_GetAvailableFeatures(self):

@@ -25,6 +25,17 @@ from osgeo.gdalconst import  GDT_Int16, GDT_Float64, GDT_Float32
 import osgeo.ogr
 import argparse
 from shutil import copyfile
+from typing import Set, Tuple, Optional
+
+def get_vector_proj(vector_file: str, driver="ESRI Shapefile"):
+    """get vector projection
+    """
+    driver = ogr.GetDriverByName(driver)
+    dataset = driver.Open(vector_file)
+    layer = dataset.GetLayer()
+    spatialRef = layer.GetSpatialRef()
+    return spatialRef.GetAttrValue("AUTHORITY", 1)
+
 
 def get_geom_column_name(vector_file, driver="ESRI Shapefile"):
     """get field's name containing features' geomtries
@@ -531,7 +542,7 @@ def deleteInvalidGeom(shp):
 
 
 #--------------------------------------------------------------------
-def checkValidGeom(shp, outformat="ESRI shapefile"):
+def checkValidGeom(shp, outformat="ESRI shapefile", display=True):
     """Check the validity of geometries in a file. If geometry is not valid then
     apply buffer 0 to correct. Works for files with polygons
 
@@ -545,9 +556,8 @@ def checkValidGeom(shp, outformat="ESRI shapefile"):
         (output_shape, count, corr) where count is the number of invalid features
         and corr the number of invalid features corrected
     """
-
-    print("Verifying geometries validity")
-    
+    if display:
+        print("Verifying geometries validity")
 
     ds = openToWrite(shp, outformat)
     layer = ds.GetLayer()
@@ -560,7 +570,9 @@ def checkValidGeom(shp, outformat="ESRI shapefile"):
         #feat = layer.GetFeature(i)
         fid =  feat.GetFID()
         if feat.GetGeometryRef() is None:
-            print(fid)
+            if display:
+                print(fid)
+            count += 1
             layer.DeleteFeature(fid)
             ds.ExecuteSQL('REPACK '+layer.GetName())
             layer.ResetReading()
@@ -574,13 +586,15 @@ def checkValidGeom(shp, outformat="ESRI shapefile"):
                 buffer_test =  feat.SetGeometry(geom.Buffer(0))
                 layer.SetFeature(feat)
                 if buffer_test == 0:
-                    print("Feature %d has been corrected" % feat.GetFID())
+                    if display:
+                        print("Feature %d has been corrected" % feat.GetFID())
                     corr += 1
                 else:
-                    print("Feature %d could not be corrected" % feat.GetFID())
+                    if display:
+                        print("Feature %d could not be corrected" % feat.GetFID())
                 count += 1
-        
-    print("From %d invalid features, %d were corrected" %(count, corr))
+    if display:
+        print("From %d invalid features, %d were corrected" %(count, corr))
 
     if outformat == "ESRI shapefile":
         ds.ExecuteSQL('REPACK %s'%(layer.GetName()))

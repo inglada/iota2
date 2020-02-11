@@ -6,7 +6,8 @@ import os
 import sqlite3 as lite
 import argparse
 
-def deleteDuplicateGeometriesSqlite(shapefile, outformat = "ESRI shapefile", do_corrections=True, output_file=None):
+def deleteDuplicateGeometriesSqlite(shapefile, outformat = "ESRI shapefile",
+                                    do_corrections=True, output_file=None, quiet_mode=False):
     """Check if a features is duplicates, then if it does it will not be copied in output shapeFile
 
     Parameters
@@ -17,6 +18,8 @@ def deleteDuplicateGeometriesSqlite(shapefile, outformat = "ESRI shapefile", do_
         flag to remove dupplicates
     output_shape : string
         output shapeFile, if set to None output_shape = input_shape
+    quiet_mode : bool
+        flag to print information
     Return
     ------
     tuple
@@ -58,9 +61,11 @@ def deleteDuplicateGeometriesSqlite(shapefile, outformat = "ESRI shapefile", do_
             os.system("ogr2ogr -f 'ESRI Shapefile' %s %s"%(shapefile, outsqlite))
 
         if nb_dupplicates != 0:
-            print("Analyse of duplicated features done. %s duplicates found and deleted"%(nb_dupplicates))
+            if quiet_mode is False:
+                print("Analyse of duplicated features done. %s duplicates found and deleted"%(nb_dupplicates))
         else:
-            print("Analyse of duplicated features done. No duplicates found")
+            if quiet_mode is False:
+                print("Analyse of duplicated features done. No duplicates found")
             
         cursor = conn = None
         

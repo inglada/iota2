@@ -34,10 +34,91 @@ def str2bool(v):
         retour = False
     return retour
 
+
+def autoContext_classification_param(iota2_directory, data_field):
+    """
+    Parameters
+    ----------
+    iota2_run_dir : string
+        path to iota² output path
+    """
+    import re
+    from Common.FileUtils import FileSearch_AND
+    from Common.FileUtils import sortByFirstElem
+    from Common.FileUtils import getListTileFromModel
+    from Common.FileUtils import getFieldElement
+
+    models_description = os.path.join(iota2_directory, "config_model", "configModel.cfg")
+    models_directory = os.path.join(iota2_directory, "model")
+    sample_sel_directory = os.path.join(iota2_directory, "samplesSelection")
+
+    parameters = []
+    all_models = sorted(os.listdir(models_directory))
+    for model in all_models :
+        model_name = model.split("_")[1]
+        seed_num = model.split("_")[-1]
+        tiles = sorted(getListTileFromModel(model_name, models_description))
+        #~ samples_region_1f1_seed_0.shp
+        model_sample_sel = FileSearch_AND(sample_sel_directory,
+                                          True,
+                                          "samples_region_{}_seed_{}.shp".format(model_name, seed_num))[0]
+        labels = getFieldElement(model_sample_sel, driverName="ESRI Shapefile", field=data_field, mode="unique")
+        models = FileSearch_AND(os.path.join(models_directory, model), True, ".rf")
+        for tile in tiles:
+            tile_mask = FileSearch_AND(os.path.join(iota2_directory, "shapeRegion"),
+                                       True,
+                                       "{}_{}.tif".format(model_name.split("f")[0], tile))[0]
+            tile_seg = FileSearch_AND(os.path.join(iota2_directory, "features", tile, "tmp"),
+                                      True,
+                                      "SLIC_{}.tif".format(tile))[0]
+            parameters.append({"model_name": model_name,
+                               "seed_num": seed_num,
+                               "tile": tile,
+                               "tile_segmentation": tile_seg,
+                               "tile_mask": tile_mask,
+                               "labels_list" : labels,
+                               "model_list": sorted(models,
+                                                    key=lambda x : int(re.findall("\d", os.path.basename(x))[0]))})
+    return parameters
+
+
+def autoContext_launch_classif(parameters_dict, config_path, RAM, WORKING_DIR, LOGGER=logger):
+    """
+    """
+    from Common.OtbAppBank import CreateRasterizationApplication
+    from Common.FileUtils import getOutputPixType
+
+    cfg = SCF.serviceConfigFile(config_path)
+
+    iota2_run_dir = cfg.getParam("chain", "outputPath")
+    pixType = getOutputPixType(cfg.getParam("chain", "nomenclaturePath"))
+
+    models = parameters_dict["model_list"]
+    classif_mask = parameters_dict["tile_mask"]
+
+    tempFolderSerie = ""
+    stats = os.path.join(iota2_run_dir,
+                         "stats",
+                         "Model_{}_seed_{}.xml".format(parameters_dict["model_name"],
+                                                       parameters_dict["seed_num"]))
+
+    outputClassif = "Classif_{}_model_{}_seed_{}.tif".format(parameters_dict["tile"],
+                                                             parameters_dict["model_name"],
+                                                             parameters_dict["seed_num"])
+    confmap = "{}_model_{}_confidence_seed_{}.tif".format(parameters_dict["tile"],
+                                                          parameters_dict["model_name"],
+                                                          parameters_dict["seed_num"])
+    launchClassification(tempFolderSerie, classif_mask, models, stats,
+                         outputClassif, confmap, WORKING_DIR, config_path, pixType,
+                         MaximizeCPU=True, RAM=RAM, auto_context={"labels_list": parameters_dict["labels_list"],
+                                                                  "tile_segmentation":parameters_dict["tile_segmentation"]})
+
+
 class iota2Classification():
-    def __init__(self, cfg, features_stack, classifier_type, model, tile, output_directory, models_class, 
+    def __init__(self, cfg, features_stack, classifier_type, model, tile, output_directory, models_class,
                  confidence=True, proba_map=False, classif_mask=None, pixType="uint8",
-                 working_directory=None, stat_norm=None, RAM=128, logger=logger, mode="usually"):
+                 working_directory=None, stat_norm=None, RAM=128, auto_context={},
+                 logger=logger, mode="usually"):
         """
         TODO :
             remove the dependance from cfg which still needed to compute features (first, remove from generateFeatures)
@@ -50,8 +131,15 @@ class iota2Classification():
         self.pixType = pixType
         self.stats = stat_norm
         self.classifier_model = model
-        self.model_name = self.get_model_name(model)
-        self.seed = self.get_model_seed(model)
+        self.auto_context = auto_context
+        self.tile = tile
+
+        if isinstance(model, list):
+            self.model_name = self.get_model_name(os.path.split(model[0])[0])
+            self.seed = self.get_model_seed(os.path.split(model[0])[0])
+        else:
+            self.model_name = self.get_model_name(model)
+            self.seed = self.get_model_seed(model)
         self.features_stack = features_stack
         classification_name = "Classif_{}_model_{}_seed_{}.tif".format(tile,
                                                                        self.model_name,
@@ -75,7 +163,7 @@ class iota2Classification():
                                                  model,
                                                  tile, proba_map, proba_map_name)
         self.working_directory = working_directory
-    
+
     def get_proba_map(self, classifier_type, output_directory, model, tile, gen_proba, proba_map_name):
         """get probability map absolute path
 
@@ -95,10 +183,14 @@ class iota2Classification():
         ------
         string
             absolute path to the probality map
-        
+
         """
-        model_name = self.get_model_name(model)
-        seed = self.get_model_seed(model)
+        if isinstance(model, list):
+            model_name = self.get_model_name(os.path.split(model[0])[0])
+            seed = self.get_model_seed(os.path.split(model[0])[0])
+        else:
+            model_name = self.get_model_name(model)
+            seed = self.get_model_seed(model)
         proba_map = ""
         classifier_avail = ["sharkrf"]
         if classifier_type in classifier_avail:
@@ -118,14 +210,16 @@ class iota2Classification():
         """
         """
         return os.path.splitext(os.path.basename(model))[0].split("_")[3]
-        
+
     def generate(self):
         """
         """
         import shutil
         from Common.OtbAppBank import CreateImageClassifierApplication
+        from Common.OtbAppBank import CreateClassifyAutoContext
         from Common.OtbAppBank import CreateBandMathApplication
         from Common.OtbAppBank import CreateBandMathXApplication
+        from Common.FileUtils import ensure_dir
 
         if self.working_directory:
             self.classification = os.path.join(self.working_directory,
@@ -138,6 +232,22 @@ class iota2Classification():
                               "ram": str(0.4 * float(self.RAM)),
                               "pixType": self.pixType,
                               "out": "{}?&writegeom=false".format(self.classification)}
+        if self.auto_context:
+            tmp_dir = os.path.join(self.output_directory,
+                                   "tmp_model_{}_seed_{}_tile_{}".format(self.model_name, self.seed, self.tile))
+            if self.working_directory:
+                tmp_dir = os.path.join(self.working_directory,
+                                   "tmp_model_{}_seed_{}_tile_{}".format(self.model_name, self.seed, self.tile))
+            ensure_dir(tmp_dir)
+            classifier_options = {"in": self.features_stack,
+                                  "inseg": self.auto_context["tile_segmentation"],
+                                  "models": self.classifier_model,
+                                  "lablist": [str(lab) for lab in self.auto_context["labels_list"]],
+                                  "confmap": "{}?&writegeom=false".format(self.confidence),
+                                  "ram": str(0.4 * float(self.RAM)),
+                                  "pixType": self.pixType,
+                                  "tmpdir": tmp_dir,
+                                  "out": "{}?&writegeom=false".format(self.classification)}
         if self.proba_map_path:
             all_class = []
             for model_name, dico_seed in list(self.models_class.items()):
@@ -153,10 +263,15 @@ class iota2Classification():
 
         if self.stats:
             classifier_options["imstat"] = self.stats
-        classifier = CreateImageClassifierApplication(classifier_options)
+        if self.auto_context:
+            classifier = CreateClassifyAutoContext(classifier_options)
+        else:
+            classifier = CreateImageClassifierApplication(classifier_options)
+
         logger.info("Compute Classification : {}".format(self.classification))
         classifier.ExecuteAndWriteOutput()
         logger.info("Classification : {} done".format(self.classification))
+
         if self.classif_mask:
             mask_filter = CreateBandMathApplication({"il": [self.classification,
                                                             self.classif_mask],
@@ -183,7 +298,7 @@ class iota2Classification():
                 mask_filter.ExecuteAndWriteOutput()
 
         if self.proba_map_path:
-            class_model = self.models_class[self.model_name][int(self.seed)]            
+            class_model = self.models_class[self.model_name][int(self.seed)]
             if len(class_model) != len(all_class):
                 logger.info("reordering the probability map : '{}'".format(self.proba_map_path))
                 self.reorder_proba_map(self.proba_map_path, self.proba_map_path, class_model, all_class)
@@ -198,12 +313,15 @@ class iota2Classification():
             if self.proba_map_path:
                 shutil.copy(self.proba_map_path, os.path.join(self.output_directory,
                                                               os.path.split(self.proba_map_path)[-1]))
-                #~ os.remove(self.proba_map_path)
+                os.remove(self.proba_map_path)
+            if self.auto_context:
+                shutil.rmtree(tmp_dir)
+
 
     def reorder_proba_map(self, proba_map_path_in, proba_map_path_out, class_model, all_class):
         """reorder the probability map
 
-        in order to merge proability raster containing a different number of effective 
+        in order to merge proability raster containing a different number of effective
         class it is needed to reorder them according to a reference
 
         Parameters
@@ -213,7 +331,7 @@ class iota2Classification():
         proba_map_path_out : string
             output probability map
         class_model : list
-            list containing labels in the model used to classify 
+            list containing labels in the model used to classify
         all_class : list
             list containing all possible labels
         """
@@ -264,10 +382,8 @@ def get_class_by_models(iota2_samples_dir, data_field, model=None) :
 
     data_field : string
         field which contains labels in vector file
-    
-    model : string
-        path to model for correct number of classes in proba map
-    Return 
+
+    Return
     ------
     dic[model][seed]
 
@@ -279,6 +395,7 @@ def get_class_by_models(iota2_samples_dir, data_field, model=None) :
     """
     from Common.FileUtils import FileSearch_AND
     from Common.FileUtils import getFieldElement
+
     class_models = {}
     if model is not None:
         modelpath = os.path.dirname(model)
@@ -307,7 +424,8 @@ def get_class_by_models(iota2_samples_dir, data_field, model=None) :
 
 def launchClassification(tempFolderSerie, Classifmask, model, stats,
                          outputClassif, confmap, pathWd, cfg, pixType,
-                         MaximizeCPU=True, RAM=500, logger=logger):
+                         MaximizeCPU=True, RAM=500, auto_context={},
+                         logger=logger):
     """
     """
     from Common import GenerateFeatures as genFeatures
@@ -322,14 +440,14 @@ def launchClassification(tempFolderSerie, Classifmask, model, stats,
     output_directory = os.path.join(cfg.getParam('chain', 'outputPath'), "classif")
     tiles = (cfg.getParam('chain', 'listTile')).split()
     tile = fu.findCurrentTileInString(Classifmask, tiles)
-    
+
     wMode = cfg.getParam('GlobChain', 'writeOutputs')
     outputPath = cfg.getParam('chain', 'outputPath')
     featuresPath = os.path.join(outputPath, "features")
     dimred = cfg.getParam('dimRed', 'dimRed')
     proba_map_expected = cfg.getParam('argClassification', 'enable_probability_map')
     wd = pathWd
-    if not pathWd: 
+    if not pathWd:
         wd = featuresPath
 
     try:
@@ -349,9 +467,9 @@ def launchClassification(tempFolderSerie, Classifmask, model, stats,
     mode = "usually"
     if "SAR.tif" in outputClassif:
         mode = "SAR"
-    
+
     AllFeatures, feat_labels, dep_features = genFeatures.generateFeatures(wd, tile, cfg, mode=mode)
-    
+
     feature_raster = AllFeatures.GetParameterValue(getInputParameterOutput(AllFeatures))
     if wMode:
         if not os.path.exists(feature_raster):
@@ -372,7 +490,7 @@ def launchClassification(tempFolderSerie, Classifmask, model, stats,
             ClassifInput.ExecuteAndWriteOutput()
         else:
             ClassifInput.Execute()
-    
+
     iota2_samples_dir = os.path.join(cfg.getParam('chain', 'outputPath'),
                                      "learningSamples")
     data_field = cfg.getParam('chain', 'dataField')
@@ -380,7 +498,7 @@ def launchClassification(tempFolderSerie, Classifmask, model, stats,
     classif = iota2Classification(cfg, ClassifInput, classifier_type, model, tile, output_directory,
                                   models_class, proba_map=proba_map_expected, working_directory=pathWd,
                                   classif_mask=Classifmask, pixType=pixType, stat_norm=stats, RAM=RAM,
-                                  mode=mode)
+                                  mode=mode, auto_context=auto_context)
     classif.generate()
 
 

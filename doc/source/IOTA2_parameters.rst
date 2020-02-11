@@ -5,8 +5,8 @@ iota2 is fully configurable by using one file given to iota2 at launch.
 This file is called the 'configuration file' throughout the documentation.
 This section is dedicated to the description of each parameter in it.
 
-iota2 parameters are split in 4 families: ``chain``, ``argTrain``,
-``argClassification``, ``GlobChain`` and ``coregistration``. 
+iota2 parameters are split in families: ``chain``, ``argTrain``,
+``argClassification``, ``GlobChain``, ``coregistration``, ``scikit_models_parameters``. 
 
 chain available parameters
 **************************
@@ -23,6 +23,23 @@ chain.outputPath
     outputPath : '/absolute/path/to/IOTA2_output/' 
 *Notes*
     the target directory will be created by iota2
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+chain.check_inputs
+==================
+*Description*
+    check iota² inputs
+*Type*
+    bool
+*Default value*
+    True
+*Example*
+    check_inputs : False
+*Notes*
+    If set, iota2 will spend time to check it's inputs.
+    If errors comes during the iota² run, please send it back to us. We will
+    add it as new check.
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -902,11 +919,11 @@ Sensor.write_reproject_resampled_input_dates_stack
 Sensor.startDate
 ================
 *Description*
-    first insterpolation date
+    First insterpolation date
 *Type*
     string
 *Default value*
-    None
+    None, which corresponds to the last of the first available date for all tiles.
 *Example*
     .. code-block:: python
 
@@ -919,7 +936,7 @@ Sensor.endDate
 *Type*
     string
 *Default value*
-    None
+    None, which corresponds to the first of the last available date for all tiles.
 *Example*
     .. code-block:: python
 
@@ -944,8 +961,8 @@ Sensor.temporalResolution
 Sensor.additionalFeatures
 =========================
 *Description*
-    iota2 allow adding features by dates. Format is the one provided by OTB's BandMath 
-    application.
+    iota2 allows adding features by dates. Format is the one provided by OTB's BandMath 
+    application. NDVI, NDWI and Brightness are always computed, so the user does not need to declare them here.
 
 *Type*
     string
@@ -971,8 +988,29 @@ Sensor.keepBands
 
         keepBands:["B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11", "B12"] # Sentinel-2 case
 
+Use scikit-learn machine learning algorithms [NOT AVAILABLE]
+************************************************************
+
+scikit_models_parameters.model_type [NOT AVAILABLE]
+===================================================
+*Description*
+    machine learning algorthm's name
+*Type*
+    string
+*Default value*
+    None
+*Example*
+    .. code-block:: python
+
+        scikit_models_parameters.model_type : "ExtraTreesClassifier"
+    
+*Notes*
+    Models comming from scikit-learn are use if scikit_models_parameters.model_type
+    is different from ``None``. More informations about how to use scikit-learn
+    is available at :doc:`iota2 and scikit-learn machine learning algorithms<use_scikit_learn>`.
+    
 coregistration available parameters
-**************************
+***********************************
 
 coregistration.VHRPath
 ======================
