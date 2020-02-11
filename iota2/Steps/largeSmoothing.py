@@ -51,9 +51,11 @@ class largeSmoothing(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
-        listfid = vf.getFIDSpatialFilter(self.clipfile, self.grid, self.clipfield)
-        
-        return [["%s/tile_%s_%s_douglas.shp"%(self.outmos, self.clipfield, x), "%s/tile_%s_%s_douglas_hermite.shp"%(self.outmos, self.clipfield, x)] for x in listfid]
+        if not os.path.exists(self.grid):
+            return [[os.path.join(self.outmos, "classif_douglas.shp"), os.path.join(self.outmos, "classif_hermite.shp")]]
+        else:
+            listfid = vf.getFIDSpatialFilter(self.clipfile, self.grid, self.clipfield)            
+            return [["%s/tile_%s_%s_douglas.shp"%(self.outmos, self.clipfield, x), "%s/tile_%s_%s_douglas_hermite.shp"%(self.outmos, self.clipfield, x)] for x in listfid]
 
     def step_execute(self):
         """

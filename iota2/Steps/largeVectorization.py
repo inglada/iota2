@@ -50,9 +50,11 @@ class largeVectorization(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
-        listfid = vf.getFIDSpatialFilter(self.clipfile, self.grid, self.clipfield)
-
-        return [["%s/tile_%s_%s.tif"%(self.outmos, self.clipfield, x), "%s/tile_%s_%s.shp"%(self.outmos, self.clipfield, x)] for x in listfid]
+        if not os.path.exists(self.grid):
+            return [[os.path.join(self.outputPath, "final", "Simplification", "classif_regul.tif"), os.path.join(self.outmos, "classif.shp")]]
+        else:        
+            listfid = vf.getFIDSpatialFilter(self.clipfile, self.grid, self.clipfield)
+            return [["%s/tile_%s_%s.tif"%(self.outmos, self.clipfield, x), "%s/tile_%s_%s.shp"%(self.outmos, self.clipfield, x)] for x in listfid]
 
     def step_execute(self):
         """
