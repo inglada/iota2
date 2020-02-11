@@ -444,7 +444,7 @@ class iota2():
             # TODO : creer une variable adaptative / oso / regulier (avec "connection" en paramètre supplémentaire)
             outregul = os.path.join(iota2_outputs_dir, "final", "simplification", "classif_regul.tif")
 
-            regulruns = 2 if umc2 else 1
+            regulruns = 2 if umc2 is None else 1
 
             if not os.path.exists(outregul):
                 lognamereg = 'regul1'
