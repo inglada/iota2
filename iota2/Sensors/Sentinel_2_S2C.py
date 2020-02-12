@@ -275,6 +275,7 @@ class sentinel_2_s2c(object):
                               ram=128,
                               logger=logger):
         """
+        preprocess date masks
         """
         import shutil
         from Common.FileUtils import FileSearch_AND
