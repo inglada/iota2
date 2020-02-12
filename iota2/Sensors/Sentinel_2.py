@@ -15,7 +15,7 @@
 # =========================================================================
 
 import multiprocessing as mp
-from config import Config
+
 import logging
 import glob
 import os
@@ -33,6 +33,7 @@ class Sentinel_2():
 
     name = 'Sentinel2'
 
+    # ~ def __init__(self, s2_data, tile_name, ):
     def __init__(self, config_path, tile_name):
         """
         """
@@ -43,7 +44,7 @@ class Sentinel_2():
             return
 
         self.tile_name = tile_name
-        self.cfg_IOTA2 = SCF.serviceConfigFile(config_path)
+        # ~ self.cfg_IOTA2 = SCF.serviceConfigFile(config_path)
         cfg_sensors = os.path.join(get_iota2_project_dir(), "iota2", "Sensors",
                                    "sensors.cfg")
         cfg_sensors = SCF.serviceConfigFile(cfg_sensors, iota_config=False)
@@ -61,7 +62,7 @@ class Sentinel_2():
         self.features_dir = os.path.join(
             self.cfg_IOTA2.getParam("chain", "outputPath"), "features",
             tile_name)
-        extract_bands = self.cfg_IOTA2.getParam("Sentinel_2", "keepBands")
+
         extract_bands_flag = self.cfg_IOTA2.getParam("iota2FeatureExtraction",
                                                      "extractBands")
         output_target_dir = self.cfg_IOTA2.getParam("chain", "S2_output_path")
@@ -226,15 +227,15 @@ class Sentinel_2():
         ensure_dir(os.path.dirname(self.ref_image), raise_exe=False)
         base_ref_projection = getRasterProjectionEPSG(base_ref)
         if not os.path.exists(self.ref_image):
-            ds = Warp(self.ref_image,
-                      base_ref,
-                      multithread=True,
-                      format="GTiff",
-                      xRes=10,
-                      yRes=10,
-                      outputType=GDT_Byte,
-                      srcSRS="EPSG:{}".format(base_ref_projection),
-                      dstSRS="EPSG:{}".format(self.target_proj))
+            Warp(self.ref_image,
+                 base_ref,
+                 multithread=True,
+                 format="GTiff",
+                 xRes=10,
+                 yRes=10,
+                 outputType=GDT_Byte,
+                 srcSRS="EPSG:{}".format(base_ref_projection),
+                 dstSRS="EPSG:{}".format(self.target_proj))
 
         # reproject / resample
         bands_proj = OrderedDict()
@@ -284,7 +285,6 @@ class Sentinel_2():
                               logger=logger):
         """
         """
-        from gdal import Warp
         import shutil
         from Common.FileUtils import ensure_dir
         from Common.OtbAppBank import CreateBandMathApplication
@@ -293,7 +293,7 @@ class Sentinel_2():
 
         # TODO : throw Exception if no masks are found
         date_mask = []
-        for mask_name, rule in list(self.masks_rules.items()):
+        for mask_name, _ in list(self.masks_rules.items()):
             date_mask.append(
                 glob.glob(
                     os.path.join(
@@ -308,7 +308,6 @@ class Sentinel_2():
             "{}.tif".format(self.masks_date_suffix))
         out_mask = os.path.join(mask_dir, mask_name)
         if out_prepro:
-            _, date_dir_name = os.path.split(mask_dir)
             out_mask_dir = mask_dir.replace(
                 os.path.join(self.s2_data, self.tile_name), out_prepro)
             ensure_dir(out_mask_dir, raise_exe=False)
@@ -362,7 +361,7 @@ class Sentinel_2():
         """
         return product_name.split("_")[self.date_position].split("-")[0]
 
-    def preprocess(self, working_dir=None, ram=128, logger=logger):
+    def preprocess(self, working_dir=None, ram=128):
         """
         """
         input_dates = [
@@ -476,7 +475,7 @@ class Sentinel_2():
     def write_dates_file(self):
         """
         """
-        from Common.FileUtils import ensure_dir
+
         input_dates_dir = [
             os.path.join(self.tile_directory, cdir)
             for cdir in os.listdir(self.tile_directory)
@@ -512,8 +511,8 @@ class Sentinel_2():
 
         if self.write_dates_stack is False:
             dates_concatenation = []
-            for date, dico_date in list(preprocessed_dates.items()):
-                for band_name, reproj_date in list(dico_date["data"].items()):
+            for _, dico_date in list(preprocessed_dates.items()):
+                for _, reproj_date in list(dico_date["data"].items()):
                     dates_concatenation.append(reproj_date)
                     reproj_date.Execute()
                     app_dep.append(reproj_date)
@@ -531,7 +530,7 @@ class Sentinel_2():
             "pixType": "int16",
             "ram": str(ram)
         })
-        dates_in_file, dates_in = self.write_dates_file()
+        _, dates_in = self.write_dates_file()
 
         # build labels
         features_labels = [
@@ -561,7 +560,7 @@ class Sentinel_2():
         nb_dates = len(dates_in)
         channels_interest = []
         for date_number in range(nb_dates):
-            for band_name, band_position in extract_bands:
+            for _, band_position in extract_bands:
                 channels_interest.append(band_position +
                                          int(date_number * comp))
 
@@ -572,7 +571,6 @@ class Sentinel_2():
         channels_list = [
             "Channel{}".format(channel) for channel in channels_interest
         ]
-        time_series_out = dates_time_series.GetParameterString("out")
         dates_time_series.Execute()
         extract = CreateExtractROIApplication({
             "in":
@@ -586,7 +584,7 @@ class Sentinel_2():
         })
         return extract, features_labels
 
-    def get_time_series_masks(self, ram=128, logger=logger):
+    def get_time_series_masks(self, ram=128):
         """
         """
         """
@@ -608,7 +606,7 @@ class Sentinel_2():
 
         dates_masks = []
         if self.write_dates_stack is False:
-            for date, dico_date in list(preprocessed_dates.items()):
+            for _, dico_date in list(preprocessed_dates.items()):
                 mask_app, mask_app_dep = dico_date["mask"]
                 mask_app.Execute()
                 dates_masks.append(mask_app)
@@ -713,7 +711,7 @@ class Sentinel_2():
                                                     feature, date))
         return out_labels
 
-    def get_features(self, ram=128, logger=logger):
+    def get_features(self, ram=128):
         """
         """
         from Common.OtbAppBank import CreateConcatenateImagesApplication
