@@ -15,9 +15,7 @@
 # =========================================================================
 
 import multiprocessing as mp
-from config import Config
 import logging
-import glob
 import os
 
 from collections import OrderedDict
@@ -25,11 +23,11 @@ from Common.OtbAppBank import executeApp
 
 logger = logging.getLogger(__name__)
 
-#in order to avoid issue 'No handlers could be found for logger...'
+# in order to avoid issue 'No handlers could be found for logger...'
 logger.addHandler(logging.NullHandler())
 
 
-class Sentinel_2_S2C(Sensor):
+class sentinel_2_s2c(object):
 
     name = 'Sentinel2S2C'
 
