@@ -172,6 +172,7 @@ class sentinel_2_s2c(object):
                         ram=128,
                         logger=logger):
         """
+        preprocess date
         """
         import shutil
         from gdal import Warp
