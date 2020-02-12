@@ -15,9 +15,7 @@
 # =========================================================================
 
 import multiprocessing as mp
-from config import Config
 import logging
-import glob
 import os
 
 from collections import OrderedDict
@@ -25,19 +23,19 @@ from Common.OtbAppBank import executeApp
 
 logger = logging.getLogger(__name__)
 
-#in order to avoid issue 'No handlers could be found for logger...'
+# in order to avoid issue 'No handlers could be found for logger...'
 logger.addHandler(logging.NullHandler())
 
 
-class Sentinel_2_S2C(Sensor):
+class sentinel_2_s2c(object):
 
     name = 'Sentinel2S2C'
 
     def __init__(self, config_path, tile_name):
         """
         """
-        from Common import ServiceConfigFile as SCF
-        from Common.FileUtils import get_iota2_project_dir
+        from iota2.Common import ServiceConfigFile as SCF
+        from iota2.Common.FileUtils import get_iota2_project_dir
 
         if not os.path.exists(config_path):
             return
@@ -74,10 +72,11 @@ class Sentinel_2_S2C(Sensor):
             if not os.path.exists(self.output_preprocess_directory):
                 try:
                     os.mkdir(self.output_preprocess_directory)
-                except:
-                    pass
+                except Exception:
+                    raise Exception(f"Unable to create directory"
+                                    "{self.output_preprocess_directory}")
         else:
-            #~ self.output_preprocess_directory = self.tile_directory
+            #  self.output_preprocess_directory = self.tile_directory
             self.output_preprocess_directory = None
 
         # sensors attributes
@@ -96,7 +95,8 @@ class Sentinel_2_S2C(Sensor):
         ]
         self.extracted_bands = None
         if extract_bands_flag:
-            # TODO check every mandatory bands still selected -> def check_mandatory bands() return True/False
+            # TODO check every mandatory bands still selected
+            # -> def check_mandatory bands() return True/False
             self.extracted_bands = [(band_name, band_position + 1)
                                     for band_position, band_name in enumerate(
                                         self.stack_band_position)
@@ -137,11 +137,13 @@ class Sentinel_2_S2C(Sensor):
 
     def get_date_from_name(self, product_name):
         """
+        return the date from image name
         """
         return product_name.split("_")[self.date_position].split("T")[0]
 
     def get_date_dir(self, date_dir, size):
         """
+        get date dir
         """
         from Common.FileUtils import FileSearch_AND
         if size == 10:
@@ -156,6 +158,7 @@ class Sentinel_2_S2C(Sensor):
 
     def build_date_name(self, date_dir, suffix):
         """
+        build date name
         """
         from Common.FileUtils import FileSearch_AND
         _, b2_name = os.path.split(
@@ -169,6 +172,7 @@ class Sentinel_2_S2C(Sensor):
                         ram=128,
                         logger=logger):
         """
+        preprocess date
         """
         import shutil
         from gdal import Warp
@@ -271,6 +275,7 @@ class Sentinel_2_S2C(Sensor):
                               ram=128,
                               logger=logger):
         """
+        preprocess date masks
         """
         import shutil
         from Common.FileUtils import FileSearch_AND
