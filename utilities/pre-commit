@@ -67,7 +67,7 @@ yapf -i -r "${PYTHON_FILES[@]}"
 ######### END PIP VERSION ##########
 
 ########## PIP VERSION #############
-pylint "${PYTHON_FILES[@]}"
+pylint "${PYTHON_FILES[@]} -disable=C0145"
 ######### END PIP VERSION ##########
 
 CHANGED_FILES=()
