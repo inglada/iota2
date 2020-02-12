@@ -29,7 +29,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.NullHandler())
 
 
-class landsat8(Sensor):
+class landsat_8(Sensor):
     """
     Landsat 8 sensor
     """
