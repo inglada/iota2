@@ -146,6 +146,7 @@ class landsat_8(Sensor):
         """
         sort the dates
         """
+        import os
         return sorted(
             dates_directories,
             key=lambda x: int(
@@ -157,6 +158,7 @@ class landsat_8(Sensor):
         """
         return sorted available dates
         """
+        import os
         from iota2.Common.FileUtils import FileSearch_AND
 
         stacks = sorted(
