@@ -143,6 +143,7 @@ class sentinel_2_s2c(object):
 
     def get_date_dir(self, date_dir, size):
         """
+        get date dir
         """
         from Common.FileUtils import FileSearch_AND
         if size == 10:
