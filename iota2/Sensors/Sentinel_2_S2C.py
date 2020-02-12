@@ -72,8 +72,9 @@ class sentinel_2_s2c(object):
             if not os.path.exists(self.output_preprocess_directory):
                 try:
                     os.mkdir(self.output_preprocess_directory)
-                except:
-                    pass
+                except Exception:
+                    raise Exception(f"Unable to create directory"
+                                    "{self.output_preprocess_directory}")
         else:
             #~ self.output_preprocess_directory = self.tile_directory
             self.output_preprocess_directory = None
