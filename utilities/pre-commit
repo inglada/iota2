@@ -65,9 +65,9 @@ echo 'Formatting staged Python files . . .'
 ########## PIP VERSION #############
 yapf -i -r "${PYTHON_FILES[@]}"
 ######### END PIP VERSION ##########
-
+echo 'Pylint analysis Python files . . .'
 ########## PIP VERSION #############
-pylint "${PYTHON_FILES[@]} -disable=C0145"
+pylint -disable=C0415 "${PYTHON_FILES[@]}"
 ######### END PIP VERSION ##########
 
 CHANGED_FILES=()
