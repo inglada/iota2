@@ -158,6 +158,7 @@ class sentinel_2_s2c(object):
 
     def build_date_name(self, date_dir, suffix):
         """
+        build date name
         """
         from Common.FileUtils import FileSearch_AND
         _, b2_name = os.path.split(
