@@ -34,8 +34,8 @@ class sentinel_2_s2c(object):
     def __init__(self, config_path, tile_name):
         """
         """
-        from Common import ServiceConfigFile as SCF
-        from Common.FileUtils import get_iota2_project_dir
+        from iota2.Common import ServiceConfigFile as SCF
+        from iota2.Common.FileUtils import get_iota2_project_dir
 
         if not os.path.exists(config_path):
             return
