@@ -13,6 +13,8 @@
 #   PURPOSE.  See the above copyright notices for more information.
 #
 # =========================================================================
+"""Sentinel-2 class definition
+"""
 
 import multiprocessing as mp
 
@@ -23,49 +25,63 @@ import os
 from collections import OrderedDict
 from Common.OtbAppBank import executeApp
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 #in order to avoid issue 'No handlers could be found for logger...'
-logger.addHandler(logging.NullHandler())
+LOGGER.addHandler(logging.NullHandler())
 
 
-class Sentinel_2():
+class sentinel_2():
+    """Sentinel-2 class definition
+    """
 
     name = 'Sentinel2'
 
     # ~ def __init__(self, s2_data, tile_name, ):
-    def __init__(self, config_path, tile_name):
+    def __init__(self, tile_name, target_proj, all_tiles, s2_data,
+                 write_dates_stack, extract_bands_flag, output_target_dir,
+                 keep_bands, i2_output_path, temporal_res, auto_date_flag,
+                 date_interp_min_user, date_interp_max_user,
+                 write_outputs_flag, features, enable_gapFilling,
+                 hand_features_flag, hand_features, **kwargs):
         """
         """
         from Common import ServiceConfigFile as SCF
         from Common.FileUtils import get_iota2_project_dir
 
-        if not os.path.exists(config_path):
-            return
-
         self.tile_name = tile_name
-        # ~ self.cfg_IOTA2 = SCF.serviceConfigFile(config_path)
+        self.target_proj = target_proj
+        self.all_tiles = all_tiles
+        self.s2_data = s2_data
+        self.write_dates_stack = write_dates_stack
+        self.extract_bands_flag = extract_bands_flag
+        self.output_target_dir = output_target_dir
+        self.keep_bands = keep_bands
+        self.i2_output_path = i2_output_path
+        self.temporal_res = temporal_res
+        self.auto_date_flag = auto_date_flag
+        self.date_interp_min_user = date_interp_min_user
+        self.date_interp_max_user = date_interp_max_user
+        self.write_outputs_flag = write_outputs_flag
+        self.features = features
+        self.enable_gapFilling = enable_gapFilling
+        self.hand_features_flag = hand_features_flag
+        self.hand_features = hand_features
+
         cfg_sensors = os.path.join(get_iota2_project_dir(), "iota2", "Sensors",
                                    "sensors.cfg")
         cfg_sensors = SCF.serviceConfigFile(cfg_sensors, iota_config=False)
 
-        # running attributes
-        self.target_proj = int(
-            self.cfg_IOTA2.getParam("GlobChain", "proj").lower().replace(
-                " ", "").replace("epsg:", ""))
-        self.all_tiles = self.cfg_IOTA2.getParam("chain", "listTile")
-        self.s2_data = self.cfg_IOTA2.getParam("chain", "S2Path")
         self.tile_directory = os.path.join(self.s2_data, tile_name)
         self.struct_path_masks = cfg_sensors.getParam("Sentinel_2", "arbomask")
-        self.write_dates_stack = self.cfg_IOTA2.getParam(
-            "Sentinel_2", "write_reproject_resampled_input_dates_stack")
-        self.features_dir = os.path.join(
-            self.cfg_IOTA2.getParam("chain", "outputPath"), "features",
-            tile_name)
+        # ~ self.write_dates_stack = self.cfg_IOTA2.getParam(
+        # ~ "Sentinel_2", "write_reproject_resampled_input_dates_stack")
+        self.features_dir = os.path.join(self.i2_output_path, "features",
+                                         tile_name)
 
-        extract_bands_flag = self.cfg_IOTA2.getParam("iota2FeatureExtraction",
-                                                     "extractBands")
-        output_target_dir = self.cfg_IOTA2.getParam("chain", "S2_output_path")
+        # ~ extract_bands_flag = self.cfg_IOTA2.getParam("iota2FeatureExtraction",
+        # ~ "extractBands")
+        # ~ output_target_dir = self.cfg_IOTA2.getParam("chain", "S2_output_path")
         if output_target_dir:
             self.output_preprocess_directory = os.path.join(
                 output_target_dir, tile_name)
@@ -97,21 +113,19 @@ class Sentinel_2():
         ]
         self.extracted_bands = None
         if extract_bands_flag:
-            # TODO check every mandatory bands still selected -> def check_mandatory bands() return True/False
+            # ~ keep_bands = self.cfg_IOTA2.getParam("Sentinel_2", "keepBands")
             self.extracted_bands = [(band_name, band_position + 1)
                                     for band_position, band_name in enumerate(
                                         self.stack_band_position)
-                                    if band_name in self.cfg_IOTA2.getParam(
-                                        "Sentinel_2", "keepBands")]
+                                    if band_name in keep_bands]
 
         # output's names
         self.footprint_name = "{}_{}_footprint.tif".format(
             self.__class__.name, tile_name)
         ref_image_name = "{}_{}_reference.tif".format(self.__class__.name,
                                                       tile_name)
-        self.ref_image = os.path.join(
-            self.cfg_IOTA2.getParam("chain", "outputPath"), "features",
-            tile_name, "tmp", ref_image_name)
+        self.ref_image = os.path.join(self.i2_output_path, "features",
+                                      tile_name, "tmp", ref_image_name)
         self.time_series_name = "{}_{}_TS.tif".format(self.__class__.name,
                                                       tile_name)
         self.time_series_masks_name = "{}_{}_MASKS.tif".format(
@@ -121,8 +135,8 @@ class Sentinel_2():
         self.features_names = "{}_{}_Features.tif".format(
             self.__class__.name, tile_name)
         # about gapFilling interpolations
-        self.temporal_res = self.cfg_IOTA2.getParam("Sentinel_2",
-                                                    "temporalResolution")
+        # ~ self.temporal_res = self.cfg_IOTA2.getParam("Sentinel_2",
+        # ~ "temporalResolution")
         self.input_dates = "{}_{}_input_dates.txt".format(
             self.__class__.name, tile_name)
         self.interpolated_dates = "{}_{}_interpolation_dates.txt".format(
@@ -181,7 +195,7 @@ class Sentinel_2():
                         out_prepro,
                         working_dir=None,
                         ram=128,
-                        logger=logger):
+                        logger=LOGGER):
         """
         """
         import os
@@ -282,7 +296,7 @@ class Sentinel_2():
                               out_prepro,
                               working_dir=None,
                               ram=128,
-                              logger=logger):
+                              logger=LOGGER):
         """
         """
         import shutil
@@ -458,11 +472,13 @@ class Sentinel_2():
         date_interp_min, date_interp_max = getDateS2(self.s2_data,
                                                      self.all_tiles.split(" "))
         # force dates
-        if not self.cfg_IOTA2.getParam("GlobChain", "autoDate"):
-            date_interp_min = self.cfg_IOTA2.getParam("Sentinel_2",
-                                                      "startDate")
-            date_interp_max = self.cfg_IOTA2.getParam("Sentinel_2", "endDate")
-
+        # ~ auto_date_flag = self.cfg_IOTA2.getParam("GlobChain", "autoDate")
+        if not auto_date_flag:
+            # ~ date_interp_min = self.cfg_IOTA2.getParam("Sentinel_2",
+            # ~ "startDate")
+            # ~ date_interp_max = self.cfg_IOTA2.getParam("Sentinel_2", "endDate")
+            date_interp_min = date_interp_min_user
+            date_interp_max = date_interp_max_user
         dates = [
             str(date).replace("-", "") for date in dateInterval(
                 date_interp_min, date_interp_max, self.temporal_res)
@@ -649,7 +665,8 @@ class Sentinel_2():
         (time_series, time_series_dep), _ = self.get_time_series()
 
         # inputs
-        if self.cfg_IOTA2.getParam('GlobChain', 'writeOutputs') is False:
+        # ~ write_outputs_flag = self.cfg_IOTA2.getParam('GlobChain', 'writeOutputs')
+        if write_outputs_flag is False:
             time_series.Execute()
             masks.Execute()
         else:
@@ -724,11 +741,11 @@ class Sentinel_2():
         ensure_dir(features_dir, raise_exe=False)
         features_out = os.path.join(features_dir, self.features_names)
 
-        features = self.cfg_IOTA2.getParam("GlobChain", "features")
-        enable_gapFilling = self.cfg_IOTA2.getParam("GlobChain",
-                                                    "useGapFilling")
-        hand_features_flag = self.cfg_IOTA2.getParam('GlobChain',
-                                                     'useAdditionalFeatures')
+        # ~ features = self.cfg_IOTA2.getParam("GlobChain", "features")
+        # ~ enable_gapFilling = self.cfg_IOTA2.getParam("GlobChain",
+        # ~ "useGapFilling")
+        # ~ hand_features_flag = self.cfg_IOTA2.getParam('GlobChain',
+        # ~ 'useAdditionalFeatures')
 
         # input
         (in_stack, in_stack_dep
@@ -740,7 +757,7 @@ class Sentinel_2():
              in_stack_dep), in_stack_features_labels = self.get_time_series()
             _, dates_enabled = self.write_dates_file()
 
-        if self.cfg_IOTA2.getParam('GlobChain', 'writeOutputs') is False:
+        if write_outputs_flag is False:
             in_stack.Execute()
         else:
             in_stack_raster = in_stack.GetParameterValue(
@@ -755,8 +772,8 @@ class Sentinel_2():
         # output
         app_dep = []
         if hand_features_flag:
-            hand_features = self.cfg_IOTA2.getParam("Sentinel_2",
-                                                    "additionalFeatures")
+            # ~ hand_features = self.cfg_IOTA2.getParam("Sentinel_2",
+            # ~ "additionalFeatures")
             comp = len(
                 self.stack_band_position) if not self.extracted_bands else len(
                     self.extracted_bands)
