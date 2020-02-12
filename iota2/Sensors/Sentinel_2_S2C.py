@@ -76,7 +76,7 @@ class sentinel_2_s2c(object):
                     raise Exception(f"Unable to create directory"
                                     "{self.output_preprocess_directory}")
         else:
-            #~ self.output_preprocess_directory = self.tile_directory
+            #  self.output_preprocess_directory = self.tile_directory
             self.output_preprocess_directory = None
 
         # sensors attributes
@@ -95,7 +95,8 @@ class sentinel_2_s2c(object):
         ]
         self.extracted_bands = None
         if extract_bands_flag:
-            # TODO check every mandatory bands still selected -> def check_mandatory bands() return True/False
+            # TODO check every mandatory bands still selected
+            # -> def check_mandatory bands() return True/False
             self.extracted_bands = [(band_name, band_position + 1)
                                     for band_position, band_name in enumerate(
                                         self.stack_band_position)
