@@ -137,6 +137,7 @@ class sentinel_2_s2c(object):
 
     def get_date_from_name(self, product_name):
         """
+        return the date from image name
         """
         return product_name.split("_")[self.date_position].split("T")[0]
 
