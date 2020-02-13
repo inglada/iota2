@@ -32,7 +32,7 @@ def preprocess(tile_name, config_path, working_directory=None, RAM=128):
     """
     from Sensors.Sensors_container import sensors_container
 
-    remoteSensor_container = Sensors_container(config_path,
+    remoteSensor_container = sensors_container(config_path,
                                                tile_name,
                                                working_dir=working_directory)
     remoteSensor_container.sensors_preprocess(available_ram=RAM)
@@ -54,11 +54,11 @@ def commonMasks(tile_name, config_path, working_directory=None, RAM=128):
         pipeline's size (Mo)
     """
     import os
-    from Sensors.Sensors_container import Sensors_container
+    from Sensors.Sensors_container import sensors_container
     from Common.Utils import run
     from Common.FileUtils import ensure_dir
 
-    remoteSensor_container = Sensors_container(config_path,
+    remoteSensor_container = sensors_container(config_path,
                                                tile_name,
                                                working_dir=working_directory)
     common_mask, _ = remoteSensor_container.get_common_sensors_footprint(
@@ -102,7 +102,7 @@ def validity(tile_name,
     """
     import os
     import shutil
-    from Sensors.Sensors_container import Sensors_container
+    from Sensors.Sensors_container import sensors_container
     from Common.OtbAppBank import CreateConcatenateImagesApplication
     from Common.OtbAppBank import CreateBandMathApplication
     from Common import ServiceConfigFile as SCF
@@ -123,7 +123,7 @@ def validity(tile_name,
         validity_processing = os.path.join(workingDirectory, tile_name,
                                            validity_name)
 
-    remote_sensor_container = Sensors_container(config_path,
+    remote_sensor_container = sensors_container(config_path,
                                                 tile_name,
                                                 working_dir=workingDirectory)
     sensors_time_series_masks = remote_sensor_container.get_sensors_time_series_masks(
