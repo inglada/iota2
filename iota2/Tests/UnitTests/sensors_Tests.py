@@ -29,7 +29,7 @@ RM_IF_ALL_OK = True
 class iota2_test_sensors_test(unittest.TestCase):
     """Tests
     """
-    #before launching tests
+    # before launching tests
     @classmethod
     def setUpClass(cls):
 
@@ -60,7 +60,17 @@ class iota2_test_sensors_test(unittest.TestCase):
             'Sentinel2_B11_20200111', 'Sentinel2_B12_20200111'
         ]
 
-    #after launching tests
+        cls.expected_s2_s2c_labels = [
+            'Sentinel2S2C_B02_20190501', 'Sentinel2S2C_B03_20190501',
+            'Sentinel2S2C_B04_20190501', 'Sentinel2S2C_B05_20190501',
+            'Sentinel2S2C_B06_20190501', 'Sentinel2S2C_B07_20190501',
+            'Sentinel2S2C_B08_20190501', 'Sentinel2S2C_B8A_20190501',
+            'Sentinel2S2C_B11_20190501', 'Sentinel2S2C_B12_20190501',
+            'Sentinel2S2C_NDVI_20190501', 'Sentinel2S2C_NDWI_20190501',
+            'Sentinel2S2C_Brightness_20190501'
+        ]
+
+    # after launching tests
     @classmethod
     def tearDownClass(cls):
         print("{} ended".format(cls.group_test_name))
@@ -72,7 +82,7 @@ class iota2_test_sensors_test(unittest.TestCase):
         """
         create test environement (directories)
         """
-        #create directories
+        # create directories
         test_name = self.id().split(".")[-1]
         self.test_working_directory = os.path.join(self.iota2_tests_directory,
                                                    test_name)
@@ -105,7 +115,7 @@ class iota2_test_sensors_test(unittest.TestCase):
         if test_ok:
             shutil.rmtree(self.test_working_directory)
 
-    #Tests definitions
+    # Tests definitions
     def test_instance_s2(self):
         """Tests if the class sentinel_2 can be instanciate
         """
@@ -152,3 +162,55 @@ class iota2_test_sensors_test(unittest.TestCase):
         self.assertTrue(
             os.path.exists(expected_output),
             msg="Sentinel-2 class broken, not able to generate features")
+
+    def test_instance_s2_s2c(self):
+        """Tests if the class sentinel_2_s2c can be instanciate
+        """
+        from iota2.Sensors.Sentinel_2_S2C import sentinel_2_s2c
+        from iota2.Tests.UnitTests.TestsUtils import generate_fake_s2_s2c_data
+        tile_name = "T31TCJ"
+        # generate fake input data
+        mtd_files = [
+            os.path.join(IOTA2DIR, "data", "MTD_MSIL2A_20190506.xml"),
+            os.path.join(IOTA2DIR, "data", "MTD_MSIL2A_20190501.xml")
+        ]
+
+        generate_fake_s2_s2c_data(self.test_working_directory, mtd_files)
+        args = {
+            "tile_name": tile_name,
+            "target_proj": 2154,
+            "all_tiles": tile_name,
+            "s2_s2c_data": self.test_working_directory,
+            "write_dates_stack": False,
+            "extract_bands_flag": False,
+            "output_target_dir": "",
+            "keep_bands": True,
+            "i2_output_path": self.test_working_directory,
+            "temporal_res": 10,
+            "auto_date_flag": True,
+            "date_interp_min_user": "",
+            "date_interp_max_user": "",
+            "write_outputs_flag": False,
+            "features": ["NDVI", "NDWI", "Brightness"],
+            "enable_gapfilling": True,
+            "hand_features_flag": False,
+            "hand_features": "",
+            "copy_input": True,
+            "rel_refl": False,
+            "keep_dupl": True,
+            "vhr_path": "none",
+            "acorfeat": False
+        }
+
+        s2_sensor = sentinel_2_s2c(**args)
+        (features_app, app_dep), features_labels = s2_sensor.get_features()
+        features_app.ExecuteAndWriteOutput()
+        print(features_labels)
+        self.assertTrue(
+            self.expected_s2_s2c_labels == features_labels,
+            msg="Sentinel_2_S2C class broken, wrong features' labels")
+
+        expected_output = features_app.GetParameterString("out")
+        self.assertTrue(
+            os.path.exists(expected_output),
+            msg="Sentinel_2_S2C class broken, not able to generate features")

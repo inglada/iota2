@@ -27,6 +27,7 @@ sys.path.append(iota2_script)
 
 from Common import FileUtils as fut
 
+
 class iota_testAutoContext(unittest.TestCase):
     #before launching tests
     @classmethod
@@ -39,8 +40,10 @@ class iota_testAutoContext(unittest.TestCase):
         self.originX = 566377
         self.originY = 6284029
         self.group_test_name = "iota_testAutoContext"
-        self.iota2_tests_directory = os.path.join(IOTA2DIR, "data", self.group_test_name)
-        self.config_test = os.path.join(IOTA2DIR, "config", "Config_4Tuiles_Multi_FUS_Confidence.cfg")
+        self.iota2_tests_directory = os.path.join(IOTA2DIR, "data",
+                                                  self.group_test_name)
+        self.config_test = os.path.join(
+            IOTA2DIR, "config", "Config_4Tuiles_Multi_FUS_Confidence.cfg")
         self.ref_data = os.path.join(IOTA2DIR, "data", "references",
                                      "formatting_vectors", "Input",
                                      "formattingVectors", "T31TCJ.shp")
@@ -52,9 +55,11 @@ class iota_testAutoContext(unittest.TestCase):
         os.mkdir(self.iota2_tests_directory)
 
         # generate permanent fake data
-        self.fake_data_dir = os.path.join(self.iota2_tests_directory, "fake_s2")
+        self.fake_data_dir = os.path.join(self.iota2_tests_directory,
+                                          "fake_s2")
         ensure_dir(self.fake_data_dir)
-        generate_fake_s2_data(self.fake_data_dir, "T31TCJ", ["20190909", "20190919", "20190929"])
+        generate_fake_s2_data(self.fake_data_dir, "T31TCJ",
+                              ["20190909", "20190919", "20190929"])
 
     #after launching tests
     @classmethod
@@ -70,7 +75,8 @@ class iota_testAutoContext(unittest.TestCase):
         """
         #create directories
         test_name = self.id().split(".")[-1]
-        self.test_working_directory = os.path.join(self.iota2_tests_directory, test_name)
+        self.test_working_directory = os.path.join(self.iota2_tests_directory,
+                                                   test_name)
         if os.path.exists(self.test_working_directory):
             shutil.rmtree(self.test_working_directory)
         os.mkdir(self.test_working_directory)
@@ -85,7 +91,8 @@ class iota_testAutoContext(unittest.TestCase):
             result = self.defaultTestResult()
             self._feedErrorsToResult(result, self._outcome.errors)
         else:
-            result = getattr(self, '_outcomeForDoCleanups', self._resultForDoCleanups)
+            result = getattr(self, '_outcomeForDoCleanups',
+                             self._resultForDoCleanups)
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
         ok = not error and not failure
@@ -124,18 +131,22 @@ class iota_testAutoContext(unittest.TestCase):
         """
         from Common.OtbAppBank import CreateSampleSelectionApplication
         from Common.OtbAppBank import CreatePolygonClassStatisticsApplication
-        
+
         stat = out_vector.replace(".sqlite", ".xml")
-        CreatePolygonClassStatisticsApplication({"in": ref_img,
-                                                 "vec": in_vector,
-                                                 "field": "CODE",
-                                                 "out": stat}).ExecuteAndWriteOutput()
-        CreateSampleSelectionApplication({"in": ref_img,
-                                          "vec": in_vector,
-                                          "field": "CODE",
-                                          "strategy": "all",
-                                          "instats": stat,
-                                          "out": out_vector}).ExecuteAndWriteOutput()
+        CreatePolygonClassStatisticsApplication({
+            "in": ref_img,
+            "vec": in_vector,
+            "field": "CODE",
+            "out": stat
+        }).ExecuteAndWriteOutput()
+        CreateSampleSelectionApplication({
+            "in": ref_img,
+            "vec": in_vector,
+            "field": "CODE",
+            "strategy": "all",
+            "instats": stat,
+            "out": out_vector
+        }).ExecuteAndWriteOutput()
         os.remove(stat)
 
     def prepare_autoContext_data_ref(self, slic_seg, config_path_test):
@@ -150,44 +161,67 @@ class iota_testAutoContext(unittest.TestCase):
         from Common.OtbAppBank import CreateSampleExtractionApplication
         from Common.GenerateFeatures import generateFeatures
         from Common import ServiceConfigFile as SCF
-        
+
         raster_ref = FileSearch_AND(self.fake_data_dir, True, ".tif")[0]
-        CreatePolygonClassStatisticsApplication({"in": raster_ref,
-                                                 "vec": self.ref_data,
-                                                 "field": "CODE",
-                                                 "out": os.path.join(self.test_working_directory, "stats.xml")}).ExecuteAndWriteOutput()
-        ref_sampled = os.path.join(self.test_working_directory, "T31TCJ_samples_region_1_seed_0_selection.sqlite")
-        CreateSampleSelectionApplication({"in": raster_ref,
-                                          "vec": self.ref_data,
-                                          "field": "CODE",
-                                          "strategy": "all",
-                                          "instats": os.path.join(self.test_working_directory, "stats.xml"),
-                                          "out": ref_sampled}).ExecuteAndWriteOutput()
-                                          
+        CreatePolygonClassStatisticsApplication({
+            "in":
+            raster_ref,
+            "vec":
+            self.ref_data,
+            "field":
+            "CODE",
+            "out":
+            os.path.join(self.test_working_directory, "stats.xml")
+        }).ExecuteAndWriteOutput()
+        ref_sampled = os.path.join(
+            self.test_working_directory,
+            "T31TCJ_samples_region_1_seed_0_selection.sqlite")
+        CreateSampleSelectionApplication({
+            "in":
+            raster_ref,
+            "vec":
+            self.ref_data,
+            "field":
+            "CODE",
+            "strategy":
+            "all",
+            "instats":
+            os.path.join(self.test_working_directory, "stats.xml"),
+            "out":
+            ref_sampled
+        }).ExecuteAndWriteOutput()
+
         cfg = SCF.serviceConfigFile(config_path_test)
         features, feat_labels, dep = generateFeatures(None, "T31TCJ", cfg)
-        extraction = CreateSampleExtractionApplication({"in": features,
-                                                        "vec": ref_sampled,
-                                                        "field":"code",
-                                                        "outfield.list.names": feat_labels,
-                                                        "outfield": "list"})
+        extraction = CreateSampleExtractionApplication({
+            "in": features,
+            "vec": ref_sampled,
+            "field": "code",
+            "outfield.list.names": feat_labels,
+            "outfield": "list"
+        })
         extraction.ExecuteAndWriteOutput()
 
-        addField(ref_sampled, "newregion", valueField="1", valueType=str, driver_name="SQLite")
+        addField(ref_sampled,
+                 "newregion",
+                 valueField="1",
+                 valueType=str,
+                 driver_name="SQLite")
         os.remove(os.path.join(self.test_working_directory, "stats.xml"))
 
-        merge_ref_super_pix({"selection_samples": ref_sampled,
-                             "SLIC": slic_seg},
-                             "code",
-                             "superpix",
-                             "is_superpix",
-                             "newregion")
+        merge_ref_super_pix(
+            {
+                "selection_samples": ref_sampled,
+                "SLIC": slic_seg
+            }, "code", "superpix", "is_superpix", "newregion")
 
-        learning_vector = os.path.join(self.test_working_directory,
-                                       "T31TCJ_region_1_seed0_Samples_learn.sqlite")
+        learning_vector = os.path.join(
+            self.test_working_directory,
+            "T31TCJ_region_1_seed0_Samples_learn.sqlite")
         shutil.move(ref_sampled, learning_vector)
 
-        ref, superpix = split_superpixels_and_reference(learning_vector, superpix_column="is_superpix")
+        ref, superpix = split_superpixels_and_reference(
+            learning_vector, superpix_column="is_superpix")
 
         return learning_vector, superpix
 
@@ -200,20 +234,30 @@ class iota_testAutoContext(unittest.TestCase):
         from collections import Counter
         from Sampling.SuperPixelsSelection import move_annual_samples_position
         import TestsUtils
-        
+
         mask_array = TestsUtils.fun_array("iota2_binary")
-        random_classif_mask_path = os.path.join(self.test_working_directory, "Classif_Seed_0.tif")
-        
+        random_classif_mask_path = os.path.join(self.test_working_directory,
+                                                "Classif_Seed_0.tif")
+
         validity_array = np.full(mask_array.shape, 1)
-        validity_path = os.path.join(self.test_working_directory, "PixelsValidity.tif")
-        region_path = os.path.join(self.test_working_directory, "mask_region.tif")
-        TestsUtils.arrayToRaster(validity_array, validity_path,
-                                 pixSize=10, originX=self.originX, originY=self.originY)
-        TestsUtils.arrayToRaster(validity_array, region_path,
-                                 pixSize=10, originX=self.originX, originY=self.originY)
-        
-        ref_data_sampled = os.path.join(self.test_working_directory, "dataBase.sqlite")
-        
+        validity_path = os.path.join(self.test_working_directory,
+                                     "PixelsValidity.tif")
+        region_path = os.path.join(self.test_working_directory,
+                                   "mask_region.tif")
+        TestsUtils.arrayToRaster(validity_array,
+                                 validity_path,
+                                 pixSize=10,
+                                 originX=self.originX,
+                                 originY=self.originY)
+        TestsUtils.arrayToRaster(validity_array,
+                                 region_path,
+                                 pixSize=10,
+                                 originX=self.originX,
+                                 originY=self.originY)
+
+        ref_data_sampled = os.path.join(self.test_working_directory,
+                                        "dataBase.sqlite")
+
         self.prepapre_data_ref(in_vector=self.ref_data,
                                out_vector=ref_data_sampled,
                                ref_img=region_path)
@@ -222,83 +266,108 @@ class iota_testAutoContext(unittest.TestCase):
         labels = [12, 31, 32, 41, 211, 222]
         annual_labels = ["12", "31"]
         annual_labels_int = [int(elem) for elem in annual_labels]
-        random_classif_array = np.random.choice(labels, size=mask_array.shape, replace=True)
+        random_classif_array = np.random.choice(labels,
+                                                size=mask_array.shape,
+                                                replace=True)
         random_classif_array_mask = random_classif_array * mask_array
-        TestsUtils.arrayToRaster(random_classif_array_mask, random_classif_mask_path,
-                                 pixSize=10, originX=self.originX, originY=self.originY)
-        move_annual_samples_position(samples_position=ref_data_sampled,
-                                     dataField="code",
-                                     annual_labels=annual_labels,
-                                     classification_raster=random_classif_mask_path,
-                                     validity_raster=validity_path,
-                                     region_mask=region_path,
-                                     validity_threshold=0,
-                                     tile_origin_field_value=("tile_o", "T31TCJ"),
-                                     seed_field_value=("seed_0", "learn"),
-                                     region_field_value=("region", "1"))
+        TestsUtils.arrayToRaster(random_classif_array_mask,
+                                 random_classif_mask_path,
+                                 pixSize=10,
+                                 originX=self.originX,
+                                 originY=self.originY)
+        move_annual_samples_position(
+            samples_position=ref_data_sampled,
+            dataField="code",
+            annual_labels=annual_labels,
+            classification_raster=random_classif_mask_path,
+            validity_raster=validity_path,
+            region_mask=region_path,
+            validity_threshold=0,
+            tile_origin_field_value=("tile_o", "T31TCJ"),
+            seed_field_value=("seed_0", "learn"),
+            region_field_value=("region", "1"))
         # assert
-        raster_values = TestsUtils.compare_vector_raster(in_vec=ref_data_sampled,
-                                                         vec_field="code",
-                                                         field_values=annual_labels_int,
-                                                         in_img=random_classif_mask_path)
+        raster_values = TestsUtils.compare_vector_raster(
+            in_vec=ref_data_sampled,
+            vec_field="code",
+            field_values=annual_labels_int,
+            in_img=random_classif_mask_path)
         values_counter = Counter(raster_values)
-        exist_in_annual = [value in annual_labels_int for value in values_counter.keys()]
+        exist_in_annual = [
+            value in annual_labels_int for value in values_counter.keys()
+        ]
         self.assertTrue(all(exist_in_annual))
 
         # test : only one annual label in dataBase
         labels = [12, 31, 32, 41, 211, 222]
         annual_labels = ["12"]
         annual_labels_int = [int(elem) for elem in annual_labels]
-        random_classif_array = np.random.choice(labels, size=mask_array.shape, replace=True)
+        random_classif_array = np.random.choice(labels,
+                                                size=mask_array.shape,
+                                                replace=True)
         random_classif_array_mask = random_classif_array * mask_array
-        TestsUtils.arrayToRaster(random_classif_array_mask, random_classif_mask_path,
-                                 pixSize=10, originX=self.originX, originY=self.originY)
+        TestsUtils.arrayToRaster(random_classif_array_mask,
+                                 random_classif_mask_path,
+                                 pixSize=10,
+                                 originX=self.originX,
+                                 originY=self.originY)
 
-        move_annual_samples_position(samples_position=ref_data_sampled,
-                                     dataField="code",
-                                     annual_labels=annual_labels,
-                                     classification_raster=random_classif_mask_path,
-                                     validity_raster=validity_path,
-                                     region_mask=region_path,
-                                     validity_threshold=0,
-                                     tile_origin_field_value=("tile_o", "T31TCJ"),
-                                     seed_field_value=("seed_0", "learn"),
-                                     region_field_value=("region", "1"))
+        move_annual_samples_position(
+            samples_position=ref_data_sampled,
+            dataField="code",
+            annual_labels=annual_labels,
+            classification_raster=random_classif_mask_path,
+            validity_raster=validity_path,
+            region_mask=region_path,
+            validity_threshold=0,
+            tile_origin_field_value=("tile_o", "T31TCJ"),
+            seed_field_value=("seed_0", "learn"),
+            region_field_value=("region", "1"))
         # assert
-        raster_values = TestsUtils.compare_vector_raster(in_vec=ref_data_sampled,
-                                                         vec_field="code",
-                                                         field_values=annual_labels_int,
-                                                         in_img=random_classif_mask_path)
+        raster_values = TestsUtils.compare_vector_raster(
+            in_vec=ref_data_sampled,
+            vec_field="code",
+            field_values=annual_labels_int,
+            in_img=random_classif_mask_path)
         values_counter = Counter(raster_values)
-        exist_in_annual = [value in annual_labels_int for value in values_counter.keys()]
+        exist_in_annual = [
+            value in annual_labels_int for value in values_counter.keys()
+        ]
         self.assertTrue(all(exist_in_annual))
 
         # test : no annual labels in classifications
         labels = [12, 31, 32, 41, 211, 222]
         annual_labels = ["111", "112"]
         annual_labels_int = [int(elem) for elem in annual_labels]
-        random_classif_array = np.random.choice(labels, size=mask_array.shape, replace=True)
+        random_classif_array = np.random.choice(labels,
+                                                size=mask_array.shape,
+                                                replace=True)
         random_classif_array_mask = random_classif_array * mask_array
-        TestsUtils.arrayToRaster(random_classif_array_mask, random_classif_mask_path,
-                                 pixSize=10, originX=self.originX, originY=self.originY)
+        TestsUtils.arrayToRaster(random_classif_array_mask,
+                                 random_classif_mask_path,
+                                 pixSize=10,
+                                 originX=self.originX,
+                                 originY=self.originY)
 
-        move_annual_samples_position(samples_position=ref_data_sampled,
-                                     dataField="code",
-                                     annual_labels=annual_labels,
-                                     classification_raster=random_classif_mask_path,
-                                     validity_raster=validity_path,
-                                     region_mask=region_path,
-                                     validity_threshold=0,
-                                     tile_origin_field_value=("tile_o", "T31TCJ"),
-                                     seed_field_value=("seed_0", "learn"),
-                                     region_field_value=("region", "1"))
+        move_annual_samples_position(
+            samples_position=ref_data_sampled,
+            dataField="code",
+            annual_labels=annual_labels,
+            classification_raster=random_classif_mask_path,
+            validity_raster=validity_path,
+            region_mask=region_path,
+            validity_threshold=0,
+            tile_origin_field_value=("tile_o", "T31TCJ"),
+            seed_field_value=("seed_0", "learn"),
+            region_field_value=("region", "1"))
         # assert
-        raster_values = TestsUtils.compare_vector_raster(in_vec=ref_data_sampled,
-                                                         vec_field="code",
-                                                         field_values=annual_labels_int,
-                                                         in_img=random_classif_mask_path)
+        raster_values = TestsUtils.compare_vector_raster(
+            in_vec=ref_data_sampled,
+            vec_field="code",
+            field_values=annual_labels_int,
+            in_img=random_classif_mask_path)
         values_counter = Counter(raster_values)
-        self.assertTrue(len(values_counter)==0)
+        self.assertTrue(len(values_counter) == 0)
 
     def test_slic(self):
         """non-regression test, check if SLIC could be performed
@@ -307,28 +376,32 @@ class iota_testAutoContext(unittest.TestCase):
         from Common import ServiceConfigFile as SCF
         from Segmentation import segmentation
         from Common.FileUtils import FileSearch_AND
-        from Sensors.Sensors_container import Sensors_container
-        
+        from Sensors.Sensors_container import sensors_container
+
         # config file
-        config_path_test = os.path.join(self.test_working_directory, "Config_TEST.cfg")
+        config_path_test = os.path.join(self.test_working_directory,
+                                        "Config_TEST.cfg")
         testPath = self.generate_cfg_file(self.config_test, config_path_test)
         cfg = SCF.serviceConfigFile(config_path_test)
         IOTA2Directory.GenerateDirectories(cfg, check_inputs=False)
-        slic_working_dir = os.path.join(self.test_working_directory, "slic_tmp")
-        sensors = Sensors_container(config_path_test, self.tile_name, None)
+        slic_working_dir = os.path.join(self.test_working_directory,
+                                        "slic_tmp")
+        sensors = sensors_container(config_path_test, self.tile_name, None)
         sensors.sensors_preprocess()
 
         # Launch test
-        segmentation.slicSegmentation(self.tile_name, config_path_test, ram=128, working_dir=slic_working_dir, force_spw=1)
+        segmentation.slicSegmentation(self.tile_name,
+                                      config_path_test,
+                                      ram=128,
+                                      working_dir=slic_working_dir,
+                                      force_spw=1)
 
         # as SLIC algorithm contains random variables, the raster's content could
         # not be tested
-        self.assertTrue(len(FileSearch_AND(os.path.join(testPath,
-                                                        "features",
-                                                        self.tile_name,
-                                                        "tmp"),
-                                           True,
-                                           "SLIC_{}".format(self.tile_name)))==1,
+        self.assertTrue(len(
+            FileSearch_AND(
+                os.path.join(testPath, "features", self.tile_name, "tmp"),
+                True, "SLIC_{}".format(self.tile_name))) == 1,
                         msg="SLIC algorithm failed")
 
     def test_train_and_classify(self):
@@ -342,80 +415,116 @@ class iota_testAutoContext(unittest.TestCase):
         from Segmentation import segmentation
         from Learning.trainAutoContext import train_autoContext
         from Classification.ImageClassifier import autoContext_launch_classif
-        from Sensors.Sensors_container import Sensors_container
+        from Sensors.Sensors_container import sensors_container
         from Common.OtbAppBank import CreateBandMathApplication
         from TestsUtils import test_raster_unique_value
-        
+
         # config file
-        config_path_test = os.path.join(self.test_working_directory, "Config_TEST.cfg")
+        config_path_test = os.path.join(self.test_working_directory,
+                                        "Config_TEST.cfg")
         testPath = self.generate_cfg_file(self.config_test, config_path_test)
         cfg = SCF.serviceConfigFile(config_path_test)
         IOTA2Directory.GenerateDirectories(cfg, check_inputs=False)
-        autoContext_working_dir = os.path.join(self.test_working_directory, "autoContext_tmp")
-        slic_working_dir = os.path.join(self.test_working_directory, "autoContext_tmp")
-        sensors = Sensors_container(config_path_test, self.tile_name, None)
+        autoContext_working_dir = os.path.join(self.test_working_directory,
+                                               "autoContext_tmp")
+        slic_working_dir = os.path.join(self.test_working_directory,
+                                        "autoContext_tmp")
+        sensors = sensors_container(config_path_test, self.tile_name, None)
         sensors.sensors_preprocess()
-        
-        segmentation.slicSegmentation(self.tile_name, config_path_test, ram=128, working_dir=slic_working_dir, force_spw=1)
-        
-        slic_seg = FileSearch_AND(os.path.join(testPath, "features" ,self.tile_name, "tmp"),
-                                  True,
-                                  "SLIC_{}".format(self.tile_name))[0]
-                                           
-        train_auto_data_ref, superpix_data = self.prepare_autoContext_data_ref(slic_seg, config_path_test)
 
-        parameter_dict  = {"model_name": "1",
-                           "seed": "0",
-                           "list_learning_samples": [train_auto_data_ref],
-                           "list_superPixel_samples": [superpix_data],
-                           "list_tiles": ["T31TCJ"],
-                           "list_slic": [slic_seg]}
+        segmentation.slicSegmentation(self.tile_name,
+                                      config_path_test,
+                                      ram=128,
+                                      working_dir=slic_working_dir,
+                                      force_spw=1)
+
+        slic_seg = FileSearch_AND(
+            os.path.join(testPath, "features", self.tile_name, "tmp"), True,
+            "SLIC_{}".format(self.tile_name))[0]
+
+        train_auto_data_ref, superpix_data = self.prepare_autoContext_data_ref(
+            slic_seg, config_path_test)
+
+        parameter_dict = {
+            "model_name": "1",
+            "seed": "0",
+            "list_learning_samples": [train_auto_data_ref],
+            "list_superPixel_samples": [superpix_data],
+            "list_tiles": ["T31TCJ"],
+            "list_slic": [slic_seg]
+        }
         # launch tests
-        
+
         #~ training
         e = None
         try:
-            train_autoContext(parameter_dict, config_path_test, RAM=128, WORKING_DIR=autoContext_working_dir)
+            train_autoContext(parameter_dict,
+                              config_path_test,
+                              RAM=128,
+                              WORKING_DIR=autoContext_working_dir)
         except Exception as e:
             print(e)
 
         #~ Asserts training
         self.assertTrue(e is None, msg="train_autoContext failed")
-        
-        models = FileSearch_AND(os.path.join(testPath, "model"),
-                                True,
+
+        models = FileSearch_AND(os.path.join(testPath, "model"), True,
                                 "model_it_", ".rf")
         self.assertTrue(len(models) == 4)
 
         #~ classification
-        tile_raster = FileSearch_AND(self.fake_data_dir,
-                                     True,
+        tile_raster = FileSearch_AND(self.fake_data_dir, True,
                                      "BINARY_MASK.tif")[0]
-        tile_mask = os.path.join(autoContext_working_dir, "{}_tile_mask.tif".format(self.tile_name))
-        CreateBandMathApplication({"il": [tile_raster], "out": tile_mask, "exp": "1"}).ExecuteAndWriteOutput()
-        
-        labels = getFieldElement(train_auto_data_ref, driverName="SQLite", field="code", mode="unique", elemType="str")
-        parameters_dict = {"model_name": "1",
-                           "seed_num": 0,
-                           "tile": self.tile_name,
-                           "tile_segmentation": slic_seg,
-                           "tile_mask": tile_mask,
-                           "labels_list": labels,
-                           "model_list": sorted(models,
-                                                key=lambda x : int(re.findall("\d", os.path.basename(x))[0]))}
-        autoContext_launch_classif(parameters_dict, config_path_test, 128, WORKING_DIR=autoContext_working_dir)
-        
+        tile_mask = os.path.join(autoContext_working_dir,
+                                 "{}_tile_mask.tif".format(self.tile_name))
+        CreateBandMathApplication({
+            "il": [tile_raster],
+            "out": tile_mask,
+            "exp": "1"
+        }).ExecuteAndWriteOutput()
+
+        labels = getFieldElement(train_auto_data_ref,
+                                 driverName="SQLite",
+                                 field="code",
+                                 mode="unique",
+                                 elemType="str")
+        parameters_dict = {
+            "model_name":
+            "1",
+            "seed_num":
+            0,
+            "tile":
+            self.tile_name,
+            "tile_segmentation":
+            slic_seg,
+            "tile_mask":
+            tile_mask,
+            "labels_list":
+            labels,
+            "model_list":
+            sorted(models,
+                   key=lambda x: int(re.findall("\d", os.path.basename(x))[0]))
+        }
+        autoContext_launch_classif(parameters_dict,
+                                   config_path_test,
+                                   128,
+                                   WORKING_DIR=autoContext_working_dir)
+
         #~ Asserts classifications
-        classif = FileSearch_AND(os.path.join(testPath, "classif"),
-                                  True,
-                                  "Classif_T31TCJ_model_1_seed_0.tif")[0]
-        confidence = FileSearch_AND(os.path.join(testPath, "classif"),
-                                    True,
+        classif = FileSearch_AND(os.path.join(testPath, "classif"), True,
+                                 "Classif_T31TCJ_model_1_seed_0.tif")[0]
+        confidence = FileSearch_AND(os.path.join(testPath, "classif"), True,
                                     "T31TCJ_model_1_confidence_seed_0.tif")[0]
 
         classif_unique_0 = test_raster_unique_value(classif, 0)
         confidence_unique_0 = test_raster_unique_value(confidence, 0)
-        self.assertTrue(classif_unique_0==False,
-                        msg="AutoContext Classifications failed : classification contains only 0 values")
-        self.assertTrue(confidence_unique_0==False,
-                        msg="AutoContext Classifications failed : confidence contains only 0 values")
+        self.assertTrue(
+            classif_unique_0 == False,
+            msg=
+            "AutoContext Classifications failed : classification contains only 0 values"
+        )
+        self.assertTrue(
+            confidence_unique_0 == False,
+            msg=
+            "AutoContext Classifications failed : confidence contains only 0 values"
+        )

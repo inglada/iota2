@@ -17,7 +17,7 @@
 from functools import partial
 import argparse
 
-from iota2.Sensors.Sensors_container import Sensors_container
+from iota2.Sensors.Sensors_container import sensors_container
 from iota2.Common.GenerateFeatures import generateFeatures
 from iota2.Common import ServiceConfigFile as SCF
 from iota2.Common import IOTA2Directory
@@ -30,7 +30,10 @@ def smart_scientific_function(array, increment, *args, **kwargs):
     return array + increment
 
 
-def compute_features(config_path, output_raster, tile_name, working_dir,
+def compute_features(config_path,
+                     output_raster,
+                     tile_name,
+                     working_dir,
                      function=smart_scientific_function) -> None:
     """Use a python function to generate features through the use of numpy arrays
 
@@ -54,29 +57,41 @@ def compute_features(config_path, output_raster, tile_name, working_dir,
 
     # Then compute new features
     function = partial(function, increment=1)
-    feat_stack_array, feat_labels = rasterUtils.apply_function(feat_stack,
-                                                               feat_labels,
-                                                               working_dir,
-                                                               function,
-                                                               output_raster,
-                                                               chunck_size_x=10,
-                                                               chunck_size_y=10,
-                                                               ram=128)
+    feat_stack_array, feat_labels = rasterUtils.apply_function(
+        feat_stack,
+        feat_labels,
+        working_dir,
+        function,
+        output_raster,
+        chunck_size_x=10,
+        chunck_size_y=10,
+        ram=128)
 
 
 if __name__ == "__main__":
     description = ("Use a python function to generate new features, "
                    "through the use of numpy arrays")
     parser = argparse.ArgumentParser(description=description)
-    parser.add_argument("-config", dest="config",
-                        help="configuration file path", default=None,
+    parser.add_argument("-config",
+                        dest="config",
+                        help="configuration file path",
+                        default=None,
                         required=True)
-    parser.add_argument("-output", dest="output", help="output raster",
-                        default=None, required=True)
-    parser.add_argument("-tile", dest="tile_name", help="tile's name",
-                        default=None, required=True)
-    parser.add_argument("-working_dir", dest="working_dir", help="tile's name",
-                        default=None, required=True)
+    parser.add_argument("-output",
+                        dest="output",
+                        help="output raster",
+                        default=None,
+                        required=True)
+    parser.add_argument("-tile",
+                        dest="tile_name",
+                        help="tile's name",
+                        default=None,
+                        required=True)
+    parser.add_argument("-working_dir",
+                        dest="working_dir",
+                        help="tile's name",
+                        default=None,
+                        required=True)
     args = parser.parse_args()
 
     compute_features(args.config, args.output, args.tile_name,
