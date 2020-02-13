@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -13,21 +13,22 @@
 #   PURPOSE.  See the above copyright notices for more information.
 #
 # =========================================================================
-"""Sentinel-2 class definition
 """
-
-import multiprocessing as mp
-
+Sentinel-2 class definition
+"""
 import logging
-import glob
-import os
 
-from collections import OrderedDict
-from iota2.Common.OtbAppBank import executeApp
+# import multiprocessing as mp
+
+# import glob
+# import os
+
+# from collections import OrderedDict
+# from iota2.Common.OtbAppBank import executeApp
 
 LOGGER = logging.getLogger(__name__)
 
-#in order to avoid issue 'No handlers could be found for logger...'
+# in order to avoid issue 'No handlers could be found for logger...'
 LOGGER.addHandler(logging.NullHandler())
 
 
@@ -37,7 +38,7 @@ class sentinel_2():
 
     name = 'Sentinel2'
 
-    def __init__(self, tile_name, target_proj, all_tiles, s2_data,
+    def __init__(self, tile_name, target_proj, all_tiles, image_directory,
                  write_dates_stack, extract_bands_flag, output_target_dir,
                  keep_bands, i2_output_path, temporal_res, auto_date_flag,
                  date_interp_min_user, date_interp_max_user,
@@ -45,14 +46,17 @@ class sentinel_2():
                  hand_features_flag, hand_features, copy_input, rel_refl,
                  keep_dupl, acorfeat, vhr_path, **kwargs):
         """
+        Construct the sentinel 2 class
         """
+        import os
+        from collections import OrderedDict
         from iota2.Common import ServiceConfigFile as SCF
         from iota2.Common.FileUtils import get_iota2_project_dir
 
         self.tile_name = tile_name
         self.target_proj = target_proj
         self.all_tiles = all_tiles
-        self.s2_data = s2_data
+        self.s2_data = image_directory
         self.write_dates_stack = write_dates_stack
         self.extract_bands_flag = extract_bands_flag
         self.output_target_dir = output_target_dir
@@ -64,14 +68,14 @@ class sentinel_2():
         self.date_interp_max_user = date_interp_max_user
         self.write_outputs_flag = write_outputs_flag
         self.features = features
-        self.enable_gapFilling = enable_gapfilling
+        self.enable_gapfilling = enable_gapfilling
         self.hand_features_flag = hand_features_flag
         self.hand_features = hand_features
         self.copy_input = copy_input
         self.rel_refl = rel_refl
         self.keep_dupl = keep_dupl
         self.acorfeat = acorfeat
-        self.VHRPath = vhr_path
+        self.vhr_path = vhr_path
 
         cfg_sensors = os.path.join(get_iota2_project_dir(), "iota2", "Sensors",
                                    "sensors.cfg")
@@ -79,14 +83,9 @@ class sentinel_2():
 
         self.tile_directory = os.path.join(self.s2_data, tile_name)
         self.struct_path_masks = cfg_sensors.getParam("Sentinel_2", "arbomask")
-        # ~ self.write_dates_stack = self.cfg_IOTA2.getParam(
-        # ~ "Sentinel_2", "write_reproject_resampled_input_dates_stack")
         self.features_dir = os.path.join(self.i2_output_path, "features",
                                          tile_name)
 
-        # ~ extract_bands_flag = self.cfg_IOTA2.getParam("iota2FeatureExtraction",
-        # ~ "extractBands")
-        # ~ output_target_dir = self.cfg_IOTA2.getParam("chain", "S2_output_path")
         if output_target_dir:
             self.output_preprocess_directory = os.path.join(
                 output_target_dir, tile_name)
@@ -94,7 +93,8 @@ class sentinel_2():
                 try:
                     os.mkdir(self.output_preprocess_directory)
                 except Exception:
-                    pass
+                    print(f"Unable to create directory"
+                          "{self.output_preprocess_directory}")
         else:
             self.output_preprocess_directory = self.tile_directory
 
@@ -103,7 +103,7 @@ class sentinel_2():
         self.suffix = "STACK"
         self.masks_date_suffix = "BINARY_MASK"
         self.date_position = 1  # if date's name split by "_"
-        self.NODATA_VALUE = -10000
+        self.nodata_value = -10000
         self.masks_rules = OrderedDict({
             "CLM_R1.tif": 0,
             "SAT_R1.tif": 0,
@@ -118,7 +118,6 @@ class sentinel_2():
         ]
         self.extracted_bands = None
         if extract_bands_flag:
-            # ~ keep_bands = self.cfg_IOTA2.getParam("Sentinel_2", "keepBands")
             self.extracted_bands = [(band_name, band_position + 1)
                                     for band_position, band_name in enumerate(
                                         self.stack_band_position)
@@ -140,8 +139,6 @@ class sentinel_2():
         self.features_names = "{}_{}_Features.tif".format(
             self.__class__.name, tile_name)
         # about gapFilling interpolations
-        # ~ self.temporal_res = self.cfg_IOTA2.getParam("Sentinel_2",
-        # ~ "temporalResolution")
         self.input_dates = "{}_{}_input_dates.txt".format(
             self.__class__.name, tile_name)
         self.interpolated_dates = "{}_{}_interpolation_dates.txt".format(
@@ -150,6 +147,7 @@ class sentinel_2():
     def sort_dates_directories(self, dates_directories):
         """sort dates directories
         """
+        import os
         return sorted(dates_directories,
                       key=lambda x: os.path.basename(x).split("_")[
                           self.date_position].split("-")[0])
@@ -158,10 +156,11 @@ class sentinel_2():
         """
         return sorted available dates
         """
+        import os
         from iota2.Common.FileUtils import FileSearch_AND
 
         pattern = "{}.tif".format(self.suffix)
-        if not "none" in self.VHRPath.lower():
+        if self.vhr_path.lower() != "none":
             pattern = "{}_COREG.tif".format(self.suffix)
 
         stacks = sorted(FileSearch_AND(self.output_preprocess_directory, True,
@@ -174,9 +173,10 @@ class sentinel_2():
         """
         return sorted available masks
         """
+        import os
         from iota2.Common.FileUtils import FileSearch_AND
         pattern = "{}.tif".format(self.masks_date_suffix)
-        if not "none" in self.VHRPath.lower():
+        if self.vhr_path.lower() != "none":
             pattern = "{}_COREG.tif".format(self.suffix)
         masks = sorted(FileSearch_AND(self.output_preprocess_directory, True,
                                       "{}".format(pattern)),
@@ -187,6 +187,7 @@ class sentinel_2():
     def build_stack_date_name(self, date_dir):
         """build stack date name
         """
+        import os
         from iota2.Common.FileUtils import FileSearch_AND
         _, b2_name = os.path.split(
             FileSearch_AND(date_dir, True, "FRE_B2.tif")[0])
@@ -200,21 +201,23 @@ class sentinel_2():
                         ram=128,
                         logger=LOGGER):
         """
+        preprocess date
         """
         import os
         import shutil
+        import multiprocessing as mp
         from gdal import Warp
         from osgeo.gdalconst import GDT_Byte
-
+        from collections import OrderedDict
         from iota2.Common.FileUtils import ensure_dir
         from iota2.Common.FileUtils import getRasterProjectionEPSG
         from iota2.Common.FileUtils import FileSearch_AND
         from iota2.Common.OtbAppBank import CreateConcatenateImagesApplication
         from iota2.Common.OtbAppBank import CreateSuperimposeApplication
-
+        from iota2.Common.OtbAppBank import executeApp
         # manage directories
         date_stack_name = self.build_stack_date_name(date_dir)
-        logger.debug("preprocessing {}".format(date_dir))
+        logger.debug(f"preprocessing {date_dir}")
         out_stack = os.path.join(date_dir, date_stack_name)
         if out_prepro:
             _, date_dir_name = os.path.split(date_dir)
@@ -222,8 +225,8 @@ class sentinel_2():
             if not os.path.exists(out_dir):
                 try:
                     os.mkdir(out_dir)
-                except:
-                    logger.warning("{} already exists".format(out_dir))
+                except Exception:
+                    logger.warning(f"{out_dir} already exists")
             out_stack = os.path.join(out_dir, date_stack_name)
 
         out_stack_processing = out_stack
@@ -239,8 +242,8 @@ class sentinel_2():
 
         # tile reference image generation
         base_ref = date_bands[0]
-        logger.info("reference image generation {} from {}".format(
-            self.ref_image, base_ref))
+        logger.info(
+            f"reference image generation {self.ref_image} from {base_ref}")
         ensure_dir(os.path.dirname(self.ref_image), raise_exe=False)
         base_ref_projection = getRasterProjectionEPSG(base_ref)
         if not os.path.exists(self.ref_image):
@@ -286,9 +289,9 @@ class sentinel_2():
 
             if not os.path.exists(out_stack) or same_proj is False:
                 #~ date_stack.ExecuteAndWriteOutput()
-                p = mp.Process(target=executeApp, args=[date_stack])
-                p.start()
-                p.join()
+                multi_proc = mp.Process(target=executeApp, args=[date_stack])
+                multi_proc.start()
+                multi_proc.join()
                 if working_dir:
                     shutil.copy(out_stack_processing, out_stack)
                     os.remove(out_stack_processing)
@@ -301,13 +304,17 @@ class sentinel_2():
                               ram=128,
                               logger=LOGGER):
         """
+        preprocess date masks
         """
         import shutil
+        import os
+        import glob
+        import multiprocessing as mp
         from iota2.Common.FileUtils import ensure_dir
         from iota2.Common.OtbAppBank import CreateBandMathApplication
         from iota2.Common.OtbAppBank import CreateSuperimposeApplication
         from iota2.Common.FileUtils import getRasterProjectionEPSG
-
+        from iota2.Common.OtbAppBank import executeApp
         # TODO : throw Exception if no masks are found
         date_mask = []
         for mask_name, _ in list(self.masks_rules.items()):
@@ -319,7 +326,7 @@ class sentinel_2():
 
         # manage directories
         mask_dir = os.path.dirname(date_mask[0])
-        logger.debug("preprocessing {} masks".format(mask_dir))
+        logger.debug(f"preprocessing {mask_dir} masks")
         mask_name = os.path.basename(date_mask[0]).replace(
             list(self.masks_rules.items())[0][0],
             "{}.tif".format(self.masks_date_suffix))
@@ -335,9 +342,8 @@ class sentinel_2():
             out_mask_processing = os.path.join(working_dir, mask_name)
 
         # build binary mask
-        expr = "+".join(
-            ["im{}b1".format(cpt + 1) for cpt in range(len(date_mask))])
-        expr = "({})==0?0:1".format(expr)
+        expr = "+".join([f"im{cpt+1}b1" for cpt in range(len(date_mask))])
+        expr = f"({expr})==0?0:1"
         binary_mask_rule = CreateBandMathApplication({
             "il": date_mask,
             "exp": expr
@@ -363,10 +369,10 @@ class sentinel_2():
                     self.target_proj)
 
             if not os.path.exists(out_mask) or same_proj is False:
-                #~ superimp.ExecuteAndWriteOutput()
-                p = mp.Process(target=executeApp, args=[superimp])
-                p.start()
-                p.join()
+                # superimp.ExecuteAndWriteOutput()
+                multi_proc = mp.Process(target=executeApp, args=[superimp])
+                multi_proc.start()
+                multi_proc.join()
                 if working_dir:
                     shutil.copy(out_mask_processing, out_mask)
                     os.remove(out_mask_processing)
@@ -375,12 +381,16 @@ class sentinel_2():
 
     def get_date_from_name(self, product_name):
         """
+        get_date_from_name
         """
         return product_name.split("_")[self.date_position].split("-")[0]
 
     def preprocess(self, working_dir=None, ram=128):
         """
+        preprocess
         """
+        import os
+        from collections import OrderedDict
         input_dates = [
             os.path.join(self.tile_directory, cdir)
             for cdir in os.listdir(self.tile_directory)
@@ -405,7 +415,10 @@ class sentinel_2():
 
     def footprint(self, ram=128):
         """
+        compute footprint of images
         """
+        import os
+        import glob
         from iota2.Common.OtbAppBank import CreateSuperimposeApplication
         from iota2.Common.OtbAppBank import CreateBandMathApplication
         from iota2.Common.FileUtils import ensure_dir
@@ -441,8 +454,7 @@ class sentinel_2():
         s2_border.Execute()
 
         reference_raster = self.ref_image
-        if not "none" in self.cfg_IOTA2.getParam('coregistration',
-                                                 'VHRPath').lower():
+        if self.vhr_path.lower() != "none":
             reference_raster = self.get_available_dates()[0]
 
         # superimpose footprint
@@ -463,6 +475,7 @@ class sentinel_2():
         """
         TODO : mv to base-class
         """
+        import os
         from iota2.Common.FileUtils import getDateS2
         from iota2.Common.FileUtils import ensure_dir
         from iota2.Common.FileUtils import dateInterval
@@ -476,11 +489,7 @@ class sentinel_2():
                                                      self.all_tiles.split(" "))
 
         # force dates
-        # ~ auto_date_flag = self.cfg_IOTA2.getParam("GlobChain", "autoDate")
         if not self.auto_date_flag:
-            # ~ date_interp_min = self.cfg_IOTA2.getParam("Sentinel_2",
-            # ~ "startDate")
-            # ~ date_interp_max = self.cfg_IOTA2.getParam("Sentinel_2", "endDate")
             date_interp_min = self.date_interp_min_user
             date_interp_max = self.date_interp_max_user
         dates = [
@@ -494,18 +503,23 @@ class sentinel_2():
 
     def write_dates_file(self):
         """
+        write dates file
         """
-
+        import os
         input_dates_dir = [
             os.path.join(self.tile_directory, cdir)
             for cdir in os.listdir(self.tile_directory)
         ]
         date_file = os.path.join(self.features_dir, "tmp", self.input_dates)
         all_available_dates = [
-            os.path.basename(date).split("_")[self.date_position].split("-")[0]
-            for date in input_dates_dir
+            int(
+                os.path.basename(date).split("_")[self.date_position].split(
+                    "-")[0]) for date in input_dates_dir
         ]
-        all_available_dates = sorted(all_available_dates, key=lambda x: int(x))
+        all_available_dates = sorted(all_available_dates)
+        # sort requires int but input_date_file requires str
+        all_available_dates = [str(x) for x in all_available_dates]
+
         if not os.path.exists(date_file):
             with open(date_file, "w") as input_date_file:
                 input_date_file.write("\n".join(all_available_dates))
@@ -521,6 +535,7 @@ class sentinel_2():
                 Functions dealing with otb's application instance has to
                 returns every objects in the pipeline
         """
+        import os
         from iota2.Common.OtbAppBank import CreateConcatenateImagesApplication
         from iota2.Common.FileUtils import ensure_dir
 
@@ -606,8 +621,6 @@ class sentinel_2():
 
     def get_time_series_masks(self, ram=128):
         """
-        """
-        """
         TODO : be able of using a date interval
         Return
         ------
@@ -616,6 +629,7 @@ class sentinel_2():
                 Functions dealing with otb's application instance has to
                 returns every objects in the pipeline
         """
+        import os
         from iota2.Common.OtbAppBank import CreateConcatenateImagesApplication
         from iota2.Common.FileUtils import ensure_dir
 
@@ -651,12 +665,16 @@ class sentinel_2():
         })
         return dates_time_series_mask, app_dep, len(dates_masks)
 
-    def get_time_series_gapFilling(self, ram=128):
+    def get_time_series_gapfilling(self, ram=128):
         """
+        get_time_series_gapfilling
         """
+        import os
+        import multiprocessing as mp
         from iota2.Common.OtbAppBank import CreateImageTimeSeriesGapFillingApplication
         from iota2.Common.OtbAppBank import getInputParameterOutput
         from iota2.Common.FileUtils import ensure_dir
+        from iota2.Common.OtbAppBank import executeApp
 
         gap_dir = os.path.join(self.features_dir, "tmp")
         ensure_dir(gap_dir, raise_exe=False)
@@ -669,7 +687,6 @@ class sentinel_2():
         (time_series, time_series_dep), _ = self.get_time_series()
 
         # inputs
-        # ~ write_outputs_flag = self.cfg_IOTA2.getParam('GlobChain', 'writeOutputs')
         if self.write_outputs_flag is False:
             time_series.Execute()
             masks.Execute()
@@ -679,14 +696,14 @@ class sentinel_2():
             masks_raster = masks.GetParameterValue(
                 getInputParameterOutput(masks))
             if not os.path.exists(masks_raster):
-                p = mp.Process(target=executeApp, args=[masks])
-                p.start()
-                p.join()
+                multi_proc = mp.Process(target=executeApp, args=[masks])
+                multi_proc.start()
+                multi_proc.join()
             if not os.path.exists(time_series_raster):
-                #~ time_series.ExecuteAndWriteOutput()
-                p = mp.Process(target=executeApp, args=[time_series])
-                p.start()
-                p.join()
+                # time_series.ExecuteAndWriteOutput()
+                multi_proc = mp.Process(target=executeApp, args=[time_series])
+                multi_proc.start()
+                multi_proc.join()
             if os.path.exists(masks_raster):
                 masks = masks_raster
             if os.path.exists(time_series_raster):
@@ -721,6 +738,7 @@ class sentinel_2():
 
     def get_features_labels(self, dates, rel_refl, keep_dupl, copy_in):
         """
+        get feature labels
         """
         if rel_refl and keep_dupl is False and copy_in is True:
             self.features_names_list = ["NDWI", "Brightness"]
@@ -734,13 +752,16 @@ class sentinel_2():
 
     def get_features(self, ram=128):
         """
+        get features
         """
+        import os
+        import multiprocessing as mp
         from iota2.Common.OtbAppBank import CreateConcatenateImagesApplication
         from iota2.Common.OtbAppBank import computeUserFeatures
         from iota2.Common.OtbAppBank import CreateIota2FeatureExtractionApplication
         from iota2.Common.OtbAppBank import getInputParameterOutput
         from iota2.Common.FileUtils import ensure_dir
-
+        from iota2.Common.OtbAppBank import executeApp
         features_dir = os.path.join(self.features_dir, "tmp")
         ensure_dir(features_dir, raise_exe=False)
         features_out = os.path.join(features_dir, self.features_names)
@@ -753,10 +774,10 @@ class sentinel_2():
 
         # input
         (in_stack, in_stack_dep
-         ), in_stack_features_labels = self.get_time_series_gapFilling()
+         ), in_stack_features_labels = self.get_time_series_gapfilling()
         _, dates_enabled = self.write_interpolation_dates_file()
 
-        if not self.enable_gapFilling:
+        if not self.enable_gapfilling:
             (in_stack,
              in_stack_dep), in_stack_features_labels = self.get_time_series()
             _, dates_enabled = self.write_dates_file()
@@ -767,10 +788,10 @@ class sentinel_2():
             in_stack_raster = in_stack.GetParameterValue(
                 getInputParameterOutput(in_stack))
             if not os.path.exists(in_stack_raster):
-                #~ in_stack.ExecuteAndWriteOutput()
-                p = mp.Process(target=executeApp, args=[in_stack])
-                p.start()
-                p.join()
+                # in_stack.ExecuteAndWriteOutput()
+                multi_proc = mp.Process(target=executeApp, args=[in_stack])
+                multi_proc.start()
+                multi_proc.join()
             if os.path.exists(in_stack_raster):
                 in_stack = in_stack_raster
         # output
@@ -781,10 +802,10 @@ class sentinel_2():
             comp = len(
                 self.stack_band_position) if not self.extracted_bands else len(
                     self.extracted_bands)
-            userDateFeatures, fields_userFeat, a, b = computeUserFeatures(
-                in_stack, dates_enabled, comp, hand_features.split(","))
-            userDateFeatures.Execute()
-            app_dep.append([userDateFeatures, a, b])
+            user_date_features, fields_userfeat, user_feat_date, stack = computeUserFeatures(
+                in_stack, dates_enabled, comp, self.hand_features.split(","))
+            user_date_features.Execute()
+            app_dep.append([user_date_features, user_feat_date, stack])
 
         if self.features:
             bands_avail = self.stack_band_position
@@ -793,23 +814,16 @@ class sentinel_2():
                     band_name for band_name, _ in self.extracted_bands
                 ]
                 # check mandatory bands
-                if not "B4" in bands_avail:
+                if "B4" not in bands_avail:
                     raise Exception(
                         "red band (B4) is needed to compute features")
-                if not "B8" in bands_avail:
+                if "B8" not in bands_avail:
                     raise Exception(
                         "nir band (B8) is needed to compute features")
-                if not "B11" in bands_avail:
+                if "B11" not in bands_avail:
                     raise Exception(
                         "swir band (B11) is needed to compute features")
 
-            # ~ copyinput = self.cfg_IOTA2.getParam('iota2FeatureExtraction',
-            # ~ 'copyinput')
-            # ~ rel_refl = self.cfg_IOTA2.getParam('iota2FeatureExtraction',
-            # ~ 'relrefl')
-            # ~ keep_dupl = self.cfg_IOTA2.getParam('iota2FeatureExtraction',
-            # ~ 'keepduplicates')
-            # ~ acorfeat = self.cfg_IOTA2.getParam('iota2FeatureExtraction', 'acorfeat')
             feat_parameters = {
                 "in": in_stack,
                 "out": features_out,
@@ -829,8 +843,10 @@ class sentinel_2():
                 feat_parameters)
             if self.copy_input is False:
                 in_stack_features_labels = []
-            features_labels = in_stack_features_labels + self.get_features_labels(
-                dates_enabled, self.rel_refl, self.keep_dupl, self.copy_input)
+            features_labels = (
+                in_stack_features_labels +
+                self.get_features_labels(dates_enabled, self.rel_refl,
+                                         self.keep_dupl, self.copy_input))
         else:
             features_app = in_stack
             features_labels = in_stack_features_labels
@@ -841,11 +857,11 @@ class sentinel_2():
             features_app.Execute()
             app_dep.append(features_app)
             features_app = CreateConcatenateImagesApplication({
-                "il": [features_app, userDateFeatures],
+                "il": [features_app, user_date_features],
                 "out":
                 features_out,
                 "ram":
                 str(ram)
             })
-            features_labels += fields_userFeat
+            features_labels += fields_userfeat
         return (features_app, app_dep), features_labels
