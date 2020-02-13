@@ -128,7 +128,7 @@ class iota2_test_sensors_test(unittest.TestCase):
             "tile_name": "T31TCJ",
             "target_proj": 2154,
             "all_tiles": "T31TCJ",
-            "s2_data": self.test_working_directory,
+            "image_directory": self.test_working_directory,
             "write_dates_stack": False,
             "extract_bands_flag": False,
             "output_target_dir": None,
@@ -152,7 +152,7 @@ class iota2_test_sensors_test(unittest.TestCase):
 
         s2_sensor = sentinel_2(**args)
         (features_app,
-         _), features_labels = s2_sensor.get_time_series_gapFilling()
+         _), features_labels = s2_sensor.get_time_series_gapfilling()
         features_app.ExecuteAndWriteOutput()
 
         self.assertTrue(self.expected_s2_labels == features_labels,
@@ -180,7 +180,7 @@ class iota2_test_sensors_test(unittest.TestCase):
             "tile_name": tile_name,
             "target_proj": 2154,
             "all_tiles": tile_name,
-            "s2_s2c_data": self.test_working_directory,
+            "image_directory": self.test_working_directory,
             "write_dates_stack": False,
             "extract_bands_flag": False,
             "output_target_dir": "",
