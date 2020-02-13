@@ -520,6 +520,8 @@ class sentinel_2_s2c():
                     "T")[0]) for date in input_dates_dir
         ]
         all_available_dates = sorted(all_available_dates)
+        # sort requires int but input_date_file requires str
+        all_available_dates = [str(x) for x in all_available_dates]
         if not os.path.exists(date_file):
             with open(date_file, "w") as input_date_file:
                 input_date_file.write("\n".join(all_available_dates))
