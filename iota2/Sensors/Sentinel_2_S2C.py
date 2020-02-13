@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -21,8 +21,8 @@ import logging
 # import multiprocessing as mp
 # import os
 
-from collections import OrderedDict
-from iota2.Common.OtbAppBank import executeApp
+# from collections import OrderedDict
+# from iota2.Common.OtbAppBank import executeApp
 
 LOGGER = logging.getLogger(__name__)
 
@@ -36,13 +36,13 @@ class sentinel_2_s2c():
     """
     name = 'Sentinel2S2C'
 
-    def __init__(self, tile_name, target_proj, all_tiles, s2_s2c_data,
-                 write_dates_stack, i2_output_path, keep_bands,
-                 extract_bands_flag, output_target_dir, temporal_res,
-                 vhr_path: str, auto_date_flag: bool, date_interp_min_user,
-                 date_interp_max_user, features, enable_gapfilling,
+    def __init__(self, tile_name, target_proj, all_tiles, image_directory,
+                 write_dates_stack, extract_bands_flag, output_target_dir,
+                 keep_bands, i2_output_path, temporal_res, auto_date_flag,
+                 date_interp_min_user, date_interp_max_user,
+                 write_outputs_flag, features, enable_gapfilling,
                  hand_features_flag, hand_features, copy_input, rel_refl,
-                 keep_dupl, acorfeat, **kwargs):
+                 keep_dupl, acorfeat, vhr_path, **kwargs):
         """
         Construct the sentinel_2_s2c class
         """
@@ -70,13 +70,13 @@ class sentinel_2_s2c():
         self.date_interp_max_user = date_interp_max_user
         self.target_proj = target_proj
         self.all_tiles = all_tiles
-        self.s2_s2c_data = s2_s2c_data
+        self.s2_s2c_data = image_directory
         self.tile_directory = os.path.join(self.s2_s2c_data, tile_name)
         self.struct_path_masks = cfg_sensors.getParam("Sentinel_2_S2C",
                                                       "arbomask")
         self.write_dates_stack = write_dates_stack
         self.features_dir = os.path.join(i2_output_path, "features", tile_name)
-
+        self.write_outputs_flag = write_outputs_flag
         # extract_bands = extract_bands
         # extract_bands_flag = self.cfg_iota2.getParam("iota2FeatureExtraction"
         # ,
@@ -91,8 +91,8 @@ class sentinel_2_s2c():
                 try:
                     os.mkdir(self.output_preprocess_directory)
                 except Exception:
-                    raise Exception(f"Unable to create directory"
-                                    "{self.output_preprocess_directory}")
+                    print(f"Unable to create directory"
+                          "{self.output_preprocess_directory}")
         else:
             #  self.output_preprocess_directory = self.tile_directory
             self.output_preprocess_directory = None
@@ -197,6 +197,7 @@ class sentinel_2_s2c():
         """
         import os
         import shutil
+        from collections import OrderedDict
         from gdal import Warp
         from osgeo.gdalconst import GDT_Byte
         import multiprocessing as mp
@@ -205,7 +206,7 @@ class sentinel_2_s2c():
         from iota2.Common.FileUtils import getRasterProjectionEPSG
         from iota2.Common.OtbAppBank import CreateConcatenateImagesApplication
         from iota2.Common.OtbAppBank import CreateSuperimposeApplication
-
+        from iota2.Common.OtbAppBank import executeApp
         # manage directories
         date_stack_name = self.build_date_name(date_dir, self.suffix)
         logger.debug(f"preprocessing {date_dir}")
@@ -306,7 +307,7 @@ class sentinel_2_s2c():
         from iota2.Common.OtbAppBank import CreateBandMathApplication
         from iota2.Common.OtbAppBank import CreateSuperimposeApplication
         from iota2.Common.FileUtils import getRasterProjectionEPSG
-
+        from iota2.Common.OtbAppBank import executeApp
         # manage directories
         date_mask_name = self.build_date_name(date_dir, self.masks_date_suffix)
         logger.debug(f"preprocessing {date_dir}")
@@ -365,6 +366,7 @@ class sentinel_2_s2c():
         preprocess
         """
         import os
+        from collections import OrderedDict
         input_dates = [
             os.path.join(self.tile_directory, cdir)
             for cdir in os.listdir(self.tile_directory)
@@ -422,7 +424,7 @@ class sentinel_2_s2c():
 
         # superimpose footprint
         reference_raster = self.ref_image
-        if self.vhr_path.lower != "none":
+        if self.vhr_path.lower() != "none":
             reference_raster = self.get_available_dates()[0]
         superimp, _ = CreateSuperimposeApplication({
             "inr": reference_raster,
@@ -673,9 +675,11 @@ class sentinel_2_s2c():
         get time series after gapfilling
         """
         import os
+        import multiprocessing as mp
         from iota2.Common.OtbAppBank import CreateImageTimeSeriesGapFillingApplication
         from iota2.Common.FileUtils import ensure_dir
-
+        from iota2.Common.OtbAppBank import getInputParameterOutput
+        from iota2.Common.OtbAppBank import executeApp
         gap_dir = os.path.join(self.features_dir, "tmp")
         ensure_dir(gap_dir, raise_exe=False)
         gap_out = os.path.join(gap_dir, self.time_series_gapfilling_name)
@@ -686,8 +690,30 @@ class sentinel_2_s2c():
         masks, masks_dep, _ = self.get_time_series_masks()
         (time_series, time_series_dep), _ = self.get_time_series()
 
-        time_series.Execute()
-        masks.Execute()
+        # time_series.Execute()
+        # masks.Execute()
+        # inputs
+        if self.write_outputs_flag is False:
+            time_series.Execute()
+            masks.Execute()
+        else:
+            time_series_raster = time_series.GetParameterValue(
+                getInputParameterOutput(time_series))
+            masks_raster = masks.GetParameterValue(
+                getInputParameterOutput(masks))
+            if not os.path.exists(masks_raster):
+                multi_proc = mp.Process(target=executeApp, args=[masks])
+                multi_proc.start()
+                multi_proc.join()
+            if not os.path.exists(time_series_raster):
+                # time_series.ExecuteAndWriteOutput()
+                multi_proc = mp.Process(target=executeApp, args=[time_series])
+                multi_proc.start()
+                multi_proc.join()
+            if os.path.exists(masks_raster):
+                masks = masks_raster
+            if os.path.exists(time_series_raster):
+                time_series = time_series_raster
 
         comp = len(
             self.stack_band_position) if not self.extracted_bands else len(
