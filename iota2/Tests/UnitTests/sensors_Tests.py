@@ -69,6 +69,7 @@ class iota2_test_sensors_test(unittest.TestCase):
             'Sentinel2S2C_NDVI_20190501', 'Sentinel2S2C_NDWI_20190501',
             'Sentinel2S2C_Brightness_20190501'
         ]
+        cls.expected_sensors = ["Sentinel2", "Sentinel2S2C"]
 
     # after launching tests
     @classmethod
@@ -205,7 +206,7 @@ class iota2_test_sensors_test(unittest.TestCase):
         s2_sensor = sentinel_2_s2c(**args)
         (features_app, app_dep), features_labels = s2_sensor.get_features()
         features_app.ExecuteAndWriteOutput()
-        print(features_labels)
+
         self.assertTrue(
             self.expected_s2_s2c_labels == features_labels,
             msg="Sentinel_2_S2C class broken, wrong features' labels")
@@ -214,3 +215,68 @@ class iota2_test_sensors_test(unittest.TestCase):
         self.assertTrue(
             os.path.exists(expected_output),
             msg="Sentinel_2_S2C class broken, not able to generate features")
+
+    def test_sensors_container(self):
+        """
+        Test if the sensors_container class enable all required sensors
+        """
+        from iota2.Sensors.Sensors_container import sensors_container
+        tile_name = "T31TCJ"
+        args = {
+            "Sentinel_2": {
+                "tile_name": tile_name,
+                "target_proj": 2154,
+                "all_tiles": tile_name,
+                "image_directory": self.test_working_directory,
+                "write_dates_stack": False,
+                "extract_bands_flag": False,
+                "output_target_dir": "",
+                "keep_bands": True,
+                "i2_output_path": self.test_working_directory,
+                "temporal_res": 10,
+                "auto_date_flag": True,
+                "date_interp_min_user": "",
+                "date_interp_max_user": "",
+                "write_outputs_flag": False,
+                "features": ["NDVI", "NDWI", "Brightness"],
+                "enable_gapfilling": True,
+                "hand_features_flag": False,
+                "hand_features": "",
+                "copy_input": True,
+                "rel_refl": False,
+                "keep_dupl": True,
+                "vhr_path": "none",
+                "acorfeat": False
+            },
+            "Sentinel_2_S2C": {
+                "tile_name": "T31TCJ",
+                "target_proj": 2154,
+                "all_tiles": "T31TCJ",
+                "image_directory": self.test_working_directory,
+                "write_dates_stack": False,
+                "extract_bands_flag": False,
+                "output_target_dir": None,
+                "keep_bands": True,
+                "i2_output_path": self.test_working_directory,
+                "temporal_res": 10,
+                "auto_date_flag": True,
+                "date_interp_min_user": "",
+                "date_interp_max_user": "",
+                "write_outputs_flag": False,
+                "features": ["NDVI", "NDWI", "Brightness"],
+                "enable_gapfilling": True,
+                "hand_features_flag": False,
+                "hand_features": "",
+                "copy_input": True,
+                "rel_refl": False,
+                "keep_dupl": True,
+                "vhr_path": "none",
+                "acorfeat": False
+            }
+        }
+        sensors = sensors_container(tile_name, self.test_working_directory,
+                                    self.test_working_directory, **args)
+        enabled_sensors = sensors.get_enabled_sensors()
+        sensors_name = [sensor.name for sensor in enabled_sensors]
+
+        self.assertTrue(sensors_name == self.expected_sensors)

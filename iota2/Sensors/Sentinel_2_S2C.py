@@ -75,7 +75,8 @@ class sentinel_2_s2c():
         self.struct_path_masks = cfg_sensors.getParam("Sentinel_2_S2C",
                                                       "arbomask")
         self.write_dates_stack = write_dates_stack
-        self.features_dir = os.path.join(i2_output_path, "features", tile_name)
+        self.features_dir = os.path.join(self.i2_output_path, "features",
+                                         tile_name)
         self.write_outputs_flag = write_outputs_flag
         # extract_bands = extract_bands
         # extract_bands_flag = self.cfg_iota2.getParam("iota2FeatureExtraction"
