@@ -14,13 +14,13 @@
 #
 # =========================================================================
 
-from collections import OrderedDict
-import multiprocessing as mp
 import logging
-import glob
+
+# from collections import OrderedDict
+# import multiprocessing as mp
+# import glob
 # import os
 
-from iota2.Sensors.GenSensors import Sensor
 from iota2.Common.OtbAppBank import executeApp
 
 LOGGER = logging.getLogger(__name__)
@@ -29,7 +29,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.NullHandler())
 
 
-class landsat_8(Sensor):
+class landsat_8(object):
     """
     Landsat 8 sensor
     """
@@ -42,8 +42,6 @@ class landsat_8(Sensor):
         import os
         from iota2.Common import ServiceConfigFile as SCF
         from iota2.Common.FileUtils import get_iota2_project_dir
-
-        Sensor.__init__(self)
 
         if not os.path.exists(config_path):
             return
@@ -174,6 +172,7 @@ class landsat_8(Sensor):
         """
         return sorted available masks
         """
+        import os
         from iota2.Common.FileUtils import FileSearch_AND
 
         masks = sorted(
@@ -192,7 +191,8 @@ class landsat_8(Sensor):
         """
         build the stack date name
         """
-        from Common.FileUtils import FileSearch_AND
+        import os
+        from iota2.Common.FileUtils import FileSearch_AND
 
         _, b2_name = os.path.split(
             FileSearch_AND(date_dir, True,
@@ -209,21 +209,22 @@ class landsat_8(Sensor):
                         ram=128,
                         logger=LOGGER):
         """
+        Preprocess each date
         """
         import os
         import shutil
         from gdal import Warp
         from osgeo.gdalconst import GDT_Byte
 
-        from Common.FileUtils import ensure_dir
-        from Common.FileUtils import getRasterProjectionEPSG
-        from Common.FileUtils import FileSearch_AND
-        from Common.OtbAppBank import CreateConcatenateImagesApplication
-        from Common.OtbAppBank import CreateSuperimposeApplication
+        from iota2.Common.FileUtils import ensure_dir
+        from iota2.Common.FileUtils import getRasterProjectionEPSG
+        from iota2.Common.FileUtils import FileSearch_AND
+        from iota2.Common.OtbAppBank import CreateConcatenateImagesApplication
+        from iota2.Common.OtbAppBank import CreateSuperimposeApplication
 
         # manage directories
         date_stack_name = self.build_stack_date_name(date_dir)
-        logger.debug("preprocessing {}".format(date_dir))
+        logger.debug(f"preprocessing {date_dir}")
         out_stack = os.path.join(date_dir, date_stack_name)
         if out_prepro:
             _, date_dir_name = os.path.split(date_dir)
@@ -231,8 +232,8 @@ class landsat_8(Sensor):
             if not os.path.exists(out_dir):
                 try:
                     os.mkdir(out_dir)
-                except:
-                    logger.warning("{} already exists".format(out_dir))
+                except Exception:
+                    logger.warning(f"{out_dir} already exists")
             out_stack = os.path.join(out_dir, date_stack_name)
 
         out_stack_processing = out_stack
@@ -413,10 +414,12 @@ class landsat_8(Sensor):
 
     def footprint(self, ram=128):
         """
+        compute the footprint
         """
-        from Common.OtbAppBank import CreateSuperimposeApplication
-        from Common.OtbAppBank import CreateBandMathApplication
-        from Common.FileUtils import ensure_dir
+        import os
+        from iota2.Common.OtbAppBank import CreateSuperimposeApplication
+        from iota2.Common.OtbAppBank import CreateBandMathApplication
+        from iota2.Common.FileUtils import ensure_dir
 
         footprint_dir = os.path.join(self.features_dir, "tmp")
         ensure_dir(footprint_dir, raise_exe=False)
@@ -443,16 +446,24 @@ class landsat_8(Sensor):
 
         expr = " || ".join("1 - im{}b1".format(i + 1)
                            for i in range(len(date_edge)))
-        s2_border = CreateBandMathApplication({
+        l8_border = CreateBandMathApplication({
             "il": date_edge,
             "exp": expr,
             "ram": str(ram)
         })
-        s2_border.Execute()
+        l8_border.Execute()
+
+        reference_raster = self.ref_image
+        if not "none" in self.cfg_IOTA2.getParam('coregistration',
+                                                 'VHRPath').lower():
+            reference_raster = FileSearch_AND(input_dates[0], True,
+                                              self.data_type, "COREG",
+                                              ".TIF")[0]
+
         # superimpose footprint
         superimp, _ = CreateSuperimposeApplication({
             "inr": reference_raster,
-            "inm": s2_border,
+            "inm": l8_border,
             "out": footprint_out,
             "pixType": "uint8",
             "ram": str(ram),
@@ -487,6 +498,7 @@ class landsat_8(Sensor):
         """
         TODO : mv to base-class
         """
+        import os
         from Common.FileUtils import getDateS2
         from Common.FileUtils import ensure_dir
         from Common.FileUtils import dateInterval
@@ -519,11 +531,11 @@ class landsat_8(Sensor):
         ------
             list
                 [(otb_Application, some otb's objects), time_series_labels]
-                Functions dealing with otb's application instance has to 
+                Functions dealing with otb's application instance has to
                 returns every objects in the pipeline
         """
-        from Common.OtbAppBank import CreateConcatenateImagesApplication
-        from Common.FileUtils import ensure_dir
+        from iota2.Common.OtbAppBank import CreateConcatenateImagesApplication
+        from iota2.Common.FileUtils import ensure_dir
 
         # needed to travel throught iota2's library
         app_dep = []
@@ -616,11 +628,11 @@ class landsat_8(Sensor):
         ------
             list
                 [(otb_Application, some otb's objects), time_series_labels]
-                Functions dealing with otb's application instance has to 
+                Functions dealing with otb's application instance has to
                 returns every objects in the pipeline
         """
-        from Common.OtbAppBank import CreateConcatenateImagesApplication
-        from Common.FileUtils import ensure_dir
+        from iota2.Common.OtbAppBank import CreateConcatenateImagesApplication
+        from iota2.Common.FileUtils import ensure_dir
 
         # needed to travel throught iota2's library
         app_dep = []
