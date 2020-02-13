@@ -20,11 +20,11 @@ IOTA² library
 import os
 
 from iota2.Sensors.Sentinel_1 import Sentinel_1
-from iota2.Sensors.Sentinel_2 import Sentinel_2
+from iota2.Sensors.Sentinel_2 import sentinel_2
 from iota2.Sensors.Sentinel_2_S2C import sentinel_2_s2c
 from iota2.Sensors.Sentinel_2_L3A import Sentinel_2_L3A
 from iota2.Sensors.Landsat_5_old import Landsat_5_old
-from iota2.Sensors.Landsat_8 import Landsat_8
+from iota2.Sensors.Landsat_8 import landsat_8
 from iota2.Sensors.Landsat_8_old import Landsat_8_old
 from iota2.Sensors.User_features import User_features
 
@@ -75,8 +75,8 @@ class sensors_container():
             list of manageable sensors' name
         """
         available_sensors_name = [
-            Landsat_5_old.name, Landsat_8.name, Landsat_8_old.name,
-            Sentinel_1.name, Sentinel_2.name, sentinel_2_s2c.name,
+            Landsat_5_old.name, landsat_8.name, Landsat_8_old.name,
+            Sentinel_1.name, sentinel_2.name, sentinel_2_s2c.name,
             Sentinel_2_L3A.name, User_features.name
         ]
         return available_sensors_name
@@ -89,26 +89,26 @@ class sensors_container():
         list
             list of enabled sensors's name
         """
-        l5_old = self.sensors_description.get("l5_old", None)
-        land8 = self.sensors_description.get('L8Path', None)
-        l8_old = self.sensors_description.get('L8Path_old', None)
-        sen1 = self.sensors_description.get("S1Path", None)
-        sen2 = self.sensors_description.get("S2Path", None)
-        s2_s2c = self.sensors_description.get("S2_S2C_Path", None)
-        s2_l3a = self.sensors_description.get("S2_L3A_Path", None)
-        user_feat = self.sensors_description.get("userFeatPath", None)
+        l5_old = self.sensors_description.get("Landsat5_old", None)
+        land8 = self.sensors_description.get('Landsat8', None)
+        l8_old = self.sensors_description.get('Landsat8_old', None)
+        sen1 = self.sensors_description.get("Sentinel1", None)
+        sen2 = self.sensors_description.get("Sentinel_2", None)
+        s2_s2c = self.sensors_description.get("Sentinel_2_S2C", None)
+        s2_l3a = self.sensors_description.get("Sentinel_2_L3A", None)
+        user_feat = self.sensors_description.get("userFeat", None)
 
         enabled_sensors = []
         if l5_old is not None:
             enabled_sensors.append(Landsat_5_old.name)
         if land8 is not None:
-            enabled_sensors.append(Landsat_8.name)
+            enabled_sensors.append(landsat_8.name)
         if l8_old is not None:
             enabled_sensors.append(Landsat_8_old.name)
         if sen1 is not None:
             enabled_sensors.append(Sentinel_1.name)
         if sen2 is not None:
-            enabled_sensors.append(Sentinel_2.name)
+            enabled_sensors.append(sentinel_2.name)
         if s2_s2c is not None:
             enabled_sensors.append(sentinel_2_s2c.name)
         if s2_l3a is None:
@@ -164,14 +164,14 @@ class sensors_container():
         list
             list of enabled sensors
         """
-        l5_old = self.sensors_description.get("l5_old", None)
-        land8 = self.sensors_description.get('L8Path', None)
-        l8_old = self.sensors_description.get('L8Path_old', None)
-        sen1 = self.sensors_description.get("S1Path", None)
-        sen2 = self.sensors_description.get("S2Path", None)
-        s2_s2c = self.sensors_description.get("S2_S2C_Path", None)
-        s2_l3a = self.sensors_description.get("S2_L3A_Path", None)
-        user_feat = self.sensors_description.get("userFeatPath", None)
+        l5_old = self.sensors_description.get("Landsat5_old", None)
+        land8 = self.sensors_description.get('Landsat8', None)
+        l8_old = self.sensors_description.get('Landsat8_old', None)
+        sen1 = self.sensors_description.get("Sentinel1", None)
+        sen2 = self.sensors_description.get("Sentinel_2", None)
+        s2_s2c = self.sensors_description.get("Sentinel_2_S2C", None)
+        s2_l3a = self.sensors_description.get("Sentinel_2_L3A", None)
+        user_feat = self.sensors_description.get("userFeat", None)
 
         enabled_sensors = []
         if l5_old is not None:
@@ -179,7 +179,7 @@ class sensors_container():
                 Landsat_5_old(self.cfg.pathConf, tile_name=self.tile_name))
         if land8 is not None:
             enabled_sensors.append(
-                Landsat_8(self.cfg.pathConf, tile_name=self.tile_name))
+                landsat_8(self.cfg.pathConf, tile_name=self.tile_name))
         if l8_old is not None:
             enabled_sensors.append(
                 Landsat_8_old(self.cfg.pathConf, tile_name=self.tile_name))
@@ -187,11 +187,9 @@ class sensors_container():
             enabled_sensors.append(
                 Sentinel_1(self.cfg.pathConf, tile_name=self.tile_name))
         if sen2 is not None:
-            enabled_sensors.append(
-                Sentinel_2(self.cfg.pathConf, tile_name=self.tile_name))
+            enabled_sensors.append(sentinel_2(**sen2))
         if s2_s2c is not None:
-            enabled_sensors.append(
-                sentinel_2_s2c(tile_name=self.tile_name, **s2_s2c))
+            enabled_sensors.append(sentinel_2_s2c(**s2_s2c))
         if s2_l3a is not None:
             enabled_sensors.append(
                 Sentinel_2_L3A(self.cfg.pathConf, tile_name=self.tile_name))
@@ -206,26 +204,26 @@ class sensors_container():
         """
         # self.enabled_sensors
 
-        l5_old = self.sensors_description.get("l5_old", None)
-        land8 = self.sensors_description.get('L8Path', None)
-        l8_old = self.sensors_description.get('L8Path_old', None)
-        sen1 = self.sensors_description.get("S1Path", None)
-        sen2 = self.sensors_description.get("S2Path", None)
-        s2_s2c = self.sensors_description.get("S2_S2C_Path", None)
-        s2_l3a = self.sensors_description.get("S2_L3A_Path", None)
-        user_feat = self.sensors_description.get("userFeatPath", None)
+        l5_old = self.sensors_description.get("Landsat5_old", None)
+        land8 = self.sensors_description.get('Landsat8', None)
+        l8_old = self.sensors_description.get('Landsat8_old', None)
+        sen1 = self.sensors_description.get("Sentinel1", None)
+        sen2 = self.sensors_description.get("Sentinel_2", None)
+        s2_s2c = self.sensors_description.get("Sentinel_2_S2C", None)
+        s2_l3a = self.sensors_description.get("Sentinel_2_L3A", None)
+        user_feat = self.sensors_description.get("userFeat", None)
 
         paths = []
         for sensor in self.enabled_sensors:
             if Landsat_5_old.name == sensor.__class__.name:
                 paths.append(l5_old)
-            elif Landsat_8.name == sensor.__class__.name:
+            elif landsat_8.name == sensor.__class__.name:
                 paths.append(land8)
             elif Landsat_8_old.name == sensor.__class__.name:
                 paths.append(l8_old)
             elif Sentinel_1.name == sensor.__class__.name:
                 paths.append(sen1)
-            elif Sentinel_2.name == sensor.__class__.name:
+            elif sentinel_2.name == sensor.__class__.name:
                 paths.append(sen2)
             elif sentinel_2_s2c.name == sensor.__class__.name:
                 paths.append(s2_s2c)
@@ -416,10 +414,10 @@ class sensors_container():
         """
         sensors_time_series = []
         for sensor in self.enabled_sensors:
-            if "get_time_series_gapFilling" in dir(sensor):
+            if "get_time_series_gapfilling" in dir(sensor):
                 sensors_time_series.append(
                     (sensor.__class__.name,
-                     sensor.get_time_series_gapFilling(available_ram)))
+                     sensor.get_time_series_gapfilling(available_ram)))
         return sensors_time_series
 
     def get_sensors_features(self, available_ram=128):
