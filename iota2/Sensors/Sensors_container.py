@@ -22,7 +22,7 @@ import os
 from iota2.Sensors.Sentinel_1 import Sentinel_1
 from iota2.Sensors.Sentinel_2 import sentinel_2
 from iota2.Sensors.Sentinel_2_S2C import sentinel_2_s2c
-from iota2.Sensors.Sentinel_2_L3A import Sentinel_2_L3A
+from iota2.Sensors.Sentinel_2_L3A import sentinel_2_l3a
 from iota2.Sensors.Landsat_5_old import Landsat_5_old
 from iota2.Sensors.Landsat_8 import landsat_8
 from iota2.Sensors.Landsat_8_old import Landsat_8_old
@@ -77,7 +77,7 @@ class sensors_container():
         available_sensors_name = [
             Landsat_5_old.name, landsat_8.name, Landsat_8_old.name,
             Sentinel_1.name, sentinel_2.name, sentinel_2_s2c.name,
-            Sentinel_2_L3A.name, user_features.name
+            sentinel_2_l3a.name, user_features.name
         ]
         return available_sensors_name
 
@@ -112,7 +112,7 @@ class sensors_container():
         if s2_s2c is not None:
             enabled_sensors.append(sentinel_2_s2c.name)
         if s2_l3a is None:
-            enabled_sensors.append(Sentinel_2_L3A.name)
+            enabled_sensors.append(sentinel_2_l3a.name)
         if user_feat is None:
             enabled_sensors.append(user_features.name)
         return enabled_sensors
@@ -191,7 +191,7 @@ class sensors_container():
             enabled_sensors.append(sentinel_2_s2c(**s2_s2c))
         if s2_l3a is not None:
             enabled_sensors.append(
-                Sentinel_2_L3A(self.cfg.pathConf, tile_name=self.tile_name))
+                sentinel_2_l3a(**s2_l3a)
         if user_feat is not None:
             enabled_sensors.append(user_features(**user_feat))
         return enabled_sensors
@@ -225,7 +225,7 @@ class sensors_container():
                 paths.append(sen2)
             elif sentinel_2_s2c.name == sensor.__class__.name:
                 paths.append(s2_s2c)
-            elif Sentinel_2_L3A.name == sensor.__class__.name:
+            elif sentinel_2_l3a.name == sensor.__class__.name:
                 paths.append(s2_l3a)
             elif user_features.name == sensor.__class__.name:
                 paths.append(user_feat)
