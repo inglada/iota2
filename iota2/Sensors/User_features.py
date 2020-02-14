@@ -31,12 +31,12 @@ class user_features():
     """
     name = 'userFeatures'
 
-    def __init__(self, tile_name, userFeatPath, i2_output_path, target_proj,
-                 patterns):
+    def __init__(self, tile_name, image_directory, i2_output_path, target_proj,
+                 patterns, **kwargs):
         """
         """
         self.tile_name = tile_name
-        self.user_feat_data = userFeatPath
+        self.user_feat_data = image_directory
         tile_dir_name = [
             dir_name for dir_name in os.listdir(self.user_feat_data)
             if tile_name in dir_name

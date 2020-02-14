@@ -93,7 +93,10 @@ class iota2_test_sensors_test(unittest.TestCase):
             'Landsat8_Brightness_20200101', 'Landsat8_Brightness_20200111'
         ]
 
-        cls.expected_sensors = ["Sentinel2", "Sentinel2S2C", "Landsat8"]
+        cls.expected_user_features_labels = [
+            'NUMBER_OF_THINGS_band_0', 'LAI_band_0'
+        ]
+        cls.expected_sensors = ["Landsat8", "Sentinel2", "Sentinel2S2C"]
 
     # after launching tests
     @classmethod
@@ -275,7 +278,7 @@ class iota2_test_sensors_test(unittest.TestCase):
         }
 
         l8_sensor = landsat_8(**args)
-        (features_app, app_dep), features_labels = l8_sensor.get_features()
+        (features_app, _), features_labels = l8_sensor.get_features()
         features_app.ExecuteAndWriteOutput()
 
         self.assertTrue(self.expected_l8_labels == features_labels,
@@ -285,6 +288,55 @@ class iota2_test_sensors_test(unittest.TestCase):
         self.assertTrue(
             os.path.exists(expected_output),
             msg="Landsat_8 class broken, not able to generate features")
+
+    def test_instance_user_features(self):
+        """Tests if the class user_features can be instanciate
+        """
+        from iota2.Sensors.User_features import user_features
+        from TestsUtils import generate_fake_user_features_data
+
+        tile_name = "T31TCJ"
+        patterns = ["NUMBER_OF_THINGS", "LAI"]
+        generate_fake_user_features_data(self.test_working_directory,
+                                         tile_name, patterns)
+        args = {
+            "tile_name": tile_name,
+            "target_proj": 2154,
+            "all_tiles": "T31TCJ",
+            "image_directory": self.test_working_directory,
+            "write_dates_stack": None,
+            "extract_bands_flag": False,
+            "output_target_dir": None,
+            "keep_bands": True,
+            "i2_output_path": self.test_working_directory,
+            "temporal_res": None,
+            "auto_date_flag": True,
+            "date_interp_min_user": "",
+            "date_interp_max_user": "",
+            "write_outputs_flag": False,
+            "features": [],
+            "enable_gapfilling": True,
+            "hand_features_flag": False,
+            "hand_features": "",
+            "copy_input": True,
+            "rel_refl": False,
+            "keep_dupl": True,
+            "vhr_path": "none",
+            "acorfeat": False,
+            "patterns": patterns
+        }
+        user_feat_sensor = user_features(**args)
+        (user_feat_stack,
+         app_dep), features_labels = user_feat_sensor.get_features()
+        user_feat_stack.ExecuteAndWriteOutput()
+        user_feat_stack.ExecuteAndWriteOutput()
+        expected_output = user_feat_stack.GetParameterString("out")
+        self.assertTrue(
+            os.path.exists(expected_output),
+            msg="user_features class broken, not able to generate features")
+        self.assertTrue(
+            self.expected_user_features_labels == features_labels,
+            msg="user_features class broken, wrong features' labels")
 
     def test_sensors_container(self):
         """
