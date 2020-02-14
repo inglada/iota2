@@ -93,7 +93,7 @@ class iota2_test_sensors_test(unittest.TestCase):
             'Landsat8_Brightness_20200101', 'Landsat8_Brightness_20200111'
         ]
 
-        cls.expected_sensors = ["Sentinel2", "Sentinel2S2C", "Landsat_8"]
+        cls.expected_sensors = ["Sentinel2", "Sentinel2S2C", "Landsat8"]
 
     # after launching tests
     @classmethod
