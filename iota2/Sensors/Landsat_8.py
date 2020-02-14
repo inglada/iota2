@@ -108,7 +108,7 @@ class landsat_8():
         self.date_position = 1  # if date's name split by "_"
         self.nodata_value = -10000
         self.masks_rules = OrderedDict([("CLM_XS.tif", 0), ("SAT_XS.tif", 0),
-                                        ("EDG_ALL.tif", 0)
+                                        ("EDG_XS.tif", 0)
                                         ])  # 0 mean data, else noData
         self.border_pos = 2
         self.features_names_list = ["NDVI", "NDWI", "Brightness"]
@@ -486,11 +486,12 @@ class landsat_8():
             os.path.join(self.tile_directory, cdir)
             for cdir in os.listdir(self.tile_directory)
         ]
+
         date_file = os.path.join(self.features_dir, "tmp", self.input_dates)
         all_available_dates = [
             int(
                 os.path.basename(date).split("_")[self.date_position].split(
-                    "-")[0] for date in input_dates_dir)
+                    "-")[0]) for date in input_dates_dir
         ]
         all_available_dates = sorted(all_available_dates)
         all_available_dates = [str(x) for x in all_available_dates]
