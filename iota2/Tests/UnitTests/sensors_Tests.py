@@ -57,7 +57,10 @@ class iota2_test_sensors_test(unittest.TestCase):
             'Sentinel2_B4_20200111', 'Sentinel2_B5_20200111',
             'Sentinel2_B6_20200111', 'Sentinel2_B7_20200111',
             'Sentinel2_B8_20200111', 'Sentinel2_B8A_20200111',
-            'Sentinel2_B11_20200111', 'Sentinel2_B12_20200111'
+            'Sentinel2_B11_20200111', 'Sentinel2_B12_20200111',
+            'Sentinel2_NDVI_20200101', 'Sentinel2_NDVI_20200111',
+            'Sentinel2_NDWI_20200101', 'Sentinel2_NDWI_20200111',
+            'Sentinel2_Brightness_20200101', 'Sentinel2_Brightness_20200111'
         ]
 
         cls.expected_s2_s2c_labels = [
@@ -66,9 +69,30 @@ class iota2_test_sensors_test(unittest.TestCase):
             'Sentinel2S2C_B06_20190501', 'Sentinel2S2C_B07_20190501',
             'Sentinel2S2C_B08_20190501', 'Sentinel2S2C_B8A_20190501',
             'Sentinel2S2C_B11_20190501', 'Sentinel2S2C_B12_20190501',
-            'Sentinel2S2C_NDVI_20190501', 'Sentinel2S2C_NDWI_20190501',
-            'Sentinel2S2C_Brightness_20190501'
+            'Sentinel2S2C_B02_20190504', 'Sentinel2S2C_B03_20190504',
+            'Sentinel2S2C_B04_20190504', 'Sentinel2S2C_B05_20190504',
+            'Sentinel2S2C_B06_20190504', 'Sentinel2S2C_B07_20190504',
+            'Sentinel2S2C_B08_20190504', 'Sentinel2S2C_B8A_20190504',
+            'Sentinel2S2C_B11_20190504', 'Sentinel2S2C_B12_20190504',
+            'Sentinel2S2C_NDVI_20190501', 'Sentinel2S2C_NDVI_20190504',
+            'Sentinel2S2C_NDWI_20190501', 'Sentinel2S2C_NDWI_20190504',
+            'Sentinel2S2C_Brightness_20190501',
+            'Sentinel2S2C_Brightness_20190504'
         ]
+
+        cls.expected_l8_labels = [
+            'Landsat8_B1_20200101', 'Landsat8_B2_20200101',
+            'Landsat8_B3_20200101', 'Landsat8_B4_20200101',
+            'Landsat8_B5_20200101', 'Landsat8_B6_20200101',
+            'Landsat8_B7_20200101', 'Landsat8_B1_20200111',
+            'Landsat8_B2_20200111', 'Landsat8_B3_20200111',
+            'Landsat8_B4_20200111', 'Landsat8_B5_20200111',
+            'Landsat8_B6_20200111', 'Landsat8_B7_20200111',
+            'Landsat8_NDVI_20200101', 'Landsat8_NDVI_20200111',
+            'Landsat8_NDWI_20200101', 'Landsat8_NDWI_20200111',
+            'Landsat8_Brightness_20200101', 'Landsat8_Brightness_20200111'
+        ]
+
         cls.expected_sensors = ["Sentinel2", "Sentinel2S2C"]
 
     # after launching tests
@@ -152,8 +176,8 @@ class iota2_test_sensors_test(unittest.TestCase):
         }
 
         s2_sensor = sentinel_2(**args)
-        (features_app,
-         _), features_labels = s2_sensor.get_time_series_gapfilling()
+        (features_app, app_dep), features_labels = s2_sensor.get_features()
+        print(features_labels)
         features_app.ExecuteAndWriteOutput()
 
         self.assertTrue(self.expected_s2_labels == features_labels,
@@ -172,8 +196,8 @@ class iota2_test_sensors_test(unittest.TestCase):
         tile_name = "T31TCJ"
         # generate fake input data
         mtd_files = [
-            os.path.join(IOTA2DIR, "data", "MTD_MSIL2A_20190506.xml"),
-            os.path.join(IOTA2DIR, "data", "MTD_MSIL2A_20190501.xml")
+            os.path.join(IOTA2DIR, "data", "MTD_MSIL2A_20190501.xml"),
+            os.path.join(IOTA2DIR, "data", "MTD_MSIL2A_20190506.xml")
         ]
 
         generate_fake_s2_s2c_data(self.test_working_directory, mtd_files)
@@ -187,7 +211,7 @@ class iota2_test_sensors_test(unittest.TestCase):
             "output_target_dir": "",
             "keep_bands": True,
             "i2_output_path": self.test_working_directory,
-            "temporal_res": 10,
+            "temporal_res": 3,
             "auto_date_flag": True,
             "date_interp_min_user": "",
             "date_interp_max_user": "",
@@ -217,7 +241,7 @@ class iota2_test_sensors_test(unittest.TestCase):
             msg="Sentinel_2_S2C class broken, not able to generate features")
 
     def test_instance_l8(self):
-        """Tests if the class sentinel_2 can be instanciate
+        """Tests if the class landsat_8 can be instanciate
         """
         from iota2.Sensors.Landsat_8 import landsat_8
         from TestsUtils import generate_fake_l8_data
@@ -251,10 +275,9 @@ class iota2_test_sensors_test(unittest.TestCase):
         }
 
         l8_sensor = landsat_8(**args)
-        (features_app,
-         _), features_labels = l8_sensor.get_time_series_gapfilling()
+        (features_app, app_dep), features_labels = l8_sensor.get_features()
         features_app.ExecuteAndWriteOutput()
-        print(features_labels)
+
         self.assertTrue(self.expected_l8_labels == features_labels,
                         msg="Landsat_8 class broken, wrong features' labels")
 
@@ -296,6 +319,31 @@ class iota2_test_sensors_test(unittest.TestCase):
                 "acorfeat": False
             },
             "Sentinel_2_S2C": {
+                "tile_name": "T31TCJ",
+                "target_proj": 2154,
+                "all_tiles": "T31TCJ",
+                "image_directory": self.test_working_directory,
+                "write_dates_stack": False,
+                "extract_bands_flag": False,
+                "output_target_dir": None,
+                "keep_bands": True,
+                "i2_output_path": self.test_working_directory,
+                "temporal_res": 10,
+                "auto_date_flag": True,
+                "date_interp_min_user": "",
+                "date_interp_max_user": "",
+                "write_outputs_flag": False,
+                "features": ["NDVI", "NDWI", "Brightness"],
+                "enable_gapfilling": True,
+                "hand_features_flag": False,
+                "hand_features": "",
+                "copy_input": True,
+                "rel_refl": False,
+                "keep_dupl": True,
+                "vhr_path": "none",
+                "acorfeat": False
+            },
+            "Landsat_8": {
                 "tile_name": "T31TCJ",
                 "target_proj": 2154,
                 "all_tiles": "T31TCJ",
