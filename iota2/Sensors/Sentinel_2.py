@@ -802,8 +802,9 @@ class sentinel_2():
             comp = len(
                 self.stack_band_position) if not self.extracted_bands else len(
                     self.extracted_bands)
-            user_date_features, fields_userfeat, user_feat_date, stack = computeUserFeatures(
-                in_stack, dates_enabled, comp, self.hand_features.split(","))
+            (user_date_features, fields_userfeat, user_feat_date,
+             stack) = computeUserFeatures(in_stack, dates_enabled, comp,
+                                          self.hand_features.split(","))
             user_date_features.Execute()
             app_dep.append([user_date_features, user_feat_date, stack])
 

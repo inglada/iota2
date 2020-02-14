@@ -31,7 +31,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.NullHandler())
 
 
-class landsat_8(object):
+class landsat_8():
     """
     Landsat 8 sensor
     """
@@ -93,8 +93,8 @@ class landsat_8(object):
                 try:
                     os.mkdir(self.output_preprocess_directory)
                 except Exception:
-                    raise Exception(f"Impossible to create directory :"
-                                    " {self.output_preprocess_directory}")
+                    print(f"Impossible to create directory :"
+                          " {self.output_preprocess_directory}")
         else:
             self.output_preprocess_directory = self.tile_directory
 
@@ -288,7 +288,7 @@ class landsat_8(object):
                 "pixType":
                 "int16",
                 "out":
-                out_stack_processing,
+                out_stack_processing
             })
             same_proj = False
             if os.path.exists(out_stack):
@@ -674,8 +674,9 @@ class landsat_8(object):
         })
         return dates_time_series_mask, app_dep, len(dates_masks)
 
-    def get_time_series_gapFilling(self, ram=128):
+    def get_time_series_gapfilling(self, ram=128):
         """
+        get time series gapfilling
         """
         import os
         from iota2.Common.OtbAppBank import CreateImageTimeSeriesGapFillingApplication
@@ -736,6 +737,7 @@ class landsat_8(object):
 
     def get_features(self, ram=128):
         """
+        get features
         """
         import os
         from iota2.Common.OtbAppBank import CreateConcatenateImagesApplication
@@ -747,34 +749,26 @@ class landsat_8(object):
         ensure_dir(features_dir, raise_exe=False)
         features_out = os.path.join(features_dir, self.features_names)
 
-        # features = self.cfg_iota2.getParam("GlobChain", "features")
-        enable_gapFilling = self.cfg_iota2.getParam("GlobChain",
-                                                    "useGapFilling")
-        hand_features_flag = self.cfg_iota2.getParam("GlobChain",
-                                                     "useAdditionalFeatures")
-
-        (
-            (in_stack, in_stack_dep),
-            in_stack_features_labels,
-        ) = self.get_time_series_gapFilling()
+        ((in_stack, in_stack_dep),
+         in_stack_features_labels) = self.get_time_series_gapfilling()
         _, dates_enabled = self.write_interpolation_dates_file()
 
-        if not enable_gapFilling:
+        if not self.enable_gapfilling:
             (in_stack,
              in_stack_dep), in_stack_features_labels = self.get_time_series()
             _, dates_enabled = self.write_dates_file()
 
         in_stack.Execute()
         app_dep = []
-        if hand_features_flag:
-            hand_features = self.cfg_iota2.getParam("Landsat8",
-                                                    "additionalFeatures")
+        if self.hand_features_flag:
+            hand_features = self.hand_features
             comp = (len(self.stack_band_position)
                     if not self.extracted_bands else len(self.extracted_bands))
-            userDateFeatures, fields_userFeat, a, b = computeUserFeatures(
-                in_stack, dates_enabled, comp, hand_features.split(","))
-            userDateFeatures.Execute()
-            app_dep.append([userDateFeatures, a, b])
+            (user_date_features, fields_userfeat, user_feat_date,
+             stack) = computeUserFeatures(in_stack, dates_enabled, comp,
+                                          hand_features.split(","))
+            user_date_features.Execute()
+            app_dep.append([user_date_features, user_feat_date, stack])
 
         if self.features:
             bands_avail = self.stack_band_position
@@ -783,70 +777,53 @@ class landsat_8(object):
                     band_name for band_name, _ in self.extracted_bands
                 ]
                 # check mandatory bands
-                if not "B4" in bands_avail:
+                if "B4" not in bands_avail:
                     raise Exception(
                         "red band (B4) is needed to compute features")
-                if not "B5" in bands_avail:
+                if "B5" not in bands_avail:
                     raise Exception(
                         "nir band (B5) is needed to compute features")
-                if not "B6" in bands_avail:
+                if "B6" not in bands_avail:
                     raise Exception(
                         "swir band (B6) is needed to compute features")
             feat_parameters = {
-                "in":
-                in_stack,
-                "out":
-                features_out,
-                "comp":
-                len(bands_avail),
-                "red":
-                bands_avail.index("B4") + 1,
-                "nir":
-                bands_avail.index("B5") + 1,
-                "swir":
-                bands_avail.index("B6") + 1,
-                "copyinput":
-                self.cfg_iota2.getParam("iota2FeatureExtraction", "copyinput"),
-                "relrefl":
-                self.cfg_iota2.getParam("iota2FeatureExtraction", "relrefl"),
-                "keepduplicates":
-                self.cfg_iota2.getParam("iota2FeatureExtraction",
-                                        "keepduplicates"),
-                "acorfeat":
-                self.cfg_iota2.getParam("iota2FeatureExtraction", "acorfeat"),
-                "pixType":
-                "int16",
-                "ram":
-                str(ram),
+                "in": in_stack,
+                "out": features_out,
+                "comp": len(bands_avail),
+                "red": bands_avail.index("B4") + 1,
+                "nir": bands_avail.index("B5") + 1,
+                "swir": bands_avail.index("B6") + 1,
+                "copyinput": self.copy_input,
+                "relrefl": self.rel_refl,
+                "keepduplicates": self.keep_dupl,
+                "acorfeat": self.acorfeat,
+                "pixType": "int16",
+                "ram": str(ram),
             }
-            copyinput = self.cfg_iota2.getParam("iota2FeatureExtraction",
-                                                "copyinput")
-            rel_refl = self.cfg_iota2.getParam("iota2FeatureExtraction",
-                                               "relrefl")
-            keep_dupl = self.cfg_iota2.getParam("iota2FeatureExtraction",
-                                                "keepduplicates")
 
             features_app = CreateIota2FeatureExtractionApplication(
                 feat_parameters)
-            if copyinput is False:
+            if self.copy_input is False:
                 in_stack_features_labels = []
-            features_labels = in_stack_features_labels + self.get_features_labels(
-                dates_enabled, rel_refl, keep_dupl, copyinput)
+            features_labels = (
+                in_stack_features_labels +
+                self.get_features_labels(dates_enabled, self.rel_refl,
+                                         self.keep_dupl, self.copy_input))
         else:
             features_app = in_stack
             features_labels = in_stack_features_labels
 
         app_dep.append([in_stack, in_stack_dep])
 
-        if hand_features_flag:
+        if self.hand_features_flag:
             features_app.Execute()
             app_dep.append(features_app)
             features_app = CreateConcatenateImagesApplication({
-                "il": [features_app, userDateFeatures],
+                "il": [features_app, user_date_features],
                 "out":
                 features_out,
                 "ram":
                 str(ram),
             })
-            features_labels += fields_userFeat
+            features_labels += fields_userfeat
         return (features_app, app_dep), features_labels
