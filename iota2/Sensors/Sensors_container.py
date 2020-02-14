@@ -23,7 +23,7 @@ from iota2.Sensors.Sentinel_1 import sentinel_1
 from iota2.Sensors.Sentinel_2 import sentinel_2
 from iota2.Sensors.Sentinel_2_S2C import sentinel_2_s2c
 from iota2.Sensors.Sentinel_2_L3A import sentinel_2_l3a
-from iota2.Sensors.Landsat_5_old import Landsat_5_old
+from iota2.Sensors.Landsat_5_old import landsat_5_old
 from iota2.Sensors.Landsat_8 import landsat_8
 from iota2.Sensors.Landsat_8_old import Landsat_8_old
 from iota2.Sensors.User_features import user_features
@@ -75,7 +75,7 @@ class sensors_container():
             list of manageable sensors' name
         """
         available_sensors_name = [
-            Landsat_5_old.name, landsat_8.name, Landsat_8_old.name,
+            landsat_5_old.name, landsat_8.name, Landsat_8_old.name,
             sentinel_1.name, sentinel_2.name, sentinel_2_s2c.name,
             sentinel_2_l3a.name, user_features.name
         ]
@@ -100,7 +100,7 @@ class sensors_container():
 
         enabled_sensors = []
         if l5_old is not None:
-            enabled_sensors.append(Landsat_5_old.name)
+            enabled_sensors.append(landsat_5_old.name)
         if land8 is not None:
             enabled_sensors.append(landsat_8.name)
         if l8_old is not None:
@@ -175,8 +175,7 @@ class sensors_container():
 
         enabled_sensors = []
         if l5_old is not None:
-            enabled_sensors.append(
-                Landsat_5_old(self.cfg.pathConf, tile_name=self.tile_name))
+            enabled_sensors.append(landsat_5_old(**l5_old))
         if land8 is not None:
             enabled_sensors.append(landsat_8(**land8))
         if l8_old is not None:
@@ -211,7 +210,7 @@ class sensors_container():
 
         paths = []
         for sensor in self.enabled_sensors:
-            if Landsat_5_old.name == sensor.__class__.name:
+            if landsat_5_old.name == sensor.__class__.name:
                 paths.append(l5_old)
             elif landsat_8.name == sensor.__class__.name:
                 paths.append(land8)
