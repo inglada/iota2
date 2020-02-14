@@ -456,7 +456,8 @@ class landsat_8():
         l8_border.Execute()
 
         reference_raster = self.ref_image
-        if self.vhr_path is not None:
+
+        if self.vhr_path.lower() != "none":
             reference_raster = FileSearch_AND(input_dates[0], True,
                                               self.data_type, "COREG",
                                               ".TIF")[0]
