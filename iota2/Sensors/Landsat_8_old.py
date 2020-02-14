@@ -572,7 +572,7 @@ class landsat_8_old():
          in_stack_features_labels) = self.get_time_series_gapfilling()
         _, dates_enabled = self.write_interpolation_dates_file()
 
-        if not self.enable_gapFilling:
+        if not self.enable_gapfilling:
             (in_stack,
              in_stack_dep), in_stack_features_labels = self.get_time_series()
             _, dates_enabled = self.write_dates_file()
