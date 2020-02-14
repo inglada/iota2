@@ -216,6 +216,53 @@ class iota2_test_sensors_test(unittest.TestCase):
             os.path.exists(expected_output),
             msg="Sentinel_2_S2C class broken, not able to generate features")
 
+    def test_instance_l8(self):
+        """Tests if the class sentinel_2 can be instanciate
+        """
+        from iota2.Sensors.Landsat_8 import landsat_8
+        from TestsUtils import generate_fake_l8_data
+        tile_name = "T31TCJ"
+        generate_fake_l8_data(self.test_working_directory, tile_name,
+                              ["20200101", "20200120"])
+        args = {
+            "tile_name": "T31TCJ",
+            "target_proj": 2154,
+            "all_tiles": "T31TCJ",
+            "image_directory": self.test_working_directory,
+            "write_dates_stack": False,
+            "extract_bands_flag": False,
+            "output_target_dir": None,
+            "keep_bands": True,
+            "i2_output_path": self.test_working_directory,
+            "temporal_res": 10,
+            "auto_date_flag": True,
+            "date_interp_min_user": "",
+            "date_interp_max_user": "",
+            "write_outputs_flag": False,
+            "features": ["NDVI", "NDWI", "Brightness"],
+            "enable_gapfilling": True,
+            "hand_features_flag": False,
+            "hand_features": "",
+            "copy_input": True,
+            "rel_refl": False,
+            "keep_dupl": True,
+            "vhr_path": "none",
+            "acorfeat": False
+        }
+
+        l8_sensor = landsat_8(**args)
+        (features_app,
+         _), features_labels = l8_sensor.get_time_series_gapfilling()
+        features_app.ExecuteAndWriteOutput()
+        print(features_labels)
+        self.assertTrue(self.expected_l8_labels == features_labels,
+                        msg="Landsat_8 class broken, wrong features' labels")
+
+        expected_output = features_app.GetParameterString("out")
+        self.assertTrue(
+            os.path.exists(expected_output),
+            msg="Sentinel-2 class broken, not able to generate features")
+
     def test_sensors_container(self):
         """
         Test if the sensors_container class enable all required sensors
