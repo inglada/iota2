@@ -670,3 +670,74 @@ def generate_fake_s2_s2c_data(output_directory, mtd_files):
                           originX=300000,
                           originY=4900020,
                           epsg_code=32631)
+
+
+def generate_fake_l8_data(root_directory, tile_name, dates):
+    """
+    Parameters
+    ----------
+    root_directory : string
+        path to generate Sentinel-2 dates
+    tile_name : string
+        THEIA tile name (ex:T31TCJ)
+    dates : list
+        list of strings reprensentig dates format : YYYYMMDD
+    """
+    import numpy as np
+    import random
+    from iota2.Common.FileUtils import ensure_dir
+    from iota2.Common.OtbAppBank import CreateConcatenateImagesApplication
+
+    tile_dir = os.path.join(root_directory, tile_name)
+    ensure_dir(tile_dir)
+
+    band_of_interest = ["B1", "B2", "B3", "B4", "B5", "B6", "B7"]
+    masks_of_interest = ["BINARY_MASK", "CLM_XS", "EDG_XS", "SAT_XS"]
+
+    origin_x = 566377
+    origin_y = 6284029
+    array_name = "iota2_binary"
+    for date in dates:
+        date_dir = os.path.join(tile_dir,
+                                ("LANDSAT8-OLITIRS-XS_{}-000000-"
+                                 "000_L2A_{}_D_V1-7".format(date, tile_name)))
+        mask_date_dir = os.path.join(date_dir, "MASKS")
+        ensure_dir(date_dir)
+        ensure_dir(mask_date_dir)
+        all_bands = []
+        for cpt, mask in enumerate(masks_of_interest):
+            new_mask = os.path.join(
+                mask_date_dir,
+                ("LANDSAT8-OLITIRS-XS_{}-000000-000_L2A"
+                 "_{}_D_V1-7_FRE_{}.tif".format(date, tile_name, mask)))
+
+            arrayToRaster(fun_array(array_name) * cpt % 2,
+                          new_mask,
+                          originX=origin_x,
+                          originY=origin_y)
+        for band in band_of_interest:
+            new_band = os.path.join(
+                date_dir,
+                ("LANDSAT8-OLITIRS-XS_{}-000000-000_L2A"
+                 "_{}_D_V1-7_FRE_{}.tif".format(date, tile_name, band)))
+            all_bands.append(new_band)
+            array = fun_array(array_name)
+            random_array = []
+            for val in array:
+                val_tmp = []
+                for pix_val in val:
+                    val_tmp.append(pix_val * random.random() * 1000)
+                random_array.append(val_tmp)
+
+            arrayToRaster(np.array(random_array),
+                          new_band,
+                          originX=origin_x,
+                          originY=origin_y)
+            stack_date = os.path.join(
+                date_dir, ("LANDSAT8-OLITIRS-XS_{}-000000-000_L2A_{}_D_V1-7"
+                           "_FRE_STACK.tif".format(date, tile_name)))
+            stack_app = CreateConcatenateImagesApplication({
+                "il": all_bands,
+                "out": stack_date
+            })
+            stack_app.ExecuteAndWriteOutput()
