@@ -23,7 +23,7 @@ import logging
 # import glob
 # import os
 
-from iota2.Common.OtbAppBank import executeApp
+# from iota2.Common.OtbAppBank import executeApp
 
 LOGGER = logging.getLogger(__name__)
 
@@ -66,7 +66,6 @@ class landsat_8():
         self.tile_directory = os.path.join(self.l8_data, tile_name)
         self.write_dates_stack = write_dates_stack
         self.extract_bands_flag = extract_bands_flag
-        self.output_target_dir = output_target_dir
         self.keep_bands = keep_bands
         self.i2_output_path = i2_output_path
         self.temporal_res = temporal_res
@@ -92,7 +91,7 @@ class landsat_8():
             if not os.path.exists(self.output_preprocess_directory):
                 try:
                     os.mkdir(self.output_preprocess_directory)
-                except Exception:
+                except OSError:
                     print(f"Impossible to create directory :"
                           " {self.output_preprocess_directory}")
         else:
@@ -221,7 +220,7 @@ class landsat_8():
         from iota2.Common.FileUtils import FileSearch_AND
         from iota2.Common.OtbAppBank import CreateConcatenateImagesApplication
         from iota2.Common.OtbAppBank import CreateSuperimposeApplication
-
+        from iota2.Common.OtbAppBank import executeApp
         # manage directories
         date_stack_name = self.build_stack_date_name(date_dir)
         logger.debug(f"preprocessing {date_dir}")
@@ -232,7 +231,7 @@ class landsat_8():
             if not os.path.exists(out_dir):
                 try:
                     os.mkdir(out_dir)
-                except Exception:
+                except OSError:
                     logger.warning(f"{out_dir} already exists")
             out_stack = os.path.join(out_dir, date_stack_name)
 
@@ -322,7 +321,7 @@ class landsat_8():
         from iota2.Common.OtbAppBank import CreateBandMathApplication
         from iota2.Common.OtbAppBank import CreateSuperimposeApplication
         from iota2.Common.FileUtils import getRasterProjectionEPSG
-
+        from iota2.Common.OtbAppBank import executeApp
         # TODO : throw Exception if no masks are found
         date_mask = []
         for mask_name, _ in list(self.masks_rules.items()):
