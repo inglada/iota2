@@ -13,54 +13,54 @@
 #   PURPOSE.  See the above copyright notices for more information.
 #
 # =========================================================================
-
-import multiprocessing as mp
-from config import Config
+"""
+The Sentinel_2_L3A class
+"""
 import logging
-import glob
-import os
+# import multiprocessing as mp
+# from config import Config
 
-from collections import OrderedDict
-from Common.OtbAppBank import executeApp
+# import glob
+# import os
 
-logger = logging.getLogger(__name__)
+# from collections import OrderedDict
+# from Common.OtbAppBank import executeApp
+
+LOGGER = logging.getLogger(__name__)
 
 #in order to avoid issue 'No handlers could be found for logger...'
-logger.addHandler(logging.NullHandler())
+LOGGER.addHandler(logging.NullHandler())
 
 
 class Sentinel_2_L3A():
-
+    """
+    The Sentinel_2_L3A class
+    """
     name = 'Sentinel2L3A'
 
-    def __init__(self, config_path, tile_name):
-        from Common import ServiceConfigFile as SCF
-        from Common.FileUtils import get_iota2_project_dir
+    def __init__(self):
+        """
+        Build the Sentinel_2_L3A class
+        """
+        import os
+        from iota2.Common import ServiceConfigFile as SCF
+        from iota2.Common.FileUtils import get_iota2_project_dir
 
         if not os.path.exists(config_path):
             return
 
-        self.cfg_IOTA2 = SCF.serviceConfigFile(config_path)
+        # self.cfg_IOTA2 = SCF.serviceConfigFile(config_path)
         cfg_sensors = os.path.join(get_iota2_project_dir(), "iota2", "Sensors",
                                    "sensors.cfg")
         cfg_sensors = SCF.serviceConfigFile(cfg_sensors, iota_config=False)
 
         # attributes
         self.NODATA_VALUE = -10000
-        self.s2_l3a_data = self.cfg_IOTA2.getParam("chain", "S2_L3A_Path")
-        self.all_tiles = self.cfg_IOTA2.getParam("chain", "listTile")
-        self.features_names_list = ["NDVI", "NDWI", "Brightness"]
+         self.features_names_list = ["NDVI", "NDWI", "Brightness"]
 
-        output_target_dir = self.cfg_IOTA2.getParam("chain",
-                                                    "S2_L3A_output_path")
-        self.tile_name = tile_name
+        
+       
         self.tile_directory = os.path.join(self.s2_l3a_data, tile_name)
-        self.target_proj = int(
-            self.cfg_IOTA2.getParam("GlobChain", "proj").lower().replace(
-                " ", "").replace("epsg:", ""))
-        self.struct_path_data = cfg_sensors.getParam("Sentinel_2_L3A", "arbo")
-        self.struct_path_masks = cfg_sensors.getParam("Sentinel_2_L3A",
-                                                      "arbomask")
         self.suffix = "STACK"
         self.suffix_mask = "BINARY_MASK"
         self.masks_pattern = "FLG_R1.tif"
@@ -182,7 +182,7 @@ class Sentinel_2_L3A():
                         out_prepro,
                         working_dir=None,
                         ram=128,
-                        logger=logger):
+                        logger=LOGGER):
         """
         """
         import os
@@ -282,7 +282,7 @@ class Sentinel_2_L3A():
                               out_prepro,
                               working_dir=None,
                               ram=128,
-                              logger=logger):
+                              logger=LOGGER):
         """
         """
         from gdal import Warp
@@ -354,7 +354,7 @@ class Sentinel_2_L3A():
         logger.info("End preprocessing")
         return out_mask
 
-    def preprocess(self, working_dir=None, ram=128, logger=logger):
+    def preprocess(self, working_dir=None, ram=128, logger=LOGGER):
         """
         """
         input_dates = [
@@ -547,7 +547,7 @@ class Sentinel_2_L3A():
         })
         return extract, features_labels
 
-    def get_time_series_masks(self, ram=128, logger=logger):
+    def get_time_series_masks(self, ram=128, logger=LOGGER):
         """
         """
         from Common.FileUtils import ensure_dir
@@ -636,7 +636,7 @@ class Sentinel_2_L3A():
                                                     feature, date))
         return out_labels
 
-    def get_features(self, ram=128, logger=logger):
+    def get_features(self, ram=128, logger=LOGGER):
         """
         """
         from Common.OtbAppBank import CreateConcatenateImagesApplication
