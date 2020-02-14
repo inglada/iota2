@@ -996,16 +996,18 @@ class iota2_parameters:
         self.keep_dupl = self.__config.getParam('iota2FeatureExtraction',
                                                 'keepduplicates')
         self.vhr_path = self.__config.getParam('coregistration', 'VHRPath')
-        self.acorfeat = self.__config.getParam('GlobChain', 'acorfeat')
+        self.acorfeat = self.__config.getParam('iota2FeatureExtraction',
+                                               'acorfeat')
+        self.user_patterns = self.__config.getParam('userFeat', 'patterns')
         self.available_sensors_section = [
             "Sentinel_2", "Sentinel_2_S2C", "Sentinel_2_L3A", "Sentinel_1",
             "Landsat8", "Landsat8_old", "Landsat5_old", "userFeat"
         ]
 
     def get_sensors_parameters(
-            self,
-            tile_name: str) -> Dict[Dict[str, Union[str, List[str], int]]]:
-        """
+            self, tile_name: str
+    ) -> Dict[str, Dict[str, Union[str, List[str], int]]]:
+        """get enabled sensors parameters
         """
         sensors_parameters = {}
         for sensor_section_name in self.available_sensors_section:
@@ -1017,7 +1019,7 @@ class iota2_parameters:
 
     def build_sensor_dict(self, tile_name: str, sensor_section_name: str
                           ) -> Dict[str, Union[str, List[str], int]]:
-        """
+        """get sensor parameters
         """
         sensor_dict = {}
         sensor_output_target_dir = None
@@ -1026,23 +1028,23 @@ class iota2_parameters:
             sensor_data_param_name = "S2Path"
             sensor_output_target_dir = self.__config.getParam(
                 "chain", "S2_output_path")
-        elif sensor_data_param_name == "Sentinel_1":
+        elif sensor_section_name == "Sentinel_1":
             sensor_data_param_name = "S1Path"
-        elif sensor_data_param_name == "Landsat8":
+        elif sensor_section_name == "Landsat8":
             sensor_data_param_name = "L8Path"
-        elif sensor_data_param_name == "Landsat8_old":
+        elif sensor_section_name == "Landsat8_old":
             sensor_data_param_name = "L8Path_old"
-        elif sensor_data_param_name == "Landsat5_old":
+        elif sensor_section_name == "Landsat5_old":
             sensor_data_param_name = "L5Path_old"
-        elif sensor_data_param_name == "Sentinel_2_S2C":
+        elif sensor_section_name == "Sentinel_2_S2C":
             sensor_data_param_name = "S2_S2C_Path"
             sensor_output_target_dir = self.__config.getParam(
                 "chain", "S2_S2C_output_path")
-        elif sensor_data_param_name == "Sentinel_2_L3A":
+        elif sensor_section_name == "Sentinel_2_L3A":
             sensor_data_param_name = "S2_L3A_Path"
             sensor_output_target_dir = self.__config.getParam(
                 "chain", "S2_L3A_output_path")
-        elif sensor_data_param_name == "userFeat":
+        elif sensor_section_name == "userFeat":
             sensor_data_param_name = "userFeatPath"
         else:
             raise ValueError(f"unknown section : {sensor_section_name}")
@@ -1080,5 +1082,6 @@ class iota2_parameters:
         sensor_dict["keep_dupl"] = self.keep_dupl
         sensor_dict["vhr_path"] = self.vhr_path
         sensor_dict["acorfeat"] = self.acorfeat
+        sensor_dict["patterns"] = self.user_patterns
 
         return sensor_dict
