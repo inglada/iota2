@@ -92,9 +92,9 @@ class sentinel_2():
             if not os.path.exists(self.output_preprocess_directory):
                 try:
                     os.mkdir(self.output_preprocess_directory)
-                except Exception:
-                    print(f"Unable to create directory"
-                          "{self.output_preprocess_directory}")
+                except OSError:
+                    LOGGER.warning(f"Unable to create directory"
+                                   f"{self.output_preprocess_directory}")
         else:
             self.output_preprocess_directory = self.tile_directory
 
