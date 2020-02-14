@@ -112,8 +112,23 @@ class iota2_test_sensors_test(unittest.TestCase):
         cls.expected_user_features_labels = [
             'NUMBER_OF_THINGS_band_0', 'LAI_band_0'
         ]
+
+        cls.expected_l5_old_labels = [
+            'Landsat5Old_B1_20200101', 'Landsat5Old_B2_20200101',
+            'Landsat5Old_B3_20200101', 'Landsat5Old_B4_20200101',
+            'Landsat5Old_B5_20200101', 'Landsat5Old_B6_20200101',
+            'Landsat5Old_B1_20200111', 'Landsat5Old_B2_20200111',
+            'Landsat5Old_B3_20200111', 'Landsat5Old_B4_20200111',
+            'Landsat5Old_B5_20200111', 'Landsat5Old_B6_20200111',
+            'Landsat5Old_NDVI_20200101', 'Landsat5Old_NDVI_20200111',
+            'Landsat5Old_NDWI_20200101', 'Landsat5Old_NDWI_20200111',
+            'Landsat5Old_Brightness_20200101',
+            'Landsat5Old_Brightness_20200111'
+        ]
+
         cls.expected_sensors = [
-            "Landsat8", "Sentinel2", "Sentinel2S2C", 'Sentinel2L3A'
+            "Landsat5Old", "Landsat8", "Sentinel2", "Sentinel2S2C",
+            'Sentinel2L3A'
         ]
 
     # after launching tests
@@ -517,3 +532,49 @@ class iota2_test_sensors_test(unittest.TestCase):
         sensors_name = [sensor.name for sensor in enabled_sensors]
 
         self.assertTrue(sensors_name == self.expected_sensors)
+
+    def test_instance_l5_old(self):
+        """Tests if the class landsat_5_old can be instanciate
+        """
+        from iota2.Sensors.Landsat_5_old import landsat_5_old
+        from TestsUtils import generate_fake_l5_old_data
+        tile_name = "France-MetropoleD0005H0002"
+        generate_fake_l5_old_data(self.test_working_directory, tile_name,
+                                  ["20200101", "20200120"])
+        args = {
+            "tile_name": tile_name,
+            "target_proj": 2154,
+            "all_tiles": tile_name,
+            "image_directory": self.test_working_directory,
+            "write_dates_stack": False,
+            "extract_bands_flag": False,
+            "output_target_dir": None,
+            "keep_bands": True,
+            "i2_output_path": self.test_working_directory,
+            "temporal_res": 10,
+            "auto_date_flag": True,
+            "date_interp_min_user": "",
+            "date_interp_max_user": "",
+            "write_outputs_flag": False,
+            "features": ["NDVI", "NDWI", "Brightness"],
+            "enable_gapfilling": True,
+            "hand_features_flag": False,
+            "hand_features": "",
+            "copy_input": True,
+            "rel_refl": False,
+            "keep_dupl": True,
+            "vhr_path": "none",
+            "acorfeat": False
+        }
+
+        l5_sensor = landsat_5_old(**args)
+        (features_app, _), features_labels = l5_sensor.get_features()
+        features_app.ExecuteAndWriteOutput()
+        self.assertTrue(
+            self.expected_l5_old_labels == features_labels,
+            msg="Landsat_ 5 old class broken, wrong features' labels")
+
+        expected_output = features_app.GetParameterString("out")
+        self.assertTrue(
+            os.path.exists(expected_output),
+            msg="Landsat_5_old class broken, not able to generate features")
