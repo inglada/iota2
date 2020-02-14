@@ -183,7 +183,7 @@ class sensors_container():
             enabled_sensors.append(
                 Landsat_8_old(self.cfg.pathConf, tile_name=self.tile_name))
         if sen1 is not None:
-            enabled_sensors.append(sentinel_1(**sen1)
+            enabled_sensors.append(sentinel_1(**sen1))
         if sen2 is not None:
             enabled_sensors.append(sentinel_2(**sen2))
         if s2_s2c is not None:
