@@ -343,7 +343,7 @@ class iota2_test_sensors_test(unittest.TestCase):
                 "vhr_path": "none",
                 "acorfeat": False
             },
-            "Landsat_8": {
+            "Landsat8": {
                 "tile_name": "T31TCJ",
                 "target_proj": 2154,
                 "all_tiles": "T31TCJ",
