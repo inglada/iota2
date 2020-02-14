@@ -15,7 +15,7 @@
 # =========================================================================
 
 # python -m unittest sensors_Tests
-"""unittest s2 instance
+"""unittest sensors instances
 """
 import os
 import sys
@@ -372,9 +372,7 @@ class iota2_test_sensors_test(unittest.TestCase):
             "patterns": patterns
         }
         user_feat_sensor = user_features(**args)
-        (user_feat_stack,
-         app_dep), features_labels = user_feat_sensor.get_features()
-        user_feat_stack.ExecuteAndWriteOutput()
+        (user_feat_stack, _), features_labels = user_feat_sensor.get_features()
         user_feat_stack.ExecuteAndWriteOutput()
         expected_output = user_feat_stack.GetParameterString("out")
         self.assertTrue(
