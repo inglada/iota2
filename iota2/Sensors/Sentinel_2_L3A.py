@@ -56,10 +56,8 @@ class Sentinel_2_L3A():
 
         # attributes
         self.NODATA_VALUE = -10000
-         self.features_names_list = ["NDVI", "NDWI", "Brightness"]
+        self.features_names_list = ["NDVI", "NDWI", "Brightness"]
 
-        
-       
         self.tile_directory = os.path.join(self.s2_l3a_data, tile_name)
         self.suffix = "STACK"
         self.suffix_mask = "BINARY_MASK"
