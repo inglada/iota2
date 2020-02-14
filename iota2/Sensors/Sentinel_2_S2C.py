@@ -59,6 +59,7 @@ class sentinel_2_s2c():
         # running attributes
         self.copy_input = copy_input
         self.rel_refl = rel_refl
+        self.i2_output_path = i2_output_path
         self.keep_dupl = keep_dupl
         self.acorfeat = acorfeat
         self.features = features
