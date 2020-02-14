@@ -190,8 +190,7 @@ class sensors_container():
         if s2_s2c is not None:
             enabled_sensors.append(sentinel_2_s2c(**s2_s2c))
         if s2_l3a is not None:
-            enabled_sensors.append(
-                sentinel_2_l3a(**s2_l3a)
+            enabled_sensors.append(sentinel_2_l3a(**s2_l3a))
         if user_feat is not None:
             enabled_sensors.append(user_features(**user_feat))
         return enabled_sensors
