@@ -93,7 +93,7 @@ class iota2_test_sensors_test(unittest.TestCase):
             'Landsat8_Brightness_20200101', 'Landsat8_Brightness_20200111'
         ]
 
-        cls.expected_sensors = ["Sentinel2", "Sentinel2S2C"]
+        cls.expected_sensors = ["Sentinel2", "Sentinel2S2C", "Landsat_8"]
 
     # after launching tests
     @classmethod
@@ -284,7 +284,7 @@ class iota2_test_sensors_test(unittest.TestCase):
         expected_output = features_app.GetParameterString("out")
         self.assertTrue(
             os.path.exists(expected_output),
-            msg="Sentinel-2 class broken, not able to generate features")
+            msg="Landsat_8 class broken, not able to generate features")
 
     def test_sensors_container(self):
         """
