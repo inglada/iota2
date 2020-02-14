@@ -741,3 +741,42 @@ def generate_fake_l8_data(root_directory, tile_name, dates):
                 "out": stack_date
             })
             stack_app.ExecuteAndWriteOutput()
+
+
+def generate_fake_user_features_data(root_directory: str, tile_name: str,
+                                     patterns: List[str]):
+    """
+    Parameters
+    ----------
+    root_directory : string
+        path to generate Sentinel-2 dates
+    tile_name : string
+        THEIA tile name (ex:T31TCJ)
+    dates : list
+        List of raster's name
+    """
+    import numpy as np
+    import random
+
+    from iota2.Common.FileUtils import ensure_dir
+
+    tile_dir = os.path.join(root_directory, tile_name)
+    ensure_dir(tile_dir)
+
+    origin_x = 566377
+    origin_y = 6284029
+    array_name = "iota2_binary"
+
+    array = fun_array(array_name)
+    for pattern in patterns:
+        user_features_path = os.path.join(tile_dir, f"{pattern}.tif")
+        random_array = []
+        for val in array:
+            val_tmp = []
+            for pix_val in val:
+                val_tmp.append(pix_val * random.random() * 1000)
+            random_array.append(val_tmp)
+        arrayToRaster(np.array(random_array),
+                      user_features_path,
+                      originX=origin_x,
+                      originY=origin_y)
