@@ -93,10 +93,28 @@ class iota2_test_sensors_test(unittest.TestCase):
             'Landsat8_Brightness_20200101', 'Landsat8_Brightness_20200111'
         ]
 
+        cls.expected_s2_l3a_labels = [
+            'Sentinel2L3A_B2_20200101', 'Sentinel2L3A_B3_20200101',
+            'Sentinel2L3A_B4_20200101', 'Sentinel2L3A_B5_20200101',
+            'Sentinel2L3A_B6_20200101', 'Sentinel2L3A_B7_20200101',
+            'Sentinel2L3A_B8_20200101', 'Sentinel2L3A_B8A_20200101',
+            'Sentinel2L3A_B11_20200101', 'Sentinel2L3A_B12_20200101',
+            'Sentinel2L3A_B2_20200120', 'Sentinel2L3A_B3_20200120',
+            'Sentinel2L3A_B4_20200120', 'Sentinel2L3A_B5_20200120',
+            'Sentinel2L3A_B6_20200120', 'Sentinel2L3A_B7_20200120',
+            'Sentinel2L3A_B8_20200120', 'Sentinel2L3A_B8A_20200120',
+            'Sentinel2L3A_B11_20200120', 'Sentinel2L3A_B12_20200120',
+            'Sentinel2L3A_NDVI_20200101', 'Sentinel2L3A_NDVI_20200120',
+            'Sentinel2L3A_NDWI_20200101', 'Sentinel2L3A_NDWI_20200120',
+            'Sentinel2L3A_Brightness_20200101',
+            'Sentinel2L3A_Brightness_20200120'
+        ]
         cls.expected_user_features_labels = [
             'NUMBER_OF_THINGS_band_0', 'LAI_band_0'
         ]
-        cls.expected_sensors = ["Landsat8", "Sentinel2", "Sentinel2S2C"]
+        cls.expected_sensors = [
+            "Landsat8", "Sentinel2", "Sentinel2S2C", 'Sentinel2L3A'
+        ]
 
     # after launching tests
     @classmethod
@@ -338,6 +356,53 @@ class iota2_test_sensors_test(unittest.TestCase):
             self.expected_user_features_labels == features_labels,
             msg="user_features class broken, wrong features' labels")
 
+    def test_instance_s2_l3a(self):
+        """Tests if the class sentinel_2_l3a can be instanciate
+        """
+        from iota2.Sensors.Sentinel_2_L3A import sentinel_2_l3a
+        from TestsUtils import generate_fake_s2_l3a_data
+        tile_name = "T31TCJ"
+        generate_fake_s2_l3a_data(self.test_working_directory, tile_name,
+                                  ["20200101", "20200120"])
+        args = {
+            "tile_name": "T31TCJ",
+            "target_proj": 2154,
+            "all_tiles": "T31TCJ",
+            "image_directory": self.test_working_directory,
+            "write_dates_stack": False,
+            "extract_bands_flag": False,
+            "output_target_dir": None,
+            "keep_bands": True,
+            "i2_output_path": self.test_working_directory,
+            "temporal_res": 10,
+            "auto_date_flag": True,
+            "date_interp_min_user": "",
+            "date_interp_max_user": "",
+            "write_outputs_flag": False,
+            "features": ["NDVI", "NDWI", "Brightness"],
+            "enable_gapfilling": True,
+            "hand_features_flag": False,
+            "hand_features": "",
+            "copy_input": True,
+            "rel_refl": False,
+            "keep_dupl": True,
+            "vhr_path": "none",
+            "acorfeat": False
+        }
+
+        s2_l3a_sensor = sentinel_2_l3a(**args)
+        (features_app, _), features_labels = s2_l3a_sensor.get_features()
+        features_app.ExecuteAndWriteOutput()
+        print(features_labels)
+        self.assertTrue(
+            self.expected_s2_l3a_labels == features_labels,
+            msg="Sentinel 2 L3A class broken, wrong features' labels")
+
+        expected_output = features_app.GetParameterString("out")
+        self.assertTrue(
+            os.path.exists(expected_output),
+            msg="Sentinel 2 L3A class broken, not able to generate features")
+
     def test_sensors_container(self):
         """
         Test if the sensors_container class enable all required sensors
@@ -396,6 +461,31 @@ class iota2_test_sensors_test(unittest.TestCase):
                 "acorfeat": False
             },
             "Landsat8": {
+                "tile_name": "T31TCJ",
+                "target_proj": 2154,
+                "all_tiles": "T31TCJ",
+                "image_directory": self.test_working_directory,
+                "write_dates_stack": False,
+                "extract_bands_flag": False,
+                "output_target_dir": None,
+                "keep_bands": True,
+                "i2_output_path": self.test_working_directory,
+                "temporal_res": 10,
+                "auto_date_flag": True,
+                "date_interp_min_user": "",
+                "date_interp_max_user": "",
+                "write_outputs_flag": False,
+                "features": ["NDVI", "NDWI", "Brightness"],
+                "enable_gapfilling": True,
+                "hand_features_flag": False,
+                "hand_features": "",
+                "copy_input": True,
+                "rel_refl": False,
+                "keep_dupl": True,
+                "vhr_path": "none",
+                "acorfeat": False
+            },
+            "Sentinel_2_L3A": {
                 "tile_name": "T31TCJ",
                 "target_proj": 2154,
                 "all_tiles": "T31TCJ",
