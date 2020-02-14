@@ -99,14 +99,15 @@ class sentinel_2_l3a():
         self.date_position = 1  # if date's name split by "_"
 
         # outputs
-        self.footprint_name = "{self.__class__.name}_{tile_name}_footprint.tif"
-        self.time_series_name = "{self.__class__.name}_{tile_name}_TS.tif"
-        self.time_series_gapfilling_name = ("{self.__class__.name}_"
-                                            "{tile_name}_TSG.tif")
-        self.time_series_masks_name = ("{self.__class__.name}"
-                                       "_{tile_name}_MASKS.tif")
-        self.features_names = "{self.__class__.name}_{tile_name}_Features.tif"
-        ref_image_name = "{self.__class__.name}_{tile_name}_reference.tif"
+        self.footprint_name = (f"{self.__class__.name}_{tile_name}"
+                               "_footprint.tif")
+        self.time_series_name = f"{self.__class__.name}_{tile_name}_TS.tif"
+        self.time_series_gapfilling_name = (f"{self.__class__.name}_"
+                                            f"{tile_name}_TSG.tif")
+        self.time_series_masks_name = (f"{self.__class__.name}"
+                                       f"_{tile_name}_MASKS.tif")
+        self.features_names = f"{self.__class__.name}_{tile_name}_Features.tif"
+        ref_image_name = f"{self.__class__.name}_{tile_name}_reference.tif"
         self.ref_image = os.path.join(self.i2_output_path, "features",
                                       tile_name, "tmp", ref_image_name)
         # define bands to get and their order
@@ -124,9 +125,9 @@ class sentinel_2_l3a():
                                     if band_name in self.keep_bands]
 
         # about gapFilling interpolations
-        self.input_dates = "{self.__class__.name}_{tile_name}_input_dates.txt"
-        self.interpolated_dates = ("{self.__class__.name}_{tile_name}"
-                                   "_interpolation_dates.txt")
+        self.input_dates = f"{self.__class__.name}_{tile_name}_input_dates.txt"
+        self.interpolated_dates = (f"{self.__class__.name}_{tile_name}"
+                                   f"_interpolation_dates.txt")
         if output_target_dir:
             self.output_preprocess_directory = os.path.join(
                 output_target_dir, tile_name)
@@ -135,7 +136,7 @@ class sentinel_2_l3a():
                     os.mkdir(self.output_preprocess_directory)
                 except OSError:
                     LOGGER.warning(f"Unable to create directory"
-                                   "{self.output_preprocess_directory}")
+                                   f"{self.output_preprocess_directory}")
         else:
             self.output_preprocess_directory = self.tile_directory
 
@@ -147,7 +148,7 @@ class sentinel_2_l3a():
         from iota2.Common.FileUtils import FileSearch_AND
 
         pattern = f"{self.suffix}.tif"
-        if self.vhr_path is not None:
+        if self.vhr_path.lower() != "none":
             pattern = f"{self.suffix}_COREG.tif"
 
         stacks = sorted(FileSearch_AND(self.output_preprocess_directory, True,
@@ -173,9 +174,8 @@ class sentinel_2_l3a():
         from iota2.Common.FileUtils import FileSearch_AND
 
         pattern = f"{self.suffix_mask}.tif"
-        if self.vhr_path is not None:
+        if self.vhr_path.lower() != "none":
             pattern = f"{self.suffix_mask}_COREG.tif"
-
         masks = sorted(FileSearch_AND(self.output_preprocess_directory, True,
                                       pattern),
                        key=lambda x: os.path.basename(x).split("_")[
@@ -190,7 +190,7 @@ class sentinel_2_l3a():
         from iota2.Common.FileUtils import FileSearch_AND
         _, b2_name = os.path.split(
             FileSearch_AND(date_dir, True, "FRC_B2.tif")[0])
-        return b2_name.replace("FRC_B2.tif", "FRC_{}.tif".format(self.suffix))
+        return b2_name.replace("FRC_B2.tif", f"FRC_{self.suffix}.tif")
 
     def get_date_from_name(self, product_name):
         """
@@ -246,7 +246,7 @@ class sentinel_2_l3a():
         # tile reference image generation
         base_ref = date_bands[0]
         logger.info(f"reference image generation {self.ref_image}"
-                    " from {base_ref}")
+                    f" from {base_ref}")
         ensure_dir(os.path.dirname(self.ref_image), raise_exe=False)
         base_ref_projection = getRasterProjectionEPSG(base_ref)
         Warp(self.ref_image,
@@ -328,7 +328,7 @@ class sentinel_2_l3a():
         mask_dir = os.path.dirname(date_mask)
         logger.debug(f"preprocessing {mask_dir} masks")
         mask_name = os.path.basename(date_mask).replace(
-            self.masks_pattern, "{}.tif".format(self.suffix_mask))
+            self.masks_pattern, f"{self.suffix_mask}.tif")
         out_mask = os.path.join(mask_dir, mask_name)
         if out_prepro:
             out_mask_dir = mask_dir.replace(
@@ -419,7 +419,7 @@ class sentinel_2_l3a():
         footprint_out = os.path.join(footprint_dir, self.footprint_name)
 
         reference_raster = self.ref_image
-        if self.vhr_path is not None:
+        if self.vhr_path.lower() != "none":
             reference_raster = self.get_available_dates()[0]
 
         s2_l3a_border = CreateBandMathApplication({
@@ -479,7 +479,7 @@ class sentinel_2_l3a():
                     "-")[0]) for date in input_dates_dir
         ]
         all_available_dates = sorted(all_available_dates)
-        all_available_dates = [int(x) for x in all_available_dates]
+        all_available_dates = [str(x) for x in all_available_dates]
         if not os.path.exists(date_file):
             with open(date_file, "w") as input_date_file:
                 input_date_file.write("\n".join(all_available_dates))
@@ -518,6 +518,7 @@ class sentinel_2_l3a():
         ensure_dir(time_series_dir, raise_exe=False)
         times_series_raster = os.path.join(time_series_dir,
                                            self.time_series_name)
+
         dates_time_series = CreateConcatenateImagesApplication({
             "il": dates_concatenation,
             "out": times_series_raster,
@@ -527,8 +528,8 @@ class sentinel_2_l3a():
         _, dates_in = self.write_dates_file()
         # build labels
         features_labels = [
-            "{}_{}_{}".format(self.__class__.name, band_name, date)
-            for date in dates_in for band_name in self.stack_band_position
+            f"{self.__class__.name}_{band_name}_{date}" for date in dates_in
+            for band_name in self.stack_band_position
         ]
 
         # if not all bands must be used
@@ -590,9 +591,11 @@ class sentinel_2_l3a():
         else:
             nb_available_dates = len(self.get_available_dates())
         available_masks = self.get_available_dates_masks()
+
         if nb_available_dates != len(available_masks):
+
             error = (f"Available dates ({nb_available_dates}) and avaibles "
-                     " masks ({len(available_masks)}) are different")
+                     f" masks ({len(available_masks)}) are different")
             logger.error(error)
             raise Exception(error)
 
@@ -627,7 +630,8 @@ class sentinel_2_l3a():
 
         time_series.Execute()
         masks.Execute()
-
+        time_series.ExecuteAndWriteOutput()
+        masks.ExecuteAndWriteOutput()
         comp = len(
             self.stack_band_position) if not self.extracted_bands else len(
                 self.extracted_bands)
