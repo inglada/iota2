@@ -242,7 +242,8 @@ class serviceConfigFile:
                             "blocksize" : 2000,
                             "dozip": True,
                             "bingdal": None,
-                            "chunk":10,
+                            "systemcall": False,
+                            "chunk":1,
                             "nomenclature":None,
                             "statslist" : {1:"rate", 2:"statsmaj", 3:"statsmaj"}}
             self.init_section("Simplification", simp_default)
