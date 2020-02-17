@@ -119,7 +119,7 @@ It's format must be in NumPy style:
 
 .. Warning::
 
-    developers must use the pre-commit hook. It can be setup by the script enable_hooks.sh
+    Developers must use the pre-commit hook. It can be setup by the script enable_hooks.sh, which just makes a symlink into the ``.git/hooks`` directory. However the ``pre-commit`` python package has to be installed for this to work. See <https://pre-commit.com/> for details. The hook will format the code with ``yapf`` and run ``pylint``
 
 TESTS
 *****
