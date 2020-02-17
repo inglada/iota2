@@ -980,7 +980,8 @@ class iota2_parameters:
             self.__config.getParam('GlobChain', 'proj').split(":")[-1])
         self.all_tiles = self.__config.getParam('chain', 'listTile')
         self.i2_output_path = self.__config.getParam('chain', 'outputPath')
-        self.extract_bands_flag = self.__config.getParam('chain', 'outputPath')
+        self.extract_bands_flag = self.__config.getParam(
+            'iota2FeatureExtraction', 'extractBands')
         self.auto_date = self.__config.getParam('GlobChain', 'autoDate')
         self.write_outputs_flag = self.__config.getParam(
             'GlobChain', 'writeOutputs')
