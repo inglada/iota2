@@ -1062,7 +1062,7 @@ class iota2_parameters:
             "write_reproject_resampled_input_dates_stack", None)
         sensor_dict["extract_bands_flag"] = self.extract_bands_flag
         sensor_dict["output_target_dir"] = sensor_output_target_dir
-        sensor_dict["keepBands"] = sensor_section.get("keepBands", None)
+        sensor_dict["keep_bands"] = sensor_section.get("keepBands", None)
         sensor_dict["i2_output_path"] = self.i2_output_path
         sensor_dict["temporal_res"] = sensor_section.get(
             "temporalResolution", None)
