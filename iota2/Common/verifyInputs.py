@@ -58,6 +58,7 @@ def extent_to_geom(min_x, max_x, min_y, max_y, src_epsg,
 
 
 def get_tile_raster_footprint(tile_name: str, configuration_file: str,
+                              output_path: str,
                               proj_epsg_t: int) -> Union[None, ogr.Geometry]:
     """from a configuration file and a tile's name, get the tile's envelope
        as an ogr geometry
@@ -65,10 +66,13 @@ def get_tile_raster_footprint(tile_name: str, configuration_file: str,
     raster_ref = None
     geom_raster_envelope = None
     from iota2.Sensors.Sensors_container import sensors_container
-    sensor_tile_container = sensors_container(configuration_file,
-                                              tile_name,
-                                              working_dir=None)
+    from iota2.Common.ServiceConfigFile import iota2_parameters
 
+    running_parameters = iota2_parameters(configuration_file)
+    sensors_parameters = running_parameters.get_sensors_parameters(tile_name)
+
+    sensor_tile_container = sensors_container(tile_name, None, output_path,
+                                              **sensors_parameters)
     sensor_tile_container.remove_sensor("Sentinel1")
     sensors_list = sensor_tile_container.enabled_sensors
     if sensors_list:
@@ -84,10 +88,13 @@ def get_tile_raster_footprint(tile_name: str, configuration_file: str,
                 break
     if raster_ref:
         proj_epsg_o = getRasterProjectionEPSG(raster_ref)
-        geom_raster_envelope = extent_to_geom(*getRasterExtent(raster_ref),
+        min_x, max_x, min_y, max_y = getRasterExtent(raster_ref)
+        geom_raster_envelope = extent_to_geom(min_x,
+                                              max_x,
+                                              min_y,
+                                              max_y,
                                               src_epsg=proj_epsg_o,
                                               tgt_epsg=proj_epsg_t)
-
     return geom_raster_envelope
 
 
@@ -100,9 +107,8 @@ def exist_intersection(geom_raster_envelope,
     """find if every models could be learn (intersection between ground truth
        and region shape / tiles is not empty)
     """
-    import ogr
-
-    class Found(Exception):
+    class found(Exception):
+        """double break"""
         pass
 
     intersection_found = False
@@ -124,8 +130,8 @@ def exist_intersection(geom_raster_envelope,
                     for feature in gt_layer:
                         geom = feature.GetGeometryRef()
                         if geom.Intersect(geom_inter_tile_reg):
-                            raise Found
-        except Found:
+                            raise found
+        except found:
             intersection_found = True
     else:
         driver = ogr.GetDriverByName(driver_name)
@@ -142,7 +148,6 @@ def exist_intersection(geom_raster_envelope,
 def check_sqlite_db(i2_output_path):
     """check if every sqlite database could be open
     """
-    from Common.FileUtils import FileSearch_AND
     # explicit call to the undecorate function thanks to __wrapped__
     return [
         ServiceError.sqliteCorrupted(elem) for elem in
@@ -162,6 +167,7 @@ def check_data_intersection(configuration_file_path: str) -> List:
     ground_truth = i2_cfg.getParam('chain', 'groundTruth')
     region_shape = i2_cfg.getParam('chain', 'regionPath')
     region_field = i2_cfg.getParam('chain', 'regionField')
+    output_path = i2_cfg.getParam('chain', 'outputPath')
     proj_epsg_t = int(i2_cfg.getParam('GlobChain', 'proj').split(":")[-1])
 
     tiles = i2_cfg.getParam('chain', 'listTile').split(" ")
@@ -180,7 +186,7 @@ def check_data_intersection(configuration_file_path: str) -> List:
 
     for tile in tiles:
         geom_raster_envelope = get_tile_raster_footprint(
-            tile, configuration_file_path, proj_epsg_t)
+            tile, configuration_file_path, output_path, proj_epsg_t)
         if geom_raster_envelope is not None:
             # only one intersection per model is needed
             for region in region_list:
