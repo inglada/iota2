@@ -440,12 +440,11 @@ class iota2():
             s_container.append(step_additional_statistics_merge, "validation")
 
         # regularisation steps
-        if umc1:
+        if umc1:            
             # TODO : creer une variable adaptative / oso / regulier (avec "connection" en paramètre supplémentaire)
             outregul = os.path.join(iota2_outputs_dir, "final", "simplification", "classif_regul.tif")
 
-            regulruns = 2 if umc2 is None else 1
-
+            regulruns = 2 if umc2 is not None else 1
             if not os.path.exists(outregul):
                 lognamereg = 'regul1'
                 lognamemerge = "merge_regul1"
@@ -471,7 +470,7 @@ class iota2():
                     outregul = os.path.join(iota2_outputs_dir, "final", "simplification", "classif_regul.tif")
                     logname = 'regul2'
                     lognamemerge = "merge_regul2"
-                    
+
                 s_container.append(Regularization.Regularization(cfg,
                                                                  config_ressources,
                                                                  umc=umc1,
