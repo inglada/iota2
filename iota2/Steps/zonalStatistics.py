@@ -38,6 +38,7 @@ class zonalStatistics(IOTA2Step.Step):
         self.chunk = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'chunk')        
         self.statslist = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'statslist')
         self.nomenclature = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'nomenclature')
+        self.systemcall = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'systemcall')        
         
         if self.rastclass is None:
             if self.seed is not None:
@@ -69,10 +70,14 @@ class zonalStatistics(IOTA2Step.Step):
             the return could be and iterable or a callable
         """
         from simplification import ZonalStats as zs
+        from VectorTools import vector_functions as vf
+        from Common import FileUtils as fut
         
         tmpdir = os.path.join(self.outputPath, 'final', 'simplification', 'tmp')
-        
-        return zs.splitVectorFeatures(self.outfilesvectpath, tmpdir, self.chunk)
+
+        params = zs.splitVectorFeatures(self.outfilesvectpath, tmpdir, self.chunk)        
+
+        return params
 
     def step_execute(self):
         """
@@ -87,14 +92,15 @@ class zonalStatistics(IOTA2Step.Step):
         tmpdir = os.path.join(self.outputPath, 'final', 'simplification', 'tmp')
         if self.workingDirectory:
             tmpdir = self.workingDirectory
-        
+
         step_function = lambda x: zs.zonalstats(tmpdir,
                                                 [self.rastclass, self.rastconf, self.rastval],
                                                 x[0:2],
                                                 x[2],
                                                 self.statslist,
                                                 classes=self.nomenclature,
-                                                gdalpath=self.bingdal)
+                                                gdalpath=self.bingdal,
+                                                systemcall=self.systemcall)
 
         return step_function
 
