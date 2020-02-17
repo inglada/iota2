@@ -21,7 +21,6 @@ import sys
 import os
 import random
 import shutil
-from Sensors import Sensors
 import osr
 import sqlite3 as lite
 from osgeo import ogr
@@ -38,12 +37,12 @@ from Common import ServiceConfigFile as SCF
 from Sampling.VectorFormatting import split_vector_by_region
 from Sampling.SamplesSelection import prepareSelection
 from Common.OtbAppBank import executeApp
-    
-logger = logging.getLogger(__name__)
 
+logger = logging.getLogger(__name__)
 
 #in order to avoid issue 'No handlers could be found for logger...'
 logger.addHandler(logging.NullHandler())
+
 
 def get_vectors_to_sample(iota2_formatting_dir, ds_fusion_sar_opt=False):
     """
@@ -137,7 +136,8 @@ def filterShpByClass(datafield, shapeFiltered, keepClass, shape):
         currentField = layerDefinition.GetFieldDefn(i).GetName()
         AllFields.append(currentField)
 
-    exp = " OR ".join(datafield + " = '" + str(currentClass) + "'" for currentClass in keepClass)
+    exp = " OR ".join(datafield + " = '" + str(currentClass) + "'"
+                      for currentClass in keepClass)
     layer.SetAttributeFilter(exp)
     if layer.GetFeatureCount() == 0:
         return False
@@ -145,8 +145,13 @@ def filterShpByClass(datafield, shapeFiltered, keepClass, shape):
     return True
 
 
-def gapFillingToSample(trainShape, workingDirectory, samples,
-                       dataField, cfg, wMode=False, RAM=128,
+def gapFillingToSample(trainShape,
+                       workingDirectory,
+                       samples,
+                       dataField,
+                       cfg,
+                       wMode=False,
+                       RAM=128,
                        mode="usually",
                        onlyMaskComm=False,
                        onlySensorsMasks=False):
@@ -189,13 +194,12 @@ def gapFillingToSample(trainShape, workingDirectory, samples,
             os.mkdir(workingDirectoryFeatures)
         except OSError:
             logger.warning(workingDirectoryFeatures + "allready exists")
-    try: 
+    try:
         useGapFilling = cfg.getParam('GlobChain', 'useGapFilling')
     except:
         useGapFilling = True
 
-    (AllFeatures,
-     feat_labels,
+    (AllFeatures, feat_labels,
      dep_features) = genFeatures.generateFeatures(workingDirectoryFeatures,
                                                   tile,
                                                   cfg,
@@ -203,7 +207,8 @@ def gapFillingToSample(trainShape, workingDirectory, samples,
 
     if onlySensorsMasks:
         #return AllRefl,AllMask,datesInterp,realDates
-        return dep_features[1], dep_features[2], dep_features[3], dep_features[4]
+        return dep_features[1], dep_features[2], dep_features[3], dep_features[
+            4]
 
     AllFeatures.Execute()
 
@@ -219,7 +224,8 @@ def gapFillingToSample(trainShape, workingDirectory, samples,
     sampleExtr = otb.Registry.CreateApplication("SampleExtraction")
     sampleExtr.SetParameterString("ram", str(0.7 * RAM))
     sampleExtr.SetParameterString("vec", trainShape)
-    sampleExtr.SetParameterInputImage("in", AllFeatures.GetParameterOutputImage("out"))
+    sampleExtr.SetParameterInputImage(
+        "in", AllFeatures.GetParameterOutputImage("out"))
     sampleExtr.SetParameterString("out", samples)
     sampleExtr.SetParameterString("outfield", "list")
     sampleExtr.SetParameterStringList("outfield.list.names", feat_labels)
@@ -231,10 +237,20 @@ def gapFillingToSample(trainShape, workingDirectory, samples,
     return sampleExtr, All_dep
 
 
-def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
-                           featuresPath, cfg, dataField, RAM=128,
-                           wMode=False, folderFeatures=None, testMode=False,
-                           sampleSel=None, mode="usually", logger=logger):
+def generateSamples_simple(folderSample,
+                           workingDirectory,
+                           trainShape,
+                           pathWd,
+                           featuresPath,
+                           cfg,
+                           dataField,
+                           RAM=128,
+                           wMode=False,
+                           folderFeatures=None,
+                           testMode=False,
+                           sampleSel=None,
+                           mode="usually",
+                           logger=logger):
     """
     usage : from a strack of data generate samples containing points with features
 
@@ -268,44 +284,55 @@ def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
         runs = runs - 1
     sample_sel_directory = os.path.join(outputPath, "samplesSelection")
 
-    samples = workingDirectory + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")
+    samples = workingDirectory + "/" + trainShape.split("/")[-1].replace(
+        ".shp", "_Samples.sqlite")
     if mode == "SAR":
-        samples = workingDirectory + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples_SAR.sqlite")
+        samples = workingDirectory + "/" + trainShape.split("/")[-1].replace(
+            ".shp", "_Samples_SAR.sqlite")
 
     if sampleSel:
         sampleSelection = sampleSel
     else:
-        sampleSelection = prepareSelection(sample_sel_directory, tile, workingDirectory=None)
+        sampleSelection = prepareSelection(sample_sel_directory,
+                                           tile,
+                                           workingDirectory=None)
 
     sampleExtr, dep_gapSample = gapFillingToSample(sampleSelection,
-                                                   workingDirectory,
-                                                   samples, dataField,
-                                                   cfg, wMode, RAM,
+                                                   workingDirectory, samples,
+                                                   dataField, cfg, wMode, RAM,
                                                    mode)
 
-    sample_extraction_output = os.path.join(folderSample,
-                                            os.path.basename(sampleExtr.GetParameterValue("out")))
+    sample_extraction_output = os.path.join(
+        folderSample, os.path.basename(sampleExtr.GetParameterValue("out")))
 
     if not os.path.exists(sample_extraction_output):
         logger.info("--------> Start Sample Extraction <--------")
-        logger.info("RAM before features extraction : {} MB".format(fu.memory_usage_psutil()))
-        print("RAM before features extraction : {} MB".format(fu.memory_usage_psutil()))
-        p = mp.Process( target=executeApp, args=[sampleExtr])
+        logger.info("RAM before features extraction : {} MB".format(
+            fu.memory_usage_psutil()))
+        print("RAM before features extraction : {} MB".format(
+            fu.memory_usage_psutil()))
+        p = mp.Process(target=executeApp, args=[sampleExtr])
         p.start()
         p.join()
-        print("RAM after features extraction : {} MB".format(fu.memory_usage_psutil()))
-        logger.info("RAM after features extraction : {} MB".format(fu.memory_usage_psutil()))
+        print("RAM after features extraction : {} MB".format(
+            fu.memory_usage_psutil()))
+        logger.info("RAM after features extraction : {} MB".format(
+            fu.memory_usage_psutil()))
         logger.info("--------> END Sample Extraction <--------")
         proj = cfg.getParam('GlobChain', 'proj')
         split_vec_directory = os.path.join(outputPath, "learningSamples")
         if workingDirectory:
             split_vec_directory = workingDirectory
         #split vectors by there regions
-        split_vectors = split_vector_by_region(in_vect=sampleExtr.GetParameterValue("out"),
-                                               output_dir=split_vec_directory,
-                                               region_field=regionField, runs=int(runs),
-                                               driver="SQLite", proj_in=proj, proj_out=proj,
-                                               mode=mode)
+        split_vectors = split_vector_by_region(
+            in_vect=sampleExtr.GetParameterValue("out"),
+            output_dir=split_vec_directory,
+            region_field=regionField,
+            runs=int(runs),
+            driver="SQLite",
+            proj_in=proj,
+            proj_out=proj,
+            mode=mode)
         os.remove(sampleExtr.GetParameterValue("out"))
 
     #if not sampleSel:
@@ -326,27 +353,48 @@ def generateSamples_simple(folderSample, workingDirectory, trainShape, pathWd,
                 logger.warning(workingDirectoryFeatures + "allready exists")
 
         #~ fu.updateDirectory(workingDirectory + "/" + tile + "/tmp",
-                           #~ folderFeatures + "/" + tile + "/tmp")
+        #~ folderFeatures + "/" + tile + "/tmp")
 
 
 def extract_class(vec_in, vec_out, target_class, dataField):
     """
     """
-    if type(target_class) != type(list()) :
-    	target_class = target_class.data
+    if type(target_class) != type(list()):
+        target_class = target_class.data
 
-    where = " OR ".join(["{}={}".format(dataField.lower(), klass) for klass in target_class])
-    cmd = "ogr2ogr -f 'SQLite' -nln output -where '{}' {} {}".format(where, vec_out, vec_in)
+    where = " OR ".join(
+        ["{}={}".format(dataField.lower(), klass) for klass in target_class])
+    cmd = "ogr2ogr -f 'SQLite' -nln output -where '{}' {} {}".format(
+        where, vec_out, vec_in)
     run(cmd)
 
-    return len(fu.getFieldElement(vec_out, driverName="SQLite", field=dataField.lower(),
-                                  mode="all", elemType="int"))
+    return len(
+        fu.getFieldElement(vec_out,
+                           driverName="SQLite",
+                           field=dataField.lower(),
+                           mode="all",
+                           elemType="int"))
 
-def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
-                            nonAnnualData, annualData,
-                            annualCrop, AllClass, dataField, cfg, folderFeature,
-                            folderFeaturesAnnual, Aconfig, RAM=128, wMode=False, testMode=False,
-                            sampleSel=None, mode="usually", logger=logger):
+
+def generateSamples_cropMix(folderSample,
+                            workingDirectory,
+                            trainShape,
+                            pathWd,
+                            nonAnnualData,
+                            annualData,
+                            annualCrop,
+                            AllClass,
+                            dataField,
+                            cfg,
+                            folderFeature,
+                            folderFeaturesAnnual,
+                            Aconfig,
+                            RAM=128,
+                            wMode=False,
+                            testMode=False,
+                            sampleSel=None,
+                            mode="usually",
+                            logger=logger):
     """
     usage : from stracks A and B, generate samples containing points where annual crop are compute with A
     and non annual crop with B.
@@ -373,7 +421,9 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
     samples [string] : vector shape containing points
     """
 
-    if os.path.exists(folderSample + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")):
+    if os.path.exists(
+            folderSample + "/" +
+            trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")):
         return None
 
     outFeatures = cfg.getParam('GlobChain', 'features')
@@ -398,15 +448,23 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
     if sampleSel:
         sampleSelection = sampleSel
     else:
-        sampleSelection = prepareSelection(sample_sel_directory, currentTile, workingDirectory=None)
+        sampleSelection = prepareSelection(sample_sel_directory,
+                                           currentTile,
+                                           workingDirectory=None)
 
-    nonAnnual_vector_sel = os.path.join(wd, "{}_nonAnnual_selection.sqlite".format(currentTile))
-    annual_vector_sel = os.path.join(wd, "{}_annual_selection.sqlite".format(currentTile))
-    nb_feat_Nannu = extract_class(sampleSelection, nonAnnual_vector_sel, AllClass, dataField)
-    nb_feat_annu = extract_class(sampleSelection, annual_vector_sel, annualCrop, dataField)
+    nonAnnual_vector_sel = os.path.join(
+        wd, "{}_nonAnnual_selection.sqlite".format(currentTile))
+    annual_vector_sel = os.path.join(
+        wd, "{}_annual_selection.sqlite".format(currentTile))
+    nb_feat_Nannu = extract_class(sampleSelection, nonAnnual_vector_sel,
+                                  AllClass, dataField)
+    nb_feat_annu = extract_class(sampleSelection, annual_vector_sel,
+                                 annualCrop, dataField)
 
-    SampleExtr_NA = os.path.join(wd, "{}_nonAnnual_extraction.sqlite".format(currentTile))
-    SampleExtr_A = os.path.join(wd, "{}_annual_extraction.sqlite".format(currentTile))
+    SampleExtr_NA = os.path.join(
+        wd, "{}_nonAnnual_extraction.sqlite".format(currentTile))
+    SampleExtr_A = os.path.join(
+        wd, "{}_annual_extraction.sqlite".format(currentTile))
 
     start_extraction = time.time()
     if nb_feat_Nannu > 0:
@@ -416,13 +474,12 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
                 os.mkdir(Na_workingDirectory)
             except OSError:
                 logger.warning(Na_workingDirectory + "allready exists")
-                
-        sampleExtr_NA, dep_gapSampleA = gapFillingToSample(nonAnnual_vector_sel, 
-                                                           Na_workingDirectory, SampleExtr_NA,
-                                                           dataField, 
-                                                           cfg, wMode, RAM, mode)
+
+        sampleExtr_NA, dep_gapSampleA = gapFillingToSample(
+            nonAnnual_vector_sel, Na_workingDirectory, SampleExtr_NA,
+            dataField, cfg, wMode, RAM, mode)
         #~ sampleExtr_NA.ExecuteAndWriteOutput()
-        p = mp.Process( target=executeApp, args=[sampleExtr_NA])
+        p = mp.Process(target=executeApp, args=[sampleExtr_NA])
         p.start()
         p.join()
 
@@ -436,26 +493,32 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
         SCF.clearConfig()
         Aconfig = SCF.serviceConfigFile(Aconfig)
         sampleExtr_A, dep_gapSampleNA = gapFillingToSample(annual_vector_sel,
-                                                           A_workingDirectory, SampleExtr_A,
-                                                           dataField, Aconfig, wMode, mode=mode)
+                                                           A_workingDirectory,
+                                                           SampleExtr_A,
+                                                           dataField,
+                                                           Aconfig,
+                                                           wMode,
+                                                           mode=mode)
         #~ sampleExtr_A.ExecuteAndWriteOutput()
-        p = mp.Process( target=executeApp, args=[sampleExtr_A])
+        p = mp.Process(target=executeApp, args=[sampleExtr_A])
         p.start()
         p.join()
 
     #if not sampleSel:
     #    os.remove(sampleSelection)
     end_extraction = time.time()
-    logger.debug("Samples Extraction time : " + str(end_extraction - start_extraction) + " seconds")
+    logger.debug("Samples Extraction time : " +
+                 str(end_extraction - start_extraction) + " seconds")
     #rename annual fields in order to fit non annual dates
     if os.path.exists(SampleExtr_A):
         annual_fields = fu.getAllFieldsInShape(SampleExtr_A, "SQLite")
-    if os.path.exists(SampleExtr_NA):        
+    if os.path.exists(SampleExtr_NA):
         non_annual_fields = fu.getAllFieldsInShape(SampleExtr_NA, "SQLite")
     if os.path.exists(SampleExtr_NA) and os.path.exists(SampleExtr_A):
         if len(annual_fields) != len(non_annual_fields):
-            raise Exception("annual data's fields and non annual data's fields can"
-                            "not fitted")
+            raise Exception(
+                "annual data's fields and non annual data's fields can"
+                "not fitted")
 
     if os.path.exists(SampleExtr_A):
         driver = ogr.GetDriverByName("SQLite")
@@ -474,10 +537,14 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
 
         # TODO à modifier pour généraliser
         if not os.path.exists(SampleExtr_NA):
-            non_annual_fields = [x.replace('2016', '2017') for x in annual_fields]
-            
+            non_annual_fields = [
+                x.replace('2016', '2017') for x in annual_fields
+            ]
+
         for field_non_a, field_a in zip(non_annual_fields, annual_fields):
-            cursor.execute("UPDATE sqlite_master SET SQL=REPLACE(SQL, '" + field_a + "', '" + field_non_a + "') WHERE name='" + layer.GetName() + "'")
+            cursor.execute("UPDATE sqlite_master SET SQL=REPLACE(SQL, '" +
+                           field_a + "', '" + field_non_a + "') WHERE name='" +
+                           layer.GetName() + "'")
         cursor.execute("PRAGMA writable_schema=0")
         conn.commit()
         conn.close()
@@ -486,14 +553,17 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
     MergeName = trainShape.split("/")[-1].replace(".shp", "_Samples")
 
     if (nb_feat_Nannu > 0) and (nb_feat_annu > 0):
-        fu.mergeSQLite(MergeName, workingDirectory, [SampleExtr_NA, SampleExtr_A])
+        fu.mergeSQLite(MergeName, workingDirectory,
+                       [SampleExtr_NA, SampleExtr_A])
     elif (nb_feat_Nannu > 0) and not (nb_feat_annu > 0):
-        shutil.copyfile(SampleExtr_NA, workingDirectory + "/" + MergeName + ".sqlite")
+        shutil.copyfile(SampleExtr_NA,
+                        workingDirectory + "/" + MergeName + ".sqlite")
     elif not (nb_feat_Nannu > 0) and (nb_feat_annu > 0):
-        shutil.copyfile(SampleExtr_A, workingDirectory + "/" + MergeName + ".sqlite")
+        shutil.copyfile(SampleExtr_A,
+                        workingDirectory + "/" + MergeName + ".sqlite")
 
-    samples = workingDirectory + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")
-
+    samples = workingDirectory + "/" + trainShape.split("/")[-1].replace(
+        ".shp", "_Samples.sqlite")
 
     if nb_feat_Nannu > 0:
         os.remove(SampleExtr_NA)
@@ -544,8 +614,11 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
 
     split_vectors = split_vector_by_region(in_vect=samples,
                                            output_dir=split_vec_directory,
-                                           region_field=regionField, runs=int(runs),
-                                           driver="SQLite", proj_in=proj, proj_out=proj)
+                                           region_field=regionField,
+                                           runs=int(runs),
+                                           driver="SQLite",
+                                           proj_in=proj,
+                                           proj_out=proj)
 
     if testMode:
         return split_vectors
@@ -555,8 +628,14 @@ def generateSamples_cropMix(folderSample, workingDirectory, trainShape, pathWd,
     os.remove(samples)
 
 
-def extractROI(raster, currentTile, cfg, pathWd, name, ref,
-               testMode=None, testOutput=None):
+def extractROI(raster,
+               currentTile,
+               cfg,
+               pathWd,
+               name,
+               ref,
+               testMode=None,
+               testOutput=None):
     """
     usage : extract ROI in raster
 
@@ -620,7 +699,9 @@ def getRegionModelInTile(currentTile, currentRegion, pathWd, cfg, refImg,
         workingDirectory = testOutputFolder
     else:
         maskSHP = fu.FileSearch_AND(outputPath + "/shapeRegion/", True,
-                                    currentTile, "region_" + currentRegion.split("f")[0], ".shp")[0]
+                                    currentTile,
+                                    "region_" + currentRegion.split("f")[0],
+                                    ".shp")[0]
 
     rasterMask = workingDirectory + "/" + nameOut
     cmdRaster = "otbcli_Rasterization -in " + maskSHP + " -mode attribute -mode.attribute.field " +\
@@ -637,7 +718,7 @@ def get_repartition(vec, labels, dataField, regionField, regions, runs):
     labels [list of string]
     dataField [string] data field name
     """
-    
+
     conn = lite.connect(vec)
     cursor = conn.cursor()
 
@@ -654,12 +735,9 @@ def get_repartition(vec, labels, dataField, regionField, regions, runs):
         for region in regions:
             repartition[label][region] = {}
             for run in range(runs):
-                sql_clause = "SELECT * FROM output WHERE {}={} AND {}='{}' AND {}='{}'".format(dataField,
-                                                                                               label,
-                                                                                               regionField,
-                                                                                               region,
-                                                                                               "seed_" + str(run),
-                                                                                               "learn")
+                sql_clause = "SELECT * FROM output WHERE {}={} AND {}='{}' AND {}='{}'".format(
+                    dataField, label, regionField, region, "seed_" + str(run),
+                    "learn")
                 cursor.execute(sql_clause)
                 results = cursor.fetchall()
                 repartition[label][region][run] = len(results)
@@ -680,9 +758,15 @@ def get_number_annual_sample(annu_repartition):
     return nb_feat_annu
 
 
-def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
-                               pathWd, annualCrop, AllClass,
-                               dataField, cfg, previousClassifPath,
+def generateSamples_classifMix(folderSample,
+                               workingDirectory,
+                               trainShape,
+                               pathWd,
+                               annualCrop,
+                               AllClass,
+                               dataField,
+                               cfg,
+                               previousClassifPath,
                                folderFeatures=None,
                                RAM=128,
                                wMode=False,
@@ -712,7 +796,9 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
         samples [string] : vector shape containing points
     """
 
-    if os.path.exists(folderSample + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")):
+    if os.path.exists(
+            folderSample + "/" +
+            trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")):
         return None
 
     targetResolution = cfg.getParam('chain', 'spatialResolution')
@@ -728,7 +814,7 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
     outputPath = cfg.getParam('chain', 'outputPath')
     features_path = os.path.join(outputPath, "features")
     sample_sel_directory = os.path.join(outputPath, "samplesSelection")
-    
+
     wd = sample_sel_directory
     if workingDirectory:
         wd = workingDirectory
@@ -742,75 +828,106 @@ def generateSamples_classifMix(folderSample, workingDirectory, trainShape,
     else:
         sampleSelection = prepareSelection(sample_sel_directory, currentTile)
 
-    nonAnnualShape = os.path.join(wd, "{}_nonAnnual_selection.sqlite".format(currentTile))
-    AnnualShape = os.path.join(wd, "{}_annual_selection.sqlite".format(currentTile))
-    nb_feat_Nannu = extract_class(sampleSelection, nonAnnualShape, AllClass, dataField)
+    nonAnnualShape = os.path.join(
+        wd, "{}_nonAnnual_selection.sqlite".format(currentTile))
+    AnnualShape = os.path.join(
+        wd, "{}_annual_selection.sqlite".format(currentTile))
+    nb_feat_Nannu = extract_class(sampleSelection, nonAnnualShape, AllClass,
+                                  dataField)
 
-    regions = fu.getFieldElement(trainShape, driverName="ESRI Shapefile", field=regionField, mode="unique",
+    regions = fu.getFieldElement(trainShape,
+                                 driverName="ESRI Shapefile",
+                                 field=regionField,
+                                 mode="unique",
                                  elemType="str")
     print(sampleSelection)
     print(trainShape)
     #avoir la répartition des classes anuelles par seed et par region -> pouvoir faire annu_repartition[11][R][S]
-    annu_repartition = get_repartition(sampleSelection, annualCrop, dataField, regionField, regions, runs)
-    
+    annu_repartition = get_repartition(sampleSelection, annualCrop, dataField,
+                                       regionField, regions, runs)
+
     nb_feat_annu = get_number_annual_sample(annu_repartition)
 
     #raster ref (in order to extract ROIs)
-    ref = fu.FileSearch_AND(os.path.join(features_path, currentTile), True, "MaskCommunSL.tif")[0]
+    ref = fu.FileSearch_AND(os.path.join(features_path, currentTile), True,
+                            "MaskCommunSL.tif")[0]
 
     if nb_feat_Nannu > 0:
         allCoord = getPointsCoordInShape(nonAnnualShape, "SQLite")
     else:
         allCoord = [0]
 
-    classificationRaster = extractROI(previousClassifPath + "/final/Classif_Seed_0.tif",
-                                      currentTile, cfg, pathWd, "Classif_"+str(currentTile),
-                                      ref, testMode, testOutput=folderSample)
-    validityRaster = extractROI(previousClassifPath + "/final/PixelsValidity.tif",
-                                currentTile, cfg, pathWd, "Cloud"+str(currentTile),
-                                ref, testMode, testOutput=folderSample)
-
-
+    classificationRaster = extractROI(previousClassifPath +
+                                      "/final/Classif_Seed_0.tif",
+                                      currentTile,
+                                      cfg,
+                                      pathWd,
+                                      "Classif_" + str(currentTile),
+                                      ref,
+                                      testMode,
+                                      testOutput=folderSample)
+    validityRaster = extractROI(previousClassifPath +
+                                "/final/PixelsValidity.tif",
+                                currentTile,
+                                cfg,
+                                pathWd,
+                                "Cloud" + str(currentTile),
+                                ref,
+                                testMode,
+                                testOutput=folderSample)
 
     #build regions mask into the tile
-    masks = [getRegionModelInTile(currentTile, currentRegion, pathWd, cfg,
-                                  classificationRaster, testMode, testShapeRegion,
-                                  testOutputFolder=folderSample) for currentRegion in regions]
+    masks = [
+        getRegionModelInTile(currentTile,
+                             currentRegion,
+                             pathWd,
+                             cfg,
+                             classificationRaster,
+                             testMode,
+                             testShapeRegion,
+                             testOutputFolder=folderSample)
+        for currentRegion in regions
+    ]
 
     if nb_feat_annu > 0:
-        annualPoints = genAS.genAnnualShapePoints(allCoord, "SQLite", workingDirectory,
-                                                  targetResolution, annualCrop, dataField,
-                                                  currentTile, validityThreshold, validityRaster,
-                                                  classificationRaster, masks, trainShape,
-                                                  AnnualShape, projOut, regionField, runs, annu_repartition)
+        annualPoints = genAS.genAnnualShapePoints(
+            allCoord, "SQLite", workingDirectory, targetResolution, annualCrop,
+            dataField, currentTile, validityThreshold, validityRaster,
+            classificationRaster, masks, trainShape, AnnualShape, projOut,
+            regionField, runs, annu_repartition)
 
     MergeName = trainShape.split("/")[-1].replace(".shp", "_selectionMerge")
     sampleSelection = workingDirectory + "/" + MergeName + ".sqlite"
 
     if (nb_feat_Nannu > 0) and (nb_feat_annu > 0 and annualPoints):
-        fu.mergeSQLite(MergeName, workingDirectory, [nonAnnualShape, AnnualShape])
-        
+        fu.mergeSQLite(MergeName, workingDirectory,
+                       [nonAnnualShape, AnnualShape])
+
     elif (nb_feat_Nannu > 0) and not (nb_feat_annu > 0 and annualPoints):
         #TODO: define SampleSel_NA (currently undefined)
         shutil.copy(SampleSel_NA, sampleSelection)
     elif not (nb_feat_Nannu > 0) and (nb_feat_annu > 0 and annualPoints):
-        #TODO: define annualShape (currently undefined)        
+        #TODO: define annualShape (currently undefined)
         shutil.copy(annualShape, sampleSelection)
-    samples = workingDirectory + "/" + trainShape.split("/")[-1].replace(".shp", "_Samples.sqlite")
+    samples = workingDirectory + "/" + trainShape.split("/")[-1].replace(
+        ".shp", "_Samples.sqlite")
 
-    sampleExtr, dep_tmp = gapFillingToSample(sampleSelection,
-                                             workingDirectory, samples,
-                                             dataField, cfg, wMode, RAM, mode)
+    sampleExtr, dep_tmp = gapFillingToSample(sampleSelection, workingDirectory,
+                                             samples, dataField, cfg, wMode,
+                                             RAM, mode)
 
     #~ sampleExtr.ExecuteAndWriteOutput()
-    p = mp.Process( target=executeApp, args=[sampleExtr])
+    p = mp.Process(target=executeApp, args=[sampleExtr])
     p.start()
     p.join()
 
     split_vectors = split_vector_by_region(in_vect=samples,
                                            output_dir=workingDirectory,
-                                           region_field=regionField, runs=int(runs),
-                                           driver="SQLite", proj_in="EPSG:"+str(projOut), proj_out="EPSG:"+str(projOut))
+                                           region_field=regionField,
+                                           runs=int(runs),
+                                           driver="SQLite",
+                                           proj_in="EPSG:" + str(projOut),
+                                           proj_out="EPSG:" + str(projOut))
     if testMode:
         return split_vectors
     if pathWd and os.path.exists(samples):
@@ -852,18 +969,26 @@ def cleanContentRepo(outputPath):
     """
     remove all content in TestPath+"learningSamples"
     """
-    LearningContent = os.listdir(outputPath+"/learningSamples")
+    LearningContent = os.listdir(outputPath + "/learningSamples")
     for c_content in LearningContent:
-        c_path = outputPath+"/learningSamples/"+c_content
+        c_path = outputPath + "/learningSamples/" + c_content
         if os.path.isdir(c_path):
             shutil.rmtree(c_path)
         else:
             os.remove(c_path)
 
-def generateSamples(train_shape_dic, pathWd, cfg, RAM=128, wMode=False,
-                    folderFeatures=None, folderAnnualFeatures=None,
-                    testMode=False, testShapeRegion=None,
-                    sampleSelection=None, logger=logger):
+
+def generateSamples(train_shape_dic,
+                    pathWd,
+                    cfg,
+                    RAM=128,
+                    wMode=False,
+                    folderFeatures=None,
+                    folderAnnualFeatures=None,
+                    testMode=False,
+                    testShapeRegion=None,
+                    sampleSelection=None,
+                    logger=logger):
     """
     usage : generation of vector shape of points with features
 
@@ -895,8 +1020,11 @@ def generateSamples(train_shape_dic, pathWd, cfg, RAM=128, wMode=False,
     mode = list(train_shape_dic.keys())[0]
     trainShape = train_shape_dic[mode]
 
-    AllClass = fu.getFieldElement(trainShape, "ESRI Shapefile", dataField,
-                                  mode="unique", elemType="str")
+    AllClass = fu.getFieldElement(trainShape,
+                                  "ESRI Shapefile",
+                                  dataField,
+                                  mode="unique",
+                                  elemType="str")
     folderFeaturesAnnual = folderAnnualFeatures
 
     # Get logger
@@ -906,7 +1034,8 @@ def generateSamples(train_shape_dic, pathWd, cfg, RAM=128, wMode=False,
         try:
             AllClass.remove(str(CurrentClass))
         except ValueError:
-            logger.warning("Class {} doesn't exist in {}".format(CurrentClass, trainShape))
+            logger.warning("Class {} doesn't exist in {}".format(
+                CurrentClass, trainShape))
 
     logger.info("All classes: {}".format(AllClass))
     logger.info("Annual crop: {}".format(annualCrop))
@@ -916,9 +1045,10 @@ def generateSamples(train_shape_dic, pathWd, cfg, RAM=128, wMode=False,
     folderFeatures = os.path.join(TestPath, "features")
     folderFeaturesAnnual = cfg.getParam('argTrain', 'outputPrevFeatures')
     prevFeatures = cfg.getParam('argTrain', 'outputPrevFeatures')
-    configPrevClassif = cfg.getParam('argTrain', 'annualClassesExtractionSource')
+    configPrevClassif = cfg.getParam('argTrain',
+                                     'annualClassesExtractionSource')
     config_annual_data = cfg.getParam('argTrain', 'prevFeatures')
-    
+
     auto_context_enable = cfg.getParam('chain', 'enable_autoContext')
 
     folderSample = TestPath + "/learningSamples"
@@ -935,37 +1065,44 @@ def generateSamples(train_shape_dic, pathWd, cfg, RAM=128, wMode=False,
     if cropMix is False or auto_context_enable:
         samples = generateSamples_simple(folderSample, workingDirectory,
                                          trainShape, pathWd, folderFeatures,
-                                         cfg, dataField, RAM,
-                                         wMode, folderFeatures,
-                                         testMode, sampleSelection, mode)
+                                         cfg, dataField, RAM, wMode,
+                                         folderFeatures, testMode,
+                                         sampleSelection, mode)
 
     elif cropMix is True and samplesClassifMix is False:
-        samples = generateSamples_cropMix(folderSample, workingDirectory,
-                                          trainShape, pathWd, featuresPath,
-                                          prevFeatures, annualCrop, AllClass,
-                                          dataField, cfg, folderFeatures, folderFeaturesAnnual,
-                                          config_annual_data, RAM, wMode, testMode, sampleSelection, mode)
+        samples = generateSamples_cropMix(
+            folderSample, workingDirectory, trainShape, pathWd, featuresPath,
+            prevFeatures, annualCrop, AllClass, dataField, cfg, folderFeatures,
+            folderFeaturesAnnual, config_annual_data, RAM, wMode, testMode,
+            sampleSelection, mode)
 
     elif cropMix is True and samplesClassifMix is True:
-        samples = generateSamples_classifMix(folderSample, workingDirectory,
-                                             trainShape, pathWd, annualCrop,
-                                             AllClass, dataField, cfg,
-                                             configPrevClassif, folderFeatures,
-                                             RAM, wMode, testMode, 
-                                             testShapeRegion, sampleSelection, mode)
+        samples = generateSamples_classifMix(
+            folderSample, workingDirectory, trainShape, pathWd, annualCrop,
+            AllClass, dataField, cfg, configPrevClassif, folderFeatures, RAM,
+            wMode, testMode, testShapeRegion, sampleSelection, mode)
     if testMode:
         return samples
 
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description="This function sample a shapeFile")
-    parser.add_argument("-shape", dest="shape", help="path to the shapeFile to sampled",
-                        default=None, required=True)
-    parser.add_argument("--wd", dest="pathWd", help="path to the working directory",
-                        default=None, required=False)
-    parser.add_argument("-conf", help="path to the configuration file (mandatory)",
-                        dest="pathConf", required=True)
+    parser = argparse.ArgumentParser(
+        description="This function sample a shapeFile")
+    parser.add_argument("-shape",
+                        dest="shape",
+                        help="path to the shapeFile to sampled",
+                        default=None,
+                        required=True)
+    parser.add_argument("--wd",
+                        dest="pathWd",
+                        help="path to the working directory",
+                        default=None,
+                        required=False)
+    parser.add_argument("-conf",
+                        help="path to the configuration file (mandatory)",
+                        dest="pathConf",
+                        required=True)
     args = parser.parse_args()
 
     # load configuration file
