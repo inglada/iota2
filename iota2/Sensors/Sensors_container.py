@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -14,7 +14,7 @@
 #
 # =========================================================================
 """
-This class manage sensor's data by tile, providing services needed in whole 
+This class manage sensor's data by tile, providing services needed in whole
 IOTA² library
 """
 import os
