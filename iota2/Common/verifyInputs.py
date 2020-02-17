@@ -16,19 +16,19 @@
 import os
 import sys
 import logging
-from osgeo import ogr
 from typing import List, Optional, Union
+from osgeo import ogr
 
-from Common import ServiceError
-from Common import ServiceConfigFile
-from Common.Tools import checkDataBase
-from Common.FileUtils import is_writable_directory
-from Common.FileUtils import FileSearch_AND
-from Common.FileUtils import getRasterProjectionEPSG
-from Common.FileUtils import getRasterExtent
-from Common.FileUtils import getFieldElement
+from iota2.Common import ServiceError
+from iota2.Common import ServiceConfigFile
+from iota2.Common.Tools import checkDataBase
+from iota2.Common.FileUtils import is_writable_directory
+from iota2.Common.FileUtils import FileSearch_AND
+from iota2.Common.FileUtils import getRasterProjectionEPSG
+from iota2.Common.FileUtils import getRasterExtent
+from iota2.Common.FileUtils import getFieldElement
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
 def extent_to_geom(min_x, max_x, min_y, max_y, src_epsg,
@@ -64,7 +64,7 @@ def get_tile_raster_footprint(tile_name: str, configuration_file: str,
     """
     raster_ref = None
     geom_raster_envelope = None
-    from Sensors.Sensors_container import sensors_container
+    from iota2.Sensors.Sensors_container import sensors_container
     sensor_tile_container = sensors_container(configuration_file,
                                               tile_name,
                                               working_dir=None)
@@ -194,7 +194,7 @@ def check_data_intersection(configuration_file_path: str) -> List:
                 inter for _, inter in dico_region_intersection.items()
             ]
         else:
-            logger.warning(
+            LOGGER.warning(
                 "Cannot check intersections, only Sentinel-1 data asked")
     if found_intersection_in_tile and any(found_intersection_in_tile) is False:
         errors.append(ServiceError.intersectionError())
@@ -254,5 +254,5 @@ def check_iota2_inputs(configuration_file_path: str):
         sys.tracebacklimit = 0
         errors_sum = "\n".join(
             ["ERROR : {}".format(error.msg) for error in errors])
-        logger.error(errors_sum)
+        LOGGER.error(errors_sum)
         raise Exception(errors_sum)
