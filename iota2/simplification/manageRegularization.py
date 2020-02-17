@@ -166,8 +166,8 @@ def sieveRasterMemory(raster, threshold, output='', dstnodata=0, pixelConnection
 
     # output band
     dst_ds, dstband = prepareBandRasterDataset(raster)
-        
-    gdal.SieveFilter(srcband, None, dstband, threshold, pixelConnection)
+
+    gdal.SieveFilter(srcband, srcband, dstband, threshold, pixelConnection)
 
     outformat = 'MEM'
     if os.path.splitext(output)[1] == ".tif":
