@@ -28,8 +28,7 @@ def checkGeometryAreaThreshField(shapefile, pixelArea, pix_thresh, outshape = ""
     else:
         print("Output format not managed" )
         sys.exit()           
-    print(outshape)
-    input("pause")
+
     # Empty geometry identification
     try:
         outShapefileGeom, _ = vf.checkEmptyGeom(shapefile, outformat)
