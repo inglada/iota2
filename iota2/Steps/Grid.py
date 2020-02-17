@@ -30,8 +30,8 @@ class Grid(IOTA2Step.Step):
         self.workingDirectory = workingDirectory
         self.outputPath = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
         self.gridsize = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'gridsize')
-        self.epsg = SCF.serviceConfigFile(self.cfg).getParam('GlobChain', 'proj')
-
+        self.epsg = int(ServiceConfigFile.serviceConfigFile(self.cfg).getParam('GlobChain', 'proj').split(":")[-1])
+        
     def step_description(self):
         """
         function use to print a short description of the step's purpose
