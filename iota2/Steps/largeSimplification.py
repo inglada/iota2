@@ -36,6 +36,7 @@ class largeSimplification(IOTA2Step.Step):
         self.clipfile = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'clipfile')
         self.clipfield = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'clipfield')        
         self.grid = os.path.join(self.outputPath, 'final', 'simplification', 'grid.shp')
+        self.epsg = int(ServiceConfigFile.serviceConfigFile(self.cfg).getParam('GlobChain', 'proj').split(":")[-1])
         
     def step_description(self):
         """
@@ -76,7 +77,8 @@ class largeSimplification(IOTA2Step.Step):
                                                        x[0],
                                                        self.douglas,
                                                        "douglas",
-                                                       out=x[1])
+                                                       out=x[1],
+                                                       epsg=self.epsg)
 
         return step_function
 
