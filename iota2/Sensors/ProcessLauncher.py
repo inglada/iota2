@@ -15,7 +15,11 @@
 # =========================================================================
 
 
-def preprocess(tile_name, config_path, working_directory=None, RAM=128):
+def preprocess(tile_name,
+               config_path,
+               output_path,
+               working_directory=None,
+               RAM=128):
     """
     preprocessing input rasters data by tile
     
@@ -25,20 +29,29 @@ def preprocess(tile_name, config_path, working_directory=None, RAM=128):
         tile's name
     config_path [string]
         absolute path to the configuration file
+    output_path : str
+        iota2 output path
     working_directory [string]
         absolute path to a working directory
     RAM [int]
         pipeline's size (Mo)
     """
-    from Sensors.Sensors_container import sensors_container
+    from iota2.Sensors.Sensors_container import sensors_container
+    from iota2.Common.ServiceConfigFile import iota2_parameters
+    running_parameters = iota2_parameters(config_path)
+    sensors_parameters = running_parameters.get_sensors_parameters(tile_name)
 
-    remoteSensor_container = sensors_container(config_path,
-                                               tile_name,
-                                               working_dir=working_directory)
-    remoteSensor_container.sensors_preprocess(available_ram=RAM)
+    remote_sensor_container = sensors_container(tile_name, working_directory,
+                                                output_path,
+                                                **sensors_parameters)
+    remote_sensor_container.sensors_preprocess(available_ram=RAM)
 
 
-def commonMasks(tile_name, config_path, working_directory=None, RAM=128):
+def commonMasks(tile_name,
+                config_path,
+                output_path,
+                working_directory=None,
+                RAM=128):
     """
     compute common mask considering all sensors by tile
     
@@ -48,20 +61,25 @@ def commonMasks(tile_name, config_path, working_directory=None, RAM=128):
         tile's name
     config_path [string]
         absolute path to the configuration file
+    output_path : str
+        iota2 output path
     working_directory [string]
         absolute path to a working directory
     RAM [int]
         pipeline's size (Mo)
     """
     import os
-    from Sensors.Sensors_container import sensors_container
-    from Common.Utils import run
-    from Common.FileUtils import ensure_dir
+    from iota2.Sensors.Sensors_container import sensors_container
+    from iota2.Common.ServiceConfigFile import iota2_parameters
+    from iota2.Common.Utils import run
+    from iota2.Common.FileUtils import ensure_dir
 
-    remoteSensor_container = sensors_container(config_path,
-                                               tile_name,
-                                               working_dir=working_directory)
-    common_mask, _ = remoteSensor_container.get_common_sensors_footprint(
+    running_parameters = iota2_parameters(config_path)
+    sensors_parameters = running_parameters.get_sensors_parameters(tile_name)
+    remote_sensor_container = sensors_container(tile_name, working_directory,
+                                                output_path,
+                                                **sensors_parameters)
+    common_mask, _ = remote_sensor_container.get_common_sensors_footprint(
         available_ram=RAM)
     common_mask_raster = common_mask.GetParameterValue("out")
 
