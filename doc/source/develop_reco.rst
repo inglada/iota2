@@ -119,7 +119,7 @@ It's format must be in NumPy style:
 
 .. Warning::
 
-    developers must use the pre-commit hook. It could be setup by the script enable_hooks.sh
+    developers must use the pre-commit hook. It can be setup by the script enable_hooks.sh
 
 TESTS
 *****
