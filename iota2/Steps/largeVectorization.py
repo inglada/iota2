@@ -36,6 +36,7 @@ class largeVectorization(IOTA2Step.Step):
         self.clipfile = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'clipfile')
         self.clipfield = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'clipfield')        
         self.grid = os.path.join(self.outputPath, 'final', 'simplification', 'grid.shp')
+        self.epsg = int(ServiceConfigFile.serviceConfigFile(self.cfg).getParam('GlobChain', 'proj').split(":")[-1])
         
     def step_description(self):
         """
@@ -51,7 +52,7 @@ class largeVectorization(IOTA2Step.Step):
             the return could be and iterable or a callable
         """
         if not os.path.exists(self.grid):
-            return [[os.path.join(self.outputPath, "final", "Simplification", "classif_regul.tif"), os.path.join(self.outmos, "classif.shp")]]
+            return [[os.path.join(self.outputPath, "final", "simplification", "classif_regul.tif"), os.path.join(self.outmos, "classif.shp")]]
         else:        
             listfid = vf.getFIDSpatialFilter(self.clipfile, self.grid, self.clipfield)
             return [["%s/tile_%s_%s.tif"%(self.outmos, self.clipfield, x), "%s/tile_%s_%s.shp"%(self.outmos, self.clipfield, x)] for x in listfid]
@@ -74,7 +75,8 @@ class largeVectorization(IOTA2Step.Step):
                                                             self.grasslib,
                                                             x[0],
                                                             self.angle,
-                                                            x[1])
+                                                            x[1],
+                                                            epsg=self.epsg)
         return step_function
 
     def step_outputs(self):
