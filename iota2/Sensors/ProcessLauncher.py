@@ -54,7 +54,7 @@ def commonMasks(tile_name,
                 RAM=128):
     """
     compute common mask considering all sensors by tile
-    
+
     Parameters
     ----------
     tile_name [string]
@@ -95,6 +95,7 @@ def commonMasks(tile_name,
 
 def validity(tile_name,
              config_path,
+             output_path,
              maskOut_name,
              view_threshold,
              workingDirectory=None,
@@ -104,7 +105,6 @@ def validity(tile_name,
 
     Parameters
     ----------
-    
     tile_name [string]
         tile's name
     config_path [string]
@@ -120,14 +120,15 @@ def validity(tile_name,
     """
     import os
     import shutil
-    from Sensors.Sensors_container import sensors_container
-    from Common.OtbAppBank import CreateConcatenateImagesApplication
-    from Common.OtbAppBank import CreateBandMathApplication
-    from Common import ServiceConfigFile as SCF
-    from Common.Utils import run
-    from Common.FileUtils import erodeShapeFile
-    from Common.FileUtils import removeShape
-    from Common.FileUtils import ensure_dir
+    from iota2.Common.ServiceConfigFile import iota2_parameters
+    from iota2.Sensors.Sensors_container import sensors_container
+    from iota2.Common.OtbAppBank import CreateConcatenateImagesApplication
+    from iota2.Common.OtbAppBank import CreateBandMathApplication
+    from iota2.Common import ServiceConfigFile as SCF
+    from iota2.Common.Utils import run
+    from iota2.Common.FileUtils import erodeShapeFile
+    from iota2.Common.FileUtils import removeShape
+    from iota2.Common.FileUtils import ensure_dir
 
     cfg = SCF.serviceConfigFile(config_path)
     features_dir = os.path.join(cfg.getParam("chain", "outputPath"),
@@ -141,9 +142,12 @@ def validity(tile_name,
         validity_processing = os.path.join(workingDirectory, tile_name,
                                            validity_name)
 
-    remote_sensor_container = sensors_container(config_path,
-                                                tile_name,
-                                                working_dir=workingDirectory)
+    running_parameters = iota2_parameters(config_path)
+    sensors_parameters = running_parameters.get_sensors_parameters(tile_name)
+    remote_sensor_container = sensors_container(tile_name, workingDirectory,
+                                                output_path,
+                                                **sensors_parameters)
+
     sensors_time_series_masks = remote_sensor_container.get_sensors_time_series_masks(
         available_ram=RAM)
     sensors_masks_size = []
@@ -151,8 +155,7 @@ def validity(tile_name,
     for sensor_name, (time_series_masks, time_series_dep,
                       nb_bands) in sensors_time_series_masks:
         if sensor_name.lower() == "sentinel1":
-            for sensor_mode, time_series_masks_app in list(
-                    time_series_masks.items()):
+            for _, time_series_masks_app in list(time_series_masks.items()):
                 time_series_masks_app.Execute()
                 sensors_masks.append(time_series_masks_app)
         else:
@@ -208,9 +211,7 @@ def validity(tile_name,
         threshold_raster_out
     })
     threshold_raster.ExecuteAndWriteOutput()
-    cmd_poly = "gdal_polygonize.py -mask {} {} -f \"ESRI Shapefile\" {} {} cloud".format(
-        threshold_raster_out, threshold_raster_out, threshold_vector_out_tmp,
-        os.path.splitext(os.path.basename(threshold_vector_out_tmp))[0])
+    cmd_poly = f"gdal_polygonize.py -mask {threshold_raster_out} {threshold_raster_out} -f \"ESRI Shapefile\" {threshold_vector_out_tmp} {os.path.splitext(os.path.basename(threshold_vector_out_tmp))[0]} cloud"
     run(cmd_poly)
 
     erodeShapeFile(threshold_vector_out_tmp, threshold_vector_out, 0.1)
