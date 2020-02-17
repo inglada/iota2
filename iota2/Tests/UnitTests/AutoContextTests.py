@@ -22,18 +22,18 @@ import unittest
 IOTA2DIR = os.environ.get('IOTA2DIR')
 RM_IF_ALL_OK = True
 
-iota2_script = os.path.join(IOTA2DIR, "iota2")
-sys.path.append(iota2_script)
+IOTA2_SCRIPT = os.path.join(IOTA2DIR, "iota2")
+sys.path.append(IOTA2_SCRIPT)
 
-from Common import FileUtils as fut
+from iota2.Common import FileUtils as fut
 
 
 class iota_testAutoContext(unittest.TestCase):
-    #before launching tests
+    # before launching tests
     @classmethod
     def setUpClass(self):
 
-        from Common.FileUtils import ensure_dir
+        from iota2.Common.FileUtils import ensure_dir
         from TestsUtils import generate_fake_s2_data
 
         # definition of local variables
@@ -107,9 +107,9 @@ class iota_testAutoContext(unittest.TestCase):
         from config import Config
         shutil.copy(ref_cfg, test_cfg)
 
-        testPath = os.path.join(self.test_working_directory, "RUN")
+        test_path = os.path.join(self.test_working_directory, "RUN")
         cfg_test = Config(open(test_cfg))
-        cfg_test.chain.outputPath = testPath
+        cfg_test.chain.outputPath = test_path
         cfg_test.chain.listTile = "T31TCJ"
         cfg_test.chain.L8Path_old = "None"
         cfg_test.chain.L8Path = "None"
@@ -124,13 +124,13 @@ class iota_testAutoContext(unittest.TestCase):
         cfg_test.GlobChain.useAdditionalFeatures = False
         cfg_test.GlobChain.writeOutputs = False
         cfg_test.save(open(test_cfg, 'w'))
-        return testPath
+        return test_path
 
     def prepapre_data_ref(self, in_vector, out_vector, ref_img):
         """
         """
-        from Common.OtbAppBank import CreateSampleSelectionApplication
-        from Common.OtbAppBank import CreatePolygonClassStatisticsApplication
+        from iota2.Common.OtbAppBank import CreateSampleSelectionApplication
+        from iota2.Common.OtbAppBank import CreatePolygonClassStatisticsApplication
 
         stat = out_vector.replace(".sqlite", ".xml")
         CreatePolygonClassStatisticsApplication({
@@ -152,15 +152,15 @@ class iota_testAutoContext(unittest.TestCase):
     def prepare_autoContext_data_ref(self, slic_seg, config_path_test):
         """
         """
-        from VectorTools.AddField import addField
-        from Sampling.SuperPixelsSelection import merge_ref_super_pix
-        from Sampling.SplitSamples import split_superpixels_and_reference
-        from Common.FileUtils import FileSearch_AND
-        from Common.OtbAppBank import CreateSampleSelectionApplication
-        from Common.OtbAppBank import CreatePolygonClassStatisticsApplication
-        from Common.OtbAppBank import CreateSampleExtractionApplication
-        from Common.GenerateFeatures import generateFeatures
-        from Common import ServiceConfigFile as SCF
+        from iota2.VectorTools.AddField import addField
+        from iota2.Sampling.SuperPixelsSelection import merge_ref_super_pix
+        from iota2.Sampling.SplitSamples import split_superpixels_and_reference
+        from iota2.Common.FileUtils import FileSearch_AND
+        from iota2.Common.OtbAppBank import CreateSampleSelectionApplication
+        from iota2.Common.OtbAppBank import CreatePolygonClassStatisticsApplication
+        from iota2.Common.OtbAppBank import CreateSampleExtractionApplication
+        from iota2.Common.GenerateFeatures import generateFeatures
+        from iota2.Common import ServiceConfigFile as SCF
 
         raster_ref = FileSearch_AND(self.fake_data_dir, True, ".tif")[0]
         CreatePolygonClassStatisticsApplication({
@@ -372,21 +372,25 @@ class iota_testAutoContext(unittest.TestCase):
     def test_slic(self):
         """non-regression test, check if SLIC could be performed
         """
-        from Common import IOTA2Directory
-        from Common import ServiceConfigFile as SCF
-        from Segmentation import segmentation
-        from Common.FileUtils import FileSearch_AND
-        from Sensors.Sensors_container import sensors_container
+        from iota2.Common import IOTA2Directory
+        from iota2.Common import ServiceConfigFile as SCF
+        from iota2.Segmentation import segmentation
+        from iota2.Common.FileUtils import FileSearch_AND
+        from iota2.Sensors.Sensors_container import sensors_container
 
         # config file
         config_path_test = os.path.join(self.test_working_directory,
                                         "Config_TEST.cfg")
-        testPath = self.generate_cfg_file(self.config_test, config_path_test)
-        cfg = SCF.serviceConfigFile(config_path_test)
-        IOTA2Directory.GenerateDirectories(cfg, check_inputs=False)
+        test_path = self.generate_cfg_file(self.config_test, config_path_test)
+        # cfg = SCF.serviceConfigFile(config_path_test)
+        IOTA2Directory.GenerateDirectories(config_path_test,
+                                           check_inputs=False)
         slic_working_dir = os.path.join(self.test_working_directory,
                                         "slic_tmp")
-        sensors = sensors_container(config_path_test, self.tile_name, None)
+        iota2_dico = SCF.iota2_parameters(
+            config_path_test).get_sensors_parameters(self.tile_name)
+        sensors = sensors_container(self.tile_name, None,
+                                    self.test_working_directory, **iota2_dico)
         sensors.sensors_preprocess()
 
         # Launch test
@@ -396,11 +400,11 @@ class iota_testAutoContext(unittest.TestCase):
                                       working_dir=slic_working_dir,
                                       force_spw=1)
 
-        # as SLIC algorithm contains random variables, the raster's content could
-        # not be tested
+        # as SLIC algorithm contains random variables, the raster's content
+        # could not be tested
         self.assertTrue(len(
             FileSearch_AND(
-                os.path.join(testPath, "features", self.tile_name, "tmp"),
+                os.path.join(test_path, "features", self.tile_name, "tmp"),
                 True, "SLIC_{}".format(self.tile_name))) == 1,
                         msg="SLIC algorithm failed")
 
@@ -408,28 +412,32 @@ class iota_testAutoContext(unittest.TestCase):
         """test autoContext training
         """
         import re
-        from Common import IOTA2Directory
-        from Common import ServiceConfigFile as SCF
-        from Common.FileUtils import FileSearch_AND
-        from Common.FileUtils import getFieldElement
-        from Segmentation import segmentation
-        from Learning.trainAutoContext import train_autoContext
-        from Classification.ImageClassifier import autoContext_launch_classif
-        from Sensors.Sensors_container import sensors_container
-        from Common.OtbAppBank import CreateBandMathApplication
-        from TestsUtils import test_raster_unique_value
+        from iota2.Common import IOTA2Directory
+        from iota2.Common import ServiceConfigFile as SCF
+        from iota2.Common.FileUtils import FileSearch_AND
+        from iota2.Common.FileUtils import getFieldElement
+        from iota2.Segmentation import segmentation
+        from iota2.Learning.trainAutoContext import train_autoContext
+        from iota2.Classification.ImageClassifier import autoContext_launch_classif
+        from iota2.Sensors.Sensors_container import sensors_container
+        from iota2.Common.OtbAppBank import CreateBandMathApplication
+        from iota2.Tests.UnitTests.TestsUtils import test_raster_unique_value
 
         # config file
         config_path_test = os.path.join(self.test_working_directory,
                                         "Config_TEST.cfg")
-        testPath = self.generate_cfg_file(self.config_test, config_path_test)
-        cfg = SCF.serviceConfigFile(config_path_test)
-        IOTA2Directory.GenerateDirectories(cfg, check_inputs=False)
-        autoContext_working_dir = os.path.join(self.test_working_directory,
+        test_path = self.generate_cfg_file(self.config_test, config_path_test)
+        # cfg = SCF.serviceConfigFile(config_path_test)
+        IOTA2Directory.GenerateDirectories(config_path_test,
+                                           check_inputs=False)
+        autocontext_working_dir = os.path.join(self.test_working_directory,
                                                "autoContext_tmp")
         slic_working_dir = os.path.join(self.test_working_directory,
                                         "autoContext_tmp")
-        sensors = sensors_container(config_path_test, self.tile_name, None)
+        iota2_dico = SCF.iota2_parameters(
+            config_path_test).get_sensors_parameters(self.tile_name)
+        sensors = sensors_container(self.tile_name, None,
+                                    self.test_working_directory, **iota2_dico)
         sensors.sensors_preprocess()
 
         segmentation.slicSegmentation(self.tile_name,
@@ -439,7 +447,7 @@ class iota_testAutoContext(unittest.TestCase):
                                       force_spw=1)
 
         slic_seg = FileSearch_AND(
-            os.path.join(testPath, "features", self.tile_name, "tmp"), True,
+            os.path.join(test_path, "features", self.tile_name, "tmp"), True,
             "SLIC_{}".format(self.tile_name))[0]
 
         train_auto_data_ref, superpix_data = self.prepare_autoContext_data_ref(
@@ -455,27 +463,27 @@ class iota_testAutoContext(unittest.TestCase):
         }
         # launch tests
 
-        #~ training
+        # training
         e = None
         try:
             train_autoContext(parameter_dict,
                               config_path_test,
                               RAM=128,
-                              WORKING_DIR=autoContext_working_dir)
+                              WORKING_DIR=autocontext_working_dir)
         except Exception as e:
             print(e)
 
-        #~ Asserts training
+        # Asserts training
         self.assertTrue(e is None, msg="train_autoContext failed")
 
-        models = FileSearch_AND(os.path.join(testPath, "model"), True,
+        models = FileSearch_AND(os.path.join(test_path, "model"), True,
                                 "model_it_", ".rf")
         self.assertTrue(len(models) == 4)
 
-        #~ classification
+        # classification
         tile_raster = FileSearch_AND(self.fake_data_dir, True,
                                      "BINARY_MASK.tif")[0]
-        tile_mask = os.path.join(autoContext_working_dir,
+        tile_mask = os.path.join(autocontext_working_dir,
                                  "{}_tile_mask.tif".format(self.tile_name))
         CreateBandMathApplication({
             "il": [tile_raster],
@@ -508,23 +516,21 @@ class iota_testAutoContext(unittest.TestCase):
         autoContext_launch_classif(parameters_dict,
                                    config_path_test,
                                    128,
-                                   WORKING_DIR=autoContext_working_dir)
+                                   WORKING_DIR=autocontext_working_dir)
 
-        #~ Asserts classifications
-        classif = FileSearch_AND(os.path.join(testPath, "classif"), True,
+        # Asserts classifications
+        classif = FileSearch_AND(os.path.join(test_path, "classif"), True,
                                  "Classif_T31TCJ_model_1_seed_0.tif")[0]
-        confidence = FileSearch_AND(os.path.join(testPath, "classif"), True,
+        confidence = FileSearch_AND(os.path.join(test_path, "classif"), True,
                                     "T31TCJ_model_1_confidence_seed_0.tif")[0]
 
         classif_unique_0 = test_raster_unique_value(classif, 0)
         confidence_unique_0 = test_raster_unique_value(confidence, 0)
         self.assertTrue(
             classif_unique_0 == False,
-            msg=
-            "AutoContext Classifications failed : classification contains only 0 values"
-        )
+            msg=("AutoContext Classifications failed : classification contains"
+                 " only 0 values"))
         self.assertTrue(
             confidence_unique_0 == False,
-            msg=
-            "AutoContext Classifications failed : confidence contains only 0 values"
-        )
+            msg=("AutoContext Classifications failed : confidence contains "
+                 "only 0 values"))
