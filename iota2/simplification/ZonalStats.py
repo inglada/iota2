@@ -544,7 +544,7 @@ def extractRasterArray(rasters, paramstats, vector, vectorgeomtype, fid, gdalpat
                 # store rasters in ndarray
                 ndbands = storeRasterInArray(bands)
                 
-            except:
+            except RuntimeError as err:
                 success = False
                 
 
@@ -555,7 +555,10 @@ def extractRasterArray(rasters, paramstats, vector, vectorgeomtype, fid, gdalpat
     if not success:
         ndbands = None
 
-    return success, ndbands
+    if not err:
+        err=""
+        
+    return success, ndbands, err
 
 
 def getClassMaj(bands, methodstat, idxcatraster):
@@ -848,7 +851,7 @@ def dataframeExport(geodataframe, output, schema):
         Utils.run('ogr2ogr -f SQLite %s %s'%(output, outputinter))
 
 
-def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist=None, nodata=0, gdalpath="", systemcall=True, gdalcachemax="9000", logger=logger):
+def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist=None, nodata=0, gdalpath="", systemcall=False, gdalcachemax="9000", logger=logger):
     """Compute zonal statistitics (descriptive and categorical)
        on multi-band raster or multi-rasters
        based on Point (buffered or not) or Polygon zonal vector
@@ -895,7 +898,11 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
     """
 
     logger.info("Begin to compute zonal statistics for vector file %s"%(output))
-    
+
+    if systemcall and not gdalpath:
+        logger.info("Please provide gdal binaries path when systemcall is set to true")
+        sys.exit()
+        
     if os.path.exists(output):
         return
     
@@ -970,7 +977,7 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
                     vector = vectorbuff
 
         # creation of wrapped rasters    
-        success, bands = extractRasterArray(rasters, paramstats, vector, vectorgeomtype, idval, gdalpath, gdalcachemax, systemcall, path)
+        success, bands, err = extractRasterArray(rasters, paramstats, vector, vectorgeomtype, idval, gdalpath, gdalcachemax, systemcall, path)
 
         if success:
             if 'val' in list(paramstats.values()):
@@ -979,7 +986,7 @@ def zonalstats(path, rasters, params, output, paramstats, classes="", bufferDist
                 stats = computeStats(bands, paramstats, stats, idval, nodata)
 
         else:
-            print("gdalwarp problem for feature %s (geometry error, too small area, gdal version, etc.) : No statistic computed"%(idval))
+            print("gdalwarp problem for feature %s (geometry error, too small area, gdal version, etc.) : No statistic computed (original message : %s)"%(idval, err))
             
     # Prepare columns name and format of output dataframe
     if "rate" in list(paramstats.values()) and classes != "":
