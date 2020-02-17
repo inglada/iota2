@@ -256,7 +256,7 @@ class iota_testSamplesSelection(unittest.TestCase):
         cfg.setParam("argTrain", "sampleSelection", {"sampler": "random",
                                                      "strategy": "all"})
         # create IOTA2 directories
-        IOTA2Directory.GenerateDirectories(cfg)
+        IOTA2Directory.GenerateDirectories(cfg, check_inputs=False)
         shutil.copytree(self.features_ref, os.path.join(self.test_working_directory, "samplesSelTest", "features", "T31TCJ"))
         shutil.copy(self.in_xml, os.path.join(self.test_working_directory,
                                               "samplesSelTest",

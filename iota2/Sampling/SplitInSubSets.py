@@ -26,10 +26,30 @@ from Common import FileUtils as fut
 
 logger = logging.getLogger(__name__)
 
-def get_randomPoly(layer, field, classes, ratio, regionField, regions):
+def get_randomPoly(layer, field, classes, ratio, regionField, regions, random_seed=None):
     """
-    usage : use to randomly split samples in learning and validation considering
-            classes in regions
+    use to randomly split samples in learning and validation considering
+    classes in regions
+
+    Parameters
+    ----------
+    layer : 
+    field : string
+        data field
+    classes : list
+    ratio : float
+        ratio number of validation polygons / number of training polygons
+    regionField : string
+        region field
+    regions : list
+        list of regions to consider
+    random_seed : int
+        random seed (default = None)
+    Returns
+    -------
+    tuple(sample_id_learn, sample_id_valid)
+        where sample_id_learn is a set of polygon's ID dedicated to learn models
+        where sample_id_valid is a set of polygon's ID dedicated to validate models
     """
     sample_id_learn = []
     sample_id_valid = []
@@ -59,7 +79,9 @@ def get_randomPoly(layer, field, classes, ratio, regionField, regions):
                     listid.append(_id)
                     listid.sort()
 
-                sample_id_learn += [fid for fid in random.sample(listid, int(polbysel))]
+                random.seed(random_seed)
+                random_id_learn = random.sample(listid, int(polbysel))
+                sample_id_learn += [fid for fid in random_id_learn]
                 sample_id_valid += [currentFid for currentFid in listid if currentFid not in sample_id_learn]
 
     sample_id_learn.sort()
@@ -114,7 +136,7 @@ def splitInSubSets(vectoFile, dataField, regionField,
                    ratio=0.5, seeds=1, driver_name="SQLite", 
                    learningFlag="learn", validationFlag="validation",
                    unusedFlag="unused", crossValidation=False,
-                   splitGroundTruth=True):
+                   splitGroundTruth=True, random_seed=None):
     """
     This function is dedicated to split a shape into N subsets
     of training and validations samples by adding a new field
@@ -145,6 +167,8 @@ def splitInSubSets(vectoFile, dataField, regionField,
         enable cross validation split
     splitGroundTruth
         enable the ground truth split
+    random_seed : int
+        random seed
     """
     driver = ogr.GetDriverByName(driver_name)
     source = driver.Open(vectoFile, 1)
@@ -175,9 +199,12 @@ def splitInSubSets(vectoFile, dataField, regionField,
         if seed_field_name not in all_fields:
             layer.CreateField(seed_field)
         if crossValidation is False:
+            random_seed_number = None
+            if random_seed is not None:
+                random_seed_number = random_seed + seed
             id_learn, id_val = get_randomPoly(layer, dataField,
                                               class_avail, ratio,
-                                              regionField, region_avail)
+                                              regionField, region_avail, random_seed_number)
         else:
             id_learn = id_CrossVal[seed]
 

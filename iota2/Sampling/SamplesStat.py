@@ -30,15 +30,15 @@ def region_tile(sample_sel_dir):
     tile_field_name = "tile_o"
     region_vectors = fut.FileSearch_AND(sample_sel_dir, True, ".shp")
     output = []
+    region_vectors = sorted(region_vectors)
     for region_vector in region_vectors:
         tiles = fut.getFieldElement(region_vector, driverName="ESRI Shapefile", field=tile_field_name, mode="unique",
                                     elemType="str")
         region_name = os.path.splitext(os.path.basename(region_vector))[0].split("_")[2]
         seed = os.path.splitext(os.path.basename(region_vector))[0].split("_")[4]
-
+        tiles = sorted(tiles)
         for tile in tiles:
             output.append((region_name, seed, tile))
-
     return output
 
 def samples_stats(region_seed_tile, cfg, workingDirectory=None, logger=logger):

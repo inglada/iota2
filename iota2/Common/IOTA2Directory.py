@@ -16,25 +16,35 @@
 
 import os
 import shutil
-from Common import ServiceConfigFile as SCF
 
-def GenerateDirectories(cfg):
+from Common import ServiceConfigFile as SCF
+from Common.verifyInputs import check_iota2_inputs
+
+def GenerateDirectories(cfg_path, check_inputs=True):
     """
     generate IOTA2 output directories
     """
-    if not isinstance(cfg, SCF.serviceConfigFile):
-        cfg = SCF.serviceConfigFile(cfg)
+    from Common.FileUtils import ensure_dir
+    if not isinstance(cfg_path, SCF.serviceConfigFile):
+        cfg = SCF.serviceConfigFile(cfg_path)
+    else:
+        cfg = cfg_path
+
+    configuration_file_path = cfg.pathConf
+
+    if check_inputs:
+        check_iota2_inputs(configuration_file_path)
 
     root = cfg.getParam('chain', 'outputPath')
     rm_PathTEST = cfg.getParam("chain", "remove_outputPath")
     start_step = cfg.getParam("chain", "firstStep")
 
-    if os.path.exists(root) and root != "/" and rm_PathTEST and start_step == "init":
-        shutil.rmtree(root,ignore_errors=False)
-    os.mkdir(root)
-    if os.path.exists(root+"/logs"):
-        shutil.rmtree(root+"/logs")
-    os.mkdir(root+"/logs")
+    # if os.path.exists(root) and root != "/" and rm_PathTEST and start_step == "init":
+    #     shutil.rmtree(root,ignore_errors=False)
+    ensure_dir(root)
+    # if os.path.exists(root+"/logs"):
+    #     shutil.rmtree(root+"/logs")
+    # os.mkdir(root+"/logs")
     if os.path.exists(root+"/samplesSelection"):
         shutil.rmtree(root+"/samplesSelection")
     os.mkdir(root+"/samplesSelection")
@@ -59,9 +69,11 @@ def GenerateDirectories(cfg):
     if os.path.exists(root+"/final"):
         shutil.rmtree(root+"/final")
     os.mkdir(root+"/final")
+    os.mkdir(root+"/final/vectors")    
     os.mkdir(root+"/final/simplification")
     os.mkdir(root+"/final/simplification/tiles")
-    os.mkdir(root+"/final/simplification/vectors")    
+    os.mkdir(root+"/final/simplification/vectors")
+    os.mkdir(root+"/final/simplification/mosaic")    
     os.mkdir(root+"/final/simplification/tmp")
     if os.path.exists(root+"/features"):
         shutil.rmtree(root+"/features")

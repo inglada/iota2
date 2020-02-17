@@ -35,6 +35,7 @@ def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
     scriptPath = os.path.join(fu.get_iota2_project_dir(), "iota2")
     classifMode = cfg.getParam('argClassification', 'classifMode')
     pixType = fu.getOutputPixType(cfg.getParam('chain', 'nomenclaturePath'))
+    enable_autoContext = cfg.getParam('chain', 'enable_autoContext')
     Stack_ind = fu.getFeatStackName(pathConf)
     AllCmd = []
 
@@ -71,8 +72,6 @@ def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
             suffix = "_SAR" 
         tilesToEvaluate = tiles
 
-        if ("fusion" in classifMode and shapeRegion is None) or (shapeRegion is None):
-            tilesToEvaluate = allTiles
         #construction du string de sortie
         for tile in tilesToEvaluate:
             pathToFeat = fu.FileSearch_AND(pathToImg+"/"+tile+"/tmp/", True, fu.getCommonMaskName(pathConf), ".tif")[0]
@@ -80,15 +79,6 @@ def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
             maskTif = shpRName+"_region_"+model_Mask+"_"+tile+".tif"
             CmdConfidenceMap = ""
             confidenceMap = ""
-            if "fusion" in classifMode:
-                if shapeRegion is None:
-                    tmp = pathOut.split("/")
-                    if pathOut[-1] == "/":
-                        del tmp[-1]
-                    tmp[-1] = "envelope"
-                    pathToEnvelope = "/".join(tmp)
-                    maskSHP = pathToEnvelope+"/"+tile+".shp"
-
             confidenceMap_name = "{}_model_{}_confidence_seed_{}{}.tif".format(tile, model, seed, suffix)
             CmdConfidenceMap = " -confmap "+ os.path.join(pathOut, confidenceMap_name)
 

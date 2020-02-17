@@ -36,7 +36,7 @@ def manageMultiPoly2Poly(in_lyr, out_lyr, field_name_list, do_correction=True):
                     addPolygon(in_feat, geom.ExportToWkb(), in_lyr, out_lyr, field_name_list)
     return multi_cpt
 
-def multipoly2poly(inshape, outshape, do_correction=True):
+def multipoly2poly(inshape, outshape, do_correction=True, outformat = "ESRI shapefile"):
     """Check if a geometry is a MULTIPOLYGON, if it is it will not be split in POLYGON
 
     Parameters
@@ -54,9 +54,9 @@ def multipoly2poly(inshape, outshape, do_correction=True):
     """
     # Get field list
     field_name_list = vf.getFields(inshape)
-
+    
     # Open input and output shapefile
-    driver = ogr.GetDriverByName('ESRI Shapefile')
+    driver = ogr.GetDriverByName(outformat)
     in_ds = driver.Open(inshape, 0)
     in_lyr = in_ds.GetLayer()
     inLayerDefn = in_lyr.GetLayerDefn()

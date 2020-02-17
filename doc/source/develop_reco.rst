@@ -19,6 +19,28 @@ To roughly sum-up, for the development of a new feature, the developer **must** 
    3. ``merge`` new features comming from the ``develop`` branch into the feature branch
    4. when the feature is ready, create a ``merge request`` into the develop branch.
 
+Commits must be prefixed with one of the following label :
+
++-------------+-------------------------------------------+
+| Label       | Purpose                                   |
++=============+===========================================+
+| BUG FIX     | Fix for runtime crash or incorrect result |
++-------------+-------------------------------------------+
+| INSTALL     | Installation                              |
++-------------+-------------------------------------------+
+| DOC         | Documentation update                      |
++-------------+-------------------------------------------+
+| ENH         | Enhancement of an algorithm               |
++-------------+-------------------------------------------+
+| NEW FEATURE | New functionality                         |
++-------------+-------------------------------------------+
+| PERF        | Performance improvement                   |
++-------------+-------------------------------------------+
+| STYLE       | No logic impact (indentation, comments)   |
++-------------+-------------------------------------------+
+| WIP         | Work In Progress not ready for merge      |
++-------------+-------------------------------------------+
+
 Branch naming conventions
 =========================
 
@@ -94,6 +116,10 @@ It's format must be in NumPy style:
 
         """
         return True
+
+.. Warning::
+
+    Developers must use the pre-commit hook. It can be setup by the script enable_hooks.sh, which just makes a symlink into the ``.git/hooks`` directory. However the ``pre-commit`` python package has to be installed for this to work. See <https://pre-commit.com/> for details. The hook will format the code with ``yapf`` and run ``pylint``
 
 TESTS
 *****

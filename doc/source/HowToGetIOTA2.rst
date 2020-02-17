@@ -11,20 +11,22 @@ for details.
 How to install iota2 ?
 ----------------------
 
-iota2 is only tested on some Linux distributions : Ubuntu and CentOS.
-In order to install iota² and its dependencies easily, it is distributed through the package management system `Conda`.
+iota2 is only frequently tested on some Linux distributions (Ubuntu and CentOS), although others are known to work (Debian).
+In order to install iota² and its dependencies easily, it is distributed through the `Conda` package management system.
 In this section, steps to install iota² from scratch will be detailed.
 
 **Step 1 :** download and install Miniconda
 
-If Miniconda or Anaconda is already install on your system, you can skip this step. 
+If Miniconda or Anaconda is already installed on your system, you can skip this step. 
 Otherwise, you can download and install Miniconda thanks to the 
 `bash installer <https://conda.io/en/latest/miniconda.html>`_ (2 minutes) even if 
 your are not the system administrator.
 
-**Step 2 :** add iota²'s channel
+.. Note:: If the installation is inside a virtual machine, please do not use a shared directory with the host system as iota² output directory.
 
-Add the iota²'s channel to inform Conda where iota²'s packages are. This information 
+**Step 2 :** add iota² channel
+
+Add the iota² channel to inform Conda where iota² packages are. This information 
 has to be added in the ``.condarc`` file. In order to locate the file, please enter the following 
 command :
 
@@ -44,9 +46,9 @@ then a list of informations are printed, especially :
     conda-build version : 3.18.2
     ...
 
-.. Note:: maintain conda up to date thanks ``conda update conda`` command
+.. Note:: maintain conda up to date using the ``conda update conda`` command
 
-Once the ``.condarc`` file is located, you must add the following in it.
+Once the ``.condarc`` file is located (create it if not exists), you must add the following in it.
 
 .. code-block:: console
 
@@ -54,17 +56,17 @@ Once the ``.condarc`` file is located, you must add the following in it.
     channels:
         - iota2
         - conda-forge
-        ...
-    ...
+        - defaults
 
-**Step 3 :** get iota²'s package and install it
+
+**Step 3 :** get the iota² package and install it
 
 .. code-block:: console
 
     # create an empty conda environment : iota2-env
     conda create --name iota2-env
 
-    # install iota2 in iota2-env (it could take a few hours)
+    # install iota2 in iota2-env (this may take a while)
     conda install -c iota2 iota2 -n iota2-env
 
     

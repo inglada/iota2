@@ -85,6 +85,209 @@ def unPackFirst(someListOfList):
         else:
             yield values
 
+
+def CreateClassificationMapRegularization(OtbParameters):
+    """binding to ClassificationMapRegularization OTB's application
+    
+    Parameter
+    ---------
+
+    OtbParameters [dic] 
+        dictionnary with otb's parameter keys
+    
+    Return
+    ------
+    class 'otbApplication.Application'
+        ClassificationMapRegularization application ready to be Execute()
+    """
+    map_reg = otb.Registry.CreateApplication("ClassificationMapRegularization")
+    if map_reg is None:
+        raise Exception("Not possible to create 'ClassificationMapRegularization' application,\
+                         check if OTB is well configured / installed")
+    #~ check mandatory parameters
+    if "io.in" not in OtbParameters:
+        raise Exception("'io.in' parameter not found")
+
+    in_img = OtbParameters["io.in"]
+    if isinstance(in_img, str):
+        map_reg.SetParameterString("io.in", in_img)
+    else:
+        map_reg.SetParameterInputImage("io.in", in_img.GetParameterOutputImage(getInputParameterOutput(in_img)))
+
+    if "io.out" in OtbParameters:
+        map_reg.SetParameterString("io.out", str(OtbParameters["io.out"]))
+    if "ip.radius" in OtbParameters:
+        map_reg.SetParameterString("ip.radius", str(OtbParameters["ip.radius"]))
+    if "ip.suvbool" in OtbParameters:
+        map_reg.SetParameterString("ip.suvbool", str(OtbParameters["ip.suvbool"]))
+    if "ip.nodatalabel" in OtbParameters:
+        map_reg.SetParameterString("ip.nodatalabel", str(OtbParameters["ip.nodatalabel"]))
+    if "ip.undecidedlabel" in OtbParameters:
+        map_reg.SetParameterString("ip.undecidedlabel", str(OtbParameters["ip.undecidedlabel"]))
+    if "ip.onlyisolatedpixels" in OtbParameters:
+        map_reg.SetParameterString("ip.onlyisolatedpixels", str(OtbParameters["ip.onlyisolatedpixels"]))
+    if "ip.isolatedthreshold" in OtbParameters:
+        map_reg.SetParameterString("ip.isolatedthreshold", str(OtbParameters["ip.isolatedthreshold"]))
+    if "ram" in OtbParameters:
+        map_reg.SetParameterString("ram", str(OtbParameters["ram"]))
+    if "pixType" in OtbParameters:
+        map_reg.SetParameterOutputImagePixelType("io.out", fut.commonPixTypeToOTB(OtbParameters["pixType"]))
+    return map_reg
+
+
+def CreateClassifyAutoContext(OtbParameters):
+    """binding to ClassifyAutoContext OTB's application
+    
+    Parameter
+    ---------
+
+    OtbParameters [dic] 
+        dictionnary with otb's parameter keys
+    
+    Return
+    ------
+    class 'otbApplication.Application'
+        ClassifyAutoContext application ready to be Execute()
+    """
+    classify_autoContext = otb.Registry.CreateApplication("ClassifyAutoContext")
+    if classify_autoContext is None:
+        raise Exception("Not possible to create 'ClassifyAutoContext' application,\
+                         check if OTB is well configured / installed")
+    #~ check mandatory parameters
+    if "in" not in OtbParameters:
+        raise Exception("'in' parameter not found")
+    if "inseg" not in OtbParameters:
+        raise Exception("'inseg' parameter not found")
+    if "lablist" not in OtbParameters:
+        raise Exception("'refdata' parameter not found")
+    if "tmpdir" not in OtbParameters:
+        raise Exception("'tmpdir' parameter not found")
+    if "out" not in OtbParameters:
+        raise Exception("'out' parameter not found")
+
+    in_img = OtbParameters["in"]
+    if isinstance(in_img, str):
+        classify_autoContext.SetParameterString("in", in_img)
+    else:
+        classify_autoContext.SetParameterInputImage("in", in_img.GetParameterOutputImage(getInputParameterOutput(in_img)))
+
+    classify_autoContext.SetParameterString("inseg", OtbParameters["inseg"])
+    classify_autoContext.SetParameterStringList("models", OtbParameters["models"])
+    classify_autoContext.SetParameterStringList("lablist", OtbParameters["lablist"])
+    classify_autoContext.SetParameterString("tmpdir", OtbParameters["tmpdir"])
+    classify_autoContext.SetParameterString("out", OtbParameters["out"])
+
+    if "confmap" in OtbParameters:
+        classify_autoContext.SetParameterString("confmap", str(OtbParameters["confmap"]))
+    if "ram" in OtbParameters:
+        classify_autoContext.SetParameterString("ram", str(OtbParameters["ram"]))
+
+    return classify_autoContext
+
+
+def CreateTrainAutoContext(OtbParameters):
+    """binding to TrainAutoContext OTB's application
+    
+    Parameter
+    ---------
+
+    OtbParameters [dic] 
+        dictionnary with otb's parameter keys
+    
+    Return
+    ------
+    class 'otbApplication.Application'
+        SLIC application ready to be Execute()
+    """
+    train_autoContext = otb.Registry.CreateApplication("TrainAutoContext")
+    if train_autoContext is None:
+        raise Exception("Not possible to create 'TrainAutoContext' application,\
+                         check if OTB is well configured / installed")
+    #~ check mandatory parameters
+    if "refdata" not in OtbParameters:
+        raise Exception("'refdata' parameter not found")
+    if "reffield" not in OtbParameters:
+        raise Exception("'reffield' parameter not found")        
+    if "superpixdata" not in OtbParameters:
+        raise Exception("'superpixdata' parameter not found")        
+    if "superpixdatafield" not in OtbParameters:
+        raise Exception("'superpixdatafield' parameter not found")
+    if "feat" not in OtbParameters:
+        raise Exception("'feat' parameter not found")
+    if "out" not in OtbParameters:
+        raise Exception("'out' parameter not found")
+
+    train_autoContext.SetParameterStringList("refdata", OtbParameters["refdata"])
+    train_autoContext.SetParameterString("reffield", OtbParameters["reffield"])
+    train_autoContext.SetParameterStringList("superpixdata", OtbParameters["superpixdata"])
+    train_autoContext.SetParameterString("superpixdatafield", OtbParameters["superpixdatafield"])
+    train_autoContext.SetParameterStringList("feat", OtbParameters["feat"])
+    train_autoContext.SetParameterString("out", OtbParameters["out"])
+    
+    #~ add optional parameters
+    if "nit" in OtbParameters:
+        train_autoContext.SetParameterString("nit", str(OtbParameters["nit"]))
+    if "ram" in OtbParameters:
+        train_autoContext.SetParameterString("ram", str(OtbParameters["ram"]))
+
+    return train_autoContext
+
+def CreateSLICApplication(OtbParameters):
+    """binding to SLIC OTB's application
+    
+    Parameter
+    ---------
+
+    OtbParameters [dic] 
+        dictionnary with otb's parameter keys
+    
+    Return
+    ------
+    class 'otbApplication.Application'
+        SLIC application ready to be Execute()
+    """
+    SLIC = otb.Registry.CreateApplication("SLIC")
+    if SLIC is None:
+        raise Exception("Not possible to create 'SLIC' application,\
+                         check if OTB is well configured / installed")
+    #~ check mandatory parameters
+    if "in" not in OtbParameters:
+        raise Exception("'in' parameter not found")
+    if "tmpdir" not in OtbParameters:
+        raise Exception("'tmpdir' parameter not found")
+
+    SLIC.SetParameterString("tmpdir", OtbParameters["tmpdir"])
+
+    in_img = OtbParameters["in"]
+    if isinstance(in_img, str):
+        SLIC.SetParameterString("in", in_img)
+    else:
+        SLIC.SetParameterInputImage("in", in_img.GetParameterOutputImage(getInputParameterOutput(in_img)))
+    
+    #~ add optional parameters
+    if "out" in OtbParameters:
+        SLIC.SetParameterString("out", str(OtbParameters["out"]))
+    if "spw" in OtbParameters:
+        SLIC.SetParameterString("spw", str(OtbParameters["spw"]))
+    if "dw" in OtbParameters:
+        SLIC.SetParameterString("dw", str(OtbParameters["dw"]))
+    if "maxit" in OtbParameters:
+        SLIC.SetParameterString("maxit", str(OtbParameters["maxit"]))
+    if "thresh" in OtbParameters:
+        SLIC.SetParameterString("thresh", str(OtbParameters["thresh"]))
+    if "margin" in OtbParameters:
+        SLIC.SetParameterString("margin", str(OtbParameters["margin"]))
+    if "tiling" in OtbParameters:
+        SLIC.SetParameterString("tiling", str(OtbParameters["tiling"]))
+    if "tiling.auto.ram" in OtbParameters:
+        SLIC.SetParameterString("tiling.auto.ram", str(OtbParameters["tiling.auto.ram"]))
+    if "tiling.manual.nx" in OtbParameters:
+        SLIC.SetParameterString("tiling.manual.nx", str(OtbParameters["tiling.manual.nx"]))
+    if "tiling.manual.ny" in OtbParameters:
+        SLIC.SetParameterString("tiling.manual.ny", str(OtbParameters["tiling.manual.ny"]))
+
+    return SLIC
+
 def CreateImageClassifierApplication(OtbParameters):
     """binding to ImageClassifier OTB's application
     
@@ -667,8 +870,6 @@ def CreateSampleExtractionApplication(OtbParameters):
     sampleE = otb.Registry.CreateApplication("SampleExtraction")
     if "in" not in OtbParameters:
         raise Exception("'in' parameter not found")
-    if "out" not in OtbParameters:
-        raise Exception("'out' parameter not found")
     if "vec" not in OtbParameters:
         raise Exception("'vec' parameter not found")
 
@@ -686,9 +887,11 @@ def CreateSampleExtractionApplication(OtbParameters):
     else:
         raise Exception("input image not recognize")
 
-    sampleE.SetParameterString("out", OtbParameters["out"])
+    
     sampleE.SetParameterString("vec", OtbParameters["vec"])
     sampleE.UpdateParameters()
+    if "out" in OtbParameters:
+        sampleE.SetParameterString("out", OtbParameters["out"])
     if "outfield" in OtbParameters:
         sampleE.SetParameterString("outfield", OtbParameters["outfield"])
     if "outfield.prefix.name" in OtbParameters:

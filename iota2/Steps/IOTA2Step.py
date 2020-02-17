@@ -96,12 +96,15 @@ class Step(object):
 
         # define log path
         outputPath = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
+        
         log_dir = os.path.join(outputPath, "logs")
-        self.logFile = os.path.join(log_dir, "{}_log.log".format(self.step_name))
-
+        self.log_dir = log_dir
+        self.log_step_dir = os.path.join(self.log_dir, "{}".format(self.step_name))
+        self.logFile = os.path.join(self.log_step_dir, "{}_log.log".format(self.step_name))
+        
         self.previous_step = None
         self.next_step = None
-
+        
         # "waiting", "running", "success", "fail"
         self.step_status = "waiting"
 
@@ -128,7 +131,10 @@ class Step(object):
         resource["walltime"] = getattr(cfg_step_resources, "walltime", default_walltime)
         resource["process_min"] = getattr(cfg_step_resources, "process_min", default_process_min)
         resource["process_max"] = getattr(cfg_step_resources, "process_max", default_process_max)
-
+        resource["resource_block_name"] = str(step_name)
+        resource["resource_block_found"] = False
+        if cfg_resources:
+            resource["resource_block_found"] = str(step_name) in cfg_resources
         return resource
 
     def build_step_name(self):

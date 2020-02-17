@@ -1082,7 +1082,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         with a working directory and with temporary files on disk
         """
         #generate IOTA output directory
-        IOTA2Directory.GenerateDirectories(config_test)
+        IOTA2Directory.GenerateDirectories(config_test, check_inputs=False)
 
         #shapes genereation
         commonMasks("D0005H0002", config_path_test)
@@ -1133,7 +1133,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         config_test = SCF.serviceConfigFile(config_path_test)
         
         #generate IOTA output directory
-        IOTA2Directory.GenerateDirectories(config_test)
+        IOTA2Directory.GenerateDirectories(config_test, check_inputs=False)
 
         #shapes genereation
         vector = shapeReferenceVector(self.referenceShape, "D0005H0002")
@@ -1184,7 +1184,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         config_test = SCF.serviceConfigFile(config_path_test)
         
         #generate IOTA output directory
-        IOTA2Directory.GenerateDirectories(config_test)
+        IOTA2Directory.GenerateDirectories(config_test, check_inputs=False)
 
         #shapes genereation
         vector = shapeReferenceVector(self.referenceShape, "D0005H0002")
@@ -1233,7 +1233,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         cfg_test.save(open(config_path_test, 'w'))
         config_test = SCF.serviceConfigFile(config_path_test)
         #generate IOTA output directory
-        IOTA2Directory.GenerateDirectories(config_test)
+        IOTA2Directory.GenerateDirectories(config_test, check_inputs=False)
 
         #shapes genereation
         vector = shapeReferenceVector(self.referenceShape, "D0005H0002")
@@ -2662,7 +2662,7 @@ class iota_testSplitSamples(unittest.TestCase):
         self.assertEqual(self.dataAppValDir, os.path.abspath(dataAppVal_dir))
         enableCrossValidation = False
         SplitSamples.update_learningValination_sets(new_regions_shapes, dataAppVal_dir, dataField,
-                                                    region_field, ratio, seeds, epsg, enableCrossValidation)
+                                                    region_field, ratio, seeds, epsg, enableCrossValidation, random_seed=None)
 
 
 class iota_testVectorSplits(unittest.TestCase):
