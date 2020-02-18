@@ -26,6 +26,8 @@ import geopandas as gpad
 from skimage.measure import label
 from skimage.measure import regionprops
 import rasterio
+import fiona
+from rasterio.mask import mask
 import numpy as np
 import logging
 logger = logging.getLogger(__name__)
@@ -569,6 +571,7 @@ def extractRasterArray(rasters,
                                                                 gdalcachemax, \
                                                                 gdalcachemax, \
                                                                 fid, \
+
                                                                 raster, \
                                                                 tmpfile)
                     Utils.run(cmd)
@@ -597,7 +600,17 @@ def extractRasterArray(rasters,
         os.remove(filtodel)
 
     if not success:
-        ndbands = None
+
+        with fiona.open(vector) as src:
+            filtered = filter(lambda f: f['id'] == str(fid), src)
+
+            feature = next(filtered)
+            geometry = feature["geometry"]
+
+        with rasterio.open(raster) as rast:
+            ndbands, out_transform = mask(rast, [geometry], crop=True)
+
+            #ndbands = None
 
     return success, ndbands, errormsg
 
@@ -970,7 +983,7 @@ def zonalstats(path,
         gdal cache for wrapping operation (in Mb)
 
     """
-    print(params)
+
     logger.info("Begin to compute zonal statistics for vector file %s" %
                 (output))
 
@@ -1069,7 +1082,7 @@ def zonalstats(path,
 
         else:
             print(
-                "gdalwarp problem for feature %s (geometry error, too small area, gdal version, etc.) : No statistic computed (original message : %s)"
+                "gdalwarp problem for feature %s (%s) : statistic computed with rasterio"
                 % (idval, err))
 
     # Prepare columns name and format of output dataframe
