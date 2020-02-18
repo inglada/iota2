@@ -25,8 +25,9 @@ import numpy as np
 import matplotlib
 matplotlib.use("AGG")
 import matplotlib.pyplot as plt
-from Common import FileUtils as fu
-from Common import ServiceConfigFile as SCF
+from iota2.Common import FileUtils as fu
+from iota2.Common import ServiceConfigFile as SCF
+
 
 def getValidOK(configStats):
 
@@ -40,6 +41,7 @@ def getValidOK(configStats):
 
     return histoValidOK, bins_
 
+
 def getValidNOK(configStats):
 
     histoValidNOK = Config(open(configStats)).ValidNOK.histogram
@@ -51,6 +53,7 @@ def getValidNOK(configStats):
     bins_ = [int(currentVal) for currentVal in bins]
 
     return histoValidNOK, bins_
+
 
 def getAppOK(configStats):
 
@@ -64,6 +67,7 @@ def getAppOK(configStats):
 
     return histoAppOK, bins_
 
+
 def getAppNOK(configStats):
 
     histoAppNOK = Config(open(configStats)).AppNOK.histogram
@@ -75,6 +79,7 @@ def getAppNOK(configStats):
     bins_ = [int(currentVal) for currentVal in bins]
 
     return histoAppNOK, bins_
+
 
 def getValidity(configStats):
 
@@ -88,38 +93,43 @@ def getValidity(configStats):
 
     return histoValidity, bins_
 
+
 def SumInList(histoList):
-    histoSum = [0]*len(histoList[0])
-    for i in range(len(histoList)):#current Tile
-        for j in range(len(histoList[i])):#current bin
+    histoSum = [0] * len(histoList[0])
+    for i in range(len(histoList)):  #current Tile
+        for j in range(len(histoList[i])):  #current bin
             histoSum[j] += histoList[i][j]
     return histoSum
+
 
 def saveHisto(savePath, histo, bins):
 
     saveHistog = " ".join([str(currentVal) for currentVal in histo])
     saveBins = " ".join([str(currentVal) for currentVal in bins])
     with open(savePath, "w") as saveFile:
-        saveFile.write("Pixels validity\nBins:"+saveBins+"\nHistogram:"+saveHistog)
+        saveFile.write("Pixels validity\nBins:" + saveBins + "\nHistogram:" +
+                       saveHistog)
+
 
 def computeMeanStd(histo, bins):
 
     #Mean
     meanNom = 0.0
     for currentVal, currentBin in zip(histo, bins):
-        meanNom += (currentVal*currentBin)
+        meanNom += (currentVal * currentBin)
     mean = 0
     if np.sum(histo) != 0.0:
-        mean = meanNom/(np.sum(histo))
+        mean = meanNom / (np.sum(histo))
 
     #Var
     varNom = 0.0
     for currentVal, currentBin in zip(histo, bins):
-        varNom += currentVal*(currentBin-mean)**2
+        varNom += currentVal * (currentBin - mean)**2
     var = 0
     if np.sum(histo) != 0.0:
-        var = varNom/(np.sum(histo))
+        var = varNom / (np.sum(histo))
     return mean, math.sqrt(var)
+
 
 def mergeOutStats(cfg):
 
@@ -131,7 +141,8 @@ def mergeOutStats(cfg):
     AllTiles = cfg.getParam('chain', 'listTile')
 
     for seed in range(Nruns):
-        seedStats = fu.fileSearchRegEx(Testpath+"/final/TMP/*_stats_seed_"+str(seed)+".cfg")
+        seedStats = fu.fileSearchRegEx(Testpath + "/final/TMP/*_stats_seed_" +
+                                       str(seed) + ".cfg")
         AllDiffTest = Config(open(seedStats[0])).AllDiffStats
         AllDiffTest = AllDiffTest.split(",")
         VOK_buff = []
@@ -161,54 +172,89 @@ def mergeOutStats(cfg):
 
         meanVOK, stdVOK = computeMeanStd(SumVOK, binsVOK)
         meanVNOK, stdVNOK = computeMeanStd(SumVNOK, binsVNOK)
-        plt.plot(binsVOK, SumVOK, label="Valid OK\nmean: "+"{0:.2f}".format(meanVOK)+"\nstd: "+"{0:.2f}".format(stdVOK)+"\n", color="green")
-        plt.plot(binsVNOK, SumVNOK, label="Valid NOK\nmean: "+"{0:.2f}".format(meanVNOK)+"\nstd: "+"{0:.2f}".format(stdVNOK)+"\n", color="red")
+        plt.plot(binsVOK,
+                 SumVOK,
+                 label="Valid OK\nmean: " + "{0:.2f}".format(meanVOK) +
+                 "\nstd: " + "{0:.2f}".format(stdVOK) + "\n",
+                 color="green")
+        plt.plot(binsVNOK,
+                 SumVNOK,
+                 label="Valid NOK\nmean: " + "{0:.2f}".format(meanVNOK) +
+                 "\nstd: " + "{0:.2f}".format(stdVNOK) + "\n",
+                 color="red")
         plt.ylabel("Nb pix")
         plt.xlabel("Confidence")
-        lgd = plt.legend(loc="center left", bbox_to_anchor=(1, 0.8), numpoints=1)
+        lgd = plt.legend(loc="center left",
+                         bbox_to_anchor=(1, 0.8),
+                         numpoints=1)
         plt.title('Histogram')
-        plt.savefig(Testpath+"/final/Stats_VOK_VNOK.png", bbox_extra_artists=(lgd, ), bbox_inches='tight')
+        plt.savefig(Testpath + "/final/Stats_VOK_VNOK.png",
+                    bbox_extra_artists=(lgd, ),
+                    bbox_inches='tight')
         # We clear the buffer and close the figure
         plt.clf()
         plt.close()
-        saveHisto(Testpath+"/final/Stats_VNOK.txt", SumVNOK, binsVNOK)
-        saveHisto(Testpath+"/final/Stats_VOK.txt", SumVOK, binsVOK)
+        saveHisto(Testpath + "/final/Stats_VNOK.txt", SumVNOK, binsVNOK)
+        saveHisto(Testpath + "/final/Stats_VOK.txt", SumVOK, binsVOK)
 
         plt.figure()
         meanAOK, stdAOK = computeMeanStd(SumAOK, binsAOK)
         meanANOK, stdANOK = computeMeanStd(SumANOK, binsANOK)
-        plt.plot(binsAOK, SumAOK, label="Learning OK\nmean: "+"{0:.2f}".format(meanAOK)+"\nstd: "+"{0:.2f}".format(stdAOK)+"\n", color="yellow")
-        plt.plot(binsANOK, SumANOK, label="Learning NOK\nmean: "+"{0:.2f}".format(meanANOK)+"\nstd: "+"{0:.2f}".format(stdANOK), color="blue")
+        plt.plot(binsAOK,
+                 SumAOK,
+                 label="Learning OK\nmean: " + "{0:.2f}".format(meanAOK) +
+                 "\nstd: " + "{0:.2f}".format(stdAOK) + "\n",
+                 color="yellow")
+        plt.plot(binsANOK,
+                 SumANOK,
+                 label="Learning NOK\nmean: " + "{0:.2f}".format(meanANOK) +
+                 "\nstd: " + "{0:.2f}".format(stdANOK),
+                 color="blue")
         plt.ylabel("Nb pix")
         plt.xlabel("Confidence")
-        lgd = plt.legend(loc="center left", bbox_to_anchor=(1, 0.8), numpoints=1)
+        lgd = plt.legend(loc="center left",
+                         bbox_to_anchor=(1, 0.8),
+                         numpoints=1)
         plt.title('Histogram')
-        plt.savefig(Testpath+"/final/Stats_LOK_LNOK.png", bbox_extra_artists=(lgd, ), bbox_inches='tight')
+        plt.savefig(Testpath + "/final/Stats_LOK_LNOK.png",
+                    bbox_extra_artists=(lgd, ),
+                    bbox_inches='tight')
         # We clear the buffer and close the figure
         plt.clf()
         plt.close()
-        saveHisto(Testpath+"/final/Stats_LNOK.txt", SumANOK, binsANOK)
-        saveHisto(Testpath+"/final/Stats_LOK.txt", SumAOK, binsAOK)
+        saveHisto(Testpath + "/final/Stats_LNOK.txt", SumANOK, binsANOK)
+        saveHisto(Testpath + "/final/Stats_LOK.txt", SumAOK, binsAOK)
 
         plt.figure()
-        plt.bar(binsValidity, SumValidity, label="pixels validity", color="red", align="center")
+        plt.bar(binsValidity,
+                SumValidity,
+                label="pixels validity",
+                color="red",
+                align="center")
         plt.ylabel("Nb pix")
         plt.xlabel("Validity")
         plt.gca().yaxis.grid(True)
         plt.legend()
         plt.title('Histogram')
         plt.xticks(binsValidity, binsValidity)
-        plt.xlim((0, max(binsValidity)+1))
-        plt.savefig(Testpath+"/final/Validity.png", bbox_extra_artists=(lgd, ), bbox_inches='tight')
-        # We clear the buffer and close the figure        
+        plt.xlim((0, max(binsValidity) + 1))
+        plt.savefig(Testpath + "/final/Validity.png",
+                    bbox_extra_artists=(lgd, ),
+                    bbox_inches='tight')
+        # We clear the buffer and close the figure
         plt.clf()
         plt.close()
-        saveHisto(Testpath+"/final/Validity.txt", SumValidity, binsValidity)
+        saveHisto(Testpath + "/final/Validity.txt", SumValidity, binsValidity)
+
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description="This function merges tile's statistics")
-    parser.add_argument("-conf", dest="config", help="path to configuration file", required=True)
+    parser = argparse.ArgumentParser(
+        description="This function merges tile's statistics")
+    parser.add_argument("-conf",
+                        dest="config",
+                        help="path to configuration file",
+                        required=True)
     args = parser.parse_args()
 
     # load configuration file

@@ -150,6 +150,7 @@ def gapFillingToSample(trainShape,
                        samples,
                        dataField,
                        cfg,
+                       output_path,
                        wMode=False,
                        RAM=128,
                        mode="usually",
@@ -175,8 +176,8 @@ def gapFillingToSample(trainShape,
     #const
     seed_position = -1
 
-    from Common import GenerateFeatures as genFeatures
-    from Sensors.ProcessLauncher import commonMasks
+    from iota2.Common import GenerateFeatures as genFeatures
+    from iota2.Sensors.ProcessLauncher import commonMasks
 
     if not isinstance(cfg, SCF.serviceConfigFile) and isinstance(cfg, str):
         cfg = SCF.serviceConfigFile(cfg)
@@ -214,7 +215,7 @@ def gapFillingToSample(trainShape,
 
     ref = fu.FileSearch_AND(cMaskDirectory, True, "MaskCommunSL.tif")
     if not ref:
-        commonMasks(tile, cfg.pathConf)
+        commonMasks(tile, cfg.pathConf, output_path)
 
     ref = fu.FileSearch_AND(cMaskDirectory, True, "MaskCommunSL.tif")[0]
 
@@ -276,13 +277,13 @@ def generateSamples_simple(folderSample,
 
     dataField = (cfg.getParam('chain', 'dataField')).lower()
     regionField = (cfg.getParam('chain', 'regionField')).lower()
-    outputPath = cfg.getParam('chain', 'outputPath')
+    output_path = cfg.getParam('chain', 'outputPath')
     userFeatPath = cfg.getParam('chain', 'userFeatPath')
     outFeatures = cfg.getParam('GlobChain', 'features')
     runs = cfg.getParam('chain', 'runs')
     if cfg.getParam('chain', 'enableCrossValidation'):
         runs = runs - 1
-    sample_sel_directory = os.path.join(outputPath, "samplesSelection")
+    sample_sel_directory = os.path.join(output_path, "samplesSelection")
 
     samples = workingDirectory + "/" + trainShape.split("/")[-1].replace(
         ".shp", "_Samples.sqlite")
@@ -299,8 +300,8 @@ def generateSamples_simple(folderSample,
 
     sampleExtr, dep_gapSample = gapFillingToSample(sampleSelection,
                                                    workingDirectory, samples,
-                                                   dataField, cfg, wMode, RAM,
-                                                   mode)
+                                                   dataField, cfg, output_path,
+                                                   wMode, RAM, mode)
 
     sample_extraction_output = os.path.join(
         folderSample, os.path.basename(sampleExtr.GetParameterValue("out")))
@@ -320,7 +321,7 @@ def generateSamples_simple(folderSample,
             fu.memory_usage_psutil()))
         logger.info("--------> END Sample Extraction <--------")
         proj = cfg.getParam('GlobChain', 'proj')
-        split_vec_directory = os.path.join(outputPath, "learningSamples")
+        split_vec_directory = os.path.join(output_path, "learningSamples")
         if workingDirectory:
             split_vec_directory = workingDirectory
         #split vectors by there regions
@@ -427,7 +428,7 @@ def generateSamples_cropMix(folderSample,
         return None
 
     outFeatures = cfg.getParam('GlobChain', 'features')
-    outputPath = cfg.getParam('chain', 'outputPath')
+    output_path = cfg.getParam('chain', 'outputPath')
     regionField = (cfg.getParam('chain', 'regionField')).lower()
     dataField = dataField.lower()
     runs = cfg.getParam('chain', 'runs')
@@ -437,7 +438,7 @@ def generateSamples_cropMix(folderSample,
     featuresFind_NA = ""
     featuresFind_A = ""
     userFeatPath = cfg.getParam('chain', 'userFeatPath')
-    sample_sel_directory = os.path.join(outputPath, "samplesSelection")
+    sample_sel_directory = os.path.join(output_path, "samplesSelection")
     currentTile = (os.path.splitext(os.path.basename(trainShape))[0])
 
     #filter vector file
@@ -477,7 +478,7 @@ def generateSamples_cropMix(folderSample,
 
         sampleExtr_NA, dep_gapSampleA = gapFillingToSample(
             nonAnnual_vector_sel, Na_workingDirectory, SampleExtr_NA,
-            dataField, cfg, wMode, RAM, mode)
+            dataField, cfg, output_path, wMode, RAM, mode)
         #~ sampleExtr_NA.ExecuteAndWriteOutput()
         p = mp.Process(target=executeApp, args=[sampleExtr_NA])
         p.start()
@@ -497,6 +498,7 @@ def generateSamples_cropMix(folderSample,
                                                            SampleExtr_A,
                                                            dataField,
                                                            Aconfig,
+                                                           output_path,
                                                            wMode,
                                                            mode=mode)
         #~ sampleExtr_A.ExecuteAndWriteOutput()
@@ -608,7 +610,7 @@ def generateSamples_cropMix(folderSample,
 
     #split vectors by there regions
     proj = cfg.getParam('GlobChain', 'proj')
-    split_vec_directory = os.path.join(outputPath, "learningSamples")
+    split_vec_directory = os.path.join(output_path, "learningSamples")
     if workingDirectory:
         split_vec_directory = workingDirectory
 
@@ -811,9 +813,9 @@ def generateSamples_classifMix(folderSample,
     if cfg.getParam('chain', 'enableCrossValidation'):
         runs = runs - 1
     regionField = (cfg.getParam('chain', 'regionField')).lower()
-    outputPath = cfg.getParam('chain', 'outputPath')
-    features_path = os.path.join(outputPath, "features")
-    sample_sel_directory = os.path.join(outputPath, "samplesSelection")
+    output_path = cfg.getParam('chain', 'outputPath')
+    features_path = os.path.join(output_path, "features")
+    sample_sel_directory = os.path.join(output_path, "samplesSelection")
 
     wd = sample_sel_directory
     if workingDirectory:
@@ -913,8 +915,8 @@ def generateSamples_classifMix(folderSample,
         ".shp", "_Samples.sqlite")
 
     sampleExtr, dep_tmp = gapFillingToSample(sampleSelection, workingDirectory,
-                                             samples, dataField, cfg, wMode,
-                                             RAM, mode)
+                                             samples, dataField, cfg,
+                                             output_path, wMode, RAM, mode)
 
     #~ sampleExtr.ExecuteAndWriteOutput()
     p = mp.Process(target=executeApp, args=[sampleExtr])

@@ -19,11 +19,12 @@ import logging
 import os
 from config import Config
 import numpy as np
-from Common import FileUtils as fu
+from iota2.Common import FileUtils as fu
 from osgeo import ogr
-from Common import ServiceConfigFile as SCF
+from iota2.Common import ServiceConfigFile as SCF
 
 logger = logging.getLogger(__name__)
+
 
 def getStatsFromSamples(InSamples, ground_truth, region_field):
     """
@@ -40,7 +41,8 @@ def getStatsFromSamples(InSamples, ground_truth, region_field):
         raise Exception("Can not open : " + InSamples)
 
     layer = ds.GetLayer()
-    featuresFields = fu.getVectorFeatures(ground_truth, region_field, InSamples)
+    featuresFields = fu.getVectorFeatures(ground_truth, region_field,
+                                          InSamples)
 
     allStat = []
     for currentBand in featuresFields:
@@ -57,39 +59,46 @@ def getStatsFromSamples(InSamples, ground_truth, region_field):
     allStdDev = [stddev for mean, stddev in allStat]
     return allMean, allStdDev
 
+
 def writeStatsFromSample(InSamples, outStats, ground_truth, region_field):
-    allMean, allStdDev = getStatsFromSamples(InSamples, ground_truth, region_field)
+    allMean, allStdDev = getStatsFromSamples(InSamples, ground_truth,
+                                             region_field)
 
     with open(outStats, "w") as statsFile:
         statsFile.write('<?xml version="1.0" ?>\n\
             <FeatureStatistics>\n\
             <Statistic name="mean">\n')
         for currentMean in allMean:
-            statsFile.write('        <StatisticVector value="' + str(currentMean) + '" />\n')
+            statsFile.write('        <StatisticVector value="' +
+                            str(currentMean) + '" />\n')
         statsFile.write('    </Statistic>\n\
                             <Statistic name="stddev">\n')
         for currentStd in allStdDev:
-            statsFile.write('        <StatisticVector value="' + str(currentStd) + '" />\n')
+            statsFile.write('        <StatisticVector value="' +
+                            str(currentStd) + '" />\n')
         statsFile.write('    </Statistic>\n\
                             </FeatureStatistics>')
+
 
 def get_svm_normalization_stats(stats_dir, region_name, seed):
     """
     """
-    return fu.FileSearch_AND(stats_dir,
-                             True,
-                             "samples_region_{}_seed_{}.xml".format(region_name, seed))[0]
+    return fu.FileSearch_AND(
+        stats_dir, True,
+        "samples_region_{}_seed_{}.xml".format(region_name, seed))[0]
+
 
 def sqlite_to_geojson(input_db: str, output_db: str, logger=logger) -> None:
     """sqlite database to geojson database
     """
     from Common.Utils import run
-    logger.info("changin input data format {} to {}".format(input_db, output_db))
+    logger.info("changin input data format {} to {}".format(
+        input_db, output_db))
     run('ogr2ogr -f "GeoJSON" {} {}'.format(output_db, input_db))
 
-def buildTrainCmd_points(r, paths, classif, options, dataField, out,
-                         stat, features_labels, model_name):
 
+def buildTrainCmd_points(r, paths, classif, options, dataField, out, stat,
+                         features_labels, model_name):
     """
     shape_ref [param] [string] path to a shape use to determine how many fields
                                are already present before adding features
@@ -102,22 +111,24 @@ def buildTrainCmd_points(r, paths, classif, options, dataField, out,
             sqlite_to_geojson(paths, output_geojson)
             os.remove(paths)
             paths = output_geojson
-        except :
-            raise Exception ("changing input dataBase format failed")
+        except:
+            raise Exception("changing input dataBase format failed")
 
     cmd = "otbcli_TrainVectorClassifier -io.vd "
     if paths.count("learn") != 0:
-        cmd = cmd +" "+paths 
+        cmd = cmd + " " + paths
 
-    cmd = cmd+" -classifier "+classif+" "+options+" -cfield "+dataField.lower()+" -io.out "+out+"/" + model_name
-    cmd = cmd+" -feat "+features_labels
+    cmd = cmd + " -classifier " + classif + " " + options + " -cfield " + dataField.lower(
+    ) + " -io.out " + out + "/" + model_name
+    cmd = cmd + " -feat " + features_labels
 
     if "svm" in classif.lower():
-        cmd = cmd+" -io.stats "+stat
+        cmd = cmd + " -io.stats " + stat
         proba_option = "-classifier.libsvm.prob True"
         if not proba_option in options:
             cmd = "{} {}".format(cmd, proba_option)
     return cmd
+
 
 def getFeatures_labels(learning_vector):
     """
@@ -125,6 +136,7 @@ def getFeatures_labels(learning_vector):
     nb_no_features = 4
     fields = fu.getAllFieldsInShape(learning_vector, driver='SQLite')
     return fields[nb_no_features::]
+
 
 def config_model(outputPath, region_field):
     """
@@ -139,8 +151,12 @@ def config_model(outputPath, region_field):
     #init
     all_regions = []
     for sample in samples:
-        tile_name = os.path.splitext(os.path.basename(sample))[0].split("_")[posTile]
-        regions = fu.getFieldElement(sample, driverName="ESRI Shapefile", field=region_field, mode="unique",
+        tile_name = os.path.splitext(
+            os.path.basename(sample))[0].split("_")[posTile]
+        regions = fu.getFieldElement(sample,
+                                     driverName="ESRI Shapefile",
+                                     field=region_field,
+                                     mode="unique",
                                      elemType="str")
         for region in regions:
             all_regions.append((region, tile_name))
@@ -153,14 +169,19 @@ def config_model(outputPath, region_field):
     shape_region_path = fu.FileSearch_AND(shape_region_dir, True, ".shp")
 
     #check if there is actually polygons
-    shape_regions = [elem for elem in shape_region_path if len(fu.getFieldElement(elem,
-                                                                                  driverName="ESRI Shapefile",
-                                                                                  field=region_field,
-                                                                                  mode="all",
-                                                                                  elemType="str")) >= 1]
+    shape_regions = [
+        elem for elem in shape_region_path if len(
+            fu.getFieldElement(elem,
+                               driverName="ESRI Shapefile",
+                               field=region_field,
+                               mode="all",
+                               elemType="str")) >= 1
+    ]
     for shape_region in shape_regions:
-        tile = os.path.splitext(os.path.basename(shape_region))[0].split("_")[-1]
-        region = os.path.splitext(os.path.basename(shape_region))[0].split("_")[-2]
+        tile = os.path.splitext(
+            os.path.basename(shape_region))[0].split("_")[-1]
+        region = os.path.splitext(
+            os.path.basename(shape_region))[0].split("_")[-2]
         for model_name, tiles_model in list(model_tiles.items()):
             if model_name.split("f")[0] == region and tile not in tiles_model:
                 tiles_model.append(tile)
@@ -168,15 +189,15 @@ def config_model(outputPath, region_field):
     #Construct output file string
     output = "AllModel:\n["
     for model_name, tiles_model in list(model_tiles.items()):
-        output_tmp = "\n\tmodelName:'{}'\n\ttilesList:'{}'".format(model_name, "_".join(tiles_model))
+        output_tmp = "\n\tmodelName:'{}'\n\ttilesList:'{}'".format(
+            model_name, "_".join(tiles_model))
         output = output + "\n\t{" + output_tmp + "\n\t}"
     output += "\n]"
 
     return output
 
-def launchTraining(cfg, dataField, stat, N,
-                   pathToCmdTrain, out, pathWd):
 
+def launchTraining(cfg, dataField, stat, N, pathToCmdTrain, out, pathWd):
     """
     OUT : les commandes pour l'app
     """
@@ -198,7 +219,8 @@ def launchTraining(cfg, dataField, stat, N,
 
     pathToModelConfig = outputPath + "/config_model/configModel.cfg"
     learning_directory = os.path.join(outputPath, "learningSamples")
-    samples = fu.FileSearch_AND(learning_directory, True, "Samples_region", "sqlite", "learn")
+    samples = fu.FileSearch_AND(learning_directory, True, "Samples_region",
+                                "sqlite", "learn")
 
     configModel = config_model(outputPath, regionField)
     if not os.path.exists(pathToModelConfig):
@@ -206,7 +228,7 @@ def launchTraining(cfg, dataField, stat, N,
             configFile.write(configModel)
 
     cmd_out = []
-    
+
     for sample in samples:
         features_labels = getFeatures_labels(sample)
         suffix = ""
@@ -214,38 +236,84 @@ def launchTraining(cfg, dataField, stat, N,
         posSeed_sample = posSeed
         if "SAR.sqlite" in os.path.basename(sample):
             posModel_sample = posModel - 1
-            posSeed_sample = posSeed -1
+            posSeed_sample = posSeed - 1
             suffix = "_SAR"
         model = os.path.split(sample)[-1].split("_")[posModel_sample]
-        seed = os.path.split(sample)[-1].split("_")[posSeed_sample].split("seed")[-1]
-        outStats=None
-        if classif.lower()=="svm" or classif.lower()=="libsvm":
-            outStats = os.path.join(outputPath, "stats", "Model_{}_seed_{}.xml".format(model, seed))
+        seed = os.path.split(sample)[-1].split("_")[posSeed_sample].split(
+            "seed")[-1]
+        outStats = None
+        if classif.lower() == "svm" or classif.lower() == "libsvm":
+            outStats = os.path.join(outputPath, "stats",
+                                    "Model_{}_seed_{}.xml".format(model, seed))
             if os.path.exists(outStats):
                 os.remove(outStats)
             writeStatsFromSample(sample, outStats, ground_truth, regionField)
 
         model_name = "model_{}_seed_{}{}.txt".format(model, seed, suffix)
-        cmd = buildTrainCmd_points(model, sample, classif, options, dataField, out,
-                                   outStats, " ".join(features_labels), model_name)
+        cmd = buildTrainCmd_points(model, sample, classif, options, dataField,
+                                   out, outStats, " ".join(features_labels),
+                                   model_name)
         cmd_out.append(cmd)
 
     fu.writeCmds(pathToCmdTrain + "/train.txt", cmd_out)
     return cmd_out
 
+
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description="This function allow you to create a training command for a classifieur according to a configuration file")
-    parser.add_argument("-shapesIn", help="path to the folder which ONLY contains shapes for the classification (learning and validation) (mandatory)", dest="pathShapes", required=True)
-    parser.add_argument("-conf", help="path to the configuration file which describe the learning method (mandatory)", dest="pathConf", required=True)
-    parser.add_argument("-tiles.path", dest="pathToTiles", help="path where tiles are stored (mandatory)", required=True)
-    parser.add_argument("-data.field", dest="dataField", help="data field into data shape (mandatory)", required=True)
-    parser.add_argument("-N", dest="N", type=int, help="number of random sample(mandatory)", required=True)
-    parser.add_argument("--stat", dest="stat", help="statistics for classification", required=False)
-    parser.add_argument("-train.out.cmd", dest="pathToCmdTrain", help="path where all training cmd will be stored in a text file(mandatory)", required=True)
-    parser.add_argument("-out", dest="out", help="path where all models will be stored(mandatory)", required=True)
-    parser.add_argument("--wd", dest="pathWd", help="path to the working directory", default=None, required=False)
-    parser.add_argument("--path.log", dest="pathlog", help="path to the log file", default=None, required=False)
+    parser = argparse.ArgumentParser(
+        description=
+        "This function allow you to create a training command for a classifieur according to a configuration file"
+    )
+    parser.add_argument(
+        "-shapesIn",
+        help=
+        "path to the folder which ONLY contains shapes for the classification (learning and validation) (mandatory)",
+        dest="pathShapes",
+        required=True)
+    parser.add_argument(
+        "-conf",
+        help=
+        "path to the configuration file which describe the learning method (mandatory)",
+        dest="pathConf",
+        required=True)
+    parser.add_argument("-tiles.path",
+                        dest="pathToTiles",
+                        help="path where tiles are stored (mandatory)",
+                        required=True)
+    parser.add_argument("-data.field",
+                        dest="dataField",
+                        help="data field into data shape (mandatory)",
+                        required=True)
+    parser.add_argument("-N",
+                        dest="N",
+                        type=int,
+                        help="number of random sample(mandatory)",
+                        required=True)
+    parser.add_argument("--stat",
+                        dest="stat",
+                        help="statistics for classification",
+                        required=False)
+    parser.add_argument(
+        "-train.out.cmd",
+        dest="pathToCmdTrain",
+        help=
+        "path where all training cmd will be stored in a text file(mandatory)",
+        required=True)
+    parser.add_argument("-out",
+                        dest="out",
+                        help="path where all models will be stored(mandatory)",
+                        required=True)
+    parser.add_argument("--wd",
+                        dest="pathWd",
+                        help="path to the working directory",
+                        default=None,
+                        required=False)
+    parser.add_argument("--path.log",
+                        dest="pathlog",
+                        help="path to the log file",
+                        default=None,
+                        required=False)
     args = parser.parse_args()
 
     # load configuration file
