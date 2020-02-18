@@ -42,7 +42,7 @@ from config import Config
 import numpy as np
 import otbApplication as otb
 import argparse
-from Common import ServiceConfigFile as SCF
+from iota2.Common import ServiceConfigFile as SCF
 from Common import ServiceLogger as sLog
 from Common import IOTA2Directory
 from Common import Utils
@@ -536,7 +536,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         reference = iota2_dataTest + "/references/sampler/D0005H0002_polygons_To_Sample_Samples_ref_bindings.sqlite"
         SensData = iota2_dataTest + "/L8_50x50"
 
-        from Common import ServiceConfigFile as SCF
+        from iota2.Common import ServiceConfigFile as SCF
         from config import Config
 
         # load configuration file
@@ -764,7 +764,52 @@ class iota_testSamplerApplications(unittest.TestCase):
         Step 4 : compare the merged sample to reference
         """
 
-        from Common.Tools.Iota2TestsFeaturesLabels import prepareAnnualFeatures
+        # from Common.Tools.Iota2TestsFeaturesLabels import prepareAnnualFeatures
+
+        def prepareAnnualFeatures(workingDirectory,
+                                  referenceDirectory,
+                                  pattern,
+                                  rename=None):
+            """
+            double all rasters's pixels
+            rename must be a tuple
+            """
+            input("heeeeeeeerrrrrrrreeeeeeeee")
+            for dirname, dirnames, filenames in os.walk(referenceDirectory):
+                # print path to all subdirectories first.
+                for subdirname in dirnames:
+                    os.mkdir(
+                        os.path.join(dirname, subdirname).replace(
+                            referenceDirectory,
+                            workingDirectory).replace(rename[0], rename[1]))
+            print(filenames)
+            # print path to all filenames.
+            for filename in filenames:
+                shutil.copy(
+                    os.path.join(dirname, filename),
+                    os.path.join(dirname, filename).replace(
+                        referenceDirectory,
+                        workingDirectory).replace(rename[0], rename[1]))
+            print(workingDirectory)
+            rastersPath = fu.FileSearch_AND(workingDirectory, True, pattern)
+            for raster in rastersPath:
+                print(raster)
+                input("fffffffffff")
+                cmd = 'otbcli_BandMathX -il ' + raster + ' -out ' + raster + ' -exp "im1+im1"'
+                print(cmd)
+                os.system(cmd)
+
+            if rename:
+                all_content = []
+                for dirname, dirnames, filenames in os.walk(workingDirectory):
+                    # print path to all subdirectories first.
+                    for subdirname in dirnames:
+                        all_content.append(os.path.join(dirname, subdirname))
+
+                    # print path to all filenames.
+                    for filename in filenames:
+                        all_content.append(os.path.join(dirname, filename))
+            input("sortie")
 
         def prepareTestsFolder(workingDirectory=False):
 
@@ -818,7 +863,7 @@ class iota_testSamplerApplications(unittest.TestCase):
 
             return annual_config_path
 
-        from Common import ServiceConfigFile as SCF
+        from iota2.Common import ServiceConfigFile as SCF
 
         featuresPath = iota2_dataTest + "/references/features/"
         sensorData = iota2_dataTest + "/L8_50x50"
