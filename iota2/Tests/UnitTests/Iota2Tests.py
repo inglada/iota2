@@ -42,10 +42,10 @@ from config import Config
 import numpy as np
 import otbApplication as otb
 import argparse
-from Common import ServiceConfigFile as SCF
-from Common import ServiceLogger as sLog
-from Common import IOTA2Directory
-from Common import Utils
+from iota2.Common import ServiceConfigFile as SCF
+from iota2.Common import ServiceLogger as sLog
+from iota2.Common import IOTA2Directory
+from iota2.Common import Utils
 
 from VectorTools.AddField import addField
 from VectorTools.DeleteField import deleteField
@@ -1585,7 +1585,7 @@ class iota_testGenerateShapeTile(unittest.TestCase):
             os.mkdir(self.pathEnvelope)
 
     def test_GenerateShapeTile(self):
-        from Sampling import TileEnvelope as env
+        from iota2.Sampling import TileEnvelope as env
 
         #Test de création des enveloppes
         SCF.clearConfig()
