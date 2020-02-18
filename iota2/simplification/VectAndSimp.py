@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 """
 Vectorisation and simplification of a raster file with grass library
 """
@@ -26,7 +25,6 @@ except ImportError:
 
 # ------------------------------------------------------------------------------
 def init_grass(path, grasslib, debuglvl, epsg="2154"):
-
     """
     Initialisation of Grass GIS in lambert 93.
     
@@ -71,7 +69,10 @@ def init_grass(path, grasslib, debuglvl, epsg="2154"):
         shutil.rmtree(os.path.join(gisdb, "demolocation"))
 
     # Create the location in Lambert 93
-    gscript.run_command("g.proj", flags="c", epsg=epsg, location="demolocation")
+    gscript.run_command("g.proj",
+                        flags="c",
+                        epsg=epsg,
+                        location="demolocation")
 
     # Create datas mapset
     if not os.path.exists(os.path.join(gisdb, "/demolocation/datas")):
@@ -84,19 +85,20 @@ def init_grass(path, grasslib, debuglvl, epsg="2154"):
                 dbase=gisdb,
             )
         except:
-            raise Exception("Folder '%s' does not own to current user") % (gisdb)
+            raise Exception("Folder '%s' does not own to current user") % (
+                gisdb)
 
 
 def topologicalPolygonize(
-    path,
-    grasslib,
-    raster,
-    angle,
-    out="",
-    outformat="ESRI_Shapefile",
-    debulvl="info",
-    epsg="2154",
-    logger=logger,
+        path,
+        grasslib,
+        raster,
+        angle,
+        out="",
+        outformat="ESRI_Shapefile",
+        debulvl="info",
+        epsg="2154",
+        logger=logger,
 ):
 
     timeinit = time.time()
@@ -106,11 +108,11 @@ def topologicalPolygonize(
 
     if not os.path.exists(out) and os.path.exists(raster):
         print("Polygonize of raster file %s" % (os.path.basename(raster)))
-        logger.info("Polygonize of raster file %s" % (os.path.basename(raster)))
+        logger.info("Polygonize of raster file %s" %
+                    (os.path.basename(raster)))
         # local environnement
         localenv = os.path.join(
-            path, "tmp%s" % (os.path.basename(os.path.splitext(raster)[0]))
-        )
+            path, "tmp%s" % (os.path.basename(os.path.splitext(raster)[0])))
         if os.path.exists(localenv):
             shutil.rmtree(localenv)
         os.mkdir(localenv)
@@ -118,22 +120,20 @@ def topologicalPolygonize(
         init_grass(localenv, grasslib, debulvl)
 
         # classification raster import
-        gscript.run_command(
-            "r.in.gdal", flags="e", input=raster, output="tile", overwrite=True
-        )
+        gscript.run_command("r.in.gdal",
+                            flags="e",
+                            input=raster,
+                            output="tile",
+                            overwrite=True)
         gscript.run_command("r.null", map="tile@datas", setnull=0)
 
         timeimport = time.time()
-        logger.info(
-            " ".join(
-                [
-                    " : ".join(
-                        ["Classification raster import", str(timeimport - timeinit)]
-                    ),
-                    "seconds",
-                ]
-            )
-        )
+        logger.info(" ".join([
+            " : ".join(
+                ["Classification raster import",
+                 str(timeimport - timeinit)]),
+            "seconds",
+        ]))
 
         # manage grass region
         gscript.run_command("g.region", raster="tile")
@@ -163,51 +163,48 @@ def topologicalPolygonize(
         # gscript.run_command("v.edit", map = "vectile", tool = "delete", where = "cat > 250 or cat < 1")
 
         timevect = time.time()
-        logger.info(
-            " ".join(
-                [
-                    " : ".join(
-                        ["Classification vectorization", str(timevect - timeimport)]
-                    ),
-                    "seconds",
-                ]
-            )
-        )
+        logger.info(" ".join([
+            " : ".join(
+                ["Classification vectorization",
+                 str(timevect - timeimport)]),
+            "seconds",
+        ]))
 
         # Export vector file
-        gscript.run_command("v.out.ogr", input="vectile", output=out, format=outformat)
+        gscript.run_command("v.out.ogr",
+                            input="vectile",
+                            output=out,
+                            format=outformat)
 
         timeexp = time.time()
-        logger.info(
-            " ".join(
-                [
-                    " : ".join(["Vectorization exportation", str(timeexp - timevect)]),
-                    "seconds",
-                ]
-            )
-        )
+        logger.info(" ".join([
+            " : ".join(["Vectorization exportation",
+                        str(timeexp - timevect)]),
+            "seconds",
+        ]))
 
         shutil.rmtree(localenv)
 
     else:
-        logger.info("Output vector %s file already exists" % (os.path.basename(out)))
+        logger.info("Output vector %s file already exists" %
+                    (os.path.basename(out)))
 
     return out
 
 
 def generalizeVector(
-    path,
-    grasslib,
-    vector,
-    paramgene,
-    method,
-    mmu="",
-    ncolumns="cat",
-    out="",
-    outformat="ESRI_Shapefile",
-    debulvl="info",
-    epsg="2154",
-    logger=logger,
+        path,
+        grasslib,
+        vector,
+        paramgene,
+        method,
+        mmu="",
+        ncolumns="cat",
+        out="",
+        outformat="ESRI_Shapefile",
+        debulvl="info",
+        epsg="2154",
+        logger=logger,
 ):
 
     timeinit = time.time()
@@ -216,9 +213,8 @@ def generalizeVector(
         out = os.path.splitext(vector)[0] + "_%s.shp" % (method)
 
     if not os.path.exists(out) and os.path.exists(vector):
-        logger.info(
-            "Generalize (%s) of vector file %s" % (method, os.path.basename(vector))
-        )
+        logger.info("Generalize (%s) of vector file %s" %
+                    (method, os.path.basename(vector)))
         # local environnement
         layer = os.path.basename(os.path.splitext(vector)[0])
         localenv = os.path.join(path, "tmp%s" % (layer))
@@ -253,8 +249,7 @@ def generalizeVector(
         except:
             raise Exception(
                 "Something goes wrong with generalization parameters (method '%s' or input data)"
-                % (method)
-            )
+                % (method))
 
         if mmu != "":
             gscript.run_command(
@@ -265,35 +260,33 @@ def generalizeVector(
                 thres=mmu,
                 type="area",
             )
-            gscript.run_command(
-                "v.out.ogr", input="cleanarea", output=out, format=outformat
-            )
+            gscript.run_command("v.out.ogr",
+                                input="cleanarea",
+                                output=out,
+                                format=outformat)
         else:
-            gscript.run_command(
-                "v.out.ogr", input="generalize", output=out, format=outformat
-            )
+            gscript.run_command("v.out.ogr",
+                                input="generalize",
+                                output=out,
+                                format=outformat)
 
         timedouglas = time.time()
-        logger.info(
-            " ".join(
-                [
-                    " : ".join(
-                        [
-                            "Douglas simplification and exportation",
-                            str(timedouglas - timeinit),
-                        ]
-                    ),
-                    "seconds",
-                ]
-            )
-        )
+        logger.info(" ".join([
+            " : ".join([
+                "Douglas simplification and exportation",
+                str(timedouglas - timeinit),
+            ]),
+            "seconds",
+        ]))
 
         # clean geometries
         tmp = os.path.join(localenv, "tmp.shp")
         checkGeom.checkGeometryAreaThreshField(out, 1, 0, tmp)
 
         for ext in [".shp", ".dbf", ".shx", ".prj"]:
-            shutil.copy(os.path.splitext(tmp)[0] + ext, os.path.splitext(out)[0] + ext)
+            shutil.copy(
+                os.path.splitext(tmp)[0] + ext,
+                os.path.splitext(out)[0] + ext)
 
         shutil.rmtree(localenv)
 
@@ -316,50 +309,54 @@ def getFieldValues(shpfile, field):
     return classes
 
 
-def clipVectorfile(path, vector, clipfile, clipfield="", clipvalue="", outpath="", prefix="", debulvl="info", logger=logger):
+def clipVectorfile(path,
+                   vector,
+                   clipfile,
+                   clipfield="",
+                   clipvalue="",
+                   outpath="",
+                   prefix="",
+                   debulvl="info",
+                   logger=logger):
 
     timeinit = time.time()
 
     if outpath == "":
-        out = os.path.join(
-            os.path.dirname(vector), "%s_%s.shp" % (prefix, str(clipvalue))
-        )
+        out = os.path.join(os.path.dirname(vector),
+                           "%s_%s.shp" % (prefix, str(clipvalue)))
     else:
         out = os.path.join(outpath, "%s_%s.shp" % (prefix, str(clipvalue)))
 
-
-    epsgin  = vf.get_vector_proj(vector)
+    epsgin = vf.get_vector_proj(vector)
     if vf.get_vector_proj(clipfile) != epsgin:
-        logger.error("Land cover vector file and clip file projections are different please provide a clip file with same projection as Land cover file (EPSG = %s)"%(epsgin))
+        logger.error(
+            "Land cover vector file and clip file projections are different please provide a clip file with same projection as Land cover file (EPSG = %s)"
+            % (epsgin))
         sys.exit(-1)
-        
+
     # clean geometries
     tmp = os.path.join(path, "tmp.shp")
     checkGeom.checkGeometryAreaThreshField(vector, 1, 0, tmp)
 
     for ext in [".shp", ".dbf", ".shx", ".prj"]:
-        shutil.copy(os.path.splitext(tmp)[0] + ext, os.path.splitext(vector)[0] + ext)
+        shutil.copy(
+            os.path.splitext(tmp)[0] + ext,
+            os.path.splitext(vector)[0] + ext)
 
     if not os.path.exists(out):
         if clipfile is not None:
-            logger.info(
-                "Clip vector file %s with %s (%s == %s)"
-                % (
-                    os.path.basename(vector),
-                    os.path.basename(clipfile),
-                    clipfield,
-                    clipvalue,
-                )
-            )
-            print(
-                "Clip vector file %s with %s (%s == %s)"
-                % (
-                    os.path.basename(vector),
-                    os.path.basename(clipfile),
-                    clipfield,
-                    clipvalue,
-                )
-            )
+            logger.info("Clip vector file %s with %s (%s == %s)" % (
+                os.path.basename(vector),
+                os.path.basename(clipfile),
+                clipfield,
+                clipvalue,
+            ))
+            print("Clip vector file %s with %s (%s == %s)" % (
+                os.path.basename(vector),
+                os.path.basename(clipfile),
+                clipfield,
+                clipvalue,
+            ))
 
             # local environnement
             localenv = os.path.join(path, "tmp%s" % (str(clipvalue)))
@@ -376,13 +373,13 @@ def clipVectorfile(path, vector, clipfile, clipfield="", clipvalue="", outpath="
             if vf.getNbFeat(clipfile) != 1:
                 clip = os.path.join(localenv, "clip.shp")
                 layer = vf.getFirstLayer(clipfile)
-                fieldType = vf.getFieldType(os.path.join(localenv, clipfile), clipfield)
+                fieldType = vf.getFieldType(os.path.join(localenv, clipfile),
+                                            clipfield)
 
                 if fieldType == str:
                     command = (
                         "ogr2ogr -sql \"SELECT * FROM %s WHERE %s = '%s'\" %s %s"
-                        % (layer, clipfield, clipvalue, clip, clipfile)
-                    )
+                        % (layer, clipfield, clipvalue, clip, clipfile))
                     Utils.run(command)
                 elif fieldType == int or fieldType == float:
                     command = 'ogr2ogr -sql "SELECT * FROM %s WHERE %s = %s" %s %s' % (
@@ -400,13 +397,13 @@ def clipVectorfile(path, vector, clipfile, clipfield="", clipvalue="", outpath="
                 clip = os.path.join(path, clipfile)
                 logger.info(
                     "'%s' shapefile has only one feature which will used to clip data"
-                    % (clip)
-                )
+                    % (clip))
 
             # clip
             clipped = os.path.join(localenv, "clipped.shp")
 
-            command = "ogr2ogr -select cat -clipsrc %s %s %s" % (clip, clipped, vector)
+            command = "ogr2ogr -select cat -clipsrc %s %s %s" % (clip, clipped,
+                                                                 vector)
 
             Utils.run(command)
 
@@ -414,14 +411,11 @@ def clipVectorfile(path, vector, clipfile, clipfield="", clipvalue="", outpath="
             clipped = os.path.join(localenv, "merge.shp")
 
         timeclip = time.time()
-        logger.info(
-            " ".join(
-                [
-                    " : ".join(["Clip final shapefile", str(timeclip - timeinit)]),
-                    "seconds",
-                ]
-            )
-        )
+        logger.info(" ".join([
+            " : ".join(["Clip final shapefile",
+                        str(timeclip - timeinit)]),
+            "seconds",
+        ]))
 
         # Delete duplicate geometries
         ddg.deleteDuplicateGeometriesSqlite(clipped)
@@ -434,16 +428,12 @@ def clipVectorfile(path, vector, clipfile, clipfield="", clipvalue="", outpath="
             os.remove(os.path.splitext(clipped)[0] + ext)
 
         timedupli = time.time()
-        logger.info(
-            " ".join(
-                [
-                    " : ".join(
-                        ["Delete duplicated geometries", str(timedupli - timeclip)]
-                    ),
-                    "seconds",
-                ]
-            )
-        )
+        logger.info(" ".join([
+            " : ".join(
+                ["Delete duplicated geometries",
+                 str(timedupli - timeclip)]),
+            "seconds",
+        ]))
 
         # Check geom
         vf.checkValidGeom(os.path.join(localenv, "clean.shp"))
@@ -452,26 +442,19 @@ def clipVectorfile(path, vector, clipfile, clipfield="", clipvalue="", outpath="
         afa.addFieldArea(os.path.join(localenv, "clean.shp"), 10000)
 
         for ext in [".shp", ".shx", ".dbf", ".prj"]:
-            shutil.copy(
-                os.path.join(localenv, "clean" + ext), os.path.splitext(out)[0] + ext
-            )
+            shutil.copy(os.path.join(localenv, "clean" + ext),
+                        os.path.splitext(out)[0] + ext)
 
         shutil.rmtree(localenv)
 
         timeclean = time.time()
-        logger.info(
-            " ".join(
-                [
-                    " : ".join(
-                        [
-                            "Clean empty geometries and compute areas (ha)",
-                            str(timeclean - timedupli),
-                        ]
-                    ),
-                    "seconds",
-                ]
-            )
-        )
+        logger.info(" ".join([
+            " : ".join([
+                "Clean empty geometries and compute areas (ha)",
+                str(timeclean - timedupli),
+            ]),
+            "seconds",
+        ]))
 
     else:
 
@@ -479,16 +462,16 @@ def clipVectorfile(path, vector, clipfile, clipfield="", clipvalue="", outpath="
 
 
 def simplification(
-    path,
-    raster,
-    grasslib,
-    out,
-    douglas,
-    hermite,
-    mmu,
-    angle=True,
-    debulvl="info",
-    logger=logger,
+        path,
+        raster,
+        grasslib,
+        out,
+        douglas,
+        hermite,
+        mmu,
+        angle=True,
+        debulvl="info",
+        logger=logger,
 ):
     """
         Simplification of raster dataset with Grass GIS.
@@ -510,21 +493,19 @@ def simplification(
     init_grass(path, grasslib, debulvl)
 
     # classification raster import
-    gscript.run_command(
-        "r.in.gdal", flags="e", input=raster, output="tile", overwrite=True
-    )
+    gscript.run_command("r.in.gdal",
+                        flags="e",
+                        input=raster,
+                        output="tile",
+                        overwrite=True)
 
     timeimport = time.time()
-    logger.info(
-        " ".join(
-            [
-                " : ".join(
-                    ["Classification raster import", str(timeimport - timeinit)]
-                ),
-                "seconds",
-            ]
-        )
-    )
+    logger.info(" ".join([
+        " : ".join(
+            ["Classification raster import",
+             str(timeimport - timeinit)]),
+        "seconds",
+    ]))
 
     # manage grass region
     gscript.run_command("g.region", raster="tile")
@@ -552,16 +533,12 @@ def simplification(
         )
 
     timevect = time.time()
-    logger.info(
-        " ".join(
-            [
-                " : ".join(
-                    ["Classification vectorization", str(timevect - timeimport)]
-                ),
-                "seconds",
-            ]
-        )
-    )
+    logger.info(" ".join([
+        " : ".join(
+            ["Classification vectorization",
+             str(timevect - timeimport)]),
+        "seconds",
+    ]))
 
     inputv = "vectile"
     # Douglas simplification
@@ -577,14 +554,11 @@ def simplification(
         inputv = "douglas"
 
         timedouglas = time.time()
-        logger.info(
-            " ".join(
-                [
-                    " : ".join(["Douglas simplification", str(timedouglas - timevect)]),
-                    "seconds",
-                ]
-            )
-        )
+        logger.info(" ".join([
+            " : ".join(["Douglas simplification",
+                        str(timedouglas - timevect)]),
+            "seconds",
+        ]))
         timevect = timedouglas
 
     # Hermine simplification
@@ -600,20 +574,18 @@ def simplification(
         inputv = "hermine"
 
         timehermine = time.time()
-        logger.info(
-            " ".join(
-                [
-                    " : ".join(["Hermine smoothing", str(timehermine - timevect)]),
-                    "seconds",
-                ]
-            )
-        )
+        logger.info(" ".join([
+            " : ".join(["Hermine smoothing",
+                        str(timehermine - timevect)]),
+            "seconds",
+        ]))
         timevect = timehermine
 
     # Delete non OSO class polygons (sea water, nodata and crown entities)
-    gscript.run_command(
-        "v.edit", map="%s@datas" % (inputv), tool="delete", where="cat > 250 or cat < 1"
-    )
+    gscript.run_command("v.edit",
+                        map="%s@datas" % (inputv),
+                        tool="delete",
+                        where="cat > 250 or cat < 1")
 
     # Export shapefile vector file
     if os.path.splitext(out)[1] != ".shp":
@@ -631,36 +603,28 @@ def simplification(
     )
 
     # Export vector file
-    gscript.run_command(
-        "v.out.ogr", input="cleanarea", output=out, format="ESRI_Shapefile"
-    )
+    gscript.run_command("v.out.ogr",
+                        input="cleanarea",
+                        output=out,
+                        format="ESRI_Shapefile")
 
     timeexp = time.time()
-    logger.info(
-        " ".join(
-            [
-                " : ".join(["Vectorization exportation", str(timeexp - timevect)]),
-                "seconds",
-            ]
-        )
-    )
+    logger.info(" ".join([
+        " : ".join(["Vectorization exportation",
+                    str(timeexp - timevect)]),
+        "seconds",
+    ]))
 
     shutil.rmtree(os.path.join(path, "grassdata"))
 
     timeend = time.time()
-    logger.info(
-        " ".join(
-            [
-                " : ".join(
-                    [
-                        "Global Vectorization and Simplification process",
-                        str(timeend - timeinit),
-                    ]
-                ),
-                "seconds",
-            ]
-        )
-    )
+    logger.info(" ".join([
+        " : ".join([
+            "Global Vectorization and Simplification process",
+            str(timeend - timeinit),
+        ]),
+        "seconds",
+    ]))
 
 
 if __name__ == "__main__":
@@ -673,12 +637,13 @@ if __name__ == "__main__":
     else:
         usage = "usage: %prog [options] "
         parser = argparse.ArgumentParser(
-            description="Vectorisation and simplification of a raster file"
-        )
+            description="Vectorisation and simplification of a raster file")
 
-        parser.add_argument(
-            "-wd", dest="path", action="store", help="Working directory", required=True
-        )
+        parser.add_argument("-wd",
+                            dest="path",
+                            action="store",
+                            help="Working directory",
+                            required=True)
 
         parser.add_argument(
             "-grass",
@@ -708,20 +673,23 @@ if __name__ == "__main__":
             "-douglas",
             dest="douglas",
             action="store",
-            help="Douglas-Peucker reduction value, if empty no Douglas-Peucker reduction",
+            help=
+            "Douglas-Peucker reduction value, if empty no Douglas-Peucker reduction",
         )
 
         parser.add_argument(
             "-hermite",
             dest="hermite",
             action="store",
-            help="Hermite smoothing level, if empty no Hermite smoothing reduction",
+            help=
+            "Hermite smoothing level, if empty no Hermite smoothing reduction",
         )
 
         parser.add_argument(
             "-angle",
             action="store_true",
-            help="Smooth corners of pixels (45°), if empty no corners smoothing",
+            help=
+            "Smooth corners of pixels (45°), if empty no corners smoothing",
             default=False,
         )
 

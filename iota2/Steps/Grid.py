@@ -19,19 +19,25 @@ from Steps import IOTA2Step
 from Cluster import get_RAM
 from Common import ServiceConfigFile as SCF
 
+
 class Grid(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "grid"
-        super(Grid, self).__init__(cfg, cfg_resources_file, resources_block_name)
+        super(Grid, self).__init__(cfg, cfg_resources_file,
+                                   resources_block_name)
 
         # step variables
         self.RAM = 1024.0 * get_RAM(self.resources["ram"])
         self.workingDirectory = workingDirectory
-        self.outputPath = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
-        self.gridsize = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'gridsize')
-        self.epsg = int(ServiceConfigFile.serviceConfigFile(self.cfg).getParam('GlobChain', 'proj').split(":")[-1])
-        
+        self.outputPath = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'outputPath')
+        self.gridsize = SCF.serviceConfigFile(self.cfg).getParam(
+            'Simplification', 'gridsize')
+        self.epsg = int(
+            SCF.serviceConfigFile(self.cfg).getParam('GlobChain',
+                                                     'proj').split(":")[-1])
+
     def step_description(self):
         """
         function use to print a short description of the step's purpose
@@ -61,10 +67,8 @@ class Grid(IOTA2Step.Step):
 
         outfilegrid = os.path.join(self.outputPath, 'final', 'simplification',
                                    'grid.shp')
-        step_function = lambda x: gridg.grid_generate(outfilegrid,
-                                                      self.gridsize,
-                                                      int(self.epsg.split(':')[1]),
-                                                      x)
+        step_function = lambda x: gridg.grid_generate(
+            outfilegrid, self.gridsize, int(self.epsg.split(':')[1]), x)
         return step_function
 
     def step_outputs(self):
