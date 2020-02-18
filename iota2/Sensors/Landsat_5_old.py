@@ -424,7 +424,7 @@ class landsat_5_old():
         div_mask_patter = list(self.masks_rules.keys())[self.border_pos]
         cloud_mask_patter = list(self.masks_rules.keys())[self.cloud_pos]
         sat_mask_patter = list(self.masks_rules.keys())[self.sat_pos]
-        if self.vhr_path != "none":
+        if self.vhr_path.lower() != "none":
             div_mask_patter = div_mask_patter.replace(".TIF", "_COREG.TIF")
             cloud_mask_patter = div_mask_patter.replace(".TIF", "_COREG.TIF")
             sat_mask_patter = div_mask_patter.replace(".TIF", "_COREG.TIF")
