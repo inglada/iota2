@@ -1098,7 +1098,7 @@ def zonalstats(path,
                 (output))
 
 
-def iota2Formatting(invector, classes, outvector=""):
+def osoFormatting(invector, classes, outvector=""):
     def Sort(sub_li):
         sub_li.sort(key=lambda x: x[0])
         return sub_li
@@ -1214,7 +1214,7 @@ def computZonalStats(path,
                      byarea=False,
                      cache="1000",
                      systemcall=True,
-                     iota2=False):
+                     oso=True):
 
     # clean geometries of input vector file
     if vf.getGeomType(shape) not in (1, 4, 1001, 1004):
@@ -1241,8 +1241,8 @@ def computZonalStats(path,
         zonalstats(path, inr, block, output, params, classes, bufferdist,
                    nodata, gdalpath, systemcall, cache)
 
-    if iota2:
-        iota2Formatting(output, classes)
+    if oso:
+        osoFormatting(output, classes)
 
 
 def getVectorsChunks(inpath, inbase="dept_"):
@@ -1264,6 +1264,7 @@ def mergeSubVector(listofchkofzones,
                    classes="",
                    outbase="departement_",
                    outzip=True,
+                   oso=True,
                    logger=logger):
 
     zoneval = listofchkofzones[0].split(
@@ -1282,8 +1283,8 @@ def mergeSubVector(listofchkofzones,
                     os.remove(os.path.splitext(subzone)[0] + ext)
                 except:
                     pass
-
-        iota2Formatting(outfile, classes, outfile)
+        if oso:
+            osoFormatting(outfile, classes, outfile)
 
         if outzip:
             outzip = os.path.splitext(outfile)[0] + '.zip'
@@ -1355,7 +1356,7 @@ if __name__ == "__main__":
                             help="If True, use system call of gdalwrap binary", default=False)
         PARSER.add_argument("-gdal_cache", dest="cache", action="store",\
                             help="", default="1000")
-        PARSER.add_argument("-iota2", action='store_true',\
+        PARSER.add_argument("-oso", action='store_true',\
                             help="If True, format output vector for production", default=False)
 
         args = PARSER.parse_args()
