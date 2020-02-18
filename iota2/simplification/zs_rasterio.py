@@ -25,18 +25,19 @@ from rasterio.mask import mask
 
 
 def maskraster(raster, shp, fid):
+
     with fiona.open(shp) as src:
         filtered = filter(lambda f: f['id'] == fid, src)
 
-        for feature in filtered:
-            shape = feature["geometry"]
+        feature = next(filtered)
+        geometry = feature["geometry"]
 
-    with rasterio.open(raster) as src:
-        out_image, out_transform = mask(src, [shape], crop=True)
+    with rasterio.open(raster) as rast:
+        out_image, out_transform = mask(rast, [geometry], crop=True)
         print(out_image)
 
 
 maskraster(
-    "/work/OT/theia/oso/vincent/IOTA2_TEST_S2/IOTA2_Outputs/Results/final/Classif_Seed_0.tif",
+    "/work/OT/theia/oso/production/cnes/production_2018/FRANCE_2018/final/Classif_Seed_0.tif",
     "/work/OT/theia/oso/vincent/IOTA2_TEST_S2/IOTA2_Outputs/Results/final/simplification/vectors/dept_31555.shp",
-    "10")
+    "42")
