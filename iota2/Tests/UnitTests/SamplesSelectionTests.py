@@ -33,7 +33,7 @@ RM_IF_ALL_OK = True
 IOTA2_SCRIPTS = os.path.join(IOTA2DIR, "iota2")
 sys.path.append(IOTA2_SCRIPTS)
 
-from Common import FileUtils as fut
+from iota2.Common import FileUtils as fut
 
 
 class iota_testSamplesSelection(unittest.TestCase):
@@ -123,7 +123,7 @@ class iota_testSamplesSelection(unittest.TestCase):
         """
         import collections
         import filecmp
-        from Sampling.SamplesSelection import write_xml
+        from iota2.Sampling.SamplesSelection import write_xml
         from TestsUtils import cmp_xml_stat_files
 
         # define inputs
@@ -152,8 +152,8 @@ class iota_testSamplesSelection(unittest.TestCase):
         """
         import collections
         import filecmp
-        from Sampling.SamplesSelection import write_xml
-        from Sampling.SamplesSelection import merge_write_stats
+        from iota2.Sampling.SamplesSelection import write_xml
+        from iota2.Sampling.SamplesSelection import merge_write_stats
         from TestsUtils import cmp_xml_stat_files
 
         # define inputs
@@ -185,7 +185,7 @@ class iota_testSamplesSelection(unittest.TestCase):
         """
         test dedicated to check if split_sel function works
         """
-        from Sampling.SamplesSelection import split_sel
+        from iota2.Sampling.SamplesSelection import split_sel
         from Iota2Tests import random_update
         from TestsUtils import rename_table
 
@@ -235,7 +235,7 @@ class iota_testSamplesSelection(unittest.TestCase):
     def test_update_flags(self):
         """
         """
-        from Sampling.SamplesSelection import update_flags
+        from iota2.Sampling.SamplesSelection import update_flags
 
         # prepare test input
         test_vector_name = "T31TCJ_samples_region_1_seed_1_selection.sqlite"
@@ -267,11 +267,11 @@ class iota_testSamplesSelection(unittest.TestCase):
         """
         test sampling of a shape file (main function of SamplesSelection.py)
         """
-        from Sampling.SamplesSelection import samples_selection
-        from Common import IOTA2Directory
-        from Common import ServiceConfigFile as SCF
-        from Tests.UnitTests.Iota2Tests import compareSQLite
-        from Common.FileUtils import cpShapeFile
+        from iota2.Sampling.SamplesSelection import samples_selection
+        from iota2.Common import IOTA2Directory
+        from iota2.Common import ServiceConfigFile as SCF
+        from iota2.Tests.UnitTests.Iota2Tests import compareSQLite
+        from iota2.Common.FileUtils import cpShapeFile
         # prepare test input
         cfg = SCF.serviceConfigFile(self.config_test)
         cfg.setParam(
