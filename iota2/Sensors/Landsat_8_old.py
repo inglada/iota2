@@ -204,7 +204,7 @@ class landsat_8_old():
                 glob.glob(
                     os.path.join(
                         date_dir, f"{self.struct_path_masks}"
-                        f"{list(self.masks_rules.keys()[self.border_pos])}"))
+                        f"{list(self.masks_rules.keys())[self.border_pos]}"))
                 [0])
 
         self.generate_raster_ref(date_edge[0])
@@ -223,7 +223,7 @@ class landsat_8_old():
         app_dep = [masks_rules]
 
         reference_raster = self.ref_image
-        if self.vhr_path != "none":
+        if self.vhr_path.lower() != "none":
             reference_raster = FileSearch_AND(input_dates[0], True,
                                               self.data_type, "COREG",
                                               ".TIF")[0]
@@ -319,7 +319,7 @@ class landsat_8_old():
         for date_dir in input_dates:
             l8_old_date = FileSearch_AND(date_dir, True, self.data_type,
                                          ".TIF")[0]
-            if self.vhr_path != "none":
+            if self.vhr_path.lower() != "none":
                 l8_old_date = FileSearch_AND(date_dir, True, self.data_type,
                                              "COREG", ".TIF")[0]
             date_data.append(l8_old_date)
@@ -430,7 +430,7 @@ class landsat_8_old():
         div_mask_patter = list(self.masks_rules.keys())[self.border_pos]
         cloud_mask_patter = list(self.masks_rules.keys())[self.cloud_pos]
         sat_mask_patter = list(self.masks_rules.keys())[self.sat_pos]
-        if self.vhr_path != "none":
+        if self.vhr_path.lower() != "none":
             div_mask_patter = div_mask_patter.replace(".TIF", "_COREG.TIF")
             cloud_mask_patter = div_mask_patter.replace(".TIF", "_COREG.TIF")
             sat_mask_patter = div_mask_patter.replace(".TIF", "_COREG.TIF")
