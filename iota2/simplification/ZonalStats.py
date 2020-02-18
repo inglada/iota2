@@ -25,6 +25,7 @@ import pandas as pad
 import geopandas as gpad
 from skimage.measure import label
 from skimage.measure import regionprops
+import rasterio
 import numpy as np
 import logging
 logger = logging.getLogger(__name__)
