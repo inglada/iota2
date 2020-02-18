@@ -1092,7 +1092,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         random part in this script could not be control, no reference vector can be done.
         Only number of features can be check.
         """
-        from Common import ServiceConfigFile as SCF
+        from iota2.Common import ServiceConfigFile as SCF
         from Sampling import TileEnvelope as env
         from Sampling import TileArea as area
         from Common.Tools import CreateRegionsByTiles as RT
@@ -1160,7 +1160,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         IOTA2Directory.GenerateDirectories(config_test, check_inputs=False)
 
         #shapes genereation
-        commonMasks("D0005H0002", config_path_test)
+        commonMasks("D0005H0002", config_path_test, testPath)
         env.GenerateShapeTile(["D0005H0002"], wD, testPath + "/envelope", None,
                               config_test)
         shapeRegion = os.path.join(wD, "MyFakeRegion.shp")
@@ -1219,7 +1219,7 @@ class iota_testSamplerApplications(unittest.TestCase):
 
         #shapes genereation
         vector = shapeReferenceVector(self.referenceShape, "D0005H0002")
-        commonMasks("D0005H0002", config_path_test)
+        commonMasks("D0005H0002", config_path_test, testPath)
         env.GenerateShapeTile(["D0005H0002"], wD, testPath + "/envelope", None,
                               config_test)
         shapeRegion = os.path.join(wD, "MyFakeRegion.shp")
@@ -1277,7 +1277,7 @@ class iota_testSamplerApplications(unittest.TestCase):
 
         #shapes genereation
         vector = shapeReferenceVector(self.referenceShape, "D0005H0002")
-        commonMasks("D0005H0002", config_path_test)
+        commonMasks("D0005H0002", config_path_test, testPath)
         env.GenerateShapeTile(["D0005H0002"], wD, testPath + "/envelope", None,
                               config_test)
         shapeRegion = os.path.join(wD, "MyFakeRegion.shp")
@@ -1333,7 +1333,7 @@ class iota_testSamplerApplications(unittest.TestCase):
 
         #shapes genereation
         vector = shapeReferenceVector(self.referenceShape, "D0005H0002")
-        commonMasks("D0005H0002", config_path_test)
+        commonMasks("D0005H0002", config_path_test, testPath)
         env.GenerateShapeTile(["D0005H0002"], wD, testPath + "/envelope", None,
                               config_test)
         shapeRegion = os.path.join(wD, "MyFakeRegion.shp")
