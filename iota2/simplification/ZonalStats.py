@@ -1247,7 +1247,11 @@ def computZonalStats(path,
 
 def getVectorsChunks(inpath, inbase="dept_"):
 
-    listout = fut.FileSearch_AND(inpath, True, inbase, ".shp", "chk")
+    if not fut.FileSearch_AND(inpath, True, inbase, ".shp", "chk"):
+        listout = fut.FileSearch_AND(inpath, True, inbase, ".shp", "stats")
+    else:
+        listout = fut.FileSearch_AND(inpath, True, inbase, ".shp", "chk")
+
     listofchkofzones = fut.sortByFirstElem([
         ("_".join(x.split('_')[0:len(x.split('_')) - 1]), x) for x in listout
     ])
