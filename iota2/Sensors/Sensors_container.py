@@ -210,21 +210,21 @@ class sensors_container():
         paths = []
         for sensor in self.enabled_sensors:
             if landsat_5_old.name == sensor.__class__.name:
-                paths.append(l5_old)
+                paths.append(l5_old["image_directory"])
             elif landsat_8.name == sensor.__class__.name:
-                paths.append(land8)
+                paths.append(land8["image_directory"])
             elif landsat_8_old.name == sensor.__class__.name:
-                paths.append(l8_old)
+                paths.append(l8_old["image_directory"])
             elif sentinel_1.name == sensor.__class__.name:
-                paths.append(sen1)
+                paths.append(sen1["image_directory"])
             elif sentinel_2.name == sensor.__class__.name:
-                paths.append(sen2)
+                paths.append(sen2["image_directory"])
             elif sentinel_2_s2c.name == sensor.__class__.name:
-                paths.append(s2_s2c)
+                paths.append(s2_s2c["image_directory"])
             elif sentinel_2_l3a.name == sensor.__class__.name:
-                paths.append(s2_l3a)
+                paths.append(s2_l3a["image_directory"])
             elif user_features.name == sensor.__class__.name:
-                paths.append(user_feat)
+                paths.append(user_feat["image_directory"])
         return paths
 
     def sensors_preprocess(self, available_ram=128):
