@@ -15,10 +15,8 @@
 # =========================================================================
 
 import argparse
-import sys
 import os
 import shutil
-import subprocess
 from config import Config
 from osgeo import gdal
 from osgeo import ogr
@@ -26,7 +24,6 @@ from osgeo import osr
 from osgeo.gdalconst import *
 from iota2.Common import FileUtils as fu
 from iota2.Common import ServiceConfigFile as SCF
-from iota2.Common.Utils import run
 """
 It's in this script that tile's priority are manage. This priority use tile origin. If you want to change priority, you have to modify
 these functions :
