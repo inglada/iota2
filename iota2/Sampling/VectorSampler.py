@@ -30,13 +30,13 @@ import logging
 import time
 import multiprocessing as mp
 
-from Common import FileUtils as fu
-from Common.Utils import run
-from Sampling import GenAnnualSamples as genAS
-from Common import ServiceConfigFile as SCF
-from Sampling.VectorFormatting import split_vector_by_region
-from Sampling.SamplesSelection import prepareSelection
-from Common.OtbAppBank import executeApp
+from iota2.Common import FileUtils as fu
+from iota2.Common.Utils import run
+from iota2.Sampling import GenAnnualSamples as genAS
+from iota2.Common import ServiceConfigFile as SCF
+from iota2.Sampling.VectorFormatting import split_vector_by_region
+from iota2.Sampling.SamplesSelection import prepareSelection
+from iota2.Common.OtbAppBank import executeApp
 
 logger = logging.getLogger(__name__)
 
