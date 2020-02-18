@@ -212,7 +212,6 @@ def gapFillingToSample(trainShape,
             4]
 
     AllFeatures.Execute()
-
     ref = fu.FileSearch_AND(cMaskDirectory, True, "MaskCommunSL.tif")
     if not ref:
         commonMasks(tile, cfg.pathConf, output_path)
@@ -492,13 +491,15 @@ def generateSamples_cropMix(folderSample,
             except OSError:
                 logger.warning(A_workingDirectory + "allready exists")
         SCF.clearConfig()
+        # TODO : warning two output path
         Aconfig = SCF.serviceConfigFile(Aconfig)
+        output_path_a = Aconfig.getParam("chain", "outputPath")
         sampleExtr_A, dep_gapSampleNA = gapFillingToSample(annual_vector_sel,
                                                            A_workingDirectory,
                                                            SampleExtr_A,
                                                            dataField,
                                                            Aconfig,
-                                                           output_path,
+                                                           output_path_a,
                                                            wMode,
                                                            mode=mode)
         #~ sampleExtr_A.ExecuteAndWriteOutput()
