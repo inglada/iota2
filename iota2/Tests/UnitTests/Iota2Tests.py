@@ -764,7 +764,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         Step 4 : compare the merged sample to reference
         """
 
-        from Common.Tools.Iota2TestsFeaturesLabels import prepareAnnualFeatures
+        from iota2.Tests.UnitTests.TestsUtils import prepare_annual_features
 
         def prepareTestsFolder(workingDirectory=False):
 
@@ -847,12 +847,13 @@ class iota_testSamplerApplications(unittest.TestCase):
                                              "L8_50x50")
         L8_rasters_annual = os.path.join(wD, "annualData")
         os.mkdir(L8_rasters_annual)
-
+        print(L8_rasters_annual)
+        input("bgghji")
         #annual sensor data generation (pix annual = 2 * pix non_annual)
-        prepareAnnualFeatures(L8_rasters_annual,
-                              L8_rasters_non_annual,
-                              "CORR_PENTE",
-                              rename=("2016", "2015"))
+        prepare_annual_features(L8_rasters_annual,
+                                L8_rasters_non_annual,
+                                "CORR_PENTE",
+                                rename=("2016", "2015"))
         #prepare annual configuration file
         annual_config_path = os.path.join(wD, "AnnualConfig.cfg")
         shutil.copy(self.config.pathConf, annual_config_path)

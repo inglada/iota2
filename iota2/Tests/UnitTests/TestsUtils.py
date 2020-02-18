@@ -998,10 +998,10 @@ def generate_fake_l8_old_data(root_directory, tile_name, dates):
             stack_app.ExecuteAndWriteOutput()
 
 
-def prepareAnnualFeatures(workingDirectory,
-                          referenceDirectory,
-                          pattern,
-                          rename=None):
+def prepare_annual_features(workingDirectory,
+                            referenceDirectory,
+                            pattern,
+                            rename=None):
     """
     double all rasters's pixels
     rename must be a tuple
