@@ -14,12 +14,14 @@
 #
 # =========================================================================
 
-import os, sys, argparse
+import os
+import sys
+import argparse
 import shutil
 from collections import OrderedDict
 from zipfile import ZipFile
+import logging
 import osgeo
-import ogr
 import gdal
 import pandas as pad
 import geopandas as gpad
@@ -29,8 +31,7 @@ import rasterio
 import fiona
 from rasterio.mask import mask
 import numpy as np
-import logging
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 try:
     from VectorTools import vector_functions as vf
@@ -59,7 +60,7 @@ def getFidList(vect):
 def getVectorsList(path):
 
     listfiles = []
-    for root, dirs, files in os.walk(path):
+    for root, _, files in os.walk(path):
         for filein in files:
             if ".shp" in filein:
                 listfiles.append(os.path.join(root, filein))
@@ -938,7 +939,7 @@ def zonalstats(path,
                gdalpath="",
                systemcall=False,
                gdalcachemax="9000",
-               logger=logger):
+               logger=LOGGER):
     """Compute zonal statistitics (descriptive and categorical)
        on multi-band raster or multi-rasters
        based on Point (buffered or not) or Polygon zonal vector
@@ -984,11 +985,11 @@ def zonalstats(path,
 
     """
 
-    logger.info("Begin to compute zonal statistics for vector file %s" %
+    LOGGER.info("Begin to compute zonal statistics for vector file %s" %
                 (output))
 
     if systemcall and not gdalpath:
-        logger.info(
+        LOGGER.info(
             "Please provide gdal binaries path when systemcall is set to true")
         sys.exit()
 
@@ -1094,7 +1095,7 @@ def zonalstats(path,
     # exportation
     dataframeExport(stats, output, schema)
 
-    logger.info("End to compute zonal statistics for vector file %s" %
+    LOGGER.info("End to compute zonal statistics for vector file %s" %
                 (output))
 
 
@@ -1265,14 +1266,14 @@ def mergeSubVector(listofchkofzones,
                    outbase="departement_",
                    outzip=True,
                    oso=True,
-                   logger=logger):
+                   logger=LOGGER):
 
     zoneval = listofchkofzones[0].split(
         '_')[len(listofchkofzones[0].split('_')) -
              1:len(listofchkofzones[0].split('_'))]
     outfile = os.path.join(outpath, outbase + zoneval[0] + '.shp')
 
-    logger.info("Production of vector file %s" % (outfile))
+    LOGGER.info("Production of vector file %s" % (outfile))
 
     mf.mergeVectors(listofchkofzones[1], outfile)
 
