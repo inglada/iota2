@@ -969,7 +969,7 @@ def zonalstats(path,
         gdal cache for wrapping operation (in Mb)
 
     """
-    print(params)
+
     logger.info("Begin to compute zonal statistics for vector file %s" %
                 (output))
 
