@@ -847,8 +847,6 @@ class iota_testSamplerApplications(unittest.TestCase):
                                              "L8_50x50")
         L8_rasters_annual = os.path.join(wD, "annualData")
         os.mkdir(L8_rasters_annual)
-        print(L8_rasters_annual)
-        input("bgghji")
         #annual sensor data generation (pix annual = 2 * pix non_annual)
         prepare_annual_features(L8_rasters_annual,
                                 L8_rasters_non_annual,
@@ -932,10 +930,10 @@ class iota_testSamplerApplications(unittest.TestCase):
 
         #annual sensor data generation (pix annual = 2 * pix non_annual)
         os.mkdir(L8_rasters_annual)
-        prepareAnnualFeatures(L8_rasters_annual,
-                              L8_rasters_non_annual,
-                              "CORR_PENTE",
-                              rename=("2016", "2015"))
+        prepare_annual_features(L8_rasters_annual,
+                                L8_rasters_non_annual,
+                                "CORR_PENTE",
+                                rename=("2016", "2015"))
         #prepare annual configuration file
         annual_config_path = os.path.join(wD, "AnnualConfig.cfg")
         shutil.copy(self.config.pathConf, annual_config_path)
@@ -990,10 +988,10 @@ class iota_testSamplerApplications(unittest.TestCase):
 
         #annual sensor data generation (pix annual = 2 * pix non_annual)
         os.mkdir(L8_rasters_annual)
-        prepareAnnualFeatures(L8_rasters_annual,
-                              L8_rasters_non_annual,
-                              "CORR_PENTE",
-                              rename=("2016", "2015"))
+        prepare_annual_features(L8_rasters_annual,
+                                L8_rasters_non_annual,
+                                "CORR_PENTE",
+                                rename=("2016", "2015"))
         #prepare annual configuration file
         annual_config_path = os.path.join(wD, "AnnualConfig.cfg")
         shutil.copy(self.config.pathConf, annual_config_path)
@@ -1048,10 +1046,10 @@ class iota_testSamplerApplications(unittest.TestCase):
         config_test = SCF.serviceConfigFile(config_path_test)
         #annual sensor data generation (pix annual = 2 * pix non_annual)
         os.mkdir(L8_rasters_annual)
-        prepareAnnualFeatures(L8_rasters_annual,
-                              L8_rasters_non_annual,
-                              "CORR_PENTE",
-                              rename=("2016", "2015"))
+        prepare_annual_features(L8_rasters_annual,
+                                L8_rasters_non_annual,
+                                "CORR_PENTE",
+                                rename=("2016", "2015"))
         #prepare annual configuration file
         annual_config_path = os.path.join(wD, "AnnualConfig.cfg")
         shutil.copy(self.config.pathConf, annual_config_path)
