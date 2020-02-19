@@ -60,8 +60,11 @@ class CommonMasks(IOTA2Step.Step):
             must be a lambda function.
         """
         from Sensors import ProcessLauncher
+        from iota2.Common import ServiceConfigFile as SCF
+        sensors_params = SCF.iota2_parameters(self.cfg)
         step_function = lambda x: ProcessLauncher.commonMasks(
-            x, self.cfg, self.output_path, self.workingDirectory, self.RAM)
+            x, self.output_path, sensors_params.get_sensors_parameters(x), self
+            .workingDirectory, self.RAM)
         return step_function
 
     def step_outputs(self):
