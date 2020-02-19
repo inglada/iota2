@@ -163,7 +163,7 @@ class iota_testOpticalSARFusion(unittest.TestCase):
         iota2_dir = os.path.join(self.test_working_directory, "fusionTest")
         cfg.setParam('chain', 'outputPath', iota2_dir)
 
-        IOTA2Directory.GenerateDirectories(cfg, check_inputs=False)
+        IOTA2Directory.generate_directories(iota2_dir, check_inputs=False)
         iota2_ds_confusions_dir = os.path.join(iota2_dir, "dataAppVal",
                                                "bymodels")
         fut.ensure_dir(iota2_ds_confusions_dir)
@@ -219,7 +219,7 @@ class iota_testOpticalSARFusion(unittest.TestCase):
         """
         TEST : Fusion.perform_fusion
         """
-        from Classification import Fusion
+        from iota2.Classification import Fusion
 
         # define inputs
         sar_raster = os.path.join(self.test_working_directory,
@@ -269,7 +269,7 @@ class iota_testOpticalSARFusion(unittest.TestCase):
         iota2_dir = os.path.join(self.test_working_directory, "fusionTest")
         cfg.setParam('chain', 'outputPath', iota2_dir)
 
-        IOTA2Directory.GenerateDirectories(cfg, check_inputs=False)
+        IOTA2Directory.generate_directories(iota2_dir, check_inputs=False)
 
         fusion_dic = {
             "sar_classif": sar_raster,
@@ -461,7 +461,7 @@ class iota_testOpticalSARFusion(unittest.TestCase):
         cfg = SCF.serviceConfigFile(self.config_test)
         iota2_dir = os.path.join(self.test_working_directory, "fusionTest")
         cfg.setParam('chain', 'outputPath', iota2_dir)
-        IOTA2Directory.GenerateDirectories(cfg, check_inputs=False)
+        IOTA2Directory.generate_directories(iota2_dir, check_inputs=False)
 
         sar_raster = os.path.join(iota2_dir, "classif",
                                   "Classif_T31TCJ_model_1_seed_0_SAR.tif")
