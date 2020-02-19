@@ -13,14 +13,15 @@
 #   PURPOSE.  See the above copyright notices for more information.
 #
 # =========================================================================
-
+from typing import Dict, Union, List
 from functools import partial
 import argparse
 
 from iota2.Common.GenerateFeatures import generateFeatures
-from iota2.Common import ServiceConfigFile as SCF
 from iota2.Common import IOTA2Directory
 from iota2.Common import rasterUtils
+
+sensors_params = Dict[str, Union[str, List[str], int]]
 
 
 def smart_scientific_function(array, increment, *args, **kwargs):
@@ -29,17 +30,20 @@ def smart_scientific_function(array, increment, *args, **kwargs):
     return array + increment
 
 
-def compute_features(config_path,
-                     output_raster,
-                     tile_name,
-                     working_dir,
+def compute_features(output_path: str,
+                     sensors_parameters: sensors_params,
+                     output_raster: str,
+                     tile_name: str,
+                     working_dir: str,
                      function=smart_scientific_function) -> None:
     """Use a python function to generate features through the use of numpy arrays
 
     Parameters
     ----------
-    config_path : str
-        configuration file path
+    output_path : str
+        output directory
+    sensors_parameters : dict
+        sensors parameters description
     output_raster : str
         output raster path
     tile_name : str
@@ -47,10 +51,13 @@ def compute_features(config_path,
     function : function
         function to apply on iota²' stack
     """
-    cfg = SCF.serviceConfigFile(config_path)
-    IOTA2Directory.generate_directories(cfg.getParam("chain", "outputPath"),
-                                        check_inputs=False)
-    feat_stack, feat_labels, _ = generateFeatures(working_dir, tile_name, cfg)
+    IOTA2Directory.generate_directories(output_path, check_inputs=False)
+    feat_stack, feat_labels, _ = generateFeatures(
+        working_dir,
+        tile_name,
+        sar_optical_post_fusion=False,
+        output_path=output_path,
+        sensors_parameters=sensors_parameters)
 
     # Then compute new features
     function = partial(function, increment=1)
@@ -66,30 +73,37 @@ def compute_features(config_path,
 
 
 if __name__ == "__main__":
-    description = ("Use a python function to generate new features, "
+    from iota2.Common import ServiceConfigFile as SCF
+    from iota2.Common.ServiceConfigFile import iota2_parameters
+    DESCRIPTION = ("Use a python function to generate new features, "
                    "through the use of numpy arrays")
-    parser = argparse.ArgumentParser(description=description)
-    parser.add_argument("-config",
+    PARSER = argparse.ArgumentParser(description=DESCRIPTION)
+    PARSER.add_argument("-config",
                         dest="config",
                         help="configuration file path",
                         default=None,
                         required=True)
-    parser.add_argument("-output",
+    PARSER.add_argument("-output",
                         dest="output",
                         help="output raster",
                         default=None,
                         required=True)
-    parser.add_argument("-tile",
+    PARSER.add_argument("-tile",
                         dest="tile_name",
                         help="tile's name",
                         default=None,
                         required=True)
-    parser.add_argument("-working_dir",
+    PARSER.add_argument("-working_dir",
                         dest="working_dir",
                         help="tile's name",
                         default=None,
                         required=True)
-    args = parser.parse_args()
+    ARGS = PARSER.parse_args()
+    # load configuration file
+    CFG = SCF.serviceConfigFile(ARGS.pathConf)
+    PARAMS = iota2_parameters(ARGS.pathConf)
+    SEN_PARAM = PARAMS.get_sensors_parameters(ARGS.tile)
+    OUTPUT_PATH = CFG.getParam("chain", "outputPath")
 
-    compute_features(args.config, args.output, args.tile_name,
-                     args.working_dir)
+    compute_features(OUTPUT_PATH, SEN_PARAM, ARGS.output, ARGS.tile_name,
+                     ARGS.working_dir)
