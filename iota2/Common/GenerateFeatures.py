@@ -22,7 +22,7 @@ from typing import Dict, Union, List, Optional
 
 LOGGER = logging.getLogger(__name__)
 
-SENSORS_PARAMS = Dict[str, Union[str, List[str], int]]
+sensors_params = Dict[str, Union[str, List[str], int]]
 
 
 def str2bool(value):
@@ -45,7 +45,7 @@ def generateFeatures(pathWd: str,
                      tile: str,
                      sar_optical_post_fusion: bool,
                      output_path: str,
-                     sensors_parameters: SENSORS_PARAMS,
+                     sensors_parameters: sensors_params,
                      mode: Optional[str] = "usually"):
     """
     usage : Function use to compute features according to a configuration file
