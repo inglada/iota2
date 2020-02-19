@@ -40,6 +40,7 @@ LOGGER = logging.getLogger(__name__)
 otb_app_type = TypeVar('otbApplication')
 # in order to avoid issue 'No handlers could be found for logger...'
 LOGGER.addHandler(logging.NullHandler())
+sensors_params_type = Dict[str, Union[str, List[str], int]]
 
 
 def get_vectors_to_sample(iota2_formatting_dir: str,
@@ -47,7 +48,7 @@ def get_vectors_to_sample(iota2_formatting_dir: str,
                           ) -> List[Dict[str, str]]:
     """
     get vectors to sample
-    IN : 
+    IN :
         iota2_formatting_dir : str
             path to shapefiles
         ds_fusion_sar_opt : bool
@@ -134,6 +135,8 @@ def get_features_application(train_shape: str,
                              samples: str,
                              data_field: str,
                              output_path: str,
+                             sar_optical_post_fusion: bool,
+                             sensors_parameters: sensors_params_type,
                              ram: Optional[int] = 128,
                              mode: Optional[str] = "usually",
                              only_mask_comm: Optional[bool] = False,
@@ -185,7 +188,9 @@ def get_features_application(train_shape: str,
     (all_features, feat_labels,
      dep_features) = genFeatures.generateFeatures(working_directory_features,
                                                   tile,
-                                                  cfg,
+                                                  sar_optical_post_fusion,
+                                                  output_path,
+                                                  sensors_parameters,
                                                   mode=mode)
 
     if only_sensors_masks:
@@ -196,7 +201,7 @@ def get_features_application(train_shape: str,
     all_features.Execute()
     ref = fu.FileSearch_AND(c_mask_directory, True, "MaskCommunSL.tif")
     if not ref:
-        commonMasks(tile, cfg.pathConf, output_path)
+        commonMasks(tile, output_path, sensors_parameters)
 
     ref = fu.FileSearch_AND(c_mask_directory, True, "MaskCommunSL.tif")[0]
 
@@ -230,6 +235,8 @@ def generate_samples_simple(folder_sample: str,
                             runs: int,
                             proj: int,
                             enable_cross_validation: bool,
+                            sensors_parameters: sensors_params_type,
+                            sar_optical_post_fusion: bool,
                             ram: Optional[int] = 128,
                             w_mode: Optional[bool] = False,
                             folder_features: Optional[str] = None,
@@ -287,7 +294,7 @@ def generate_samples_simple(folder_sample: str,
 
     sample_extr, dep_gapsample = get_features_application(
         sample_selection, working_directory, samples, data_field, output_path,
-        ram, mode)
+        sar_optical_post_fusion, sensors_parameters, ram, mode)
 
     sample_extraction_output = os.path.join(
         folder_sample, os.path.basename(sample_extr.GetParameterValue("out")))
@@ -386,11 +393,13 @@ def generate_samples_crop_mix(folder_sample: str,
                               runs: int,
                               region_field: str,
                               proj: str,
-                              ram=128,
-                              w_mode=False,
-                              test_mode=False,
-                              sample_sel=None,
-                              mode="usually",
+                              sar_optical_post_fusion: bool,
+                              sensors_params: sensors_params_type,
+                              ram: Optional[int] = 128,
+                              w_mode: Optional[bool] = False,
+                              test_mode: Optional[bool] = False,
+                              sample_sel: Optional[str] = None,
+                              mode: Optional[str] = "usually",
                               year_a: Optional[str] = '2017',
                               year_na: Optional[str] = '2016',
                               logger=LOGGER) -> Union[None, List[str]]:
@@ -478,7 +487,8 @@ def generate_samples_crop_mix(folder_sample: str,
 
         sample_extr_na, dep_gapsample_na = get_features_application(
             nonannual_vector_sel, na_working_directory, sample_extr_na,
-            data_field, output_path, ram, mode)
+            data_field, output_path, sar_optical_post_fusion, sensors_params,
+            ram, mode)
         # sampleExtr_NA.ExecuteAndWriteOutput()
         multi_proc = mp.Process(target=executeApp, args=[sample_extr_na])
         multi_proc.start()
@@ -498,6 +508,8 @@ def generate_samples_crop_mix(folder_sample: str,
             sample_extr_a,
             data_field,
             output_path_annual,
+            sar_optical_post_fusion,
+            sensors_params,
             mode=mode)
         # sampleExtr_A.ExecuteAndWriteOutput()
         multi_proc = mp.Process(target=executeApp, args=[sample_extr_a])
@@ -766,8 +778,8 @@ def generate_samples_classif_mix(folder_sample: str,
                                  train_shape: str,
                                  path_wd: str,
                                  output_path: str,
-                                 annual_crop: list[Union[str, int]],
-                                 all_class: list[Union[str, int]],
+                                 annual_crop: List[Union[str, int]],
+                                 all_class: List[Union[str, int]],
                                  data_field: str,
                                  previous_classif_path: str,
                                  proj: int,
@@ -776,6 +788,8 @@ def generate_samples_classif_mix(folder_sample: str,
                                  region_field: str,
                                  validity_threshold: int,
                                  target_resolution: int,
+                                 sar_optical_post_fusion: bool,
+                                 sensors_parameters: sensors_params_type,
                                  folder_features: Optional[str] = None,
                                  ram: Optional[int] = 128,
                                  w_mode: Optional[bool] = False,
@@ -785,21 +799,29 @@ def generate_samples_classif_mix(folder_sample: str,
                                  mode: Optional[str] = "usually",
                                  logger: Optional[Logger] = LOGGER):
     """
-    usage : from one classification, chose randomly annual sample merge with non annual sample and extract features.
+    usage : from one classification, chose randomly annual sample merge
+            with non annual sample and extract features.
     IN:
         folderSample [string] : output folder
         workingDirectory [string] : computation folder
         trainShape [string] : vector shape (polygons) to sample
-        pathWd [string] : if different from None, enable HPC mode (copy at ending)
+        pathWd [string] : if different from None, enable HPC mode
+                          (copy at ending)
         featuresPath [string] : path to all stack
-        annualCrop [list of string/int] : list containing annual crops ex : [11,12]
-        AllClass [list of string/int] : list containing all classes in vector shape ex : [11,12,51..]
+        annualCrop [list of string/int] : list containing annual crops
+                                          ex : [11,12]
+        AllClass [list of string/int] : list containing all classes in
+                                        vector shape ex : [11,12,51..]
         cfg [string] : configuration file class
-        previousClassifPath [string] : path to the iota2 output directory which generate previous classification
+        previousClassifPath [string] : path to the iota2 output
+                                       directory which generate previous
+                                       classification
         dataField [string] : data's field into vector shape
         testMode [bool] : enable testMode -> iota2tests.py
-        testPrevConfig [string] : path to the configuration file which generate previous classification
-        testShapeRegion [string] : path to the shapefile representing region in the tile.
+        testPrevConfig [string] : path to the configuration file which generate
+                                  previous classification
+        testShapeRegion [string] : path to the shapefile representing region in
+                                   the tile.
         testFeaturePath [string] : path to the stack of data
 
     OUT:
@@ -814,17 +836,8 @@ def generate_samples_classif_mix(folder_sample: str,
                                                    "_Samples.sqlite"))):
         return None
 
-    # target_resolution = cfg.getParam('chain', 'spatialResolution')
-    # validityThreshold = cfg.getParam('argTrain', 'validityThreshold')
-    # projEPSG = cfg.getParam('GlobChain', 'proj')
-    # projOut = int(proj.split(":")[-1])
-    # userFeatPath = cfg.getParam('chain', 'userFeatPath')
-    # outFeatures = cfg.getParam('GlobChain', 'features')
-    # runs = cfg.getParam('chain', 'runs')
     if enable_cross_validation:
         runs = runs - 1
-    # regionField = (cfg.getParam('chain', 'regionField')).lower()
-    # output_path = cfg.getParam('chain', 'outputPath')
     features_path = os.path.join(output_path, "features")
     sample_sel_directory = os.path.join(output_path, "samplesSelection")
 
@@ -927,10 +940,9 @@ def generate_samples_classif_mix(folder_sample: str,
         working_directory,
         train_shape.split("/")[-1].replace(".shp", "_Samples.sqlite"))
 
-    sample_extr, dep_tmp = get_features_application(sample_selection,
-                                                    working_directory, samples,
-                                                    data_field, output_path,
-                                                    w_mode, ram, mode)
+    sample_extr, dep_tmp = get_features_application(
+        sample_selection, working_directory, samples, data_field, output_path,
+        sar_optical_post_fusion, sensors_parameters, w_mode, ram, mode)
 
     # sampleExtr.ExecuteAndWriteOutput()
     multi_proc = mp.Process(target=executeApp, args=[sample_extr])
@@ -944,8 +956,9 @@ def generate_samples_classif_mix(folder_sample: str,
                                            driver="SQLite",
                                            proj_in="EPSG:" + str(proj),
                                            proj_out="EPSG:" + str(proj))
-    if test_mode:
-        return split_vectors
+    if not test_mode:
+        split_vectors = None
+
     if path_wd and os.path.exists(samples):
         for sample in split_vectors:
             shutil.copy(sample, folder_sample)
@@ -976,6 +989,7 @@ def generate_samples_classif_mix(folder_sample: str,
     os.remove(validity_raster)
     for mask in masks:
         os.remove(mask)
+    return split_vectors
 
 
 # generateSamples
@@ -983,13 +997,15 @@ def generate_samples(train_shape_dic,
                      path_wd,
                      data_field: str,
                      output_path: str,
-                     annual_crop,
+                     annual_crop: List[Union[str, int]],
                      crop_mix: bool,
                      auto_context_enable: bool,
                      region_field: str,
                      proj: int,
                      enable_cross_validation: bool,
                      runs: int,
+                     sensors_parameters: sensors_params_type,
+                     sar_optical_post_fusion: bool,
                      samples_classif_mix: Optional[bool] = False,
                      output_path_annual: Optional[str] = None,
                      ram=128,
@@ -1008,14 +1024,30 @@ def generate_samples(train_shape_dic,
     IN:
     train_shape_dic [dict] : dictionnary containing a shape file in value
     pathWd [string] : working directory
-    cfg [class] : class serviceConfigFile
-
+    data_field [str] : data field name
+    output_path [str] : the ouput path
+    annual_crop: List[str or int] : the list of annual crop
+    crop_mix [bool] : activate the crop mix mode
+    auto_context_enable [bool] : activate auto context mode
+    region_field [str] : the region field name
+    proj [int] : the working projection
+    enable_cross_validation [bool] : enable cross validation
+    runs: int,
+    samples_classif_mix: Optional[bool] = False,
+    output_path_annual: Optional[str] = None,
+    ram=128,
+    w_mode=False,
+    folder_annual_features=None,
+    previous_classif_path: Optional[str] = None,
+    validity_threshold: Optional[int] = None,
+    target_resolution: Optional[int] = None,
     testMode [bool] : enable test
     features [string] : path to features allready compute (refl + NDVI ...)
     testFeaturePath [string] : path to stack of data without features
     testAnnualFeaturePath [string] : path to stack of data without features
     testPrevConfig [string] : path to a configuration file
-    testShapeRegion [string] : path to a vector shapeFile, representing region in tile
+    testShapeRegion [string] : path to a vector shapeFile, representing region
+                               in tile
 
     OUT:
     samples [string] : path to output vector shape
@@ -1026,7 +1058,7 @@ def generate_samples(train_shape_dic,
     # samplesClassifMix = cfg.getParam('argTrain', 'samplesClassifMix')
     # annualCrop = cfg.getParam('argTrain', 'annualCrop')
 
-    #mode must be "usally" or "SAR"
+    # mode must be "usally" or "SAR"
     mode = list(train_shape_dic.keys())[0]
     train_shape = train_shape_dic[mode]
 
@@ -1035,7 +1067,7 @@ def generate_samples(train_shape_dic,
                                    data_field,
                                    mode="unique",
                                    elemType="str")
-    folder_features_annual = folder_annual_features
+    # folder_features_annual = folder_annual_features
 
     for current_class in annual_crop.data:
         try:
@@ -1070,20 +1102,19 @@ def generate_samples(train_shape_dic,
         working_directory = path_wd
 
     if crop_mix is False or auto_context_enable:
-        samples = generate_samples_simple(folder_sample, working_directory,
-                                          train_shape, path_wd, data_field,
-                                          region_field, output_path, runs,
-                                          proj, enable_cross_validation, ram,
-                                          w_mode, folder_features, test_mode,
-                                          sample_selection, mode)
+        samples = generate_samples_simple(
+            folder_sample, working_directory, train_shape, path_wd, data_field,
+            region_field, output_path, runs, proj, enable_cross_validation,
+            sensors_parameters, sar_optical_post_fusion, ram, w_mode,
+            folder_features, test_mode, sample_selection, mode)
 
     elif crop_mix is True and samples_classif_mix is False:
         samples = generate_samples_crop_mix(
             folder_sample, working_directory, output_path, output_path_annual,
             train_shape, path_wd, annual_crop, all_class, data_field,
             folder_features, folder_annual_features, enable_cross_validation,
-            runs, region_field, proj, ram, w_mode, test_mode, sample_selection,
-            mode)
+            runs, region_field, proj, sar_optical_post_fusion,
+            sensors_parameters, ram, w_mode, test_mode, sample_selection, mode)
 
     elif crop_mix is True and samples_classif_mix is True:
         samples = generate_samples_classif_mix(
@@ -1091,8 +1122,8 @@ def generate_samples(train_shape_dic,
             output_path, annual_crop, all_class, data_field,
             previous_classif_path, proj, runs, enable_cross_validation,
             region_field, validity_threshold, target_resolution,
-            folder_features, ram, w_mode, test_mode, test_shape_region,
-            sample_selection, mode)
+            sar_optical_post_fusion, sensors_parameters, folder_features, ram,
+            w_mode, test_mode, test_shape_region, sample_selection, mode)
     if test_mode:
         return samples
 
@@ -1140,9 +1171,12 @@ if __name__ == "__main__":
                                          'annualClassesExtractionSource')
     VALIDITY_THRESHOLD = CFG.getParam('argTrain', 'validityThreshold')
     TARGET_RESOLUTION = CFG.getParam('chain', 'spatialResolution')
+    SENSORS_PARAMS = SCF.iota2_parameters(CFG)
+    SAR_OPTICAL_FLAG = CFG.getParam("chain", "dempster_shafer_SAR_Opt_fusion")
     generate_samples(ARGS.shape, ARGS.pathWd, DATA_FIELD, OUTPUT_PATH,
                      ANNUAL_CROP, CROP_MIX, AUTO_CONTEXT_ENABLE, REGION_FIELD,
-                     PROJ, ENABLE_CROSS_VALIDATION, RUNS, SAMPLES_CLASSIF_MIX,
-                     OUTPUT_PATH_ANNUAL, RAM, W_MODE, FOLDER_ANNUAL_FEATURES,
+                     PROJ, ENABLE_CROSS_VALIDATION, RUNS, SENSORS_PARAMS,
+                     SAR_OPTICAL_FLAG, SAMPLES_CLASSIF_MIX, OUTPUT_PATH_ANNUAL,
+                     RAM, W_MODE, FOLDER_ANNUAL_FEATURES,
                      PREVIOUS_CLASSIF_PATH, VALIDITY_THRESHOLD,
                      TARGET_RESOLUTION)
