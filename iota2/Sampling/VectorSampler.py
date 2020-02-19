@@ -1018,8 +1018,7 @@ def generate_samples(train_shape_dic,
     # mode must be "usally" or "SAR"
     mode = list(train_shape_dic.keys())[0]
     train_shape = train_shape_dic[mode]
-    if isinstance(proj, str):
-        proj = int(proj.split(":")[-1])
+
     all_class = fu.getFieldElement(train_shape,
                                    "ESRI Shapefile",
                                    data_field,
@@ -1064,6 +1063,8 @@ def generate_samples(train_shape_dic,
             sensors_parameters, ram, w_mode, test_mode, sample_selection, mode)
 
     elif crop_mix is True and samples_classif_mix is True:
+        if isinstance(proj, str):
+            proj = int(proj.split(":")[-1])
         samples = generate_samples_classif_mix(
             folder_sample, working_directory, train_shape, path_wd,
             output_path, annual_crop, all_class, data_field,

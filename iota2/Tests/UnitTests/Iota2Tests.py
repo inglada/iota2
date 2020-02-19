@@ -563,7 +563,7 @@ class iota_testSamplerApplications(unittest.TestCase):
 
         os.mkdir(featuresOutputs + "/D0005H0002")
         os.mkdir(featuresOutputs + "/D0005H0002/tmp")
-
+        tile = "D0005H0002"
         self.config = SCF.serviceConfigFile(config_path_test)
         """
         TEST :
@@ -572,10 +572,65 @@ class iota_testSamplerApplications(unittest.TestCase):
         and compare resulting samples extraction with reference.
         """
         # launch test case
-        VectorSampler.generateSamples({"usually": self.referenceShape_test},
-                                      None,
-                                      self.config,
-                                      sampleSelection=self.selection_test)
+
+        data_field = self.config.getParam("chain", "dataField")
+        output_path = self.config.getParam("chain", "outputPath")
+        annual_crop = self.config.getParam("argTrain", 'annualCrop')
+        crop_mix = self.config.getParam('argTrain', 'cropMix')
+        auto_context_enable = self.config.getParam('chain',
+                                                   'enable_autoContext')
+        region_field = (self.config.getParam('chain', 'regionField')).lower()
+        proj = self.config.getParam('GlobChain', 'proj')
+        enable_cross_validation = self.config.getParam(
+            'chain', 'enableCrossValidation')
+        runs = self.config.getParam('chain', 'runs')
+        samples_classif_mix = self.config.getParam('argTrain',
+                                                   'samplesClassifMix')
+
+        # annual_config_file = cfg.getParam('argTrain', "prevFeatures")
+        # output_path_annual = SCF.serviceConfigFile(
+        #    annual_config_file).getParam("chain", "outputPath")
+        output_path_annual = None
+        ram = 128
+        w_mode = False
+        folder_annual_features = self.config.getParam('argTrain',
+                                                      'outputPrevFeatures')
+        previous_classif_path = self.config.getParam(
+            'argTrain', 'annualClassesExtractionSource')
+        validity_threshold = self.config.getParam('argTrain',
+                                                  'validityThreshold')
+        target_resolution = self.config.getParam('chain', 'spatialResolution')
+        sensors_params = SCF.iota2_parameters(
+            config_path_test).get_sensors_parameters(tile)
+        try:
+            sar_optical_flag = self.config.getParam(
+                "chain", "dempster_shafer_SAR_Opt_fusion")
+        except Exception as exc:
+            print(exc)
+            sar_optical_flag = False
+
+        VectorSampler.generate_samples({"usually": self.referenceShape_test},
+                                       None,
+                                       data_field,
+                                       output_path,
+                                       annual_crop,
+                                       crop_mix,
+                                       auto_context_enable,
+                                       region_field,
+                                       proj,
+                                       enable_cross_validation,
+                                       runs,
+                                       sensors_params,
+                                       sar_optical_flag,
+                                       samples_classif_mix,
+                                       output_path_annual,
+                                       ram,
+                                       w_mode,
+                                       folder_annual_features,
+                                       previous_classif_path,
+                                       validity_threshold,
+                                       target_resolution,
+                                       sample_selection=self.selection_test)
 
         # assert
         test_vector = fu.fileSearchRegEx(testPath +
@@ -611,10 +666,63 @@ class iota_testSamplerApplications(unittest.TestCase):
 
         # launch test case
         config_test = SCF.serviceConfigFile(config_path_test)
-        VectorSampler.generateSamples({"usually": self.referenceShape_test},
-                                      None,
-                                      config_test,
-                                      sampleSelection=self.selection_test)
+        data_field = config_test.getParam("chain", "dataField")
+        output_path = config_test.getParam("chain", "outputPath")
+        annual_crop = config_test.getParam("argTrain", 'annualCrop')
+        crop_mix = config_test.getParam('argTrain', 'cropMix')
+        auto_context_enable = config_test.getParam('chain',
+                                                   'enable_autoContext')
+        region_field = (config_test.getParam('chain', 'regionField')).lower()
+        proj = config_test.getParam('GlobChain', 'proj')
+        enable_cross_validation = config_test.getParam(
+            'chain', 'enableCrossValidation')
+        runs = config_test.getParam('chain', 'runs')
+        samples_classif_mix = config_test.getParam('argTrain',
+                                                   'samplesClassifMix')
+
+        # annual_config_file = cfg.getParam('argTrain', "prevFeatures")
+        # output_path_annual = SCF.serviceConfigFile(
+        #    annual_config_file).getParam("chain", "outputPath")
+        output_path_annual = None
+        ram = 128
+        w_mode = False
+        folder_annual_features = config_test.getParam('argTrain',
+                                                      'outputPrevFeatures')
+        previous_classif_path = config_test.getParam(
+            'argTrain', 'annualClassesExtractionSource')
+        validity_threshold = config_test.getParam('argTrain',
+                                                  'validityThreshold')
+        target_resolution = config_test.getParam('chain', 'spatialResolution')
+        sensors_params = SCF.iota2_parameters(
+            config_path_test).get_sensors_parameters(tile)
+        try:
+            sar_optical_flag = config_test.getParam(
+                "chain", "dempster_shafer_SAR_Opt_fusion")
+        except Exception as exc:
+            print(exc)
+            sar_optical_flag = False
+        VectorSampler.generate_samples({"usually": self.referenceShape_test},
+                                       None,
+                                       data_field,
+                                       output_path,
+                                       annual_crop,
+                                       crop_mix,
+                                       auto_context_enable,
+                                       region_field,
+                                       proj,
+                                       enable_cross_validation,
+                                       runs,
+                                       sensors_params,
+                                       sar_optical_flag,
+                                       samples_classif_mix,
+                                       output_path_annual,
+                                       ram,
+                                       w_mode,
+                                       folder_annual_features,
+                                       previous_classif_path,
+                                       validity_threshold,
+                                       target_resolution,
+                                       sample_selection=self.selection_test)
 
         # assert
         test_vector = fu.fileSearchRegEx(testPath +
@@ -649,10 +757,63 @@ class iota_testSamplerApplications(unittest.TestCase):
         os.mkdir(os.path.join(featuresOutputs, "D0005H0002"))
         os.mkdir(os.path.join(featuresOutputs, "D0005H0002", "tmp"))
         config_test = SCF.serviceConfigFile(config_path_test)
-        VectorSampler.generateSamples({"usually": self.referenceShape_test},
-                                      wD,
-                                      config_test,
-                                      sampleSelection=self.selection_test)
+        data_field = config_test.getParam("chain", "dataField")
+        output_path = config_test.getParam("chain", "outputPath")
+        annual_crop = config_test.getParam("argTrain", 'annualCrop')
+        crop_mix = config_test.getParam('argTrain', 'cropMix')
+        auto_context_enable = config_test.getParam('chain',
+                                                   'enable_autoContext')
+        region_field = (config_test.getParam('chain', 'regionField')).lower()
+        proj = config_test.getParam('GlobChain', 'proj')
+        enable_cross_validation = config_test.getParam(
+            'chain', 'enableCrossValidation')
+        runs = config_test.getParam('chain', 'runs')
+        samples_classif_mix = config_test.getParam('argTrain',
+                                                   'samplesClassifMix')
+
+        # annual_config_file = cfg.getParam('argTrain', "prevFeatures")
+        # output_path_annual = SCF.serviceConfigFile(
+        #    annual_config_file).getParam("chain", "outputPath")
+        output_path_annual = None
+        ram = 128
+        w_mode = False
+        folder_annual_features = config_test.getParam('argTrain',
+                                                      'outputPrevFeatures')
+        previous_classif_path = config_test.getParam(
+            'argTrain', 'annualClassesExtractionSource')
+        validity_threshold = config_test.getParam('argTrain',
+                                                  'validityThreshold')
+        target_resolution = config_test.getParam('chain', 'spatialResolution')
+        sensors_params = SCF.iota2_parameters(
+            config_path_test).get_sensors_parameters(tile)
+        try:
+            sar_optical_flag = config_test.getParam(
+                "chain", "dempster_shafer_SAR_Opt_fusion")
+        except Exception as exc:
+            print(exc)
+            sar_optical_flag = False
+        VectorSampler.generate_samples({"usually": self.referenceShape_test},
+                                       wD,
+                                       data_field,
+                                       output_path,
+                                       annual_crop,
+                                       crop_mix,
+                                       auto_context_enable,
+                                       region_field,
+                                       proj,
+                                       enable_cross_validation,
+                                       runs,
+                                       sensors_params,
+                                       sar_optical_flag,
+                                       samples_classif_mix,
+                                       output_path_annual,
+                                       ram,
+                                       w_mode,
+                                       folder_annual_features,
+                                       previous_classif_path,
+                                       validity_threshold,
+                                       target_resolution,
+                                       sample_selection=self.selection_test)
         #~ self.config.setParam('GlobChain', 'writeOutputs', False)
 
         test_vector = fu.fileSearchRegEx(testPath +
@@ -693,11 +854,63 @@ class iota_testSamplerApplications(unittest.TestCase):
         os.mkdir(os.path.join(featuresOutputs, "D0005H0002"))
         os.mkdir(os.path.join(featuresOutputs, "D0005H0002", "tmp"))
         config_test = SCF.serviceConfigFile(config_path_test)
+        data_field = config_test.getParam("chain", "dataField")
+        output_path = config_test.getParam("chain", "outputPath")
+        annual_crop = config_test.getParam("argTrain", 'annualCrop')
+        crop_mix = config_test.getParam('argTrain', 'cropMix')
+        auto_context_enable = config_test.getParam('chain',
+                                                   'enable_autoContext')
+        region_field = (config_test.getParam('chain', 'regionField')).lower()
+        proj = config_test.getParam('GlobChain', 'proj')
+        enable_cross_validation = config_test.getParam(
+            'chain', 'enableCrossValidation')
+        runs = config_test.getParam('chain', 'runs')
+        samples_classif_mix = config_test.getParam('argTrain',
+                                                   'samplesClassifMix')
 
-        VectorSampler.generateSamples({"usually": self.referenceShape_test},
-                                      wD,
-                                      config_test,
-                                      sampleSelection=self.selection_test)
+        # annual_config_file = cfg.getParam('argTrain', "prevFeatures")
+        # output_path_annual = SCF.serviceConfigFile(
+        #    annual_config_file).getParam("chain", "outputPath")
+        output_path_annual = None
+        ram = 128
+        w_mode = False
+        folder_annual_features = config_test.getParam('argTrain',
+                                                      'outputPrevFeatures')
+        previous_classif_path = config_test.getParam(
+            'argTrain', 'annualClassesExtractionSource')
+        validity_threshold = config_test.getParam('argTrain',
+                                                  'validityThreshold')
+        target_resolution = config_test.getParam('chain', 'spatialResolution')
+        sensors_params = SCF.iota2_parameters(
+            config_path_test).get_sensors_parameters(tile)
+        try:
+            sar_optical_flag = config_test.getParam(
+                "chain", "dempster_shafer_SAR_Opt_fusion")
+        except Exception as exc:
+            print(exc)
+            sar_optical_flag = False
+        VectorSampler.generate_samples({"usually": self.referenceShape_test},
+                                       wD,
+                                       data_field,
+                                       output_path,
+                                       annual_crop,
+                                       crop_mix,
+                                       auto_context_enable,
+                                       region_field,
+                                       proj,
+                                       enable_cross_validation,
+                                       runs,
+                                       sensors_params,
+                                       sar_optical_flag,
+                                       samples_classif_mix,
+                                       output_path_annual,
+                                       ram,
+                                       w_mode,
+                                       folder_annual_features,
+                                       previous_classif_path,
+                                       validity_threshold,
+                                       target_resolution,
+                                       sample_selection=self.selection_test)
 
         test_vector = fu.fileSearchRegEx(testPath +
                                          "/learningSamples/*sqlite")[0]
@@ -737,10 +950,63 @@ class iota_testSamplerApplications(unittest.TestCase):
         os.mkdir(os.path.join(featuresOutputs, "D0005H0002"))
         os.mkdir(os.path.join(featuresOutputs, "D0005H0002", "tmp"))
         config_test = SCF.serviceConfigFile(config_path_test)
-        VectorSampler.generateSamples({"usually": self.referenceShape_test},
-                                      wD,
-                                      config_test,
-                                      sampleSelection=self.selection_test)
+        data_field = config_test.getParam("chain", "dataField")
+        output_path = config_test.getParam("chain", "outputPath")
+        annual_crop = config_test.getParam("argTrain", 'annualCrop')
+        crop_mix = config_test.getParam('argTrain', 'cropMix')
+        auto_context_enable = config_test.getParam('chain',
+                                                   'enable_autoContext')
+        region_field = (config_test.getParam('chain', 'regionField')).lower()
+        proj = config_test.getParam('GlobChain', 'proj')
+        enable_cross_validation = config_test.getParam(
+            'chain', 'enableCrossValidation')
+        runs = config_test.getParam('chain', 'runs')
+        samples_classif_mix = config_test.getParam('argTrain',
+                                                   'samplesClassifMix')
+
+        # annual_config_file = cfg.getParam('argTrain', "prevFeatures")
+        # output_path_annual = SCF.serviceConfigFile(
+        #    annual_config_file).getParam("chain", "outputPath")
+        output_path_annual = None
+        ram = 128
+        w_mode = False
+        folder_annual_features = config_test.getParam('argTrain',
+                                                      'outputPrevFeatures')
+        previous_classif_path = config_test.getParam(
+            'argTrain', 'annualClassesExtractionSource')
+        validity_threshold = config_test.getParam('argTrain',
+                                                  'validityThreshold')
+        target_resolution = config_test.getParam('chain', 'spatialResolution')
+        sensors_params = SCF.iota2_parameters(
+            config_path_test).get_sensors_parameters(tile)
+        try:
+            sar_optical_flag = config_test.getParam(
+                "chain", "dempster_shafer_SAR_Opt_fusion")
+        except Exception as exc:
+            print(exc)
+            sar_optical_flag = False
+        VectorSampler.generate_samples({"usually": self.referenceShape_test},
+                                       wD,
+                                       data_field,
+                                       output_path,
+                                       annual_crop,
+                                       crop_mix,
+                                       auto_context_enable,
+                                       region_field,
+                                       proj,
+                                       enable_cross_validation,
+                                       runs,
+                                       sensors_params,
+                                       sar_optical_flag,
+                                       samples_classif_mix,
+                                       output_path_annual,
+                                       ram,
+                                       w_mode,
+                                       folder_annual_features,
+                                       previous_classif_path,
+                                       validity_threshold,
+                                       target_resolution,
+                                       sample_selection=self.selection_test)
 
         test_vector = fu.fileSearchRegEx(testPath +
                                          "/learningSamples/*sqlite")[0]
@@ -887,13 +1153,65 @@ class iota_testSamplerApplications(unittest.TestCase):
         cfg_test.GlobChain.useAdditionalFeatures = False
         cfg_test.GlobChain.writeOutputs = True
         cfg_test.save(open(config_path_test, 'w'))
+        tile = "D0005H0002"
         config_test = SCF.serviceConfigFile(config_path_test)
+        data_field = config_test.getParam("chain", "dataField")
+        output_path = config_test.getParam("chain", "outputPath")
+        annual_crop = config_test.getParam("argTrain", 'annualCrop')
+        crop_mix = config_test.getParam('argTrain', 'cropMix')
+        auto_context_enable = config_test.getParam('chain',
+                                                   'enable_autoContext')
+        region_field = (config_test.getParam('chain', 'regionField')).lower()
+        proj = config_test.getParam('GlobChain', 'proj')
+        enable_cross_validation = config_test.getParam(
+            'chain', 'enableCrossValidation')
+        runs = config_test.getParam('chain', 'runs')
+        samples_classif_mix = config_test.getParam('argTrain',
+                                                   'samplesClassifMix')
 
+        annual_config_file = config_test.getParam('argTrain', "prevFeatures")
+        output_path_annual = SCF.serviceConfigFile(
+            annual_config_file).getParam("chain", "outputPath")
+        ram = 128
+        w_mode = False
+        folder_annual_features = config_test.getParam('argTrain',
+                                                      'outputPrevFeatures')
+        previous_classif_path = config_test.getParam(
+            'argTrain', 'annualClassesExtractionSource')
+        validity_threshold = config_test.getParam('argTrain',
+                                                  'validityThreshold')
+        target_resolution = config_test.getParam('chain', 'spatialResolution')
+        sensors_params = SCF.iota2_parameters(
+            config_path_test).get_sensors_parameters(tile)
+        try:
+            sar_optical_flag = config_test.getParam(
+                "chain", "dempster_shafer_SAR_Opt_fusion")
+        except Exception as exc:
+            print(exc)
+            sar_optical_flag = False
         #Launch sampler
-        VectorSampler.generateSamples({"usually": self.referenceShape_test},
-                                      None,
-                                      config_test,
-                                      sampleSelection=self.selection_test)
+        VectorSampler.generate_samples({"usually": self.referenceShape_test},
+                                       None,
+                                       data_field,
+                                       output_path,
+                                       annual_crop,
+                                       crop_mix,
+                                       auto_context_enable,
+                                       region_field,
+                                       proj,
+                                       enable_cross_validation,
+                                       runs,
+                                       sensors_params,
+                                       sar_optical_flag,
+                                       samples_classif_mix,
+                                       output_path_annual,
+                                       ram,
+                                       w_mode,
+                                       folder_annual_features,
+                                       previous_classif_path,
+                                       validity_threshold,
+                                       target_resolution,
+                                       sample_selection=self.selection_test)
 
         #compare to reference
         test_vector = fu.fileSearchRegEx(testPath +
@@ -948,10 +1266,63 @@ class iota_testSamplerApplications(unittest.TestCase):
         cfg.save(open(annual_config_path, 'w'))
 
         #Launch sampler
-        VectorSampler.generateSamples({"usually": self.referenceShape_test},
-                                      wD,
-                                      config_test,
-                                      sampleSelection=self.selection_test)
+        data_field = config_test.getParam("chain", "dataField")
+        output_path = config_test.getParam("chain", "outputPath")
+        annual_crop = config_test.getParam("argTrain", 'annualCrop')
+        crop_mix = config_test.getParam('argTrain', 'cropMix')
+        auto_context_enable = config_test.getParam('chain',
+                                                   'enable_autoContext')
+        region_field = (config_test.getParam('chain', 'regionField')).lower()
+        proj = config_test.getParam('GlobChain', 'proj')
+        enable_cross_validation = config_test.getParam(
+            'chain', 'enableCrossValidation')
+        runs = config_test.getParam('chain', 'runs')
+        samples_classif_mix = config_test.getParam('argTrain',
+                                                   'samplesClassifMix')
+
+        annual_config_file = config_test.getParam('argTrain', "prevFeatures")
+        output_path_annual = SCF.serviceConfigFile(
+            annual_config_file).getParam("chain", "outputPath")
+
+        ram = 128
+        w_mode = False
+        folder_annual_features = config_test.getParam('argTrain',
+                                                      'outputPrevFeatures')
+        previous_classif_path = config_test.getParam(
+            'argTrain', 'annualClassesExtractionSource')
+        validity_threshold = config_test.getParam('argTrain',
+                                                  'validityThreshold')
+        target_resolution = config_test.getParam('chain', 'spatialResolution')
+        sensors_params = SCF.iota2_parameters(
+            config_path_test).get_sensors_parameters(tile)
+        try:
+            sar_optical_flag = config_test.getParam(
+                "chain", "dempster_shafer_SAR_Opt_fusion")
+        except Exception as exc:
+            print(exc)
+            sar_optical_flag = False
+        VectorSampler.generate_samples({"usually": self.referenceShape_test},
+                                       wD,
+                                       data_field,
+                                       output_path,
+                                       annual_crop,
+                                       crop_mix,
+                                       auto_context_enable,
+                                       region_field,
+                                       proj,
+                                       enable_cross_validation,
+                                       runs,
+                                       sensors_params,
+                                       sar_optical_flag,
+                                       samples_classif_mix,
+                                       output_path_annual,
+                                       ram,
+                                       w_mode,
+                                       folder_annual_features,
+                                       previous_classif_path,
+                                       validity_threshold,
+                                       target_resolution,
+                                       sample_selection=self.selection_test)
 
         test_vector = fu.fileSearchRegEx(testPath +
                                          "/learningSamples/*sqlite")[0]
@@ -1005,12 +1376,64 @@ class iota_testSamplerApplications(unittest.TestCase):
         cfg.GlobChain.useAdditionalFeatures = False
         cfg.save(open(annual_config_path, 'w'))
 
+        data_field = config_test.getParam("chain", "dataField")
+        output_path = config_test.getParam("chain", "outputPath")
+        annual_crop = config_test.getParam("argTrain", 'annualCrop')
+        crop_mix = config_test.getParam('argTrain', 'cropMix')
+        auto_context_enable = config_test.getParam('chain',
+                                                   'enable_autoContext')
+        region_field = (config_test.getParam('chain', 'regionField')).lower()
+        proj = config_test.getParam('GlobChain', 'proj')
+        enable_cross_validation = config_test.getParam(
+            'chain', 'enableCrossValidation')
+        runs = config_test.getParam('chain', 'runs')
+        samples_classif_mix = config_test.getParam('argTrain',
+                                                   'samplesClassifMix')
+
+        annual_config_file = config_test.getParam('argTrain', "prevFeatures")
+        output_path_annual = SCF.serviceConfigFile(
+            annual_config_file).getParam("chain", "outputPath")
+
+        ram = 128
+        w_mode = False
+        folder_annual_features = config_test.getParam('argTrain',
+                                                      'outputPrevFeatures')
+        previous_classif_path = config_test.getParam(
+            'argTrain', 'annualClassesExtractionSource')
+        validity_threshold = config_test.getParam('argTrain',
+                                                  'validityThreshold')
+        target_resolution = config_test.getParam('chain', 'spatialResolution')
+        sensors_params = SCF.iota2_parameters(
+            config_path_test).get_sensors_parameters(tile)
+        try:
+            sar_optical_flag = config_test.getParam(
+                "chain", "dempster_shafer_SAR_Opt_fusion")
+        except Exception as exc:
+            print(exc)
+            sar_optical_flag = False
         #Launch sampler
-        vectorTest = VectorSampler.generateSamples(
-            {"usually": self.referenceShape_test},
-            None,
-            config_test,
-            sampleSelection=self.selection_test)
+        VectorSampler.generate_samples({"usually": self.referenceShape_test},
+                                       None,
+                                       data_field,
+                                       output_path,
+                                       annual_crop,
+                                       crop_mix,
+                                       auto_context_enable,
+                                       region_field,
+                                       proj,
+                                       enable_cross_validation,
+                                       runs,
+                                       sensors_params,
+                                       sar_optical_flag,
+                                       samples_classif_mix,
+                                       output_path_annual,
+                                       ram,
+                                       w_mode,
+                                       folder_annual_features,
+                                       previous_classif_path,
+                                       validity_threshold,
+                                       target_resolution,
+                                       sample_selection=self.selection_test)
 
         test_vector = fu.fileSearchRegEx(testPath +
                                          "/learningSamples/*sqlite")[0]
@@ -1063,11 +1486,64 @@ class iota_testSamplerApplications(unittest.TestCase):
         cfg.GlobChain.useAdditionalFeatures = False
         cfg.save(open(annual_config_path, 'w'))
 
+        data_field = config_test.getParam("chain", "dataField")
+        output_path = config_test.getParam("chain", "outputPath")
+        annual_crop = config_test.getParam("argTrain", 'annualCrop')
+        crop_mix = config_test.getParam('argTrain', 'cropMix')
+        auto_context_enable = config_test.getParam('chain',
+                                                   'enable_autoContext')
+        region_field = (config_test.getParam('chain', 'regionField')).lower()
+        proj = config_test.getParam('GlobChain', 'proj')
+        enable_cross_validation = config_test.getParam(
+            'chain', 'enableCrossValidation')
+        runs = config_test.getParam('chain', 'runs')
+        samples_classif_mix = config_test.getParam('argTrain',
+                                                   'samplesClassifMix')
+
+        annual_config_file = config_test.getParam('argTrain', "prevFeatures")
+        output_path_annual = SCF.serviceConfigFile(
+            annual_config_file).getParam("chain", "outputPath")
+
+        ram = 128
+        w_mode = False
+        folder_annual_features = config_test.getParam('argTrain',
+                                                      'outputPrevFeatures')
+        previous_classif_path = config_test.getParam(
+            'argTrain', 'annualClassesExtractionSource')
+        validity_threshold = config_test.getParam('argTrain',
+                                                  'validityThreshold')
+        target_resolution = config_test.getParam('chain', 'spatialResolution')
+        sensors_params = SCF.iota2_parameters(
+            config_path_test).get_sensors_parameters(tile)
+        try:
+            sar_optical_flag = config_test.getParam(
+                "chain", "dempster_shafer_SAR_Opt_fusion")
+        except Exception as exc:
+            print(exc)
+            sar_optical_flag = False
         #Launch Sampling
-        VectorSampler.generateSamples({"usually": self.referenceShape_test},
-                                      None,
-                                      config_test,
-                                      sampleSelection=self.selection_test)
+        VectorSampler.generate_samples({"usually": self.referenceShape_test},
+                                       None,
+                                       data_field,
+                                       output_path,
+                                       annual_crop,
+                                       crop_mix,
+                                       auto_context_enable,
+                                       region_field,
+                                       proj,
+                                       enable_cross_validation,
+                                       runs,
+                                       sensors_params,
+                                       sar_optical_flag,
+                                       samples_classif_mix,
+                                       output_path_annual,
+                                       ram,
+                                       w_mode,
+                                       folder_annual_features,
+                                       previous_classif_path,
+                                       validity_threshold,
+                                       target_resolution,
+                                       sample_selection=self.selection_test)
 
         #Compare vector produce to reference
         test_vector = fu.fileSearchRegEx(testPath +
@@ -1157,9 +1633,11 @@ class iota_testSamplerApplications(unittest.TestCase):
         """
         #generate IOTA output directory
         IOTA2Directory.generate_directories(testPath, check_inputs=False)
-
+        tile = "D0005H0002"
+        sensors_params = SCF.iota2_parameters(
+            config_path_test).get_sensors_parameters(tile)
         #shapes genereation
-        commonMasks("D0005H0002", config_path_test, testPath)
+        commonMasks(tile, testPath, sensors_params)
         env.GenerateShapeTile(["D0005H0002"], wD, testPath + "/envelope", None,
                               config_test)
         shapeRegion = os.path.join(wD, "MyFakeRegion.shp")
@@ -1170,10 +1648,65 @@ class iota_testSamplerApplications(unittest.TestCase):
 
         #launch sampling
         addField(vector, "region", "1", str)
-        VectorSampler.generateSamples({"usually": vector},
-                                      wD,
-                                      config_test,
-                                      sampleSelection=self.selection_test)
+
+        data_field = config_test.getParam("chain", "dataField")
+        output_path = config_test.getParam("chain", "outputPath")
+        annual_crop = config_test.getParam("argTrain", 'annualCrop')
+        crop_mix = config_test.getParam('argTrain', 'cropMix')
+        auto_context_enable = config_test.getParam('chain',
+                                                   'enable_autoContext')
+        region_field = (config_test.getParam('chain', 'regionField')).lower()
+        proj = config_test.getParam('GlobChain', 'proj')
+        enable_cross_validation = config_test.getParam(
+            'chain', 'enableCrossValidation')
+        runs = config_test.getParam('chain', 'runs')
+        samples_classif_mix = config_test.getParam('argTrain',
+                                                   'samplesClassifMix')
+
+        # annual_config_file = config_test.getParam('argTrain', "prevFeatures")
+        output_path_annual = None
+        # output_path_annual = SCF.serviceConfigFile(
+        #    annual_config_file).getParam("chain", "outputPath")
+
+        ram = 128
+        w_mode = False
+        folder_annual_features = config_test.getParam('argTrain',
+                                                      'outputPrevFeatures')
+        previous_classif_path = config_test.getParam(
+            'argTrain', 'annualClassesExtractionSource')
+        validity_threshold = config_test.getParam('argTrain',
+                                                  'validityThreshold')
+        target_resolution = config_test.getParam('chain', 'spatialResolution')
+        sensors_params = SCF.iota2_parameters(
+            config_path_test).get_sensors_parameters(tile)
+        try:
+            sar_optical_flag = config_test.getParam(
+                "chain", "dempster_shafer_SAR_Opt_fusion")
+        except Exception as exc:
+            print(exc)
+            sar_optical_flag = False
+        VectorSampler.generate_samples({"usually": vector},
+                                       wD,
+                                       data_field,
+                                       output_path,
+                                       annual_crop,
+                                       crop_mix,
+                                       auto_context_enable,
+                                       region_field,
+                                       proj,
+                                       enable_cross_validation,
+                                       runs,
+                                       sensors_params,
+                                       sar_optical_flag,
+                                       samples_classif_mix,
+                                       output_path_annual,
+                                       ram,
+                                       w_mode,
+                                       folder_annual_features,
+                                       previous_classif_path,
+                                       validity_threshold,
+                                       target_resolution,
+                                       sample_selection=self.selection_test)
         test_vector = fu.fileSearchRegEx(testPath +
                                          "/learningSamples/*sqlite")[0]
 
@@ -1218,7 +1751,11 @@ class iota_testSamplerApplications(unittest.TestCase):
 
         #shapes genereation
         vector = shapeReferenceVector(self.referenceShape, "D0005H0002")
-        commonMasks("D0005H0002", config_path_test, testPath)
+        tile = "D0005H0002"
+        sensors_params = SCF.iota2_parameters(
+            config_path_test).get_sensors_parameters(tile)
+        #shapes genereation
+        commonMasks(tile, testPath, sensors_params)
         env.GenerateShapeTile(["D0005H0002"], wD, testPath + "/envelope", None,
                               config_test)
         shapeRegion = os.path.join(wD, "MyFakeRegion.shp")
@@ -1228,10 +1765,62 @@ class iota_testSamplerApplications(unittest.TestCase):
                                 testPath + "/shapeRegion/", None)
 
         addField(vector, "region", "1", str)
-        VectorSampler.generateSamples({"usually": vector},
-                                      wD,
-                                      config_test,
-                                      sampleSelection=self.selection_test)
+
+        data_field = config_test.getParam("chain", "dataField")
+        output_path = config_test.getParam("chain", "outputPath")
+        annual_crop = config_test.getParam("argTrain", 'annualCrop')
+        crop_mix = config_test.getParam('argTrain', 'cropMix')
+        auto_context_enable = config_test.getParam('chain',
+                                                   'enable_autoContext')
+        region_field = (config_test.getParam('chain', 'regionField')).lower()
+        proj = config_test.getParam('GlobChain', 'proj')
+        enable_cross_validation = config_test.getParam(
+            'chain', 'enableCrossValidation')
+        runs = config_test.getParam('chain', 'runs')
+        samples_classif_mix = config_test.getParam('argTrain',
+                                                   'samplesClassifMix')
+
+        output_path_annual = None
+        ram = 128
+        w_mode = False
+        folder_annual_features = config_test.getParam('argTrain',
+                                                      'outputPrevFeatures')
+        previous_classif_path = config_test.getParam(
+            'argTrain', 'annualClassesExtractionSource')
+        validity_threshold = config_test.getParam('argTrain',
+                                                  'validityThreshold')
+        target_resolution = config_test.getParam('chain', 'spatialResolution')
+        sensors_params = SCF.iota2_parameters(
+            config_path_test).get_sensors_parameters(tile)
+        try:
+            sar_optical_flag = config_test.getParam(
+                "chain", "dempster_shafer_SAR_Opt_fusion")
+        except Exception as exc:
+            print(exc)
+            sar_optical_flag = False
+
+        VectorSampler.generate_samples({"usually": vector},
+                                       wD,
+                                       data_field,
+                                       output_path,
+                                       annual_crop,
+                                       crop_mix,
+                                       auto_context_enable,
+                                       region_field,
+                                       proj,
+                                       enable_cross_validation,
+                                       runs,
+                                       sensors_params,
+                                       sar_optical_flag,
+                                       samples_classif_mix,
+                                       output_path_annual,
+                                       ram,
+                                       w_mode,
+                                       folder_annual_features,
+                                       previous_classif_path,
+                                       validity_threshold,
+                                       target_resolution,
+                                       sample_selection=self.selection_test)
 
         test_vector = fu.fileSearchRegEx(testPath +
                                          "/learningSamples/*sqlite")[0]
@@ -1276,7 +1865,10 @@ class iota_testSamplerApplications(unittest.TestCase):
 
         #shapes genereation
         vector = shapeReferenceVector(self.referenceShape, "D0005H0002")
-        commonMasks("D0005H0002", config_path_test, testPath)
+        tile = "D0005H0002"
+        sensors_params = SCF.iota2_parameters(
+            config_path_test).get_sensors_parameters(tile)
+        commonMasks(tile, testPath, sensors_params)
         env.GenerateShapeTile(["D0005H0002"], wD, testPath + "/envelope", None,
                               config_test)
         shapeRegion = os.path.join(wD, "MyFakeRegion.shp")
@@ -1286,10 +1878,62 @@ class iota_testSamplerApplications(unittest.TestCase):
                                 testPath + "/shapeRegion/", None)
 
         addField(vector, "region", "1", str)
-        VectorSampler.generateSamples({"usually": vector},
-                                      None,
-                                      config_test,
-                                      sampleSelection=self.selection_test)
+
+        data_field = config_test.getParam("chain", "dataField")
+        output_path = config_test.getParam("chain", "outputPath")
+        annual_crop = config_test.getParam("argTrain", 'annualCrop')
+        crop_mix = config_test.getParam('argTrain', 'cropMix')
+        auto_context_enable = config_test.getParam('chain',
+                                                   'enable_autoContext')
+        region_field = (config_test.getParam('chain', 'regionField')).lower()
+        proj = config_test.getParam('GlobChain', 'proj')
+        enable_cross_validation = config_test.getParam(
+            'chain', 'enableCrossValidation')
+        runs = config_test.getParam('chain', 'runs')
+        samples_classif_mix = config_test.getParam('argTrain',
+                                                   'samplesClassifMix')
+
+        output_path_annual = None
+        ram = 128
+        w_mode = False
+        folder_annual_features = config_test.getParam('argTrain',
+                                                      'outputPrevFeatures')
+        previous_classif_path = config_test.getParam(
+            'argTrain', 'annualClassesExtractionSource')
+        validity_threshold = config_test.getParam('argTrain',
+                                                  'validityThreshold')
+        target_resolution = config_test.getParam('chain', 'spatialResolution')
+        sensors_params = SCF.iota2_parameters(
+            config_path_test).get_sensors_parameters(tile)
+        try:
+            sar_optical_flag = config_test.getParam(
+                "chain", "dempster_shafer_SAR_Opt_fusion")
+        except Exception as exc:
+            print(exc)
+            sar_optical_flag = False
+
+        VectorSampler.generate_samples({"usually": vector},
+                                       None,
+                                       data_field,
+                                       output_path,
+                                       annual_crop,
+                                       crop_mix,
+                                       auto_context_enable,
+                                       region_field,
+                                       proj,
+                                       enable_cross_validation,
+                                       runs,
+                                       sensors_params,
+                                       sar_optical_flag,
+                                       samples_classif_mix,
+                                       output_path_annual,
+                                       ram,
+                                       w_mode,
+                                       folder_annual_features,
+                                       previous_classif_path,
+                                       validity_threshold,
+                                       target_resolution,
+                                       sample_selection=self.selection_test)
 
         test_vector = fu.fileSearchRegEx(testPath +
                                          "/learningSamples/*sqlite")[0]
@@ -1332,7 +1976,10 @@ class iota_testSamplerApplications(unittest.TestCase):
 
         #shapes genereation
         vector = shapeReferenceVector(self.referenceShape, "D0005H0002")
-        commonMasks("D0005H0002", config_path_test, testPath)
+        tile = "D0005H0002"
+        sensors_params = SCF.iota2_parameters(
+            config_path_test).get_sensors_parameters(tile)
+        commonMasks(tile, testPath, sensors_params)
         env.GenerateShapeTile(["D0005H0002"], wD, testPath + "/envelope", None,
                               config_test)
         shapeRegion = os.path.join(wD, "MyFakeRegion.shp")
@@ -1342,10 +1989,63 @@ class iota_testSamplerApplications(unittest.TestCase):
                                 testPath + "/shapeRegion/", None)
 
         addField(vector, "region", "1", str)
-        VectorSampler.generateSamples({"usually": vector},
-                                      None,
-                                      config_test,
-                                      sampleSelection=self.selection_test)
+
+        data_field = config_test.getParam("chain", "dataField")
+        output_path = config_test.getParam("chain", "outputPath")
+        annual_crop = config_test.getParam("argTrain", 'annualCrop')
+        crop_mix = config_test.getParam('argTrain', 'cropMix')
+        auto_context_enable = config_test.getParam('chain',
+                                                   'enable_autoContext')
+        region_field = (config_test.getParam('chain', 'regionField')).lower()
+        proj = config_test.getParam('GlobChain', 'proj')
+        enable_cross_validation = config_test.getParam(
+            'chain', 'enableCrossValidation')
+        runs = config_test.getParam('chain', 'runs')
+        samples_classif_mix = config_test.getParam('argTrain',
+                                                   'samplesClassifMix')
+
+        output_path_annual = None
+
+        ram = 128
+        w_mode = False
+        folder_annual_features = config_test.getParam('argTrain',
+                                                      'outputPrevFeatures')
+        previous_classif_path = config_test.getParam(
+            'argTrain', 'annualClassesExtractionSource')
+        validity_threshold = config_test.getParam('argTrain',
+                                                  'validityThreshold')
+        target_resolution = config_test.getParam('chain', 'spatialResolution')
+        sensors_params = SCF.iota2_parameters(
+            config_path_test).get_sensors_parameters(tile)
+        try:
+            sar_optical_flag = config_test.getParam(
+                "chain", "dempster_shafer_SAR_Opt_fusion")
+        except Exception as exc:
+            print(exc)
+            sar_optical_flag = False
+
+        VectorSampler.generate_samples({"usually": vector},
+                                       None,
+                                       data_field,
+                                       output_path,
+                                       annual_crop,
+                                       crop_mix,
+                                       auto_context_enable,
+                                       region_field,
+                                       proj,
+                                       enable_cross_validation,
+                                       runs,
+                                       sensors_params,
+                                       sar_optical_flag,
+                                       samples_classif_mix,
+                                       output_path_annual,
+                                       ram,
+                                       w_mode,
+                                       folder_annual_features,
+                                       previous_classif_path,
+                                       validity_threshold,
+                                       target_resolution,
+                                       sample_selection=self.selection_test)
 
         test_vector = fu.fileSearchRegEx(testPath +
                                          "/learningSamples/*sqlite")[0]
