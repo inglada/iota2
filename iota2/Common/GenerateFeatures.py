@@ -18,9 +18,11 @@
 import argparse
 import os
 import logging
-from iota2.Common import ServiceConfigFile as SCF
+from typing import Dict, Union, List, Optional
 
 LOGGER = logging.getLogger(__name__)
+
+SENSORS_PARAMS = Dict[str, Union[str, List[str], int]]
 
 
 def str2bool(value):
@@ -39,30 +41,31 @@ def str2bool(value):
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
 
-def generateFeatures(pathWd, tile, cfg, mode="usually"):
+def generateFeatures(pathWd: str,
+                     tile: str,
+                     sar_optical_post_fusion: bool,
+                     output_path: str,
+                     sensors_parameters: SENSORS_PARAMS,
+                     mode: Optional[str] = "usually"):
     """
-    usage : Function use to compute features according to a configuration file.
+    usage : Function use to compute features according to a configuration file
 
-    IN
-
-    OUT
-
-    AllFeatures [OTB Application object] : otb object ready to Execute()
-    feat_labels [list] : list of strings, labels for each output band
-    dep [list of OTB Applications]
+    Parameters
+    ----------
+    pathWd : str
+        path to a working directory
+    tile : str
+        tile's name
+    sar_optical_post_fusion : bool
+        flag use to remove SAR data from features
+    mode : str
+        'usually' / 'SAR' used to get only sar features
     """
-    from iota2.Sensors.Sensors_container import sensors_container
-    from iota2.Common.ServiceConfigFile import iota2_parameters
-    from iota2.Common.OtbAppBank import CreateConcatenateImagesApplication
     from iota2.Common.OtbAppBank import getInputParameterOutput
+    from iota2.Sensors.Sensors_container import sensors_container
+    from iota2.Common.OtbAppBank import CreateConcatenateImagesApplication
 
     LOGGER.info(f"prepare features for tile : {tile}")
-    output_path = cfg.getParam('chain', 'outputPath')
-    sar_optical_post_fusion = cfg.getParam('argTrain',
-                                           'dempster_shafer_SAR_Opt_fusion')
-
-    running_parameters = iota2_parameters(cfg.pathConf)
-    sensors_parameters = running_parameters.get_sensors_parameters(tile)
 
     sensor_tile_container = sensors_container(tile, pathWd, output_path,
                                               **sensors_parameters)
@@ -100,8 +103,7 @@ def generateFeatures(pathWd, tile, cfg, mode="usually"):
     dep.append(feat_app)
 
     features_name = "{}_Features.tif".format(tile)
-    features_dir = os.path.join(cfg.getParam("chain", "outputPath"),
-                                "features", tile, "tmp")
+    features_dir = os.path.join(output_path, "features", tile, "tmp")
     features_raster = os.path.join(features_dir, features_name)
 
     if len(feat_app) > 1:
@@ -120,6 +122,8 @@ def generateFeatures(pathWd, tile, cfg, mode="usually"):
 
 if __name__ == "__main__":
 
+    from iota2.Common import ServiceConfigFile as SCF
+    from iota2.Common.ServiceConfigFile import iota2_parameters
     PARSER = argparse.ArgumentParser(
         description="Computes a time series of features")
     PARSER.add_argument("-wd",
@@ -135,15 +139,15 @@ if __name__ == "__main__":
                         dest="pathConf",
                         help="path to the configuration file (mandatory)",
                         required=True)
-    PARSER.add_argument("-writeFeatures",
-                        type=str2bool,
-                        dest="writeFeatures",
-                        Shelp="path to the working directory",
-                        default=False,
-                        required=False)
     ARGS = PARSER.parse_args()
 
     # load configuration file
     CFG = SCF.serviceConfigFile(ARGS.pathConf)
+    PARAMS = iota2_parameters(ARGS.pathConf)
+    SEN_PARAM = PARAMS.get_sensors_parameters(ARGS.tile)
 
-    generateFeatures(ARGS.pathWd, ARGS.tile, CFG, ARGS.writeFeatures)
+    generateFeatures(ARGS.pathWd,
+                     ARGS.tile,
+                     sar_optical_post_fusion=False,
+                     output_path=CFG.getParam("chain", "outputPath"),
+                     sensors_parameters=SEN_PARAM)
