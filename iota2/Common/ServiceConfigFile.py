@@ -999,7 +999,8 @@ class iota2_parameters:
         self.vhr_path = self.__config.getParam('coregistration', 'VHRPath')
         self.acorfeat = self.__config.getParam('iota2FeatureExtraction',
                                                'acorfeat')
-        self.user_patterns = self.__config.getParam('userFeat', 'patterns')
+        self.user_patterns = self.__config.getParam('userFeat',
+                                                    'patterns').split(",")
         self.available_sensors_section = [
             "Sentinel_2", "Sentinel_2_S2C", "Sentinel_2_L3A", "Sentinel_1",
             "Landsat8", "Landsat8_old", "Landsat5_old", "userFeat"
