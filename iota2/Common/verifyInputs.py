@@ -20,7 +20,6 @@ from typing import List, Optional, Union
 from osgeo import ogr
 
 from iota2.Common import ServiceError
-from iota2.Common import ServiceConfigFile
 from iota2.Common.Tools import checkDataBase
 from iota2.Common.FileUtils import is_writable_directory
 from iota2.Common.FileUtils import FileSearch_AND
@@ -141,7 +140,7 @@ def check_sqlite_db(i2_output_path):
     ]
 
 
-def check_data_intersection(ground_truth: str, region_shape: str,
+def check_data_intersection(ground_truth: str, region_shape: Union[str, None],
                             region_field: str, proj_epsg_t: int,
                             sensor_path: str,
                             tiles: List[str]) -> List[type(ServiceError)]:
