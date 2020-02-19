@@ -48,8 +48,8 @@ def preprocess(tile_name,
 
 
 def commonMasks(tile_name,
-                config_path,
                 output_path,
+                sensors_parameters,
                 working_directory=None,
                 RAM=128):
     """
@@ -70,12 +70,11 @@ def commonMasks(tile_name,
     """
     import os
     from iota2.Sensors.Sensors_container import sensors_container
-    from iota2.Common.ServiceConfigFile import iota2_parameters
     from iota2.Common.Utils import run
     from iota2.Common.FileUtils import ensure_dir
 
-    running_parameters = iota2_parameters(config_path)
-    sensors_parameters = running_parameters.get_sensors_parameters(tile_name)
+    # running_parameters = iota2_parameters(config_path)
+    # sensors_parameters = running_parameters.get_sensors_parameters(tile_name)
     remote_sensor_container = sensors_container(tile_name, working_directory,
                                                 output_path,
                                                 **sensors_parameters)
