@@ -149,6 +149,7 @@ class iota_testAutoContext(unittest.TestCase):
     def prepare_autoContext_data_ref(self, slic_seg, config_path_test):
         """
         """
+        from iota2.Common.ServiceConfigFile import iota2_parameters
         from iota2.VectorTools.AddField import addField
         from iota2.Sampling.SuperPixelsSelection import merge_ref_super_pix
         from iota2.Sampling.SplitSamples import split_superpixels_and_reference
@@ -189,7 +190,14 @@ class iota_testAutoContext(unittest.TestCase):
         }).ExecuteAndWriteOutput()
 
         cfg = SCF.serviceConfigFile(config_path_test)
-        features, feat_labels, dep = generateFeatures(None, "T31TCJ", cfg)
+        params = iota2_parameters(config_path_test)
+        sensors_parameters = params.get_sensors_parameters("T31TCJ")
+        features, feat_labels, dep = generateFeatures(
+            None,
+            "T31TCJ",
+            sar_optical_post_fusion=False,
+            output_path=cfg.getParam("chain", "outputPath"),
+            sensors_parameters=sensors_parameters)
         extraction = CreateSampleExtractionApplication({
             "in": features,
             "vec": ref_sampled,
@@ -392,7 +400,8 @@ class iota_testAutoContext(unittest.TestCase):
 
         # Launch test
         segmentation.slicSegmentation(self.tile_name,
-                                      config_path_test,
+                                      test_path,
+                                      iota2_dico,
                                       ram=128,
                                       working_dir=slic_working_dir,
                                       force_spw=1)
@@ -417,6 +426,7 @@ class iota_testAutoContext(unittest.TestCase):
         from iota2.Learning.trainAutoContext import train_autoContext
         from iota2.Classification.ImageClassifier import autoContext_launch_classif
         from iota2.Sensors.Sensors_container import sensors_container
+        from iota2.Common.ServiceConfigFile import iota2_parameters
         from iota2.Common.OtbAppBank import CreateBandMathApplication
         from iota2.Tests.UnitTests.TestsUtils import test_raster_unique_value
 
@@ -424,6 +434,7 @@ class iota_testAutoContext(unittest.TestCase):
         config_path_test = os.path.join(self.test_working_directory,
                                         "Config_TEST.cfg")
         test_path = self.generate_cfg_file(self.config_test, config_path_test)
+        cfg = SCF.serviceConfigFile(config_path_test)
         IOTA2Directory.generate_directories(test_path, check_inputs=False)
         autocontext_working_dir = os.path.join(self.test_working_directory,
                                                "autoContext_tmp")
@@ -434,9 +445,12 @@ class iota_testAutoContext(unittest.TestCase):
         sensors = sensors_container(self.tile_name, None,
                                     self.test_working_directory, **iota2_dico)
         sensors.sensors_preprocess()
-
+        running_parameters = iota2_parameters(config_path_test)
+        sensors_parameters = running_parameters.get_sensors_parameters(
+            "T31TCJ")
         segmentation.slicSegmentation(self.tile_name,
-                                      config_path_test,
+                                      test_path,
+                                      sensors_parameters,
                                       ram=128,
                                       working_dir=slic_working_dir,
                                       force_spw=1)
@@ -462,7 +476,11 @@ class iota_testAutoContext(unittest.TestCase):
         e = None
         try:
             train_autoContext(parameter_dict,
-                              config_path_test,
+                              data_field="code",
+                              output_path=test_path,
+                              sensors_parameters=sensors_parameters,
+                              superpix_data_field="superpix",
+                              iterations=3,
                               RAM=128,
                               WORKING_DIR=autocontext_working_dir)
         except Exception as e:
@@ -510,7 +528,12 @@ class iota_testAutoContext(unittest.TestCase):
         }
         autoContext_launch_classif(parameters_dict,
                                    config_path_test,
-                                   128,
+                                   iota2_run_dir=test_path,
+                                   sar_optical_post_fusion=False,
+                                   nomenclature_path=cfg.getParam(
+                                       "chain", "nomenclaturePath"),
+                                   sensors_parameters=sensors_parameters,
+                                   RAM=128,
                                    WORKING_DIR=autocontext_working_dir)
 
         # Asserts classifications

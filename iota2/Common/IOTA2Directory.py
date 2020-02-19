@@ -39,10 +39,10 @@ def generate_directories(root: str,
     root : str
         iota2 output path
     check_inputs : bool
-        flag to check iota2 user inputs, if this flag is True, 
+        flag to check iota2 user inputs, if this flag is True,
         every parameters are MANDATORY
     merge_final_classifications : bool
-        flag to generate the directory dedicated to receive the 
+        flag to generate the directory dedicated to receive the
         fusion of final classifications
     ground_truth : str
         ground truth path
