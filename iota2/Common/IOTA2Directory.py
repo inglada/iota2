@@ -13,40 +13,61 @@
 #   PURPOSE.  See the above copyright notices for more information.
 #
 # =========================================================================
-
+"""Generate iota² output tree"""
 import os
 import shutil
+from typing import Optional, List
 
-from iota2.Common import ServiceConfigFile as SCF
 from iota2.Common.verifyInputs import check_iota2_inputs
 
 
-def GenerateDirectories(cfg_path, check_inputs=True):
+def generate_directories(root: str,
+                         check_inputs: Optional[bool] = True,
+                         merge_final_classifications: Optional[bool] = False,
+                         ground_truth: Optional[str] = None,
+                         region_shape: Optional[str] = None,
+                         data_field: Optional[str] = None,
+                         region_field: Optional[str] = None,
+                         epsg: Optional[int] = None,
+                         sensor_path: Optional[str] = None,
+                         tiles: Optional[List[str]] = None) -> None:
     """
     generate IOTA2 output directories
+
+    Parameters
+    ----------
+    root : str
+        iota2 output path
+    check_inputs : bool
+        flag to check iota2 user inputs, if this flag is True, 
+        every parameters are MANDATORY
+    merge_final_classifications : bool
+        flag to generate the directory dedicated to receive the 
+        fusion of final classifications
+    ground_truth : str
+        ground truth path
+    region_shape : str
+        region shapeFile path
+    data_field : str
+        data field in ground truth database
+    region_field : str
+        region field in region shapeFile
+    epsg : int
+        target projection
+    sensor_path : str
+        path to a directory containg sensors data split
+        by tiles
+    tiles : list
+        list of tiles
     """
     from iota2.Common.FileUtils import ensure_dir
 
-    if not isinstance(cfg_path, SCF.serviceConfigFile):
-        cfg = SCF.serviceConfigFile(cfg_path)
-    else:
-        cfg = cfg_path
-
-    configuration_file_path = cfg.pathConf
-
     if check_inputs:
-        check_iota2_inputs(configuration_file_path)
+        check_iota2_inputs(root, ground_truth, region_shape, data_field,
+                           region_field, epsg, sensor_path, tiles)
 
-    root = cfg.getParam('chain', 'outputPath')
-    rm_PathTEST = cfg.getParam("chain", "remove_outputPath")
-    start_step = cfg.getParam("chain", "firstStep")
-
-    # if os.path.exists(root) and root != "/" and rm_PathTEST and start_step == "init":
-    #     shutil.rmtree(root,ignore_errors=False)
     ensure_dir(root)
-    # if os.path.exists(root+"/logs"):
-    #     shutil.rmtree(root+"/logs")
-    # os.mkdir(root+"/logs")
+
     if os.path.exists(root + "/samplesSelection"):
         shutil.rmtree(root + "/samplesSelection")
     os.mkdir(root + "/samplesSelection")
@@ -104,8 +125,6 @@ def GenerateDirectories(cfg_path, check_inputs=True):
     os.mkdir(root + "/cmd/fusion")
     os.mkdir(root + "/cmd/splitShape")
 
-    merge_final_classifications = cfg.getParam('chain',
-                                               'merge_final_classifications')
     if merge_final_classifications:
         if os.path.exists(root + "/final/merge_final_classifications"):
             shutil.rmtree(root + "/final/merge_final_classifications")

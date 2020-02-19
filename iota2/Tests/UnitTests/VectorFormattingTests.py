@@ -144,7 +144,7 @@ class iota_testVectorFormatting(unittest.TestCase):
         cfg.setParam('GlobChain', 'proj', "EPSG:2154")
         cfg.setParam('chain', 'regionPath', self.ref_region)
 
-        IOTA2Directory.GenerateDirectories(cfg, check_inputs=False)
+        IOTA2Directory.generate_directories(test_output, check_inputs=False)
 
         # prepare expected function inputs
         t31tcj_feat_dir = os.path.join(self.test_working_directory,

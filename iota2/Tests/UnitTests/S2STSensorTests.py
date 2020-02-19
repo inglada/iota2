@@ -26,8 +26,6 @@ RM_IF_ALL_OK = True
 iota2_script = os.path.join(IOTA2DIR, "iota2")
 sys.path.append(iota2_script)
 
-from iota2.Common import FileUtils as fut
-
 
 class iota_testS2STSensor(unittest.TestCase):
     #before launching tests
@@ -134,9 +132,7 @@ class iota_testS2STSensor(unittest.TestCase):
         cfg_test.GlobChain.writeOutputs = False
         cfg_test.save(open(config_path_test, 'w'))
 
-        # cfg = SCF.serviceConfigFile(config_path_test)
-        IOTA2Directory.GenerateDirectories(config_path_test,
-                                           check_inputs=False)
+        IOTA2Directory.generate_directories(test_path, check_inputs=False)
 
         # Launch test
         tile_name = "T31TCJ"

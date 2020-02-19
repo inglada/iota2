@@ -283,7 +283,9 @@ class iota_testSamplesSelection(unittest.TestCase):
             "strategy": "all"
         })
         # create IOTA2 directories
-        IOTA2Directory.GenerateDirectories(cfg, check_inputs=False)
+        IOTA2Directory.generate_directories(os.path.join(
+            self.test_working_directory, "samplesSelTest"),
+                                            check_inputs=False)
         shutil.copytree(
             self.features_ref,
             os.path.join(self.test_working_directory, "samplesSelTest",

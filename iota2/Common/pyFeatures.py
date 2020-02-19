@@ -17,7 +17,6 @@
 from functools import partial
 import argparse
 
-from iota2.Sensors.Sensors_container import sensors_container
 from iota2.Common.GenerateFeatures import generateFeatures
 from iota2.Common import ServiceConfigFile as SCF
 from iota2.Common import IOTA2Directory
@@ -48,11 +47,9 @@ def compute_features(config_path,
     function : function
         function to apply on iota²' stack
     """
-
-    # first, generate the full iota2 stack.
-    IOTA2Directory.GenerateDirectories(config_path)
     cfg = SCF.serviceConfigFile(config_path)
-
+    IOTA2Directory.generate_directories(cfg.getParam("chain", "outputPath"),
+                                        check_inputs=False)
     feat_stack, feat_labels, _ = generateFeatures(working_dir, tile_name, cfg)
 
     # Then compute new features

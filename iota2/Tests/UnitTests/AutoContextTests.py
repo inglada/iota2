@@ -25,40 +25,37 @@ RM_IF_ALL_OK = True
 IOTA2_SCRIPT = os.path.join(IOTA2DIR, "iota2")
 sys.path.append(IOTA2_SCRIPT)
 
-from iota2.Common import FileUtils as fut
-
 
 class iota_testAutoContext(unittest.TestCase):
     # before launching tests
     @classmethod
-    def setUpClass(self):
+    def setUpClass(cls):
 
         from iota2.Common.FileUtils import ensure_dir
         from TestsUtils import generate_fake_s2_data
 
         # definition of local variables
-        self.originX = 566377
-        self.originY = 6284029
-        self.group_test_name = "iota_testAutoContext"
-        self.iota2_tests_directory = os.path.join(IOTA2DIR, "data",
-                                                  self.group_test_name)
-        self.config_test = os.path.join(
+        cls.originX = 566377
+        cls.originY = 6284029
+        cls.group_test_name = "iota_testAutoContext"
+        cls.iota2_tests_directory = os.path.join(IOTA2DIR, "data",
+                                                 cls.group_test_name)
+        cls.config_test = os.path.join(
             IOTA2DIR, "config", "Config_4Tuiles_Multi_FUS_Confidence.cfg")
-        self.ref_data = os.path.join(IOTA2DIR, "data", "references",
-                                     "formatting_vectors", "Input",
-                                     "formattingVectors", "T31TCJ.shp")
-        self.tile_name = "T31TCJ"
-        self.all_tests_ok = []
-        self.test_working_directory = None
-        if os.path.exists(self.iota2_tests_directory):
-            shutil.rmtree(self.iota2_tests_directory, ignore_errors=True)
-        os.mkdir(self.iota2_tests_directory)
+        cls.ref_data = os.path.join(IOTA2DIR, "data", "references",
+                                    "formatting_vectors", "Input",
+                                    "formattingVectors", "T31TCJ.shp")
+        cls.tile_name = "T31TCJ"
+        cls.all_tests_ok = []
+        cls.test_working_directory = None
+        if os.path.exists(cls.iota2_tests_directory):
+            shutil.rmtree(cls.iota2_tests_directory, ignore_errors=True)
+        os.mkdir(cls.iota2_tests_directory)
 
         # generate permanent fake data
-        self.fake_data_dir = os.path.join(self.iota2_tests_directory,
-                                          "fake_s2")
-        ensure_dir(self.fake_data_dir)
-        generate_fake_s2_data(self.fake_data_dir, "T31TCJ",
+        cls.fake_data_dir = os.path.join(cls.iota2_tests_directory, "fake_s2")
+        ensure_dir(cls.fake_data_dir)
+        generate_fake_s2_data(cls.fake_data_dir, "T31TCJ",
                               ["20190909", "20190919", "20190929"])
 
     #after launching tests
@@ -232,7 +229,7 @@ class iota_testAutoContext(unittest.TestCase):
         """
         import numpy as np
         from collections import Counter
-        from Sampling.SuperPixelsSelection import move_annual_samples_position
+        from iota2.Sampling.SuperPixelsSelection import move_annual_samples_position
         import TestsUtils
 
         mask_array = TestsUtils.fun_array("iota2_binary")
@@ -382,9 +379,9 @@ class iota_testAutoContext(unittest.TestCase):
         config_path_test = os.path.join(self.test_working_directory,
                                         "Config_TEST.cfg")
         test_path = self.generate_cfg_file(self.config_test, config_path_test)
-        # cfg = SCF.serviceConfigFile(config_path_test)
-        IOTA2Directory.GenerateDirectories(config_path_test,
-                                           check_inputs=False)
+
+        IOTA2Directory.generate_directories(test_path, check_inputs=False)
+
         slic_working_dir = os.path.join(self.test_working_directory,
                                         "slic_tmp")
         iota2_dico = SCF.iota2_parameters(
@@ -427,9 +424,7 @@ class iota_testAutoContext(unittest.TestCase):
         config_path_test = os.path.join(self.test_working_directory,
                                         "Config_TEST.cfg")
         test_path = self.generate_cfg_file(self.config_test, config_path_test)
-        # cfg = SCF.serviceConfigFile(config_path_test)
-        IOTA2Directory.GenerateDirectories(config_path_test,
-                                           check_inputs=False)
+        IOTA2Directory.generate_directories(test_path, check_inputs=False)
         autocontext_working_dir = os.path.join(self.test_working_directory,
                                                "autoContext_tmp")
         slic_working_dir = os.path.join(self.test_working_directory,
