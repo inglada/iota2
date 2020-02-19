@@ -251,7 +251,10 @@ def launch_coregister(tile, cfg, workingDirectory, launch_mask=True):
                False, workingDirectory)
 
     if launch_mask:
-        commonMasks(tile, cfg.pathConf, output_path)
+
+        sensors_parameters = SCF.iota2_parameters(cfg).get_sensors_parameters(
+            tile)
+        commonMasks(tile, output_path, sensors_parameters)
 
 
 def coregister(insrc,
