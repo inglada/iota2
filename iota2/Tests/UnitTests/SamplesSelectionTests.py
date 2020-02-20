@@ -272,6 +272,7 @@ class iota_testSamplesSelection(unittest.TestCase):
         from iota2.Common import ServiceConfigFile as SCF
         from iota2.Tests.UnitTests.Iota2Tests import compareSQLite
         from iota2.Common.FileUtils import cpShapeFile
+        from iota2.Common import FileUtils as fut
         # prepare test input
         cfg = SCF.serviceConfigFile(self.config_test)
         cfg.setParam(
@@ -304,7 +305,16 @@ class iota_testSamplesSelection(unittest.TestCase):
                     extensions=[".prj", ".shp", ".dbf", ".shx"])
 
         #~ # launch function
-        samples_selection(in_shape, cfg, self.test_working_directory)
+        output_path = cfg.getParam("chain", "outputPath")
+        runs = cfg.getParam('chain', 'runs')
+        epsg = cfg.getParam('GlobChain', 'proj')
+        random_seed = cfg.getParam('chain', 'random_seed')
+        data_field = cfg.getParam('chain', 'dataField').lower()
+        parameters = dict(cfg.getParam('argTrain', 'sampleSelection'))
+        masks_name = fut.getCommonMaskName(cfg) + ".tif"
+        samples_selection(in_shape, self.test_working_directory, output_path,
+                          runs, epsg, masks_name, parameters, data_field,
+                          random_seed)
         #~ # assert
         selection_test = fut.FileSearch_AND(
             os.path.join(self.test_working_directory, "samplesSelTest"), True,
