@@ -42,15 +42,13 @@ from config import Config
 import numpy as np
 import otbApplication as otb
 import argparse
-from Common import ServiceConfigFile as SCF
-from Common import ServiceLogger as sLog
-from Common import IOTA2Directory
-from Sensors import Sensors
-from Common import Utils
+from iota2.Common import ServiceConfigFile as SCF
+from iota2.Common import ServiceLogger as sLog
+from iota2.Common import IOTA2Directory
+from iota2.Common import Utils
 
 from VectorTools.AddField import addField
 from VectorTools.DeleteField import deleteField
-
 
 #python -m unittest discover ./ -p "*Tests*.py"
 #coverage run iota2tests.py
@@ -60,7 +58,8 @@ iota2_dataTest = os.path.join(os.environ.get('IOTA2DIR'), "data")
 
 # Init of logging service
 # We need an instance of serviceConfigFile
-cfg = SCF.serviceConfigFile(iota2dir + "/config/Config_4Tuiles_Multi_FUS_Confidence.cfg")
+cfg = SCF.serviceConfigFile(iota2dir +
+                            "/config/Config_4Tuiles_Multi_FUS_Confidence.cfg")
 # We force the logFile value
 cfg.setParam('chain', 'logFile', iota2_dataTest + "/OSOlogFile.log")
 # We call the serviceLogger
@@ -76,18 +75,19 @@ def shapeReferenceVector(refVector, outputName):
 
     path, name = os.path.split(refVector)
 
-    tmp = path+"/"+outputName+"_TMP"
-    fu.cpShapeFile(refVector.replace(".shp",""),tmp,[".prj",".shp",".dbf",".shx"])
-    addField(tmp+".shp", "region", "1", str)
-    addField(tmp+".shp", "seed_0", "learn", str)
-    cmd = "ogr2ogr -dialect 'SQLite' -sql 'select GEOMETRY,seed_0, region, CODE as code from "+outputName+"_TMP' " + path+"/"+outputName+".shp "+tmp+".shp"
+    tmp = path + "/" + outputName + "_TMP"
+    fu.cpShapeFile(refVector.replace(".shp", ""), tmp,
+                   [".prj", ".shp", ".dbf", ".shx"])
+    addField(tmp + ".shp", "region", "1", str)
+    addField(tmp + ".shp", "seed_0", "learn", str)
+    cmd = "ogr2ogr -dialect 'SQLite' -sql 'select GEOMETRY,seed_0, region, CODE as code from " + outputName + "_TMP' " + path + "/" + outputName + ".shp " + tmp + ".shp"
     run(cmd)
 
-    os.remove(tmp+".shp")
-    os.remove(tmp+".shx")
-    os.remove(tmp+".prj")
-    os.remove(tmp+".dbf")
-    return path+"/"+outputName+".shp"
+    os.remove(tmp + ".shp")
+    os.remove(tmp + ".shx")
+    os.remove(tmp + ".prj")
+    os.remove(tmp + ".dbf")
+    return path + "/" + outputName + ".shp"
 
 
 def random_update(vect_file, table_name, field, value, nb_update):
@@ -96,7 +96,8 @@ def random_update(vect_file, table_name, field, value, nb_update):
     """
     import sqlite3 as lite
 
-    sql_clause = "UPDATE {} SET {}='{}' WHERE ogc_fid in (SELECT ogc_fid FROM {} ORDER BY RANDOM() LIMIT {})".format(table_name, field, value, table_name ,nb_update)
+    sql_clause = "UPDATE {} SET {}='{}' WHERE ogc_fid in (SELECT ogc_fid FROM {} ORDER BY RANDOM() LIMIT {})".format(
+        table_name, field, value, table_name, nb_update)
 
     conn = lite.connect(vect_file)
     cursor = conn.cursor()
@@ -111,22 +112,27 @@ def prepare_test_selection(vector, raster_ref, outputSelection, wd, dataField):
     stats_path = os.path.join(wd, "stats.xml")
     if os.path.exists(stats_path):
         os.remove(stats_path)
-    stats = otb.CreatePolygonClassStatisticsApplication({"in": raster_ref,
-                                                         "vec": vector,
-                                                         "field": dataField,
-                                                         "out": stats_path})
+    stats = otb.CreatePolygonClassStatisticsApplication({
+        "in": raster_ref,
+        "vec": vector,
+        "field": dataField,
+        "out": stats_path
+    })
     stats.ExecuteAndWriteOutput()
-    sampleSel = otb.CreateSampleSelectionApplication({"in": raster_ref,
-                                                      "vec":vector,
-                                                      "out":outputSelection,
-                                                      "instats":stats_path,
-                                                      "sampler": "random",
-                                                      "strategy": "all",
-                                                      "field": dataField})
+    sampleSel = otb.CreateSampleSelectionApplication({
+        "in": raster_ref,
+        "vec": vector,
+        "out": outputSelection,
+        "instats": stats_path,
+        "sampler": "random",
+        "strategy": "all",
+        "field": dataField
+    })
     if os.path.exists(outputSelection):
         os.remove(outputSelection)
     sampleSel.ExecuteAndWriteOutput()
     os.remove(stats_path)
+
 
 def delete_uselessFields(test_vector, field_to_rm="region"):
     """
@@ -151,13 +157,13 @@ def generateRandomString(size):
     OUT
     a random string of 'size' character
     """
-    return ''.join(random.SystemRandom().choice(string.ascii_uppercase +
-                                                string.digits +
-                                                string.ascii_lowercase) for _ in range(size))
+    return ''.join(
+        random.SystemRandom().choice(string.ascii_uppercase + string.digits +
+                                     string.ascii_lowercase)
+        for _ in range(size))
 
 
 def checkSameFile(files, patterns=["res_ref", "res_test"]):
-
     """
     usage : check if input files are the equivalent, after replacing all
     patters by XXXX
@@ -172,7 +178,7 @@ def checkSameFile(files, patterns=["res_ref", "res_test"]):
 
     Alltmp = []
     for file_ in files:
-        file_tmp = file_.split(".")[0]+"_tmp."+file_.split(".")[-1]
+        file_tmp = file_.split(".")[0] + "_tmp." + file_.split(".")[-1]
         if os.path.exists(file_tmp):
             os.remove(file_tmp)
         Alltmp.append(file_tmp)
@@ -206,8 +212,8 @@ def checkSameEnvelope(EvRef, EvTest):
     miX_ref, miY_ref, maX_ref, maY_ref = fu.getShapeExtent(EvRef)
     miX_test, miY_test, maX_test, maY_test = fu.getShapeExtent(EvTest)
 
-    if ((miX_ref == miX_test) and (miY_test == miY_ref) and
-            (maX_ref == maX_test) and (maY_ref == maY_test)):
+    if ((miX_ref == miX_test) and (miY_test == miY_ref)
+            and (maX_ref == maX_test) and (maY_ref == maY_test)):
         return True
     return False
 
@@ -220,7 +226,7 @@ def prepareAnnualFeatures(workingDirectory, referenceDirectory, pattern):
     shutil.copytree(referenceDirectory, workingDirectory)
     rastersPath = fu.FileSearch_AND(workingDirectory, True, pattern)
     for raster in rastersPath:
-        cmd = 'otbcli_BandMathX -il '+raster+' -out '+raster+' -exp "im1+im1"'
+        cmd = 'otbcli_BandMathX -il ' + raster + ' -out ' + raster + ' -exp "im1+im1"'
         run(cmd)
 
 
@@ -231,7 +237,8 @@ class iota_testServiceCompareImageFile(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         # definition of local variables
-        self.refData = os.path.join(iota2_dataTest, "references", "ServiceCompareImageFile")
+        self.refData = os.path.join(iota2_dataTest, "references",
+                                    "ServiceCompareImageFile")
 
     def test_SameImage(self):
         serviceCompareImageFile = fu.serviceCompareImageFile()
@@ -256,6 +263,7 @@ class iota_testServiceCompareImageFile(unittest.TestCase):
         self.assertRaises(Exception, serviceCompareImageFile.gdalFileCompare,
                           file1, file2)
 
+
 class iota_testServiceCompareVectorFile(unittest.TestCase):
     """
     Test class serviceCompareVectorFile
@@ -263,28 +271,32 @@ class iota_testServiceCompareVectorFile(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         # definition of local variables
-        self.refData = os.path.join(iota2_dataTest, "references", "ServiceCompareVectorFile")
+        self.refData = os.path.join(iota2_dataTest, "references",
+                                    "ServiceCompareVectorFile")
 
     def test_SameVector(self):
         serviceCompareVectorFile = fu.serviceCompareVectorFile()
         file1 = os.path.join(self.refData, "vector1.shp")
         # we check if it is the same file
-        self.assertTrue(serviceCompareVectorFile.testSameShapefiles(file1, file1))
+        self.assertTrue(
+            serviceCompareVectorFile.testSameShapefiles(file1, file1))
 
     def test_DifferentVector(self):
         serviceCompareVectorFile = fu.serviceCompareVectorFile()
         file1 = os.path.join(self.refData, "vector1.shp")
         file2 = os.path.join(self.refData, "vector2.shp")
         # we check if differences are detected
-        self.assertFalse(serviceCompareVectorFile.testSameShapefiles(file1, file2))
+        self.assertFalse(
+            serviceCompareVectorFile.testSameShapefiles(file1, file2))
 
     def test_ErrorVector(self):
         serviceCompareVectorFile = fu.serviceCompareVectorFile()
         file1 = os.path.join(self.refData, "vectorNotHere.shp")
         file2 = os.path.join(self.refData, "vector2.shp")
         # we check if an error is detected
-        self.assertRaises(Exception, serviceCompareVectorFile.testSameShapefiles,
-                          file1, file2)
+        self.assertRaises(Exception,
+                          serviceCompareVectorFile.testSameShapefiles, file1,
+                          file2)
 
 
 class iota_testStringManipulations(unittest.TestCase):
@@ -312,7 +324,8 @@ class iota_testStringManipulations(unittest.TestCase):
                            D0007H0001 D0007H0008 D0008H0006 D0009H0005 \
                            D0010H0004 D0002H0006 D0003H0005 D0004H0003 \
                            D0005H0001 D0005H0008 D0006H0005 D0007H0002 \
-                           D0007H0009 D0008H0007 D0009H0006 D0010H0005".split()
+                           D0007H0009 D0008H0007 D0009H0006 D0010H0005".split(
+        )
         self.AllS2Tiles = "T30TVT T30TXP T30TYN T30TYT T30UWU T30UYA T31TCK \
                            T31TDJ T31TEH T31TEN T31TFM T31TGL T31UCR T31UDS \
                            T31UFP T32TLP T32TMN T32ULV T30TWP T30TXQ T30TYP \
@@ -327,7 +340,8 @@ class iota_testStringManipulations(unittest.TestCase):
                            T31TDH T31TDN T31TEM T31TFL T31TGK T31UCQ T31UDR \
                            T31UES T31UGQ T32TMM T32ULU".split()
         self.dateFile = os.path.join(iota2_dataTest, "references", "dates.txt")
-        self.fakeDateFile = os.path.join(iota2_dataTest, "references", "fakedates.txt")
+        self.fakeDateFile = os.path.join(iota2_dataTest, "references",
+                                         "fakedates.txt")
 
     def test_getTile(self):
         """
@@ -339,18 +353,16 @@ class iota_testStringManipulations(unittest.TestCase):
         S2 = True
         for currentTile in self.AllS2Tiles:
             try:
-                fu.findCurrentTileInString(rString_head +
-                                           currentTile +
-                                           rString_tail, self.AllS2Tiles)
+                fu.findCurrentTileInString(
+                    rString_head + currentTile + rString_tail, self.AllS2Tiles)
             except Exception:
                 S2 = False
         self.assertTrue(S2)
         L8 = True
         for currentTile in self.AllL8Tiles:
             try:
-                fu.findCurrentTileInString(rString_head +
-                                           currentTile +
-                                           rString_tail, self.AllL8Tiles)
+                fu.findCurrentTileInString(
+                    rString_head + currentTile + rString_tail, self.AllL8Tiles)
             except Exception:
                 L8 = False
         self.assertTrue(L8)
@@ -368,11 +380,11 @@ class iota_testStringManipulations(unittest.TestCase):
         try:
             fu.getNbDateInTile(self.fakeDateFile, display=False)
             self.assertTrue(False)
-        except :
+        except:
             self.assertTrue(True)
 
-def compareSQLite(vect_1, vect_2, CmpMode='table', ignored_fields=[]):
 
+def compareSQLite(vect_1, vect_2, CmpMode='table', ignored_fields=[]):
     """
     compare SQLite, table mode is faster but does not work with
     connected OTB applications.
@@ -393,7 +405,8 @@ def compareSQLite(vect_1, vect_2, CmpMode='table', ignored_fields=[]):
         OUT
         [dict] : values by fields
         """
-        return OrderedDict([(currentField, feat.GetField(currentField)) for currentField in fields])
+        return OrderedDict([(currentField, feat.GetField(currentField))
+                            for currentField in fields])
 
     def priority(item):
         """
@@ -454,7 +467,8 @@ def compareSQLite(vect_1, vect_2, CmpMode='table', ignored_fields=[]):
         values_2 = getValuesSortedByCoordinates(vect_2)
         sameFeat = []
         for val_1, val_2 in zip(values_1, values_2):
-            for (k1,v1),(k2,v2) in zip(list(val_1[2].items()), list(val_2[2].items())):
+            for (k1, v1), (k2, v2) in zip(list(val_1[2].items()),
+                                          list(val_2[2].items())):
                 if not k1 in ignored_fields and k2 in ignored_fields:
                     sameFeat.append(cmp(v1, v2) == 0)
         if False in sameFeat:
@@ -463,62 +477,66 @@ def compareSQLite(vect_1, vect_2, CmpMode='table', ignored_fields=[]):
     else:
         raise Exception("CmpMode parameter must be 'table' or 'coordinates'")
 
-class iota_testSamplerApplications(unittest.TestCase):
 
+class iota_testSamplerApplications(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         self.test_vector = os.path.join(iota2_dataTest, "test_vector")
         if not os.path.exists(self.test_vector):
             os.mkdir(self.test_vector)
 
-        self.referenceShape = iota2_dataTest+"/references/sampler/D0005H0002_polygons_To_Sample.shp"
-        self.referenceShape_test = shapeReferenceVector(self.referenceShape, "D0005H0002")
-        self.configSimple_NO_bindings = iota2_dataTest+"/config/test_config.cfg"
-        self.configSimple_bindings = iota2_dataTest+"/config/test_config_bindings.cfg"
-        self.configSimple_bindings_uDateFeatures = iota2_dataTest+"/config/test_config_bindings_uDateFeatures.cfg"
-        self.configCropMix_NO_bindings = iota2_dataTest+"/config/test_config_cropMix.cfg"
-        self.configCropMix_bindings = iota2_dataTest+"/config/test_config_cropMix_bindings.cfg"
-        self.configClassifCropMix_NO_bindings = iota2_dataTest+"/config/test_config_classifCropMix.cfg"
-        self.configClassifCropMix_bindings = iota2_dataTest+"/config/test_config_classifCropMix_bindings.cfg"
-        self.configPrevClassif = iota2_dataTest+"/config/prevClassif.cfg"
+        self.referenceShape = iota2_dataTest + "/references/sampler/D0005H0002_polygons_To_Sample.shp"
+        self.referenceShape_test = shapeReferenceVector(
+            self.referenceShape, "D0005H0002")
+        self.configSimple_NO_bindings = iota2_dataTest + "/config/test_config.cfg"
+        self.configSimple_bindings = iota2_dataTest + "/config/test_config_bindings.cfg"
+        self.configSimple_bindings_uDateFeatures = iota2_dataTest + "/config/test_config_bindings_uDateFeatures.cfg"
+        self.configCropMix_NO_bindings = iota2_dataTest + "/config/test_config_cropMix.cfg"
+        self.configCropMix_bindings = iota2_dataTest + "/config/test_config_cropMix_bindings.cfg"
+        self.configClassifCropMix_NO_bindings = iota2_dataTest + "/config/test_config_classifCropMix.cfg"
+        self.configClassifCropMix_bindings = iota2_dataTest + "/config/test_config_classifCropMix_bindings.cfg"
+        self.configPrevClassif = iota2_dataTest + "/config/prevClassif.cfg"
 
-        self.regionShape = os.path.join(iota2_dataTest, "references", "region_need_To_env.shp")
-        self.features = iota2_dataTest+"/references/features/D0005H0002/Final/SL_MultiTempGapF_Brightness_NDVI_NDWI__.tif"
-        self.MNT = iota2_dataTest+"/references/MNT/"
+        self.regionShape = os.path.join(iota2_dataTest, "references",
+                                        "region_need_To_env.shp")
+        self.features = iota2_dataTest + "/references/features/D0005H0002/Final/SL_MultiTempGapF_Brightness_NDVI_NDWI__.tif"
+        self.MNT = iota2_dataTest + "/references/MNT/"
         self.expectedFeatures = {11: 74, 12: 34, 42: 19, 51: 147}
-        self.SensData = iota2_dataTest+"/L8_50x50"
+        self.SensData = iota2_dataTest + "/L8_50x50"
         self.iota2_directory = os.environ.get('IOTA2DIR')
 
-        self.selection_test = os.path.join(self.test_vector, "D0005H0002.sqlite")
-        raster_ref = fu.FileSearch_AND(os.path.join(self.SensData,"D0005H0002"), True, ".TIF")[0]
-        prepare_test_selection(self.referenceShape_test, raster_ref, self.selection_test, self.test_vector, "code")
+        self.selection_test = os.path.join(self.test_vector,
+                                           "D0005H0002.sqlite")
+        raster_ref = fu.FileSearch_AND(
+            os.path.join(self.SensData, "D0005H0002"), True, ".TIF")[0]
+        prepare_test_selection(self.referenceShape_test, raster_ref,
+                               self.selection_test, self.test_vector, "code")
 
     def test_samplerSimple_bindings(self):
-
         def prepareTestsFolder(workingDirectory=False):
             wD = None
             if not os.path.exists(self.test_vector):
                 os.mkdir(self.test_vector)
-            testPath = self.test_vector+"/simpleSampler_vector_bindings"
+            testPath = self.test_vector + "/simpleSampler_vector_bindings"
             if os.path.exists(testPath):
                 shutil.rmtree(testPath)
             os.mkdir(testPath)
             os.mkdir(os.path.join(testPath, "features"))
-            featuresOutputs = self.test_vector+"/simpleSampler_features_bindings"
+            featuresOutputs = self.test_vector + "/simpleSampler_features_bindings"
             if os.path.exists(featuresOutputs):
                 shutil.rmtree(featuresOutputs)
             os.mkdir(featuresOutputs)
             if workingDirectory:
-                wD = self.test_vector+"/simpleSampler_bindingsTMP"
+                wD = self.test_vector + "/simpleSampler_bindingsTMP"
                 if os.path.exists(wD):
                     shutil.rmtree(wD)
                 os.mkdir(wD)
             return testPath, featuresOutputs, wD
 
-        reference = iota2_dataTest+"/references/sampler/D0005H0002_polygons_To_Sample_Samples_ref_bindings.sqlite"
-        SensData = iota2_dataTest+"/L8_50x50"
+        reference = iota2_dataTest + "/references/sampler/D0005H0002_polygons_To_Sample_Samples_ref_bindings.sqlite"
+        SensData = iota2_dataTest + "/L8_50x50"
 
-        from Common import ServiceConfigFile as SCF
+        from iota2.Common import ServiceConfigFile as SCF
         from config import Config
 
         # load configuration file
@@ -543,11 +561,10 @@ class iota_testSamplerApplications(unittest.TestCase):
         cfg_test.GlobChain.useAdditionalFeatures = False
         cfg_test.save(open(config_path_test, 'w'))
 
-        os.mkdir(featuresOutputs+"/D0005H0002")
-        os.mkdir(featuresOutputs+"/D0005H0002/tmp")
-
+        os.mkdir(featuresOutputs + "/D0005H0002")
+        os.mkdir(featuresOutputs + "/D0005H0002/tmp")
+        tile = "D0005H0002"
         self.config = SCF.serviceConfigFile(config_path_test)
-
         """
         TEST :
         prepare data to gapFilling -> gapFilling -> features generation -> samples extraction
@@ -555,14 +572,72 @@ class iota_testSamplerApplications(unittest.TestCase):
         and compare resulting samples extraction with reference.
         """
         # launch test case
-        VectorSampler.generateSamples({"usually":self.referenceShape_test}, None, self.config, sampleSelection=self.selection_test)
-        
+
+        data_field = self.config.getParam("chain", "dataField")
+        output_path = self.config.getParam("chain", "outputPath")
+        annual_crop = self.config.getParam("argTrain", 'annualCrop')
+        crop_mix = self.config.getParam('argTrain', 'cropMix')
+        auto_context_enable = self.config.getParam('chain',
+                                                   'enable_autoContext')
+        region_field = (self.config.getParam('chain', 'regionField')).lower()
+        proj = self.config.getParam('GlobChain', 'proj')
+        enable_cross_validation = self.config.getParam(
+            'chain', 'enableCrossValidation')
+        runs = self.config.getParam('chain', 'runs')
+        samples_classif_mix = self.config.getParam('argTrain',
+                                                   'samplesClassifMix')
+
+        # annual_config_file = cfg.getParam('argTrain', "prevFeatures")
+        # output_path_annual = SCF.serviceConfigFile(
+        #    annual_config_file).getParam("chain", "outputPath")
+        output_path_annual = None
+        ram = 128
+        w_mode = False
+        folder_annual_features = self.config.getParam('argTrain',
+                                                      'outputPrevFeatures')
+        previous_classif_path = self.config.getParam(
+            'argTrain', 'annualClassesExtractionSource')
+        validity_threshold = self.config.getParam('argTrain',
+                                                  'validityThreshold')
+        target_resolution = self.config.getParam('chain', 'spatialResolution')
+        sensors_params = SCF.iota2_parameters(
+            config_path_test).get_sensors_parameters(tile)
+        try:
+            sar_optical_flag = self.config.getParam(
+                "chain", "dempster_shafer_SAR_Opt_fusion")
+        except Exception as exc:
+            print(exc)
+            sar_optical_flag = False
+
+        VectorSampler.generate_samples({"usually": self.referenceShape_test},
+                                       None,
+                                       data_field,
+                                       output_path,
+                                       annual_crop,
+                                       crop_mix,
+                                       auto_context_enable,
+                                       region_field,
+                                       proj,
+                                       enable_cross_validation,
+                                       runs,
+                                       sensors_params,
+                                       sar_optical_flag,
+                                       samples_classif_mix,
+                                       output_path_annual,
+                                       ram,
+                                       w_mode,
+                                       folder_annual_features,
+                                       previous_classif_path,
+                                       validity_threshold,
+                                       target_resolution,
+                                       sample_selection=self.selection_test)
+
         # assert
-        test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
+        test_vector = fu.fileSearchRegEx(testPath +
+                                         "/learningSamples/*sqlite")[0]
         delete_uselessFields(test_vector)
         compare = compareSQLite(test_vector, reference, CmpMode='coordinates')
         self.assertTrue(compare)
-
         """
         TEST :
         prepare data to gapFilling -> gapFilling -> features generation -> samples extraction
@@ -591,14 +666,70 @@ class iota_testSamplerApplications(unittest.TestCase):
 
         # launch test case
         config_test = SCF.serviceConfigFile(config_path_test)
-        VectorSampler.generateSamples({"usually":self.referenceShape_test}, None, config_test, sampleSelection=self.selection_test)
+        data_field = config_test.getParam("chain", "dataField")
+        output_path = config_test.getParam("chain", "outputPath")
+        annual_crop = config_test.getParam("argTrain", 'annualCrop')
+        crop_mix = config_test.getParam('argTrain', 'cropMix')
+        auto_context_enable = config_test.getParam('chain',
+                                                   'enable_autoContext')
+        region_field = (config_test.getParam('chain', 'regionField')).lower()
+        proj = config_test.getParam('GlobChain', 'proj')
+        enable_cross_validation = config_test.getParam(
+            'chain', 'enableCrossValidation')
+        runs = config_test.getParam('chain', 'runs')
+        samples_classif_mix = config_test.getParam('argTrain',
+                                                   'samplesClassifMix')
+
+        # annual_config_file = cfg.getParam('argTrain', "prevFeatures")
+        # output_path_annual = SCF.serviceConfigFile(
+        #    annual_config_file).getParam("chain", "outputPath")
+        output_path_annual = None
+        ram = 128
+        w_mode = False
+        folder_annual_features = config_test.getParam('argTrain',
+                                                      'outputPrevFeatures')
+        previous_classif_path = config_test.getParam(
+            'argTrain', 'annualClassesExtractionSource')
+        validity_threshold = config_test.getParam('argTrain',
+                                                  'validityThreshold')
+        target_resolution = config_test.getParam('chain', 'spatialResolution')
+        sensors_params = SCF.iota2_parameters(
+            config_path_test).get_sensors_parameters(tile)
+        try:
+            sar_optical_flag = config_test.getParam(
+                "chain", "dempster_shafer_SAR_Opt_fusion")
+        except Exception as exc:
+            print(exc)
+            sar_optical_flag = False
+        VectorSampler.generate_samples({"usually": self.referenceShape_test},
+                                       None,
+                                       data_field,
+                                       output_path,
+                                       annual_crop,
+                                       crop_mix,
+                                       auto_context_enable,
+                                       region_field,
+                                       proj,
+                                       enable_cross_validation,
+                                       runs,
+                                       sensors_params,
+                                       sar_optical_flag,
+                                       samples_classif_mix,
+                                       output_path_annual,
+                                       ram,
+                                       w_mode,
+                                       folder_annual_features,
+                                       previous_classif_path,
+                                       validity_threshold,
+                                       target_resolution,
+                                       sample_selection=self.selection_test)
 
         # assert
-        test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
+        test_vector = fu.fileSearchRegEx(testPath +
+                                         "/learningSamples/*sqlite")[0]
         delete_uselessFields(test_vector)
         compare = compareSQLite(test_vector, reference, CmpMode='coordinates')
         self.assertTrue(compare)
-
         """
         TEST :
         prepare data to gapFilling -> gapFilling -> features generation -> samples extraction
@@ -626,22 +757,80 @@ class iota_testSamplerApplications(unittest.TestCase):
         os.mkdir(os.path.join(featuresOutputs, "D0005H0002"))
         os.mkdir(os.path.join(featuresOutputs, "D0005H0002", "tmp"))
         config_test = SCF.serviceConfigFile(config_path_test)
-        VectorSampler.generateSamples({"usually":self.referenceShape_test}, wD, config_test, sampleSelection=self.selection_test)
+        data_field = config_test.getParam("chain", "dataField")
+        output_path = config_test.getParam("chain", "outputPath")
+        annual_crop = config_test.getParam("argTrain", 'annualCrop')
+        crop_mix = config_test.getParam('argTrain', 'cropMix')
+        auto_context_enable = config_test.getParam('chain',
+                                                   'enable_autoContext')
+        region_field = (config_test.getParam('chain', 'regionField')).lower()
+        proj = config_test.getParam('GlobChain', 'proj')
+        enable_cross_validation = config_test.getParam(
+            'chain', 'enableCrossValidation')
+        runs = config_test.getParam('chain', 'runs')
+        samples_classif_mix = config_test.getParam('argTrain',
+                                                   'samplesClassifMix')
+
+        # annual_config_file = cfg.getParam('argTrain', "prevFeatures")
+        # output_path_annual = SCF.serviceConfigFile(
+        #    annual_config_file).getParam("chain", "outputPath")
+        output_path_annual = None
+        ram = 128
+        w_mode = False
+        folder_annual_features = config_test.getParam('argTrain',
+                                                      'outputPrevFeatures')
+        previous_classif_path = config_test.getParam(
+            'argTrain', 'annualClassesExtractionSource')
+        validity_threshold = config_test.getParam('argTrain',
+                                                  'validityThreshold')
+        target_resolution = config_test.getParam('chain', 'spatialResolution')
+        sensors_params = SCF.iota2_parameters(
+            config_path_test).get_sensors_parameters(tile)
+        try:
+            sar_optical_flag = config_test.getParam(
+                "chain", "dempster_shafer_SAR_Opt_fusion")
+        except Exception as exc:
+            print(exc)
+            sar_optical_flag = False
+        VectorSampler.generate_samples({"usually": self.referenceShape_test},
+                                       wD,
+                                       data_field,
+                                       output_path,
+                                       annual_crop,
+                                       crop_mix,
+                                       auto_context_enable,
+                                       region_field,
+                                       proj,
+                                       enable_cross_validation,
+                                       runs,
+                                       sensors_params,
+                                       sar_optical_flag,
+                                       samples_classif_mix,
+                                       output_path_annual,
+                                       ram,
+                                       w_mode,
+                                       folder_annual_features,
+                                       previous_classif_path,
+                                       validity_threshold,
+                                       target_resolution,
+                                       sample_selection=self.selection_test)
         #~ self.config.setParam('GlobChain', 'writeOutputs', False)
 
-        test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
+        test_vector = fu.fileSearchRegEx(testPath +
+                                         "/learningSamples/*sqlite")[0]
         delete_uselessFields(test_vector)
         compare = compareSQLite(test_vector, reference, CmpMode='coordinates')
         self.assertTrue(compare)
 
         #Test user features and additional features
-        reference = iota2_dataTest+"/references/sampler/D0005H0002_polygons_To_Sample_Samples_UserFeat_UserExpr.sqlite"
+        reference = iota2_dataTest + "/references/sampler/D0005H0002_polygons_To_Sample_Samples_UserFeat_UserExpr.sqlite"
         """
         TEST :
         prepare data to gapFilling -> gapFilling -> features generation (userFeatures + userDayFeatures) -> samples extraction
         with otb's applications connected in memory, compare resulting sample to extraction with reference.
         """
-        testPath, featuresOutputs, wD = prepareTestsFolder(workingDirectory=False)
+        testPath, featuresOutputs, wD = prepareTestsFolder(
+            workingDirectory=False)
         config_path_test = os.path.join(testPath, "Config_TEST.cfg")
         shutil.copy(config_path, config_path_test)
         L8_rasters = os.path.join(self.iota2_directory, "data", "L8_50x50")
@@ -650,7 +839,8 @@ class iota_testSamplerApplications(unittest.TestCase):
         cfg_test.chain.listTile = "D0005H0002"
         cfg_test.chain.L8Path_old = L8_rasters
         cfg_test.chain.L8Path = "None"
-        cfg_test.chain.userFeatPath = os.path.join(self.iota2_directory,"data/references/MNT/")
+        cfg_test.chain.userFeatPath = os.path.join(self.iota2_directory,
+                                                   "data/references/MNT/")
         cfg_test.userFeat.arbo = "/*"
         cfg_test.userFeat.patterns = "MNT"
         cfg_test.chain.regionField = 'region'
@@ -664,14 +854,69 @@ class iota_testSamplerApplications(unittest.TestCase):
         os.mkdir(os.path.join(featuresOutputs, "D0005H0002"))
         os.mkdir(os.path.join(featuresOutputs, "D0005H0002", "tmp"))
         config_test = SCF.serviceConfigFile(config_path_test)
-        
-        VectorSampler.generateSamples({"usually":self.referenceShape_test}, wD, config_test, sampleSelection=self.selection_test)
+        data_field = config_test.getParam("chain", "dataField")
+        output_path = config_test.getParam("chain", "outputPath")
+        annual_crop = config_test.getParam("argTrain", 'annualCrop')
+        crop_mix = config_test.getParam('argTrain', 'cropMix')
+        auto_context_enable = config_test.getParam('chain',
+                                                   'enable_autoContext')
+        region_field = (config_test.getParam('chain', 'regionField')).lower()
+        proj = config_test.getParam('GlobChain', 'proj')
+        enable_cross_validation = config_test.getParam(
+            'chain', 'enableCrossValidation')
+        runs = config_test.getParam('chain', 'runs')
+        samples_classif_mix = config_test.getParam('argTrain',
+                                                   'samplesClassifMix')
 
-        test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
+        # annual_config_file = cfg.getParam('argTrain', "prevFeatures")
+        # output_path_annual = SCF.serviceConfigFile(
+        #    annual_config_file).getParam("chain", "outputPath")
+        output_path_annual = None
+        ram = 128
+        w_mode = False
+        folder_annual_features = config_test.getParam('argTrain',
+                                                      'outputPrevFeatures')
+        previous_classif_path = config_test.getParam(
+            'argTrain', 'annualClassesExtractionSource')
+        validity_threshold = config_test.getParam('argTrain',
+                                                  'validityThreshold')
+        target_resolution = config_test.getParam('chain', 'spatialResolution')
+        sensors_params = SCF.iota2_parameters(
+            config_path_test).get_sensors_parameters(tile)
+        try:
+            sar_optical_flag = config_test.getParam(
+                "chain", "dempster_shafer_SAR_Opt_fusion")
+        except Exception as exc:
+            print(exc)
+            sar_optical_flag = False
+        VectorSampler.generate_samples({"usually": self.referenceShape_test},
+                                       wD,
+                                       data_field,
+                                       output_path,
+                                       annual_crop,
+                                       crop_mix,
+                                       auto_context_enable,
+                                       region_field,
+                                       proj,
+                                       enable_cross_validation,
+                                       runs,
+                                       sensors_params,
+                                       sar_optical_flag,
+                                       samples_classif_mix,
+                                       output_path_annual,
+                                       ram,
+                                       w_mode,
+                                       folder_annual_features,
+                                       previous_classif_path,
+                                       validity_threshold,
+                                       target_resolution,
+                                       sample_selection=self.selection_test)
+
+        test_vector = fu.fileSearchRegEx(testPath +
+                                         "/learningSamples/*sqlite")[0]
         delete_uselessFields(test_vector)
         compare = compareSQLite(test_vector, reference, CmpMode='coordinates')
         self.assertTrue(compare)
-
         """
         TEST :
         prepare data to gapFilling -> gapFilling -> features generation (userFeatures + userDayFeatures) -> samples extraction
@@ -679,7 +924,8 @@ class iota_testSamplerApplications(unittest.TestCase):
         write all necessary tmp files in a working directory
         and compare resulting sample extraction with reference.
         """
-        testPath, featuresOutputs, wD = prepareTestsFolder(workingDirectory=True)
+        testPath, featuresOutputs, wD = prepareTestsFolder(
+            workingDirectory=True)
         config_path_test = os.path.join(testPath, "Config_TEST.cfg")
         shutil.copy(config_path, config_path_test)
         L8_rasters = os.path.join(self.iota2_directory, "data", "L8_50x50")
@@ -688,7 +934,8 @@ class iota_testSamplerApplications(unittest.TestCase):
         cfg_test.chain.listTile = "D0005H0002"
         cfg_test.chain.L8Path_old = L8_rasters
         cfg_test.chain.L8Path = "None"
-        cfg_test.chain.userFeatPath = os.path.join(self.iota2_directory,"data/references/MNT/")
+        cfg_test.chain.userFeatPath = os.path.join(self.iota2_directory,
+                                                   "data/references/MNT/")
         cfg_test.userFeat.arbo = "/*"
         cfg_test.userFeat.patterns = "MNT"
         cfg_test.chain.regionField = 'region'
@@ -703,9 +950,66 @@ class iota_testSamplerApplications(unittest.TestCase):
         os.mkdir(os.path.join(featuresOutputs, "D0005H0002"))
         os.mkdir(os.path.join(featuresOutputs, "D0005H0002", "tmp"))
         config_test = SCF.serviceConfigFile(config_path_test)
-        VectorSampler.generateSamples({"usually":self.referenceShape_test}, wD, config_test, sampleSelection=self.selection_test)
+        data_field = config_test.getParam("chain", "dataField")
+        output_path = config_test.getParam("chain", "outputPath")
+        annual_crop = config_test.getParam("argTrain", 'annualCrop')
+        crop_mix = config_test.getParam('argTrain', 'cropMix')
+        auto_context_enable = config_test.getParam('chain',
+                                                   'enable_autoContext')
+        region_field = (config_test.getParam('chain', 'regionField')).lower()
+        proj = config_test.getParam('GlobChain', 'proj')
+        enable_cross_validation = config_test.getParam(
+            'chain', 'enableCrossValidation')
+        runs = config_test.getParam('chain', 'runs')
+        samples_classif_mix = config_test.getParam('argTrain',
+                                                   'samplesClassifMix')
 
-        test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
+        # annual_config_file = cfg.getParam('argTrain', "prevFeatures")
+        # output_path_annual = SCF.serviceConfigFile(
+        #    annual_config_file).getParam("chain", "outputPath")
+        output_path_annual = None
+        ram = 128
+        w_mode = False
+        folder_annual_features = config_test.getParam('argTrain',
+                                                      'outputPrevFeatures')
+        previous_classif_path = config_test.getParam(
+            'argTrain', 'annualClassesExtractionSource')
+        validity_threshold = config_test.getParam('argTrain',
+                                                  'validityThreshold')
+        target_resolution = config_test.getParam('chain', 'spatialResolution')
+        sensors_params = SCF.iota2_parameters(
+            config_path_test).get_sensors_parameters(tile)
+        try:
+            sar_optical_flag = config_test.getParam(
+                "chain", "dempster_shafer_SAR_Opt_fusion")
+        except Exception as exc:
+            print(exc)
+            sar_optical_flag = False
+        VectorSampler.generate_samples({"usually": self.referenceShape_test},
+                                       wD,
+                                       data_field,
+                                       output_path,
+                                       annual_crop,
+                                       crop_mix,
+                                       auto_context_enable,
+                                       region_field,
+                                       proj,
+                                       enable_cross_validation,
+                                       runs,
+                                       sensors_params,
+                                       sar_optical_flag,
+                                       samples_classif_mix,
+                                       output_path_annual,
+                                       ram,
+                                       w_mode,
+                                       folder_annual_features,
+                                       previous_classif_path,
+                                       validity_threshold,
+                                       target_resolution,
+                                       sample_selection=self.selection_test)
+
+        test_vector = fu.fileSearchRegEx(testPath +
+                                         "/learningSamples/*sqlite")[0]
         delete_uselessFields(test_vector)
         compare = compareSQLite(test_vector, reference, CmpMode='coordinates')
         self.assertTrue(compare)
@@ -726,43 +1030,44 @@ class iota_testSamplerApplications(unittest.TestCase):
         Step 4 : compare the merged sample to reference
         """
 
-        from Common.Tools.Iota2TestsFeaturesLabels import prepareAnnualFeatures
+        from iota2.Tests.UnitTests.TestsUtils import prepare_annual_features
 
         def prepareTestsFolder(workingDirectory=False):
 
-            testPath = self.test_vector+"/cropMixSampler_bindings/"
+            testPath = self.test_vector + "/cropMixSampler_bindings/"
             if os.path.exists(testPath):
                 shutil.rmtree(testPath)
             os.mkdir(testPath)
             os.mkdir(os.path.join(testPath, "features"))
 
-            featuresNonAnnualOutputs = self.test_vector+"/cropMixSampler_featuresNonAnnual_bindings"
+            featuresNonAnnualOutputs = self.test_vector + "/cropMixSampler_featuresNonAnnual_bindings"
             if os.path.exists(featuresNonAnnualOutputs):
                 shutil.rmtree(featuresNonAnnualOutputs)
             os.mkdir(featuresNonAnnualOutputs)
-            os.mkdir(featuresNonAnnualOutputs+"/D0005H0002")
-            os.mkdir(featuresNonAnnualOutputs+"/D0005H0002/tmp")
+            os.mkdir(featuresNonAnnualOutputs + "/D0005H0002")
+            os.mkdir(featuresNonAnnualOutputs + "/D0005H0002/tmp")
 
-            featuresAnnualOutputs = self.test_vector+"/cropMixSampler_featuresAnnual_bindings"
+            featuresAnnualOutputs = self.test_vector + "/cropMixSampler_featuresAnnual_bindings"
             if os.path.exists(featuresAnnualOutputs):
                 shutil.rmtree(featuresAnnualOutputs)
             os.mkdir(featuresAnnualOutputs)
-            os.mkdir(featuresAnnualOutputs+"/D0005H0002")
-            os.mkdir(featuresAnnualOutputs+"/D0005H0002/tmp")
+            os.mkdir(featuresAnnualOutputs + "/D0005H0002")
+            os.mkdir(featuresAnnualOutputs + "/D0005H0002/tmp")
 
-            wD = self.test_vector+"/cropMixSampler_bindingsTMP"
+            wD = self.test_vector + "/cropMixSampler_bindingsTMP"
             if os.path.exists(wD):
                 shutil.rmtree(wD)
             wD = None
             if workingDirectory:
-                wD = self.test_vector+"/cropMixSampler_bindingsTMP"
+                wD = self.test_vector + "/cropMixSampler_bindingsTMP"
                 os.mkdir(wD)
             return testPath, featuresNonAnnualOutputs, featuresAnnualOutputs, wD
 
-        def generate_annual_config(directory, annualFeaturesPath, features_A_Outputs):
+        def generate_annual_config(directory, annualFeaturesPath,
+                                   features_A_Outputs):
 
-            config_path = os.path.join(iota2dir, "config",
-                                   "Config_4Tuiles_Multi_FUS_Confidence.cfg")
+            config_path = os.path.join(
+                iota2dir, "config", "Config_4Tuiles_Multi_FUS_Confidence.cfg")
             annual_config_path = os.path.join(directory, "AnnualConfig.cfg")
             shutil.copy(config_path, annual_config_path)
             cfg = Config(open(annual_config_path))
@@ -779,20 +1084,23 @@ class iota_testSamplerApplications(unittest.TestCase):
 
             return annual_config_path
 
-        from Common import ServiceConfigFile as SCF
+        from iota2.Common import ServiceConfigFile as SCF
 
-        featuresPath = iota2_dataTest+"/references/features/"
-        sensorData = iota2_dataTest+"/L8_50x50"
-        reference = iota2_dataTest+"/references/sampler/D0005H0002_polygons_To_Sample_Samples_CropMix_bindings.sqlite"
+        featuresPath = iota2_dataTest + "/references/features/"
+        sensorData = iota2_dataTest + "/L8_50x50"
+        reference = iota2_dataTest + "/references/sampler/D0005H0002_polygons_To_Sample_Samples_CropMix_bindings.sqlite"
 
         #prepare outputs test folders
-        testPath, features_NA_Outputs, features_A_Outputs, wD = prepareTestsFolder(True)
-        annualFeaturesPath = testPath+"/annualFeatures"
+        testPath, features_NA_Outputs, features_A_Outputs, wD = prepareTestsFolder(
+            True)
+        annualFeaturesPath = testPath + "/annualFeatures"
 
         #prepare annual configuration file
-        annual_config_path = generate_annual_config(wD, annualFeaturesPath, features_A_Outputs)
+        annual_config_path = generate_annual_config(wD, annualFeaturesPath,
+                                                    features_A_Outputs)
 
-        testPath, features_NA_Outputs, features_A_Outputs, wD = prepareTestsFolder(True)
+        testPath, features_NA_Outputs, features_A_Outputs, wD = prepareTestsFolder(
+            True)
 
         # load configuration file
         SCF.clearConfig()
@@ -801,13 +1109,15 @@ class iota_testSamplerApplications(unittest.TestCase):
                                    "Config_4Tuiles_Multi_FUS_Confidence.cfg")
         self.config = SCF.serviceConfigFile(config_path)
 
-        L8_rasters_non_annual = os.path.join(self.iota2_directory, "data", "L8_50x50")
+        L8_rasters_non_annual = os.path.join(self.iota2_directory, "data",
+                                             "L8_50x50")
         L8_rasters_annual = os.path.join(wD, "annualData")
         os.mkdir(L8_rasters_annual)
-
         #annual sensor data generation (pix annual = 2 * pix non_annual)
-        prepareAnnualFeatures(L8_rasters_annual, L8_rasters_non_annual, "CORR_PENTE",
-                              rename=("2016", "2015"))
+        prepare_annual_features(L8_rasters_annual,
+                                L8_rasters_non_annual,
+                                "CORR_PENTE",
+                                rename=("2016", "2015"))
         #prepare annual configuration file
         annual_config_path = os.path.join(wD, "AnnualConfig.cfg")
         shutil.copy(self.config.pathConf, annual_config_path)
@@ -843,23 +1153,81 @@ class iota_testSamplerApplications(unittest.TestCase):
         cfg_test.GlobChain.useAdditionalFeatures = False
         cfg_test.GlobChain.writeOutputs = True
         cfg_test.save(open(config_path_test, 'w'))
+        tile = "D0005H0002"
         config_test = SCF.serviceConfigFile(config_path_test)
+        data_field = config_test.getParam("chain", "dataField")
+        output_path = config_test.getParam("chain", "outputPath")
+        annual_crop = config_test.getParam("argTrain", 'annualCrop')
+        crop_mix = config_test.getParam('argTrain', 'cropMix')
+        auto_context_enable = config_test.getParam('chain',
+                                                   'enable_autoContext')
+        region_field = (config_test.getParam('chain', 'regionField')).lower()
+        proj = config_test.getParam('GlobChain', 'proj')
+        enable_cross_validation = config_test.getParam(
+            'chain', 'enableCrossValidation')
+        runs = config_test.getParam('chain', 'runs')
+        samples_classif_mix = config_test.getParam('argTrain',
+                                                   'samplesClassifMix')
 
+        annual_config_file = config_test.getParam('argTrain', "prevFeatures")
+        output_path_annual = SCF.serviceConfigFile(
+            annual_config_file).getParam("chain", "outputPath")
+        ram = 128
+        w_mode = False
+        folder_annual_features = config_test.getParam('argTrain',
+                                                      'outputPrevFeatures')
+        previous_classif_path = config_test.getParam(
+            'argTrain', 'annualClassesExtractionSource')
+        validity_threshold = config_test.getParam('argTrain',
+                                                  'validityThreshold')
+        target_resolution = config_test.getParam('chain', 'spatialResolution')
+        sensors_params = SCF.iota2_parameters(
+            config_path_test).get_sensors_parameters(tile)
+        try:
+            sar_optical_flag = config_test.getParam(
+                "chain", "dempster_shafer_SAR_Opt_fusion")
+        except Exception as exc:
+            print(exc)
+            sar_optical_flag = False
         #Launch sampler
-        VectorSampler.generateSamples({"usually":self.referenceShape_test}, None,
-                                       config_test, sampleSelection=self.selection_test)
+        VectorSampler.generate_samples({"usually": self.referenceShape_test},
+                                       None,
+                                       data_field,
+                                       output_path,
+                                       annual_crop,
+                                       crop_mix,
+                                       auto_context_enable,
+                                       region_field,
+                                       proj,
+                                       enable_cross_validation,
+                                       runs,
+                                       sensors_params,
+                                       sar_optical_flag,
+                                       samples_classif_mix,
+                                       output_path_annual,
+                                       ram,
+                                       w_mode,
+                                       folder_annual_features,
+                                       previous_classif_path,
+                                       validity_threshold,
+                                       target_resolution,
+                                       sample_selection=self.selection_test)
 
         #compare to reference
-        test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
+        test_vector = fu.fileSearchRegEx(testPath +
+                                         "/learningSamples/*sqlite")[0]
         delete_uselessFields(test_vector)
-        compare = compareSQLite(test_vector, reference, CmpMode='coordinates', ignored_fields=["originfid"])
+        compare = compareSQLite(test_vector,
+                                reference,
+                                CmpMode='coordinates',
+                                ignored_fields=["originfid"])
         self.assertTrue(compare)
-
         """
         TEST
         using a working directory and without temporary files
         """
-        testPath, features_NA_Outputs, features_A_Outputs, wD = prepareTestsFolder(True)
+        testPath, features_NA_Outputs, features_A_Outputs, wD = prepareTestsFolder(
+            True)
         config_path_test = os.path.join(wD, "Config_TEST.cfg")
         shutil.copy(config_path, config_path_test)
         L8_rasters = os.path.join(self.iota2_directory, "data", "L8_50x50")
@@ -877,11 +1245,13 @@ class iota_testSamplerApplications(unittest.TestCase):
         cfg_test.GlobChain.writeOutputs = False
         cfg_test.save(open(config_path_test, 'w'))
         config_test = SCF.serviceConfigFile(config_path_test)
-        
+
         #annual sensor data generation (pix annual = 2 * pix non_annual)
         os.mkdir(L8_rasters_annual)
-        prepareAnnualFeatures(L8_rasters_annual, L8_rasters_non_annual, "CORR_PENTE",
-                              rename=("2016", "2015"))
+        prepare_annual_features(L8_rasters_annual,
+                                L8_rasters_non_annual,
+                                "CORR_PENTE",
+                                rename=("2016", "2015"))
         #prepare annual configuration file
         annual_config_path = os.path.join(wD, "AnnualConfig.cfg")
         shutil.copy(self.config.pathConf, annual_config_path)
@@ -896,19 +1266,79 @@ class iota_testSamplerApplications(unittest.TestCase):
         cfg.save(open(annual_config_path, 'w'))
 
         #Launch sampler
-        VectorSampler.generateSamples({"usually":self.referenceShape_test}, wD, config_test, sampleSelection=self.selection_test)
+        data_field = config_test.getParam("chain", "dataField")
+        output_path = config_test.getParam("chain", "outputPath")
+        annual_crop = config_test.getParam("argTrain", 'annualCrop')
+        crop_mix = config_test.getParam('argTrain', 'cropMix')
+        auto_context_enable = config_test.getParam('chain',
+                                                   'enable_autoContext')
+        region_field = (config_test.getParam('chain', 'regionField')).lower()
+        proj = config_test.getParam('GlobChain', 'proj')
+        enable_cross_validation = config_test.getParam(
+            'chain', 'enableCrossValidation')
+        runs = config_test.getParam('chain', 'runs')
+        samples_classif_mix = config_test.getParam('argTrain',
+                                                   'samplesClassifMix')
 
-        test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
+        annual_config_file = config_test.getParam('argTrain', "prevFeatures")
+        output_path_annual = SCF.serviceConfigFile(
+            annual_config_file).getParam("chain", "outputPath")
+
+        ram = 128
+        w_mode = False
+        folder_annual_features = config_test.getParam('argTrain',
+                                                      'outputPrevFeatures')
+        previous_classif_path = config_test.getParam(
+            'argTrain', 'annualClassesExtractionSource')
+        validity_threshold = config_test.getParam('argTrain',
+                                                  'validityThreshold')
+        target_resolution = config_test.getParam('chain', 'spatialResolution')
+        sensors_params = SCF.iota2_parameters(
+            config_path_test).get_sensors_parameters(tile)
+        try:
+            sar_optical_flag = config_test.getParam(
+                "chain", "dempster_shafer_SAR_Opt_fusion")
+        except Exception as exc:
+            print(exc)
+            sar_optical_flag = False
+        VectorSampler.generate_samples({"usually": self.referenceShape_test},
+                                       wD,
+                                       data_field,
+                                       output_path,
+                                       annual_crop,
+                                       crop_mix,
+                                       auto_context_enable,
+                                       region_field,
+                                       proj,
+                                       enable_cross_validation,
+                                       runs,
+                                       sensors_params,
+                                       sar_optical_flag,
+                                       samples_classif_mix,
+                                       output_path_annual,
+                                       ram,
+                                       w_mode,
+                                       folder_annual_features,
+                                       previous_classif_path,
+                                       validity_threshold,
+                                       target_resolution,
+                                       sample_selection=self.selection_test)
+
+        test_vector = fu.fileSearchRegEx(testPath +
+                                         "/learningSamples/*sqlite")[0]
         delete_uselessFields(test_vector)
-        compare = compareSQLite(test_vector, reference, CmpMode='coordinates', ignored_fields=["originfid"])
+        compare = compareSQLite(test_vector,
+                                reference,
+                                CmpMode='coordinates',
+                                ignored_fields=["originfid"])
         self.assertTrue(compare)
-
         """
         TEST
         without a working directory and without temporary files on disk
         """
 
-        testPath, features_NA_Outputs, features_A_Outputs, wD = prepareTestsFolder(True)
+        testPath, features_NA_Outputs, features_A_Outputs, wD = prepareTestsFolder(
+            True)
         config_path_test = os.path.join(wD, "Config_TEST.cfg")
         shutil.copy(config_path, config_path_test)
         L8_rasters = os.path.join(self.iota2_directory, "data", "L8_50x50")
@@ -926,11 +1356,13 @@ class iota_testSamplerApplications(unittest.TestCase):
         cfg_test.GlobChain.writeOutputs = False
         cfg_test.save(open(config_path_test, 'w'))
         config_test = SCF.serviceConfigFile(config_path_test)
-        
+
         #annual sensor data generation (pix annual = 2 * pix non_annual)
         os.mkdir(L8_rasters_annual)
-        prepareAnnualFeatures(L8_rasters_annual, L8_rasters_non_annual, "CORR_PENTE",
-                              rename=("2016", "2015"))
+        prepare_annual_features(L8_rasters_annual,
+                                L8_rasters_non_annual,
+                                "CORR_PENTE",
+                                rename=("2016", "2015"))
         #prepare annual configuration file
         annual_config_path = os.path.join(wD, "AnnualConfig.cfg")
         shutil.copy(self.config.pathConf, annual_config_path)
@@ -944,21 +1376,80 @@ class iota_testSamplerApplications(unittest.TestCase):
         cfg.GlobChain.useAdditionalFeatures = False
         cfg.save(open(annual_config_path, 'w'))
 
+        data_field = config_test.getParam("chain", "dataField")
+        output_path = config_test.getParam("chain", "outputPath")
+        annual_crop = config_test.getParam("argTrain", 'annualCrop')
+        crop_mix = config_test.getParam('argTrain', 'cropMix')
+        auto_context_enable = config_test.getParam('chain',
+                                                   'enable_autoContext')
+        region_field = (config_test.getParam('chain', 'regionField')).lower()
+        proj = config_test.getParam('GlobChain', 'proj')
+        enable_cross_validation = config_test.getParam(
+            'chain', 'enableCrossValidation')
+        runs = config_test.getParam('chain', 'runs')
+        samples_classif_mix = config_test.getParam('argTrain',
+                                                   'samplesClassifMix')
+
+        annual_config_file = config_test.getParam('argTrain', "prevFeatures")
+        output_path_annual = SCF.serviceConfigFile(
+            annual_config_file).getParam("chain", "outputPath")
+
+        ram = 128
+        w_mode = False
+        folder_annual_features = config_test.getParam('argTrain',
+                                                      'outputPrevFeatures')
+        previous_classif_path = config_test.getParam(
+            'argTrain', 'annualClassesExtractionSource')
+        validity_threshold = config_test.getParam('argTrain',
+                                                  'validityThreshold')
+        target_resolution = config_test.getParam('chain', 'spatialResolution')
+        sensors_params = SCF.iota2_parameters(
+            config_path_test).get_sensors_parameters(tile)
+        try:
+            sar_optical_flag = config_test.getParam(
+                "chain", "dempster_shafer_SAR_Opt_fusion")
+        except Exception as exc:
+            print(exc)
+            sar_optical_flag = False
         #Launch sampler
-        vectorTest = VectorSampler.generateSamples({"usually":self.referenceShape_test}, None,
-                                                   config_test, sampleSelection=self.selection_test)
+        VectorSampler.generate_samples({"usually": self.referenceShape_test},
+                                       None,
+                                       data_field,
+                                       output_path,
+                                       annual_crop,
+                                       crop_mix,
+                                       auto_context_enable,
+                                       region_field,
+                                       proj,
+                                       enable_cross_validation,
+                                       runs,
+                                       sensors_params,
+                                       sar_optical_flag,
+                                       samples_classif_mix,
+                                       output_path_annual,
+                                       ram,
+                                       w_mode,
+                                       folder_annual_features,
+                                       previous_classif_path,
+                                       validity_threshold,
+                                       target_resolution,
+                                       sample_selection=self.selection_test)
 
-        test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
+        test_vector = fu.fileSearchRegEx(testPath +
+                                         "/learningSamples/*sqlite")[0]
         delete_uselessFields(test_vector)
-        compare = compareSQLite(test_vector, reference, CmpMode='coordinates', ignored_fields=["originfid"])
+        compare = compareSQLite(test_vector,
+                                reference,
+                                CmpMode='coordinates',
+                                ignored_fields=["originfid"])
         self.assertTrue(compare)
-
         """
         TEST
         without a working directory and write temporary files on disk
         """
         self.config.setParam('GlobChain', 'writeOutputs', True)
-        testPath, features_NA_Outputs, features_A_Outputs, wD = prepareTestsFolder(True)
+        testPath, features_NA_Outputs, features_A_Outputs, wD = prepareTestsFolder(
+            True)
         config_path_test = os.path.join(wD, "Config_TEST.cfg")
         shutil.copy(config_path, config_path_test)
         L8_rasters = os.path.join(self.iota2_directory, "data", "L8_50x50")
@@ -978,8 +1469,10 @@ class iota_testSamplerApplications(unittest.TestCase):
         config_test = SCF.serviceConfigFile(config_path_test)
         #annual sensor data generation (pix annual = 2 * pix non_annual)
         os.mkdir(L8_rasters_annual)
-        prepareAnnualFeatures(L8_rasters_annual, L8_rasters_non_annual, "CORR_PENTE",
-                              rename=("2016", "2015"))
+        prepare_annual_features(L8_rasters_annual,
+                                L8_rasters_non_annual,
+                                "CORR_PENTE",
+                                rename=("2016", "2015"))
         #prepare annual configuration file
         annual_config_path = os.path.join(wD, "AnnualConfig.cfg")
         shutil.copy(self.config.pathConf, annual_config_path)
@@ -993,16 +1486,74 @@ class iota_testSamplerApplications(unittest.TestCase):
         cfg.GlobChain.useAdditionalFeatures = False
         cfg.save(open(annual_config_path, 'w'))
 
+        data_field = config_test.getParam("chain", "dataField")
+        output_path = config_test.getParam("chain", "outputPath")
+        annual_crop = config_test.getParam("argTrain", 'annualCrop')
+        crop_mix = config_test.getParam('argTrain', 'cropMix')
+        auto_context_enable = config_test.getParam('chain',
+                                                   'enable_autoContext')
+        region_field = (config_test.getParam('chain', 'regionField')).lower()
+        proj = config_test.getParam('GlobChain', 'proj')
+        enable_cross_validation = config_test.getParam(
+            'chain', 'enableCrossValidation')
+        runs = config_test.getParam('chain', 'runs')
+        samples_classif_mix = config_test.getParam('argTrain',
+                                                   'samplesClassifMix')
+
+        annual_config_file = config_test.getParam('argTrain', "prevFeatures")
+        output_path_annual = SCF.serviceConfigFile(
+            annual_config_file).getParam("chain", "outputPath")
+
+        ram = 128
+        w_mode = False
+        folder_annual_features = config_test.getParam('argTrain',
+                                                      'outputPrevFeatures')
+        previous_classif_path = config_test.getParam(
+            'argTrain', 'annualClassesExtractionSource')
+        validity_threshold = config_test.getParam('argTrain',
+                                                  'validityThreshold')
+        target_resolution = config_test.getParam('chain', 'spatialResolution')
+        sensors_params = SCF.iota2_parameters(
+            config_path_test).get_sensors_parameters(tile)
+        try:
+            sar_optical_flag = config_test.getParam(
+                "chain", "dempster_shafer_SAR_Opt_fusion")
+        except Exception as exc:
+            print(exc)
+            sar_optical_flag = False
         #Launch Sampling
-        VectorSampler.generateSamples({"usually":self.referenceShape_test}, None,
-                                      config_test, sampleSelection=self.selection_test)
+        VectorSampler.generate_samples({"usually": self.referenceShape_test},
+                                       None,
+                                       data_field,
+                                       output_path,
+                                       annual_crop,
+                                       crop_mix,
+                                       auto_context_enable,
+                                       region_field,
+                                       proj,
+                                       enable_cross_validation,
+                                       runs,
+                                       sensors_params,
+                                       sar_optical_flag,
+                                       samples_classif_mix,
+                                       output_path_annual,
+                                       ram,
+                                       w_mode,
+                                       folder_annual_features,
+                                       previous_classif_path,
+                                       validity_threshold,
+                                       target_resolution,
+                                       sample_selection=self.selection_test)
 
         #Compare vector produce to reference
-        test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
+        test_vector = fu.fileSearchRegEx(testPath +
+                                         "/learningSamples/*sqlite")[0]
         delete_uselessFields(test_vector)
-        compare = compareSQLite(test_vector, reference, CmpMode='coordinates', ignored_fields=["originfid"])
+        compare = compareSQLite(test_vector,
+                                reference,
+                                CmpMode='coordinates',
+                                ignored_fields=["originfid"])
         self.assertTrue(compare)
-
 
     def test_samplerClassifCropMix_bindings(self):
         """
@@ -1016,7 +1567,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         random part in this script could not be control, no reference vector can be done.
         Only number of features can be check.
         """
-        from Common import ServiceConfigFile as SCF
+        from iota2.Common import ServiceConfigFile as SCF
         from Sampling import TileEnvelope as env
         from Sampling import TileArea as area
         from Common.Tools import CreateRegionsByTiles as RT
@@ -1027,19 +1578,19 @@ class iota_testSamplerApplications(unittest.TestCase):
 
         def prepareTestsFolder(workingDirectory=False):
             wD = None
-            testPath = self.test_vector+"/classifCropMixSampler_bindings/"
+            testPath = self.test_vector + "/classifCropMixSampler_bindings/"
 
             if os.path.exists(testPath):
                 shutil.rmtree(testPath)
             os.mkdir(testPath)
 
-            featuresOutputs = self.test_vector+"/classifCropMixSampler_features_bindings"
+            featuresOutputs = self.test_vector + "/classifCropMixSampler_features_bindings"
             if os.path.exists(featuresOutputs):
                 shutil.rmtree(featuresOutputs)
             os.mkdir(featuresOutputs)
 
             if workingDirectory:
-                wD = self.test_vector+"/classifCropMixSampler_bindingsTMP"
+                wD = self.test_vector + "/classifCropMixSampler_bindingsTMP"
                 if os.path.exists(wD):
                     shutil.rmtree(wD)
                 os.mkdir(wD)
@@ -1076,29 +1627,93 @@ class iota_testSamplerApplications(unittest.TestCase):
         cfg_test.GlobChain.writeOutputs = True
         cfg_test.save(open(config_path_test, 'w'))
         config_test = SCF.serviceConfigFile(config_path_test)
-
         """
         TEST
         with a working directory and with temporary files on disk
         """
         #generate IOTA output directory
-        IOTA2Directory.GenerateDirectories(config_test, check_inputs=False)
-
+        IOTA2Directory.generate_directories(testPath, check_inputs=False)
+        tile = "D0005H0002"
+        sensors_params = SCF.iota2_parameters(
+            config_path_test).get_sensors_parameters(tile)
         #shapes genereation
-        commonMasks("D0005H0002", config_path_test)
-        env.GenerateShapeTile(["D0005H0002"], wD, testPath + "/envelope", None, config_test)
+        commonMasks(tile, testPath, sensors_params)
+        env.GenerateShapeTile(["D0005H0002"], wD, testPath + "/envelope", None,
+                              config_test)
         shapeRegion = os.path.join(wD, "MyFakeRegion.shp")
-        area.generateRegionShape(testPath + "/envelope", "", shapeRegion, "region", config_test, None)
-        RT.createRegionsByTiles(shapeRegion, "region", testPath + "/envelope", testPath + "/shapeRegion/", None)
+        area.generate_region_shape(testPath + "/envelope", shapeRegion,
+                                   "region", testPath, None)
+        RT.createRegionsByTiles(shapeRegion, "region", testPath + "/envelope",
+                                testPath + "/shapeRegion/", None)
 
         #launch sampling
         addField(vector, "region", "1", str)
-        VectorSampler.generateSamples({"usually":vector}, wD, config_test, sampleSelection=self.selection_test)
-        test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
+
+        data_field = config_test.getParam("chain", "dataField")
+        output_path = config_test.getParam("chain", "outputPath")
+        annual_crop = config_test.getParam("argTrain", 'annualCrop')
+        crop_mix = config_test.getParam('argTrain', 'cropMix')
+        auto_context_enable = config_test.getParam('chain',
+                                                   'enable_autoContext')
+        region_field = (config_test.getParam('chain', 'regionField')).lower()
+        proj = config_test.getParam('GlobChain', 'proj')
+        enable_cross_validation = config_test.getParam(
+            'chain', 'enableCrossValidation')
+        runs = config_test.getParam('chain', 'runs')
+        samples_classif_mix = config_test.getParam('argTrain',
+                                                   'samplesClassifMix')
+
+        # annual_config_file = config_test.getParam('argTrain', "prevFeatures")
+        output_path_annual = None
+        # output_path_annual = SCF.serviceConfigFile(
+        #    annual_config_file).getParam("chain", "outputPath")
+
+        ram = 128
+        w_mode = False
+        folder_annual_features = config_test.getParam('argTrain',
+                                                      'outputPrevFeatures')
+        previous_classif_path = config_test.getParam(
+            'argTrain', 'annualClassesExtractionSource')
+        validity_threshold = config_test.getParam('argTrain',
+                                                  'validityThreshold')
+        target_resolution = config_test.getParam('chain', 'spatialResolution')
+        sensors_params = SCF.iota2_parameters(
+            config_path_test).get_sensors_parameters(tile)
+        try:
+            sar_optical_flag = config_test.getParam(
+                "chain", "dempster_shafer_SAR_Opt_fusion")
+        except Exception as exc:
+            print(exc)
+            sar_optical_flag = False
+        VectorSampler.generate_samples({"usually": vector},
+                                       wD,
+                                       data_field,
+                                       output_path,
+                                       annual_crop,
+                                       crop_mix,
+                                       auto_context_enable,
+                                       region_field,
+                                       proj,
+                                       enable_cross_validation,
+                                       runs,
+                                       sensors_params,
+                                       sar_optical_flag,
+                                       samples_classif_mix,
+                                       output_path_annual,
+                                       ram,
+                                       w_mode,
+                                       folder_annual_features,
+                                       previous_classif_path,
+                                       validity_threshold,
+                                       target_resolution,
+                                       sample_selection=self.selection_test)
+        test_vector = fu.fileSearchRegEx(testPath +
+                                         "/learningSamples/*sqlite")[0]
 
         same = []
         for key, val in list(self.expectedFeatures.items()):
-            if len(fu.getFieldElement(test_vector, 'SQLite', 'code', 'all')) != self.expectedFeatures[key]:
+            if len(fu.getFieldElement(test_vector, 'SQLite', 'code',
+                                      'all')) != self.expectedFeatures[key]:
                 same.append(True)
             else:
                 same.append(False)
@@ -1107,7 +1722,6 @@ class iota_testSamplerApplications(unittest.TestCase):
             self.assertTrue(False)
         else:
             self.assertTrue(True)
-
         """
         TEST
         with a working directory and without temporary files on disk
@@ -1131,25 +1745,89 @@ class iota_testSamplerApplications(unittest.TestCase):
         cfg_test.GlobChain.writeOutputs = False
         cfg_test.save(open(config_path_test, 'w'))
         config_test = SCF.serviceConfigFile(config_path_test)
-        
+
         #generate IOTA output directory
-        IOTA2Directory.GenerateDirectories(config_test, check_inputs=False)
+        IOTA2Directory.generate_directories(testPath, check_inputs=False)
 
         #shapes genereation
         vector = shapeReferenceVector(self.referenceShape, "D0005H0002")
-        commonMasks("D0005H0002", config_path_test)
-        env.GenerateShapeTile(["D0005H0002"], wD, testPath + "/envelope", None, config_test)
+        tile = "D0005H0002"
+        sensors_params = SCF.iota2_parameters(
+            config_path_test).get_sensors_parameters(tile)
+        #shapes genereation
+        commonMasks(tile, testPath, sensors_params)
+        env.GenerateShapeTile(["D0005H0002"], wD, testPath + "/envelope", None,
+                              config_test)
         shapeRegion = os.path.join(wD, "MyFakeRegion.shp")
-        area.generateRegionShape(testPath + "/envelope", "", shapeRegion, "region", config_test, None)
-        RT.createRegionsByTiles(shapeRegion, "region", testPath + "/envelope", testPath + "/shapeRegion/", None)
+        area.generate_region_shape(testPath + "/envelope", shapeRegion,
+                                   "region", testPath, None)
+        RT.createRegionsByTiles(shapeRegion, "region", testPath + "/envelope",
+                                testPath + "/shapeRegion/", None)
 
         addField(vector, "region", "1", str)
-        VectorSampler.generateSamples({"usually":vector}, wD, config_test, sampleSelection=self.selection_test)
 
-        test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
+        data_field = config_test.getParam("chain", "dataField")
+        output_path = config_test.getParam("chain", "outputPath")
+        annual_crop = config_test.getParam("argTrain", 'annualCrop')
+        crop_mix = config_test.getParam('argTrain', 'cropMix')
+        auto_context_enable = config_test.getParam('chain',
+                                                   'enable_autoContext')
+        region_field = (config_test.getParam('chain', 'regionField')).lower()
+        proj = config_test.getParam('GlobChain', 'proj')
+        enable_cross_validation = config_test.getParam(
+            'chain', 'enableCrossValidation')
+        runs = config_test.getParam('chain', 'runs')
+        samples_classif_mix = config_test.getParam('argTrain',
+                                                   'samplesClassifMix')
+
+        output_path_annual = None
+        ram = 128
+        w_mode = False
+        folder_annual_features = config_test.getParam('argTrain',
+                                                      'outputPrevFeatures')
+        previous_classif_path = config_test.getParam(
+            'argTrain', 'annualClassesExtractionSource')
+        validity_threshold = config_test.getParam('argTrain',
+                                                  'validityThreshold')
+        target_resolution = config_test.getParam('chain', 'spatialResolution')
+        sensors_params = SCF.iota2_parameters(
+            config_path_test).get_sensors_parameters(tile)
+        try:
+            sar_optical_flag = config_test.getParam(
+                "chain", "dempster_shafer_SAR_Opt_fusion")
+        except Exception as exc:
+            print(exc)
+            sar_optical_flag = False
+
+        VectorSampler.generate_samples({"usually": vector},
+                                       wD,
+                                       data_field,
+                                       output_path,
+                                       annual_crop,
+                                       crop_mix,
+                                       auto_context_enable,
+                                       region_field,
+                                       proj,
+                                       enable_cross_validation,
+                                       runs,
+                                       sensors_params,
+                                       sar_optical_flag,
+                                       samples_classif_mix,
+                                       output_path_annual,
+                                       ram,
+                                       w_mode,
+                                       folder_annual_features,
+                                       previous_classif_path,
+                                       validity_threshold,
+                                       target_resolution,
+                                       sample_selection=self.selection_test)
+
+        test_vector = fu.fileSearchRegEx(testPath +
+                                         "/learningSamples/*sqlite")[0]
         same = []
         for key, val in list(self.expectedFeatures.items()):
-            if len(fu.getFieldElement(test_vector, 'SQLite', 'code', 'all')) != self.expectedFeatures[key]:
+            if len(fu.getFieldElement(test_vector, 'SQLite', 'code',
+                                      'all')) != self.expectedFeatures[key]:
                 same.append(True)
             else:
                 same.append(False)
@@ -1158,7 +1836,6 @@ class iota_testSamplerApplications(unittest.TestCase):
             self.assertTrue(False)
         else:
             self.assertTrue(True)
-
         """
         TEST
         without a working directory and without temporary files on disk
@@ -1182,25 +1859,88 @@ class iota_testSamplerApplications(unittest.TestCase):
         cfg_test.GlobChain.writeOutputs = False
         cfg_test.save(open(config_path_test, 'w'))
         config_test = SCF.serviceConfigFile(config_path_test)
-        
+
         #generate IOTA output directory
-        IOTA2Directory.GenerateDirectories(config_test, check_inputs=False)
+        IOTA2Directory.generate_directories(testPath, check_inputs=False)
 
         #shapes genereation
         vector = shapeReferenceVector(self.referenceShape, "D0005H0002")
-        commonMasks("D0005H0002", config_path_test)
-        env.GenerateShapeTile(["D0005H0002"], wD, testPath + "/envelope", None, config_test)
+        tile = "D0005H0002"
+        sensors_params = SCF.iota2_parameters(
+            config_path_test).get_sensors_parameters(tile)
+        commonMasks(tile, testPath, sensors_params)
+        env.GenerateShapeTile(["D0005H0002"], wD, testPath + "/envelope", None,
+                              config_test)
         shapeRegion = os.path.join(wD, "MyFakeRegion.shp")
-        area.generateRegionShape(testPath + "/envelope", "", shapeRegion, "region", config_test, None)
-        RT.createRegionsByTiles(shapeRegion, "region", testPath + "/envelope", testPath + "/shapeRegion/", None)
+        area.generate_region_shape(testPath + "/envelope", shapeRegion,
+                                   "region", testPath, None)
+        RT.createRegionsByTiles(shapeRegion, "region", testPath + "/envelope",
+                                testPath + "/shapeRegion/", None)
 
         addField(vector, "region", "1", str)
-        VectorSampler.generateSamples({"usually":vector}, None, config_test, sampleSelection=self.selection_test)
 
-        test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
+        data_field = config_test.getParam("chain", "dataField")
+        output_path = config_test.getParam("chain", "outputPath")
+        annual_crop = config_test.getParam("argTrain", 'annualCrop')
+        crop_mix = config_test.getParam('argTrain', 'cropMix')
+        auto_context_enable = config_test.getParam('chain',
+                                                   'enable_autoContext')
+        region_field = (config_test.getParam('chain', 'regionField')).lower()
+        proj = config_test.getParam('GlobChain', 'proj')
+        enable_cross_validation = config_test.getParam(
+            'chain', 'enableCrossValidation')
+        runs = config_test.getParam('chain', 'runs')
+        samples_classif_mix = config_test.getParam('argTrain',
+                                                   'samplesClassifMix')
+
+        output_path_annual = None
+        ram = 128
+        w_mode = False
+        folder_annual_features = config_test.getParam('argTrain',
+                                                      'outputPrevFeatures')
+        previous_classif_path = config_test.getParam(
+            'argTrain', 'annualClassesExtractionSource')
+        validity_threshold = config_test.getParam('argTrain',
+                                                  'validityThreshold')
+        target_resolution = config_test.getParam('chain', 'spatialResolution')
+        sensors_params = SCF.iota2_parameters(
+            config_path_test).get_sensors_parameters(tile)
+        try:
+            sar_optical_flag = config_test.getParam(
+                "chain", "dempster_shafer_SAR_Opt_fusion")
+        except Exception as exc:
+            print(exc)
+            sar_optical_flag = False
+
+        VectorSampler.generate_samples({"usually": vector},
+                                       None,
+                                       data_field,
+                                       output_path,
+                                       annual_crop,
+                                       crop_mix,
+                                       auto_context_enable,
+                                       region_field,
+                                       proj,
+                                       enable_cross_validation,
+                                       runs,
+                                       sensors_params,
+                                       sar_optical_flag,
+                                       samples_classif_mix,
+                                       output_path_annual,
+                                       ram,
+                                       w_mode,
+                                       folder_annual_features,
+                                       previous_classif_path,
+                                       validity_threshold,
+                                       target_resolution,
+                                       sample_selection=self.selection_test)
+
+        test_vector = fu.fileSearchRegEx(testPath +
+                                         "/learningSamples/*sqlite")[0]
         same = []
         for key, val in list(self.expectedFeatures.items()):
-            if len(fu.getFieldElement(test_vector, 'SQLite', 'code', 'all')) != self.expectedFeatures[key]:
+            if len(fu.getFieldElement(test_vector, 'SQLite', 'code',
+                                      'all')) != self.expectedFeatures[key]:
                 same.append(True)
             else:
                 same.append(False)
@@ -1209,7 +1949,6 @@ class iota_testSamplerApplications(unittest.TestCase):
             self.assertTrue(False)
         else:
             self.assertTrue(True)
-
         """
         TEST
         without a working directory and with temporary files on disk
@@ -1233,23 +1972,87 @@ class iota_testSamplerApplications(unittest.TestCase):
         cfg_test.save(open(config_path_test, 'w'))
         config_test = SCF.serviceConfigFile(config_path_test)
         #generate IOTA output directory
-        IOTA2Directory.GenerateDirectories(config_test, check_inputs=False)
+        IOTA2Directory.generate_directories(testPath, check_inputs=False)
 
         #shapes genereation
         vector = shapeReferenceVector(self.referenceShape, "D0005H0002")
-        commonMasks("D0005H0002", config_path_test)
-        env.GenerateShapeTile(["D0005H0002"], wD, testPath + "/envelope", None, config_test)
+        tile = "D0005H0002"
+        sensors_params = SCF.iota2_parameters(
+            config_path_test).get_sensors_parameters(tile)
+        commonMasks(tile, testPath, sensors_params)
+        env.GenerateShapeTile(["D0005H0002"], wD, testPath + "/envelope", None,
+                              config_test)
         shapeRegion = os.path.join(wD, "MyFakeRegion.shp")
-        area.generateRegionShape(testPath + "/envelope", "", shapeRegion, "region", config_test, None)
-        RT.createRegionsByTiles(shapeRegion, "region", testPath + "/envelope", testPath + "/shapeRegion/", None)
+        area.generate_region_shape(testPath + "/envelope", shapeRegion,
+                                   "region", testPath, None)
+        RT.createRegionsByTiles(shapeRegion, "region", testPath + "/envelope",
+                                testPath + "/shapeRegion/", None)
 
         addField(vector, "region", "1", str)
-        VectorSampler.generateSamples({"usually":vector}, None, config_test, sampleSelection=self.selection_test)
 
-        test_vector = fu.fileSearchRegEx(testPath + "/learningSamples/*sqlite")[0]
+        data_field = config_test.getParam("chain", "dataField")
+        output_path = config_test.getParam("chain", "outputPath")
+        annual_crop = config_test.getParam("argTrain", 'annualCrop')
+        crop_mix = config_test.getParam('argTrain', 'cropMix')
+        auto_context_enable = config_test.getParam('chain',
+                                                   'enable_autoContext')
+        region_field = (config_test.getParam('chain', 'regionField')).lower()
+        proj = config_test.getParam('GlobChain', 'proj')
+        enable_cross_validation = config_test.getParam(
+            'chain', 'enableCrossValidation')
+        runs = config_test.getParam('chain', 'runs')
+        samples_classif_mix = config_test.getParam('argTrain',
+                                                   'samplesClassifMix')
+
+        output_path_annual = None
+
+        ram = 128
+        w_mode = False
+        folder_annual_features = config_test.getParam('argTrain',
+                                                      'outputPrevFeatures')
+        previous_classif_path = config_test.getParam(
+            'argTrain', 'annualClassesExtractionSource')
+        validity_threshold = config_test.getParam('argTrain',
+                                                  'validityThreshold')
+        target_resolution = config_test.getParam('chain', 'spatialResolution')
+        sensors_params = SCF.iota2_parameters(
+            config_path_test).get_sensors_parameters(tile)
+        try:
+            sar_optical_flag = config_test.getParam(
+                "chain", "dempster_shafer_SAR_Opt_fusion")
+        except Exception as exc:
+            print(exc)
+            sar_optical_flag = False
+
+        VectorSampler.generate_samples({"usually": vector},
+                                       None,
+                                       data_field,
+                                       output_path,
+                                       annual_crop,
+                                       crop_mix,
+                                       auto_context_enable,
+                                       region_field,
+                                       proj,
+                                       enable_cross_validation,
+                                       runs,
+                                       sensors_params,
+                                       sar_optical_flag,
+                                       samples_classif_mix,
+                                       output_path_annual,
+                                       ram,
+                                       w_mode,
+                                       folder_annual_features,
+                                       previous_classif_path,
+                                       validity_threshold,
+                                       target_resolution,
+                                       sample_selection=self.selection_test)
+
+        test_vector = fu.fileSearchRegEx(testPath +
+                                         "/learningSamples/*sqlite")[0]
         same = []
         for key, val in list(self.expectedFeatures.items()):
-            if len(fu.getFieldElement(test_vector, 'SQLite', 'code', 'all')) != self.expectedFeatures[key]:
+            if len(fu.getFieldElement(test_vector, 'SQLite', 'code',
+                                      'all')) != self.expectedFeatures[key]:
                 same.append(True)
             else:
                 same.append(False)
@@ -1261,7 +2064,6 @@ class iota_testSamplerApplications(unittest.TestCase):
 
 
 class iota_testShapeManipulations(unittest.TestCase):
-
     @classmethod
     def setUpClass(self):
         self.referenceShape = iota2_dataTest + "/references/D5H2_groundTruth_samples.shp"
@@ -1272,35 +2074,39 @@ class iota_testShapeManipulations(unittest.TestCase):
         self.typeShape = iota2_dataTest + "/references/typo.shp"
         self.regionField = "DN"
 
-        self.priorityEnvelope_ref = iota2_dataTest+"/references/priority_ref"
+        self.priorityEnvelope_ref = iota2_dataTest + "/references/priority_ref"
         self.splitRatio = 0.5
 
-        self.test_vector = iota2_dataTest+"/test_vector"
+        self.test_vector = iota2_dataTest + "/test_vector"
         if not os.path.exists(self.test_vector):
             os.mkdir(self.test_vector)
 
     def test_CountFeatures(self):
-        features = fu.getFieldElement(self.referenceShape, driverName="ESRI Shapefile",
-                                      field="CODE", mode="all", elemType="int")
+        features = fu.getFieldElement(self.referenceShape,
+                                      driverName="ESRI Shapefile",
+                                      field="CODE",
+                                      mode="all",
+                                      elemType="int")
         self.assertTrue(len(features) == self.nbFeatures)
 
     def test_MultiPolygons(self):
         detectMulti = fu.multiSearch(self.referenceShape)
-        single = iota2_dataTest+"/test_MultiToSinglePoly.shp"
+        single = iota2_dataTest + "/test_MultiToSinglePoly.shp"
         fu.multiPolyToPoly(self.referenceShape, single)
 
         detectNoMulti = fu.multiSearch(single)
         self.assertTrue(detectMulti)
         self.assertFalse(detectNoMulti)
 
-        testFiles = fu.fileSearchRegEx(iota2_dataTest+"/test_*")
+        testFiles = fu.fileSearchRegEx(iota2_dataTest + "/test_*")
 
         for testFile in testFiles:
             if os.path.isfile(testFile):
                 os.remove(testFile)
 
     def test_getField(self):
-        allFields = fu.getAllFieldsInShape(self.referenceShape, "ESRI Shapefile")
+        allFields = fu.getAllFieldsInShape(self.referenceShape,
+                                           "ESRI Shapefile")
         self.assertTrue(self.fields == allFields)
 
     def test_Envelope(self):
@@ -1316,76 +2122,99 @@ class iota_testShapeManipulations(unittest.TestCase):
         os.mkdir(self.priorityEnvelope_test)
 
         #Create a 3x3 grid (9 vectors shapes). Each tile are 110.010 km with 10 km overlaping to fit L8 datas.
-        test_genGrid.genGrid(self.test_envelopeDir, X=3, Y=3, overlap=10,
-                             size=110.010, raster="True", pixSize=30)
+        test_genGrid.genGrid(self.test_envelopeDir,
+                             X=3,
+                             Y=3,
+                             overlap=10,
+                             size=110.010,
+                             raster="True",
+                             pixSize=30)
 
-        tilesPath = fu.fileSearchRegEx(self.test_envelopeDir+"/*.tif")
+        tilesPath = fu.fileSearchRegEx(self.test_envelopeDir + "/*.tif")
 
-        ObjListTile = [TileEnvelope.Tile(currentTile, currentTile.split("/")[-1].split(".")[0].split("_")[0]) for currentTile in tilesPath]
+        ObjListTile = [
+            TileEnvelope.Tile(
+                currentTile,
+                currentTile.split("/")[-1].split(".")[0].split("_")[0])
+            for currentTile in tilesPath
+        ]
         ObjListTile_sort = sorted(ObjListTile, key=TileEnvelope.priorityKey)
 
-        TileEnvelope.genTileEnvPrio(ObjListTile_sort, self.priorityEnvelope_test,
+        TileEnvelope.genTileEnvPrio(ObjListTile_sort,
+                                    self.priorityEnvelope_test,
                                     self.priorityEnvelope_test, self.epsg)
 
-        envRef = fu.fileSearchRegEx(self.priorityEnvelope_ref+"/*.shp")
+        envRef = fu.fileSearchRegEx(self.priorityEnvelope_ref + "/*.shp")
 
         comp = []
         for eRef in envRef:
             tile_number = os.path.split(eRef)[-1].split("_")[1]
-            comp.append(fut.FileSearch_AND(self.priorityEnvelope_test, True, "Tile"+tile_number+"_PRIO.shp")[0])
+            comp.append(
+                fut.FileSearch_AND(self.priorityEnvelope_test, True,
+                                   "Tile" + tile_number + "_PRIO.shp")[0])
 
-
-        cmpEnv = [checkSameEnvelope(currentRef, test_env) for currentRef,test_env in zip(envRef,comp)]
+        cmpEnv = [
+            checkSameEnvelope(currentRef, test_env)
+            for currentRef, test_env in zip(envRef, comp)
+        ]
         self.assertTrue(all(cmpEnv))
 
     def test_regionsByTile(self):
         from Common.Tools import CreateRegionsByTiles as RT
-        self.test_regionsByTiles = iota2_dataTest+"/test_vector/test_regionsByTiles"
+        self.test_regionsByTiles = iota2_dataTest + "/test_vector/test_regionsByTiles"
         if os.path.exists(self.test_regionsByTiles):
             shutil.rmtree(self.test_regionsByTiles)
         os.mkdir(self.test_regionsByTiles)
 
-        RT.createRegionsByTiles(self.typeShape,
-                                self.regionField,
+        RT.createRegionsByTiles(self.typeShape, self.regionField,
                                 self.priorityEnvelope_ref,
                                 self.test_regionsByTiles, None)
 
     def test_SplitVector(self):
 
-        self.test_split = iota2_dataTest+"/test_vector/test_splitVector"
+        self.test_split = iota2_dataTest + "/test_vector/test_splitVector"
         if os.path.exists(self.test_split):
             shutil.rmtree(self.test_split)
         os.mkdir(self.test_split)
 
-        AllTrain, AllValid = RandomInSituByTile.RandomInSituByTile(self.referenceShape,
-                                                                   self.dataField, 1,
-                                                                   self.test_split,
-                                                                   self.splitRatio,
-                                                                   None,
-                                                                   None,
-                                                                   test=True)
-        
-        featuresTrain = fu.getFieldElement(AllTrain[0], driverName="ESRI Shapefile",
-                                           field="CODE", mode="all",
-                                           elemType="int")
-        self.assertTrue(len(featuresTrain) == self.nbFeatures*self.splitRatio)
+        AllTrain, AllValid = RandomInSituByTile.RandomInSituByTile(
+            self.referenceShape,
+            self.dataField,
+            1,
+            self.test_split,
+            self.splitRatio,
+            None,
+            None,
+            test=True)
 
-        featuresValid = fu.getFieldElement(AllValid[0], driverName="ESRI Shapefile",
-                                           field="CODE", mode="all",
+        featuresTrain = fu.getFieldElement(AllTrain[0],
+                                           driverName="ESRI Shapefile",
+                                           field="CODE",
+                                           mode="all",
                                            elemType="int")
-        self.assertTrue(len(featuresValid) == self.nbFeatures*(1-self.splitRatio))
+        self.assertTrue(
+            len(featuresTrain) == self.nbFeatures * self.splitRatio)
+
+        featuresValid = fu.getFieldElement(AllValid[0],
+                                           driverName="ESRI Shapefile",
+                                           field="CODE",
+                                           mode="all",
+                                           elemType="int")
+        self.assertTrue(
+            len(featuresValid) == self.nbFeatures * (1 - self.splitRatio))
+
 
 class iota_testServiceConfigFile(unittest.TestCase):
-
-
     @classmethod
     def setUpClass(self):
         self.iota2_directory = os.environ.get('IOTA2DIR')
         #the configuration file tested must be the one in /config.
-        self.fichierConfig = os.path.join(self.iota2_directory, "config", "Config_4Tuiles_Multi_FUS_Confidence.cfg")
-        self.fichierConfigBad1 = iota2_dataTest+"/config/test_config_serviceConfigFileBad1.cfg"
-        self.fichierConfigBad2 = iota2_dataTest+"/config/test_config_serviceConfigFileBad2.cfg"
-        self.fichierConfigBad3 = iota2_dataTest+"/config/test_config_serviceConfigFileBad3.cfg"
+        self.fichierConfig = os.path.join(
+            self.iota2_directory, "config",
+            "Config_4Tuiles_Multi_FUS_Confidence.cfg")
+        self.fichierConfigBad1 = iota2_dataTest + "/config/test_config_serviceConfigFileBad1.cfg"
+        self.fichierConfigBad2 = iota2_dataTest + "/config/test_config_serviceConfigFileBad2.cfg"
+        self.fichierConfigBad3 = iota2_dataTest + "/config/test_config_serviceConfigFileBad3.cfg"
 
     def test_initConfigFile(self):
         from Common import ServiceError as sErr
@@ -1393,7 +2222,8 @@ class iota_testServiceConfigFile(unittest.TestCase):
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
         cfg.setParam('chain', 'runs', 2)
-        cfg.setParam('chain', 'regionPath', '../../../data/references/region_need_To_env.shp')
+        cfg.setParam('chain', 'regionPath',
+                     '../../../data/references/region_need_To_env.shp')
         cfg.setParam('chain', 'regionField', 'DN_char')
         cfg.setParam('argClassification', 'classifMode', 'separate')
 
@@ -1401,14 +2231,14 @@ class iota_testServiceConfigFile(unittest.TestCase):
         self.assertTrue(cfg.checkConfigParameters())
 
         # we get outputPath variable
-        self.assertEqual(cfg.getParam('chain', 'outputPath'), '../../../data/tmp/')
+        self.assertEqual(cfg.getParam('chain', 'outputPath'),
+                         '../../../data/tmp/')
 
         # we check if bad section is detected
-        self.assertRaises(Exception, cfg.getParam,'BADchain', 'outputPath')
+        self.assertRaises(Exception, cfg.getParam, 'BADchain', 'outputPath')
 
         # we check if bad param is detected
         self.assertRaises(Exception, cfg.getParam, 'chain', 'BADoutputPath')
-
 
     def test_initConfigFileBad1(self):
 
@@ -1440,12 +2270,11 @@ class iota_testServiceConfigFile(unittest.TestCase):
 
 # test ok
 class iota_testGenerateShapeTile(unittest.TestCase):
-
     @classmethod
     def setUpClass(self):
         # Test variables
         self.fichierConfig = iota2dir + "/config/Config_4Tuiles_Multi_FUS_Confidence.cfg"
-        self.tiles = ['D0005H0002'] #, 'D0005H0003']
+        self.tiles = ['D0005H0002']  #, 'D0005H0003']
         self.pathTilesFeat = iota2_dataTest + "/references/features/"
         self.test_vector = iota2_dataTest + "/test_vector/"
         self.pathEnvelope = iota2_dataTest + "/test_vector/test_GenerateShapeTile/"
@@ -1455,7 +2284,7 @@ class iota_testGenerateShapeTile(unittest.TestCase):
             os.mkdir(self.pathEnvelope)
 
     def test_GenerateShapeTile(self):
-        from Sampling import TileEnvelope as env
+        from iota2.Sampling import TileEnvelope as env
 
         #Test de création des enveloppes
         SCF.clearConfig()
@@ -1474,7 +2303,8 @@ class iota_testGenerateShapeTile(unittest.TestCase):
         cfg = SCF.serviceConfigFile(self.fichierConfig)
 
         # Launch function
-        env.GenerateShapeTile(self.tiles, self.pathTilesFeat, self.pathEnvelope, None, cfg)
+        env.GenerateShapeTile(self.tiles, self.pathTilesFeat,
+                              self.pathEnvelope, None, cfg)
 
         # For each tile test if the shapefile is ok
         for i in self.tiles:
@@ -1483,11 +2313,14 @@ class iota_testGenerateShapeTile(unittest.TestCase):
             ShapeFile = self.pathEnvelope + i + ".shp"
             serviceCompareVectorFile = fu.serviceCompareVectorFile()
             # Launch shapefile comparison
-            self.assertTrue(serviceCompareVectorFile.testSameShapefiles(referenceShapeFile, ShapeFile))
+            self.assertTrue(
+                serviceCompareVectorFile.testSameShapefiles(
+                    referenceShapeFile, ShapeFile))
         shutil.rmtree(featuresPath)
+
+
 # test ok
 class iota_testGenerateRegionShape(unittest.TestCase):
-
     @classmethod
     def setUpClass(self):
         # definition of local variables
@@ -1516,16 +2349,18 @@ class iota_testGenerateRegionShape(unittest.TestCase):
         print("field_Region: " + self.field_Region)
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
-
-        area.generateRegionShape(self.pathEnvelope, self.model,
-                                 self.shapeRegion, self.field_Region, cfg, None)
+        i2_output_path = cfg.getParam("chain", "outputPath")
+        area.generate_region_shape(self.pathEnvelope, self.shapeRegion,
+                                   self.field_Region, i2_output_path, None)
 
         # generate filename
         referenceShapeFile = iota2_dataTest + "/references/GenerateRegionShape/region_need_To_env.shp"
         ShapeFile = self.pathOut + "region_need_To_env.shp"
         serviceCompareVectorFile = fu.serviceCompareVectorFile()
         # Launch shapefile comparison
-        self.assertTrue(serviceCompareVectorFile.testSameShapefiles(referenceShapeFile, ShapeFile))
+        self.assertTrue(
+            serviceCompareVectorFile.testSameShapefiles(
+                referenceShapeFile, ShapeFile))
 
 
 # test ok
@@ -1546,7 +2381,7 @@ class iota_testLaunchTraining(unittest.TestCase):
         self.pathLearningSamples = self.pathOut + "/learningSamples"
         self.pathFormattingSamples = self.pathOut + "/formattingVectors"
         self.vector_formatting = self.refData + "/Input/D0005H0002.shp"
-#        self.vector_formatting = iota2_dataTest + "/references/sampler/D0005H0002.shp"
+        #        self.vector_formatting = iota2_dataTest + "/references/sampler/D0005H0002.shp"
 
         # test and creation of test_vector
         if not os.path.exists(self.test_vector):
@@ -1581,18 +2416,19 @@ class iota_testLaunchTraining(unittest.TestCase):
         if not os.path.exists(self.pathFormattingSamples):
             os.mkdir(self.pathFormattingSamples)
         # copy input data
-        fu.cpShapeFile(self.vector_formatting.replace(".shp",""),
-                       self.pathFormattingSamples, [".prj",".shp",".dbf",".shx"],
+        fu.cpShapeFile(self.vector_formatting.replace(".shp", ""),
+                       self.pathFormattingSamples,
+                       [".prj", ".shp", ".dbf", ".shx"],
                        spe=True)
 
         src_files = os.listdir(self.refData + "/Input/learningSamples")
         for file_name in src_files:
-            full_file_name = os.path.join(self.refData + "/Input/learningSamples", file_name)
+            full_file_name = os.path.join(
+                self.refData + "/Input/learningSamples", file_name)
             shutil.copy(full_file_name, self.pathLearningSamples)
 
-
     def test_LaunchTraining(self):
-        from Learning import TrainingCmd as TC
+        from iota2.Learning import TrainingCmd as TC
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
         dataField = 'CODE'
@@ -1600,8 +2436,15 @@ class iota_testLaunchTraining(unittest.TestCase):
         cfg.setParam('chain', 'outputPath', self.pathOut)
         cfg.setParam('chain', 'regionField', "region")
 
-        TC.launchTraining(cfg, dataField, self.pathStats, N, self.cmdPath + "/train", self.pathModels,
-                          None)
+        TC.launch_training(
+            classifier_name=cfg.getParam("argTrain", "classifier"),
+            classifier_options=cfg.getParam("argTrain", "options"),
+            output_path=self.pathOut,
+            ground_truth=cfg.getParam("chain", "groundTruth"),
+            data_field="CODE",
+            region_field="region",
+            path_to_cmd_train=os.path.join(self.cmdPath, "train"),
+            out=self.pathModels)
 
         # file comparison to ref file
         File1 = self.cmdPath + "/train/train.txt"
@@ -1613,7 +2456,7 @@ class iota_testLaunchTraining(unittest.TestCase):
 
 
 class iota_testLaunchClassification(unittest.TestCase):
-# Test ok
+    # Test ok
     @classmethod
     def setUpClass(self):
         # definition of local variables
@@ -1667,18 +2510,20 @@ class iota_testLaunchClassification(unittest.TestCase):
             os.mkdir(self.pathClassif + "/MASK")
 
         # copy input data
-        shutil.copy(self.refData + "/Input/configModel.cfg", self.pathConfigModels)
-        shutil.copy(self.refData + "/Input/model_1_seed_0.txt", self.pathModels)
+        shutil.copy(self.refData + "/Input/configModel.cfg",
+                    self.pathConfigModels)
+        shutil.copy(self.refData + "/Input/model_1_seed_0.txt",
+                    self.pathModels)
         src_files = os.listdir(self.refData + "/Input/shapeRegion")
         for file_name in src_files:
-            full_file_name = os.path.join(self.refData + "/Input/shapeRegion", file_name)
+            full_file_name = os.path.join(self.refData + "/Input/shapeRegion",
+                                          file_name)
             shutil.copy(full_file_name, self.pathTileRegion)
         src_files = os.listdir(self.refData + "/Input/Classif/MASK")
         for file_name in src_files:
-            full_file_name = os.path.join(self.refData + "/Input/Classif/MASK", file_name)
+            full_file_name = os.path.join(self.refData + "/Input/Classif/MASK",
+                                          file_name)
             shutil.copy(full_file_name, self.pathClassif + "/MASK")
-
-
 
     def test_LaunchClassification(self):
         from Classification import ClassificationCmd as CC
@@ -1688,16 +2533,18 @@ class iota_testLaunchClassification(unittest.TestCase):
         field_Region = cfg.getParam('chain', 'regionField')
         N = 1
         CC.launchClassification(self.pathModels, cfg, self.pathStats,
-                      self.pathTileRegion, self.pathTilesFeat,
-                      self.shapeRegion, field_Region,
-                      N, self.cmdPath+"/cla", self.pathClassif, 128, None)
+                                self.pathTileRegion, self.pathTilesFeat,
+                                self.shapeRegion, field_Region, N,
+                                self.cmdPath + "/cla", self.pathClassif, 128,
+                                None)
 
         # file comparison to ref file
         File1 = self.cmdPath + "/cla/class.txt"
         self.assertTrue(os.path.getsize(File1) > 0)
 
+
 class iota_testVectorSamplesMerge(unittest.TestCase):
-# Test ok
+    # Test ok
     @classmethod
     def setUpClass(self):
         # definition of local variables
@@ -1725,27 +2572,32 @@ class iota_testVectorSamplesMerge(unittest.TestCase):
             os.mkdir(self.cmdPath)
 
         # copy input data
-        shutil.copy(self.refData + "/Input/D0005H0003_region_1_seed0_learn_Samples.sqlite", self.learningSamples)
-
+        shutil.copy(
+            self.refData +
+            "/Input/D0005H0003_region_1_seed0_learn_Samples.sqlite",
+            self.learningSamples)
 
     def test_VectorSamplesMerge(self):
-        from Sampling import VectorSamplesMerge as VSM
-        from Sampling import VectorSampler as vs
+        from iota2.Sampling import VectorSamplesMerge as VSM
+        from iota2.Sampling import VectorSampler as vs
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
         cfg.setParam('chain', 'outputPath', self.pathOut)
 
         vl = fu.FileSearch_AND(self.learningSamples, True, ".sqlite")
-        VSM.vectorSamplesMerge(cfg, vl)
+        VSM.vector_samples_merge(vl, self.pathOut)
 
         # file comparison to ref file
         File1 = self.learningSamples + "Samples_region_1_seed0_learn.sqlite"
         referenceFile1 = self.refData + "/Output/Samples_region_1_seed0_learn.sqlite"
-        self.assertTrue(compareSQLite(File1, referenceFile1, CmpMode='coordinates', ignored_fields=[]))
+        self.assertTrue(
+            compareSQLite(File1,
+                          referenceFile1,
+                          CmpMode='coordinates',
+                          ignored_fields=[]))
 
 
 class iota_testFusion(unittest.TestCase):
-
     @classmethod
     def setUpClass(self):
         # definition of local variables
@@ -1786,12 +2638,14 @@ class iota_testFusion(unittest.TestCase):
 
         src_files = os.listdir(self.refData + "/Input/Classif/MASK")
         for file_name in src_files:
-            full_file_name = os.path.join(self.refData + "/Input/Classif/MASK", file_name)
+            full_file_name = os.path.join(self.refData + "/Input/Classif/MASK",
+                                          file_name)
             shutil.copy(full_file_name, self.pathClassif + "/MASK")
 
         src_files = os.listdir(self.refData + "/Input/Classif/classif")
         for file_name in src_files:
-            full_file_name = os.path.join(self.refData + "/Input/Classif/classif/", file_name)
+            full_file_name = os.path.join(
+                self.refData + "/Input/Classif/classif/", file_name)
             shutil.copy(full_file_name, self.pathClassif)
 
     def test_Fusion(self):
@@ -1807,9 +2661,7 @@ class iota_testFusion(unittest.TestCase):
         cmdFus = FUS.fusion(self.pathClassif, cfg, None)
 
 
-
 class iota_testNoData(unittest.TestCase):
-
     @classmethod
     def setUpClass(self):
         # definition of local variables
@@ -1850,12 +2702,14 @@ class iota_testNoData(unittest.TestCase):
 
         src_files = os.listdir(self.refData + "/Input/Classif/MASK")
         for file_name in src_files:
-            full_file_name = os.path.join(self.refData + "/Input/Classif/MASK", file_name)
+            full_file_name = os.path.join(self.refData + "/Input/Classif/MASK",
+                                          file_name)
             shutil.copy(full_file_name, self.pathClassif + "/MASK")
 
         src_files = os.listdir(self.refData + "/Input/Classif/classif")
         for file_name in src_files:
-            full_file_name = os.path.join(self.refData + "/Input/Classif/classif/", file_name)
+            full_file_name = os.path.join(
+                self.refData + "/Input/Classif/classif/", file_name)
             shutil.copy(full_file_name, self.pathClassif)
 
     def test_NoData(self):
@@ -1917,12 +2771,14 @@ class iota_testClassificationShaping(unittest.TestCase):
         # copy input file
         src_files = os.listdir(self.refData + "/Input/Classif/MASK")
         for file_name in src_files:
-            full_file_name = os.path.join(self.refData + "/Input/Classif/MASK", file_name)
+            full_file_name = os.path.join(self.refData + "/Input/Classif/MASK",
+                                          file_name)
             shutil.copy(full_file_name, self.pathClassif + "/MASK")
 
         src_files = os.listdir(self.refData + "/Input/Classif/classif")
         for file_name in src_files:
-            full_file_name = os.path.join(self.refData + "/Input/Classif/classif/", file_name)
+            full_file_name = os.path.join(
+                self.refData + "/Input/Classif/classif/", file_name)
             shutil.copy(full_file_name, self.pathClassif)
 
     def test_ClassificationShaping(self):
@@ -1936,24 +2792,27 @@ class iota_testClassificationShaping(unittest.TestCase):
         features_ref = "../../../data/references/features"
         features_ref_test = os.path.join(self.pathOut, "features")
         os.mkdir(features_ref_test)
-        shutil.copytree(features_ref+"/D0005H0002", features_ref_test + "/D0005H0002")
-        shutil.copytree(features_ref+"/D0005H0003", features_ref_test + "/D0005H0003")
+        shutil.copytree(features_ref + "/D0005H0002",
+                        features_ref_test + "/D0005H0002")
+        shutil.copytree(features_ref + "/D0005H0003",
+                        features_ref_test + "/D0005H0003")
 
         N = 1
         fieldEnv = "FID"
         COLORTABLE = cfg.getParam('chain', 'colorTable')
 
-        CS.ClassificationShaping(self.pathClassif, self.pathEnvelope, self.pathTilesFeat,
-                                 fieldEnv, N, self.classifFinal, None, cfg,
-                                 COLORTABLE)
+        CS.ClassificationShaping(self.pathClassif, self.pathEnvelope,
+                                 self.pathTilesFeat, fieldEnv, N,
+                                 self.classifFinal, None, cfg, COLORTABLE)
 
         # file comparison to ref file
         serviceCompareImageFile = fu.serviceCompareImageFile()
         src_files = os.listdir(self.refData + "/Output/")
         for file_name in src_files:
-            File1 = os.path.join(self.classifFinal , file_name)
+            File1 = os.path.join(self.classifFinal, file_name)
             referenceFile1 = os.path.join(self.refData + "/Output/", file_name)
-            nbDiff = serviceCompareImageFile.gdalFileCompare(File1, referenceFile1)
+            nbDiff = serviceCompareImageFile.gdalFileCompare(
+                File1, referenceFile1)
             self.assertEqual(nbDiff, 0)
 
 
@@ -2007,19 +2866,23 @@ class iota_testGenConfMatrix(unittest.TestCase):
         # copy input data
         src_files = os.listdir(self.refData + "/Input/dataAppVal")
         for file_name in src_files:
-            full_file_name = os.path.join(self.refData + "/Input/dataAppVal", file_name)
+            full_file_name = os.path.join(self.refData + "/Input/dataAppVal",
+                                          file_name)
             shutil.copy(full_file_name, self.pathAppVal)
         src_files = os.listdir(self.refData + "/Input/Classif/MASK")
         for file_name in src_files:
-            full_file_name = os.path.join(self.refData + "/Input/Classif/MASK", file_name)
+            full_file_name = os.path.join(self.refData + "/Input/Classif/MASK",
+                                          file_name)
             shutil.copy(full_file_name, self.pathClassif + "/MASK")
         src_files = os.listdir(self.refData + "/Input/Classif/classif")
         for file_name in src_files:
-            full_file_name = os.path.join(self.refData + "/Input/Classif/classif/", file_name)
+            full_file_name = os.path.join(
+                self.refData + "/Input/Classif/classif/", file_name)
             shutil.copy(full_file_name, self.pathClassif)
         src_files = os.listdir(self.refData + "/Input/final/TMP")
         for file_name in src_files:
-            full_file_name = os.path.join(self.refData + "/Input/final/TMP/", file_name)
+            full_file_name = os.path.join(self.refData + "/Input/final/TMP/",
+                                          file_name)
             shutil.copy(full_file_name, self.Final + "/TMP")
 
     def test_GenConfMatrix(self):
@@ -2072,7 +2935,8 @@ class iota_testConfFusion(unittest.TestCase):
         # copy input data
         src_files = os.listdir(self.refData + "/Input/final/TMP")
         for file_name in src_files:
-            full_file_name = os.path.join(self.refData + "/Input/final/TMP/", file_name)
+            full_file_name = os.path.join(self.refData + "/Input/final/TMP/",
+                                          file_name)
             shutil.copy(full_file_name, self.Final + "/TMP")
 
     def test_ConfFusion(self):
@@ -2085,13 +2949,14 @@ class iota_testConfFusion(unittest.TestCase):
         # deux cas à tester :
         # if CLASSIFMODE == "separate":
         # elif CLASSIFMODE == "fusion" and MODE != "one_region":
-        confFus.confFusion(shapeData, dataField, self.Final+"/TMP",
-                           self.Final+"/TMP", self.Final+"/TMP", cfg)
+        confFus.confFusion(shapeData, dataField, self.Final + "/TMP",
+                           self.Final + "/TMP", self.Final + "/TMP", cfg)
 
         # file comparison to ref file
         File1 = self.Final + "/TMP/ClassificationResults_seed_0.txt"
         referenceFile1 = self.refData + "/Output/ClassificationResults_seed_0.txt"
         self.assertTrue(filecmp.cmp(File1, referenceFile1))
+
 
 class iota_testGenerateStatModel(unittest.TestCase):
     @classmethod
@@ -2127,7 +2992,8 @@ class iota_testGenerateStatModel(unittest.TestCase):
         # copy input data
         src_files = os.listdir(self.refData + "/Input/dataAppVal")
         for file_name in src_files:
-            full_file_name = os.path.join(self.refData + "/Input/dataAppVal", file_name)
+            full_file_name = os.path.join(self.refData + "/Input/dataAppVal",
+                                          file_name)
             shutil.copy(full_file_name, self.pathAppVal)
 
     def test_GenerateStatModel(self):
@@ -2137,8 +3003,9 @@ class iota_testGenerateStatModel(unittest.TestCase):
         cfg.setParam('chain', 'outputPath', self.pathOut)
         cfg.setParam('argTrain', 'classifier', 'svm')
 
-        MS.generateStatModel(self.pathAppVal, self.pathTilesFeat, self.pathStats,
-                             self.cmdPath+"/stats", None, cfg)
+        MS.generateStatModel(self.pathAppVal, self.pathTilesFeat,
+                             self.pathStats, self.cmdPath + "/stats", None,
+                             cfg)
 
         # file comparison to ref file
         File1 = self.cmdPath + "/stats/stats.txt"
@@ -2188,8 +3055,8 @@ class iota_testServiceLogging(unittest.TestCase):
         # file comparison to ref file
 
         referenceFile1 = iota2_dataTest + "/references/OSOlogFile.log"
-        l1 = open(File1,"r").readlines()
-        l2 = open(referenceFile1,"r").readlines()
+        l1 = open(File1, "r").readlines()
+        l2 = open(referenceFile1, "r").readlines()
         # we compare only the fourth column
 
         for i in range(l1.__len__()):
@@ -2208,18 +3075,32 @@ class iota_testGetModel(unittest.TestCase):
         if not os.path.exists(self.pathTestRunning):
             os.mkdir(self.pathTestRunning)
 
-        shutil.copyfile(self.pathInput + 'tile0_0_learn_seed0.shp', self.pathTestRunning + 'tile0_0_learn_seed0.shp')
-        shutil.copyfile(self.pathInput + 'tile0_1_learn_seed0.shp', self.pathTestRunning + 'tile0_1_learn_seed0.shp')
-        shutil.copyfile(self.pathInput + 'tile0_2_learn_seed0.shp', self.pathTestRunning + 'tile0_2_learn_seed0.shp')
-        shutil.copyfile(self.pathInput + 'tile0_3_learn_seed0.shp', self.pathTestRunning + 'tile0_3_learn_seed0.shp')
-        shutil.copyfile(self.pathInput + 'tile1_2_learn_seed0.shp', self.pathTestRunning + 'tile1_2_learn_seed0.shp')
-        shutil.copyfile(self.pathInput + 'tile1_3_learn_seed0.shp', self.pathTestRunning + 'tile1_3_learn_seed0.shp')
-        shutil.copyfile(self.pathInput + 'tile2_2_learn_seed0.shp', self.pathTestRunning + 'tile2_2_learn_seed0.shp')
-        shutil.copyfile(self.pathInput + 'tile3_2_learn_seed0.shp', self.pathTestRunning + 'tile3_2_learn_seed0.shp')
-        shutil.copyfile(self.pathInput + 'tile4_1_learn_seed0.shp', self.pathTestRunning + 'tile4_1_learn_seed0.shp')
-        shutil.copyfile(self.pathInput + 'tile4_2_learn_seed0.shp', self.pathTestRunning + 'tile4_2_learn_seed0.shp')
-        shutil.copyfile(self.pathInput + 'tile6_3_learn_seed0.shp', self.pathTestRunning + 'tile6_3_learn_seed0.shp')
-        self.tileForRegionNumber = [[0, ['tile0']], [1, ['tile0', 'tile4']], [2, ['tile0', 'tile1', 'tile2', 'tile3', 'tile4']], [3, ['tile0', 'tile1', 'tile6']]]
+        shutil.copyfile(self.pathInput + 'tile0_0_learn_seed0.shp',
+                        self.pathTestRunning + 'tile0_0_learn_seed0.shp')
+        shutil.copyfile(self.pathInput + 'tile0_1_learn_seed0.shp',
+                        self.pathTestRunning + 'tile0_1_learn_seed0.shp')
+        shutil.copyfile(self.pathInput + 'tile0_2_learn_seed0.shp',
+                        self.pathTestRunning + 'tile0_2_learn_seed0.shp')
+        shutil.copyfile(self.pathInput + 'tile0_3_learn_seed0.shp',
+                        self.pathTestRunning + 'tile0_3_learn_seed0.shp')
+        shutil.copyfile(self.pathInput + 'tile1_2_learn_seed0.shp',
+                        self.pathTestRunning + 'tile1_2_learn_seed0.shp')
+        shutil.copyfile(self.pathInput + 'tile1_3_learn_seed0.shp',
+                        self.pathTestRunning + 'tile1_3_learn_seed0.shp')
+        shutil.copyfile(self.pathInput + 'tile2_2_learn_seed0.shp',
+                        self.pathTestRunning + 'tile2_2_learn_seed0.shp')
+        shutil.copyfile(self.pathInput + 'tile3_2_learn_seed0.shp',
+                        self.pathTestRunning + 'tile3_2_learn_seed0.shp')
+        shutil.copyfile(self.pathInput + 'tile4_1_learn_seed0.shp',
+                        self.pathTestRunning + 'tile4_1_learn_seed0.shp')
+        shutil.copyfile(self.pathInput + 'tile4_2_learn_seed0.shp',
+                        self.pathTestRunning + 'tile4_2_learn_seed0.shp')
+        shutil.copyfile(self.pathInput + 'tile6_3_learn_seed0.shp',
+                        self.pathTestRunning + 'tile6_3_learn_seed0.shp')
+        self.tileForRegionNumber = [[0, ['tile0']], [
+            1, ['tile0', 'tile4']
+        ], [2, ['tile0', 'tile1', 'tile2', 'tile3', 'tile4']],
+                                    [3, ['tile0', 'tile1', 'tile6']]]
 
     def test_getModel(self):
         '''
@@ -2271,24 +3152,31 @@ class iota_testMergeOutStats(unittest.TestCase):
         We will change the value for the output path for our output folder
         '''
         # We create a test_folder
-        if not os.path.exists(iota2_dataTest + '/test_vector/test_mergeOutStats'):
+        if not os.path.exists(iota2_dataTest +
+                              '/test_vector/test_mergeOutStats'):
             os.mkdir(iota2_dataTest + '/test_vector/test_mergeOutStats')
 
         # We copy the configuration file in the test folder
-        if os.path.exists(iota2_dataTest + '/test_vector/test_mergeOutStats/config.cfg'):
-            os.remove(iota2_dataTest + '/test_vector/test_mergeOutStats/config.cfg')
+        if os.path.exists(iota2_dataTest +
+                          '/test_vector/test_mergeOutStats/config.cfg'):
+            os.remove(iota2_dataTest +
+                      '/test_vector/test_mergeOutStats/config.cfg')
         shutil.copyfile(iota2_dataTest + '/references/mergeOutStats/Input/config.cfg',\
                         iota2_dataTest + '/test_vector/test_mergeOutStats/config.cfg')
 
         # We copy the folder and its files in the test folder from the reference folder
-        if os.path.exists(iota2_dataTest + '/test_vector/test_mergeOutStats/final'):
-            shutil.rmtree(iota2_dataTest + '/test_vector/test_mergeOutStats/final')
+        if os.path.exists(iota2_dataTest +
+                          '/test_vector/test_mergeOutStats/final'):
+            shutil.rmtree(iota2_dataTest +
+                          '/test_vector/test_mergeOutStats/final')
         shutil.copytree(iota2_dataTest + '/references/mergeOutStats/Input/final',\
                         iota2_dataTest + '/test_vector/test_mergeOutStats/final')
 
         # We modify some parameters of the configuration file for this test
-        self.cfg = SCF.serviceConfigFile(iota2_dataTest + '/test_vector/test_mergeOutStats/config.cfg')
-        self.cfg.setParam('chain', 'outputPath', iota2_dataTest + '/test_vector/test_mergeOutStats/')
+        self.cfg = SCF.serviceConfigFile(
+            iota2_dataTest + '/test_vector/test_mergeOutStats/config.cfg')
+        self.cfg.setParam('chain', 'outputPath',
+                          iota2_dataTest + '/test_vector/test_mergeOutStats/')
         self.cfg.setParam('chain', 'runs', 1)
         self.cfg.setParam('chain', 'listTile', 'T31TCJ')
 
@@ -2300,44 +3188,88 @@ class iota_testMergeOutStats(unittest.TestCase):
         from Validation import MergeOutStats
 
         # We delete each file in the output directory
-        if os.path.exists(iota2_dataTest + '/test_vector/mergeOutStats/Output/final/Stats_LNOK.txt'):
-            os.remove(iota2_dataTest + '/test_vector/mergeOutStats/Output/final/Stats_LNOK.txt')
-        if os.path.exists(iota2_dataTest + '/test_vector/mergeOutStats/Output/final/Stats_LOK.txt'):
-            os.remove(iota2_dataTest + '/test_vector/mergeOutStats/Output/final/Stats_LOK.txt')
-        if os.path.exists(iota2_dataTest + '/test_vector/mergeOutStats/Output/final/Stats_LOK_LNOK.png'):
-            os.remove(iota2_dataTest + '/test_vector/mergeOutStats/Output/final/Stats_LOK_LNOK.png')
-        if os.path.exists(iota2_dataTest + '/test_vector/mergeOutStats/Output/final/Stats_VNOK.txt'):
-            os.remove(iota2_dataTest + '/test_vector/mergeOutStats/Output/final/Stats_VNOK.txt')
-        if os.path.exists(iota2_dataTest + '/test_vector/mergeOutStats/Output/final/Stats_VOK.txt'):
-            os.remove(iota2_dataTest + '/test_vector/mergeOutStats/Output/final/Stats_VOK.txt')
-        if os.path.exists(iota2_dataTest + '/test_vector/mergeOutStats/Output/final/Stats_VOK_VNOK.png'):
-            os.remove(iota2_dataTest + '/test_vector/mergeOutStats/Output/final/Stats_VOK_VNOK.png')
-        if os.path.exists(iota2_dataTest + '/test_vector/mergeOutStats/Output/final/Validity.txt'):
-            os.remove(iota2_dataTest + '/test_vector/mergeOutStats/Output/final/Validity.txt')
-        if os.path.exists(iota2_dataTest + '/test_vector/mergeOutStats/Output/final/Validity.png'):
-            os.remove(iota2_dataTest + '/test_vector/mergeOutStats/Output/final/Validity.png')
+        if os.path.exists(
+                iota2_dataTest +
+                '/test_vector/mergeOutStats/Output/final/Stats_LNOK.txt'):
+            os.remove(iota2_dataTest +
+                      '/test_vector/mergeOutStats/Output/final/Stats_LNOK.txt')
+        if os.path.exists(
+                iota2_dataTest +
+                '/test_vector/mergeOutStats/Output/final/Stats_LOK.txt'):
+            os.remove(iota2_dataTest +
+                      '/test_vector/mergeOutStats/Output/final/Stats_LOK.txt')
+        if os.path.exists(
+                iota2_dataTest +
+                '/test_vector/mergeOutStats/Output/final/Stats_LOK_LNOK.png'):
+            os.remove(
+                iota2_dataTest +
+                '/test_vector/mergeOutStats/Output/final/Stats_LOK_LNOK.png')
+        if os.path.exists(
+                iota2_dataTest +
+                '/test_vector/mergeOutStats/Output/final/Stats_VNOK.txt'):
+            os.remove(iota2_dataTest +
+                      '/test_vector/mergeOutStats/Output/final/Stats_VNOK.txt')
+        if os.path.exists(
+                iota2_dataTest +
+                '/test_vector/mergeOutStats/Output/final/Stats_VOK.txt'):
+            os.remove(iota2_dataTest +
+                      '/test_vector/mergeOutStats/Output/final/Stats_VOK.txt')
+        if os.path.exists(
+                iota2_dataTest +
+                '/test_vector/mergeOutStats/Output/final/Stats_VOK_VNOK.png'):
+            os.remove(
+                iota2_dataTest +
+                '/test_vector/mergeOutStats/Output/final/Stats_VOK_VNOK.png')
+        if os.path.exists(
+                iota2_dataTest +
+                '/test_vector/mergeOutStats/Output/final/Validity.txt'):
+            os.remove(iota2_dataTest +
+                      '/test_vector/mergeOutStats/Output/final/Validity.txt')
+        if os.path.exists(
+                iota2_dataTest +
+                '/test_vector/mergeOutStats/Output/final/Validity.png'):
+            os.remove(iota2_dataTest +
+                      '/test_vector/mergeOutStats/Output/final/Validity.png')
 
         # We execute mergeOutStats()
         MergeOutStats.mergeOutStats(self.cfg)
 
         # We check the produced value with the expected value
         # we should have 0 as result of the difference between the expected value and the produced value
-        self.assertEqual(0, os.system('diff ' + iota2_dataTest + '/references/mergeOutStats/Output/Stats_LNOK.txt '
-                                      + iota2_dataTest + '/test_vector/test_mergeOutStats/final/Stats_LNOK.txt'))
-        self.assertEqual(0, os.system('diff ' + iota2_dataTest + '/references/mergeOutStats/Output/Stats_LOK.txt '
-                                      + iota2_dataTest + '/test_vector/test_mergeOutStats/final/Stats_LOK.txt'))
+        self.assertEqual(
+            0,
+            os.system('diff ' + iota2_dataTest +
+                      '/references/mergeOutStats/Output/Stats_LNOK.txt ' +
+                      iota2_dataTest +
+                      '/test_vector/test_mergeOutStats/final/Stats_LNOK.txt'))
+        self.assertEqual(
+            0,
+            os.system('diff ' + iota2_dataTest +
+                      '/references/mergeOutStats/Output/Stats_LOK.txt ' +
+                      iota2_dataTest +
+                      '/test_vector/test_mergeOutStats/final/Stats_LOK.txt'))
         #self.assertEqual(0, os.system('diff ' + iota2_dataTest + '/references/mergeOutStats/Output/Stats_LOK_LNOK.png '
         #                              + iota2_dataTest + '/test_vector/test_mergeOutStats/final/Stats_LOK_LNOK.png'))
-        self.assertEqual(0, os.system('diff ' + iota2_dataTest + '/references/mergeOutStats/Output/Stats_VNOK.txt '
-                                      + iota2_dataTest + '/test_vector/test_mergeOutStats/final/Stats_VNOK.txt'))
-        self.assertEqual(0, os.system('diff ' + iota2_dataTest + '/references/mergeOutStats/Output/Stats_VOK.txt '
-                                      + iota2_dataTest + '/test_vector/test_mergeOutStats/final/Stats_VOK.txt'))
+        self.assertEqual(
+            0,
+            os.system('diff ' + iota2_dataTest +
+                      '/references/mergeOutStats/Output/Stats_VNOK.txt ' +
+                      iota2_dataTest +
+                      '/test_vector/test_mergeOutStats/final/Stats_VNOK.txt'))
+        self.assertEqual(
+            0,
+            os.system('diff ' + iota2_dataTest +
+                      '/references/mergeOutStats/Output/Stats_VOK.txt ' +
+                      iota2_dataTest +
+                      '/test_vector/test_mergeOutStats/final/Stats_VOK.txt'))
         #self.assertEqual(0, os.system('diff ' + iota2_dataTest + '/references/mergeOutStats/Output/Stats_VOK_VNOK.png '
         #                              + iota2_dataTest + '/references/test_mergeOutStats/final/Stats_VOK_VNOK.png'))
 
         # We delete every file from test_vector/test_mergeOutStats
         shutil.rmtree(iota2_dataTest + '/test_vector/test_mergeOutStats/final')
-        os.remove(iota2_dataTest + '/test_vector/test_mergeOutStats/config.cfg')
+        os.remove(iota2_dataTest +
+                  '/test_vector/test_mergeOutStats/config.cfg')
+
 
 class iota_testGenResults(unittest.TestCase):
     @classmethod
@@ -2360,13 +3292,25 @@ class iota_testGenResults(unittest.TestCase):
         self.nomenclaturePath = iota2_dataTest + '/test_vector/test_genResults/nomenclature.txt'
 
         # We remove the file RESULTS.txt
-        if os.path.exists(iota2_dataTest + '/test_vector/test_genResults/final/RESULTS.txt'):
-            os.remove(iota2_dataTest + '/test_vector/test_genResults/final/RESULTS.txt')
+        if os.path.exists(iota2_dataTest +
+                          '/test_vector/test_genResults/final/RESULTS.txt'):
+            os.remove(iota2_dataTest +
+                      '/test_vector/test_genResults/final/RESULTS.txt')
 
-        if os.path.exists(iota2_dataTest + '/test_vector/test_genResults/final/TMP/Classif_Seed_1_sq.csv'):
-            os.remove(iota2_dataTest + '/test_vector/test_genResults/final/TMP/Classif_Seed_1_sq.csv')
-        if os.path.exists(iota2_dataTest + '/test_vector/test_genResults/final/TMP/Classif_Seed_0_sq.csv'):
-            os.remove(iota2_dataTest + '/test_vector/test_genResults/final/TMP/Classif_Seed_0_sq.csv')
+        if os.path.exists(
+                iota2_dataTest +
+                '/test_vector/test_genResults/final/TMP/Classif_Seed_1_sq.csv'
+        ):
+            os.remove(
+                iota2_dataTest +
+                '/test_vector/test_genResults/final/TMP/Classif_Seed_1_sq.csv')
+        if os.path.exists(
+                iota2_dataTest +
+                '/test_vector/test_genResults/final/TMP/Classif_Seed_0_sq.csv'
+        ):
+            os.remove(
+                iota2_dataTest +
+                '/test_vector/test_genResults/final/TMP/Classif_Seed_0_sq.csv')
 
     def test_GenResults(self):
         '''
@@ -2377,9 +3321,12 @@ class iota_testGenResults(unittest.TestCase):
         GR.genResults(self.classifFinal, self.nomenclaturePath)
 
         # We check we have the same produced file that the expected file
-        self.assertEqual(0, os.system('diff ' + iota2_dataTest + '/references/genResults/Output/RESULTS.txt '
-                                      + iota2_dataTest + '/test_vector/test_genResults/final/RESULTS.txt'))
-
+        self.assertEqual(
+            0,
+            os.system('diff ' + iota2_dataTest +
+                      '/references/genResults/Output/RESULTS.txt ' +
+                      iota2_dataTest +
+                      '/test_vector/test_genResults/final/RESULTS.txt'))
 
     def test_ResultsUtils(self):
         """
@@ -2387,9 +3334,7 @@ class iota_testGenResults(unittest.TestCase):
         from Validation import ResultsUtils as resU
         import numpy as np
 
-        conf_mat_array = np.array([[1, 2, 3],
-                                   [4, 5, 6],
-                                   [7, 8, 9]])
+        conf_mat_array = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
 
         norm_ref_ref = np.array([[0.16666667, 0.33333333, 0.5],
                                  [0.26666667, 0.33333333, 0.4],
@@ -2407,7 +3352,6 @@ class iota_testGenResults(unittest.TestCase):
         self.assertTrue(np.allclose(norm_prod_ref, norm_prod_test),
                         msg="problem with the normalization by prod")
 
-
     def test_getCoeff(self):
         """
         test confusion matrix coefficients computation
@@ -2416,27 +3360,29 @@ class iota_testGenResults(unittest.TestCase):
         from collections import OrderedDict
 
         # construct input
-        confusion_matrix = OrderedDict([(1, OrderedDict([(1, 50.0), (2, 78.0), (3, 41.0)])),
-                                        (2, OrderedDict([(1, 20.0), (2, 52.0), (3, 31.0)])),
-                                        (3, OrderedDict([(1, 27.0), (2, 72.0), (3, 98.0)]))])
+        confusion_matrix = OrderedDict([
+            (1, OrderedDict([(1, 50.0), (2, 78.0), (3, 41.0)])),
+            (2, OrderedDict([(1, 20.0), (2, 52.0), (3, 31.0)])),
+            (3, OrderedDict([(1, 27.0), (2, 72.0), (3, 98.0)]))
+        ])
         K_ref = 0.15482474945066724
         OA_ref = 0.42643923240938164
-        P_ref = OrderedDict([(1, 0.5154639175257731), (2, 0.25742574257425743), (3, 0.5764705882352941)])
-        R_ref = OrderedDict([(1, 0.2958579881656805), (2, 0.5048543689320388), (3, 0.49746192893401014)])
-        F_ref = OrderedDict([(1, 0.3759398496240602), (2, 0.3409836065573771), (3, 0.5340599455040872)])
+        P_ref = OrderedDict([(1, 0.5154639175257731), (2, 0.25742574257425743),
+                             (3, 0.5764705882352941)])
+        R_ref = OrderedDict([(1, 0.2958579881656805), (2, 0.5048543689320388),
+                             (3, 0.49746192893401014)])
+        F_ref = OrderedDict([(1, 0.3759398496240602), (2, 0.3409836065573771),
+                             (3, 0.5340599455040872)])
 
-        K_test, OA_test, P_test, R_test, F_test = resU.get_coeff(confusion_matrix)
+        K_test, OA_test, P_test, R_test, F_test = resU.get_coeff(
+            confusion_matrix)
 
-        self.assertTrue(K_ref == K_test,
-                        msg="Kappa computation is broken")
+        self.assertTrue(K_ref == K_test, msg="Kappa computation is broken")
         self.assertTrue(OA_test == OA_ref,
                         msg="Overall accuracy computation is broken")
-        self.assertTrue(P_test == P_ref,
-                        msg="Precision computation is broken")
-        self.assertTrue(R_test == R_ref,
-                        msg="Recall computation is broken")
-        self.assertTrue(F_test == F_ref,
-                        msg="F-Score computation is broken")
+        self.assertTrue(P_test == P_ref, msg="Precision computation is broken")
+        self.assertTrue(R_test == R_ref, msg="Recall computation is broken")
+        self.assertTrue(F_test == F_ref, msg="F-Score computation is broken")
 
 
 class iota_testPlotCor(unittest.TestCase):
@@ -2456,7 +3402,7 @@ class iota_testPlotCor(unittest.TestCase):
         self.xLabel = ''
         self.yLabel = 'Temperature (K)'
         self.x = [x for x in range(5, 654)]
-        self.y = [16+14*math.cos(x*2*math.pi/17) for x in self.x]
+        self.y = [16 + 14 * math.cos(x * 2 * math.pi / 17) for x in self.x]
 
     def test_PlotCor(self):
         '''
@@ -2470,50 +3416,67 @@ class iota_testPlotCor(unittest.TestCase):
         param.ylims = [2, 31]
 
         # We execute the function plotCorrelation
-        PlotCor.plotCorrelation(self.x, self.y, self.xLabel, self.yLabel, self.outpath, param)
+        PlotCor.plotCorrelation(self.x, self.y, self.xLabel, self.yLabel,
+                                self.outpath, param)
 
 
 class iota_testMergeSamples(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         # We initialize the expected mergeSamples for the function get_models()
-        self.expectedOutputGetModels = [('1', ['T31TCJ'], 0), ('1', ['T31TCJ'], 1)]
+        self.expectedOutputGetModels = [('1', ['T31TCJ'], 0),
+                                        ('1', ['T31TCJ'], 1)]
 
         # Copy and remove files in the test folder
         if os.path.exists(iota2_dataTest + '/test_vector/test_mergeSamples'):
             shutil.rmtree(iota2_dataTest + '/test_vector/test_mergeSamples')
-        shutil.copytree(iota2_dataTest + '/references/mergeSamples/Input', iota2_dataTest + 'test_vector/test_mergeSamples')
+        shutil.copytree(iota2_dataTest + '/references/mergeSamples/Input',
+                        iota2_dataTest + 'test_vector/test_mergeSamples')
 
-        if not os.path.exists(iota2_dataTest + '/test_vector/test_mergeSamples/samples_merge/samplesSelection/'):
-            os.mkdir(iota2_dataTest + '/test_vector/test_mergeSamples/samples_merge/samplesSelection/')
+        if not os.path.exists(
+                iota2_dataTest +
+                '/test_vector/test_mergeSamples/samples_merge/samplesSelection/'
+        ):
+            os.mkdir(
+                iota2_dataTest +
+                '/test_vector/test_mergeSamples/samples_merge/samplesSelection/'
+            )
 
         # We define several parameters for the configuration file
-        self.cfg = SCF.serviceConfigFile(iota2_dataTest + '/test_vector/test_mergeSamples/config.cfg')
-        self.cfg.setParam('chain', 'outputPath', iota2_dataTest + '/test_vector/test_mergeSamples/samples_merge')
+        self.cfg = SCF.serviceConfigFile(
+            iota2_dataTest + '/test_vector/test_mergeSamples/config.cfg')
+        self.cfg.setParam(
+            'chain', 'outputPath',
+            iota2_dataTest + '/test_vector/test_mergeSamples/samples_merge')
         self.cfg.setParam('chain', 'regionField', 'region')
-
-
 
     def test_getModels(self):
         from Sampling import SamplesMerge
 
         # We execute the function : get_models()
-        output = SamplesMerge.get_models(iota2_dataTest + '/test_vector/test_mergeSamples/get_models/formattingVectors', 'region', 2)
+        output = SamplesMerge.get_models(
+            iota2_dataTest +
+            '/test_vector/test_mergeSamples/get_models/formattingVectors',
+            'region', 2)
 
         # We check the output values with the expected values
         self.assertEqual(self.expectedOutputGetModels[0][0], output[0][0])
-        self.assertEqual(self.expectedOutputGetModels[0][1][0], output[0][1][0])
+        self.assertEqual(self.expectedOutputGetModels[0][1][0],
+                         output[0][1][0])
         self.assertEqual(self.expectedOutputGetModels[0][2], output[0][2])
         self.assertEqual(self.expectedOutputGetModels[1][0], output[1][0])
-        self.assertEqual(self.expectedOutputGetModels[1][1][0], output[1][1][0])
+        self.assertEqual(self.expectedOutputGetModels[1][1][0],
+                         output[1][1][0])
         self.assertEqual(self.expectedOutputGetModels[1][2], output[1][2])
-
 
     def test_samplesMerge(self):
         from Sampling import SamplesMerge
 
         # We execute the function: samples_merge()
-        output = SamplesMerge.get_models(iota2_dataTest + '/test_vector/test_mergeSamples/get_models/formattingVectors', 'region', 2)
+        output = SamplesMerge.get_models(
+            iota2_dataTest +
+            '/test_vector/test_mergeSamples/get_models/formattingVectors',
+            'region', 2)
         SamplesMerge.samples_merge(output[0], self.cfg, None)
 
         # We check the produced files
@@ -2532,32 +3495,42 @@ class iota_testMergeSamples(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         # We initialize the expected mergeSamples for the function get_models()
-        self.expectedOutputGetModels = [('1', ['T31TCJ'], 0), ('1', ['T31TCJ'], 1)]
+        self.expectedOutputGetModels = [('1', ['T31TCJ'], 0),
+                                        ('1', ['T31TCJ'], 1)]
 
         # Copy and remove files in the test folder
         if os.path.exists(iota2_dataTest + '/test_vector/test_mergeSamples'):
             shutil.rmtree(iota2_dataTest + '/test_vector/test_mergeSamples')
-        shutil.copytree(iota2_dataTest + '/references/mergeSamples/Input', iota2_dataTest + '/test_vector/test_mergeSamples')
-        os.mkdir(iota2_dataTest + '/test_vector/test_mergeSamples/samples_merge/samplesSelection/')
+        shutil.copytree(iota2_dataTest + '/references/mergeSamples/Input',
+                        iota2_dataTest + '/test_vector/test_mergeSamples')
+        os.mkdir(
+            iota2_dataTest +
+            '/test_vector/test_mergeSamples/samples_merge/samplesSelection/')
         # We define several parameters for the configuration file
-        self.cfg = SCF.serviceConfigFile(iota2_dataTest + '/test_vector/test_mergeSamples/config.cfg')
-        self.cfg.setParam('chain', 'outputPath', iota2_dataTest + '/test_vector/test_mergeSamples/samples_merge')
+        self.cfg = SCF.serviceConfigFile(
+            iota2_dataTest + '/test_vector/test_mergeSamples/config.cfg')
+        self.cfg.setParam(
+            'chain', 'outputPath',
+            iota2_dataTest + '/test_vector/test_mergeSamples/samples_merge')
         self.cfg.setParam('chain', 'regionField', 'region')
-
-
 
     def test_getModels(self):
         from Sampling import SamplesMerge
 
         # We execute the function : get_models()
-        output = SamplesMerge.get_models(iota2_dataTest + '/test_vector/test_mergeSamples/get_models/formattingVectors', 'region', 2)
+        output = SamplesMerge.get_models(
+            iota2_dataTest +
+            '/test_vector/test_mergeSamples/get_models/formattingVectors',
+            'region', 2)
 
         # We check the output values with the expected values
         self.assertEqual(self.expectedOutputGetModels[0][0], output[0][0])
-        self.assertEqual(self.expectedOutputGetModels[0][1][0], output[0][1][0])
+        self.assertEqual(self.expectedOutputGetModels[0][1][0],
+                         output[0][1][0])
         self.assertEqual(self.expectedOutputGetModels[0][2], output[0][2])
         self.assertEqual(self.expectedOutputGetModels[1][0], output[1][0])
-        self.assertEqual(self.expectedOutputGetModels[1][1][0], output[1][1][0])
+        self.assertEqual(self.expectedOutputGetModels[1][1][0],
+                         output[1][1][0])
         self.assertEqual(self.expectedOutputGetModels[1][2], output[1][2])
 
 
@@ -2574,10 +3547,12 @@ class iota_testSplitSamples(unittest.TestCase):
                       iota2_dataTest + '/test_vector/test_SplitSamples')
 
         # We define the configuration file
-        self.cfg = SCF.serviceConfigFile(iota2_dataTest + '/test_vector/test_SplitSamples/config.cfg')
+        self.cfg = SCF.serviceConfigFile(
+            iota2_dataTest + '/test_vector/test_SplitSamples/config.cfg')
 
         # We forced several parameters for this test
-        self.cfg.setParam('chain', 'outputPath', iota2_dataTest + '/test_vector/test_SplitSamples/')
+        self.cfg.setParam('chain', 'outputPath',
+                          iota2_dataTest + '/test_vector/test_SplitSamples/')
         self.cfg.setParam('chain', 'dataField', 'CODE')
         self.cfg.setParam('chain', 'mode_outside_RegionSplit', '0.0098')
         self.cfg.setParam('chain', 'regionField', 'region')
@@ -2586,18 +3561,35 @@ class iota_testSplitSamples(unittest.TestCase):
         self.cfg.setParam('chain', 'ratio', '0.5')
 
         # We define several output
-        self.formattingVectorDir = os.path.abspath(iota2_dataTest + '/test_vector/test_SplitSamples/formattingVectors')
-        self.shapeRegionDir = os.path.abspath(iota2_dataTest + '/test_vector/test_SplitSamples/shapeRegion')
-        self.vectors = os.path.abspath(iota2_dataTest + '/test_vector/test_SplitSamples/formattingVectors/T31TCJ.shp')
-        self.shapesRegion = os.path.abspath(iota2_dataTest + '/test_vector/test_SplitSamples/shapeRegion/Myregion_region_1_T31TCJ.shp')
+        self.formattingVectorDir = os.path.abspath(
+            iota2_dataTest +
+            '/test_vector/test_SplitSamples/formattingVectors')
+        self.shapeRegionDir = os.path.abspath(
+            iota2_dataTest + '/test_vector/test_SplitSamples/shapeRegion')
+        self.vectors = os.path.abspath(
+            iota2_dataTest +
+            '/test_vector/test_SplitSamples/formattingVectors/T31TCJ.shp')
+        self.shapesRegion = os.path.abspath(
+            iota2_dataTest +
+            '/test_vector/test_SplitSamples/shapeRegion/Myregion_region_1_T31TCJ.shp'
+        )
         self.regions = '1'
         self.areas = 12399.173485632864
-        self.regionTiles = os.path.abspath(iota2_dataTest + '/test_vector/test_SplitSamples/formattingVectors/T31TCJ.sqlite')
-        self.dataToRm = os.path.abspath(iota2_dataTest + '/test_vector/test_SplitSamples/formattingVectors/T31TCJ.sqlite')
+        self.regionTiles = os.path.abspath(
+            iota2_dataTest +
+            '/test_vector/test_SplitSamples/formattingVectors/T31TCJ.sqlite')
+        self.dataToRm = os.path.abspath(
+            iota2_dataTest +
+            '/test_vector/test_SplitSamples/formattingVectors/T31TCJ.sqlite')
         self.regionsSplit = 2
-        self.updatedVector = os.path.abspath(iota2_dataTest + '/test_vector/test_SplitSamples/formattingVectors/T31TCJ.sqlite')
-        self.newRegionShape = os.path.abspath(iota2_dataTest + '/test_vector/test_SplitSamples/formattingVectors/T31TCJ.shp')
-        self.dataAppValDir = os.path.abspath(iota2_dataTest + '/test_vector/test_SplitSamples/dataAppVal')
+        self.updatedVector = os.path.abspath(
+            iota2_dataTest +
+            '/test_vector/test_SplitSamples/formattingVectors/T31TCJ.sqlite')
+        self.newRegionShape = os.path.abspath(
+            iota2_dataTest +
+            '/test_vector/test_SplitSamples/formattingVectors/T31TCJ.shp')
+        self.dataAppValDir = os.path.abspath(
+            iota2_dataTest + '/test_vector/test_SplitSamples/dataAppVal')
 
     def test_SplitSamples(self):
         from Sampling import SplitSamples
@@ -2605,17 +3597,20 @@ class iota_testSplitSamples(unittest.TestCase):
         # We execute several functions of this file
         outputPath = self.cfg.getParam('chain', 'outputPath')
         dataField = self.cfg.getParam('chain', 'dataField')
-        region_threshold = float(self.cfg.getParam('chain', 'mode_outside_RegionSplit'))
+        region_threshold = float(
+            self.cfg.getParam('chain', 'mode_outside_RegionSplit'))
         region_field = (self.cfg.getParam('chain', 'regionField')).lower()
         regions_pos = -2
 
         formatting_vectors_dir = os.path.join(outputPath, "formattingVectors")
         # We check we have the correct file
-        self.assertEqual(self.formattingVectorDir, os.path.abspath(formatting_vectors_dir))
+        self.assertEqual(self.formattingVectorDir,
+                         os.path.abspath(formatting_vectors_dir))
 
         shape_region_dir = os.path.join(outputPath, "shapeRegion")
         # We check we have the correct file
-        self.assertEqual(self.shapeRegionDir, os.path.abspath(shape_region_dir))
+        self.assertEqual(self.shapeRegionDir,
+                         os.path.abspath(shape_region_dir))
 
         ratio = float(self.cfg.getParam('chain', 'ratio'))
         seeds = int(self.cfg.getParam('chain', 'runs'))
@@ -2629,31 +3624,39 @@ class iota_testSplitSamples(unittest.TestCase):
         # We check we have the correct file
         self.assertEqual(self.shapesRegion, os.path.abspath(shapes_region[0]))
 
-        regions = list(set([os.path.split(shape)[-1].split("_")[regions_pos] for shape in shapes_region]))
+        regions = list(
+            set([
+                os.path.split(shape)[-1].split("_")[regions_pos]
+                for shape in shapes_region
+            ]))
         # We check we have the correct value
         self.assertEqual(self.regions, regions[0])
 
-        areas, regions_tiles, data_to_rm = SplitSamples.get_regions_area(vectors, regions,
-                                                            formatting_vectors_dir,
-                                                            None,
-                                                            region_field)
+        areas, regions_tiles, data_to_rm = SplitSamples.get_regions_area(
+            vectors, regions, formatting_vectors_dir, None, region_field)
         # We check we have the correct values
         self.assertAlmostEqual(self.areas, areas['1'], 9e-3)
-        self.assertEqual(self.regionTiles, os.path.abspath(regions_tiles['1'][0]))
+        self.assertEqual(self.regionTiles,
+                         os.path.abspath(regions_tiles['1'][0]))
         self.assertEqual(self.dataToRm, os.path.abspath(data_to_rm[0]))
 
-        regions_split = SplitSamples.get_splits_regions(areas, region_threshold)
+        regions_split = SplitSamples.get_splits_regions(
+            areas, region_threshold)
         # We check we have the correct value
         self.assertEqual(self.regionsSplit, regions_split['1'])
 
-        updated_vectors = SplitSamples.split(regions_split, regions_tiles, dataField, region_field)
+        updated_vectors = SplitSamples.split(regions_split, regions_tiles,
+                                             dataField, region_field)
 
         # We check we have the correct file
-        self.assertEqual(self.updatedVector, os.path.abspath(updated_vectors[0]))
+        self.assertEqual(self.updatedVector,
+                         os.path.abspath(updated_vectors[0]))
 
-        new_regions_shapes = SplitSamples.transform_to_shape(updated_vectors, formatting_vectors_dir)
+        new_regions_shapes = SplitSamples.transform_to_shape(
+            updated_vectors, formatting_vectors_dir)
         # We check we have the correct file
-        self.assertEqual(self.newRegionShape, os.path.abspath(new_regions_shapes[0]))
+        self.assertEqual(self.newRegionShape,
+                         os.path.abspath(new_regions_shapes[0]))
 
         for data in data_to_rm:
             os.remove(data)
@@ -2661,22 +3664,33 @@ class iota_testSplitSamples(unittest.TestCase):
         dataAppVal_dir = os.path.join(outputPath, "dataAppVal")
         self.assertEqual(self.dataAppValDir, os.path.abspath(dataAppVal_dir))
         enableCrossValidation = False
-        SplitSamples.update_learningValination_sets(new_regions_shapes, dataAppVal_dir, dataField,
-                                                    region_field, ratio, seeds, epsg, enableCrossValidation, random_seed=None)
+        SplitSamples.update_learningValination_sets(new_regions_shapes,
+                                                    dataAppVal_dir,
+                                                    dataField,
+                                                    region_field,
+                                                    ratio,
+                                                    seeds,
+                                                    epsg,
+                                                    enableCrossValidation,
+                                                    random_seed=None)
 
 
 class iota_testVectorSplits(unittest.TestCase):
     @classmethod
-
     def setUpClass(self):
         # We create the test folder
         if os.path.exists(iota2_dataTest + '/test_vector/test_VectorSplits'):
             shutil.rmtree(iota2_dataTest + '/test_vector/test_VectorSplits')
-        shutil.copytree(iota2_dataTest + '/references/vector_splits/Input', iota2_dataTest + '/test_vector/test_VectorSplits')
+        shutil.copytree(iota2_dataTest + '/references/vector_splits/Input',
+                        iota2_dataTest + '/test_vector/test_VectorSplits')
 
-        self.cfg = SCF.serviceConfigFile(iota2_dataTest + '/test_vector/test_VectorSplits/config.cfg')
+        self.cfg = SCF.serviceConfigFile(
+            iota2_dataTest + '/test_vector/test_VectorSplits/config.cfg')
         self.outputEMVS = iota2_dataTest + '/test_vector/test_VectorSplits/T31TCJ.shp'
-        self.new_regions_shapes = [iota2_dataTest + '/test_vector/test_VectorSplits/formattingVectors/T31TCJ.shp']
+        self.new_regions_shapes = [
+            iota2_dataTest +
+            '/test_vector/test_VectorSplits/formattingVectors/T31TCJ.shp'
+        ]
         self.dataAppVal_dir = iota2_dataTest + '/test_vector/test_VectorSplits/dataAppVal'
         self.dataField = 'CODE'
         self.regionField = 'region'
@@ -2701,15 +3715,21 @@ class iota_testVectorSplits(unittest.TestCase):
         # We execute the function splitInSubSets()
         for new_region_shape in self.new_regions_shapes:
             tile_name = os.path.splitext(os.path.basename(new_region_shape))[0]
-            vectors_to_rm = fu.FileSearch_AND(self.dataAppVal_dir, True, tile_name)
+            vectors_to_rm = fu.FileSearch_AND(self.dataAppVal_dir, True,
+                                              tile_name)
             for vect in vectors_to_rm:
                 os.remove(vect)
-            VS.splitInSubSets(new_region_shape, self.dataField, self.regionField, self.ratio, self.seeds, "ESRI Shapefile")
+            VS.splitInSubSets(new_region_shape, self.dataField,
+                              self.regionField, self.ratio, self.seeds,
+                              "ESRI Shapefile")
             print(new_region_shape)
         # We check the output
-        self.assertEqual(0, os.system('diff ' + self.refSplitPrj + ' ' + self.outSplitPrj))
-        self.assertEqual(0, os.system('diff ' + self.refSplitShp + ' ' + self.outSplitShp))
-        self.assertEqual(0, os.system('diff ' + self.refSplitShx + ' ' + self.outSplitShx))
+        self.assertEqual(
+            0, os.system('diff ' + self.refSplitPrj + ' ' + self.outSplitPrj))
+        self.assertEqual(
+            0, os.system('diff ' + self.refSplitShp + ' ' + self.outSplitShp))
+        self.assertEqual(
+            0, os.system('diff ' + self.refSplitShx + ' ' + self.outSplitShx))
         #self.assertEqual(0, os.system('diff ' + self.refSplitDbf + ' ' + self.outSplitDbf))
 
     def test_vectorSplitsCrossValidation(self):
@@ -2718,15 +3738,25 @@ class iota_testVectorSplits(unittest.TestCase):
         # We execute the function splitInSubSets()
         new_region_shape = self.new_regions_shapes[0]
         tile_name = os.path.splitext(os.path.basename(new_region_shape))[0]
-        VS.splitInSubSets(new_region_shape, self.dataField,
-                          self.regionField, self.ratio, self.seeds,
-                          "ESRI Shapefile", crossValidation=True)
+        VS.splitInSubSets(new_region_shape,
+                          self.dataField,
+                          self.regionField,
+                          self.ratio,
+                          self.seeds,
+                          "ESRI Shapefile",
+                          crossValidation=True)
 
-        seed0 = fut.getFieldElement(new_region_shape, driverName="ESRI Shapefile",
-                                    field="seed_0", mode="all",elemType="str")
-        seed1 = fut.getFieldElement(new_region_shape, driverName="ESRI Shapefile",
-                                    field="seed_1", mode="all",elemType="str")
-                                    
+        seed0 = fut.getFieldElement(new_region_shape,
+                                    driverName="ESRI Shapefile",
+                                    field="seed_0",
+                                    mode="all",
+                                    elemType="str")
+        seed1 = fut.getFieldElement(new_region_shape,
+                                    driverName="ESRI Shapefile",
+                                    field="seed_1",
+                                    mode="all",
+                                    elemType="str")
+
         for elem in seed0:
             self.assertTrue(elem in ["unused", "learn"],
                             msg="flag not in ['unused', 'learn']")
@@ -2740,23 +3770,33 @@ class iota_testVectorSplits(unittest.TestCase):
 
         new_region_shape = self.new_regions_shapes[0]
         tile_name = os.path.splitext(os.path.basename(new_region_shape))[0]
-        VS.splitInSubSets(new_region_shape, self.dataField,
-                          self.regionField, self.ratio, 1,
-                          "ESRI Shapefile", crossValidation=False,
+        VS.splitInSubSets(new_region_shape,
+                          self.dataField,
+                          self.regionField,
+                          self.ratio,
+                          1,
+                          "ESRI Shapefile",
+                          crossValidation=False,
                           splitGroundTruth=False)
-        seed0 = fut.getFieldElement(new_region_shape, driverName="ESRI Shapefile",
-                                    field="seed_0", mode="all",elemType="str")
-                                    
+        seed0 = fut.getFieldElement(new_region_shape,
+                                    driverName="ESRI Shapefile",
+                                    field="seed_0",
+                                    mode="all",
+                                    elemType="str")
+
         for elem in seed0:
-            self.assertTrue(elem in ["learn"],
-                            msg="flag not in ['learn']")
+            self.assertTrue(elem in ["learn"], msg="flag not in ['learn']")
+
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Tests for iota2")
-    parser.add_argument("-mode", dest="mode", help="Tests mode",
+    parser.add_argument("-mode",
+                        dest="mode",
+                        help="Tests mode",
                         choices=["all", "largeScale", "sample"],
-                        default="sample", required=False)
+                        default="sample",
+                        required=False)
 
     args = parser.parse_args()
 
@@ -2765,22 +3805,26 @@ if __name__ == "__main__":
     loader = unittest.TestLoader()
 
     largeScaleTests = [iota_testFeatures]
-    sampleTests = [iota_testShapeManipulations, iota_testStringManipulations,
-                   iota_testSamplerApplications]
+    sampleTests = [
+        iota_testShapeManipulations, iota_testStringManipulations,
+        iota_testSamplerApplications
+    ]
 
     if mode == "sample":
-        testsToRun = unittest.TestSuite([loader.loadTestsFromTestCase(cTest)for cTest in sampleTests])
+        testsToRun = unittest.TestSuite(
+            [loader.loadTestsFromTestCase(cTest) for cTest in sampleTests])
         runner = unittest.TextTestRunner()
         results = runner.run(testsToRun)
 
     elif mode == "largeScale":
-        testsToRun = unittest.TestSuite([loader.loadTestsFromTestCase(cTest)for cTest in largeScaleTests])
+        testsToRun = unittest.TestSuite(
+            [loader.loadTestsFromTestCase(cTest) for cTest in largeScaleTests])
         runner = unittest.TextTestRunner()
         results = runner.run(testsToRun)
 
     elif mode == "all":
-        allTests = sampleTests+largeScaleTests
-        testsToRun = unittest.TestSuite([loader.loadTestsFromTestCase(cTest)for cTest in allTests])
+        allTests = sampleTests + largeScaleTests
+        testsToRun = unittest.TestSuite(
+            [loader.loadTestsFromTestCase(cTest) for cTest in allTests])
         runner = unittest.TextTestRunner()
         results = runner.run(testsToRun)
-

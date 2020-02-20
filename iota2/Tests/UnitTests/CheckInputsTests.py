@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+# !/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # =========================================================================
@@ -15,7 +15,7 @@
 # =========================================================================
 
 # python -m unittest CheckInputsTests
-
+"""check inputs tests"""
 import os
 import sys
 import shutil
@@ -34,17 +34,25 @@ class Iota2CheckInputs(unittest.TestCase):
     def setUpClass(cls):
         # definition of local variables
         cls.group_test_name = "iota_Iota2CheckInputs"
-        cls.iota2_tests_directory = os.path.join(IOTA2DIR, "data", cls.group_test_name)
+        cls.iota2_tests_directory = os.path.join(IOTA2DIR, "data",
+                                                 cls.group_test_name)
         cls.all_tests_ok = []
         references_directory = os.path.join(IOTA2DIR, "data", "references")
-        cls.config_test = os.path.join(IOTA2DIR, "config", "Config_4Tuiles_Multi_FUS_Confidence.cfg")
-        cls.ground_truth = os.path.join(references_directory, "ZONAGE_BV_ALL.shp")
-        cls.region_target_miss = os.path.join(references_directory, "region_target_miss.shp")
-        cls.region_target = os.path.join(references_directory, "region_target.shp")
-        cls.gt_target_miss = os.path.join(references_directory, "gt_target_miss.shp")
+        cls.config_test = os.path.join(
+            IOTA2DIR, "config", "Config_4Tuiles_Multi_FUS_Confidence.cfg")
+        cls.ground_truth = os.path.join(references_directory,
+                                        "ZONAGE_BV_ALL.shp")
+        cls.region_target_miss = os.path.join(references_directory,
+                                              "region_target_miss.shp")
+        cls.region_target = os.path.join(references_directory,
+                                         "region_target.shp")
+        cls.gt_target_miss = os.path.join(references_directory,
+                                          "gt_target_miss.shp")
         cls.gt_target = os.path.join(references_directory, "gt_target.shp")
-        cls.gt_target_miss_region = os.path.join(references_directory, "gt_target_miss_region.shp")
-        cls.gt_target_miss_one_region = os.path.join(references_directory, "gt_target_miss_one_region.shp")
+        cls.gt_target_miss_region = os.path.join(references_directory,
+                                                 "gt_target_miss_region.shp")
+        cls.gt_target_miss_one_region = os.path.join(
+            references_directory, "gt_target_miss_one_region.shp")
 
         # Tests directory
         cls.test_working_directory = None
@@ -83,8 +91,7 @@ class Iota2CheckInputs(unittest.TestCase):
             result = self.defaultTestResult()
             self._feedErrorsToResult(result, self._outcome.errors)
         else:
-            result = getattr(self,
-                             "_outcomeForDoCleanups",
+            result = getattr(self, "_outcomeForDoCleanups",
                              self._resultForDoCleanups)
 
         error = self.list2reason(result.errors)
@@ -106,10 +113,11 @@ class Iota2CheckInputs(unittest.TestCase):
         from TestsUtils import random_ground_truth_generator
 
         _, ground_truth_name = os.path.split(self.ground_truth)
-        test_ground_truth = os.path.join(self.test_working_directory, ground_truth_name)
-        cpShapeFile(self.ground_truth.replace(".shp",""),
-                    test_ground_truth.replace(".shp",""),
-                    [".prj",".shp",".dbf",".shx"])
+        test_ground_truth = os.path.join(self.test_working_directory,
+                                         ground_truth_name)
+        cpShapeFile(self.ground_truth.replace(".shp", ""),
+                    test_ground_truth.replace(".shp", ""),
+                    [".prj", ".shp", ".dbf", ".shx"])
         data_field = "code"
         epsg = 2154
         gt_errors = checkDataBase.check_ground_truth(test_ground_truth,
@@ -120,8 +128,8 @@ class Iota2CheckInputs(unittest.TestCase):
                                                      display=False)
         # multipolygons detected
         self.assertTrue(len(gt_errors) == 1)
-        self.assertTrue(isinstance(type(gt_errors[0]),
-                                   ServiceError.containsMultipolygon.__class__),
+        self.assertTrue(isinstance(type(
+            gt_errors[0]), ServiceError.containsMultipolygon.__class__),
                         msg="multipolygons undetected")
         # wrong projection
         epsg = 2155
@@ -135,8 +143,8 @@ class Iota2CheckInputs(unittest.TestCase):
         self.assertTrue(isinstance(type(gt_errors[0]),
                                    ServiceError.invalidProjection.__class__),
                         msg="invalid projection miss detected")
-        self.assertTrue(isinstance(type(gt_errors[1]),
-                                   ServiceError.containsMultipolygon.__class__),
+        self.assertTrue(isinstance(type(
+            gt_errors[1]), ServiceError.containsMultipolygon.__class__),
                         msg="multipolygons undetected")
         # no field detected
         data_field = "error"
@@ -151,8 +159,8 @@ class Iota2CheckInputs(unittest.TestCase):
         self.assertTrue(isinstance(type(gt_errors[0]),
                                    ServiceError.missingField.__class__),
                         msg="missing field undetected")
-        self.assertTrue(isinstance(type(gt_errors[1]),
-                                   ServiceError.containsMultipolygon.__class__),
+        self.assertTrue(isinstance(type(
+            gt_errors[1]), ServiceError.containsMultipolygon.__class__),
                         msg="multipolygons undetected")
         # field type
         data_field = "region"
@@ -167,12 +175,16 @@ class Iota2CheckInputs(unittest.TestCase):
         self.assertTrue(isinstance(type(gt_errors[0]),
                                    ServiceError.fieldType.__class__),
                         msg="integer field Type undetected")
-        self.assertTrue(isinstance(type(gt_errors[1]),
-                                   ServiceError.containsMultipolygon.__class__),
+        self.assertTrue(isinstance(type(
+            gt_errors[1]), ServiceError.containsMultipolygon.__class__),
                         msg="multipolygons undetected")
         # invalid geometry
-        no_geom_shape = os.path.join(self.test_working_directory, "no_geom_shape.shp")
-        random_ground_truth_generator(no_geom_shape, data_field, 3, set_geom=False)
+        no_geom_shape = os.path.join(self.test_working_directory,
+                                     "no_geom_shape.shp")
+        random_ground_truth_generator(no_geom_shape,
+                                      data_field,
+                                      3,
+                                      set_geom=False)
         gt_errors = checkDataBase.check_ground_truth(no_geom_shape,
                                                      "",
                                                      data_field,
@@ -188,7 +200,8 @@ class Iota2CheckInputs(unittest.TestCase):
         # ~ TODO
 
         # duplicated features
-        dupli_feat_path = os.path.join(self.test_working_directory, "duplicate_features.shp")
+        dupli_feat_path = os.path.join(self.test_working_directory,
+                                       "duplicate_features.shp")
         random_ground_truth_generator(dupli_feat_path, data_field, 3)
         gt_errors = checkDataBase.check_ground_truth(dupli_feat_path,
                                                      "",
@@ -210,10 +223,11 @@ class Iota2CheckInputs(unittest.TestCase):
         from iota2.Common.FileUtils import cpShapeFile
 
         _, ground_truth_name = os.path.split(self.ground_truth)
-        test_ground_truth = os.path.join(self.test_working_directory, ground_truth_name)
-        cpShapeFile(self.ground_truth.replace(".shp",""),
-                    test_ground_truth.replace(".shp",""),
-                    [".prj",".shp",".dbf",".shx"])
+        test_ground_truth = os.path.join(self.test_working_directory,
+                                         ground_truth_name)
+        cpShapeFile(self.ground_truth.replace(".shp", ""),
+                    test_ground_truth.replace(".shp", ""),
+                    [".prj", ".shp", ".dbf", ".shx"])
 
         data_field = "region"
         epsg = 2154
@@ -232,48 +246,24 @@ class Iota2CheckInputs(unittest.TestCase):
         """
         TEST : check if no intersection between geo-reference data is detected
         """
-        from config import Config
         from iota2.Common import verifyInputs
         from iota2.Common import ServiceError
         from TestsUtils import generate_fake_s2_data
 
         s2_data = os.path.join(self.test_working_directory, "S2_data")
-        generate_fake_s2_data(s2_data,
-                              "T31TCJ",
+        generate_fake_s2_data(s2_data, "T31TCJ",
                               ["20190909", "20190919", "20190929"])
 
-        config_path_test = os.path.join(self.test_working_directory, "Config_TEST.cfg")
-        shutil.copy(self.config_test, config_path_test)
-
-        cfg_test = Config(open(config_path_test))
-        cfg_test.chain.outputPath = ""
-        cfg_test.chain.listTile = "T31TCJ"
-        cfg_test.chain.L8Path_old = "None"
-        cfg_test.chain.L8Path = "None"
-        cfg_test.chain.S2Path = s2_data
-        cfg_test.chain.S2_S2C_Path = "None"
-        cfg_test.chain.userFeatPath = "None"
-        cfg_test.chain.regionPath = None
-        cfg_test.chain.groundTruth = self.gt_target
-        cfg_test.chain.dataField = "code"
-        cfg_test.chain.regionField = 'region'
-        cfg_test.argTrain.cropMix = False
-        cfg_test.argTrain.samplesClassifMix = False
-        cfg_test.argTrain.annualClassesExtractionSource = None
-        cfg_test.GlobChain.useAdditionalFeatures = False
-        cfg_test.GlobChain.writeOutputs = False
-        cfg_test.save(open(config_path_test, 'w'))
-
         # usually use case
-        intersections_errors = verifyInputs.check_data_intersection(config_path_test)
-        self.assertTrue(len(intersections_errors) == 0,
-                        msg="no intersections detected, but there is intersections")
+        intersections_errors = verifyInputs.check_data_intersection(
+            self.gt_target, None, "region", 2154, s2_data, ["T31TCJ"])
+        self.assertTrue(
+            len(intersections_errors) == 0,
+            msg="no intersections detected, but there is intersections")
 
         # no intersections between input rasters and the ground truth
-        cfg_test = Config(open(config_path_test))
-        cfg_test.chain.groundTruth = self.gt_target_miss
-        cfg_test.save(open(config_path_test, 'w'))
-        intersections_errors = verifyInputs.check_data_intersection(config_path_test)
+        intersections_errors = verifyInputs.check_data_intersection(
+            self.gt_target_miss, None, "region", 2154, s2_data, ["T31TCJ"])
 
         self.assertTrue(len(intersections_errors) == 1)
         self.assertTrue(isinstance(type(intersections_errors[0]),
@@ -281,11 +271,9 @@ class Iota2CheckInputs(unittest.TestCase):
                         msg="no intersections undetected")
 
         # no intersections between the ground truth and the region shape
-        cfg_test = Config(open(config_path_test))
-        cfg_test.chain.groundTruth = self.gt_target_miss_region
-        cfg_test.chain.regionPath = self.region_target
-        cfg_test.save(open(config_path_test, 'w'))
-        intersections_errors = verifyInputs.check_data_intersection(config_path_test)
+        intersections_errors = verifyInputs.check_data_intersection(
+            self.gt_target_miss_region, self.region_target, "region", 2154,
+            s2_data, ["T31TCJ"])
 
         self.assertTrue(len(intersections_errors) == 1)
         self.assertTrue(isinstance(type(intersections_errors[0]),
@@ -293,21 +281,18 @@ class Iota2CheckInputs(unittest.TestCase):
                         msg="no intersections undetected")
 
         # intersections between the ground truth and the region shape
-        cfg_test = Config(open(config_path_test))
-        cfg_test.chain.groundTruth = self.gt_target
-        cfg_test.chain.regionPath = self.region_target
-        cfg_test.save(open(config_path_test, 'w'))
-        intersections_errors = verifyInputs.check_data_intersection(config_path_test)
+        intersections_errors = verifyInputs.check_data_intersection(
+            self.gt_target, self.region_target, "region", 2154, s2_data,
+            ["T31TCJ"])
 
-        self.assertTrue(len(intersections_errors) == 0,
-                        msg="no intersections detected, but there is intersections")
+        self.assertTrue(
+            len(intersections_errors) == 0,
+            msg="no intersections detected, but there is intersections")
 
         # no intersections between the ground truth and ONE region
-        cfg_test = Config(open(config_path_test))
-        cfg_test.chain.groundTruth = self.gt_target_miss_one_region
-        cfg_test.chain.regionPath = self.region_target
-        cfg_test.save(open(config_path_test, 'w'))
-        intersections_errors = verifyInputs.check_data_intersection(config_path_test)
+        intersections_errors = verifyInputs.check_data_intersection(
+            self.gt_target_miss_one_region, self.region_target, "region", 2154,
+            s2_data, ["T31TCJ"])
 
         self.assertTrue(len(intersections_errors) == 1)
         self.assertTrue(isinstance(type(intersections_errors[0]),

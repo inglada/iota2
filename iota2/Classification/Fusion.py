@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+#-*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -19,8 +19,9 @@ import os
 import shutil
 import logging
 
-from Common import FileUtils as fu
-from Common import ServiceConfigFile as SCF
+from config import Config
+from iota2.Common import FileUtils as fu
+from iota2.Common import ServiceConfigFile as SCF
 
 LOGGER = logging.getLogger(__name__)
 
@@ -127,7 +128,7 @@ def perform_fusion(fusion_dic,
     string
         output path the the fusion of classifications
     """
-    from Common import OtbAppBank
+    from iota2.Common import OtbAppBank
 
     model = os.path.basename(
         fusion_dic["sar_classif"]).split("_")[classif_model_pos]
@@ -243,7 +244,7 @@ def compute_fusion_choice(iota2_dir,
     if not os.path.exists(ds_choice_dir):
         try:
             os.mkdir(ds_choice_dir)
-        except BaseException:
+        except:
             pass
     ds_choice = os.path.join(ds_choice_dir, ds_choice_name)
     if workingDirectory:
@@ -277,8 +278,7 @@ def compute_confidence_fusion(fusion_dic,
                               workingDirectory,
                               LOGGER=LOGGER):
     """
-    from the fusion of classification's raster choice compute the fusion of
-    confidence map
+    from the fusion of classification's raster choice compute the fusion of confidence map
 
     Parameters
     ----------
@@ -316,10 +316,8 @@ def compute_confidence_fusion(fusion_dic,
     Notes
     -----
     confidence fusion rules are :
-        If SAR's label is chosen by the DS method then SAR confidence is
-        chosen.
-        If Optical's label is chosen by the DS method then optical confidence
-        is chosen.
+        If SAR's label is chosen by the DS method then SAR confidence is chosen.
+        If Optical's label is chosen by the DS method then optical confidence is chosen.
         If the same label is chosen by SAR and optical models, then the
         maximum confidence is chosen.
     Return
@@ -391,8 +389,7 @@ def compute_probamap_fusion(fusion_dic,
                             ram=128,
                             LOGGER=LOGGER):
     """
-    from the fusion of classification's raster choice compute the fusion of
-    confidence map
+    from the fusion of classification's raster choice compute the fusion of confidence map
 
     Parameters
     ----------
@@ -430,13 +427,10 @@ def compute_probamap_fusion(fusion_dic,
     Notes
     -----
     fusion rules are :
-        If SAR's label is chosen by the DS method then SAR confidence is
-        chosen.
-        If Optical's label is chosen by the DS method then optical confidence
-        is chosen.
+        If SAR's label is chosen by the DS method then SAR confidence is chosen.
+        If Optical's label is chosen by the DS method then optical confidence is chosen.
         If the same label is chosen by SAR and optical models, then the
-        output pixel vector is given my the model which is more confidence in
-        it's choice.
+        output pixel vector is given my the model which is more confidence in it's choice.
     Return
     ------
     string
@@ -477,7 +471,7 @@ def compute_probamap_fusion(fusion_dic,
     nb_bands_probamap_sar = getRasterNbands(sar_proba_map)
     if nb_bands_probamap_opt != nb_bands_probamap_sar:
         raise Exception(
-            "SAR probability map and Optical probality map must have the same number of bands"
+            "SAR probality map and Optical probality map must have the same number of bands"
         )
     exp = ("im1b1=={ds_choice_both} and im4b1>im5b1?im2:"
            "im1b1=={ds_choice_both} and im4b1<im5b1?im3:"
@@ -523,8 +517,7 @@ def dempster_shafer_fusion(iota2_dir,
                            proba_map_flag=False,
                            workingDirectory=None):
     """
-    perform a fusion of classifications thanks acording to Dempster-Shafer's
-    method
+    perform a fusion of classifications thanks acording to Dempster-Shafer's method
 
     Parameters
     ----------
@@ -598,6 +591,7 @@ def fusion(pathClassif, cfg, pathWd):
         cfg = SCF.serviceConfigFile(cfg)
 
     pathWd = None
+    classifMode = cfg.getParam('argClassification', 'classifMode')
     N = cfg.getParam('chain', 'runs')
     allTiles = cfg.getParam('chain', 'listTile').split(" ")
     fusionOptions = cfg.getParam('argClassification', 'fusionOptions')
@@ -625,16 +619,15 @@ def fusion(pathClassif, cfg, pathWd):
     for seed in range(N):
         for tile in allTiles:
             directoryOut = pathClassif
-            if pathWd is not None:
+            if pathWd != None:
                 directoryOut = "$TMPDIR"
             if region_vec is None:
                 classifPath = fu.FileSearch_AND(
                     pathClassif, True, "Classif_" + tile, "seed_" + str(seed) +
                     classification_suffix_pattern + ".tif")
                 allPathFusion = " ".join(classifPath)
-                cmd = "otbcli_FusionOfClassifications -il " + allPathFusion
-                + " " + fusionOptions + " -out " + directoryOut + "/" + tile
-                + "_FUSION_seed_" + str(seed) + ".tif"
+                cmd = "otbcli_FusionOfClassifications -il " + allPathFusion + " " + fusionOptions + " -out " + directoryOut + "/" + tile + "_FUSION_seed_" + str(
+                    seed) + ".tif"
                 AllCmd.append(cmd)
             else:
                 for mod in models:
@@ -644,10 +637,8 @@ def fusion(pathClassif, cfg, pathWd):
                         classification_suffix_pattern + ".tif")
                     if len(classifPath) != 0:
                         allPathFusion = " ".join(classifPath)
-                        cmd = "otbcli_FusionOfClassifications -il "
-                        +allPathFusion + " " + fusionOptions + " -out "
-                        +directoryOut + "/" + tile + "_FUSION_model_"
-                        +mod + "_seed_" + str(seed) + ".tif " + pixType
+                        cmd = "otbcli_FusionOfClassifications -il " + allPathFusion + " " + fusionOptions + " -out " + directoryOut + "/" + tile + "_FUSION_model_" + mod + "_seed_" + str(
+                            seed) + ".tif " + pixType
                         AllCmd.append(cmd)
 
     tmp = pathClassif.split("/")

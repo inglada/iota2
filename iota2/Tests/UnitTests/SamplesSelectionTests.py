@@ -14,7 +14,7 @@
 #
 # =========================================================================
 
-# python -m unittest SamplesSelectionsTests
+# python -m unittest SamplesSelectionTests
 
 import os
 import sys
@@ -33,7 +33,7 @@ RM_IF_ALL_OK = True
 IOTA2_SCRIPTS = os.path.join(IOTA2DIR, "iota2")
 sys.path.append(IOTA2_SCRIPTS)
 
-from Common import FileUtils as fut
+from iota2.Common import FileUtils as fut
 
 
 class iota_testSamplesSelection(unittest.TestCase):
@@ -42,27 +42,31 @@ class iota_testSamplesSelection(unittest.TestCase):
     def setUpClass(self):
         # definition of local variables
         self.group_test_name = "iota_testSamplesSelection"
-        self.iota2_tests_directory = os.path.join(IOTA2DIR, "data", self.group_test_name)
+        self.iota2_tests_directory = os.path.join(IOTA2DIR, "data",
+                                                  self.group_test_name)
         self.all_tests_ok = []
 
         # References
-        self.config_test = os.path.join(IOTA2DIR, "config", "Config_4Tuiles_Multi_FUS_Confidence.cfg")
+        self.config_test = os.path.join(
+            IOTA2DIR, "config", "Config_4Tuiles_Multi_FUS_Confidence.cfg")
         self.in_shape = os.path.join(IOTA2DIR, "data", "references",
                                      "selectionSamples", "Input",
                                      "samplesSelection",
                                      "samples_region_1_seed_0.shp")
         self.in_xml = os.path.join(IOTA2DIR, "data", "references",
                                    "selectionSamples", "Input",
-                                   "samplesSelection", "samples_region_1_seed_0.xml")
+                                   "samplesSelection",
+                                   "samples_region_1_seed_0.xml")
         self.in_xml_merge = os.path.join(IOTA2DIR, "data", "references",
                                          "selectionSamples", "Input",
                                          "samplesSelection", "merge_stats.xml")
         self.features_ref = os.path.join(IOTA2DIR, "data", "references",
                                          "selectionSamples", "Input",
                                          "features", "T31TCJ")
-        self.selection_ref = os.path.join(IOTA2DIR, "data", "references",
-                                          "selectionSamples", "Input",
-                                          "samplesSelection", "T31TCJ_samples_region_1_seed_0_selection.sqlite")
+        self.selection_ref = os.path.join(
+            IOTA2DIR, "data", "references", "selectionSamples", "Input",
+            "samplesSelection",
+            "T31TCJ_samples_region_1_seed_0_selection.sqlite")
 
         # Tests directory
         self.test_working_directory = None
@@ -86,7 +90,8 @@ class iota_testSamplesSelection(unittest.TestCase):
         # it changes for each tests
 
         test_name = self.id().split(".")[-1]
-        self.test_working_directory = os.path.join(self.iota2_tests_directory, test_name)
+        self.test_working_directory = os.path.join(self.iota2_tests_directory,
+                                                   test_name)
         if os.path.exists(self.test_working_directory):
             shutil.rmtree(self.test_working_directory)
         os.mkdir(self.test_working_directory)
@@ -101,7 +106,8 @@ class iota_testSamplesSelection(unittest.TestCase):
             result = self.defaultTestResult()
             self._feedErrorsToResult(result, self._outcome.errors)
         else:
-            result = getattr(self, '_outcomeForDoCleanups', self._resultForDoCleanups)
+            result = getattr(self, '_outcomeForDoCleanups',
+                             self._resultForDoCleanups)
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
         ok = not error and not failure
@@ -109,7 +115,7 @@ class iota_testSamplesSelection(unittest.TestCase):
         self.all_tests_ok.append(ok)
         if ok:
             shutil.rmtree(self.test_working_directory)
-            
+
     # Tests definitions
     def test_write_xml(self):
         """
@@ -117,18 +123,20 @@ class iota_testSamplesSelection(unittest.TestCase):
         """
         import collections
         import filecmp
-        from Sampling.SamplesSelection import write_xml
+        from iota2.Sampling.SamplesSelection import write_xml
         from TestsUtils import cmp_xml_stat_files
 
         # define inputs
-        samples_per_class = collections.OrderedDict([("11", 5), ("12", 6), ("211", 5),
-                                                     ("32", 3), ("31", 4), ("51", 8),
-                                                     ("34", 5), ("41", 9), ("222", 4),
-                                                     ("221", 4)])
-        samples_per_vector = collections.OrderedDict([("1", 4), ("0", 5), ("3", 4),
-                                                      ("2", 4), ("5", 6), ("4", 5),
-                                                      ("7", 9), ("6", 8), ("9", 5),
-                                                      ("8", 3)])
+        samples_per_class = collections.OrderedDict([("11", 5), ("12", 6),
+                                                     ("211", 5), ("32", 3),
+                                                     ("31", 4), ("51", 8),
+                                                     ("34", 5), ("41", 9),
+                                                     ("222", 4), ("221", 4)])
+        samples_per_vector = collections.OrderedDict([("1", 4), ("0", 5),
+                                                      ("3", 4), ("2", 4),
+                                                      ("5", 6), ("4", 5),
+                                                      ("7", 9), ("6", 8),
+                                                      ("9", 5), ("8", 3)])
         xml_test = os.path.join(self.test_working_directory, "test.xml")
 
         # launch function
@@ -137,33 +145,36 @@ class iota_testSamplesSelection(unittest.TestCase):
         # assert
         self.assertTrue(cmp_xml_stat_files(self.in_xml, xml_test),
                         msg="merge xml statistics files failed")
-                        
+
     def test_merge_xml(self):
         """
         test writing of a statistics file
         """
         import collections
         import filecmp
-        from Sampling.SamplesSelection import write_xml
-        from Sampling.SamplesSelection import merge_write_stats
+        from iota2.Sampling.SamplesSelection import write_xml
+        from iota2.Sampling.SamplesSelection import merge_write_stats
         from TestsUtils import cmp_xml_stat_files
 
         # define inputs
-        samples_per_class = collections.OrderedDict([("11", 5), ("12", 6), ("211", 5),
-                                                     ("32", 3), ("31", 4), ("51", 8),
-                                                     ("34", 5), ("41", 9), ("222", 4),
-                                                     ("221", 4)])
-        samples_per_vector = collections.OrderedDict([("1", 4), ("0", 5), ("3", 4),
-                                                      ("2", 4), ("5", 6), ("4", 5),
-                                                      ("7", 9), ("6", 8), ("9", 5),
-                                                      ("8", 3)])
+        samples_per_class = collections.OrderedDict([("11", 5), ("12", 6),
+                                                     ("211", 5), ("32", 3),
+                                                     ("31", 4), ("51", 8),
+                                                     ("34", 5), ("41", 9),
+                                                     ("222", 4), ("221", 4)])
+        samples_per_vector = collections.OrderedDict([("1", 4), ("0", 5),
+                                                      ("3", 4), ("2", 4),
+                                                      ("5", 6), ("4", 5),
+                                                      ("7", 9), ("6", 8),
+                                                      ("9", 5), ("8", 3)])
         xml_test_1 = os.path.join(self.test_working_directory, "test_1.xml")
         xml_test_2 = os.path.join(self.test_working_directory, "test_2.xml")
         write_xml(samples_per_class, samples_per_vector, xml_test_1)
         write_xml(samples_per_class, samples_per_vector, xml_test_2)
 
         # launch function
-        test_merge = os.path.join(self.test_working_directory, "test_merge.xml")
+        test_merge = os.path.join(self.test_working_directory,
+                                  "test_merge.xml")
         merge_write_stats([xml_test_1, xml_test_2], test_merge)
 
         # assert
@@ -174,21 +185,22 @@ class iota_testSamplesSelection(unittest.TestCase):
         """
         test dedicated to check if split_sel function works
         """
-        from Sampling.SamplesSelection import split_sel
+        from iota2.Sampling.SamplesSelection import split_sel
         from Iota2Tests import random_update
         from TestsUtils import rename_table
 
         # prepare test input
         test_vector_name = "samples_region_1_seed_0.sqlite"
         test_vector_table = "t31tcj_samples_region_1_seed_0_selection"
-        test_vector = os.path.join(self.test_working_directory, test_vector_name)
+        test_vector = os.path.join(self.test_working_directory,
+                                   test_vector_name)
         shutil.copy(self.selection_ref, test_vector)
 
         # update "nb_feat" features to a new "new_tile_name" tile's name
         nb_feat = 10
         new_tile_name = "T31TDJ"
-        random_update(test_vector, test_vector_table,
-                      "tile_o", new_tile_name, nb_feat)
+        random_update(test_vector, test_vector_table, "tile_o", new_tile_name,
+                      nb_feat)
         rename_table(test_vector,
                      old_table_name=test_vector_table,
                      new_table_name="output")
@@ -196,45 +208,56 @@ class iota_testSamplesSelection(unittest.TestCase):
         new_files = split_sel(test_vector, ["T31TCJ", new_tile_name],
                               self.test_working_directory, "EPSG:2154")
         # assert
-        nb_features_origin = len(fut.getFieldElement(self.selection_ref,
-                                                     driverName="SQLite",
-                                                     field="tile_o", mode="all",
-                                                     elemType="str"))
-        nb_features_t31tcj = len(fut.getFieldElement(new_files[0],
-                                                     driverName="SQLite",
-                                                     field="tile_o", mode="all",
-                                                     elemType="str"))
-        nb_features_t31tdj = len(fut.getFieldElement(new_files[1],
-                                                     driverName="SQLite",
-                                                     field="tile_o", mode="all",
-                                                     elemType="str"))
+        nb_features_origin = len(
+            fut.getFieldElement(self.selection_ref,
+                                driverName="SQLite",
+                                field="tile_o",
+                                mode="all",
+                                elemType="str"))
+        nb_features_t31tcj = len(
+            fut.getFieldElement(new_files[0],
+                                driverName="SQLite",
+                                field="tile_o",
+                                mode="all",
+                                elemType="str"))
+        nb_features_t31tdj = len(
+            fut.getFieldElement(new_files[1],
+                                driverName="SQLite",
+                                field="tile_o",
+                                mode="all",
+                                elemType="str"))
         self.assertTrue(nb_features_t31tdj == nb_feat,
                         msg="split samples selection failed")
-        self.assertTrue(nb_features_origin == nb_features_t31tdj + nb_features_t31tcj,
+        self.assertTrue(nb_features_origin == nb_features_t31tdj +
+                        nb_features_t31tcj,
                         msg="split samples selection failed")
 
     def test_update_flags(self):
         """
         """
-        from Sampling.SamplesSelection import update_flags
+        from iota2.Sampling.SamplesSelection import update_flags
 
         # prepare test input
         test_vector_name = "T31TCJ_samples_region_1_seed_1_selection.sqlite"
-        test_vector_table ="t31tcj_samples_region_1_seed_0_selection"
-        test_vector = os.path.join(self.test_working_directory, test_vector_name)
+        test_vector_table = "t31tcj_samples_region_1_seed_0_selection"
+        test_vector = os.path.join(self.test_working_directory,
+                                   test_vector_name)
         shutil.copy(self.selection_ref, test_vector)
 
         update_flags(test_vector, 2, table_name=test_vector_table)
-        
+
         # assert
         updated_flag = "XXXX"
-        nb_features_origin = len(fut.getFieldElement(self.selection_ref,
-                                                     driverName="SQLite",
-                                                     field="seed_0", mode="all",
-                                                     elemType="str"))
+        nb_features_origin = len(
+            fut.getFieldElement(self.selection_ref,
+                                driverName="SQLite",
+                                field="seed_0",
+                                mode="all",
+                                elemType="str"))
         features_test = fut.getFieldElement(test_vector,
                                             driverName="SQLite",
-                                            field="seed_0", mode="all",
+                                            field="seed_0",
+                                            mode="all",
                                             elemType="str")
         nb_features_test_updated = features_test.count(updated_flag)
         self.assertTrue(nb_features_origin == nb_features_test_updated,
@@ -244,38 +267,59 @@ class iota_testSamplesSelection(unittest.TestCase):
         """
         test sampling of a shape file (main function of SamplesSelection.py)
         """
-        from Sampling.SamplesSelection import samples_selection
-        from Common import IOTA2Directory
-        from Common import ServiceConfigFile as SCF
-        from Tests.UnitTests.Iota2Tests import compareSQLite
-        from Common.FileUtils import cpShapeFile
+        from iota2.Sampling.SamplesSelection import samples_selection
+        from iota2.Common import IOTA2Directory
+        from iota2.Common import ServiceConfigFile as SCF
+        from iota2.Tests.UnitTests.Iota2Tests import compareSQLite
+        from iota2.Common.FileUtils import cpShapeFile
+        from iota2.Common import FileUtils as fut
         # prepare test input
         cfg = SCF.serviceConfigFile(self.config_test)
-        cfg.setParam("chain", "outputPath", os.path.join(self.test_working_directory, "samplesSelTest"))
+        cfg.setParam(
+            "chain", "outputPath",
+            os.path.join(self.test_working_directory, "samplesSelTest"))
         cfg.setParam("chain", "runs", 2)
-        cfg.setParam("argTrain", "sampleSelection", {"sampler": "random",
-                                                     "strategy": "all"})
+        cfg.setParam("argTrain", "sampleSelection", {
+            "sampler": "random",
+            "strategy": "all"
+        })
         # create IOTA2 directories
-        IOTA2Directory.GenerateDirectories(cfg, check_inputs=False)
-        shutil.copytree(self.features_ref, os.path.join(self.test_working_directory, "samplesSelTest", "features", "T31TCJ"))
-        shutil.copy(self.in_xml, os.path.join(self.test_working_directory,
-                                              "samplesSelTest",
-                                              "samplesSelection",
-                                              "T31TCJ_region_1_seed_0_stats.xml"))
+        IOTA2Directory.generate_directories(os.path.join(
+            self.test_working_directory, "samplesSelTest"),
+                                            check_inputs=False)
+        shutil.copytree(
+            self.features_ref,
+            os.path.join(self.test_working_directory, "samplesSelTest",
+                         "features", "T31TCJ"))
+        shutil.copy(
+            self.in_xml,
+            os.path.join(self.test_working_directory, "samplesSelTest",
+                         "samplesSelection",
+                         "T31TCJ_region_1_seed_0_stats.xml"))
         _, in_shape_name = os.path.split(self.in_shape)
         in_shape_dir = os.path.join(self.test_working_directory,
-                                 "samplesSelTest",
-                                 "samplesSelection")
+                                    "samplesSelTest", "samplesSelection")
         in_shape = os.path.join(in_shape_dir, in_shape_name)
         cpShapeFile(self.in_shape.replace(".shp", ""),
                     in_shape.replace(".shp", ""),
-                    extensions=[".prj",".shp",".dbf",".shx"])
+                    extensions=[".prj", ".shp", ".dbf", ".shx"])
 
         #~ # launch function
-        samples_selection(in_shape, cfg, self.test_working_directory)
+        output_path = cfg.getParam("chain", "outputPath")
+        runs = cfg.getParam('chain', 'runs')
+        epsg = cfg.getParam('GlobChain', 'proj')
+        random_seed = cfg.getParam('chain', 'random_seed')
+        data_field = cfg.getParam('chain', 'dataField').lower()
+        parameters = dict(cfg.getParam('argTrain', 'sampleSelection'))
+        masks_name = fut.getCommonMaskName(cfg) + ".tif"
+        samples_selection(in_shape, self.test_working_directory, output_path,
+                          runs, epsg, masks_name, parameters, data_field,
+                          random_seed)
         #~ # assert
-        selection_test = fut.FileSearch_AND(os.path.join(self.test_working_directory, "samplesSelTest"),
-                                            True,
-                                            os.path.basename(self.selection_ref))[0]
-        same = compareSQLite(self.selection_ref, selection_test, CmpMode='coordinates')
+        selection_test = fut.FileSearch_AND(
+            os.path.join(self.test_working_directory, "samplesSelTest"), True,
+            os.path.basename(self.selection_ref))[0]
+        same = compareSQLite(self.selection_ref,
+                             selection_test,
+                             CmpMode='coordinates')
         self.assertTrue(same, msg="sample selection generation failed")
