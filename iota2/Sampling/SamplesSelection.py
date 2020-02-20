@@ -24,7 +24,7 @@ LOGGER = logging.getLogger(__name__)
 
 def prepare_selection(sample_sel_directory: str,
                       tile_name: str,
-                      workingDirectory: Optional[Union[None, str]] = None):
+                      workingDirectory: Optional[str] = None):
     """
     this function is dedicated to merge selection comming from different
     models by tiles. It is necessary in order to prepare sampleExtraction
@@ -211,12 +211,17 @@ def gen_raster_ref(vec, output_path, masks_name, working_directory):
     return raster_ref, tiles
 
 
-def get_sample_selection_param(model_name: str, stats: str, vec: str,
-                               working_directory: str, parameters: Dict[str],
-                               data_field: str, masks_name: str,
-                               output_path: str,
-                               random_seed: Optional[Union[None, int]:None]
-                               ) -> Tuple[Dict[str], List[str]]:
+def get_sample_selection_param(
+        model_name: str,
+        stats: str,
+        vec: str,
+        working_directory: str,
+        parameters: Dict[str, Union[str, int, list]],
+        data_field: str,
+        masks_name: str,
+        output_path: str,
+        random_seed: Optional[int] = None
+) -> Tuple[Dict[str, Union[str, int, list]], List[str]]:
     """
     use to determine SampleSelection otb's parameters
 
@@ -370,9 +375,9 @@ def samples_selection(model: str,
                       runs: int,
                       epsg: str,
                       masks_name: str,
-                      parameters: Dict[str],
+                      parameters: Dict[str, Union[str, int, list]],
                       data_field: str,
-                      random_seed: Optional[Union[None, int]] = None,
+                      random_seed: Optional[int] = None,
                       logger=LOGGER):
     """
     compute sample selection.
