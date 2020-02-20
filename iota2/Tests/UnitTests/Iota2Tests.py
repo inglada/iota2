@@ -1641,8 +1641,8 @@ class iota_testSamplerApplications(unittest.TestCase):
         env.GenerateShapeTile(["D0005H0002"], wD, testPath + "/envelope", None,
                               config_test)
         shapeRegion = os.path.join(wD, "MyFakeRegion.shp")
-        area.generateRegionShape(testPath + "/envelope", "", shapeRegion,
-                                 "region", config_test, None)
+        area.generate_region_shape(testPath + "/envelope", shapeRegion,
+                                   "region", testPath, None)
         RT.createRegionsByTiles(shapeRegion, "region", testPath + "/envelope",
                                 testPath + "/shapeRegion/", None)
 
@@ -1759,8 +1759,8 @@ class iota_testSamplerApplications(unittest.TestCase):
         env.GenerateShapeTile(["D0005H0002"], wD, testPath + "/envelope", None,
                               config_test)
         shapeRegion = os.path.join(wD, "MyFakeRegion.shp")
-        area.generateRegionShape(testPath + "/envelope", "", shapeRegion,
-                                 "region", config_test, None)
+        area.generate_region_shape(testPath + "/envelope", shapeRegion,
+                                   "region", testPath, None)
         RT.createRegionsByTiles(shapeRegion, "region", testPath + "/envelope",
                                 testPath + "/shapeRegion/", None)
 
@@ -1872,8 +1872,8 @@ class iota_testSamplerApplications(unittest.TestCase):
         env.GenerateShapeTile(["D0005H0002"], wD, testPath + "/envelope", None,
                               config_test)
         shapeRegion = os.path.join(wD, "MyFakeRegion.shp")
-        area.generateRegionShape(testPath + "/envelope", "", shapeRegion,
-                                 "region", config_test, None)
+        area.generate_region_shape(testPath + "/envelope", shapeRegion,
+                                   "region", testPath, None)
         RT.createRegionsByTiles(shapeRegion, "region", testPath + "/envelope",
                                 testPath + "/shapeRegion/", None)
 
@@ -1983,8 +1983,8 @@ class iota_testSamplerApplications(unittest.TestCase):
         env.GenerateShapeTile(["D0005H0002"], wD, testPath + "/envelope", None,
                               config_test)
         shapeRegion = os.path.join(wD, "MyFakeRegion.shp")
-        area.generateRegionShape(testPath + "/envelope", "", shapeRegion,
-                                 "region", config_test, None)
+        area.generate_region_shape(testPath + "/envelope", shapeRegion,
+                                   "region", testPath, None)
         RT.createRegionsByTiles(shapeRegion, "region", testPath + "/envelope",
                                 testPath + "/shapeRegion/", None)
 
@@ -2349,10 +2349,9 @@ class iota_testGenerateRegionShape(unittest.TestCase):
         print("field_Region: " + self.field_Region)
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
-
-        area.generateRegionShape(self.pathEnvelope, self.model,
-                                 self.shapeRegion, self.field_Region, cfg,
-                                 None)
+        i2_output_path = cfg.getParam("chain", "outputPath")
+        area.generate_region_shape(self.pathEnvelope, self.shapeRegion,
+                                   self.field_Region, i2_output_path, None)
 
         # generate filename
         referenceShapeFile = iota2_dataTest + "/references/GenerateRegionShape/region_need_To_env.shp"
