@@ -2429,7 +2429,7 @@ class iota_testLaunchTraining(unittest.TestCase):
             shutil.copy(full_file_name, self.pathLearningSamples)
 
     def test_LaunchTraining(self):
-        from Learning import TrainingCmd as TC
+        from iota2.Learning import TrainingCmd as TC
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
         dataField = 'CODE'
@@ -2437,8 +2437,15 @@ class iota_testLaunchTraining(unittest.TestCase):
         cfg.setParam('chain', 'outputPath', self.pathOut)
         cfg.setParam('chain', 'regionField', "region")
 
-        TC.launchTraining(cfg, dataField, self.pathStats, N,
-                          self.cmdPath + "/train", self.pathModels, None)
+        TC.launch_training(
+            classifier_name=cfg.getParam("argTrain", "classifier"),
+            classifier_options=cfg.getParam("argTrain", "options"),
+            output_path=self.pathOut,
+            ground_truth=cfg.getParam("chain", "groundTruth"),
+            data_field="CODE",
+            region_field="region",
+            path_to_cmd_train=os.path.join(self.cmdPath, "train"),
+            out=self.pathModels)
 
         # file comparison to ref file
         File1 = self.cmdPath + "/train/train.txt"
