@@ -231,7 +231,7 @@ def generate_samples_simple(folder_sample: str,
     OUT:
     samples [string] : vector shape containing points
     """
-    from iota2.Sampling.SamplesSelection import prepareSelection
+    from iota2.Sampling.SamplesSelection import prepare_selection
     tile = train_shape.split("/")[-1].split(".")[0].split("_")[0]
 
     if enable_cross_validation:
@@ -249,9 +249,9 @@ def generate_samples_simple(folder_sample: str,
     if sample_sel:
         sample_selection = sample_sel
     else:
-        sample_selection = prepareSelection(sample_sel_directory,
-                                            tile,
-                                            workingDirectory=None)
+        sample_selection = prepare_selection(sample_sel_directory,
+                                             tile,
+                                             workingDirectory=None)
 
     sample_extr, dep_gapsample = get_features_application(
         sample_selection, working_directory, samples, data_field, output_path,
@@ -395,7 +395,7 @@ def generate_samples_crop_mix(folder_sample: str,
     OUT:
     samples [string] : vector shape containing points
     """
-    from iota2.Sampling.SamplesSelection import prepareSelection
+    from iota2.Sampling.SamplesSelection import prepare_selection
     if os.path.exists(
             folder_sample + "/" +
             train_shape.split("/")[-1].replace(".shp", "_Samples.sqlite")):
@@ -417,9 +417,9 @@ def generate_samples_crop_mix(folder_sample: str,
     if sample_sel:
         sample_selection = sample_sel
     else:
-        sample_selection = prepareSelection(sample_sel_directory,
-                                            current_tile,
-                                            workingDirectory=None)
+        sample_selection = prepare_selection(sample_sel_directory,
+                                             current_tile,
+                                             workingDirectory=None)
 
     nonannual_vector_sel = os.path.join(
         work_dir, "{}_nonAnnual_selection.sqlite".format(current_tile))
@@ -787,7 +787,7 @@ def generate_samples_classif_mix(folder_sample: str,
     OUT:
         samples [string] : vector shape containing points
     """
-    from iota2.Sampling.SamplesSelection import prepareSelection
+    from iota2.Sampling.SamplesSelection import prepare_selection
     from iota2.Sampling import GenAnnualSamples as genAS
     if os.path.exists(
             os.path.join(
@@ -812,7 +812,8 @@ def generate_samples_classif_mix(folder_sample: str,
     if sample_sel:
         sample_selection = sample_sel
     else:
-        sample_selection = prepareSelection(sample_sel_directory, current_tile)
+        sample_selection = prepare_selection(sample_sel_directory,
+                                             current_tile)
 
     non_annual_shape = os.path.join(
         work_dir, "{}_nonAnnual_selection.sqlite".format(current_tile))
