@@ -2579,14 +2579,14 @@ class iota_testVectorSamplesMerge(unittest.TestCase):
             self.learningSamples)
 
     def test_VectorSamplesMerge(self):
-        from Sampling import VectorSamplesMerge as VSM
-        from Sampling import VectorSampler as vs
+        from iota2.Sampling import VectorSamplesMerge as VSM
+        from iota2.Sampling import VectorSampler as vs
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
         cfg.setParam('chain', 'outputPath', self.pathOut)
 
         vl = fu.FileSearch_AND(self.learningSamples, True, ".sqlite")
-        VSM.vectorSamplesMerge(cfg, vl)
+        VSM.vector_samples_merge(vl, self.pathOut)
 
         # file comparison to ref file
         File1 = self.learningSamples + "Samples_region_1_seed0_learn.sqlite"
