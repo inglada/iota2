@@ -17,13 +17,11 @@
 import argparse
 import os
 import shutil
-from config import Config
 from osgeo import gdal
 from osgeo import ogr
 from osgeo import osr
 from osgeo.gdalconst import *
 from iota2.Common import FileUtils as fu
-from iota2.Common import ServiceConfigFile as SCF
 """
 It's in this script that tile's priority are manage. This priority use tile origin. If you want to change priority, you have to modify
 these functions :
@@ -497,6 +495,7 @@ if __name__ == "__main__":
         required=True)
     args = parser.parse_args()
     # load configuration file
+    from iota2.Common import ServiceConfigFile as SCF
     cfg = SCF.serviceConfigFile(args.pathConf)
     # launch GenerateShapeTile
     GenerateShapeTile(args.tiles, args.pathTiles, args.pathOut, args.pathWd,
