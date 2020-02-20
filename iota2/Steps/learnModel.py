@@ -64,9 +64,9 @@ class learnModel(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
-        from Learning import TrainingCmd as TC
-        from Learning import TrainSkLearn
-        from Learning.trainAutoContext import train_autoContext_parameters
+        from iota2.Learning import TrainingCmd as TC
+        from iota2.Learning import TrainSkLearn
+        from iota2.Learning.trainAutoContext import train_autoContext_parameters
         parameters = []
 
         pathToModelConfig = os.path.join(self.output_path, "config_model",
@@ -85,11 +85,20 @@ class learnModel(IOTA2Step.Step):
             parameters = train_autoContext_parameters(self.output_path,
                                                       self.region_field)
         else:
-            parameters = TC.launchTraining(
-                self.cfg, self.data_field,
-                os.path.join(self.output_path + "stats"), self.runs,
-                os.path.join(self.output_path, "cmd", "train"),
-                os.path.join(self.output_path, "model"), self.workingDirectory)
+            parameters = TC.launch_training(
+                classifier_name=SCF.serviceConfigFile(self.cfg).getParam(
+                    "argTrain", "classifier"),
+                classifier_options=SCF.serviceConfigFile(self.cfg).getParam(
+                    "argTrain", "options"),
+                output_path=self.output_path,
+                ground_truth=SCF.serviceConfigFile(self.cfg).getParam(
+                    "chain", "groundTruth"),
+                data_field=self.data_field,
+                region_field=SCF.serviceConfigFile(self.cfg).getParam(
+                    "chain", "regionField"),
+                path_to_cmd_train=os.path.join(self.output_path, "cmd",
+                                               "train"),
+                out=os.path.join(self.output_path, "model"))
         return parameters
 
     def step_execute(self):
