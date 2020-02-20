@@ -16,16 +16,15 @@
 import logging
 import os
 import shutil
-
+from typing import Dict, Union, Optional, Tuple, List
 from iota2.Common import FileUtils as fut
 
 LOGGER = logging.getLogger(__name__)
 
 
-def prepareSelection(sample_sel_directory,
-                     tile_name,
-                     workingDirectory=None,
-                     LOGGER=LOGGER):
+def prepare_selection(sample_sel_directory: str,
+                      tile_name: str,
+                      workingDirectory: Optional[Union[None, str]] = None):
     """
     this function is dedicated to merge selection comming from different
     models by tiles. It is necessary in order to prepare sampleExtraction
@@ -82,7 +81,9 @@ def write_xml(samples_per_class, samples_per_vector, output_merged_stats):
     Note
     ----
 
-    output xml format as `PolygonClassStatistics <http://www.orfeo-toolbox.org/Applications/PolygonClassStatistics.html>`_'s output
+    output xml format as `PolygonClassStatistics
+    <http://www.orfeo-toolbox.org/Applications/PolygonClassStatistics.html>`_'s
+    output
     """
     import xml.dom.minidom as minidom
     from xml.etree.ElementTree import Element, SubElement, tostring, XML
@@ -172,7 +173,7 @@ def merge_write_stats(stats, merged_stats):
     write_xml(samples_per_class_sum, samples_per_vector_sum, merged_stats)
 
 
-def gen_raster_ref(vec, cfg, working_directory):
+def gen_raster_ref(vec, output_path, masks_name, working_directory):
     """
     generate the reference image needed to sampleSelection application
 
@@ -188,15 +189,15 @@ def gen_raster_ref(vec, cfg, working_directory):
     """
     from iota2.Common.Utils import run
     tile_field_name = "tile_o"
-    iota2_dir = cfg.getParam('chain', 'outputPath')
-    features_directory = os.path.join(iota2_dir, "features")
+    # iota2_dir = cfg.getParam('chain', 'outputPath')
+    features_directory = os.path.join(output_path, "features")
     tiles = fut.getFieldElement(vec,
                                 driverName="ESRI Shapefile",
                                 field=tile_field_name,
                                 mode="unique",
                                 elemType="str")
 
-    masks_name = fut.getCommonMaskName(cfg) + ".tif"
+    # masks_name = fut.getCommonMaskName(cfg) + ".tif"
     rasters_tiles = [
         fut.FileSearch_AND(os.path.join(features_directory, tile_name), True,
                            masks_name)[0] for tile_name in tiles
@@ -210,7 +211,12 @@ def gen_raster_ref(vec, cfg, working_directory):
     return raster_ref, tiles
 
 
-def get_sample_selection_param(cfg, model_name, stats, vec, working_directory):
+def get_sample_selection_param(model_name: str, stats: str, vec: str,
+                               working_directory: str, parameters: Dict[str],
+                               data_field: str, masks_name: str,
+                               output_path: str,
+                               random_seed: Optional[Union[None, int]:None]
+                               ) -> Tuple[Dict[str], List[str]]:
     """
     use to determine SampleSelection otb's parameters
 
@@ -227,11 +233,12 @@ def get_sample_selection_param(cfg, model_name, stats, vec, working_directory):
     Note
     ----
 
-    SampleSelection's parameters are define `here <http://www.orfeo-toolbox.org/Applications/SampleSelection.html>`_
+    SampleSelection's parameters are define
+    `here <http://www.orfeo-toolbox.org/Applications/SampleSelection.html>`_
     """
     per_model = None
-    parameters = dict(cfg.getParam('argTrain', 'sampleSelection'))
-    random_seed = cfg.getParam('chain', 'random_seed')
+    # parameters = dict(cfg.getParam('argTrain', 'sampleSelection'))
+    # random_seed = cfg.getParam('chain', 'random_seed')
     if random_seed is not None:
         parameters["rand"] = random_seed
 
@@ -245,11 +252,13 @@ def get_sample_selection_param(cfg, model_name, stats, vec, working_directory):
                 parameters = dict(strat)
                 parameters.pop("target_model", None)
 
-    parameters["field"] = (cfg.getParam('chain', 'dataField')).lower()
+    # parameters["field"] = (cfg.getParam('chain', 'dataField')).lower()
+    parameters["field"] = data_field.lower()
     parameters["vec"] = vec
     parameters["instats"] = stats
 
-    raster_ref, tiles_model = gen_raster_ref(vec, cfg, working_directory)
+    raster_ref, tiles_model = gen_raster_ref(vec, output_path, masks_name,
+                                             working_directory)
 
     parameters["in"] = raster_ref
 
@@ -303,9 +312,9 @@ def split_sel(model_selection, tiles, working_directory, epsg):
         tile_mod_sel = os.path.join(working_directory,
                                     tile_mod_sel_name + ".sqlite")
         clause = "SELECT * FROM {}".format(tile_mod_sel_name_tmp)
-        cmd = 'ogr2ogr -sql "{}" -dialect "SQLite" -f "SQLite" -s_srs {} -t_srs {} -nln {} {} {}'.format(
-            clause, epsg, epsg, tile_mod_sel_name.lower(), tile_mod_sel,
-            tile_mod_sel_tmp)
+        cmd = (f'ogr2ogr -sql "{clause}" -dialect "SQLite" -f "SQLite" -s_srs '
+               f'{epsg} -t_srs {epsg} -nln {tile_mod_sel_name.lower()}'
+               f' {tile_mod_sel} {tile_mod_sel_tmp}')
         run(cmd)
 
         os.remove(tile_mod_sel_tmp)
@@ -355,7 +364,16 @@ def update_flags(vec_in, runs, flag_val="XXXX", table_name="output"):
         conn.commit()
 
 
-def samples_selection(model, cfg, working_directory, logger=LOGGER):
+def samples_selection(model: str,
+                      working_directory: str,
+                      output_path: str,
+                      runs: int,
+                      epsg: str,
+                      masks_name: str,
+                      parameters: Dict[str],
+                      data_field: str,
+                      random_seed: Optional[Union[None, int]] = None,
+                      logger=LOGGER):
     """
     compute sample selection.
 
@@ -371,16 +389,13 @@ def samples_selection(model, cfg, working_directory, logger=LOGGER):
         root logger
     """
     from iota2.Common import OtbAppBank
-    from iota2.Common import ServiceConfigFile as SCF
+    # from iota2.Common import ServiceConfigFile as SCF
 
-    # because serviceConfigFile's objects are not serializable
-    if not isinstance(cfg, SCF.serviceConfigFile):
-        cfg = SCF.serviceConfigFile(cfg)
+    # iota2_directory = cfg.getParam('chain', 'outputPath')
+    # runs = cfg.getParam('chain', 'runs')
+    # epsg = cfg.getParam('GlobChain', 'proj')
 
-    iota2_directory = cfg.getParam('chain', 'outputPath')
-    runs = cfg.getParam('chain', 'runs')
-    epsg = cfg.getParam('GlobChain', 'proj')
-    samples_sel_dir = os.path.join(iota2_directory, "samplesSelection")
+    samples_sel_dir = os.path.join(output_path, "samplesSelection")
 
     merged_stats = model.replace(".shp", ".xml")
     if os.path.exists(merged_stats):
@@ -393,8 +408,8 @@ def samples_selection(model, cfg, working_directory, logger=LOGGER):
     model_name = os.path.splitext(os.path.basename(model))[0].split("_")[2]
     seed = os.path.splitext(os.path.basename(model))[0].split("_")[4]
 
-    logger.info("Launch sample selection for the model '{}' run {}".format(
-        model_name, seed))
+    logger.info(
+        f"Launch sample selection for the model {model_name} run {seed}")
 
     # merge stats
     stats = fut.FileSearch_AND(samples_sel_dir, True,
@@ -404,17 +419,18 @@ def samples_selection(model, cfg, working_directory, logger=LOGGER):
 
     # samples Selection
     sel_parameters, tiles_model = get_sample_selection_param(
-        cfg, model_name, merged_stats, model, wdir)
+        model_name, merged_stats, model, wdir, parameters, data_field,
+        masks_name, output_path, random_seed)
 
-    logger.debug("SampleSelection parameters : {}".format(
-        print_dict(sel_parameters)))
+    logger.debug(f"SampleSelection parameters : {print_dict(sel_parameters)}")
 
     sample_sel_app = OtbAppBank.CreateSampleSelectionApplication(
         sel_parameters)
     sample_sel_app.ExecuteAndWriteOutput()
     logger.info("sample selection terminated")
 
-    # update samples flag -> keep current values in seed field and set 'XXXX' values to the others
+    # update samples flag -> keep current values in seed field and
+    # set 'XXXX' values to the others
     update_flags(sel_parameters["out"], runs)
 
     # split by tiles
