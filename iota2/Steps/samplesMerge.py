@@ -62,7 +62,15 @@ class samplesMerge(IOTA2Step.Step):
             must be a lambda function.
         """
         step_function = lambda x: samples_merge.samples_merge(
-            x, self.cfg, self.workingDirectory)
+            x,
+            SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath'),
+            SCF.serviceConfigFile(self.cfg).getParam('chain', 'regionField'),
+            SCF.serviceConfigFile(self.cfg).getParam('chain', 'runs'),
+            SCF.serviceConfigFile(self.cfg).getParam('chain',
+                                                     'enableCrossValidation'),
+            SCF.serviceConfigFile(self.cfg).getParam(
+                'argTrain', 'dempster_shafer_SAR_Opt_fusion'), self.
+            workingDirectory)
         return step_function
 
     def step_outputs(self):
