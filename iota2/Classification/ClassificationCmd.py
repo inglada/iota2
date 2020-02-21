@@ -17,7 +17,6 @@
 import argparse
 import os
 import re
-from config import Config
 from osgeo import gdal, ogr, osr
 from iota2.Common import FileUtils as fu
 from iota2.Common import ServiceConfigFile as SCF
@@ -25,24 +24,17 @@ from iota2.Common.Utils import run
 
 
 def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
-                         fieldRegion, N, pathToCmdClassif, pathOut, RAM,
-                         pathWd):
+                         fieldRegion, pathToCmdClassif, pathOut, RAM, pathWd):
 
     if not isinstance(cfg, SCF.serviceConfigFile):
         cfg = SCF.serviceConfigFile(cfg)
     pathConf = cfg.pathConf
     classif = cfg.getParam('argTrain', 'classifier')
-    shapeRegion = cfg.getParam('chain', 'regionPath')
     outputPath = cfg.getParam('chain', 'outputPath')
     scriptPath = os.path.join(fu.get_iota2_project_dir(), "iota2")
     classifMode = cfg.getParam('argClassification', 'classifMode')
     pixType = fu.getOutputPixType(cfg.getParam('chain', 'nomenclaturePath'))
-    enable_autoContext = cfg.getParam('chain', 'enable_autoContext')
-    Stack_ind = fu.getFeatStackName(pathConf)
     AllCmd = []
-
-    allTiles_s = cfg.getParam('chain', 'listTile')
-    allTiles = allTiles_s.split(" ")
 
     maskFiles = pathOut + "/MASK"
     if not os.path.exists(maskFiles):
@@ -84,7 +76,6 @@ def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
             maskSHP = pathToRT + "/" + shpRName + "_region_" + model_Mask + "_" + tile + ".shp"
             maskTif = shpRName + "_region_" + model_Mask + "_" + tile + ".tif"
             CmdConfidenceMap = ""
-            confidenceMap = ""
             confidenceMap_name = "{}_model_{}_confidence_seed_{}{}.tif".format(
                 tile, model, seed, suffix)
             CmdConfidenceMap = " -confmap " + os.path.join(
@@ -112,7 +103,6 @@ def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
 
             out = pathOut + "/Classif_" + tile + "_model_" + model + "_seed_" + seed + suffix + ".tif"
 
-            cmdcpy = ""
             #hpc case
             if pathWd != None:
                 out = "$TMPDIR/Classif_" + tile + "_model_" + model + "_seed_" + seed + suffix + ".tif"
@@ -122,7 +112,6 @@ def launchClassification(model, cfg, stat, pathToRT, pathToImg, pathToRegion,
             pixType_cmd = " -pixType " + pixType
             if pathWd != None:
                 pixType_cmd = pixType_cmd + " --wd $TMPDIR "
-            cmdcpy = ""
             cmd = appli + " -in " + pathToFeat + " -model " + path + " -mask " + pathOut + "/MASK/" + maskTif + " -out " + out + " " + pixType_cmd + " -ram " + str(
                 RAM) + " " + CmdConfidenceMap
 
@@ -198,9 +187,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # load configuration file
-    cfg = SCF.serviceConfigFile(args.pathConf)
+    CFG = SCF.serviceConfigFile(args.pathConf)
 
-    launchClassification(args.model, cfg, args.stat, args.pathToRT,
+    launchClassification(args.model, CFG, args.stat, args.pathToRT,
                          args.pathToImg, args.pathToRegion, args.fieldRegion,
                          args.N, args.pathToCmdClassif, args.pathOut,
                          args.pathWd)
