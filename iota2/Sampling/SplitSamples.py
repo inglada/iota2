@@ -14,47 +14,46 @@
 #
 # =========================================================================
 
-import argparse
 import os
 import logging
 from typing import List, Optional
 
-from Common import ServiceConfigFile as SCF
-from Common import FileUtils as fut
-from Common.Utils import run
-from Sampling import SplitInSubSets as subset
+# from Common import ServiceConfigFile as SCF
+# from Common import FileUtils as fut
+# from Common.Utils import run
+# from Sampling import SplitInSubSets as subset
 
-logger = logging.getLogger(__name__)
-logger.addHandler(logging.NullHandler())
+LOGGER = logging.getLogger(__name__)
+LOGGER.addHandler(logging.NullHandler())
 
 
 def get_ordered_learning_samples(learning_directory: str) -> List[str]:
     """
-    scan learning directory and return a list of files ordered considering 
+    scan learning directory and return a list of files ordered considering
     model and seed
 
     Parameters
     ----------
     learning_directory : str
         path to the learning directory
-    
+
     Return
     ------
     list
         list of path
     """
     import operator
-    from Common.FileUtils import FileSearch_AND
+    from iota2.Common.FileUtils import FileSearch_AND
 
-    TILE_POSITION = 0
-    MODEL_POSITION = 2
-    SEED_POSITION = 3
+    tile_position = 0
+    model_position = 2
+    seed_position = 3
 
     learning_files = FileSearch_AND(learning_directory, False,
                                     "_Samples_learn.sqlite")
     files_indexed = [
-        (c_file.split("_")[MODEL_POSITION], c_file.split("_")[TILE_POSITION],
-         int(c_file.split("_")[SEED_POSITION].replace("seed", "")),
+        (c_file.split("_")[model_position], c_file.split("_")[tile_position],
+         int(c_file.split("_")[seed_position].replace("seed", "")),
          os.path.join(learning_directory, "{}.sqlite".format(c_file)))
         for c_file in learning_files
     ]
@@ -66,19 +65,29 @@ def get_ordered_learning_samples(learning_directory: str) -> List[str]:
 def split_superpixels_and_reference(
         vector_file: str,
         superpix_column: Optional[str] = "superpix",
-        DRIVER: Optional[str] = "SQLite",
+        driver: Optional[str] = "SQLite",
         working_dir: Optional[str] = None,
-        logger: Optional[logging.Logger] = logger) -> None:
+        logger: Optional[logging.Logger] = LOGGER) -> None:
     """
     reference feature contains the value 0 in column 'superpix'
+    Parameters
+    ----------
+    vector_file : string
+                the input vector file
+    superpix_column: string
+                the column name for superpixels in vector_file
+    driver : string
+            the vector_file format
+    Return
+    ------
+    None
     """
-    #~ import sqlite3
     import ogr
     import shutil
 
-    from Common.Utils import run
+    from iota2.Common.Utils import run
 
-    driver = ogr.GetDriverByName(DRIVER)
+    driver = ogr.GetDriverByName(driver)
     data_source = driver.Open(vector_file, 0)
     layer = data_source.GetLayer()
     table_name = layer.GetName()
@@ -98,13 +107,13 @@ def split_superpixels_and_reference(
                           vector_name.replace("learn.sqlite", "REF.sqlite"))
 
     logger.info(
-        "Extract superpixel samples from file {} and save it in {}".format(
-            superpix_db, superpix_db))
-    sql = "select * from {} where {}!={}".format(table_name, superpix_column,
-                                                 0)
-    cmd = 'ogr2ogr -t_srs EPSG:{} -s_srs EPSG:{} -nln {} -f "{}" -sql "{}" {} {}'.format(
-        epsg_code, epsg_code, table_name, DRIVER, sql, superpix_db,
-        vector_file)
+        f"Extract superpixel samples from file {superpix_db} and save it "
+        f"in {superpix_db}")
+    sql = f"select * from {table_name} where {superpix_column}!={0}"
+    cmd = (
+        f'ogr2ogr -t_srs EPSG:{epsg_code} -s_srs EPSG:{epsg_code} -nln'
+        f' {table_name} -f "{driver}" -sql "{sql}" {superpix_db} {vector_file}'
+    )
     run(cmd)
 
     logger.info(
