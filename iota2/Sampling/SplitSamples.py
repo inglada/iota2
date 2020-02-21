@@ -19,10 +19,10 @@ import os
 import logging
 from typing import List, Optional
 
-from Common import ServiceConfigFile as SCF
-from Common import FileUtils as fut
-from Common.Utils import run
-from Sampling import SplitInSubSets as subset
+from iota2.Common import ServiceConfigFile as SCF
+from iota2.Common import FileUtils as fut
+from iota2.Common.Utils import run
+from iota2.Sampling import SplitInSubSets as subset
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
