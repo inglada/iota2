@@ -56,7 +56,6 @@ class classification(IOTA2Step.Step):
             the return could be and iterable or a callable
         """
         from iota2.Common import FileUtils as fut
-        from iota2.Common.FileUtils import findCurrentTileInString
         from iota2.Classification.ImageClassifier import autoContext_classification_param
         from iota2.Common.ServiceConfigFile import iota2_parameters
 
@@ -85,8 +84,8 @@ class classification(IOTA2Step.Step):
                 None,
                 "working_dir":
                 param[6],
-                "configuration_file":
-                param[7],
+                "tile_name":
+                param[9],
                 "sar_optical_post_fusion":
                 SCF.serviceConfigFile(self.cfg).getParam(
                     'argTrain', 'dempster_shafer_SAR_Opt_fusion'),
@@ -94,19 +93,15 @@ class classification(IOTA2Step.Step):
                 SCF.serviceConfigFile(self.cfg).getParam(
                     'chain', 'outputPath'),
                 "sensors_parameters":
-                running_parameters.get_sensors_parameters(
-                    tile_name=findCurrentTileInString(
-                        param[1],
-                        SCF.serviceConfigFile(self.cfg).getParam(
-                            'chain', 'listTile').split("_"))),
+                running_parameters.get_sensors_parameters(tile_name=param[9]),
                 "pixel_type":
-                param[8],
+                param[17],
                 "number_of_chunks":
                 self.scikit_tile_split,
                 "targeted_chunk":
                 target_chunk,
                 "ram":
-                param[10]
+                param[19]
             } for param in parameters
                           for target_chunk in range(self.scikit_tile_split)]
         return parameters
@@ -126,8 +121,8 @@ class classification(IOTA2Step.Step):
         from iota2.MPI import launch_tasks as tLauncher
 
         if self.enable_autoContext is False and self.use_scikitlearn is False:
-            launchPythonCmd = tLauncher.launchPythonCmd
-            step_function = lambda x: launchPythonCmd(
+            launch_py_cmd = tLauncher.launchPythonCmd
+            step_function = lambda x: launch_py_cmd(
                 imageClassifier.launchClassification, *x)
         elif self.enable_autoContext is True and self.use_scikitlearn is False:
             running_parameters = iota2_parameters(self.cfg.pathConf)
