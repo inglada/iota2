@@ -116,7 +116,7 @@ class iota_testVectorFormatting(unittest.TestCase):
         we can only check if there is expected number of features with
         expected fields and some features values
         """
-        from iota2.Sampling.VectorFormatting import VectorFormatting
+        from iota2.Sampling.VectorFormatting import vector_formatting
         from iota2.Common import ServiceConfigFile as SCF
         from iota2.Common import IOTA2Directory
         from iota2.Common.Utils import run
@@ -174,7 +174,37 @@ class iota_testVectorFormatting(unittest.TestCase):
         changeName(cloud_path, "region", "cloud")
 
         # launch function
-        VectorFormatting(cfg, "T31TCJ", workingDirectory=None)
+        ratio = cfg.getParam('chain', 'ratio')
+        random_seed = cfg.getParam('chain', 'random_seed')
+        enable_cross_validation = cfg.getParam("chain",
+                                               "enableCrossValidation")
+        enable_split_ground_truth = cfg.getParam('chain', 'splitGroundTruth')
+        fusion_merge_all_validation = cfg.getParam(
+            'chain', 'fusionOfClassificationAllSamplesValidation')
+        merge_final_classifications = cfg.getParam(
+            'chain', 'merge_final_classifications')
+        merge_final_classifications_ratio = cfg.getParam(
+            'chain', 'merge_final_classifications_ratio')
+        region_vec = cfg.getParam('chain', 'regionPath')
+        epsg = cfg.getParam('GlobChain', 'proj')
+        region_field = (cfg.getParam('chain', 'regionField'))
+        vector_formatting("T31TCJ",
+                          test_output,
+                          ground_truth,
+                          "code",
+                          0,
+                          ratio,
+                          random_seed,
+                          enable_cross_validation,
+                          enable_split_ground_truth,
+                          fusion_merge_all_validation,
+                          runs,
+                          epsg,
+                          region_field,
+                          merge_final_classifications,
+                          merge_final_classifications_ratio,
+                          region_vec,
+                          working_directory=None)
 
         # assert
         nb_features_origin = len(
@@ -183,6 +213,7 @@ class iota_testVectorFormatting(unittest.TestCase):
                                 field="code",
                                 mode="all",
                                 elemType="str"))
+
         test_vector = fut.FileSearch_AND(
             os.path.join(test_output, "formattingVectors"), True,
             "T31TCJ.shp")[0]
@@ -209,7 +240,7 @@ class iota_testVectorFormatting(unittest.TestCase):
         """
         test the extraction of samples by class according to a ratio
         """
-        from Sampling.VectorFormatting import extract_maj_vote_samples
+        from iota2.Sampling.VectorFormatting import extract_maj_vote_samples
         from collections import Counter
 
         # define inputs
@@ -264,11 +295,11 @@ class iota_testVectorFormatting(unittest.TestCase):
         not be compare to a reference. That is the reason why we check 
         the number of 'OR' which must be the rest of nb_id / 1000.0
         """
-        from Sampling.VectorFormatting import BuiltWhereSQL_exp
+        from iota2.Sampling.VectorFormatting import built_where_sql_exp
 
         nb_id = 2000
         sample_id_to_extract_low = [str(id_) for id_ in range(nb_id)]
-        sql_clause = BuiltWhereSQL_exp(sample_id_to_extract_low, "in")
+        sql_clause = built_where_sql_exp(sample_id_to_extract_low, "in")
         nb_or_test = sql_clause.count("OR")
         self.assertEqual(1, nb_or_test, msg="SQLite expression failed")
 
@@ -276,18 +307,18 @@ class iota_testVectorFormatting(unittest.TestCase):
         """
         test the split of a given vector
         """
-        from Sampling.VectorFormatting import splitbySets
+        from iota2.Sampling.VectorFormatting import split_by_sets
 
         # launch function
-        s0_val, s0_learn, s1_val, s1_learn = splitbySets(
+        s0_val, s0_learn, s1_val, s1_learn = split_by_sets(
             self.in_vector,
             2,
             self.test_working_directory,
             2154,
             2154,
             "T31TCJ",
-            crossValid=False,
-            splitGroundTruth=True)
+            cross_valid=False,
+            split_ground_truth=True)
         # assert
         seed_0 = fut.getFieldElement(self.in_vector,
                                      driverName="ESRI Shapefile",
@@ -343,7 +374,7 @@ class iota_testVectorFormatting(unittest.TestCase):
         """
         test the extraction of fields
         """
-        from iota2.Sampling.VectorFormatting import keepFields
+        from iota2.Sampling.VectorFormatting import keep_fields
 
         # define inputs
         fields_to_keep = ["region", "code"]
@@ -352,7 +383,7 @@ class iota_testVectorFormatting(unittest.TestCase):
                                    test_vector_name)
 
         # launch function
-        keepFields(self.in_vector, test_vector, fields=fields_to_keep)
+        keep_fields(self.in_vector, test_vector, fields=fields_to_keep)
 
         # assert
         test_vector_fields = fut.getAllFieldsInShape(test_vector,
@@ -368,7 +399,7 @@ class iota_testVectorFormatting(unittest.TestCase):
         """
         from iota2.Sampling.VectorFormatting import create_tile_region_masks
         from iota2.Common.Utils import run
-        from TestsUtils import rasterToArray
+        from iota2.Tests.UnitTests.TestsUtils import rasterToArray
         import numpy as np
 
         # define inputs
@@ -399,7 +430,7 @@ class iota_testVectorFormatting(unittest.TestCase):
         """
         from iota2.Sampling.VectorFormatting import split_vector_by_region
         from iota2.Common.Utils import run
-        from Iota2Tests import random_update
+        from iota2.Tests.UnitTests.Iota2Tests import random_update
 
         # define inputs
         nb_features_origin = len(
