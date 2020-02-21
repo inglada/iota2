@@ -68,13 +68,18 @@ class samplingLearningPolygons(IOTA2Step.Step):
             must be a lambda function.
         """
         from iota2.Sampling import SamplesSelection
-        from iota2.Common import FileUtils as fut
-        output_path = self.cfg.getParam("chain", "outputPath")
-        runs = self.cfg.getParam('chain', 'runs')
-        epsg = self.cfg.getParam('GlobChain', 'proj')
-        random_seed = self.cfg.getParam('chain', 'random_seed')
-        data_field = self.cfg.getParam('chain', 'dataField').lower()
-        parameters = dict(self.cfg.getParam('argTrain', 'sampleSelection'))
+
+        output_path = SCF.serviceConfigFile(self.cfg).getParam(
+            "chain", "outputPath")
+        runs = SCF.serviceConfigFile(self.cfg).getParam('chain', 'runs')
+        epsg = SCF.serviceConfigFile(self.cfg).getParam('GlobChain', 'proj')
+        random_seed = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'random_seed')
+        data_field = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'dataField').lower()
+        parameters = dict(
+            SCF.serviceConfigFile(self.cfg).getParam('argTrain',
+                                                     'sampleSelection'))
         masks_name = "MaskCommunSL.tif"
         step_function = lambda x: SamplesSelection.samples_selection(
             x, self.workingDirectory, output_path, runs, epsg, masks_name,
