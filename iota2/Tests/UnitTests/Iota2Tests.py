@@ -604,7 +604,7 @@ class iota_testSamplerApplications(unittest.TestCase):
             config_path_test).get_sensors_parameters(tile)
         try:
             sar_optical_flag = self.config.getParam(
-                "chain", "dempster_shafer_SAR_Opt_fusion")
+                "argTrain", "dempster_shafer_SAR_Opt_fusion")
         except Exception as exc:
             print(exc)
             sar_optical_flag = False
@@ -697,7 +697,7 @@ class iota_testSamplerApplications(unittest.TestCase):
             config_path_test).get_sensors_parameters(tile)
         try:
             sar_optical_flag = config_test.getParam(
-                "chain", "dempster_shafer_SAR_Opt_fusion")
+                "argTrain", "dempster_shafer_SAR_Opt_fusion")
         except Exception as exc:
             print(exc)
             sar_optical_flag = False
@@ -788,7 +788,7 @@ class iota_testSamplerApplications(unittest.TestCase):
             config_path_test).get_sensors_parameters(tile)
         try:
             sar_optical_flag = config_test.getParam(
-                "chain", "dempster_shafer_SAR_Opt_fusion")
+                "argTrain", "dempster_shafer_SAR_Opt_fusion")
         except Exception as exc:
             print(exc)
             sar_optical_flag = False
@@ -885,7 +885,7 @@ class iota_testSamplerApplications(unittest.TestCase):
             config_path_test).get_sensors_parameters(tile)
         try:
             sar_optical_flag = config_test.getParam(
-                "chain", "dempster_shafer_SAR_Opt_fusion")
+                "argTrain", "dempster_shafer_SAR_Opt_fusion")
         except Exception as exc:
             print(exc)
             sar_optical_flag = False
@@ -981,7 +981,7 @@ class iota_testSamplerApplications(unittest.TestCase):
             config_path_test).get_sensors_parameters(tile)
         try:
             sar_optical_flag = config_test.getParam(
-                "chain", "dempster_shafer_SAR_Opt_fusion")
+                "argTrain", "dempster_shafer_SAR_Opt_fusion")
         except Exception as exc:
             print(exc)
             sar_optical_flag = False
@@ -1185,7 +1185,7 @@ class iota_testSamplerApplications(unittest.TestCase):
             config_path_test).get_sensors_parameters(tile)
         try:
             sar_optical_flag = config_test.getParam(
-                "chain", "dempster_shafer_SAR_Opt_fusion")
+                "argTrain", "dempster_shafer_SAR_Opt_fusion")
         except Exception as exc:
             print(exc)
             sar_optical_flag = False
@@ -1297,7 +1297,7 @@ class iota_testSamplerApplications(unittest.TestCase):
             config_path_test).get_sensors_parameters(tile)
         try:
             sar_optical_flag = config_test.getParam(
-                "chain", "dempster_shafer_SAR_Opt_fusion")
+                "argTrain", "dempster_shafer_SAR_Opt_fusion")
         except Exception as exc:
             print(exc)
             sar_optical_flag = False
@@ -1407,7 +1407,7 @@ class iota_testSamplerApplications(unittest.TestCase):
             config_path_test).get_sensors_parameters(tile)
         try:
             sar_optical_flag = config_test.getParam(
-                "chain", "dempster_shafer_SAR_Opt_fusion")
+                "argTrain", "dempster_shafer_SAR_Opt_fusion")
         except Exception as exc:
             print(exc)
             sar_optical_flag = False
@@ -1517,7 +1517,7 @@ class iota_testSamplerApplications(unittest.TestCase):
             config_path_test).get_sensors_parameters(tile)
         try:
             sar_optical_flag = config_test.getParam(
-                "chain", "dempster_shafer_SAR_Opt_fusion")
+                "argTrain", "dempster_shafer_SAR_Opt_fusion")
         except Exception as exc:
             print(exc)
             sar_optical_flag = False
@@ -1681,7 +1681,7 @@ class iota_testSamplerApplications(unittest.TestCase):
             config_path_test).get_sensors_parameters(tile)
         try:
             sar_optical_flag = config_test.getParam(
-                "chain", "dempster_shafer_SAR_Opt_fusion")
+                "argTrain", "dempster_shafer_SAR_Opt_fusion")
         except Exception as exc:
             print(exc)
             sar_optical_flag = False
@@ -1794,7 +1794,7 @@ class iota_testSamplerApplications(unittest.TestCase):
             config_path_test).get_sensors_parameters(tile)
         try:
             sar_optical_flag = config_test.getParam(
-                "chain", "dempster_shafer_SAR_Opt_fusion")
+                "argTrain", "dempster_shafer_SAR_Opt_fusion")
         except Exception as exc:
             print(exc)
             sar_optical_flag = False
@@ -1907,7 +1907,7 @@ class iota_testSamplerApplications(unittest.TestCase):
             config_path_test).get_sensors_parameters(tile)
         try:
             sar_optical_flag = config_test.getParam(
-                "chain", "dempster_shafer_SAR_Opt_fusion")
+                "argTrain", "dempster_shafer_SAR_Opt_fusion")
         except Exception as exc:
             print(exc)
             sar_optical_flag = False
@@ -2019,7 +2019,7 @@ class iota_testSamplerApplications(unittest.TestCase):
             config_path_test).get_sensors_parameters(tile)
         try:
             sar_optical_flag = config_test.getParam(
-                "chain", "dempster_shafer_SAR_Opt_fusion")
+                "argTrain", "dempster_shafer_SAR_Opt_fusion")
         except Exception as exc:
             print(exc)
             sar_optical_flag = False
