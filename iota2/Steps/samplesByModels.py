@@ -45,9 +45,7 @@ class samplesByModels(IOTA2Step.Step):
             the return could be and iterable or a callable
         """
         return VSM.tile_vectors_to_models(
-            os.path.join(self.output_path, "learningSamples"),
-            SCF.serviceConfigFile(self.cfg).getParam(
-                'argTrain', 'dempster_shafer_SAR_Opt_fusion'))
+            os.path.join(self.output_path, "learningSamples"))
 
     def step_execute(self):
         """
@@ -58,7 +56,8 @@ class samplesByModels(IOTA2Step.Step):
             must be a lambda function.
         """
         step_function = lambda x: VSM.vector_samples_merge(
-            x, self.cfg.getParam("chain", "outputPath"))
+            x,
+            SCF.serviceConfigFile(self.cfg).getParam("chain", "outputPath"))
         return step_function
 
     def step_outputs(self):
