@@ -17,13 +17,13 @@
 import argparse
 import os
 import shutil
-from config import Config
+from typing import List
+
 from osgeo import gdal
 from osgeo import ogr
 from osgeo import osr
 from osgeo.gdalconst import *
 from iota2.Common import FileUtils as fu
-from iota2.Common import ServiceConfigFile as SCF
 """
 It's in this script that tile's priority are manage. This priority use tile origin. If you want to change priority, you have to modify
 these functions :
@@ -418,17 +418,26 @@ def genTileEnvPrio(ObjListTile, out, tmpFile, proj):
                                    [".prj", ".shp", ".dbf", ".shx"])
 
 
-def GenerateShapeTile(tiles, pathTiles, pathOut, pathWd, cfg):
+def generate_shape_tile(tiles: List[str], pathOut: str, pathWd: str,
+                        output_path: str, proj: int) -> None:
+    """generate tile's envelope with priority management
 
-    if not isinstance(cfg, SCF.serviceConfigFile):
-        cfg = SCF.serviceConfigFile(cfg)
+    Parameters
+    ----------
+    tiles : list
+        list of tiles envelopes to generate
+    pathOut : str
+        output directory
+    pathWd : str
+        working directory
+    output_path : str
+        iota2 output directory
+    proj : int
+        epsg code of target projection
+    """
 
-    pathConf = cfg.pathConf
-    #fu.cleanFiles(cfg)
-    featuresPath = os.path.join(cfg.getParam('chain', 'outputPath'),
-                                "features")
+    featuresPath = os.path.join(output_path, "features")
 
-    #~ cMaskName = fu.getCommonMaskName(cfg)
     cMaskName = "MaskCommunSL"
     for tile in tiles:
         if not os.path.exists(featuresPath + "/" + tile):
@@ -442,9 +451,6 @@ def GenerateShapeTile(tiles, pathTiles, pathOut, pathWd, cfg):
         featuresPath + "/" + Ctile + "/tmp/" + cMaskName + ".tif"
         for Ctile in tiles
     ]
-
-    tmp_proj = cfg.getParam('GlobChain', 'proj')
-    proj = int(tmp_proj.split(":")[-1])
 
     ObjListTile = [
         Tile(currentTile, name) for currentTile, name in zip(common, tiles)
@@ -469,35 +475,39 @@ def GenerateShapeTile(tiles, pathTiles, pathOut, pathWd, cfg):
 
 
 if __name__ == "__main__":
-
-    parser = argparse.ArgumentParser(
+    from iota2.Common import ServiceConfigFile as SCF
+    PARSER = argparse.ArgumentParser(
         description=
         "This function allow you to generate tile's envelope considering tile's priority"
     )
-    parser.add_argument("-t",
+    PARSER.add_argument("-t",
                         dest="tiles",
                         help="All the tiles",
                         nargs='+',
                         required=True)
-    parser.add_argument("-t.path",
+    PARSER.add_argument("-t.path",
                         dest="pathTiles",
                         help="where are stored features",
                         required=True)
-    parser.add_argument("-out", dest="pathOut", help="path out", required=True)
-    parser.add_argument("--wd",
+    PARSER.add_argument("-out", dest="pathOut", help="path out", required=True)
+    PARSER.add_argument("--wd",
                         dest="pathWd",
                         help="path to the working directory",
                         default=None,
                         required=False)
-    parser.add_argument(
+    PARSER.add_argument(
         "-conf",
         help=
         "path to the configuration file which describe the learning method (mandatory)",
         dest="pathConf",
         required=True)
-    args = parser.parse_args()
+    ARGS = PARSER.parse_args()
     # load configuration file
-    cfg = SCF.serviceConfigFile(args.pathConf)
+
+    CFG = SCF.serviceConfigFile(ARGS.pathConf)
+    OUTPUT_PATH = CFG.getParam("chain", "outputPath")
+    PROJ = int(CFG.getParam('GlobChain', 'proj').split(":")[-1])
+
     # launch GenerateShapeTile
-    GenerateShapeTile(args.tiles, args.pathTiles, args.pathOut, args.pathWd,
-                      cfg)
+    generate_shape_tile(ARGS.tiles, ARGS.pathOut, ARGS.pathWd, OUTPUT_PATH,
+                        PROJ)

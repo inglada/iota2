@@ -311,7 +311,7 @@ class iota_testSamplesSelection(unittest.TestCase):
         random_seed = cfg.getParam('chain', 'random_seed')
         data_field = cfg.getParam('chain', 'dataField').lower()
         parameters = dict(cfg.getParam('argTrain', 'sampleSelection'))
-        masks_name = fut.getCommonMaskName(cfg) + ".tif"
+        masks_name = "MaskCommunSL.tif"
         samples_selection(in_shape, self.test_working_directory, output_path,
                           runs, epsg, masks_name, parameters, data_field,
                           random_seed)

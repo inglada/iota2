@@ -75,7 +75,7 @@ class samplingLearningPolygons(IOTA2Step.Step):
         random_seed = self.cfg.getParam('chain', 'random_seed')
         data_field = self.cfg.getParam('chain', 'dataField').lower()
         parameters = dict(self.cfg.getParam('argTrain', 'sampleSelection'))
-        masks_name = fut.getCommonMaskName(self.cfg) + ".tif"
+        masks_name = "MaskCommunSL.tif"
         step_function = lambda x: SamplesSelection.samples_selection(
             x, self.workingDirectory, output_path, runs, epsg, masks_name,
             parameters, data_field, random_seed)
