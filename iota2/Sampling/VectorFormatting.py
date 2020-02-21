@@ -468,7 +468,7 @@ def vector_formatting(
         enable_split_ground_truth: bool,
         fusion_merge_all_validation: bool,
         runs: int,
-        epsg: str,
+        epsg: int,
         region_field: str,
         merge_final_classifications: Optional[bool] = False,
         merge_final_classifications_ratio: Optional[float] = None,
@@ -508,7 +508,6 @@ def vector_formatting(
     region_field = region_field.lower()
     split_directory = os.path.join(output_path, "dataAppVal")
     final_directory = os.path.join(output_path, "final")
-    epsg = int(epsg.split(":")[-1])
 
     if not region_vec:
         region_vec = os.path.join(output_path, "MyRegion.shp")
