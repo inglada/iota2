@@ -27,9 +27,7 @@ class VectorFormatting(IOTA2Step.Step):
                                                resources_block_name)
 
         # step variables
-        self.workingDirectory = workingDirectory
-        self.outputPath = SCF.serviceConfigFile(self.cfg).getParam(
-            'chain', 'outputPath')
+        self.working_directory = workingDirectory
 
     def step_description(self):
         """
@@ -57,32 +55,41 @@ class VectorFormatting(IOTA2Step.Step):
             must be a lambda function.
         """
         from iota2.Sampling import VectorFormatting as VF
-        output_path = os.path.join(self.cfg.getParam('chain', 'outputPath'),
-                                   "formattingVectors")
-        ground_truth_vec = self.cfg.getParam('chain', 'groundTruth')
-        data_field = (self.cfg.getParam('chain', 'dataField')).lower()
+        output_path = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'outputPath')
+        ground_truth_vec = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'groundTruth')
+        data_field = (SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'dataField')).lower()
 
-        cloud_threshold = self.cfg.getParam('chain', 'cloud_threshold')
-        ratio = self.cfg.getParam('chain', 'ratio')
-        random_seed = self.cfg.getParam('chain', 'random_seed')
-        enable_cross_validation = self.cfg.getParam('chain',
-                                                    'enableCrossValidation')
-        enable_split_ground_truth = self.cfg.getParam('chain',
-                                                      'splitGroundTruth')
-        fusion_merge_all_validation = self.cfg.getParam(
+        cloud_threshold = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'cloud_threshold')
+        ratio = SCF.serviceConfigFile(self.cfg).getParam('chain', 'ratio')
+        random_seed = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'random_seed')
+        enable_cross_validation = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'enableCrossValidation')
+        enable_split_ground_truth = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'splitGroundTruth')
+        fusion_merge_all_validation = SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'fusionOfClassificationAllSamplesValidation')
-        runs = self.cfg.getParam('chain', 'runs')
-        epsg = int((self.cfg.getParam('GlobChain', 'proj')).split(":")[-1])
-        region_vec = self.cfg.getParam('chain', 'regionPath')
-        region_field = (self.cfg.getParam('chain', 'regionField')).lower()
+        runs = SCF.serviceConfigFile(self.cfg).getParam('chain', 'runs')
+        epsg = int(
+            (SCF.serviceConfigFile(self.cfg).getParam('GlobChain',
+                                                      'proj')).split(":")[-1])
+        region_vec = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'regionPath')
+        region_field = (SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'regionField')).lower()
         if not region_vec:
-            region_vec = os.path.join(self.cfg.getParam("chain", "outputPath"),
-                                      "MyRegion.shp")
+            region_vec = os.path.join(
+                SCF.serviceConfigFile(self.cfg).getParam(
+                    "chain", "outputPath"), "MyRegion.shp")
 
-        merge_final_classifications = self.cfg.getParam(
+        merge_final_classifications = SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'merge_final_classifications')
-        merge_final_classifications_ratio = self.cfg.getParam(
-            'chain', 'merge_final_classifications_ratio')
+        merge_final_classifications_ratio = SCF.serviceConfigFile(
+            self.cfg).getParam('chain', 'merge_final_classifications_ratio')
         step_function = lambda x: VF.vector_formatting(
             x, output_path, ground_truth_vec, data_field, cloud_threshold,
             ratio, random_seed, enable_cross_validation,

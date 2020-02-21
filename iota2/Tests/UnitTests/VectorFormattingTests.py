@@ -186,7 +186,7 @@ class iota_testVectorFormatting(unittest.TestCase):
         merge_final_classifications_ratio = cfg.getParam(
             'chain', 'merge_final_classifications_ratio')
         region_vec = cfg.getParam('chain', 'regionPath')
-        epsg = cfg.getParam('GlobChain', 'proj')
+        epsg = int(cfg.getParam('GlobChain', 'proj').split(":")[-1])
         region_field = (cfg.getParam('chain', 'regionField'))
         vector_formatting("T31TCJ",
                           test_output,

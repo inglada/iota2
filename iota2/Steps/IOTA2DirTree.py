@@ -40,7 +40,9 @@ class IOTA2DirTree(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
-        return [self.cfg]
+        return [
+            SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
+        ]
 
     def step_execute(self):
         """
@@ -59,7 +61,8 @@ class IOTA2DirTree(IOTA2Step.Step):
                                                          'listTile').split(" ")
         output_path = SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'outputPath')
-        running_parameters = iota2_parameters(self.cfg.pathConf)
+        running_parameters = iota2_parameters(
+            SCF.serviceConfigFile(self.cfg).pathConf)
         sensors_parameters = running_parameters.get_sensors_parameters(
             tiles[0])
         sensor_tile_container = sensors_container(tiles[0], None, output_path,

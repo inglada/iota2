@@ -18,10 +18,6 @@ import os
 import logging
 from typing import List, Optional, Dict, Union
 from logging import Logger
-# from Common import ServiceConfigFile as SCF
-# from Common import FileUtils as fut
-# from Common.Utils import run
-# from Sampling import SplitInSubSets as subset
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.NullHandler())
@@ -65,7 +61,7 @@ def get_ordered_learning_samples(learning_directory: str) -> List[str]:
 def split_superpixels_and_reference(
         vector_file: str,
         superpix_column: Optional[str] = "superpix",
-        driver: Optional[str] = "SQLite",
+        driver_in: Optional[str] = "SQLite",
         working_dir: Optional[str] = None,
         logger: Optional[logging.Logger] = LOGGER) -> None:
     """
@@ -87,7 +83,7 @@ def split_superpixels_and_reference(
 
     from iota2.Common.Utils import run
 
-    driver = ogr.GetDriverByName(driver)
+    driver = ogr.GetDriverByName(driver_in)
     data_source = driver.Open(vector_file, 0)
     layer = data_source.GetLayer()
     table_name = layer.GetName()
@@ -112,7 +108,7 @@ def split_superpixels_and_reference(
     sql = f"select * from {table_name} where {superpix_column}!={0}"
     cmd = (
         f'ogr2ogr -t_srs EPSG:{epsg_code} -s_srs EPSG:{epsg_code} -nln'
-        f' {table_name} -f "{driver}" -sql "{sql}" {superpix_db} {vector_file}'
+        f' {table_name} -f "{driver_in}" -sql "{sql}" {superpix_db} {vector_file}'
     )
     run(cmd)
 
@@ -121,7 +117,7 @@ def split_superpixels_and_reference(
         f" in {vector_file}")
     sql = f"select * from {table_name} where {superpix_column}={0}"
     cmd = (f'ogr2ogr -t_srs EPSG:{epsg_code} -s_srs EPSG:{epsg_code} '
-           f'-nln {table_name} -f "{driver}" -sql "{sql}" '
+           f'-nln {table_name} -f "{driver_in}" -sql "{sql}" '
            f'{ref_db} {vector_file}')
     run(cmd)
     shutil.move(ref_db, vector_file)
