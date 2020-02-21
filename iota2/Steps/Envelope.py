@@ -15,18 +15,24 @@
 # =========================================================================
 import os
 
-from Steps import IOTA2Step
-from Common import ServiceConfigFile as SCF
+from iota2.Steps import IOTA2Step
+from iota2.Common import ServiceConfigFile as SCF
+
 
 class Envelope(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "envelope"
-        super(Envelope, self).__init__(cfg, cfg_resources_file, resources_block_name)
+        super(Envelope, self).__init__(cfg, cfg_resources_file,
+                                       resources_block_name)
 
         # step variables
         self.workingDirectory = workingDirectory
-        self.outputPath = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
+        self.outputPath = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'outputPath')
+        self.proj = int(
+            SCF.serviceConfigFile(self.cfg).getParam('GlobChain',
+                                                     'proj').split(":")[-1])
 
     def step_description(self):
         """
@@ -52,18 +58,15 @@ class Envelope(IOTA2Step.Step):
             the function to execute as a lambda function. The returned object
             must be a lambda function.
         """
-        from Sampling import TileEnvelope as env
+        from iota2.Sampling import TileEnvelope as env
 
-        tiles = SCF.serviceConfigFile(self.cfg).getParam('chain', 'listTile').split(" ")
-        pathTilesFeat = os.path.join(self.outputPath, "features")
-
-        step_function = lambda x: env.GenerateShapeTile(tiles, pathTilesFeat,
-                                                        x, self.workingDirectory,
-                                                        self.cfg)
+        tiles = SCF.serviceConfigFile(self.cfg).getParam('chain',
+                                                         'listTile').split(" ")
+        step_function = lambda x: env.generate_shape_tile(
+            tiles, x, self.workingDirectory, self.outputPath, self.proj)
         return step_function
 
     def step_outputs(self):
         """
         """
         pass
-        

@@ -409,16 +409,6 @@ def onlySAR(cfg):
     return retour
 
 
-def getCommonMaskName(cfg):
-    """
-        Test if only SAR data is available
-        :param cfg: class serviceConfigFile
-        :return retour: string name of the mask
-    """
-    mask_name = "MaskCommunSL"
-    return mask_name
-
-
 def dateInterval(dateMin, dataMax, tr):
     """
     dateMin [string] : Ex -> 20160101

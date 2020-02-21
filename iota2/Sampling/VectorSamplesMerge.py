@@ -18,42 +18,47 @@ import argparse
 import os
 import shutil
 import logging
-from config import Config
+from logging import Logger
+from typing import List, Optional
 from iota2.Common import FileUtils as fu
 from iota2.Common import ServiceConfigFile as SCF
-from iota2.Common.Utils import run
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
-def split_vectors_by_regions(path_list):
+def split_vectors_by_regions(path_list: List[str]) -> List[str]:
     """
+    split vectors by regions
+    IN:
+        path_list [list(str)]: list of path
+    OUT:
+        list[str] : the list of vector by region
     """
     regions_position = 2
     seed_position = 3
 
     output = []
-    seedVector_ = fu.sortByFirstElem([
+    seed_vector_ = fu.sortByFirstElem([
         (os.path.split(vec)[-1].split("_")[seed_position], vec)
         for vec in path_list
     ])
-    seedVector = [seedVector for seed, seedVector in seedVector_]
+    seed_vector = [seed_vector for seed, seed_vector in seed_vector_]
 
-    for currentSeed in seedVector:
-        regionVector = [(os.path.split(vec)[-1].split("_")[regions_position],
-                         vec) for vec in currentSeed]
-        regionVector_sorted_ = fu.sortByFirstElem(regionVector)
-        regionVector_sorted = [
-            r_vectors for region, r_vectors in regionVector_sorted_
+    for current_seed in seed_vector:
+        region_vector = [(os.path.split(vec)[-1].split("_")[regions_position],
+                          vec) for vec in current_seed]
+        region_vector_sorted_ = fu.sortByFirstElem(region_vector)
+        region_vector_sorted = [
+            r_vectors for region, r_vectors in region_vector_sorted_
         ]
-        for seed_vect_region in regionVector_sorted:
+        for seed_vect_region in region_vector_sorted:
             output.append(seed_vect_region)
     return output
 
 
-def tile_vectors_to_models(iota2_learning_samples_dir, sep_sar_opt=False):
+def tile_vectors_to_models(iota2_learning_samples_dir: str) -> List[str]:
     """
-    use to feed vectorSamplesMerge function
+    use to feed vector_samples_merge function
 
     Parameters
     ----------
@@ -77,96 +82,119 @@ def tile_vectors_to_models(iota2_learning_samples_dir, sep_sar_opt=False):
     return vect_to_model
 
 
-def check_duplicates(sqlite_file, logger=logger):
+def check_duplicates(sqlite_file: str,
+                     logger: Optional[Logger] = LOGGER) -> None:
     """
+    check_duplicates
+    Parameters
+    ----------
+    sqlite_file : string
+        the input sqlite file
+    Return
+    ------
+    None
     """
     import sqlite3 as lite
-    import sys
     conn = lite.connect(sqlite_file)
     cursor = conn.cursor()
-    sql_clause = "select * from output where ogc_fid in (select min(ogc_fid) from output group by GEOMETRY having count(*) >= 2);"
+    sql_clause = ("select * from output where ogc_fid in (select min(ogc_fid)"
+                  " from output group by GEOMETRY having count(*) >= 2);")
     cursor.execute(sql_clause)
     results = cursor.fetchall()
 
     if results:
-        sql_clause = "delete from output where ogc_fid in (select min(ogc_fid) from output group by GEOMETRY having count(*) >= 2);"
+        sql_clause = (
+            "delete from output where ogc_fid in (select min(ogc_fid)"
+            " from output group by GEOMETRY having count(*) >= 2);")
         cursor.execute(sql_clause)
         conn.commit()
-        logger.warning("{} were removed in {}".format(len(results),
-                                                      sqlite_file))
+        logger.warning(f"{len(results)} were removed in {sqlite_file}")
 
 
-def cleanRepo(outputPath, logger=logger):
+def clean_repo(output_path: str, logger: Optional[Logger] = LOGGER):
     """
     remove from the directory learningSamples all unnecessary files
     """
-    LearningContent = os.listdir(outputPath + "/learningSamples")
-    for c_content in LearningContent:
-        c_path = outputPath + "/learningSamples/" + c_content
+    learning_content = os.listdir(output_path + "/learningSamples")
+    for c_content in learning_content:
+        c_path = output_path + "/learningSamples/" + c_content
         if os.path.isdir(c_path):
             try:
                 shutil.rmtree(c_path)
             except OSError:
-                logger.debug(c_path + " does not exists")
+                logger.debug(f"{c_path} does not exists")
 
 
-def is_sar(path, sar_pos=5):
+def is_sar(path: str, sar_pos: Optional[int] = 5) -> bool:
     """
+    Check if the input image is a SAR product
+    Parameters
+    ----------
+    path: string
+        the input image
+    Return
+    bool
+    ------
     """
-    return "SAR" == os.path.basename(path).split("_")[sar_pos]
+    return os.path.basename(path).split("_")[sar_pos] == "SAR"
 
 
-def vectorSamplesMerge(cfg, vectorList, logger=logger):
+#def vectorSamplesMerge(cfg, vectorList, logger=logger):
+def vector_samples_merge(vector_list: List[str],
+                         output_path: str,
+                         logger: Optional[Logger] = LOGGER) -> None:
+    """
 
+    Parameters
+    ----------
+    vector_list : List[string]
+    output_path : string
+    Return
+    ------
+
+    """
     regions_position = 2
     seed_position = 3
 
-    if not isinstance(cfg, SCF.serviceConfigFile):
-        cfg = SCF.serviceConfigFile(cfg)
+    clean_repo(output_path)
 
-    outputPath = cfg.getParam('chain', 'outputPath')
-    cleanRepo(outputPath)
-
-    currentModel = os.path.split(
-        vectorList[0])[-1].split("_")[regions_position]
-    seed = os.path.split(vectorList[0])[-1].split("_")[seed_position].replace(
+    current_model = os.path.split(
+        vector_list[0])[-1].split("_")[regions_position]
+    seed = os.path.split(vector_list[0])[-1].split("_")[seed_position].replace(
         "seed", "")
 
-    shapeOut_name = "Samples_region_" + currentModel + "_seed" + str(
-        seed) + "_learn"
+    shape_out_name = (f"Samples_region_{current_model}_seed{seed}_learn")
 
-    if is_sar(vectorList[0]):
-        shapeOut_name = shapeOut_name + "_SAR"
+    if is_sar(vector_list[0]):
+        shape_out_name = shape_out_name + "_SAR"
 
-    logger.info("Vectors to merge in %s" % (shapeOut_name))
-    logger.info("\n".join(vectorList))
+    logger.info(f"Vectors to merge in {shape_out_name}")
+    logger.info("\n".join(vector_list))
 
-    fu.mergeSQLite(shapeOut_name, os.path.join(outputPath, "learningSamples"),
-                   vectorList)
+    fu.mergeSQLite(shape_out_name,
+                   os.path.join(output_path, "learningSamples"), vector_list)
 
     check_duplicates(
-        os.path.join(os.path.join(outputPath, "learningSamples"),
-                     shapeOut_name + ".sqlite"))
-    #~ for vector in vectorList:
-    #~ os.remove(vector)
+        os.path.join(os.path.join(output_path, "learningSamples"),
+                     shape_out_name + ".sqlite"))
 
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(
+    PARSER = argparse.ArgumentParser(
         description="This function merge sqlite to perform training step")
-    parser.add_argument("-conf",
+    PARSER.add_argument("-conf",
                         help="path to the configuration file (mandatory)",
                         dest="pathConf",
                         required=True)
-    parser.add_argument("-vl",
+    PARSER.add_argument("-vl",
                         help="list of vectorFiles to merge (mandatory)",
                         dest="vl",
                         required=True)
 
-    args = parser.parse_args()
+    ARGS = PARSER.parse_args()
 
     # load configuration file
-    cfg = SCF.serviceConfigFile(args.pathConf)
-
-    vectorSamplesMerge(cfg, args.vl)
+    CFG = SCF.serviceConfigFile(ARGS.pathConf)
+    OUTPUT_PATH = CFG.getParam("chain", "outputPath")
+    vector_samples_merge(ARGS.vl, OUTPUT_PATH)

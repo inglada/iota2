@@ -1638,8 +1638,8 @@ class iota_testSamplerApplications(unittest.TestCase):
             config_path_test).get_sensors_parameters(tile)
         #shapes genereation
         commonMasks(tile, testPath, sensors_params)
-        env.GenerateShapeTile(["D0005H0002"], wD, testPath + "/envelope", None,
-                              config_test)
+        env.generate_shape_tile(["D0005H0002"], testPath + "/envelope", None,
+                                testPath, 2154)
         shapeRegion = os.path.join(wD, "MyFakeRegion.shp")
         area.generate_region_shape(testPath + "/envelope", shapeRegion,
                                    "region", testPath, None)
@@ -1756,8 +1756,8 @@ class iota_testSamplerApplications(unittest.TestCase):
             config_path_test).get_sensors_parameters(tile)
         #shapes genereation
         commonMasks(tile, testPath, sensors_params)
-        env.GenerateShapeTile(["D0005H0002"], wD, testPath + "/envelope", None,
-                              config_test)
+        env.generate_shape_tile(["D0005H0002"], testPath + "/envelope", None,
+                                testPath, 2154)
         shapeRegion = os.path.join(wD, "MyFakeRegion.shp")
         area.generate_region_shape(testPath + "/envelope", shapeRegion,
                                    "region", testPath, None)
@@ -1869,8 +1869,8 @@ class iota_testSamplerApplications(unittest.TestCase):
         sensors_params = SCF.iota2_parameters(
             config_path_test).get_sensors_parameters(tile)
         commonMasks(tile, testPath, sensors_params)
-        env.GenerateShapeTile(["D0005H0002"], wD, testPath + "/envelope", None,
-                              config_test)
+        env.generate_shape_tile(["D0005H0002"], testPath + "/envelope", None,
+                                testPath, 2154)
         shapeRegion = os.path.join(wD, "MyFakeRegion.shp")
         area.generate_region_shape(testPath + "/envelope", shapeRegion,
                                    "region", testPath, None)
@@ -1980,8 +1980,8 @@ class iota_testSamplerApplications(unittest.TestCase):
         sensors_params = SCF.iota2_parameters(
             config_path_test).get_sensors_parameters(tile)
         commonMasks(tile, testPath, sensors_params)
-        env.GenerateShapeTile(["D0005H0002"], wD, testPath + "/envelope", None,
-                              config_test)
+        env.generate_shape_tile(["D0005H0002"], testPath + "/envelope", None,
+                                testPath, 2154)
         shapeRegion = os.path.join(wD, "MyFakeRegion.shp")
         area.generate_region_shape(testPath + "/envelope", shapeRegion,
                                    "region", testPath, None)
@@ -2303,8 +2303,8 @@ class iota_testGenerateShapeTile(unittest.TestCase):
         cfg = SCF.serviceConfigFile(self.fichierConfig)
 
         # Launch function
-        env.GenerateShapeTile(self.tiles, self.pathTilesFeat,
-                              self.pathEnvelope, None, cfg)
+        env.generate_shape_tile(self.tiles, self.pathEnvelope, None, IOTA2_dir,
+                                2154)
 
         # For each tile test if the shapefile is ok
         for i in self.tiles:
@@ -2578,14 +2578,14 @@ class iota_testVectorSamplesMerge(unittest.TestCase):
             self.learningSamples)
 
     def test_VectorSamplesMerge(self):
-        from Sampling import VectorSamplesMerge as VSM
-        from Sampling import VectorSampler as vs
+        from iota2.Sampling import VectorSamplesMerge as VSM
+        from iota2.Sampling import VectorSampler as vs
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
         cfg.setParam('chain', 'outputPath', self.pathOut)
 
         vl = fu.FileSearch_AND(self.learningSamples, True, ".sqlite")
-        VSM.vectorSamplesMerge(cfg, vl)
+        VSM.vector_samples_merge(vl, self.pathOut)
 
         # file comparison to ref file
         File1 = self.learningSamples + "Samples_region_1_seed0_learn.sqlite"

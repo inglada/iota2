@@ -31,7 +31,7 @@ import otbApplication as otb
 from iota2.Common import FileUtils as fu
 
 # from iota2.Sampling import GenAnnualSamples as genAS
-# from iota2.Common import ServiceConfigFile as SCF
+
 from iota2.Sampling.VectorFormatting import split_vector_by_region
 # from iota2.Sampling.SamplesSelection import prepareSelection
 from iota2.Common.OtbAppBank import executeApp
