@@ -210,11 +210,32 @@ def parseClassifCmd(cmdPath):
                     "$TMPDIR", workingDirectory)
                 args.confmap = args.confmap.replace("$TMPDIR",
                                                     workingDirectory)
+            cfg = SCF.serviceConfigFile(args.pathConf)
+            data_field = cfg.getParam("chain", "dataField")
+            classifier_type = cfg.getParam("chain", "dataField")
+            tile = findCurrentTileInString(
+                args.mask,
+                cfg.getParam("chain", "listTile").split())
+            sensors_parameters = SCF.iota2_parameters(
+                args.pathConf).get_sensors_parameters(tile)
+            data_field = cfg.getParam("chain", "dataField")
+            proba_map_expected = cfg.getParam("argClassification",
+                                              "enable_probability_map")
+            dimred = cfg.getParam("dimRed", "dimRed")
+            sar_optical_post_fusion = cfg.getParam(
+                "argTrain", "dempster_shafer_SAR_Opt_fusion")
+            output_path = cfg.getParam("chain", "outputPath")
+            write_features = cfg.getParam("GlobChain", "writeOutputs")
+            reduction_mode = cfg.getParam("dimRed", "reductionMode")
+            data_field = cfg.getParam("chain", "dataField")
 
             parameters.append([
                 args.tempFolderSerie, args.mask, args.model, args.stats,
                 args.outputClassif, args.confmap, workingDirectory,
-                args.pathConf, args.pixType, args.MaximizeCPU, args.ram
+                classifier_type, tile, proba_map_expected, dimred,
+                sar_optical_post_fusion, output_path, data_field,
+                write_features, reduction_mode, sensors_parameters,
+                args.pixType, args.MaximizeCPU, args.ram
             ])
 
     return parameters

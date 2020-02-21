@@ -18,11 +18,10 @@ import argparse
 import os
 import logging
 from typing import List, Dict, Union
-from iota2.Common import ServiceConfigFile as SCF
 
 SENSORS_PARAMS = Dict[str, Union[str, List[str], int]]
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
 def str2bool(v):
@@ -149,7 +148,6 @@ def autoContext_launch_classif(
 
 class iota2Classification():
     def __init__(self,
-                 cfg,
                  features_stack,
                  classifier_type,
                  model,
@@ -164,7 +162,7 @@ class iota2Classification():
                  stat_norm=None,
                  RAM=128,
                  auto_context={},
-                 logger=logger,
+                 logger=LOGGER,
                  mode="usually"):
         """
         TODO :
@@ -244,7 +242,7 @@ class iota2Classification():
                 "classifier '{}' not available to generate a probability "
                 "map, those available are {}").format(classifier_type,
                                                       classifier_avail)
-            logger.warning(warn_mes)
+            LOGGER.warning(warn_mes)
         return proba_map if gen_proba else ""
 
     def get_model_name(self, model):
@@ -326,9 +324,9 @@ class iota2Classification():
         else:
             classifier = CreateImageClassifierApplication(classifier_options)
 
-        logger.info("Compute Classification : {}".format(self.classification))
+        LOGGER.info("Compute Classification : {}".format(self.classification))
         classifier.ExecuteAndWriteOutput()
-        logger.info("Classification : {} done".format(self.classification))
+        LOGGER.info("Classification : {} done".format(self.classification))
 
         if self.classif_mask:
             mask_filter = CreateBandMathApplication({
@@ -375,7 +373,7 @@ class iota2Classification():
         if self.proba_map_path:
             class_model = self.models_class[self.model_name][int(self.seed)]
             if len(class_model) != len(all_class):
-                logger.info("reordering the probability map : '{}'".format(
+                LOGGER.info("reordering the probability map : '{}'".format(
                     self.proba_map_path))
                 self.reorder_proba_map(self.proba_map_path,
                                        self.proba_map_path, class_model,
@@ -530,37 +528,32 @@ def launchClassification(tempFolderSerie,
                          outputClassif,
                          confmap,
                          pathWd,
-                         cfg,
+                         classifier_type: str,
+                         tile: str,
+                         proba_map_expected: bool,
+                         dimred,
                          sar_optical_post_fusion,
-                         output_path,
+                         output_path: str,
+                         data_field: str,
+                         write_features: bool,
+                         reduction_mode,
                          sensors_parameters,
                          pixType,
                          MaximizeCPU=True,
                          RAM=500,
                          auto_context={},
-                         logger=logger):
+                         logger=LOGGER):
     """
     """
     from iota2.Common import GenerateFeatures as genFeatures
     from iota2.Sampling import DimensionalityReduction as DR
-
-    from iota2.Common import FileUtils as fu
     from iota2.Common.OtbAppBank import getInputParameterOutput
-    if not isinstance(cfg, SCF.serviceConfigFile):
-        cfg = SCF.serviceConfigFile(cfg)
 
-    classifier_type = cfg.getParam('argTrain', 'classifier')
-    output_directory = os.path.join(cfg.getParam('chain', 'outputPath'),
-                                    "classif")
-    tiles = (cfg.getParam('chain', 'listTile')).split()
-    tile = fu.findCurrentTileInString(Classifmask, tiles)
+    output_directory = os.path.join(output_path, "classif")
 
-    wMode = cfg.getParam('GlobChain', 'writeOutputs')
-    outputPath = cfg.getParam('chain', 'outputPath')
-    featuresPath = os.path.join(outputPath, "features")
-    dimred = cfg.getParam('dimRed', 'dimRed')
-    proba_map_expected = cfg.getParam('argClassification',
-                                      'enable_probability_map')
+    # wMode = cfg.getParam('GlobChain', 'writeOutputs')
+    featuresPath = os.path.join(output_path, "features")
+
     wd = pathWd
     if not pathWd:
         wd = featuresPath
@@ -573,13 +566,13 @@ def launchClassification(tempFolderSerie,
             try:
                 os.mkdir(wd)
             except Exception:
-                logger.warning(wd + "Allready exists")
+                logger.warning(f"{wd} Allready exists")
 
     mode = "usually"
     if "SAR.tif" in outputClassif:
         mode = "SAR"
 
-    AllFeatures, feat_labels, dep_features = genFeatures.generateFeatures(
+    AllFeatures, _, dep_features = genFeatures.generateFeatures(
         pathWd=wd,
         tile=tile,
         sar_optical_post_fusion=sar_optical_post_fusion,
@@ -589,7 +582,7 @@ def launchClassification(tempFolderSerie,
 
     feature_raster = AllFeatures.GetParameterValue(
         getInputParameterOutput(AllFeatures))
-    if wMode:
+    if write_features:
         if not os.path.exists(feature_raster):
             AllFeatures.ExecuteAndWriteOutput()
         AllFeatures = feature_raster
@@ -602,22 +595,20 @@ def launchClassification(tempFolderSerie,
         logger.debug("Classification model : {}".format(model))
         dimRedModelList = DR.GetDimRedModelsFromClassificationModel(model)
         logger.debug("Dim red models : {}".format(dimRedModelList))
-        [ClassifInput, other] = DR.ApplyDimensionalityReductionToFeatureStack(
-            cfg, AllFeatures, dimRedModelList)
-        if wMode:
+        [ClassifInput,
+         other_dep] = DR.ApplyDimensionalityReductionToFeatureStack(
+             reduction_mode, output_path, AllFeatures, dimRedModelList)
+        if write_features:
             ClassifInput.ExecuteAndWriteOutput()
         else:
             ClassifInput.Execute()
 
-    iota2_samples_dir = os.path.join(cfg.getParam('chain', 'outputPath'),
-                                     "learningSamples")
-    data_field = cfg.getParam('chain', 'dataField')
+    iota2_samples_dir = os.path.join(output_path, "learningSamples")
     models_class = get_class_by_models(
         iota2_samples_dir,
         data_field,
         model=model if proba_map_expected else None)
-    classif = iota2Classification(cfg,
-                                  ClassifInput,
+    classif = iota2Classification(ClassifInput,
                                   classifier_type,
                                   model,
                                   tile,
@@ -635,72 +626,95 @@ def launchClassification(tempFolderSerie,
 
 
 if __name__ == "__main__":
-
-    parser = argparse.ArgumentParser(
+    from iota2.Common import ServiceConfigFile as SCF
+    PARSER = argparse.ArgumentParser(
         description=
         "Performs a classification of the input image (compute in RAM) according to a model file, "
     )
-    parser.add_argument(
+    PARSER.add_argument(
         "-in",
         dest="tempFolderSerie",
         help="path to the folder which contains temporal series",
         default=None,
         required=True)
-    parser.add_argument("-mask",
+    PARSER.add_argument("-mask",
                         dest="mask",
                         help="path to classification's mask",
                         default=None,
                         required=True)
-    parser.add_argument("-pixType",
+    PARSER.add_argument("-pixType",
                         dest="pixType",
                         help="pixel format",
                         default=None,
                         required=True)
-    parser.add_argument("-model",
+    PARSER.add_argument("-model",
                         dest="model",
                         help="path to the model",
                         default=None,
                         required=True)
-    parser.add_argument("-imstat",
+    PARSER.add_argument("-imstat",
                         dest="stats",
                         help="path to statistics",
                         default=None,
                         required=False)
-    parser.add_argument("-out",
+    PARSER.add_argument("-out",
                         dest="outputClassif",
                         help="output classification's path",
                         default=None,
                         required=True)
-    parser.add_argument("-confmap",
+    PARSER.add_argument("-confmap",
                         dest="confmap",
                         help="output classification confidence map",
                         default=None,
                         required=True)
-    parser.add_argument("-ram",
+    PARSER.add_argument("-ram",
                         dest="ram",
                         help="pipeline's size",
                         default=128,
                         required=False)
-    parser.add_argument("--wd",
+    PARSER.add_argument("--wd",
                         dest="pathWd",
                         help="path to the working directory",
                         default=None,
                         required=False)
-    parser.add_argument("-conf",
+    PARSER.add_argument("-conf",
                         help="path to the configuration file (mandatory)",
                         dest="pathConf",
                         required=True)
-    parser.add_argument("-maxCPU",
+    PARSER.add_argument("-maxCPU",
                         help="True : Class all the image and after apply mask",
                         dest="MaximizeCPU",
                         default="False",
                         choices=["True", "False"],
                         required=False)
-    args = parser.parse_args()
+    ARGS = PARSER.parse_args()
 
     # load configuration file
-    cfg = SCF.serviceConfigFile(args.pathConf)
+    CFG = SCF.serviceConfigFile(ARGS.pathConf)
 
-    launchClassification(args.tempFolderSerie, args.mask, args.model,
-                         args.stats, args.outputClassif, args.confmap,
-                         args.pathWd, cfg, args.pixType, args.MaximizeCPU)
+    # launchClassification(ARGS.tempFolderSerie,
+    #                      Classifmask,
+    #                      model,
+    #                      stats,
+    #                      outputClassif,
+    #                      confmap,
+    #                      pathWd,
+    #                      classifier_type: str,
+    #                      tile: str,
+    #                      proba_map_expected: bool,
+    #                      dimred,
+    #                      sar_optical_post_fusion,
+    #                      output_path: str,
+    #                      data_field: str,
+    #                      write_features: bool,
+    #                      reduction_mode,
+    #                      sensors_parameters,
+    #                      pixType,
+    #                      MaximizeCPU=True,
+    #                      RAM=500,
+    #                      auto_context={},
+    #                      logger=LOGGER)
+
+    # launchClassification(args.tempFolderSerie, args.mask, args.model,
+    #                      args.stats, args.outputClassif, args.confmap,
+    #                      args.pathWd, cfg, args.pixType, args.MaximizeCPU)

@@ -296,7 +296,7 @@ def predict(mask: str,
             out_confidence: str,
             out_proba: str,
             working_dir: str,
-            configuration_file: str,
+            tile_name: str,
             sar_optical_post_fusion: bool,
             output_path: str,
             sensors_parameters: sensors_params,
@@ -327,8 +327,14 @@ def predict(mask: str,
         output confidence raster path
     working_dir: str
         path to a working direction to store temporary data
-    configuration_file: str
-        path to the iota2 configuration file
+    tile_name: str
+        tile's name
+    sar_optical_post_fusion: bool
+        flag to use post classification sar optical workflow
+    output_path: str
+        iota2 output path
+    sensors_parameters: sensors_params
+        sensors description
     pixel_type: str
         output pixel type
     number_of_chunks: int
@@ -364,13 +370,7 @@ def predict(mask: str,
                 "targeted_chunk must be inferior to the number of chunks")
 
     function_partial = partial(do_predict, model=model, scaler=scaler)
-
-    cfg = serviceConf.serviceConfigFile(configuration_file)
-    tile_name = findCurrentTileInString(
-        mask,
-        cfg.getParam("chain", "listTile").split(" "))
-    classification_dir = os.path.join(cfg.getParam("chain", "outputPath"),
-                                      "classif")
+    classification_dir = os.path.join(output_path, "classif")
     feat_stack, feat_labels, _ = generateFeatures(
         working_dir,
         tile_name,
