@@ -340,7 +340,7 @@ def update_learningValination_sets(new_regions_shapes, dataAppVal_dir,
                                       epsg,
                                       epsg,
                                       tile_name,
-                                      crossValid=enableCrossValidation)
+                                      cross_valid=enableCrossValidation)
 
 
 def splitSamples(cfg, workingDirectory=None, logger=logger):
