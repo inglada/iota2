@@ -131,15 +131,6 @@ def genGlobalConfidence(N, pathWd, spatialRes, proj, pathTest, classifMode,
                         proba_map_flag):
     """generate confidences ready to be mosaic
     """
-    #spatialRes = cfg.getParam('chain', 'spatialResolution')
-    #proj = cfg.getParam('GlobChain', 'proj').split(":")[-1]
-    #pathTest = cfg.getParam('chain', 'outputPath')
-    #classifMode = cfg.getParam('argClassification', 'classifMode')
-    #AllTile = cfg.getParam('chain', 'listTile').split(" ")
-    #shapeRegion = cfg.getParam('chain', 'regionPath')
-    #ds_sar_opt = cfg.getParam('argTrain', 'dempster_shafer_SAR_Opt_fusion')
-    #proba_map_flag = cfg.getParam('argClassification',
-    #                              'enable_probability_map')
     PROBAMAP_PATTERN = "PROBAMAP"
     tmpClassif = pathTest + "/classif/tmpClassif"
     pathToClassif = pathTest + "/classif"
@@ -281,11 +272,6 @@ def genGlobalConfidence(N, pathWd, spatialRes, proj, pathTest, classifMode,
                         "im" + str(i + 1) + "b1"
                         for i in range(len(confidence))
                     ])
-                    print(confidence)
-                    print(pathToClassif)
-                    print(pathToClassif + "/" + tuile +
-                          "*model*confidence_seed_" + str(seed) + suffix)
-                    pause = input("ICI")
                     AllConfidence = " ".join(confidence)
                     #for currentConf in confidence:
                     globalConf = tmpClassif + "/" + tuile + "_GlobalConfidence_seed_" + str(
@@ -319,7 +305,7 @@ def ClassificationShaping(pathClassif, N, pathOut, pathWd, classifMode,
     AllTile = list(
         set([
             classif.split("_")[1] for classif in fu.FileSearch_AND(
-                pathTest + "/classif", True, "Classif", ".tif")
+                pathTest + "/classif", False, "Classif", ".tif")
         ]))
 
     pixType = fu.getOutputPixType(nomenclature_path)
