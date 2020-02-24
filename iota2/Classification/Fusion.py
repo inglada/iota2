@@ -13,15 +13,12 @@
 #   PURPOSE.  See the above copyright notices for more information.
 #
 # =========================================================================
-
-import argparse
+"""module to manage fusion of classifications in iota2"""
 import os
 import shutil
 import logging
-
-from config import Config
+from typing import List
 from iota2.Common import FileUtils as fu
-from iota2.Common import ServiceConfigFile as SCF
 
 LOGGER = logging.getLogger(__name__)
 
@@ -100,7 +97,7 @@ def perform_fusion(fusion_dic,
                    classif_tile_pos,
                    classif_seed_pos,
                    workingDirectory,
-                   LOGGER=LOGGER):
+                   logger=LOGGER):
     """
     from classifications, perform the DS fusion of classifications
 
@@ -157,9 +154,9 @@ def perform_fusion(fusion_dic,
     ds_fus = OtbAppBank.CreateFusionOfClassificationsApplication(
         fusion_parameters)
     if not os.path.exists(os.path.join(classif_dir, sar_opt_fus_name)):
-        LOGGER.info("computing : {}".format(sar_opt_fus))
+        logger.info(f"computing : {sar_opt_fus}")
         ds_fus.ExecuteAndWriteOutput()
-        LOGGER.debug("{} DONE".format(sar_opt_fus))
+        logger.debug(f"{sar_opt_fus} DONE")
         if workingDirectory:
             shutil.copy(sar_opt_fus, os.path.join(classif_dir,
                                                   sar_opt_fus_name))
@@ -178,7 +175,7 @@ def compute_fusion_choice(iota2_dir,
                           ds_choice_opt,
                           ds_no_choice,
                           workingDirectory,
-                          LOGGER=LOGGER):
+                          logger=LOGGER):
     """
     using the resulting fusion of classification and originals classifications,
     generate a raster which determine which input was chosen
@@ -215,15 +212,16 @@ def compute_fusion_choice(iota2_dir,
         default case
     workingDirectory : string
         path to a working directory
-    LOGGER : logging
+    logger : logging
         root logger
     Return
     ------
     string
         output path
     """
-    from Common import OtbAppBank
+    from iota2.Common import OtbAppBank
 
+    logger.info("compute fusion choice")
     model = os.path.basename(
         fusion_dic["sar_classif"]).split("_")[classif_model_pos]
     seed = os.path.basename(
@@ -233,18 +231,14 @@ def compute_fusion_choice(iota2_dir,
     im_list = [
         fusion_dic["sar_classif"], fusion_dic["opt_classif"], fusion_class
     ]
-    choice_exp = "im1b1==im3b1 and im2b1==im3b1?{ds_choice_both}:im1b1==im3b1?{ds_choice_sar}:im2b1==im3b1?{ds_choice_opt}:{ds_no_choice}".format(
-        ds_choice_both=ds_choice_both,
-        ds_choice_sar=ds_choice_sar,
-        ds_choice_opt=ds_choice_opt,
-        ds_no_choice=ds_no_choice)
+    choice_exp = f"im1b1==im3b1 and im2b1==im3b1?{ds_choice_both}:im1b1==im3b1?{ds_choice_sar}:im2b1==im3b1?{ds_choice_opt}:{ds_no_choice}"
     ds_choice_name = "DSchoice_{}_model_{}_seed_{}.tif".format(
         tile, model, seed)
     ds_choice_dir = os.path.join(iota2_dir, "final", "TMP")
     if not os.path.exists(ds_choice_dir):
         try:
             os.mkdir(ds_choice_dir)
-        except:
+        except Exception:
             pass
     ds_choice = os.path.join(ds_choice_dir, ds_choice_name)
     if workingDirectory:
@@ -257,9 +251,9 @@ def compute_fusion_choice(iota2_dir,
     }
     choice = OtbAppBank.CreateBandMathApplication(ds_choice_params)
     if not os.path.exists(os.path.join(ds_choice_dir, ds_choice_name)):
-        LOGGER.info("computing : {}".format(ds_choice))
+        logger.info(f"computing : {ds_choice}")
         choice.ExecuteAndWriteOutput()
-        LOGGER.debug("{} : DONE".format(ds_choice))
+        logger.debug(f"{ds_choice} : DONE")
         if workingDirectory:
             shutil.copy(ds_choice, os.path.join(ds_choice_dir, ds_choice_name))
             os.remove(ds_choice)
@@ -276,7 +270,7 @@ def compute_confidence_fusion(fusion_dic,
                               ds_choice_opt,
                               ds_no_choice,
                               workingDirectory,
-                              LOGGER=LOGGER):
+                              logger=LOGGER):
     """
     from the fusion of classification's raster choice compute the fusion of confidence map
 
@@ -310,7 +304,7 @@ def compute_confidence_fusion(fusion_dic,
         default case
     workingDirectory : string
         path to a working directory
-    LOGGER : logging
+    logger : logging
         root logger
 
     Notes
@@ -325,7 +319,7 @@ def compute_confidence_fusion(fusion_dic,
     string
         output path
     """
-    from Common import OtbAppBank
+    from iota2.Common import OtbAppBank
 
     classif_dir, _ = os.path.split(fusion_dic["sar_classif"])
     model = os.path.basename(
@@ -364,9 +358,9 @@ def compute_confidence_fusion(fusion_dic,
     confidence = OtbAppBank.CreateBandMathApplication(confidence_param)
 
     if not os.path.exists(os.path.join(ds_confidence_dir, ds_confidence_name)):
-        LOGGER.info("computing : {}".format(ds_confidence))
+        logger.info(f"computing : {ds_confidence}")
         confidence.ExecuteAndWriteOutput()
-        LOGGER.debug("{} : DONE".format(ds_choice))
+        logger.debug(f"{ds_choice} : DONE")
         if workingDirectory:
             # copy confidence
             shutil.copy(ds_confidence,
@@ -387,9 +381,10 @@ def compute_probamap_fusion(fusion_dic,
                             ds_no_choice,
                             workingDirectory,
                             ram=128,
-                            LOGGER=LOGGER):
+                            logger=LOGGER):
     """
-    from the fusion of classification's raster choice compute the fusion of confidence map
+    from the fusion of classification's raster choice compute the
+    fusion of confidence map
 
     Parameters
     ----------
@@ -427,17 +422,20 @@ def compute_probamap_fusion(fusion_dic,
     Notes
     -----
     fusion rules are :
-        If SAR's label is chosen by the DS method then SAR confidence is chosen.
-        If Optical's label is chosen by the DS method then optical confidence is chosen.
-        If the same label is chosen by SAR and optical models, then the
-        output pixel vector is given my the model which is more confidence in it's choice.
+        - If SAR's label is chosen by the DS method then SAR confidence
+          is chosen.
+        - If Optical's label is chosen by the DS method then optical
+          confidence is chosen.
+        - If the same label is chosen by SAR and optical models, then the
+          output pixel vector is given my the model which is more
+          confidence in it's choice.
     Return
     ------
     string
         output path
     """
-    from Common import OtbAppBank
-    from Common.FileUtils import getRasterNbands
+    from iota2.Common import OtbAppBank
+    from iota2.Common.FileUtils import getRasterNbands
 
     classif_dir, _ = os.path.split(fusion_dic["sar_classif"])
     model = os.path.basename(
@@ -498,9 +496,9 @@ def compute_probamap_fusion(fusion_dic,
     probamap_app = OtbAppBank.CreateBandMathXApplication(probamap_param)
 
     if not os.path.exists(os.path.join(ds_probamap_dir, ds_probamap_name)):
-        LOGGER.info("computing : {}".format(ds_probamap))
+        logger.info(f"computing : {ds_probamap}")
         probamap_app.ExecuteAndWriteOutput()
-        LOGGER.debug("{} : DONE".format(ds_probamap))
+        logger.debug(f"{ds_probamap} : DONE")
         if workingDirectory:
             # copy confidence
             shutil.copy(
@@ -517,7 +515,8 @@ def dempster_shafer_fusion(iota2_dir,
                            proba_map_flag=False,
                            workingDirectory=None):
     """
-    perform a fusion of classifications thanks acording to Dempster-Shafer's method
+    perform a fusion of classifications thanks to
+    Dempster-Shafer's method
 
     Parameters
     ----------
@@ -585,50 +584,73 @@ def dempster_shafer_fusion(iota2_dir,
     return sar_opt_fus, confidence_fus, proba_map_fus, ds_choice
 
 
-def fusion(pathClassif, cfg, pathWd):
+def fusion(pathClassif: str, N: int, allTiles: List[str], fusionOptions: str,
+           nomenclature_path: str, region_vec: str, ds_sar_opt: bool,
+           pathWd: str) -> List[str]:
+    """generate otb fusion commands by parsing the iota2 classifications
+    directory
 
-    if not isinstance(cfg, SCF.serviceConfigFile):
-        cfg = SCF.serviceConfigFile(cfg)
+    Parameters
+    ----------
+    pathClassif: str
+        path to the iota2 classification directory
+    N: int
+        number of random seeds to split learnging / validation
+        samples
+    allTiles: list
+        list of tiles to consider
+    fusionOptions: str
+        fusion options of FusionOfClassifications otb application
+    nomenclature_path: str
+        nomenclature file
+    region_vec: str
+        region shapeFile database
+    ds_sar_opt: bool
+        flag to inform if the sar optical post classification
+        workflow is enable
+    pathWd: str
+        working directory path
+
+    Return
+    ------
+    list
+        list of commands as strings
+    """
 
     pathWd = None
-    classifMode = cfg.getParam('argClassification', 'classifMode')
-    N = cfg.getParam('chain', 'runs')
-    allTiles = cfg.getParam('chain', 'listTile').split(" ")
-    fusionOptions = cfg.getParam('argClassification', 'fusionOptions')
-    pixType = fu.getOutputPixType(cfg.getParam('chain', 'nomenclaturePath'))
-    region_vec = cfg.getParam('chain', 'regionPath')
-    ds_sar_opt = cfg.getParam('argTrain', 'dempster_shafer_SAR_Opt_fusion')
+    pix_type = fu.getOutputPixType(nomenclature_path)
 
     classification_suffix_pattern = ""
     if ds_sar_opt:
         classification_suffix_pattern = "_DS"
     if region_vec:
-        AllClassif = fu.fileSearchRegEx(pathClassif +
-                                        "/Classif_*_model_*f*_seed_*" +
-                                        classification_suffix_pattern + ".tif")
+        all_classif = fu.fileSearchRegEx(pathClassif +
+                                         "/Classif_*_model_*f*_seed_*" +
+                                         classification_suffix_pattern +
+                                         ".tif")
         allTiles = []
         models = []
-        for classif in AllClassif:
+        for classif in all_classif:
             mod = classif.split("/")[-1].split("_")[3].split("f")[0]
             tile = classif.split("/")[-1].split("_")[1]
             if mod not in models:
                 models.append(mod)
             if tile not in allTiles:
                 allTiles.append(tile)
-    AllCmd = []
+    all_cmd = []
     for seed in range(N):
         for tile in allTiles:
-            directoryOut = pathClassif
+            directory_out = pathClassif
             if pathWd != None:
-                directoryOut = "$TMPDIR"
+                directory_out = "$TMPDIR"
             if region_vec is None:
                 classifPath = fu.FileSearch_AND(
                     pathClassif, True, "Classif_" + tile, "seed_" + str(seed) +
                     classification_suffix_pattern + ".tif")
                 allPathFusion = " ".join(classifPath)
-                cmd = "otbcli_FusionOfClassifications -il " + allPathFusion + " " + fusionOptions + " -out " + directoryOut + "/" + tile + "_FUSION_seed_" + str(
+                cmd = "otbcli_FusionOfClassifications -il " + allPathFusion + " " + fusionOptions + " -out " + directory_out + "/" + tile + "_FUSION_seed_" + str(
                     seed) + ".tif"
-                AllCmd.append(cmd)
+                all_cmd.append(cmd)
             else:
                 for mod in models:
                     classifPath = fu.fileSearchRegEx(
@@ -637,45 +659,15 @@ def fusion(pathClassif, cfg, pathWd):
                         classification_suffix_pattern + ".tif")
                     if len(classifPath) != 0:
                         allPathFusion = " ".join(classifPath)
-                        cmd = "otbcli_FusionOfClassifications -il " + allPathFusion + " " + fusionOptions + " -out " + directoryOut + "/" + tile + "_FUSION_model_" + mod + "_seed_" + str(
-                            seed) + ".tif " + pixType
-                        AllCmd.append(cmd)
+                        cmd = "otbcli_FusionOfClassifications -il " + allPathFusion + " " + fusionOptions + " -out " + directory_out + "/" + tile + "_FUSION_model_" + mod + "_seed_" + str(
+                            seed) + ".tif " + pix_type
+                        all_cmd.append(cmd)
 
     tmp = pathClassif.split("/")
     if pathClassif[-1] == "/":
         del tmp[-1]
     tmp[-1] = "cmd/fusion"
-    pathToCmdFusion = "/".join(tmp)
-    fu.writeCmds(pathToCmdFusion + "/fusion.txt", AllCmd)
+    path_to_cmd_fusion = "/".join(tmp)
+    fu.writeCmds(path_to_cmd_fusion + "/fusion.txt", all_cmd)
 
-    return AllCmd
-
-
-if __name__ == "__main__":
-
-    parser = argparse.ArgumentParser(
-        description=
-        "This function allow you launch oso chain according to a configuration file"
-    )
-    parser.add_argument(
-        "-path.classif",
-        help=
-        "path to the folder which ONLY contains classification images (mandatory)",
-        dest="pathClassif",
-        required=True)
-    parser.add_argument(
-        "-conf",
-        help=
-        "path to the configuration file which describe the classification (mandatory)",
-        dest="pathConf",
-        required=False)
-    parser.add_argument("--wd",
-                        dest="pathWd",
-                        help="path to the working directory",
-                        default=None,
-                        required=False)
-    args = parser.parse_args()
-
-    # load configuration file
-    cfg = SCF.serviceConfigFile(args.pathConf)
-    fusion(args.pathClassif, cfg, args.pathWd)
+    return all_cmd
