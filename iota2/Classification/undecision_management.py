@@ -225,10 +225,9 @@ def build_confidence_exp(img_classif_fusion: str, img_confidence: str,
     im_ref = "im" + str(2 * len(img_confidence) + 1) + "b1"
 
     for i in range(len(img_confidence)):
-        im_conf.append("im{i + 1}b1")
+        im_conf.append(f"im{i + 1}b1")
     for i in range(len(img_confidence), 2 * len(img_confidence)):
-        im_class.append("im{i + 1}b1")
-
+        im_class.append(f"im{i + 1}b1")
     # (c1>c2 and c1>c3 and c1>c4)?cl1:(c2>c1 and c2>c3 and c2>c4)?cl2:etc...
     # (c1>c2)?cl1:(c2>c1)?:cl2:0
     exp = im_ref + "!=0?" + im_ref + ":"
@@ -266,6 +265,7 @@ def get_nb_split_shape(model: str, config_model_path: str) -> int:
     from config import Config
     cfg = Config(config_model_path)
     fold = []
+
     for model_tile in cfg.AllModel:
         model_name = model_tile.modelName
         if model_name.split("f")[0] == model and len(
@@ -359,24 +359,25 @@ def undecision_management(path_test: str,
             "confidence_seed_" + str(seed) + suffix_pattern + ".tif",
             current_tile)
 
-        img_classif = fu.FileSearch_AND({os.path.join(path_test, "classif")},
+        img_classif = fu.FileSearch_AND(os.path.join(path_test, "classif"),
                                         True, "Classif_" + current_tile,
                                         f"seed_{seed}", suffix_pattern)
         img_data = os.path.join(
             path_directory, f"{current_tile}_FUSION_NODATA_seed{seed}.tif")
         if region_vec:
             img_confidence = fu.fileSearchRegEx(
-                f"{os.path.join(path_test, 'classif')}"
-                f" {current_tile}_model_{model_tile}"
+                f"{path_test+os.sep}classif{os.sep}"
+                f"{current_tile}_model_{model_tile}"
                 f"f*_confidence_seed_{seed}{suffix_pattern}.tif")
             img_classif = fu.fileSearchRegEx(
-                f"{os.path.join(path_test, 'classif')}"
+                f"{path_test+os.sep}classif{os.sep}"
                 f"Classif_{current_tile}_model_"
                 f"{model_tile}f*_seed_"
                 f"{seed}{suffix_pattern}.tif")
             img_data = (f"{path_directory+os.sep}Classif_"
                         f"{current_tile}_model_{model_tile}"
                         f"_seed_{seed}{suffix_pattern}.tif")
+
         img_confidence.sort()
         img_classif.sort()
         exp, il_str = build_confidence_exp(path_fusion, img_confidence,
@@ -504,6 +505,6 @@ if __name__ == "__main__":
         CFG.getParam('chain', 'outputPath'),
         CFG.getParam('argClassification', 'noLabelManagement'), ARGS.pathWd,
         CFG.getParam("GlobChain", "features"),
-        CFG.getParam("chain", "userFeatPath"),
-        CFG.getParam("userFeat", "patterns"), PIXTYPE,
+        CFG.getParam("chain", "userFeatPath"), PIXTYPE,
+        CFG.getParam("userFeat", "patterns"),
         CFG.getParam('argTrain', 'dempster_shafer_SAR_Opt_fusion'))
