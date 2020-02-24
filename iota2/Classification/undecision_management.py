@@ -13,7 +13,9 @@
 #   PURPOSE.  See the above copyright notices for more information.
 #
 # =========================================================================
-
+"""
+This module handle undecision after post classification fusion
+"""
 import argparse
 import os
 import shutil
