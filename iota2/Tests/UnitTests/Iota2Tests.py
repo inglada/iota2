@@ -1075,7 +1075,13 @@ class iota_testFusion(unittest.TestCase):
         field_Region = cfg.getParam('chain', 'regionField')
         N = 1
 
-        cmdFus = FUS.fusion(self.pathClassif, cfg, None)
+        cmdFus = FUS.fusion(
+            self.pathClassif, cfg.getParam('chain', 'runs'),
+            cfg.getParam('chain', 'listTile').split(" "),
+            cfg.getParam('argClassification', 'fusionOptions'),
+            cfg.getParam('chain', 'nomenclaturePath'),
+            cfg.getParam('chain', 'regionPath'),
+            cfg.getParam('argTrain', 'dempster_shafer_SAR_Opt_fusion'), None)
 
 
 class iota_testNoData(unittest.TestCase):
