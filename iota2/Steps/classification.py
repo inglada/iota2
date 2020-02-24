@@ -128,7 +128,17 @@ class classification(IOTA2Step.Step):
             running_parameters = iota2_parameters(self.cfg.pathConf)
 
             step_function = lambda x: autoContext_launch_classif(
-                x, self.cfg,
+                x,
+                SCF.serviceConfigFile(self.cfg).getParam(
+                    'argTrain', 'classifier'), x["tile"],
+                SCF.serviceConfigFile(self.cfg).getParam(
+                    'argClassification', 'enable_probability_map'),
+                SCF.serviceConfigFile(self.cfg).getParam('dimRed', 'dimRed'),
+                SCF.serviceConfigFile(self.cfg).getParam('chain', 'dataField'),
+                SCF.serviceConfigFile(self.cfg).getParam(
+                    'GlobChain', 'writeOutputs'),
+                SCF.serviceConfigFile(self.cfg).getParam(
+                    'dimRed', 'reductionMode'),
                 SCF.serviceConfigFile(self.cfg).getParam(
                     'chain', 'outputPath'),
                 SCF.serviceConfigFile(self.cfg).getParam(

@@ -98,7 +98,9 @@ def autoContext_classification_param(iota2_directory, data_field):
 
 
 def autoContext_launch_classif(
-        parameters_dict: List[Dict[str, Union[str, List[str]]]], config_path,
+        parameters_dict: List[Dict[str, Union[str, List[str]]]],
+        classifier_type: str, tile: str, proba_map_expected: bool, dimred,
+        data_field: str, write_features: bool, reduction_mode,
         iota2_run_dir: str, sar_optical_post_fusion: bool,
         nomenclature_path: str, sensors_parameters: SENSORS_PARAMS, RAM: int,
         WORKING_DIR: str):
@@ -131,9 +133,15 @@ def autoContext_launch_classif(
                          outputClassif,
                          confmap,
                          WORKING_DIR,
-                         config_path,
+                         classifier_type,
+                         tile,
+                         proba_map_expected,
+                         dimred,
                          sar_optical_post_fusion,
                          iota2_run_dir,
+                         data_field,
+                         write_features,
+                         reduction_mode,
                          sensors_parameters,
                          pixType,
                          MaximizeCPU=True,

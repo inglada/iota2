@@ -526,8 +526,16 @@ class iota_testAutoContext(unittest.TestCase):
             sorted(models,
                    key=lambda x: int(re.findall("\d", os.path.basename(x))[0]))
         }
+
         autoContext_launch_classif(parameters_dict,
-                                   config_path_test,
+                                   cfg.getParam("argTrain", "classifier"),
+                                   "T31TCJ",
+                                   cfg.getParam("argClassification",
+                                                "enable_probability_map"),
+                                   cfg.getParam("dimRed", "dimRed"),
+                                   "code",
+                                   False,
+                                   False,
                                    iota2_run_dir=test_path,
                                    sar_optical_post_fusion=False,
                                    nomenclature_path=cfg.getParam(
