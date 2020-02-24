@@ -945,13 +945,15 @@ class iota_testLaunchClassification(unittest.TestCase):
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
         cfg.setParam('chain', 'outputPath', self.pathOut)
+        nomenclature_path = cfg.getParam("chain", "nomenclaturePath")
         field_Region = cfg.getParam('chain', 'regionField')
         N = 1
-        CC.launchClassification(self.pathModels, cfg, self.pathStats,
-                                self.pathTileRegion, self.pathTilesFeat,
-                                self.shapeRegion, field_Region, N,
-                                self.cmdPath + "/cla", self.pathClassif, 128,
-                                None)
+        CC.launchClassification(self.pathModels, cfg.pathConf, self.pathOut,
+                                "rf", "separate", nomenclature_path,
+                                self.pathStats, self.pathTileRegion,
+                                self.pathTilesFeat, self.shapeRegion,
+                                field_Region, self.cmdPath + "/cla",
+                                self.pathClassif, 128, None)
 
         # file comparison to ref file
         File1 = self.cmdPath + "/cla/class.txt"
