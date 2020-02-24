@@ -281,6 +281,11 @@ def genGlobalConfidence(N, pathWd, spatialRes, proj, pathTest, classifMode,
                         "im" + str(i + 1) + "b1"
                         for i in range(len(confidence))
                     ])
+                    print(confidence)
+                    print(pathToClassif)
+                    print(pathToClassif + "/" + tuile +
+                          "*model*confidence_seed_" + str(seed) + suffix)
+                    pause = input("ICI")
                     AllConfidence = " ".join(confidence)
                     #for currentConf in confidence:
                     globalConf = tmpClassif + "/" + tuile + "_GlobalConfidence_seed_" + str(
@@ -316,6 +321,7 @@ def ClassificationShaping(pathClassif, N, pathOut, pathWd, classifMode,
             classif.split("_")[1] for classif in fu.FileSearch_AND(
                 pathTest + "/classif", True, "Classif", ".tif")
         ]))
+
     pixType = fu.getOutputPixType(nomenclature_path)
     featuresPath = os.path.join(pathTest, "features")
     allTMPFolder = fu.fileSearchRegEx(pathTest + "/TMPFOLDER*")
@@ -326,8 +332,9 @@ def ClassificationShaping(pathClassif, N, pathOut, pathWd, classifMode,
     suffix = "*"
     if ds_sar_opt:
         suffix = "*DS*"
-    genGlobalConfidence(N, pathWd, spatialRes, proj, pathTest, classifMode,
-                        AllTile, shapeRegion, ds_sar_opt, proba_map_flag)
+    genGlobalConfidence(N, pathWd, spatialResolution, proj, pathTest,
+                        classifMode, AllTile, shapeRegion, ds_sar_opt,
+                        proba_map_flag)
     if shapeRegion and classifMode == "fusion":
         old_classif = fu.fileSearchRegEx(pathTest +
                                          "/classif/Classif_*_model_*f*_seed_" +

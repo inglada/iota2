@@ -1229,11 +1229,12 @@ class iota_testClassificationShaping(unittest.TestCase):
         N = 1
         fieldEnv = "FID"
         COLORTABLE = cfg.getParam('chain', 'colorTable')
-
         CS.ClassificationShaping(self.pathClassif, N, self.classifFinal, None,
-                                 "separate", self.pathOut, False,
+                                 "separate", self.pathOut, False, 2154,
                                  cfg.getParam("chain", "nomenclaturePath"),
-                                 False, 30, False, "None", COLORTABLE)
+                                 False, 30, False,
+                                 cfg.getParam("chain",
+                                              "regionPath"), COLORTABLE)
 
         # file comparison to ref file
         serviceCompareImageFile = fu.serviceCompareImageFile()
