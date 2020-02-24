@@ -19,7 +19,7 @@ import sys
 from typing import Dict, Union, List
 from osgeo import ogr
 from config import Config, Sequence, Mapping, Container
-from iota2.Common.FileUtils import getFeatStackName, FileSearch_AND, getRasterNbands, get_iota2_project_dir
+from iota2.Common.FileUtils import FileSearch_AND, getRasterNbands, get_iota2_project_dir
 from iota2.Common import ServiceError as sErr
 
 # this is a pointer to the module object instance itself.
