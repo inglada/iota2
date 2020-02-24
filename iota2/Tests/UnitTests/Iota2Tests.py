@@ -1211,12 +1211,12 @@ class iota_testClassificationShaping(unittest.TestCase):
             shutil.copy(full_file_name, self.pathClassif)
 
     def test_ClassificationShaping(self):
-        from Validation import ClassificationShaping as CS
+        from iota2.Validation import ClassificationShaping as CS
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
-        cfg.setParam('chain', 'outputPath', self.pathOut)
-        cfg.setParam('chain', 'listTile', "D0005H0002")
-        cfg.setParam('argClassification', 'classifMode', "separate")
+        #cfg.setParam('chain', 'outputPath', self.pathOut)
+        #cfg.setParam('chain', 'listTile', "D0005H0002")
+        #cfg.setParam('argClassification', 'classifMode', "separate")
 
         features_ref = "../../../data/references/features"
         features_ref_test = os.path.join(self.pathOut, "features")
@@ -1230,9 +1230,10 @@ class iota_testClassificationShaping(unittest.TestCase):
         fieldEnv = "FID"
         COLORTABLE = cfg.getParam('chain', 'colorTable')
 
-        CS.ClassificationShaping(self.pathClassif, self.pathEnvelope,
-                                 self.pathTilesFeat, fieldEnv, N,
-                                 self.classifFinal, None, cfg, COLORTABLE)
+        CS.ClassificationShaping(self.pathClassif, N, self.classifFinal, None,
+                                 "separate", self.pathOut, False,
+                                 cfg.getParam("chain", "nomenclaturePath"),
+                                 False, 30, False, "None", COLORTABLE)
 
         # file comparison to ref file
         serviceCompareImageFile = fu.serviceCompareImageFile()
