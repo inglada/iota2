@@ -16,17 +16,17 @@
 
 import argparse, os, re, shutil
 import logging
-import ast
-from osgeo import gdal, ogr, osr
-from config import Config
-from osgeo.gdalconst import *
 import numpy as np
-from Common import FileUtils as fu
-from Common import CreateIndexedColorImage as color
-from iota2.Common import ServiceConfigFile as SCF
-from Common.Utils import run
+from osgeo import gdal, ogr, osr
+from typing import List
+from osgeo.gdalconst import *
 
-logger = logging.getLogger(__name__)
+from iota2.Common import FileUtils as fu
+from iota2.Common import CreateIndexedColorImage as color
+
+from iota2.Common.Utils import run
+
+LOGGER = logging.getLogger(__name__)
 
 
 def BuildNbVoteCmd(classifTile, VoteMap):
@@ -83,7 +83,7 @@ def removeInListByRegEx(InputList, RegEx):
 def proba_map_fusion(proba_map_list,
                      ram=128,
                      working_directory=None,
-                     logger=logger):
+                     logger=LOGGER):
     """fusion of probabilities map
 
     Parameters
@@ -95,7 +95,7 @@ def proba_map_fusion(proba_map_list,
     working_directory : string
         working directory absolute path
     """
-    from Common.OtbAppBank import CreateBandMathXApplication
+    from iota2.Common.OtbAppBank import CreateBandMathXApplication
     model_pos = 3
 
     proba_map_fus_dir, proba_map_fus_name = os.path.split(proba_map_list[0])
@@ -126,17 +126,20 @@ def proba_map_fusion(proba_map_list,
         os.remove(proba_map_fus_path)
 
 
-def genGlobalConfidence(N, pathWd, cfg):
-
-    spatialRes = cfg.getParam('chain', 'spatialResolution')
-    proj = cfg.getParam('GlobChain', 'proj').split(":")[-1]
-    pathTest = cfg.getParam('chain', 'outputPath')
-    classifMode = cfg.getParam('argClassification', 'classifMode')
-    AllTile = cfg.getParam('chain', 'listTile').split(" ")
-    shapeRegion = cfg.getParam('chain', 'regionPath')
-    ds_sar_opt = cfg.getParam('argTrain', 'dempster_shafer_SAR_Opt_fusion')
-    proba_map_flag = cfg.getParam('argClassification',
-                                  'enable_probability_map')
+def genGlobalConfidence(N, pathWd, spatialRes, proj, pathTest, classifMode,
+                        AllTile: List[str], shapeRegion, ds_sar_opt,
+                        proba_map_flag):
+    """generate confidences ready to be mosaic
+    """
+    #spatialRes = cfg.getParam('chain', 'spatialResolution')
+    #proj = cfg.getParam('GlobChain', 'proj').split(":")[-1]
+    #pathTest = cfg.getParam('chain', 'outputPath')
+    #classifMode = cfg.getParam('argClassification', 'classifMode')
+    #AllTile = cfg.getParam('chain', 'listTile').split(" ")
+    #shapeRegion = cfg.getParam('chain', 'regionPath')
+    #ds_sar_opt = cfg.getParam('argTrain', 'dempster_shafer_SAR_Opt_fusion')
+    #proba_map_flag = cfg.getParam('argClassification',
+    #                              'enable_probability_map')
     PROBAMAP_PATTERN = "PROBAMAP"
     tmpClassif = pathTest + "/classif/tmpClassif"
     pathToClassif = pathTest + "/classif"
@@ -291,11 +294,13 @@ def genGlobalConfidence(N, pathWd, cfg):
                     os.remove(globalConf)
 
 
-def ClassificationShaping(pathClassif, pathEnvelope, pathImg, fieldEnv, N,
-                          pathOut, pathWd, cfg, colorpath):
+def ClassificationShaping(pathClassif, N, pathOut, pathWd, classifMode,
+                          pathTest, ds_sar_opt, proj, nomenclature_path,
+                          outputStatistics, spatialResolution, proba_map_flag,
+                          shapeRegion, colorpath):
+    """function to mosaic rasters
 
-    if not isinstance(cfg, SCF.serviceConfigFile):
-        cfg = SCF.serviceConfigFile(cfg)
+    """
 
     if pathWd == None:
         TMP = pathOut + "/TMP"
@@ -306,22 +311,13 @@ def ClassificationShaping(pathClassif, pathEnvelope, pathImg, fieldEnv, N,
         if not os.path.exists(pathOut + "/TMP"):
             os.mkdir(pathOut + "/TMP")
 
-    classifMode = cfg.getParam('argClassification', 'classifMode')
-    pathTest = cfg.getParam('chain', 'outputPath')
-    ds_sar_opt = cfg.getParam('argTrain', 'dempster_shafer_SAR_Opt_fusion')
-    proj = cfg.getParam('GlobChain', 'proj').split(":")[-1]
     AllTile = list(
         set([
             classif.split("_")[1] for classif in fu.FileSearch_AND(
                 pathTest + "/classif", True, "Classif", ".tif")
         ]))
-    pixType = fu.getOutputPixType(cfg.getParam('chain', 'nomenclaturePath'))
+    pixType = fu.getOutputPixType(nomenclature_path)
     featuresPath = os.path.join(pathTest, "features")
-    outputStatistics = cfg.getParam('chain', 'outputStatistics')
-    spatialResolution = cfg.getParam('chain', 'spatialResolution')
-    proba_map_flag = cfg.getParam('argClassification',
-                                  'enable_probability_map')
-    shapeRegion = cfg.getParam('chain', 'regionPath')
     allTMPFolder = fu.fileSearchRegEx(pathTest + "/TMPFOLDER*")
     if allTMPFolder:
         for tmpFolder in allTMPFolder:
@@ -330,8 +326,8 @@ def ClassificationShaping(pathClassif, pathEnvelope, pathImg, fieldEnv, N,
     suffix = "*"
     if ds_sar_opt:
         suffix = "*DS*"
-
-    genGlobalConfidence(N, pathWd, cfg)
+    genGlobalConfidence(N, pathWd, spatialRes, proj, pathTest, classifMode,
+                        AllTile, shapeRegion, ds_sar_opt, proba_map_flag)
     if shapeRegion and classifMode == "fusion":
         old_classif = fu.fileSearchRegEx(pathTest +
                                          "/classif/Classif_*_model_*f*_seed_" +
@@ -486,7 +482,7 @@ def ClassificationShaping(pathClassif, pathEnvelope, pathImg, fieldEnv, N,
 
 
 if __name__ == "__main__":
-
+    from iota2.Common import ServiceConfigFile as SCF
     parser = argparse.ArgumentParser(
         description=
         "This function shape classifications (fake fusion and tiles priority)")
