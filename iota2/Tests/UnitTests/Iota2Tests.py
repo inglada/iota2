@@ -1136,18 +1136,24 @@ class iota_testNoData(unittest.TestCase):
             shutil.copy(full_file_name, self.pathClassif)
 
     def test_NoData(self):
+        import shutil
         from Classification import NoData as ND
         from Classification import Fusion as FUS
         from Common.Utils import run
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
-        cfg.setParam('chain', 'outputPath', self.pathOut)
-        cfg.setParam('argClassification', 'classifMode', 'fusion')
-
+        shutil.copy(
+            os.path.join(self.pathClassif,
+                         "Classif_D0005H0002_model_1_seed_0.tif"),
+            os.path.join(self.pathClassif,
+                         "Classif_D0005H0002_model_1f2_seed_0.tif"))
         field_Region = cfg.getParam('chain', 'regionField')
         N = 1
-
-        cmdFus = FUS.fusion(self.pathClassif, cfg, None)
+        cmdFus = FUS.fusion(
+            self.pathClassif, 1, ["D0005H0002"],
+            cfg.getParam('argClassification', 'fusionOptions'),
+            cfg.getParam('chain', 'nomenclaturePath'), None,
+            cfg.getParam('argTrain', 'dempster_shafer_SAR_Opt_fusion'), None)
         for cmd in cmdFus:
             run(cmd)
 
