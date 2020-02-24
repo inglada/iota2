@@ -24,6 +24,7 @@ import numpy as np
 from Common import FileUtils as fu
 from Common import ServiceConfigFile as SCF
 
+
 def raster2array(rasterfn):
     raster = gdal.Open(rasterfn)
     band = raster.GetRasterBand(1)
@@ -33,7 +34,7 @@ def raster2array(rasterfn):
 def getDiffHisto(confMin, confMax, confStep, confidence, difference):
 
     diff = [[], [], [], [], [], [], []]
-    for currentConf in np.arange(confMin, confMax+1, confStep):
+    for currentConf in np.arange(confMin, confMax + 1, confStep):
         y, x = np.where(confidence == currentConf)
         if len(y) >= 1:
             coord = [(currentX, currentY) for currentX, currentY in zip(x, y)]
@@ -44,7 +45,8 @@ def getDiffHisto(confMin, confMax, confStep, confidence, difference):
 
 def genStatsDiff(pathToConfigstats, StatsName, histo, bins):
     stats = open(pathToConfigstats, "a")
-    stats.write(StatsName+":\n{\n\thistogram:'"+histo+"'\n\tbins:'"+bins+"'\n}\n\n")
+    stats.write(StatsName + ":\n{\n\thistogram:'" + histo + "'\n\tbins:'" +
+                bins + "'\n}\n\n")
     stats.close()
 
 
@@ -64,8 +66,6 @@ def outStats(cfg, tile, sample, workingDirectory):
     Testpath = cfg.getParam('chain', 'outputPath')
     Nruns = cfg.getParam('chain', 'runs')
 
-    #config = cfg.pathConf
-    #stackName = fu.getFeatStackName(config)
     statsName = ["ValidNOK", "ValidOK", "AppNOK", "AppOK"]
     """
         1 valid NOK
@@ -77,47 +77,73 @@ def outStats(cfg, tile, sample, workingDirectory):
     confStep = 1
     confMin = 1
     confMax = 100
-    cloudAllTile = Testpath+"/final/PixelsValidity.tif"
+    cloudAllTile = Testpath + "/final/PixelsValidity.tif"
     src_ds = gdal.Open(cloudAllTile)
     if src_ds is None:
-        print('Unable to open %s'%cloudAllTile)
+        print('Unable to open %s' % cloudAllTile)
         sys.exit(1)
     srcband = src_ds.GetRasterBand(1).ReadAsArray()
     maxView = np.amax(srcband)
-    Cloud = raster2array(Testpath+"/final/TMP/"+tile+"_Cloud_StatsOK.tif")
+    Cloud = raster2array(Testpath + "/final/TMP/" + tile +
+                         "_Cloud_StatsOK.tif")
     for seed in range(Nruns):
-        Classif = raster2array(Testpath+"/final/TMP/"+tile+"_seed_"+str(seed)+".tif")
-        confidence = raster2array(Testpath+"/final/TMP/"+tile+"_GlobalConfidence_seed_"+str(seed)+".tif")
-        difference = raster2array(Testpath+"/final/TMP/"+tile+"_seed_"+str(seed)+"_CompRef.tif")
-        diffHisto = getDiffHisto(confMin, confMax, confStep, confidence, difference)
-        statsTile = Testpath+"/final/TMP/"+tile+"_stats_seed_"+str(seed)+".cfg"
+        Classif = raster2array(Testpath + "/final/TMP/" + tile + "_seed_" +
+                               str(seed) + ".tif")
+        confidence = raster2array(Testpath + "/final/TMP/" + tile +
+                                  "_GlobalConfidence_seed_" + str(seed) +
+                                  ".tif")
+        difference = raster2array(Testpath + "/final/TMP/" + tile + "_seed_" +
+                                  str(seed) + "_CompRef.tif")
+        diffHisto = getDiffHisto(confMin, confMax, confStep, confidence,
+                                 difference)
+        statsTile = Testpath + "/final/TMP/" + tile + "_stats_seed_" + str(
+            seed) + ".cfg"
         if os.path.exists(statsTile):
             os.remove(statsTile)
         stats = open(statsTile, "a")
-        stats.write("AllDiffStats:'"+", ".join(statsName)+"'\n")
+        stats.write("AllDiffStats:'" + ", ".join(statsName) + "'\n")
         stats.close()
         for i in range(len(statsName)):
-            hist, bin_edges = histo(diffHisto[i+1], bins=np.arange(confMin, confMax+1, confStep))
+            hist, bin_edges = histo(diffHisto[i + 1],
+                                    bins=np.arange(confMin, confMax + 1,
+                                                   confStep))
             hist_str = " ".join([str(currentVal) for currentVal in hist])
-            bin_edges_str = " ".join([str(currentVal) for currentVal in bin_edges])
+            bin_edges_str = " ".join(
+                [str(currentVal) for currentVal in bin_edges])
             genStatsDiff(statsTile, statsName[i], hist_str, bin_edges_str)
-        histNView, binsNview = histo(Cloud, bins=np.arange(0, maxView+1, 1))
+        histNView, binsNview = histo(Cloud, bins=np.arange(0, maxView + 1, 1))
         hist_str = " ".join([str(currentVal) for currentVal in histNView])
         bin_edges_str = " ".join([str(currentVal) for currentVal in binsNview])
         genStatsDiff(statsTile, "TileValidity", hist_str, bin_edges_str)
 
+
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description="This function allows you launch the chain according to a configuration file")
-    parser.add_argument("-conf", dest="config", help="path to configuration file", required=True)
-    parser.add_argument("-tile", dest="tile", help="Tile to extract statistics", required=True)
-    parser.add_argument("--sample", dest="sample", help="path to configuration file", required=False, default=None)
-    parser.add_argument("--wd", dest="workingDirectory", help="path to the working directory", required=False, default=None)
+    parser = argparse.ArgumentParser(
+        description=
+        "This function allows you launch the chain according to a configuration file"
+    )
+    parser.add_argument("-conf",
+                        dest="config",
+                        help="path to configuration file",
+                        required=True)
+    parser.add_argument("-tile",
+                        dest="tile",
+                        help="Tile to extract statistics",
+                        required=True)
+    parser.add_argument("--sample",
+                        dest="sample",
+                        help="path to configuration file",
+                        required=False,
+                        default=None)
+    parser.add_argument("--wd",
+                        dest="workingDirectory",
+                        help="path to the working directory",
+                        required=False,
+                        default=None)
     args = parser.parse_args()
 
     # load configuration file
     cfg = SCF.serviceConfigFile(args.config)
 
     outStats(cfg, args.tile, args.sample, args.workingDirectory)
-
-

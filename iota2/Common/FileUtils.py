@@ -34,8 +34,9 @@ from osgeo import ogr
 from osgeo import osr
 from osgeo.gdalconst import *
 #~ import otbApplication as otb
-from Common.Utils import run
-from Common.Utils import remove_in_string_list
+from iota2.Common.Utils import run
+from iota2.Common.Utils import remove_in_string_list
+from typing import Optional, List
 
 
 def is_writable_directory(directory_path):
@@ -1747,36 +1748,46 @@ def getShapeExtent(shape_in):
     return env[0], env[2], env[1], env[3]
 
 
-def getFeatStackName(pathConf):
+# def getFeatStackName(list_indices: List[str],
+def get_feat_stack_name(list_indices: List[str],
+                        user_feat_path: str,
+                        user_feat_pattern: Optional[str] = None) -> str:
     """
     usage : get Feature Stack name
+    Parameters
+    ----------
+    list_indices: list(string)
+        the features list
+    user_feat_path: string
+        the path to images
+    user_feat_pattern: string
+        contains features name separated by comma
+    Return
+    ------
+    string: the image stack name
     """
-    from Common import ServiceConfigFile as SCF
-    if not isinstance(pathConf, SCF.serviceConfigFile):
-        cfg = SCF.serviceConfigFile(pathConf)
-    listIndices = cfg.getParam("GlobChain", "features")
-    userFeatPath = cfg.getParam("chain", "userFeatPath")
-    if "None" in userFeatPath:
-        userFeatPath = None
-    userFeat_pattern = ""
-    if userFeatPath:
-        userFeat_pattern = "_".join((cfg.getParam("userFeat",
-                                                  "patterns")).split(","))
 
-    Stack_ind = "SL_MultiTempGapF" + userFeat_pattern + ".tif"
-    retourListFeat = True
-    if len(listIndices) > 1:
-        listIndices = list(listIndices.data)
-        listIndices = sorted(listIndices)
-        listFeat = "_".join(listIndices)
-    elif len(listIndices) == 1:
-        listFeat = listIndices[0]
+    if "None" in user_feat_path:
+        user_feat_path = None
+    if user_feat_pattern is None:
+        user_feat_pattern = ""
     else:
-        retourListFeat = False
+        user_feat_pattern = "_".join(user_feat_pattern.split(","))
 
-    if retourListFeat is True:
-        Stack_ind = "SL_MultiTempGapF_" + listFeat + "_" + userFeat_pattern + "_.tif"
-    return Stack_ind
+    stack_ind = f"SL_MultiTempGapF{user_feat_pattern}.tif"
+    return_list_feat = True
+    if len(list_indices) > 1:
+        list_indices = list(list_indices.data)
+        list_indices = sorted(list_indices)
+        list_feat = "_".join(list_indices)
+    elif len(list_indices) == 1:
+        list_feat = list_indices[0]
+    else:
+        return_list_feat = False
+
+    if return_list_feat is True:
+        stack_ind = f"SL_MultiTempGapF_{list_feat}_{user_feat_pattern}_.tif"
+    return stack_ind
 
 
 def writeCmds(path, cmds, mode="w"):

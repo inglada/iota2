@@ -1385,7 +1385,8 @@ class iota_testGenerateStatModel(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         # definition of local variables
-        self.fichierConfig = iota2dir + "/config/Config_4Tuiles_Multi_FUS_Confidence.cfg"
+        self.fichierConfig = (iota2dir + "/config/Config_4Tuiles_"
+                              "Multi_FUS_Confidence.cfg")
         self.test_vector = iota2_dataTest + "/test_vector/"
         self.pathOut = iota2_dataTest + "/test_vector/test_GenerateStatModel/"
         self.pathStats = self.pathOut + "/stats"
@@ -1420,15 +1421,21 @@ class iota_testGenerateStatModel(unittest.TestCase):
             shutil.copy(full_file_name, self.pathAppVal)
 
     def test_GenerateStatModel(self):
-        from Learning import ModelStat as MS
+        from iota2.Learning import ModelStat as MS
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
         cfg.setParam('chain', 'outputPath', self.pathOut)
         cfg.setParam('argTrain', 'classifier', 'svm')
-
-        MS.generateStatModel(self.pathAppVal, self.pathTilesFeat,
-                             self.pathStats, self.cmdPath + "/stats", None,
-                             cfg)
+        user_feat_pattern = cfg.getParam("userFeat", "patterns")
+        if "none" in user_feat_pattern.lower():
+            user_feat_pattern = None
+        MS.generate_stat_model(self.pathAppVal, self.pathTilesFeat,
+                               self.pathStats, self.cmdPath + "/stats",
+                               cfg.getParam("chain", "outputPath"),
+                               cfg.getParam('argTrain', 'classifier'),
+                               cfg.getParam("GlobChain", "features"),
+                               cfg.getParam("chain",
+                                            "userFeatPath"), user_feat_pattern)
 
         # file comparison to ref file
         File1 = self.cmdPath + "/stats/stats.txt"

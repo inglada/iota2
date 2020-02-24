@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -13,19 +13,28 @@
 #   PURPOSE.  See the above copyright notices for more information.
 #
 # =========================================================================
+"""
+Step for compute statistics for SVM learning
+"""
 import os
 
-from Steps import IOTA2Step
-from Common import ServiceConfigFile as SCF
+from iota2.Steps import IOTA2Step
+from iota2.Common import ServiceConfigFile as SCF
+
 
 class samplesNormalization(IOTA2Step.Step):
-    def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
+    """
+    The samples Normalization class
+    """
+    def __init__(self, cfg, cfg_resources_file):
         # heritage init
         resources_block_name = "stats_by_models"
-        super(samplesNormalization, self).__init__(cfg, cfg_resources_file, resources_block_name)
+        super(samplesNormalization, self).__init__(cfg, cfg_resources_file,
+                                                   resources_block_name)
 
         # step variables
-        self.output_path = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
+        self.output_path = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'outputPath')
 
     def step_description(self):
         """
@@ -40,12 +49,20 @@ class samplesNormalization(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
-        from Learning import ModelStat as MS
-        return MS.generateStatModel(os.path.join(self.output_path, "dataAppVal"),
-                                    os.path.join(self.output_path, "features"),
-                                    os.path.join(self.output_path, "stats"),
-                                    os.path.join(self.output_path, "cmd", "stats"),
-                                    None, self.cfg)
+        from iota2.Learning import ModelStat as MS
+        cfg = SCF.serviceConfigFile(self.cfg)
+        user_feat_pattern = cfg.getParam("userFeat", "patterns")
+        if "none" in user_feat_pattern.lower():
+            user_feat_pattern = None
+        return MS.generate_stat_model(
+            os.path.join(self.output_path, "dataAppVal"),
+            os.path.join(self.output_path, "features"),
+            os.path.join(self.output_path, "stats"),
+            os.path.join(self.output_path, "cmd", "stats"),
+            cfg.getParam("chain", "outputPath"),
+            cfg.getParam('argTrain', 'classifier'),
+            cfg.getParam("GlobChain", "features"),
+            cfg.getParam("chain", "userFeatPath"), user_feat_pattern)
 
     def step_execute(self):
         """
@@ -55,9 +72,9 @@ class samplesNormalization(IOTA2Step.Step):
             the function to execute as a lambda function. The returned object
             must be a lambda function.
         """
-        from MPI import launch_tasks as tLauncher
-        bashLauncherFunction = tLauncher.launchBashCmd
-        step_function = lambda x: bashLauncherFunction(x)
+        from iota2.MPI import launch_tasks as tLauncher
+        bash_launcher_function = tLauncher.launchBashCmd
+        step_function = lambda x: bash_launcher_function(x)
         return step_function
 
     def step_outputs(self):
