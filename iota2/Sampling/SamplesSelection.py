@@ -394,11 +394,6 @@ def samples_selection(model: str,
         root logger
     """
     from iota2.Common import OtbAppBank
-    # from iota2.Common import ServiceConfigFile as SCF
-
-    # iota2_directory = cfg.getParam('chain', 'outputPath')
-    # runs = cfg.getParam('chain', 'runs')
-    # epsg = cfg.getParam('GlobChain', 'proj')
 
     samples_sel_dir = os.path.join(output_path, "samplesSelection")
 
