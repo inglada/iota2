@@ -1214,10 +1214,6 @@ class iota_testClassificationShaping(unittest.TestCase):
         from iota2.Validation import ClassificationShaping as CS
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
-        #cfg.setParam('chain', 'outputPath', self.pathOut)
-        #cfg.setParam('chain', 'listTile', "D0005H0002")
-        #cfg.setParam('argClassification', 'classifMode', "separate")
-
         features_ref = "../../../data/references/features"
         features_ref_test = os.path.join(self.pathOut, "features")
         os.mkdir(features_ref_test)
