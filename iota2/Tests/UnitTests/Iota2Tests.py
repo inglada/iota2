@@ -1498,11 +1498,11 @@ class iota_testGetModel(unittest.TestCase):
         os.remove(self.pathTestRunning + 'tile6_3_learn_seed0.shp')
 
 
-class iota_testMergeOutStats(unittest.TestCase):
+class iota_test_merge_output_statistics(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         '''
-        In this function, we initialize the configuration file used by the function mergeOutStats()
+        In this function, we initialize the configuration file used by the function merge_output_statistics()
         We will change the value for the output path for our output folder
         '''
         # We create a test_folder
@@ -1534,7 +1534,7 @@ class iota_testMergeOutStats(unittest.TestCase):
         self.cfg.setParam('chain', 'runs', 1)
         self.cfg.setParam('chain', 'listTile', 'T31TCJ')
 
-    def test_mergeOutStats(self):
+    def test_merge_output_statistics(self):
         '''
         We test the function mergeOutStats()
         This is more a non-regression test than a unit test
@@ -1586,7 +1586,9 @@ class iota_testMergeOutStats(unittest.TestCase):
                       '/test_vector/mergeOutStats/Output/final/Validity.png')
 
         # We execute mergeOutStats()
-        MergeOutStats.mergeOutStats(self.cfg)
+        MergeOutStats.merge_output_statistics(
+            os.path.join(iota2_dataTest, "test_vector", "test_mergeOutStats"),
+            1)
 
         # We check the produced value with the expected value
         # we should have 0 as result of the difference between the expected value and the produced value
