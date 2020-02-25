@@ -124,9 +124,9 @@ class iota_testCoRegistration(unittest.TestCase):
         cfg_coregister = Config(open(test_config))
         cfg_coregister.chain.outputPath = self.test_working_directory
         cfg_coregister.chain.S2Path = datadir_test
-        cfg_coregister.chain.L5Path_old = None
-        cfg_coregister.chain.L8Path_old = None
-        cfg_coregister.chain.S2_S2C_Path = None
+        # cfg_coregister.chain.L5Path_old = None
+        # cfg_coregister.chain.L8Path_old = None
+        # cfg_coregister.chain.S2_S2C_Path = None
 
         cfg_coregister.save(open(test_config, 'w'))
         ensure_dir(
@@ -149,12 +149,8 @@ class iota_testCoRegistration(unittest.TestCase):
             cfg.getParam("chain", "outputPath"),
             cfg.getParam('coregistration', 'dateVHR'),
             cfg.getParam('coregistration', 'dateSrc'),
-            cfg.getParam('chain', 'listTile'),
-            cfg.getParam('chain', 'L5Path_old'),
-            cfg.getParam('chain',
-                         'L8Path_old'), cfg.getParam('chain', 'S2Path'),
-            cfg.getParam('chain', 'S2_S2C_Path'),
-            cfg.getParam('coregistration', 'pattern'), False,
+            cfg.getParam('chain', 'listTile'), None, None,
+            cfg.getParam('chain', 'S2Path'), None, None, False,
             sensors_parameters)
         date_folders = glob.glob(os.path.join(datadir_test, "T38KPD", "*"))
         geoms_files = glob.glob(
@@ -182,12 +178,8 @@ class iota_testCoRegistration(unittest.TestCase):
             cfg.getParam("chain", "outputPath"),
             cfg.getParam('coregistration', 'dateVHR'),
             cfg.getParam('coregistration', 'dateSrc'),
-            cfg.getParam('chain', 'listTile'),
-            cfg.getParam('chain', 'L5Path_old'),
-            cfg.getParam('chain',
-                         'L8Path_old'), cfg.getParam('chain', 'S2Path'),
-            cfg.getParam('chain', 'S2_S2C_Path'),
-            cfg.getParam('coregistration', 'pattern'), False,
+            cfg.getParam('chain', 'listTile'), None, None,
+            cfg.getParam('chain', 'S2Path'), None, None, False,
             sensors_parameters)
         # assert
         date_folders = glob.glob(os.path.join(datadir_test, "T38KPE", "*"))
