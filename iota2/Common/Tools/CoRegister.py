@@ -114,7 +114,7 @@ def get_l8_tile_cloud_cover(ifile: str) -> float:
     return percent
 
 
-def fitness_date_score(date_vhr: str, datadir: str, datatype: str):
+def fitness_date_score(date_vhr: str, datadir: str, datatype: str) -> str:
     """
     get the date of the best image for the coregistration step
 
@@ -197,10 +197,28 @@ def launch_coregister(tile: str,
     ----------
     tile : string
         tile id
-    cfg : serviceConfig obj
-        configuration object for parameters
     workingDirectory : string
         path to the working directory
+    inref: str,
+    bandsrc: str,
+    bandref: str,
+    resample: str,
+    step: str,
+    minstep: str,
+    minsiftpoints: str,
+    iterate: str,
+    prec: str,
+    mode: str,
+    output_path: str,
+    date_vhr: Optional[str] = None,
+    dates_src: Optional[str] = None,
+    list_tiles: Optional[str] = None,
+    ipath_l5: Optional[str] = None,
+    ipath_l8: Optional[str] = None,
+    ipath_s2: Optional[str] = None,
+    ipath_s2_s2c: Optional[str] = None,
+    corregistration_pattern: Optional[str] = None,
+
     launch_mask : bool
         boolean to launch common mask
     """
@@ -214,17 +232,17 @@ def launch_coregister(tile: str,
         datatype = 'L5'
         pattern = "ORTHO_SURF_CORR_PENTE*.TIF"
 
-    if ipath_l8 != "None" and os.path.exists(os.path.join(ipath_l8, tile)):
+    if ipath_l8 is not None and os.path.exists(os.path.join(ipath_l8, tile)):
         datadir = os.path.join(ipath_l8, tile)
         datatype = 'L8'
         pattern = "ORTHO_SURF_CORR_PENTE*.TIF"
 
-    if ipath_s2 != "None" and os.path.exists(os.path.join(ipath_s2, tile)):
+    if ipath_s2 is not None and os.path.exists(os.path.join(ipath_s2, tile)):
         datadir = os.path.join(ipath_s2, tile)
         datatype = 'S2'
         pattern = "*STACK.tif"
 
-    if ipath_s2_s2c != "None" and os.path.exists(
+    if ipath_s2_s2c is not None and os.path.exists(
             os.path.join(ipath_s2_s2c, tile)):
         datadir = os.path.join(ipath_s2_s2c, tile)
         datatype = 'S2_S2C'
@@ -235,14 +253,14 @@ def launch_coregister(tile: str,
 
     # inref = os.path.join(cfg.getParam('coregistration', 'VHRPath'))
     # dates_src = cfg.getParam('coregistration', 'dateSrc')
-    if dates_src is not None:
+    if dates_src.lower() != "none":
         if list_tiles is not None:
             tiles = list_tiles.split(" ")
         else:
             raise "list_tiles parameters is not set"
         tile_ind = tiles.index(tile)
         date_src = dates_src.split(" ")[tile_ind]
-        if date_src is None:
+        if date_src.lower() == "none":
 
             if date_vhr == 'None':
                 LOGGER.warning("date_vhr is not set, please set it")
@@ -255,15 +273,6 @@ def launch_coregister(tile: str,
         else:
             date_src = fitness_date_score(date_vhr, datadir, datatype)
     insrc = glob.glob(os.path.join(datadir, f'*{date_src}*', pattern))[0]
-    # bandsrc = cfg.getParam('coregistration', 'bandSrc')
-    # bandref = cfg.getParam('coregistration', 'bandRef')
-    # resample = cfg.getParam('coregistration', 'resample')
-    # step = cfg.getParam('coregistration', 'step')
-    # minstep = cfg.getParam('coregistration', 'minstep')
-    # minsiftpoints = cfg.getParam('coregistration', 'minsiftpoints')
-    # iterate = cfg.getParam('coregistration', 'iterate')
-    # prec = cfg.getParam('coregistration', 'prec')
-    # mode = int(cfg.getParam('coregistration', 'mode'))
 
     if working_directory is not None:
         working_directory = os.path.join(working_directory, tile)
@@ -958,7 +967,7 @@ def coregister(in_src,
             os.remove(sensor_model)
     # mode 2 : application on the time series
     elif mode == 2:
-        ext = os.path.splitext(insrc)[1]
+        ext = os.path.splitext(in_src)[1]
         file_list = glob.glob(datadir + os.sep + '*' + os.sep + pattern)
         for insrc in file_list:
             src_clip = os.path.join(path_wd, 'tempSrcClip.tif')
