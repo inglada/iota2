@@ -1,5 +1,5 @@
-#!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# !/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -29,7 +29,7 @@ import matplotlib.pyplot as plt
 from iota2.Common import FileUtils as fu
 
 
-def get_valid_ok(config_stats):
+def get_valid_ok(config_stats: str):
     """
     """
     histo_valid_ok = Config(open(config_stats)).ValidOK.histogram
@@ -42,7 +42,7 @@ def get_valid_ok(config_stats):
     return histo_valid_ok, bins_
 
 
-def get_valid_nok(config_stats):
+def get_valid_nok(config_stats: str):
     """
     """
     histo_valid_nok = Config(open(config_stats)).ValidNOK.histogram
@@ -56,7 +56,7 @@ def get_valid_nok(config_stats):
     return histo_valid_nok, bins_
 
 
-def get_app_ok(config_stats):
+def get_app_ok(config_stats: str):
     """
     """
     histo_app_ok = Config(open(config_stats)).AppOK.histogram
@@ -97,7 +97,7 @@ def get_validity(config_stats: str):
     return histo_validity, bins_
 
 
-def sum_in_list(histo_list: List[List[str]]):
+def sum_in_list(histo_list: List[List[int]]):
     """
     """
     histo_sum = [0] * len(histo_list[0])
@@ -107,7 +107,7 @@ def sum_in_list(histo_list: List[List[str]]):
     return histo_sum
 
 
-def save_histogram(save_path: str, histo: List[str], bins: List[str]):
+def save_histogram(save_path: str, histo: List[int], bins: List[int]):
     """save histogram"""
 
     save_histog = " ".join([str(current_val) for current_val in histo])
