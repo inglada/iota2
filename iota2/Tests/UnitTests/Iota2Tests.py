@@ -1164,7 +1164,7 @@ class iota_testNoData(unittest.TestCase):
                       self.pathTilesFeat, self.shapeRegion, N, cfg, None)
 
 
-class iota_testClassificationShaping(unittest.TestCase):
+class iota_test_classification_shaping(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         # definition of local variables
@@ -1210,7 +1210,7 @@ class iota_testClassificationShaping(unittest.TestCase):
                 self.refData + "/Input/Classif/classif/", file_name)
             shutil.copy(full_file_name, self.pathClassif)
 
-    def test_ClassificationShaping(self):
+    def test_classification_shaping(self):
         from iota2.Validation import ClassificationShaping as CS
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
@@ -1225,12 +1225,12 @@ class iota_testClassificationShaping(unittest.TestCase):
         N = 1
         fieldEnv = "FID"
         COLORTABLE = cfg.getParam('chain', 'colorTable')
-        CS.ClassificationShaping(self.pathClassif, N, self.classifFinal, None,
-                                 "separate", self.pathOut, False, 2154,
-                                 cfg.getParam("chain", "nomenclaturePath"),
-                                 False, 30, False,
-                                 cfg.getParam("chain",
-                                              "regionPath"), COLORTABLE)
+        CS.classification_shaping(self.pathClassif, N, self.classifFinal, None,
+                                  "separate", self.pathOut, False, 2154,
+                                  cfg.getParam("chain", "nomenclaturePath"),
+                                  False, 30, False,
+                                  cfg.getParam("chain",
+                                               "regionPath"), COLORTABLE)
 
         # file comparison to ref file
         serviceCompareImageFile = fu.serviceCompareImageFile()

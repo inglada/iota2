@@ -80,7 +80,7 @@ class mosaic(IOTA2Step.Step):
             "chain", "spatialResolution")
         output_statistics = SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'outputStatistics')
-        step_function = lambda x: CS.ClassificationShaping(
+        step_function = lambda x: CS.classification_shaping(
             x, self.runs, os.path.join(self.output_path, "final"), self.
             workingDirectory, classif_mode, self.output_path,
             ds_fusion_sar_opt, proj, nomenclature_path, output_statistics,
