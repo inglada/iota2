@@ -1075,17 +1075,18 @@ def getGroundSpacing(pathToFeat, ImgInfo):
     return spx, spy
 
 
-def str2bool(v):
+def str2bool(value):
     """
     usage : use in argParse as function to parse options
 
     IN:
-    v [string]
+    value [string]
     out [bool]
     """
-    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+    import argparse
+    if value.lower() in ('yes', 'true', 't', 'y', '1'):
         return True
-    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+    elif value.lower() in ('no', 'false', 'f', 'n', '0'):
         return False
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')
