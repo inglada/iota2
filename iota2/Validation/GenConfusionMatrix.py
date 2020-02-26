@@ -20,7 +20,6 @@ import shutil
 import logging
 from logging import Logger
 from typing import List, Tuple, Optional
-from osgeo.gdalconst import *
 
 from iota2.Common import FileUtils as fu
 
