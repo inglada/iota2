@@ -15,19 +15,24 @@
 # =========================================================================
 import os
 
-from Steps import IOTA2Step
-from Common import ServiceConfigFile as SCF
-from Sampling import SamplesStat
+from iota2.Steps import IOTA2Step
+from iota2.Common import ServiceConfigFile as SCF
+from iota2.Sampling import SamplesStat
+
 
 class statsSamplesModel(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "samplesStatistics"
-        super(statsSamplesModel, self).__init__(cfg, cfg_resources_file, resources_block_name)
+        super(statsSamplesModel, self).__init__(cfg, cfg_resources_file,
+                                                resources_block_name)
 
         # step variables
         self.workingDirectory = workingDirectory
-        self.output_path = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
+        self.output_path = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'outputPath')
+        self.data_field = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'dataField')
 
     def step_description(self):
         """
@@ -42,7 +47,8 @@ class statsSamplesModel(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
-        return SamplesStat.region_tile(os.path.join(self.output_path, "samplesSelection"))
+        return SamplesStat.region_tile(
+            os.path.join(self.output_path, "samplesSelection"))
 
     def step_execute(self):
         """
@@ -53,7 +59,8 @@ class statsSamplesModel(IOTA2Step.Step):
             must be a lambda function.
         """
 
-        step_function = lambda x: SamplesStat.samples_stats(x, self.cfg, self.workingDirectory)
+        step_function = lambda x: SamplesStat.samples_stats(
+            x, self.output_path, self.data_field, self.workingDirectory)
         return step_function
 
     def step_outputs(self):
