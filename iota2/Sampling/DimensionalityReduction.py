@@ -410,9 +410,6 @@ def sample_file_pca_reduction(input_sample_file_name: str,
     files_to_remove = list()
     reduced_file_list = list()
     fl_counter = 0
-    input_dimensions = len(
-        fu.get_all_fields_in_shape(input_sample_file_name,
-                                   'SQLite')[number_of_meta_data_fields:])
 
     basename = os.path.basename(input_sample_file_name)[:-(len('sqlite') + 1)]
     for feat in feature_list:
