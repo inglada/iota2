@@ -208,7 +208,7 @@ def confusion_sar_optical_parameter(iota2_dir, LOGGER=LOGGER):
         tile = vec_name.split("_")[vector_tile_pos]
         model = vec_name.split("_")[vector_model_pos]
         key = (seed, tile, model)
-        fields = fu.getAllFieldsInShape(vector)
+        fields = fu.get_all_fields_in_shape(vector)
         if len(
                 fu.getFieldElement(vector,
                                    driverName="ESRI Shapefile",

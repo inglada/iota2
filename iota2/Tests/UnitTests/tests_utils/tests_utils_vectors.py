@@ -110,7 +110,7 @@ def delete_useless_fields(test_vector: str,
     from iota2.VectorTools.DeleteField import deleteField
     # const
 
-    fields = fut.getAllFieldsInShape(test_vector, driver='SQLite')
+    fields = fut.get_all_fields_in_shape(test_vector, driver='SQLite')
 
     rm_field = [field for field in fields if field_to_rm in field]
 
@@ -170,7 +170,7 @@ def compare_sqlite(vect_1: str,
         driver = ogr.GetDriverByName("SQLite")
         dataset = driver.Open(vector, 0)
         lyr = dataset.GetLayer()
-        fields = fut.getAllFieldsInShape(vector, 'SQLite')
+        fields = fut.get_all_fields_in_shape(vector, 'SQLite')
         for feature in lyr:
             x_coord = feature.GetGeometryRef().GetX()
             y_coord = feature.GetGeometryRef().GetY()
@@ -180,8 +180,8 @@ def compare_sqlite(vect_1: str,
         values = sorted(values, key=priority)
         return values
 
-    fields_1 = fut.getAllFieldsInShape(vect_1, 'SQLite')
-    fields_2 = fut.getAllFieldsInShape(vect_2, 'SQLite')
+    fields_1 = fut.get_all_fields_in_shape(vect_1, 'SQLite')
+    fields_2 = fut.get_all_fields_in_shape(vect_2, 'SQLite')
 
     if len(fields_1) != len(fields_2):
         return False

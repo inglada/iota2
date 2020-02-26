@@ -26,7 +26,14 @@ from Common import FileUtils as fut
 
 logger = logging.getLogger(__name__)
 
-def get_randomPoly(layer, field, classes, ratio, regionField, regions, random_seed=None):
+
+def get_randomPoly(layer,
+                   field,
+                   classes,
+                   ratio,
+                   regionField,
+                   regions,
+                   random_seed=None):
     """
     use to randomly split samples in learning and validation considering
     classes in regions
@@ -58,7 +65,8 @@ def get_randomPoly(layer, field, classes, ratio, regionField, regions, random_se
         for cl in classes:
             listid = []
             layer.SetAttributeFilter(None)
-            attrib_filter = "{}={} AND {}='{}'".format(field, cl, regionField, region)
+            attrib_filter = "{}={} AND {}='{}'".format(field, cl, regionField,
+                                                       region)
             layer.SetAttributeFilter(attrib_filter)
             featureCount = float(layer.GetFeatureCount())
             if featureCount == 1:
@@ -82,7 +90,10 @@ def get_randomPoly(layer, field, classes, ratio, regionField, regions, random_se
                 random.seed(random_seed)
                 random_id_learn = random.sample(listid, int(polbysel))
                 sample_id_learn += [fid for fid in random_id_learn]
-                sample_id_valid += [currentFid for currentFid in listid if currentFid not in sample_id_learn]
+                sample_id_valid += [
+                    currentFid for currentFid in listid
+                    if currentFid not in sample_id_learn
+                ]
 
     sample_id_learn.sort()
     sample_id_valid.sort()
@@ -90,8 +101,8 @@ def get_randomPoly(layer, field, classes, ratio, regionField, regions, random_se
     layer.SetAttributeFilter(None)
     return set(sample_id_learn), set(sample_id_valid)
 
-def get_CrossValId(layer, dataField, classes, seeds, regionField,
-                     regions):
+
+def get_CrossValId(layer, dataField, classes, seeds, regionField, regions):
     """
     use to split samples in 'seeds' folds in order to perform cross-validation methods
     
@@ -123,20 +134,30 @@ def get_CrossValId(layer, dataField, classes, seeds, regionField,
         for cl in classes:
             listid = []
             layer.SetAttributeFilter(None)
-            attrib_filter = "{}={} AND {}='{}'".format(dataField, cl, regionField, region)
+            attrib_filter = "{}={} AND {}='{}'".format(dataField, cl,
+                                                       regionField, region)
             layer.SetAttributeFilter(attrib_filter)
-            fid_area = [(f.GetFID(), f.GetGeometryRef().GetArea()) for f in layer]
+            fid_area = [(f.GetFID(), f.GetGeometryRef().GetArea())
+                        for f in layer]
             region_class_id, _ = splitByArea.splitByArea(fid_area, seeds)
             for fold_num, fold in enumerate(region_class_id):
                 id_sets[fold_num] += [cFID for cFID, cArea in fold]
     layer.SetAttributeFilter(None)
     return id_sets
 
-def splitInSubSets(vectoFile, dataField, regionField, 
-                   ratio=0.5, seeds=1, driver_name="SQLite", 
-                   learningFlag="learn", validationFlag="validation",
-                   unusedFlag="unused", crossValidation=False,
-                   splitGroundTruth=True, random_seed=None):
+
+def splitInSubSets(vectoFile,
+                   dataField,
+                   regionField,
+                   ratio=0.5,
+                   seeds=1,
+                   driver_name="SQLite",
+                   learningFlag="learn",
+                   validationFlag="validation",
+                   unusedFlag="unused",
+                   crossValidation=False,
+                   splitGroundTruth=True,
+                   random_seed=None):
     """
     This function is dedicated to split a shape into N subsets
     of training and validations samples by adding a new field
@@ -174,20 +195,25 @@ def splitInSubSets(vectoFile, dataField, regionField,
     source = driver.Open(vectoFile, 1)
     layer = source.GetLayer(0)
 
-    class_avail = fut.getFieldElement(vectoFile, driverName=driver_name,
-                                      field=dataField, mode="unique", elemType="int")
-    region_avail = fut.getFieldElement(vectoFile, driverName=driver_name,
-                                       field=regionField, mode="unique", elemType="str")
-    all_fields = fut.getAllFieldsInShape(vectoFile, driver=driver_name)
+    class_avail = fut.getFieldElement(vectoFile,
+                                      driverName=driver_name,
+                                      field=dataField,
+                                      mode="unique",
+                                      elemType="int")
+    region_avail = fut.getFieldElement(vectoFile,
+                                       driverName=driver_name,
+                                       field=regionField,
+                                       mode="unique",
+                                       elemType="str")
+    all_fields = fut.get_all_fields_in_shape(vectoFile, driver=driver_name)
 
     fid_area = [(f.GetFID(), f.GetGeometryRef().GetArea()) for f in layer]
     fid = [fid_ for fid_, area in fid_area]
 
     id_learn = []
     id_val = []
-    if crossValidation :
-        id_CrossVal = get_CrossValId(layer, dataField,
-                                     class_avail, seeds,
+    if crossValidation:
+        id_CrossVal = get_CrossValId(layer, dataField, class_avail, seeds,
                                      regionField, region_avail)
     for seed in range(seeds):
         source = driver.Open(vectoFile, 1)
@@ -195,16 +221,16 @@ def splitInSubSets(vectoFile, dataField, regionField,
 
         seed_field_name = "seed_" + str(seed)
         seed_field = ogr.FieldDefn(seed_field_name, ogr.OFTString)
-        
+
         if seed_field_name not in all_fields:
             layer.CreateField(seed_field)
         if crossValidation is False:
             random_seed_number = None
             if random_seed is not None:
                 random_seed_number = random_seed + seed
-            id_learn, id_val = get_randomPoly(layer, dataField,
-                                              class_avail, ratio,
-                                              regionField, region_avail, random_seed_number)
+            id_learn, id_val = get_randomPoly(layer, dataField, class_avail,
+                                              ratio, regionField, region_avail,
+                                              random_seed_number)
         else:
             id_learn = id_CrossVal[seed]
 
@@ -226,24 +252,29 @@ def splitInSubSets(vectoFile, dataField, regionField,
             layer.SetFeature(feat)
         i = layer = None
 
+
 if __name__ == "__main__":
     func_description = "This function is dedicated to split a shape into N subsets\
                         of training and validations samples by adding a new field\
                         by subsets (seed_X) containing 'learn' or 'validation'"
 
     parser = argparse.ArgumentParser(description=func_description)
-    parser.add_argument("-vector", dest="vectoFile",
+    parser.add_argument("-vector",
+                        dest="vectoFile",
                         help="path to the vector file",
                         required=True)
-    parser.add_argument("-dataField", dest="dataField",
+    parser.add_argument("-dataField",
+                        dest="dataField",
                         help="field in vector file to consider",
                         required=True)
-    parser.add_argument("-ratio", dest="ratio",
+    parser.add_argument("-ratio",
+                        dest="ratio",
                         help="ratio = learning/validation (0 < ratio < 1)",
                         required=False,
                         type=float,
                         default=0.5)
-    parser.add_argument("-seeds", dest="seeds",
+    parser.add_argument("-seeds",
+                        dest="seeds",
                         help="number of subsets",
                         required=False,
                         type=int,

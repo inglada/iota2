@@ -228,8 +228,8 @@ class iota_testVectorFormatting(unittest.TestCase):
                         msg="wrong number of features")
 
         # check fields
-        origin_fields = fut.getAllFieldsInShape(ground_truth)
-        test_fields = fut.getAllFieldsInShape(test_vector)
+        origin_fields = fut.get_all_fields_in_shape(ground_truth)
+        test_fields = fut.get_all_fields_in_shape(test_vector)
 
         new_fields = ['region', 'originfid', 'seed_0', 'seed_1', 'tile_o']
         expected_fields = origin_fields + new_fields
@@ -386,8 +386,8 @@ class iota_testVectorFormatting(unittest.TestCase):
         keep_fields(self.in_vector, test_vector, fields=fields_to_keep)
 
         # assert
-        test_vector_fields = fut.getAllFieldsInShape(test_vector,
-                                                     driver='SQLite')
+        test_vector_fields = fut.get_all_fields_in_shape(test_vector,
+                                                         driver='SQLite')
         self.assertTrue(all(current_field in fields_to_keep
                             for current_field in test_vector_fields),
                         msg="remove fields failed")

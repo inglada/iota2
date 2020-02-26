@@ -481,9 +481,10 @@ def generate_samples_crop_mix(folder_sample: str,
                  f"{end_extraction - start_extraction} seconds")
     # rename annual fields in order to fit non annual dates
     if os.path.exists(sample_extr_a):
-        annual_fields = fu.getAllFieldsInShape(sample_extr_a, "SQLite")
+        annual_fields = fu.get_all_fields_in_shape(sample_extr_a, "SQLite")
     if os.path.exists(sample_extr_na):
-        non_annual_fields = fu.getAllFieldsInShape(sample_extr_na, "SQLite")
+        non_annual_fields = fu.get_all_fields_in_shape(sample_extr_na,
+                                                       "SQLite")
     if os.path.exists(sample_extr_na) and os.path.exists(sample_extr_a):
         if len(annual_fields) != len(non_annual_fields):
             raise Exception(

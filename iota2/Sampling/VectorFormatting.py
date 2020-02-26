@@ -86,7 +86,7 @@ def split_vector_by_region(in_vect: str,
     # split vector
     for seed in range(runs):
         fields_to_keep = ",".join([
-            elem for elem in fut.getAllFieldsInShape(in_vect, "SQLite")
+            elem for elem in fut.get_all_fields_in_shape(in_vect, "SQLite")
             if "seed_" not in elem
         ])
         for region in regions:
@@ -272,7 +272,7 @@ def split_by_sets(vector: str,
     # predict fields to keep
     fields_to_rm = ["seed_" + str(seed) for seed in range(seeds)]
     fields_to_rm.append(tile_origin_field_name)
-    all_fields = fut.getAllFieldsInShape(vector)
+    all_fields = fut.get_all_fields_in_shape(vector)
     fields = [
         field_name for field_name in all_fields
         if field_name not in fields_to_rm

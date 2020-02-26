@@ -156,8 +156,8 @@ class DimensionalityReductionTests(unittest.TestCase):
          metaDataFields) = DR.BuildFeaturesLists(self.inputSampleFileName)
         numberOfMetaDataFields = len(metaDataFields)
         inputDimensions = len(
-            fu.getAllFieldsInShape(self.inputSampleFileName,
-                                   'SQLite')[numberOfMetaDataFields:])
+            fu.get_all_fields_in_shape(self.inputSampleFileName,
+                                       'SQLite')[numberOfMetaDataFields:])
         DR.ApplyDimensionalityReduction(self.inputSampleFileName,
                                         self.testReducedOutputFileName,
                                         self.outputModelFileName,

@@ -20,20 +20,18 @@ import string
 import glob
 import logging
 import argparse
-
-from Common import FileUtils as fu
-from Common import ServiceConfigFile as SCF
 import otbApplication as otb
-from Common import OtbAppBank
-from VectorTools import join_sqlites as jsq
+from iota2.Common import FileUtils as fu
+from iota2.Common import OtbAppBank
+from iota2.VectorTools import join_sqlites as jsq
 
-#root logger
-logger = logging.getLogger(__name__)
+# root logger
+LOGGER = logging.getLogger(__name__)
 
 
-def GetAvailableFeatures(inputSampleFileName,
-                         firstLevel='sensor',
-                         secondLevel='band'):
+def get_available_features(input_sample_file_name,
+                           first_level='sensor',
+                           second_level='band'):
     """Assumes that the features are named following a pattern like
     sensor_date_band : S2_b1_20170324. Returns a dictionary containing
     the available features in a 3 level data structure (dict of dicts
@@ -48,7 +46,8 @@ def GetAvailableFeatures(inputSampleFileName,
     fields in the file.
 
     """
-    featureList = fu.getAllFieldsInShape(inputSampleFileName, 'SQLite')
+    # getAllFieldsInShape
+    feature_list = fu.get_all_fields_in_shape(input_sample_file_name, 'SQLite')
     features = dict()
 
     metaDataFields = []

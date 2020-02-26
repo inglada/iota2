@@ -154,7 +154,7 @@ def delete_uselessFields(test_vector, field_to_rm="region"):
     """
     #const
 
-    fields = fu.getAllFieldsInShape(test_vector, driver='SQLite')
+    fields = fu.get_all_fields_in_shape(test_vector, driver='SQLite')
 
     rm_field = [field for field in fields if field_to_rm in field]
 
@@ -288,7 +288,7 @@ def compareSQLite(vect_1, vect_2, CmpMode='table', ignored_fields=[]):
         driver = ogr.GetDriverByName("SQLite")
         ds = driver.Open(vector, 0)
         lyr = ds.GetLayer()
-        fields = fu.getAllFieldsInShape(vector, 'SQLite')
+        fields = fu.get_all_fields_in_shape(vector, 'SQLite')
         for feature in lyr:
             x = feature.GetGeometryRef().GetX()
             y = feature.GetGeometryRef().GetY()
@@ -298,8 +298,8 @@ def compareSQLite(vect_1, vect_2, CmpMode='table', ignored_fields=[]):
         values = sorted(values, key=priority)
         return values
 
-    fields_1 = fu.getAllFieldsInShape(vect_1, 'SQLite')
-    fields_2 = fu.getAllFieldsInShape(vect_2, 'SQLite')
+    fields_1 = fu.get_all_fields_in_shape(vect_1, 'SQLite')
+    fields_2 = fu.get_all_fields_in_shape(vect_2, 'SQLite')
 
     if len(fields_1) != len(fields_2):
         return False

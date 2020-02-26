@@ -178,7 +178,7 @@ def RandomInSituByTile(path_mod_tile,
     layerDefinition = daLayer.GetLayerDefn()
     ratio = float(ratio)
 
-    AllFields = fu.getAllFieldsInShape(path_mod_tile, 'ESRI Shapefile')
+    AllFields = fu.get_all_fields_in_shape(path_mod_tile, 'ESRI Shapefile')
 
     driver = ogr.GetDriverByName('ESRI Shapefile')
     dataSource = driver.Open(path_mod_tile,

@@ -737,7 +737,7 @@ def keepBiggestArea(shpin, shpout):
 
     gdal.UseExceptions()
     driver = ogr.GetDriverByName('ESRI Shapefile')
-    field_name_list = getAllFieldsInShape(shpin)
+    field_name_list = get_all_fields_in_shape(shpin)
     in_ds = driver.Open(shpin, 0)
     in_lyr = in_ds.GetLayer()
     inLayerDefn = in_lyr.GetLayerDefn()
@@ -1005,7 +1005,7 @@ def getVectorFeatures(ground_truth, region_field, InputShape):
     AllFeat : [lsit of string] : list of all feature fought in InputShape. This vector must
     contains field with pattern 'value_N' N:[0,int(someInt)]
     """
-    input_fields = getAllFieldsInShape(ground_truth) + [
+    input_fields = get_all_fields_in_shape(ground_truth) + [
         region_field, "originfid", "tile_o"
     ]
 
@@ -1175,7 +1175,7 @@ def multiSearch(shp, ogrDriver='ESRI Shapefile'):
     return retour
 
 
-def getAllFieldsInShape(vector, driver='ESRI Shapefile'):
+def get_all_fields_in_shape(vector, driver='ESRI Shapefile'):
     """
     IN :
     vector [string] : path to vector file
@@ -1185,14 +1185,14 @@ def getAllFieldsInShape(vector, driver='ESRI Shapefile'):
     [list of string] : all fields in vector
     """
     driver = ogr.GetDriverByName(driver)
-    dataSource = driver.Open(vector, 0)
-    if dataSource is None:
+    data_source = driver.Open(vector, 0)
+    if data_source is None:
         raise Exception("Could not open " + vector)
-    layer = dataSource.GetLayer()
-    layerDefinition = layer.GetLayerDefn()
+    layer = data_source.GetLayer()
+    layer_definition = layer.GetLayerDefn()
     return [
-        layerDefinition.GetFieldDefn(i).GetName()
-        for i in range(layerDefinition.GetFieldCount())
+        layer_definition.GetFieldDefn(i).GetName()
+        for i in range(layer_definition.GetFieldCount())
     ]
 
 
@@ -1231,7 +1231,7 @@ def multiPolyToPoly(shpMulti, shpSingle):
 
     gdal.UseExceptions()
     driver = ogr.GetDriverByName('ESRI Shapefile')
-    field_name_list = getAllFieldsInShape(shpMulti)
+    field_name_list = get_all_fields_in_shape(shpMulti)
     in_ds = driver.Open(shpMulti, 0)
     in_lyr = in_ds.GetLayer()
     inLayerDefn = in_lyr.GetLayerDefn()

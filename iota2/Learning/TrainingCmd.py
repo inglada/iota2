@@ -139,7 +139,7 @@ def getFeatures_labels(learning_vector):
     """
     """
     nb_no_features = 4
-    fields = fu.getAllFieldsInShape(learning_vector, driver='SQLite')
+    fields = fu.get_all_fields_in_shape(learning_vector, driver='SQLite')
     return fields[nb_no_features::]
 
 

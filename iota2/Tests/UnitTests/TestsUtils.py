@@ -510,8 +510,8 @@ def compareVectorFile(vect_1,
         values = sorted(values, key=priority)
         return values
 
-    fields_1 = fu.getAllFieldsInShape(vect_1, drivername)
-    fields_2 = fu.getAllFieldsInShape(vect_2, drivername)
+    fields_1 = fu.get_all_fields_in_shape(vect_1, drivername)
+    fields_2 = fu.get_all_fields_in_shape(vect_2, drivername)
 
     for field_1, field_2 in zip_longest(fields_1, fields_2, fillvalue=None):
         if not field_1 == field_2:
