@@ -72,7 +72,7 @@ class DimensionalityReductionTests(unittest.TestCase):
         self.assertEqual(feats['20141017']['landsat8'][0], expected)
 
         expected = 'landsat8'
-        (feats, meta_data_fields) = DR.Get_Available_Features(
+        (feats, meta_data_fields) = DR.get_available_features(
             self.input_sample_file_name, 'date', 'band')
         self.assertEqual(feats['20141118']['b2'][0], expected)
 
@@ -153,19 +153,11 @@ class DimensionalityReductionTests(unittest.TestCase):
 
         output_features = ['reduced_' + str(x) for x in range(6)]
 
-        (dummy, meta_data_fields) = DR.build_features_lists(
-            self.input_sample_file_name)
-        number_of_meta_data_fields = len(meta_data_fields)
-        input_dimensions = len(
-            fu.get_all_fields_in_shape(self.input_sample_file_name,
-                                       'SQLite')[number_of_meta_data_fields:])
-        input(input_dimensions)
         DR.apply_dimensionality_reduction(self.input_sample_file_name,
                                           self.test_reduced_output_file_name,
                                           self.output_model_file_name,
                                           self.fl_date,
                                           output_features,
-                                          input_dimensions,
                                           stats_file=self.stats_file,
                                           writing_mode='overwrite')
 
@@ -190,25 +182,30 @@ class DimensionalityReductionTests(unittest.TestCase):
                                           cmp_mode="coordinates"),
                         msg="Joined files don't match")
 
-    def test_SampleFilePCAReduction(self):
-        from Iota2Tests import compareSQLite
+    def test_sample_file_pca_reduction(self):
+        """test sample file PCA reduction"""
+        from iota2.Tests.UnitTests.tests_utils import tests_utils_vectors as VU
 
-        test_testOutputSampleFileName = IOTA2_DATATEST + "/" + self.testOutputSampleFileName
-        DR.SampleFilePCAReduction(self.inputSampleFileName,
-                                  test_testOutputSampleFileName,
-                                  'date',
-                                  self.targetDimension,
-                                  tmpDir=os.path.join(IOTA2_DATATEST, "tmp"))
+        test_test_output_sample_file_name = (IOTA2_DATATEST + os.sep +
+                                             self.test_output_sample_file_name)
+        DR.sample_file_pca_reduction(self.input_sample_file_name,
+                                     test_test_output_sample_file_name,
+                                     'date',
+                                     self.target_dimension,
+                                     tmp_dir=os.path.join(
+                                         IOTA2_DATATEST, "tmp"))
 
-        self.assertTrue(compareSQLite(test_testOutputSampleFileName,
-                                      os.path.join(IOTA2_DATATEST,
-                                                   self.outputSampleFileName),
-                                      CmpMode="coordinates"),
+        self.assertTrue(VU.compare_sqlite(test_test_output_sample_file_name,
+                                          os.path.join(
+                                              IOTA2_DATATEST,
+                                              self.output_sample_file_name),
+                                          cmp_mode="coordinates"),
                         msg="Output sample files don't match")
 
-    def test_BuildChannelGroups(self):
-        cg = DR.BuildChannelGroups("sensor_date",
-                                   self.cfg.getParam("chain", "outputPath"))
+    def test_build_channel_groups(self):
+        """test build channel groups"""
+        chan_group = DR.build_channel_groups(
+            "sensor_date", self.cfg.getParam("chain", "outputPath"))
         expected = [[
             'Channel1', 'Channel2', 'Channel3', 'Channel4', 'Channel5',
             'Channel6', 'Channel7', 'Channel162', 'Channel185', 'Channel208'
@@ -323,32 +320,34 @@ class DimensionalityReductionTests(unittest.TestCase):
                         'Channel159', 'Channel160', 'Channel161', 'Channel184',
                         'Channel207', 'Channel230'
                     ]]
-        self.assertEqual(expected, cg)
+        self.assertEqual(expected, chan_group)
 
-    def test_ApplyDimensionalityReductionToFeatureStack(self):
-        imageStack = IOTA2_DATATEST + '/230feats.tif'
-        modelList = [self.outputModelFileName] * len(
-            DR.BuildChannelGroups("sensor_date",
-                                  self.cfg.getParam("chain", "outputPath")))
-        (app, other) = DR.ApplyDimensionalityReductionToFeatureStack(
+    def test_apply_dimensionality_reduction_to_feature_stack(self):
+        """test Apply Dimensionality Reduction To Feature Stack"""
+        image_stack = IOTA2_DATATEST + '/230feats.tif'
+        model_list = [self.output_model_file_name] * len(
+            DR.build_channel_groups("sensor_date",
+                                    self.cfg.getParam("chain", "outputPath")))
+        (app, _) = DR.apply_dimensionality_reduction_to_feature_stack(
             "sensor_date", self.cfg.getParam("chain", "outputPath"),
-            imageStack, modelList)
+            image_stack, model_list)
         app.SetParameterString(
             "out", os.path.join(IOTA2_DATATEST, "tmp", "reducedStack.tif"))
         app.ExecuteAndWriteOutput()
 
-    def test_ApplyDimensionalityReductionToFeatureStackPipeline(self):
+    def test_apply_dimensionality_reduction_to_feature_stack_pipeline(self):
+        """"""
         inimage = IOTA2_DATATEST + '/230feats.tif'
         import otbApplication as otb
         app = otb.Registry.CreateApplication("ExtractROI")
         app.SetParameterString("in", inimage)
         app.Execute()
-        modelList = [self.outputModelFileName] * len(
-            DR.BuildChannelGroups("sensor_date",
-                                  self.cfg.getParam("chain", "outputPath")))
-        (appdr, other) = DR.ApplyDimensionalityReductionToFeatureStack(
+        model_list = [self.output_model_file_name] * len(
+            DR.build_channel_groups("sensor_date",
+                                    self.cfg.getParam("chain", "outputPath")))
+        (appdr, _) = DR.apply_dimensionality_reduction_to_feature_stack(
             "sensor_date", self.cfg.getParam("chain", "outputPath"), app,
-            modelList)
+            model_list)
         appdr.SetParameterString(
             "out",
             os.path.join(IOTA2_DATATEST, "tmp", "reducedStackPipeline.tif"))

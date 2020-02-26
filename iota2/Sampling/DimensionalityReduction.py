@@ -431,8 +431,7 @@ def sample_file_pca_reduction(input_sample_file_name: str,
                                        feat, target_dimension, stats_file)
         apply_dimensionality_reduction(input_sample_file_name,
                                        reduced_sample_file, model_file, feat,
-                                       reduced_features, input_dimensions,
-                                       stats_file)
+                                       reduced_features, stats_file)
 
     join_reduced_sample_files(reduced_file_list,
                               output_sample_file_name,
