@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -13,7 +13,7 @@
 #   PURPOSE.  See the above copyright notices for more information.
 #
 # =========================================================================
-
+""" Generate Confusion Matrix"""
 import argparse
 import os
 import shutil
