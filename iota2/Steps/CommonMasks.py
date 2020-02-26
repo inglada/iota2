@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -13,8 +13,7 @@
 #   PURPOSE.  See the above copyright notices for more information.
 #
 # =========================================================================
-import os
-
+""" The CommonMasks step"""
 from iota2.Steps import IOTA2Step
 from iota2.Cluster import get_RAM
 from iota2.Common import ServiceConfigFile as SCF

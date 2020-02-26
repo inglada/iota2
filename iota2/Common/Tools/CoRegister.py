@@ -223,7 +223,6 @@ def launch_coregister(tile: str,
         boolean to launch common mask
     """
     from iota2.Sensors.ProcessLauncher import commonMasks
-    from iota2.Common import ServiceConfigFile as SCF
 
     LOGGER.info("Source Raster Registration")
 
@@ -251,8 +250,6 @@ def launch_coregister(tile: str,
     if corregistration_pattern is not None:
         pattern = corregistration_pattern
 
-    # inref = os.path.join(cfg.getParam('coregistration', 'VHRPath'))
-    # dates_src = cfg.getParam('coregistration', 'dateSrc')
     if dates_src.lower() != "none":
         if list_tiles is not None:
             tiles = list_tiles.split(" ")
@@ -802,8 +799,8 @@ def coregister(in_src,
                 except RuntimeError:
                     shutil.copy(sensor_model, out_sensor_model)
                     LOGGER.warning(
-                        'Coregistration failed, %s will be process with %s' %
-                        (insrc, out_sensor_model))
+                        f'Coregistration failed, {insrc} will be process '
+                        f'with {out_sensor_model}')
                     continue
 
                 out_src = os.path.join(path_wd, 'temp_file.tif')

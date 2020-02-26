@@ -123,15 +123,12 @@ def validity(tile_name,
     from iota2.Sensors.Sensors_container import sensors_container
     from iota2.Common.OtbAppBank import CreateConcatenateImagesApplication
     from iota2.Common.OtbAppBank import CreateBandMathApplication
-    from iota2.Common import ServiceConfigFile as SCF
     from iota2.Common.Utils import run
     from iota2.Common.FileUtils import erodeShapeFile
     from iota2.Common.FileUtils import removeShape
     from iota2.Common.FileUtils import ensure_dir
 
-    cfg = SCF.serviceConfigFile(config_path)
-    features_dir = os.path.join(cfg.getParam("chain", "outputPath"),
-                                "features", tile_name)
+    features_dir = os.path.join(output_path, "features", tile_name)
     validity_name = "nbView.tif"
 
     validity_out = os.path.join(features_dir, validity_name)

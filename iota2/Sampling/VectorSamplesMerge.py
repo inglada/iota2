@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -13,7 +13,7 @@
 #   PURPOSE.  See the above copyright notices for more information.
 #
 # =========================================================================
-
+"""The vector Samples Merge module"""
 import argparse
 import os
 import shutil
@@ -21,7 +21,6 @@ import logging
 from logging import Logger
 from typing import List, Optional
 from iota2.Common import FileUtils as fu
-from iota2.Common import ServiceConfigFile as SCF
 
 LOGGER = logging.getLogger(__name__)
 
@@ -183,18 +182,15 @@ if __name__ == "__main__":
 
     PARSER = argparse.ArgumentParser(
         description="This function merge sqlite to perform training step")
-    PARSER.add_argument("-conf",
-                        help="path to the configuration file (mandatory)",
-                        dest="pathConf",
+    PARSER.add_argument("-output_path",
+                        help="path to output directory (mandatory)",
+                        dest="output_path",
                         required=True)
-    PARSER.add_argument("-vl",
+    PARSER.add_argument("-vector_list",
+                        nargs='+',
                         help="list of vectorFiles to merge (mandatory)",
-                        dest="vl",
+                        dest="vector_list",
                         required=True)
 
     ARGS = PARSER.parse_args()
-
-    # load configuration file
-    CFG = SCF.serviceConfigFile(ARGS.pathConf)
-    OUTPUT_PATH = CFG.getParam("chain", "outputPath")
-    vector_samples_merge(ARGS.vl, OUTPUT_PATH)
+    vector_samples_merge(ARGS.vector_list, ARGS.output_path)

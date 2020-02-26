@@ -164,7 +164,6 @@ def RandomInSituByTile(path_mod_tile,
                        N,
                        pathOut,
                        ratio,
-                       cfg=None,
                        pathWd=None,
                        test=False):
 
