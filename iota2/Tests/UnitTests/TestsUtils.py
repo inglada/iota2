@@ -496,7 +496,7 @@ def compareVectorFile(vect_1,
         driver = ogr.GetDriverByName(drivername)
         ds = driver.Open(vector, 0)
         lyr = ds.GetLayer()
-        fields = fu.getAllFieldsInShape(vector, drivername)
+        fields = fu.get_all_fields_in_shape(vector, drivername)
         for feature in lyr:
             if typegeom == "point":
                 x = feature.GetGeometryRef().GetX(),
