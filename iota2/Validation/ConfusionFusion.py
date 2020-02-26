@@ -16,176 +16,239 @@
 
 import os
 import argparse
+from typing import List, Union, Tuple
 from osgeo import gdal
 from osgeo import ogr
 from osgeo import osr
 from osgeo.gdalconst import *
 import numpy as np
-from config import Config
 from iota2.Common import FileUtils as fu
-from iota2.Common import ServiceConfigFile as SCF
 
 
-def computeKappa(confMat):
+def compute_kappa(confusion_matrix: np.ndarray) -> float:
+    """compute kappa coefficients
 
-    nbrGood = confMat.trace()
-    nbrSample = confMat.sum()
+    Parameters
+    ----------
+    confusion_matrix : np.array of np.array
+        numpy array representing confusion matrix
+    """
 
-    if nbrSample == 0.0:
-        overallAccuracy = -1
+    nbr_good = confusion_matrix.trace()
+    nbr_sample = confusion_matrix.sum()
+
+    if nbr_sample == 0.0:
+        overall_accuracy = -1
     else:
-        overallAccuracy = float(nbrGood) / float(nbrSample)
+        overall_accuracy = float(nbr_good) / float(nbr_sample)
 
     ## the lucky rate.
-    luckyRate = 0.
-    for i in range(0, confMat.shape[0]):
+    lucky_rate = 0.
+    for i in range(0, confusion_matrix.shape[0]):
         sum_ij = 0.
         sum_ji = 0.
-        for j in range(0, confMat.shape[0]):
-            sum_ij += confMat[i][j]
-            sum_ji += confMat[j][i]
-        luckyRate += sum_ij * sum_ji
+        for j in range(0, confusion_matrix.shape[0]):
+            sum_ij += confusion_matrix[i][j]
+            sum_ji += confusion_matrix[j][i]
+        lucky_rate += sum_ij * sum_ji
 
     # Kappa.
-    if float((nbrSample * nbrSample) - luckyRate) != 0:
-        kappa = float((overallAccuracy * nbrSample * nbrSample) -
-                      luckyRate) / float((nbrSample * nbrSample) - luckyRate)
+    if float((nbr_sample * nbr_sample) - lucky_rate) != 0:
+        kappa = float((overall_accuracy * nbr_sample * nbr_sample) -
+                      lucky_rate) / float((nbr_sample * nbr_sample) -
+                                          lucky_rate)
     else:
         kappa = 1000
 
     return kappa
 
 
-def computePreByClass(confMat, AllClass):
+def compute_precision_by_class(confusion_matrix: np.ndarray,
+                               all_class: List[int]
+                               ) -> List[Tuple[int, float]]:
+    """compute precision by class
+   
+    Parameters
+    ----------
+    confusion_matrix : np.array of np.array
+        numpy array representing confusion matrix
+    all_class : list
+        list of class' label
+    Return
+    ------
+    list
+        list of tuple as (label, precision)
+    """
+    precision = []  #[(class,precision),(...),()...()]
 
-    Pre = []  #[(class,Pre),(...),()...()]
-
-    for i in range(len(AllClass)):
+    for i in range(len(all_class)):
         denom = 0
-        for j in range(len(AllClass)):
-            denom += confMat[j][i]
+        for j in range(len(all_class)):
+            denom += confusion_matrix[j][i]
             if i == j:
-                nom = confMat[j][i]
+                nom = confusion_matrix[j][i]
         if denom != 0:
-            currentPre = float(nom) / float(denom)
+            current_pre = float(nom) / float(denom)
         else:
-            currentPre = 0.
-        Pre.append((AllClass[i], currentPre))
-    return Pre
+            current_pre = 0.
+        precision.append((all_class[i], current_pre))
+    return precision
 
 
-def computeRecByClass(confMat, AllClass):
-    Rec = []  #[(class,rec),(...),()...()]
-    for i in range(len(AllClass)):
+def compute_recall_by_class(confusion_matrix: np.ndarray,
+                            all_class: List[int]) -> List[Tuple[int, float]]:
+    """compute recall by class
+
+    Parameters
+    ----------
+    confusion_matrix : np.array of np.array
+        numpy array representing confusion matrix
+    all_class : list
+        list of class' label
+    Return
+    ------
+    list
+        list of tuple as (label, recall)
+    """
+    recall = []  #[(class,rec),(...),()...()]
+    for i in range(len(all_class)):
         denom = 0
-        for j in range(len(AllClass)):
-            denom += confMat[i][j]
+        for j in range(len(all_class)):
+            denom += confusion_matrix[i][j]
             if i == j:
-                nom = confMat[i][j]
+                nom = confusion_matrix[i][j]
         if denom != 0:
-            currentRec = float(nom) / float(denom)
+            current_recall = float(nom) / float(denom)
         else:
-            currentRec = 0.
-        Rec.append((AllClass[i], currentRec))
-    return Rec
+            current_recall = 0.
+        recall.append((all_class[i], current_recall))
+    return recall
 
 
-def computeFsByClass(Pre, Rec, AllClass):
-    Fs = []
-    for i in range(len(AllClass)):
-        if float(Rec[i][1] + Pre[i][1]) != 0:
-            Fs.append((AllClass[i], float(2 * Rec[i][1] * Pre[i][1]) /
-                       float(Rec[i][1] + Pre[i][1])))
+def compute_fscore_by_class(precision: List[Tuple[int, float]],
+                            recall: List[Tuple[int, float]],
+                            all_class: List[int]) -> List[Tuple[int, float]]:
+    """compute fscore for each class from precisions and recalls"""
+    f_score = []
+    for i in range(len(all_class)):
+        if float(recall[i][1] + precision[i][1]) != 0:
+            f_score.append(
+                (all_class[i], float(2 * recall[i][1] * precision[i][1]) /
+                 float(recall[i][1] + precision[i][1])))
         else:
-            Fs.append((AllClass[i], 0.0))
-    return Fs
+            f_score.append((all_class[i], 0.0))
+    return f_score
 
 
-def writeCSV(confMat, AllClass, pathOut):
-
-    allC = ""
-    for i in range(len(AllClass)):
-        if i < len(AllClass) - 1:
-            allC = allC + str(AllClass[i]) + ","
+def write_csv(confusion_matrix: np.ndarray, all_class: List[int],
+              path_out: str):
+    """write CSV"""
+    all_c = ""
+    for i in range(len(all_class)):
+        if i < len(all_class) - 1:
+            all_c = all_c + str(all_class[i]) + ","
         else:
-            allC = allC + str(AllClass[i])
-    csvFile = open(pathOut, "w")
-    csvFile.write("#Reference labels (rows):" + allC + "\n")
-    csvFile.write("#Produced labels (columns):" + allC + "\n")
-    for i in range(len(confMat)):
-        for j in range(len(confMat[i])):
-            if j < len(confMat[i]) - 1:
-                csvFile.write(str(confMat[i][j]) + ",")
+            all_c = all_c + str(all_class[i])
+    csv_file = open(path_out, "w")
+    csv_file.write("#Reference labels (rows):" + all_c + "\n")
+    csv_file.write("#Produced labels (columns):" + all_c + "\n")
+    for i in range(len(confusion_matrix)):
+        for j in range(len(confusion_matrix[i])):
+            if j < len(confusion_matrix[i]) - 1:
+                csv_file.write(str(confusion_matrix[i][j]) + ",")
             else:
-                csvFile.write(str(confMat[i][j]) + "\n")
-    csvFile.close()
+                csv_file.write(str(confusion_matrix[i][j]) + "\n")
+    csv_file.close()
 
 
-def writeResults(Fs, Rec, Pre, kappa, overallAccuracy, AllClass, pathOut):
+def write_results(f_score: List[float], recall: List[float],
+                  precision: List[float], kappa: float,
+                  overall_accuracy: float, all_class: List[int],
+                  path_out: str) -> None:
+    """write report in a text file as otb confusion matrix output
 
-    resFile = open(pathOut, "w")
-    resFile.write("#Reference labels (rows):")
-    for i in range(len(AllClass)):
-        if i < len(AllClass) - 1:
-            resFile.write(str(AllClass[i]) + ",")
+    Parameters
+    ----------
+    f_score: list
+        list of F-score by class
+    recall: list
+        list of recall by class
+    precision: list
+        list of precision by class
+    kappa: float
+        kappa value
+    overall_accuracy: float
+        overall accuracy value
+    all_class: list
+        list of all class
+    path_out: str
+        output file to store report
+    """
+    res_file = open(path_out, "w")
+    res_file.write("#Reference labels (rows):")
+    for i in range(len(all_class)):
+        if i < len(all_class) - 1:
+            res_file.write(str(all_class[i]) + ",")
         else:
-            resFile.write(str(AllClass[i]) + "\n")
-    resFile.write("#Produced labels (columns):")
-    for i in range(len(AllClass)):
-        if i < len(AllClass) - 1:
-            resFile.write(str(AllClass[i]) + ",")
+            res_file.write(str(all_class[i]) + "\n")
+    res_file.write("#Produced labels (columns):")
+    for i in range(len(all_class)):
+        if i < len(all_class) - 1:
+            res_file.write(str(all_class[i]) + ",")
         else:
-            resFile.write(str(AllClass[i]) + "\n\n")
+            res_file.write(str(all_class[i]) + "\n\n")
 
-    for i in range(len(AllClass)):
-        resFile.write("Precision of class [" + str(AllClass[i]) +
-                      "] vs all: " + str(Pre[i][1]) + "\n")
-        resFile.write("Recall of class [" + str(AllClass[i]) + "] vs all: " +
-                      str(Rec[i][1]) + "\n")
-        resFile.write("F-score of class [" + str(AllClass[i]) + "] vs all: " +
-                      str(Fs[i][1]) + "\n\n")
+    for i in range(len(all_class)):
+        res_file.write("Precision of class [" + str(all_class[i]) +
+                       "] vs all: " + str(precision[i][1]) + "\n")
+        res_file.write("Recall of class [" + str(all_class[i]) + "] vs all: " +
+                       str(recall[i][1]) + "\n")
+        res_file.write("F-score of class [" + str(all_class[i]) +
+                       "] vs all: " + str(f_score[i][1]) + "\n\n")
 
-    resFile.write("Precision of the different classes: [")
-    for i in range(len(AllClass)):
-        if i < len(AllClass) - 1:
-            resFile.write(str(Pre[i][1]) + ",")
+    res_file.write("Precision of the different classes: [")
+    for i in range(len(all_class)):
+        if i < len(all_class) - 1:
+            res_file.write(str(precision[i][1]) + ",")
         else:
-            resFile.write(str(Pre[i][1]) + "]\n")
-    resFile.write("Recall of the different classes: [")
-    for i in range(len(AllClass)):
-        if i < len(AllClass) - 1:
-            resFile.write(str(Rec[i][1]) + ",")
+            res_file.write(str(precision[i][1]) + "]\n")
+    res_file.write("Recall of the different classes: [")
+    for i in range(len(all_class)):
+        if i < len(all_class) - 1:
+            res_file.write(str(recall[i][1]) + ",")
         else:
-            resFile.write(str(Rec[i][1]) + "]\n")
-    resFile.write("F-score of the different classes: [")
-    for i in range(len(AllClass)):
-        if i < len(AllClass) - 1:
-            resFile.write(str(Fs[i][1]) + ",")
+            res_file.write(str(recall[i][1]) + "]\n")
+    res_file.write("F-score of the different classes: [")
+    for i in range(len(all_class)):
+        if i < len(all_class) - 1:
+            res_file.write(str(f_score[i][1]) + ",")
         else:
-            resFile.write(str(Fs[i][1]) + "]\n\n")
-    resFile.write("Kappa index: " + str(kappa) + "\n")
-    resFile.write("Overall accuracy index: " + str(overallAccuracy))
+            res_file.write(str(f_score[i][1]) + "]\n\n")
+    res_file.write("Kappa index: " + str(kappa) + "\n")
+    res_file.write("Overall accuracy index: " + str(overall_accuracy))
 
-    resFile.close()
+    res_file.close()
 
 
-def replaceAnnualCropInConfMat(confMat, AllClass, annualCrop,
-                               labelReplacement):
+def replace_annual_crop_in_conf_mat(confusion_matrix: np.ndarray,
+                                    all_class: List[Union[int, str]],
+                                    annual_crop: List[Union[int, str]],
+                                    label_replacement: int):
     """
         IN :
-            confMat [np.array of np.array] : confusion matrix
-            AllClass [list of integer] : ordinates integer class label
-            annualCrop : [list of string] : list of class number (string)
-            labelReplacement : [string] : label replacement
+            confusion_matrix [np.array of np.array] : confusion matrix
+            all_class [list of integer] : ordinates integer class label
+            annual_crop : [list of string] : list of class number (string)
+            label_replacement : [string] : label replacement
         OUT :
             outMatrix [np.array of np.array] : new confusion matrix
-            AllClassAC [list of integer] : new ordinates integer class label
+            all_classAC [list of integer] : new ordinates integer class label
         Exemple :
 
-            AllClass = [1,2,3,4]
-            confMat = [[1 2 3 4] [5 6 7 8] [9 10 11 12] [13 14 15 16]]
+            all_class = [1,2,3,4]
+            confusion_matrix = [[1 2 3 4] [5 6 7 8] [9 10 11 12] [13 14 15 16]]
 
-            confMat.csv
+            confusion_matrix.csv
             #ref label rows : 1,2,3,4
             #prod label col : 1,2,3,4
             1,2,3,4
@@ -193,56 +256,56 @@ def replaceAnnualCropInConfMat(confMat, AllClass, annualCrop,
             9,10,11,12
             13,14,15,16
 
-            annualCrop = ['1','2']
-            labelReplacement = '0'
+            annual_crop = ['1','2']
+            label_replacement = '0'
 
-            outMatrix,outAllClass = replaceAnnualCropInConfMat(confMat,AllClass,annualCrop,labelReplacement)
+            outMatrix,outall_class = replace_annual_crop_in_conf_mat(confusion_matrix,all_class,annual_crop,label_replacement)
 
-            outAllClass = [0,3,4]
-            confMat = [[14 10 12] [19 11 12] [27 15 16]]
+            outall_class = [0,3,4]
+            confusion_matrix = [[14 10 12] [19 11 12] [27 15 16]]
     """
-    allIndex = []
-    outMatrix = []
+    all_index = []
+    out_matrix = []
 
-    for currentClass in annualCrop:
+    for current_class in annual_crop:
         try:
-            ind = AllClass.index(int(currentClass))
-            allIndex.append(ind)
+            ind = all_class.index(int(current_class))
+            all_index.append(ind)
         except ValueError:
-            raise Exception("Class : " + currentClass + " doesn't exists")
+            raise Exception("Class : " + current_class + " doesn't exists")
 
-    AllClassAC = AllClass[:]
-    for labelAcrop in annualCrop:
-        AllClassAC.remove(int(labelAcrop))
-    AllClassAC.append(int(labelReplacement))
-    AllClassAC.sort()
-    indexAC = AllClassAC.index(labelReplacement)
+    all_class_ac = all_class[:]
+    for label_annual_crop in annual_crop:
+        all_class_ac.remove(int(label_annual_crop))
+    all_class_ac.append(int(label_replacement))
+    all_class_ac.sort()
+    index_ac = all_class_ac.index(label_replacement)
 
     #replace ref labels in confusion matrix
     matrix = []
-    for y in range(len(AllClass)):
-        if y not in allIndex:
-            matrix.append(confMat[y])
-    tmpY = [0] * len(AllClass)
-    for y in allIndex:
-        tmpY = tmpY + confMat[y, :]
-    matrix.insert(indexAC, tmpY)
+    for y in range(len(all_class)):
+        if y not in all_index:
+            matrix.append(confusion_matrix[y])
+    tmp_y = [0] * len(all_class)
+    for y in all_index:
+        tmp_y = tmp_y + confusion_matrix[y, :]
+    matrix.insert(index_ac, tmp_y)
 
     #replace produced labels in confusion matrix
     for y in range(len(matrix)):
-        tmpX = []
+        tmp_x = []
         buff = 0
         for x in range(len(matrix[0])):
-            if x not in allIndex:
-                tmpX.append(matrix[y][x])
+            if x not in all_index:
+                tmp_x.append(matrix[y][x])
             else:
                 buff += matrix[y][x]
-        tmpX.insert(indexAC, buff)
-        outMatrix.append(tmpX)
-    return np.asarray(outMatrix), AllClassAC
+        tmp_x.insert(index_ac, buff)
+        out_matrix.append(tmp_x)
+    return np.asarray(out_matrix), all_class_ac
 
 
-def confusion_models_merge_parameters(iota2_dir):
+def confusion_models_merge_parameters(iota2_dir: str):
     """
     function use to feed confusion_models_merge function
 
@@ -262,7 +325,7 @@ def confusion_models_merge_parameters(iota2_dir):
     # group by models
     model_group = []
     for csv in all_csv:
-        csv_path, csv_name = os.path.split(csv)
+        _, csv_name = os.path.split(csv)
         csv_seed = csv_name.split("_")[csv_seed_pos]
         csv_model = csv_name.split("_")[csv_model_pos]
         # csv_mode = "SAR.csv" or "val.csv", use to descriminate models
@@ -290,14 +353,14 @@ def merge_confusions(csv_in, labels, csv_out):
     """
     csv = fu.confCoordinatesCSV(csv_in)
     csv_f = fu.sortByFirstElem(csv)
-    confMat = fu.gen_confusionMatrix(csv_f, labels)
-    writeCSV(confMat, labels, csv_out)
+    conf_mat = fu.gen_confusionMatrix(csv_f, labels)
+    write_csv(conf_mat, labels, csv_out)
 
 
-def confusion_models_merge(csv_list, dataField):
+def confusion_models_merge(csv_list):
     """
     """
-    from Validation.ResultsUtils import parse_csv
+    from iota2.Validation.ResultsUtils import parse_csv
 
     csv_path, csv_name = os.path.split(csv_list[0])
     csv_seed_pos = 4
@@ -325,101 +388,128 @@ def confusion_models_merge(csv_list, dataField):
     merge_confusions(csv_list, labels, output_merged_csv)
 
 
-def confFusion(shapeIn, dataField, csv_out, txt_out, csvPath, cfg):
+def confusion_fusion(input_vector: str, data_field: str, csv_out: str,
+                     txt_out: str, csv_path: str, runs: int, crop_mix: bool,
+                     annual_crop: List[str],
+                     annual_crop_label_replacement: int) -> None:
+    """merge otb tile confusion matrix
 
-    if not isinstance(cfg, SCF.serviceConfigFile):
-        cfg = SCF.serviceConfigFile(cfg)
+    Parameters
+    ----------
+    input_vector: str
+        input database
+    data_field: str
+        data field
+    csv_out: str
+        output csv file which will contains the merge of matrix
+    txt_out: str
+        diretory which will contains the resulting file of merged matrix
+    csv_path: str
+        path to the directory which contains all *.csv files to merge
+    runs: int
+        number of random learning/validation samples-set
+    crop_mix: bool
+        inform if cropMix workflow is enable
+    annual_crop: list
+        list of annual labels
+    annual_crop_label_replacement: int
+        replace annual labels by annual_crop_label_replacement
+    """
 
-    N = cfg.getParam('chain', 'runs')
-    enableCrossValidation = cfg.getParam('chain', 'enableCrossValidation')
-    if enableCrossValidation is True:
-        N = N - 1
-    cropMix = cfg.getParam('argTrain', 'cropMix')
-    annualCrop = cfg.getParam('argTrain', 'annualCrop')
-    labelReplacement, labelName = cfg.getParam('argTrain',
-                                               'ACropLabelReplacement').data
-    enableCrossValidation = cfg.getParam('chain', 'enableCrossValidation')
-    labelReplacement = int(labelReplacement)
-
-    for seed in range(N):
+    for seed in range(runs):
         #Recherche de toute les classes possible
-        AllClass = []
-        AllClass = fu.getFieldElement(shapeIn, "ESRI Shapefile", dataField,
-                                      "unique")
-        AllClass = sorted(AllClass)
+        all_class = []
+        all_class = fu.getFieldElement(input_vector, "ESRI Shapefile",
+                                       data_field, "unique")
+        all_class = sorted(all_class)
 
         #Initialisation de la matrice finale
-        AllConf = fu.FileSearch_AND(csvPath, True,
-                                    "seed_" + str(seed) + ".csv")
-        csv = fu.confCoordinatesCSV(AllConf)
+        all_conf = fu.FileSearch_AND(csv_path, True,
+                                     "seed_" + str(seed) + ".csv")
+        csv = fu.confCoordinatesCSV(all_conf)
         csv_f = fu.sortByFirstElem(csv)
 
-        confMat = fu.gen_confusionMatrix(csv_f, AllClass)
-        if cropMix:
-            writeCSV(confMat, AllClass,
-                     csv_out + "/MatrixBeforeClassMerge_" + str(seed) + ".csv")
-            confMat, AllClass = replaceAnnualCropInConfMat(
-                confMat, AllClass, annualCrop, labelReplacement)
-            writeCSV(confMat, AllClass,
-                     csv_out + "/Classif_Seed_" + str(seed) + ".csv")
+        conf_mat = fu.gen_confusionMatrix(csv_f, all_class)
+        if crop_mix:
+            write_csv(
+                conf_mat, all_class,
+                csv_out + "/MatrixBeforeClassMerge_" + str(seed) + ".csv")
+            conf_mat, all_class = replace_annual_crop_in_conf_mat(
+                conf_mat, all_class, annual_crop,
+                annual_crop_label_replacement)
+            write_csv(conf_mat, all_class,
+                      csv_out + "/Classif_Seed_" + str(seed) + ".csv")
         else:
-            writeCSV(confMat, AllClass,
-                     csv_out + "/Classif_Seed_" + str(seed) + ".csv")
+            write_csv(conf_mat, all_class,
+                      csv_out + "/Classif_Seed_" + str(seed) + ".csv")
 
-        nbrGood = confMat.trace()
-        nbrSample = confMat.sum()
+        nbr_good = conf_mat.trace()
+        nbr_sample = conf_mat.sum()
 
-        if (nbrSample > 1):
-            overallAccuracy = float(nbrGood) / float(nbrSample)
+        if nbr_sample > 1:
+            overall_acc = float(nbr_good) / float(nbr_sample)
         else:
-            overallAccuracy = 0.0
-        kappa = computeKappa(confMat)
-        Pre = computePreByClass(confMat, AllClass)
-        Rec = computeRecByClass(confMat, AllClass)
-        Fs = computeFsByClass(Pre, Rec, AllClass)
+            overall_acc = 0.0
+        kappa = compute_kappa(conf_mat)
+        precision = compute_precision_by_class(conf_mat, all_class)
+        recall = compute_recall_by_class(conf_mat, all_class)
+        f_score = compute_fscore_by_class(precision, recall, all_class)
 
-        writeResults(
-            Fs, Rec, Pre, kappa, overallAccuracy, AllClass,
+        write_results(
+            f_score, recall, precision, kappa, overall_acc, all_class,
             txt_out + "/ClassificationResults_seed_" + str(seed) + ".txt")
 
 
 if __name__ == "__main__":
-
-    parser = argparse.ArgumentParser(
+    from iota2.Common.FileUtils import str2bool
+    PARSER = argparse.ArgumentParser(
         description=
         "This function merge confusionMatrix.csv from different tiles")
-    parser.add_argument("-path.shapeIn",
-                        help="path to the entire ground truth (mandatory)",
-                        dest="shapeIn",
+    PARSER.add_argument("-input_vector",
+                        help="path to the entire ground truth",
+                        dest="input_vector",
                         required=True)
-    parser.add_argument(
-        "-dataField",
-        help="data's field inside the ground truth shape (mandatory)",
-        dest="dataField",
-        required=True)
-    parser.add_argument("-path.csv.out",
-                        help="csv out (mandatory)",
+    PARSER.add_argument("-data_field",
+                        help="data's field inside the ground truth shape",
+                        dest="data_field",
+                        required=True)
+    PARSER.add_argument("-csv_out",
+                        help="output csv file",
                         dest="csv_out",
                         required=True)
-    parser.add_argument("-path.txt.out",
-                        help="results out (mandatory)",
+    PARSER.add_argument("-txt_out",
+                        help="output txt file",
                         dest="txt_out",
                         required=True)
-    parser.add_argument(
-        "-path.csv",
-        help="where are stored all csv files by tiles (mandatory)",
-        dest="csvPath",
+    PARSER.add_argument("-csv_path",
+                        help="directory containing all csv files",
+                        dest="csv_path",
+                        required=True)
+    PARSER.add_argument(
+        "-runs",
+        help="number of random learning/validation samples-set",
+        dest="runs",
+        type=int,
         required=True)
-    parser.add_argument(
-        "-conf",
-        help=
-        "path to the configuration file which describe the classification (mandatory)",
-        dest="pathConf",
-        required=False)
-    args = parser.parse_args()
+    PARSER.add_argument("-crop_mix",
+                        help="is crop mix workflow was enable ?",
+                        dest="crop_mix",
+                        type=str2bool,
+                        default=False,
+                        required=False)
+    PARSER.add_argument("-annual_crop",
+                        help="list of annual labels",
+                        dest="annual_crop",
+                        nargs='+',
+                        required=True)
+    PARSER.add_argument("-annual_crop_label_replacement",
+                        help="new label for annual labels",
+                        dest="annual_crop_label_replacement",
+                        type=int,
+                        default=1,
+                        required=False)
+    ARGS = PARSER.parse_args()
 
-    # load configuration file
-    cfg = SCF.serviceConfigFile(args.pathConf)
-
-    confFusion(args.shapeIn, args.dataField, args.csv_out, args.txt_out,
-               args.csvPath, cfg)
+    confusion_fusion(ARGS.input_vector, ARGS.data_field, ARGS.csv_out,
+                     ARGS.txt_out, ARGS.csv_path, ARGS.runs, ARGS.crop_mix,
+                     ARGS.annual_crop, ARGS.annual_crop_label_replacement)

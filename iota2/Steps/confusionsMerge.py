@@ -15,21 +15,25 @@
 # =========================================================================
 import os
 
-from Steps import IOTA2Step
-from Common import ServiceConfigFile as SCF
+from iota2.Steps import IOTA2Step
+from iota2.Common import ServiceConfigFile as SCF
 
 
 class confusionsMerge(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "confusionMatrixFusion"
-        super(confusionsMerge, self).__init__(cfg, cfg_resources_file, resources_block_name)
+        super(confusionsMerge, self).__init__(cfg, cfg_resources_file,
+                                              resources_block_name)
 
         # step variables
         self.workingDirectory = workingDirectory
-        self.output_path = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
-        self.data_field = SCF.serviceConfigFile(self.cfg).getParam('chain', 'dataField')
-        self.ground_truth = SCF.serviceConfigFile(self.cfg).getParam('chain', 'groundTruth')
+        self.output_path = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'outputPath')
+        self.data_field = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'dataField')
+        self.ground_truth = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'groundTruth')
 
     def step_description(self):
         """
@@ -54,13 +58,16 @@ class confusionsMerge(IOTA2Step.Step):
             the function to execute as a lambda function. The returned object
             must be a lambda function.
         """
-        from Validation import ConfusionFusion as confFus
-        step_function = lambda x: confFus.confFusion(x,
-                                                     self.data_field,
-                                                     os.path.join(self.output_path, "final", "TMP"),
-                                                     os.path.join(self.output_path, "final", "TMP"),
-                                                     os.path.join(self.output_path, "final", "TMP"),
-                                                     self.cfg)
+        from iota2.Validation import ConfusionFusion as confFus
+        step_function = lambda x: confFus.confusion_fusion(
+            x, self.data_field, os.path.join(self.output_path, "final", "TMP"),
+            os.path.join(self.output_path, "final", "TMP"),
+            os.path.join(self.output_path, "final", "TMP"),
+            SCF.serviceConfigFile(self.cfg).getParam('chain', 'runs'),
+            SCF.serviceConfigFile(self.cfg).getParam('argTrain', 'cropMix'),
+            SCF.serviceConfigFile(self.cfg).getParam('argTrain', 'annualCrop'),
+            (SCF.serviceConfigFile(self.cfg).getParam(
+                'argTrain', 'ACropLabelReplacement').data)[0])
         return step_function
 
     def step_outputs(self):

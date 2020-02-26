@@ -1293,11 +1293,10 @@ class iota_testConfFusion(unittest.TestCase):
         cfg.setParam('chain', 'outputPath', self.pathOut)
         shapeData = cfg.getParam('chain', 'groundTruth')
         dataField = 'CODE'
-        # deux cas à tester :
-        # if CLASSIFMODE == "separate":
-        # elif CLASSIFMODE == "fusion" and MODE != "one_region":
-        confFus.confFusion(shapeData, dataField, self.Final + "/TMP",
-                           self.Final + "/TMP", self.Final + "/TMP", cfg)
+
+        confFus.confusion_fusion(shapeData, dataField, self.Final + "/TMP",
+                                 self.Final + "/TMP", self.Final + "/TMP", 1,
+                                 False, [], None)
 
         # file comparison to ref file
         File1 = self.Final + "/TMP/ClassificationResults_seed_0.txt"
