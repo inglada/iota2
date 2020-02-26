@@ -50,34 +50,34 @@ def get_available_features(input_sample_file_name,
     feature_list = fu.get_all_fields_in_shape(input_sample_file_name, 'SQLite')
     features = dict()
 
-    metaDataFields = []
-    for feat in featureList:
+    meta_data_fields = []
+    for feat in feature_list:
         try:
             (sensor, band, date) = feat.split('_')
             fl = sensor
             sl = band
             tl = date
-            if firstLevel == 'global':
+            if first_level == 'global':
                 pass
-            if firstLevel == 'sensor':
+            if first_level == 'sensor':
                 fl = sensor
-                if secondLevel == 'band':
+                if second_level == 'band':
                     sl = band
                     tl = date
                 else:
                     sl = date
                     tl = band
-            elif firstLevel == 'band':
+            elif first_level == 'band':
                 fl = band
-                if secondLevel == 'date':
+                if second_level == 'date':
                     sl = date
                     tl = sensor
                 else:
                     sl = sensor
                     tl = date
-            elif firstLevel == 'date':
+            elif first_level == 'date':
                 fl = date
-                if secondLevel == 'band':
+                if second_level == 'band':
                     sl = band
                     tl = sensor
                 else:
@@ -89,11 +89,11 @@ def get_available_features(input_sample_file_name,
                 features[fl][sl] = list()
             features[fl][sl].append(tl)
         except:
-            if not feat in metaDataFields:
-                metaDataFields.append(feat)
-    if firstLevel == 'global':
-        return (featureList[len(metaDataFields):], metaDataFields)
-    return (features, metaDataFields)
+            if not feat in meta_data_fields:
+                meta_data_fields.append(feat)
+    if first_level == 'global':
+        return (feature_list[len(meta_data_fields):], meta_data_fields)
+    return (features, meta_data_fields)
 
 
 def BuildFeaturesLists(inputSampleFileName, reductionMode='global'):
@@ -410,7 +410,7 @@ def BuildIOSampleFileLists(outputDir):
     return result
 
 
-def GetDimRedModelsFromClassificationModel(classificationModel, logger=logger):
+def GetDimRedModelsFromClassificationModel(classificationModel, logger=LOGGER):
     """Builds the name and path of the dimensionality model from the
     classification model matching the region and the seed
     output/model/model_1_seed_0.txt gives
@@ -432,7 +432,7 @@ def GetDimRedModelsFromClassificationModel(classificationModel, logger=logger):
     return sorted(models)
 
 
-def BuildChannelGroups(reduction_mode, output_path, logger=logger):
+def BuildChannelGroups(reduction_mode, output_path, logger=LOGGER):
     """Build the lists of channels which have to be extracted from the
     time series stack in order to apply the dimensionality reduction.
     The operation consists in translating the features selected for
@@ -465,7 +465,7 @@ def ApplyDimensionalityReductionToFeatureStack(reduction_mode,
                                                output_path,
                                                imageStack,
                                                dimRedModelList,
-                                               logger=logger):
+                                               logger=LOGGER):
     """Apply dimensionality reduction to the full stack of features. A
     list of dimensionality reduction models is provided since the
     reduction can be done per date, band, etc. The rationale is
