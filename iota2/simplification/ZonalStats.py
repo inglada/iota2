@@ -557,6 +557,7 @@ def extractRasterArray(rasters,
         # Stats Extraction
         else:
             errormsg = ""
+
             try:
                 # TODO : test gdal version : >= 2.2.4
                 if systemcall:
@@ -604,14 +605,11 @@ def extractRasterArray(rasters,
 
         with fiona.open(vector) as src:
             filtered = filter(lambda f: f['id'] == str(fid), src)
-
             feature = next(filtered)
             geometry = feature["geometry"]
 
         with rasterio.open(raster) as rast:
             ndbands, out_transform = mask(rast, [geometry], crop=True)
-
-            #ndbands = None
 
     return success, ndbands, errormsg
 
@@ -1167,6 +1165,7 @@ def splitVectorFeatures(vectorpath, outputPath, chunk=1, byarea=False):
             #TODO : split in chunks with sum of feature areas quite equal
             if byarea:
                 vectorgeomtype = vf.getGeomType(vect)
+
                 if vectorgeomtype in (3, 6, 1003, 1006):
                     listid = sba.getFidArea(vect)
                 else:
