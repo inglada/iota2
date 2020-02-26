@@ -1163,94 +1163,101 @@ class iota_test_classification_shaping(unittest.TestCase):
             self.assertEqual(nbDiff, 0)
 
 
-class iota_testGenConfMatrix(unittest.TestCase):
+class iota_test_gen_conf_matrix(unittest.TestCase):
     @classmethod
-    def setUpClass(self):
+    def setUpClass(cls):
+        """ init class from unitest"""
         # definition of local variables
-        self.fichierConfig = iota2dir + "/config/Config_4Tuiles_Multi_FUS_Confidence.cfg"
-        self.test_vector = iota2_dataTest + "/test_vector/"
-        self.pathOut = iota2_dataTest + "/test_vector/test_GenConfMatrix/"
-        self.pathTilesFeat = iota2_dataTest + "/references/features/"
-        self.pathEnvelope = self.pathOut + "/envelope"
-        self.pathAppVal = self.pathOut + "/dataAppVal"
-        self.pathClassif = self.pathOut + "/classif"
-        self.Final = self.pathOut + "/final"
-        self.refData = iota2_dataTest + "/references/GenConfMatrix/"
-        self.cmdPath = self.pathOut + "/cmd"
+        cls.fichierConfig = (iota2dir +
+                             "/config/Config_4Tuiles_Multi_FUS_Confidence.cfg")
+        cls.test_vector = iota2_dataTest + "/test_vector/"
+        cls.pathOut = iota2_dataTest + "/test_vector/test_GenConfMatrix/"
+        cls.pathTilesFeat = iota2_dataTest + "/references/features/"
+        cls.pathEnvelope = cls.pathOut + "/envelope"
+        cls.pathAppVal = cls.pathOut + "/dataAppVal"
+        cls.pathClassif = cls.pathOut + "/classif"
+        cls.Final = cls.pathOut + "/final"
+        cls.refData = iota2_dataTest + "/references/GenConfMatrix/"
+        cls.cmdPath = cls.pathOut + "/cmd"
 
         # test and creation of test_vector
-        if not os.path.exists(self.test_vector):
-            os.mkdir(self.test_vector)
+        if not os.path.exists(cls.test_vector):
+            os.mkdir(cls.test_vector)
         # test and creation of pathOut
-        if not os.path.exists(self.pathOut):
-            os.mkdir(self.pathOut)
+        if not os.path.exists(cls.pathOut):
+            os.mkdir(cls.pathOut)
         else:
-            shutil.rmtree(self.pathOut)
-            os.mkdir(self.pathOut)
+            shutil.rmtree(cls.pathOut)
+            os.mkdir(cls.pathOut)
         # test and creation of pathClassif
-        if not os.path.exists(self.pathClassif):
-            os.mkdir(self.pathClassif)
-        if not os.path.exists(self.pathClassif + "/MASK"):
-            os.mkdir(self.pathClassif + "/MASK")
-        if not os.path.exists(self.pathClassif + "/tmpClassif"):
-            os.mkdir(self.pathClassif + "/tmpClassif")
+        if not os.path.exists(cls.pathClassif):
+            os.mkdir(cls.pathClassif)
+        if not os.path.exists(cls.pathClassif + "/MASK"):
+            os.mkdir(cls.pathClassif + "/MASK")
+        if not os.path.exists(cls.pathClassif + "/tmpClassif"):
+            os.mkdir(cls.pathClassif + "/tmpClassif")
         # test and creation of Final
-        if not os.path.exists(self.Final):
-            os.mkdir(self.Final)
-        if not os.path.exists(self.Final + "/TMP"):
-            os.mkdir(self.Final + "/TMP")
+        if not os.path.exists(cls.Final):
+            os.mkdir(cls.Final)
+        if not os.path.exists(cls.Final + "/TMP"):
+            os.mkdir(cls.Final + "/TMP")
 
         # test and creation of cmdPath
-        if not os.path.exists(self.cmdPath):
-            os.mkdir(self.cmdPath)
-        if not os.path.exists(self.cmdPath + "/confusion"):
-            os.mkdir(self.cmdPath + "/confusion")
+        if not os.path.exists(cls.cmdPath):
+            os.mkdir(cls.cmdPath)
+        if not os.path.exists(cls.cmdPath + "/confusion"):
+            os.mkdir(cls.cmdPath + "/confusion")
 
         # test and creation of pathAppVal
-        if not os.path.exists(self.pathAppVal):
-            os.mkdir(self.pathAppVal)
+        if not os.path.exists(cls.pathAppVal):
+            os.mkdir(cls.pathAppVal)
 
         # copy input data
-        src_files = os.listdir(self.refData + "/Input/dataAppVal")
+        src_files = os.listdir(cls.refData + "/Input/dataAppVal")
         for file_name in src_files:
-            full_file_name = os.path.join(self.refData + "/Input/dataAppVal",
+            full_file_name = os.path.join(cls.refData + "/Input/dataAppVal",
                                           file_name)
-            shutil.copy(full_file_name, self.pathAppVal)
-        src_files = os.listdir(self.refData + "/Input/Classif/MASK")
+            shutil.copy(full_file_name, cls.pathAppVal)
+        src_files = os.listdir(cls.refData + "/Input/Classif/MASK")
         for file_name in src_files:
-            full_file_name = os.path.join(self.refData + "/Input/Classif/MASK",
+            full_file_name = os.path.join(cls.refData + "/Input/Classif/MASK",
                                           file_name)
-            shutil.copy(full_file_name, self.pathClassif + "/MASK")
-        src_files = os.listdir(self.refData + "/Input/Classif/classif")
+            shutil.copy(full_file_name, cls.pathClassif + "/MASK")
+        src_files = os.listdir(cls.refData + "/Input/Classif/classif")
         for file_name in src_files:
             full_file_name = os.path.join(
-                self.refData + "/Input/Classif/classif/", file_name)
-            shutil.copy(full_file_name, self.pathClassif)
-        src_files = os.listdir(self.refData + "/Input/final/TMP")
+                cls.refData + "/Input/Classif/classif/", file_name)
+            shutil.copy(full_file_name, cls.pathClassif)
+        src_files = os.listdir(cls.refData + "/Input/final/TMP")
         for file_name in src_files:
-            full_file_name = os.path.join(self.refData + "/Input/final/TMP/",
+            full_file_name = os.path.join(cls.refData + "/Input/final/TMP/",
                                           file_name)
-            shutil.copy(full_file_name, self.Final + "/TMP")
+            shutil.copy(full_file_name, cls.Final + "/TMP")
 
-    def test_GenConfMatrix(self):
-        from Validation import GenConfusionMatrix as GCM
+    def test_gen_conf_matrix(self):
+        """test generate confusion matrix"""
+        from iota2.Validation import GenConfusionMatrix as GCM
         SCF.clearConfig()
         cfg = SCF.serviceConfigFile(self.fichierConfig)
         cfg.setParam('chain', 'outputPath', self.pathOut)
         cfg.setParam('chain', 'listTile', 'D0005H0002')
-        N = 1
-        dataField = 'CODE'
+        runs = 1
+        data_field = 'CODE'
 
-        GCM.genConfMatrix(self.Final, self.pathAppVal, N, dataField,
-                          self.cmdPath + "/confusion", cfg, None)
+        GCM.gen_conf_matrix(self.Final, self.pathAppVal, runs, data_field,
+                            self.cmdPath + "/confusion", None, self.pathOut,
+                            int(cfg.getParam('chain', 'spatialResolution')),
+                            cfg.getParam('chain', 'listTile'),
+                            cfg.getParam('chain', 'enableCrossValidation'))
 
         # file comparison to ref file
-        serviceCompareImageFile = fu.serviceCompareImageFile()
-        referenceFile1 = self.refData + "/Output/diff_seed_0.tif"
-        File1 = self.Final + "/diff_seed_0.tif"
-        nbDiff = serviceCompareImageFile.gdalFileCompare(File1, referenceFile1)
-        print(nbDiff)
-        self.assertEqual(nbDiff, 0)
+        service_compare_image_file = fu.serviceCompareImageFile()
+        reference_file1 = self.refData + "/Output/diff_seed_0.tif"
+        file1 = self.Final + "/diff_seed_0.tif"
+        nb_diff = service_compare_image_file.gdalFileCompare(
+            file1, reference_file1)
+        print(nb_diff)
+        self.assertEqual(nb_diff, 0)
 
 
 class iota_testConfFusion(unittest.TestCase):
