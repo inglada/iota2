@@ -25,22 +25,6 @@ LOGGER = logging.getLogger(__name__)
 sensors_params = Dict[str, Union[str, List[str], int]]
 
 
-def str2bool(value):
-    """
-    usage : use in argParse as function to parse options
-
-    IN:
-    v [string]
-    out [bool]
-    """
-    if value.lower() in ('yes', 'true', 't', 'y', '1'):
-        return True
-    elif value.lower() in ('no', 'false', 'f', 'n', '0'):
-        return False
-    else:
-        raise argparse.ArgumentTypeError('Boolean value expected.')
-
-
 def generateFeatures(pathWd: str,
                      tile: str,
                      sar_optical_post_fusion: bool,
