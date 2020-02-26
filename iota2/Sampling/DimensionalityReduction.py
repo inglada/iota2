@@ -402,7 +402,6 @@ def sample_file_pca_reduction(input_sample_file_name: str,
     (feature_list,
      meta_data_fields) = build_features_lists(input_sample_file_name,
                                               reduction_mode)
-    number_of_meta_data_fields = len(meta_data_fields)
     reduced_features = [
         'reduced_' + str(pc_number) for pc_number in range(target_dimension)
     ]
