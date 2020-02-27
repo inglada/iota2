@@ -1310,67 +1310,6 @@ class iota_testConfFusion(unittest.TestCase):
         self.assertTrue(filecmp.cmp(File1, referenceFile1))
 
 
-class iota_testGenerateStatModel(unittest.TestCase):
-    @classmethod
-    def setUpClass(self):
-        # definition of local variables
-        self.fichierConfig = (iota2dir + "/config/Config_4Tuiles_"
-                              "Multi_FUS_Confidence.cfg")
-        self.test_vector = iota2_dataTest + "/test_vector/"
-        self.pathOut = iota2_dataTest + "/test_vector/test_GenerateStatModel/"
-        self.pathStats = self.pathOut + "/stats"
-        self.pathAppVal = self.pathOut + "/dataAppVal"
-        self.pathTilesFeat = iota2_dataTest + "/references/features/"
-        self.refData = iota2_dataTest + "/references/GenerateStatModel/"
-        self.cmdPath = self.pathOut + "/cmd"
-
-        # test and creation of test_vector
-        if not os.path.exists(self.test_vector):
-            os.mkdir(self.test_vector)
-        # test and creation of pathOut
-        if not os.path.exists(self.pathOut):
-            os.mkdir(self.pathOut)
-        # test and creation of pathStats
-        if not os.path.exists(self.pathStats):
-            os.mkdir(self.pathStats)
-        # test and creation of pathAppVal
-        if not os.path.exists(self.pathAppVal):
-            os.mkdir(self.pathAppVal)
-        # test and creation of cmdPath
-        if not os.path.exists(self.cmdPath):
-            os.mkdir(self.cmdPath)
-        if not os.path.exists(self.cmdPath + "/stats"):
-            os.mkdir(self.cmdPath + "/stats")
-
-        # copy input data
-        src_files = os.listdir(self.refData + "/Input/dataAppVal")
-        for file_name in src_files:
-            full_file_name = os.path.join(self.refData + "/Input/dataAppVal",
-                                          file_name)
-            shutil.copy(full_file_name, self.pathAppVal)
-
-    def test_GenerateStatModel(self):
-        from iota2.Learning import ModelStat as MS
-        SCF.clearConfig()
-        cfg = SCF.serviceConfigFile(self.fichierConfig)
-        cfg.setParam('chain', 'outputPath', self.pathOut)
-        cfg.setParam('argTrain', 'classifier', 'svm')
-        user_feat_pattern = cfg.getParam("userFeat", "patterns")
-        if "none" in user_feat_pattern.lower():
-            user_feat_pattern = None
-        MS.generate_stat_model(self.pathAppVal, self.pathTilesFeat,
-                               self.pathStats, self.cmdPath + "/stats",
-                               cfg.getParam("chain", "outputPath"),
-                               cfg.getParam('argTrain', 'classifier'),
-                               cfg.getParam("GlobChain", "features"),
-                               cfg.getParam("chain",
-                                            "userFeatPath"), user_feat_pattern)
-
-        # file comparison to ref file
-        File1 = self.cmdPath + "/stats/stats.txt"
-        self.assertTrue(os.path.getsize(File1) > 0)
-
-
 class iota_testServiceLogging(unittest.TestCase):
     @classmethod
     def setUpClass(self):
