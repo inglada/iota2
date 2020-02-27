@@ -414,8 +414,7 @@ class iota2():
             outregul = os.path.join(iota2_outputs_dir, "final",
                                     "simplification", "classif_regul.tif")
 
-            regulruns = 2 if umc2 else 1
-
+            regulruns = 2 if umc2 is not None else 1
             if not os.path.exists(outregul):
                 lognamereg = 'regul1'
                 lognamemerge = "merge_regul1"

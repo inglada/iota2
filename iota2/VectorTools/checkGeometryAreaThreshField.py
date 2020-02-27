@@ -14,7 +14,12 @@ from VectorTools import SelectBySize
 from VectorTools import SimplifyPoly
 import argparse
 
-def checkGeometryAreaThreshField(shapefile, pixelArea, pix_thresh, outshape = "", outformat = "ESRI shapefile"):
+
+def checkGeometryAreaThreshField(shapefile,
+                                 pixelArea,
+                                 pix_thresh,
+                                 outshape="",
+                                 outformat="ESRI shapefile"):
 
     tmpfile = []
 
@@ -26,37 +31,42 @@ def checkGeometryAreaThreshField(shapefile, pixelArea, pix_thresh, outshape = ""
     elif os.path.splitext(outshape)[1] == ".sqlite":
         outformat = "SQlite"
     else:
-        print("Output format not managed" )
-        sys.exit()           
-        
+        print("Output format not managed")
+        sys.exit()
+
     # Empty geometry identification
     try:
         outShapefileGeom, _ = vf.checkEmptyGeom(shapefile, outformat)
         if shapefile != outshape:
-            tmpfile.append(outShapefileGeom)        
+            tmpfile.append(outShapefileGeom)
 
         print('Check empty geometries succeeded')
 
     except Exception as e:
         print('Check empty geometries did not work for the following error :')
-        print(e)  
+        print(e)
 
     # suppression des doubles géométries
-    DeleteDuplicateGeometriesSqlite.deleteDuplicateGeometriesSqlite(outShapefileGeom)
+    DeleteDuplicateGeometriesSqlite.deleteDuplicateGeometriesSqlite(
+        outShapefileGeom)
 
     # Suppression des multipolygons
     shapefileNoDupspoly = outShapefileGeom[:-4] + 'spoly' + '.shp'
     tmpfile.append(shapefileNoDupspoly)
     try:
         MultiPolyToPoly.multipoly2poly(outShapefileGeom, shapefileNoDupspoly)
-        print('Conversion of multipolygons shapefile to single polygons succeeded')
+        print(
+            'Conversion of multipolygons shapefile to single polygons succeeded'
+        )
     except Exception as e:
-        print('Conversion of multipolygons shapefile to single polygons did not work for the following error :')
+        print(
+            'Conversion of multipolygons shapefile to single polygons did not work for the following error :'
+        )
         print(e)
 
     # recompute areas
     try:
-        AddFieldArea.addFieldArea(shapefileNoDupspoly, pixelArea)       
+        AddFieldArea.addFieldArea(shapefileNoDupspoly, pixelArea)
     except Exception as e:
         print('Add an Area field did not work for the following error :')
         print(e)
@@ -71,11 +81,26 @@ def checkGeometryAreaThreshField(shapefile, pixelArea, pix_thresh, outshape = ""
 
     # Filter by Area
     try:
-        SelectBySize.selectBySize(shapefileNoDupspoly, 'Area', pix_thresh, outshape)
-        print('Selection by size upper {} pixel(s) succeeded'.format(pix_thresh))
+        SelectBySize.selectBySize(shapefileNoDupspoly, 'Area', pix_thresh,
+                                  outshape)
+        print(
+            'Selection by size upper {} pixel(s) succeeded'.format(pix_thresh))
     except Exception as e:
         print('Selection by size did not work for the following error :')
         print(e)
+
+    if pix_thresh > 0:
+        try:
+            SelectBySize.selectBySize(shapefileNoDupspoly, 'Area', pix_thresh,
+                                      outshape)
+            print('Selection by size upper {} pixel(s) succeeded'.format(
+                pix_thresh))
+        except Exception as e:
+            print('Selection by size did not work for the following error :')
+            print(e)
+    elif pix_thresh < 0:
+        print("Area threshold has to be positive !")
+        sys.exit()
 
     # Check geometry
     vf.checkValidGeom(outshape, outformat)
@@ -85,13 +110,14 @@ def checkGeometryAreaThreshField(shapefile, pixelArea, pix_thresh, outshape = ""
         basefile = os.path.splitext(fileDel)[0]
         os.system('rm {}.*'.format(basefile))
 
+
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         prog = os.path.basename(sys.argv[0])
-        print('      '+sys.argv[0]+' [options]') 
+        print('      ' + sys.argv[0] + ' [options]')
         print("     Help : ", prog, " --help")
         print("        or : ", prog, " -h")
-        sys.exit(-1)  
+        sys.exit(-1)
     else:
         usage = "usage: %prog [options] "
         parser = argparse.ArgumentParser(description = "Manage shapefile : " \
@@ -105,9 +131,10 @@ if __name__ == "__main__":
         parser.add_argument("-p", dest="pixelSize", action="store", \
                             help="Pixel size", required = True)
         parser.add_argument("-at", dest="area", action="store", \
-                            help="Area threshold in pixel unit", required = True)        
+                            help="Area threshold in pixel unit", required = True)
         parser.add_argument("-o", dest="outpath", action="store", \
                             help="ESRI Shapefile output filename and path", required = True)
         args = parser.parse_args()
 
-        checkGeometryAreaThreshField(args.shapefile, args.pixelSize, args.area, args.outpath)
+        checkGeometryAreaThreshField(args.shapefile, args.pixelSize, args.area,
+                                     args.outpath)

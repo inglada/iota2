@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -13,7 +13,7 @@
 #   PURPOSE.  See the above copyright notices for more information.
 #
 # =========================================================================
-
+""" Module for parse config file"""
 import os
 import sys
 from typing import Dict, Union, List
@@ -305,7 +305,7 @@ class serviceConfigFile:
                 "inland": None,
                 "rssize": 20,
                 "lib64bit": None,
-                "gridsize": 2,
+                "gridsize": None,
                 "grasslib":
                 "/work/OT/theia/oso/OTB/GRASS/grass7.2.1svn-x86_64-pc-linux-gnu-13_03_2017",
                 "douglas": 10,
@@ -320,7 +320,8 @@ class serviceConfigFile:
                 "blocksize": 2000,
                 "dozip": True,
                 "bingdal": None,
-                "chunk": 10,
+                "systemcall": False,
+                "chunk": 1,
                 "nomenclature": None,
                 "statslist": {
                     1: "rate",
@@ -328,6 +329,7 @@ class serviceConfigFile:
                     3: "statsmaj"
                 }
             }
+
             self.init_section("Simplification", simp_default)
 
     def init_section(self, sectionName, sectionDefault):

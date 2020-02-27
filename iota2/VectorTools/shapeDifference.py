@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -13,26 +13,42 @@
 #   PURPOSE.  See the above copyright notices for more information.
 #
 # =========================================================================
-""" 
+"""
 Bibliothèque pour des traitements sur fichier vector
 Dépendances : rtree
-Rq: field name should contain 10 characters maximum, otherwise field name is cutting
+Rq: field name should contain 10 characters maximum, otherwise field name
+    is cutting
 """
 
-import os, sys, osr
-from osgeo import ogr, osr
+import os
+import sys
 import argparse
+import osr
+from osgeo import ogr
+from typing import List, Optional
 import vector_functions as vf
 
 
-#--------------------------------------------------------------
-def init_fields(in_lyr1, in_lyr2, out_lyr, keepfields=""):
-
+# --------------------------------------------------------------
+def init_fields(in_lyr1: str,
+                in_lyr2: str,
+                out_lyr: str,
+                keepfields: Optional[str] = "") -> List[str]:
+    """
+    Parameters
+    ----------
+    in_lyr1: string
+    in_lyr2: string
+    out_lyr: string
+    keepfields: string
+    Return
+    ------
+    """
     field_name_list = []
     for idxlyr, lyr in enumerate((in_lyr1, in_lyr2)):
-        inLayerDefn = lyr.GetLayerDefn()
-        for i in range(inLayerDefn.GetFieldCount()):
-            field = inLayerDefn.GetFieldDefn(i).GetName()
+        in_layer_defn = lyr.GetLayerDefn()
+        for i in range(in_layer_defn.GetFieldCount()):
+            field = in_layer_defn.GetFieldDefn(i).GetName()
             field_name_list.append((idxlyr, i, field))
 
     if keepfields is not None:
@@ -44,27 +60,27 @@ def init_fields(in_lyr1, in_lyr2, out_lyr, keepfields=""):
         if len(listtokeep) == 0:
             raise ValueError(
                 "No field to keep. Vector file without field not possible")
-    except ValueError as e:
-        exit(str(e))
+    except ValueError as exc:
+        sys.exit(str(exc))
 
-        for lyr in (in_lyr1, in_lyr2):
-            in_lyr_defn = lyr.GetLayerDefn()
-            for id in range(in_lyr_defn.GetFieldCount()):
-                # Get the Field Definition
-                field = in_lyr_defn.GetFieldDefn(id)
-                fname = field.GetName()
-                ftype = field.GetTypeName()
-                fwidth = field.GetWidth()
-                # Copy field definitions from source
-                if fname in [x[2] for x in listtokeep]:
-                    if ftype == 'String':
-                        fielddefn = ogr.FieldDefn(fname, ogr.OFTString)
-                        fielddefn.SetWidth(fwidth)
-                    else:
-                        fielddefn = ogr.FieldDefn(fname, ogr.OFTInteger)
-                    out_lyr.CreateField(fielddefn)
+    for lyr in (in_lyr1, in_lyr2):
+        in_lyr_defn = lyr.GetLayerDefn()
+        for iden in range(in_lyr_defn.GetFieldCount()):
+            # Get the Field Definition
+            field = in_lyr_defn.GetFieldDefn(iden)
+            fname = field.GetName()
+            ftype = field.GetTypeName()
+            fwidth = field.GetWidth()
+            # Copy field definitions from source
+            if fname in [x[2] for x in listtokeep]:
+                if ftype == 'String':
+                    fielddefn = ogr.FieldDefn(fname, ogr.OFTString)
+                    fielddefn.SetWidth(fwidth)
+                else:
+                    fielddefn = ogr.FieldDefn(fname, ogr.OFTInteger)
+                out_lyr.CreateField(fielddefn)
 
-        return listtokeep
+    return listtokeep
 
 
 # --------------------------------------------------------------
@@ -106,9 +122,9 @@ def diffBetweenLayers(layer1,
     Difference of layer1 with layer2, save is done in layer_out
     ARGs:
     INPUT:
-	- layer1: layer 1 
-	- layer2: layer 2
-	- layer_out: output layer
+    - layer1: layer 1 
+    - layer2: layer 2
+    - layer_out: output layer
     """
     layer1.ResetReading()
     layer2.ResetReading()
@@ -154,7 +170,7 @@ def diffBetweenLayers(layer1,
         feature1 = layer1.GetNextFeature()
 
 
-#--------------------------------------------------------------
+# --------------------------------------------------------------
 
 
 def diffBetweenLayersSpeedUp(layer2,
@@ -173,7 +189,7 @@ def diffBetweenLayersSpeedUp(layer2,
     (Inspire from http://snorf.net/blog/2014/05/12/using-rtree-spatial-indexing-with-ogr/)
     """
     # RTree Spatial Indexing with OGR
-    #-- Index creation
+    # -- Index creation
     try:
         import rtree
     except ImportError as e:
@@ -192,7 +208,7 @@ def diffBetweenLayersSpeedUp(layer2,
         xmin, xmax, ymin, ymax = geom1.GetEnvelope()
         index.insert(fid1, (xmin, xmax, ymin, ymax))
         feat1.Destroy()
-    #-- Search for all features in layer1 that intersect each feature in layer2
+    # -- Search for all features in layer1 that intersect each feature in layer2
     print("Research...")
     for fid2 in range(0, layer2.GetFeatureCount()):
 
@@ -249,7 +265,7 @@ def diffBetweenLayersSpeedUp(layer2,
         feat2.Destroy()
 
 
-#--------------------------------------------------------------
+# --------------------------------------------------------------
 def shapeDifference(shp_in1,
                     shp_in2,
                     shp_out,
@@ -288,7 +304,7 @@ def shapeDifference(shp_in1,
     layer1 = shp1.GetLayer()
     layer2 = shp2.GetLayer()
 
-    #-- Create output file
+    # -- Create output file
     if os.path.exists(shp_out):
         os.remove(shp_out)
     try:
@@ -312,7 +328,7 @@ def shapeDifference(shp_in1,
 
     listfieldstokeep = init_fields(layer1, layer2, newLayer, keepfields)
 
-    #-- Processing
+    # -- Processing
     if not speed:
         diffBetweenLayers(layer1, layer2, newLayer, operation,
                           listfieldstokeep, field)
@@ -328,48 +344,83 @@ speed = False
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
-        prog = os.path.basename(sys.argv[0])
+        PROG = os.path.basename(sys.argv[0])
         print('      ' + sys.argv[0] + ' [options]')
-        print("     Help : ", prog, " --help")
-        print("        or : ", prog, " -h")
+        print("     Help : ", PROG, " --help")
+        print("        or : ", PROG, " -h")
         sys.exit(-1)
     else:
-        usage = "usage: %prog [options] "
-        parser = argparse.ArgumentParser(description = "Difference shapefile of" \
-        "first shapefile with second shapefile, save is done in an output shapefile")
-        parser.add_argument("-s1", dest="s1", action="store", \
-                            help="First shapefile", required = True)
-        parser.add_argument("-s2", dest="s2", action="store", \
-                            help="Second shapefile", required = True)
-        parser.add_argument("-output", dest="output", action="store", \
-                            help="Output shapefile", required = True)
-        parser.add_argument("-speed", action="store_true", \
-                            help="Use of R Tree Spatial Index (faster)", default = False)
-        parser.add_argument("-format", dest="outformat", action="store", \
-                            help="OGR format (ogrinfo --formats). Default : SQLite ")
-        parser.add_argument("-epsg", dest="epsg", action="store", \
-                            help="EPSG code for projection. Default : 2154 - Lambert 93 ", type = int, default = 2154)
-        parser.add_argument("-operation", dest="operation", action="store", \
-                            help="spatial operation (intersection or difference or union). Default : intersection", default = "intersection")
-        parser.add_argument("-keepfields", dest="keepfields", action="store", nargs="*", \
-                            help="list of fields to keep in resulted vector file. Default : All fields")
-        parser.add_argument("-f", dest="field", action="store", \
+        USAGE = "usage: %prog [options] "
+        PARSER = argparse.ArgumentParser(
+            description="Difference shapefile of"
+            "first shapefile with second shapefile, save is done in "
+            "an output shapefile")
+        PARSER.add_argument("-s1",
+                            dest="s1",
+                            action="store",
+                            help="First shapefile",
+                            required=True)
+        PARSER.add_argument("-s2",
+                            dest="s2",
+                            action="store",
+                            help="Second shapefile",
+                            required=True)
+        PARSER.add_argument("-output",
+                            dest="output",
+                            action="store",
+                            help="Output shapefile",
+                            required=True)
+        PARSER.add_argument("-speed",
+                            action="store_true",
+                            help="Use of R Tree Spatial Index (faster)",
+                            default=False)
+        PARSER.add_argument(
+            "-format",
+            dest="outformat",
+            action="store",
+            help="OGR format (ogrinfo --formats). Default : ESRI shapefile ",
+            default="ESRI shapefile")
+        PARSER.add_argument(
+            "-epsg",
+            dest="epsg",
+            action="store",
+            help="EPSG code for projection. Default : 2154 - Lambert 93 ",
+            type=int,
+            default=2154)
+        PARSER.add_argument(
+            "-operation",
+            dest="operation",
+            action="store",
+            help=("spatial operation (intersection or difference or union). "
+                  "Default : intersection"),
+            default="intersection")
+        PARSER.add_argument(
+            "-keepfields",
+            dest="keepfields",
+            action="store",
+            nargs="*",
+            help=("list of fields to keep in resulted vector file. "
+                  "Default : All fields"))
+        PARSER.add_argument("-f",
+                            dest="field",
+                            action="store",
                             help="field to look for difference")
-        args = parser.parse_args()
 
-        if not args.speed:
-            shapeDifference(args.s1, args.s2, args.output, False,
-                            args.outformat, args.epsg, args.operation,
-                            args.keepfields, args.field)
+        ARGS = PARSER.parse_args()
+
+        if not ARGS.speed:
+            shapeDifference(ARGS.s1, ARGS.s2, ARGS.output, False,
+                            ARGS.outformat, ARGS.epsg, ARGS.operation,
+                            ARGS.keepfields, ARGS.field)
         else:
             try:
                 import rtree
-            except ImportError as e:
+            except ImportError as exc:
                 raise ImportError(
-                    str(e) +
+                    str(exc) +
                     "\n\n Please install rtree module if it isn't installed yet"
                 )
 
-            shapeDifference(args.s1, args.s2, args.output, True,
-                            args.outformat, args.epsg, args.operation,
-                            args.keepfields, args.field)
+            shapeDifference(ARGS.s1, ARGS.s2, ARGS.output, True,
+                            ARGS.outformat, ARGS.epsg, ARGS.operation,
+                            ARGS.keepfields, ARGS.field)
