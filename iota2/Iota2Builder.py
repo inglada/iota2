@@ -178,18 +178,17 @@ class iota2():
             genRegionVector, VectorFormatting, splitSamples, samplesMerge,
             statsSamplesModel, samplingLearningPolygons, samplesByTiles,
             samplesExtraction, samplesByModels, copySamples,
-            genSyntheticSamples, samplesDimReduction, samplesNormalization,
-            learnModel, classiCmd, classification, confusionSAROpt,
-            confusionSAROptMerge, SAROptFusion, classificationsFusion,
-            fusionsIndecisions, mosaic, confusionCmd, confusionGeneration,
-            confusionsMerge, reportGeneration, mergeSeedClassifications,
-            additionalStatistics, additionalStatisticsMerge, sensorsPreprocess,
-            Coregistration, Regularization, mergeRegularization, Clump, Grid,
-            crownSearch, crownBuild, mosaicTilesVectorization,
-            largeVectorization, mosaicTilesVectorization, largeSimplification,
-            largeSmoothing, clipVectors, zonalStatistics, prodVectors,
-            slicSegmentation, superPixPos, superPixSplit,
-            skClassificationsMerge)
+            genSyntheticSamples, samplesDimReduction, learnModel, classiCmd,
+            classification, confusionSAROpt, confusionSAROptMerge,
+            SAROptFusion, classificationsFusion, fusionsIndecisions, mosaic,
+            confusionCmd, confusionGeneration, confusionsMerge,
+            reportGeneration, mergeSeedClassifications, additionalStatistics,
+            additionalStatisticsMerge, sensorsPreprocess, Coregistration,
+            Regularization, mergeRegularization, Clump, Grid, crownSearch,
+            crownBuild, mosaicTilesVectorization, largeVectorization,
+            mosaicTilesVectorization, largeSimplification, largeSmoothing,
+            clipVectors, zonalStatistics, prodVectors, slicSegmentation,
+            superPixPos, superPixSplit, skClassificationsMerge)
         # control variable
         Sentinel1 = SCF.serviceConfigFile(cfg).getParam('chain', 'S1Path')
         shapeRegion = SCF.serviceConfigFile(cfg).getParam(
@@ -273,8 +272,6 @@ class iota2():
             cfg, config_ressources, self.workingDirectory)
         step_dimRed = samplesDimReduction.samplesDimReduction(
             cfg, config_ressources, self.workingDirectory)
-        step_normalize_samples = samplesNormalization.samplesNormalization(
-            cfg, config_ressources)
         step_learning = learnModel.learnModel(cfg, config_ressources,
                                               self.workingDirectory)
         step_classiCmd = classiCmd.classiCmd(cfg, config_ressources,
