@@ -44,7 +44,6 @@ def autoContext_classification_param(iota2_directory, data_field):
     """
     import re
     from iota2.Common.FileUtils import FileSearch_AND
-    from iota2.Common.FileUtils import sortByFirstElem
     from iota2.Common.FileUtils import getListTileFromModel
     from iota2.Common.FileUtils import getFieldElement
 
@@ -635,6 +634,7 @@ def launchClassification(tempFolderSerie,
 
 
 if __name__ == "__main__":
+    from iota2.Common.FileUtils import str2bool
     from iota2.Common import ServiceConfigFile as SCF
     PARSER = argparse.ArgumentParser(
         description=
@@ -647,10 +647,48 @@ if __name__ == "__main__":
         default=None,
         required=True)
     PARSER.add_argument("-mask",
-                        dest="mask",
+                        dest="Classifmask",
                         help="path to classification's mask",
                         default=None,
                         required=True)
+    PARSER.add_argument("-classifier_type",
+                        dest="classifier_type",
+                        help="classifier name",
+                        required=True)
+    PARSER.add_argument("-tile",
+                        dest="tile",
+                        help="tile's name",
+                        required=True)
+    PARSER.add_argument("-proba_map_expected",
+                        dest="proba_map_expected",
+                        help="is probality maps were generated",
+                        type=str2bool,
+                        default=False,
+                        required=False)
+    PARSER.add_argument("-dimred",
+                        dest="dimred",
+                        help="flag to use dimensionality reduction",
+                        type=str2bool,
+                        default=False,
+                        required=False)
+    PARSER.add_argument(
+        "-sar_optical_post_fusion",
+        dest="sar_optical_post_fusion",
+        help="flag to enable sar and optical post-classification fusion",
+        type=str2bool,
+        default=False,
+        required=False)
+    PARSER.add_argument("-reduction_mode",
+                        dest="reduction_mode",
+                        help="reduction mode",
+                        default=None,
+                        required=True)
+    PARSER.add_argument(
+        "-data_field",
+        dest="data_field",
+        help="field containing labels in the groundtruth database",
+        default=None,
+        required=True)
     PARSER.add_argument("-pixType",
                         dest="pixType",
                         help="pixel format",
@@ -676,6 +714,10 @@ if __name__ == "__main__":
                         help="output classification confidence map",
                         default=None,
                         required=True)
+    PARSER.add_argument("-output_path",
+                        dest="output_path",
+                        help="iota2 output path",
+                        required=True)
     PARSER.add_argument("-ram",
                         dest="ram",
                         help="pipeline's size",
@@ -697,33 +739,18 @@ if __name__ == "__main__":
                         choices=["True", "False"],
                         required=False)
     ARGS = PARSER.parse_args()
-
-    # load configuration file
     CFG = SCF.serviceConfigFile(ARGS.pathConf)
-
-    # launchClassification(ARGS.tempFolderSerie,
-    #                      Classifmask,
-    #                      model,
-    #                      stats,
-    #                      outputClassif,
-    #                      confmap,
-    #                      pathWd,
-    #                      classifier_type: str,
-    #                      tile: str,
-    #                      proba_map_expected: bool,
-    #                      dimred,
-    #                      sar_optical_post_fusion,
-    #                      output_path: str,
-    #                      data_field: str,
-    #                      write_features: bool,
-    #                      reduction_mode,
-    #                      sensors_parameters,
-    #                      pixType,
-    #                      MaximizeCPU=True,
-    #                      RAM=500,
-    #                      auto_context={},
-    #                      logger=LOGGER)
-
-    # launchClassification(args.tempFolderSerie, args.mask, args.model,
-    #                      args.stats, args.outputClassif, args.confmap,
-    #                      args.pathWd, cfg, args.pixType, args.MaximizeCPU)
+    I2_PARAMS = SCF.iota2_parameters(ARGS.pathConf)
+    SENSORS_PARAMETERS = I2_PARAMS.get_sensors_parameters(ARGS.tile)
+    AUTO_CONTEXT_PARAMS = {}
+    if CFG.getParam("chain", "enable_autoContext"):
+        AUTO_CONTEXT_PARAMS = autoContext_classification_param(
+            ARGS.output_path, ARGS.data_field)
+    launchClassification(ARGS.tempFolderSerie, ARGS.Classifmask, ARGS.model,
+                         ARGS.stats, ARGS.outputClassif, ARGS.confmap,
+                         ARGS.pathWd, ARGS.classifier_type, ARGS.tile,
+                         ARGS.proba_map_expected, ARGS.dimred,
+                         ARGS.sar_optical_post_fusion, ARGS.output_path,
+                         ARGS.data_field, ARGS.write_features,
+                         ARGS.reduction_mode, SENSORS_PARAMETERS, ARGS.pixType,
+                         AUTO_CONTEXT_PARAMS)
