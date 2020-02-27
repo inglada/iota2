@@ -282,13 +282,13 @@ def undecision_management(path_test: str,
                           field_region: str,
                           path_to_img: str,
                           path_to_region: str,
-                          region_vec: str,
                           output_path: str,
                           no_label_management: str,
                           path_wd: str,
                           list_indices: List[str],
                           user_feat_path: str,
                           pix_type: str,
+                          region_vec: Optional[str] = None,
                           user_feat_pattern: Optional[str] = None,
                           ds_sar_opt: Optional[bool] = False) -> None:
     """
@@ -483,30 +483,55 @@ if __name__ == "__main__":
                         help="number of random sample(mandatory)",
                         type=int,
                         required=True)
-    PARSER.add_argument(
-        "-conf",
-        help="path to the configuration file which describe the learning"
-        " method (mandatory)",
-        dest="pathConf",
-        required=True)
+    PARSER.add_argument("-output_path",
+                        help="path to the output directory (mandatory)",
+                        dest="output_path",
+                        required=True)
+    PARSER.add_argument("-no_label_meth",
+                        dest="no_label_meth",
+                        help="no label management rule",
+                        choices=['maxConfidence', "learningPriority"],
+                        required=True)
     PARSER.add_argument("--wd",
                         dest="pathWd",
                         help="path to the working directory",
                         default=None,
                         required=False)
-    from iota2.Common import ServiceConfigFile as SCF
+    PARSER.add_argument("-list_feat",
+                        nargs='+',
+                        dest="list_features",
+                        help="list containing features",
+                        required=True)
+    PARSER.add_argument("-user_feat_path",
+                        dest="user_feat_path",
+                        help="path to features provided by user",
+                        required=True)
+    PARSER.add_argument("-pixtype",
+                        dest="pixtype",
+                        help="pixel type",
+                        choices=["uint8", "uint16", "float", "double"],
+                        default="uint8",
+                        required=False)
+    PARSER.add_argument("-region_vec",
+                        dest="region_vec",
+                        help="a region shapefile (optional)",
+                        required=False,
+                        default=None)
+    PARSER.add_argument("-patterns",
+                        dest="patterns",
+                        help="user feature pattern (optional)",
+                        required=False,
+                        default=None)
+    PARSER.add_argument("-sar_fusion",
+                        dest="sar_fusion",
+                        help=("activate post classification fusion between "
+                              "optical and SAR (optional)"),
+                        required=False,
+                        default=False)
     ARGS = PARSER.parse_args()
 
-    # load configuration file
-    CFG = SCF.serviceConfigFile(ARGS.pathConf)
-    PIXTYPE = fu.getOutputPixType(CFG.getParam('chain', 'nomenclaturePath'))
-
-    undecision_management(
-        ARGS.pathTest, ARGS.pathFusion, ARGS.fieldRegion, ARGS.pathToImg,
-        ARGS.pathToRegion, CFG.getParam('chain', 'regionPath'),
-        CFG.getParam('chain', 'outputPath'),
-        CFG.getParam('argClassification', 'noLabelManagement'), ARGS.pathWd,
-        CFG.getParam("GlobChain", "features"),
-        CFG.getParam("chain", "userFeatPath"), PIXTYPE,
-        CFG.getParam("userFeat", "patterns"),
-        CFG.getParam('argTrain', 'dempster_shafer_SAR_Opt_fusion'))
+    undecision_management(ARGS.pathTest, ARGS.pathFusion, ARGS.fieldRegion,
+                          ARGS.pathToImg, ARGS.pathToRegion, ARGS.output_path,
+                          ARGS.no_label_meth, ARGS.pathWd, ARGS.list_feat,
+                          ARGS.user_feat_path, ARGS.pixtype, ARGS.region_vec,
+                          ARGS.patterns, ARGS.sar_fusion)
