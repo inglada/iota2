@@ -31,7 +31,6 @@ iota2_script_tests = iota2dir + "/data/test_scripts"
 sys.path.append(iota2_script)
 sys.path.append(iota2_script_tests)
 
-from Common.Tools import RandomInSituByTile
 from Sampling import VectorSampler
 from Common import FileUtils as fu
 import test_genGrid as test_genGrid
