@@ -194,7 +194,7 @@ class iota2_test_sensors_test(unittest.TestCase):
         """Tests if the class sentinel_2 can be instanciate
         """
         from iota2.Sensors.Sentinel_2 import sentinel_2
-        from TestsUtils import generate_fake_s2_data
+        from iota2.Tests.UnitTests.tests_utils.tests_utils_rasters import generate_fake_s2_data
         tile_name = "T31TCJ"
         generate_fake_s2_data(self.test_working_directory, tile_name,
                               ["20200101", "20200120"])

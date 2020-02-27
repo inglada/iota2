@@ -15,6 +15,8 @@
 # =========================================================================
 import os
 from typing import List, Optional
+from iota2.Tests.UnitTests.tests_utils.tests_utils_rasters import array_to_raster
+from iota2.Tests.UnitTests.tests_utils.tests_utils_rasters import fun_array
 
 
 def add_empty_geom(db_path, driver_name: Optional[str] = "ESRI Shapefile"):
@@ -193,248 +195,6 @@ def compute_brightness_from_vector(input_vector):
     brightness = None
     brightness = math.sqrt(sum([val**2 for val in input_vector]))
     return brightness
-
-
-def generate_fake_s2_data(root_directory, tile_name, dates):
-    """
-    Parameters
-    ----------
-    root_directory : string
-        path to generate Sentinel-2 dates
-    tile_name : string
-        THEIA tile name (ex:T31TCJ)
-    dates : list
-        list of strings reprensentig dates format : YYYYMMDD
-    """
-    import numpy as np
-    import random
-    from Common.FileUtils import ensure_dir
-    from Common.OtbAppBank import CreateConcatenateImagesApplication
-
-    tile_dir = os.path.join(root_directory, tile_name)
-    ensure_dir(tile_dir)
-
-    band_of_interest = [
-        "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11", "B12"
-    ]
-    masks_of_interest = ["BINARY_MASK", "CLM_R1", "EDG_R1", "SAT_R1"]
-
-    originX = 566377
-    originY = 6284029
-    array_name = "iota2_binary"
-    for date in dates:
-        date_dir = os.path.join(tile_dir,
-                                ("SENTINEL2B_{}-000000-"
-                                 "000_L2A_{}_D_V1-7".format(date, tile_name)))
-        mask_date_dir = os.path.join(date_dir, "MASKS")
-        ensure_dir(date_dir)
-        ensure_dir(mask_date_dir)
-        all_bands = []
-        for cpt, mask in enumerate(masks_of_interest):
-            new_mask = os.path.join(
-                mask_date_dir,
-                ("SENTINEL2B_{}-000000-000_L2A"
-                 "_{}_D_V1-7_FRE_{}.tif".format(date, tile_name, mask)))
-
-            arrayToRaster(fun_array(array_name) * cpt % 2,
-                          new_mask,
-                          originX=originX,
-                          originY=originY)
-        for band in band_of_interest:
-            new_band = os.path.join(
-                date_dir,
-                ("SENTINEL2B_{}-000000-000_L2A"
-                 "_{}_D_V1-7_FRE_{}.tif".format(date, tile_name, band)))
-            all_bands.append(new_band)
-            array = fun_array(array_name)
-            random_array = []
-            for y in array:
-                y_tmp = []
-                for pix_val in y:
-                    y_tmp.append(pix_val * random.random() * 1000)
-                random_array.append(y_tmp)
-
-            arrayToRaster(np.array(random_array),
-                          new_band,
-                          originX=originX,
-                          originY=originY)
-            stack_date = os.path.join(
-                date_dir, ("SENTINEL2B_{}-000000-000_L2A_{}_D_V1-7"
-                           "_FRE_STACK.tif".format(date, tile_name)))
-            stack_app = CreateConcatenateImagesApplication({
-                "il": all_bands,
-                "out": stack_date
-            })
-            stack_app.ExecuteAndWriteOutput()
-
-
-def fun_array(fun):
-    """arrays use in unit tests
-    """
-    import numpy as np
-    if fun == "iota2_binary":
-        array = [[
-            0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0
-        ],
-                 [
-                     0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1,
-                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                     0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                     1, 1, 1, 1, 1, 1, 1, 1, 0, 0
-                 ],
-                 [
-                     0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1,
-                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                     0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                     1, 1, 1, 1, 1, 1, 1, 1, 1, 0
-                 ],
-                 [
-                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1,
-                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                     0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0,
-                     0, 0, 1, 1, 1, 1, 1, 1, 1, 0
-                 ],
-                 [
-                     1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
-                     1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                     1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1,
-                     1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                     0, 0, 1, 1, 1, 1, 1, 1, 1, 0
-                 ],
-                 [
-                     1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                     1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                     1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1,
-                     1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                     0, 0, 1, 1, 1, 1, 1, 1, 1, 0
-                 ],
-                 [
-                     0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                     1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1,
-                     1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-                     1, 1, 1, 1, 1, 1, 1, 1, 0, 0
-                 ],
-                 [
-                     0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                     1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                     0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1,
-                     1, 1, 1, 1, 1, 1, 1, 0, 0, 0
-                 ],
-                 [
-                     0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0,
-                     1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1,
-                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1,
-                     1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
-                     1, 1, 1, 1, 1, 0, 0, 0, 0, 0
-                 ],
-                 [
-                     0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0,
-                     1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1,
-                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1,
-                     1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                     1, 1, 0, 0, 0, 0, 0, 0, 0, 0
-                 ],
-                 [
-                     0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0,
-                     1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1,
-                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
-                     1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0,
-                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-                 ],
-                 [
-                     0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0,
-                     1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1,
-                     0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0,
-                     0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0,
-                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-                 ],
-                 [
-                     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                     1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1,
-                     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0,
-                     0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0,
-                     0, 0, 0, 0, 1, 1, 1, 1, 1, 1
-                 ],
-                 [
-                     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                     1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1,
-                     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                     1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                     1, 1, 1, 1, 1, 1, 1, 1, 1, 1
-                 ],
-                 [
-                     1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                     1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1,
-                     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1,
-                     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                     1, 1, 1, 1, 1, 1, 1, 1, 1, 1
-                 ],
-                 [
-                     1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
-                     1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1,
-                     1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1,
-                     1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                     1, 1, 1, 1, 1, 1, 1, 1, 1, 1
-                 ]]
-    array = np.array(array)
-    return array
-
-
-def arrayToRaster(inArray,
-                  outRaster_path,
-                  output_format="int",
-                  output_driver="GTiff",
-                  pixSize=30,
-                  originX=777225.58,
-                  originY=6825084.53,
-                  epsg_code=2154):
-    """usage : from an array of a list of array, create a raster
-
-    Parameters
-    ----------
-    inArray : list
-        list of numpy.array sorted by bands (fisrt array = band 1,
-                                             N array = band N)
-    outRaster_path : string
-        output path
-    output_format : string
-        'int' or 'float'
-    """
-    import gdal
-    import osr
-    if not isinstance(inArray, list):
-        inArray = [inArray]
-    NB_BANDS = len(inArray)
-    rows = inArray[0].shape[0]
-    cols = inArray[0].shape[1]
-
-    driver = gdal.GetDriverByName(output_driver)
-    if output_format == 'int':
-        outRaster = driver.Create(outRaster_path, cols, rows, len(inArray),
-                                  gdal.GDT_UInt16)
-    elif output_format == 'float':
-        outRaster = driver.Create(outRaster_path, cols, rows, len(inArray),
-                                  gdal.GDT_Float32)
-    if not outRaster:
-        raise Exception("can not create : " + outRaster)
-    outRaster.SetGeoTransform((originX, pixSize, 0, originY, 0, -pixSize))
-
-    for i in range(NB_BANDS):
-        outband = outRaster.GetRasterBand(i + 1)
-        outband.WriteArray(inArray[i])
-
-    outRasterSRS = osr.SpatialReference()
-    outRasterSRS.ImportFromEPSG(epsg_code)
-    outRaster.SetProjection(outRasterSRS.ExportToWkt())
-    outband.FlushCache()
 
 
 def rasterToArray(InRaster):
@@ -662,14 +422,14 @@ def generate_fake_s2_s2c_data(output_directory, mtd_files):
             else:
                 array_raster = fake_raster
             # output_driver has to be 'GTiff' even if S2ST are jp2
-            arrayToRaster(array_raster,
-                          prod,
-                          output_driver="GTiff",
-                          output_format="int",
-                          pixSize=pix_size,
-                          originX=300000,
-                          originY=4900020,
-                          epsg_code=32631)
+            array_to_raster(array_raster,
+                            prod,
+                            output_driver="GTiff",
+                            output_format="int",
+                            pixel_size=pix_size,
+                            origin_x=300000,
+                            origin_y=4900020,
+                            epsg_code=32631)
 
 
 def generate_fake_l8_data(root_directory, tile_name, dates):
@@ -711,11 +471,11 @@ def generate_fake_l8_data(root_directory, tile_name, dates):
                 ("LANDSAT8-OLITIRS-XS_{}-000000-000_L2A"
                  "_{}_D_V1-7_FRE_{}.tif".format(date, tile_name, mask)))
 
-            arrayToRaster(fun_array(array_name) * cpt % 2,
-                          new_mask,
-                          pixSize=30,
-                          originX=origin_x,
-                          originY=origin_y)
+            array_to_raster(fun_array(array_name) * cpt % 2,
+                            new_mask,
+                            pixel_size=30,
+                            origin_x=origin_x,
+                            origin_y=origin_y)
         for band in band_of_interest:
             new_band = os.path.join(
                 date_dir,
@@ -730,11 +490,11 @@ def generate_fake_l8_data(root_directory, tile_name, dates):
                     val_tmp.append(pix_val * random.random() * 1000)
                 random_array.append(val_tmp)
 
-            arrayToRaster(np.array(random_array),
-                          new_band,
-                          pixSize=30,
-                          originX=origin_x,
-                          originY=origin_y)
+            array_to_raster(np.array(random_array),
+                            new_band,
+                            pixel_size=30,
+                            origin_x=origin_x,
+                            origin_y=origin_y)
             stack_date = os.path.join(
                 date_dir, ("LANDSAT8-OLITIRS-XS_{}-000000-000_L2A_{}_D_V1-7"
                            "_FRE_STACK.tif".format(date, tile_name)))
@@ -778,10 +538,10 @@ def generate_fake_user_features_data(root_directory: str, tile_name: str,
             for pix_val in val:
                 val_tmp.append(pix_val * random.random() * 1000)
             random_array.append(val_tmp)
-        arrayToRaster(np.array(random_array),
-                      user_features_path,
-                      originX=origin_x,
-                      originY=origin_y)
+        array_to_raster(np.array(random_array),
+                        user_features_path,
+                        origin_x=origin_x,
+                        origin_y=origin_y)
 
 
 def generate_fake_s2_l3a_data(root_directory, tile_name, dates):
@@ -825,11 +585,11 @@ def generate_fake_s2_l3a_data(root_directory, tile_name, dates):
                 ("SENTINEL2X_{}-000000-000_L3A"
                  "_{}_D_V1-7_{}.tif".format(date, tile_name, mask)))
 
-            arrayToRaster(fun_array(array_name) * cpt % 2,
-                          new_mask,
-                          pixSize=10,
-                          originX=origin_x,
-                          originY=origin_y)
+            array_to_raster(fun_array(array_name) * cpt % 2,
+                            new_mask,
+                            pixel_size=10,
+                            origin_x=origin_x,
+                            origin_y=origin_y)
         for band in band_of_interest:
             new_band = os.path.join(
                 date_dir,
@@ -844,11 +604,11 @@ def generate_fake_s2_l3a_data(root_directory, tile_name, dates):
                     val_tmp.append(pix_val * random.random() * 1000)
                 random_array.append(val_tmp)
 
-            arrayToRaster(np.array(random_array),
-                          new_band,
-                          pixSize=10,
-                          originX=origin_x,
-                          originY=origin_y)
+            array_to_raster(np.array(random_array),
+                            new_band,
+                            pixel_size=10,
+                            origin_x=origin_x,
+                            origin_y=origin_y)
             stack_date = os.path.join(
                 date_dir, ("SENTINEL2X_{}-000000-000_L3A_{}_D_V1-7"
                            "_FRC_STACK.tif".format(date, tile_name)))
@@ -896,11 +656,11 @@ def generate_fake_l5_old_data(root_directory, tile_name, dates):
                                     (f"LANDSAT5_TM_XS_{date}_N2A"
                                      f"_{tile_name}_{mask}.TIF"))
 
-            arrayToRaster(fun_array(array_name) * cpt % 2,
-                          new_mask,
-                          pixSize=30,
-                          originX=origin_x,
-                          originY=origin_y)
+            array_to_raster(fun_array(array_name) * cpt % 2,
+                            new_mask,
+                            pixel_size=30,
+                            origin_x=origin_x,
+                            origin_y=origin_y)
         for band in band_of_interest:
             new_band = os.path.join(date_dir, (f"LANDSAT5_TM_XS_{date}_N2A"
                                                f"_{tile_name}_{band}.TIF"))
@@ -913,11 +673,11 @@ def generate_fake_l5_old_data(root_directory, tile_name, dates):
                     val_tmp.append(pix_val * random.random() * 1000)
                 random_array.append(val_tmp)
 
-            arrayToRaster(np.array(random_array),
-                          new_band,
-                          pixSize=30,
-                          originX=origin_x,
-                          originY=origin_y)
+            array_to_raster(np.array(random_array),
+                            new_band,
+                            pixel_size=30,
+                            origin_x=origin_x,
+                            origin_y=origin_y)
             stack_date = os.path.join(date_dir, (f"LANDSAT5_TM_XS_{date}_"
                                                  "N2A_ORTHO_SURF_CORR"
                                                  f"_PENTE_{tile_name}.TIF"))
@@ -965,11 +725,11 @@ def generate_fake_l8_old_data(root_directory, tile_name, dates):
                                     (f"LANDSAT8_OLITIRS_XS_{date}_N2A"
                                      f"_{tile_name}_{mask}.TIF"))
 
-            arrayToRaster(fun_array(array_name) * cpt % 2,
-                          new_mask,
-                          pixSize=30,
-                          originX=origin_x,
-                          originY=origin_y)
+            array_to_raster(fun_array(array_name) * cpt % 2,
+                            new_mask,
+                            pixel_size=30,
+                            origin_x=origin_x,
+                            origin_y=origin_y)
         for band in band_of_interest:
             new_band = os.path.join(date_dir,
                                     (f"LANDSAT8_OLITIRS_XS_{date}_N2A"
@@ -983,11 +743,11 @@ def generate_fake_l8_old_data(root_directory, tile_name, dates):
                     val_tmp.append(pix_val * random.random() * 1000)
                 random_array.append(val_tmp)
 
-            arrayToRaster(np.array(random_array),
-                          new_band,
-                          pixSize=30,
-                          originX=origin_x,
-                          originY=origin_y)
+            array_to_raster(np.array(random_array),
+                            new_band,
+                            pixel_size=30,
+                            origin_x=origin_x,
+                            origin_y=origin_y)
             stack_date = os.path.join(date_dir, (f"LANDSAT8_OLITIRS_XS_{date}_"
                                                  "N2A_ORTHO_SURF_CORR"
                                                  f"_PENTE_{tile_name}.TIF"))

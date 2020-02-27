@@ -19,6 +19,7 @@ import sys
 import shutil
 import unittest
 
+from iota2.Tests.UnitTests.tests_utils.tests_utils_rasters import array_to_raster
 IOTA2DIR = os.environ.get('IOTA2DIR')
 RM_IF_ALL_OK = True
 
@@ -32,7 +33,7 @@ class iota_testAutoContext(unittest.TestCase):
     def setUpClass(cls):
 
         from iota2.Common.FileUtils import ensure_dir
-        from TestsUtils import generate_fake_s2_data
+        from iota2.Tests.UnitTests.tests_utils.tests_utils_rasters import generate_fake_s2_data
 
         # definition of local variables
         cls.originX = 566377
@@ -249,16 +250,16 @@ class iota_testAutoContext(unittest.TestCase):
                                      "PixelsValidity.tif")
         region_path = os.path.join(self.test_working_directory,
                                    "mask_region.tif")
-        TestsUtils.arrayToRaster(validity_array,
-                                 validity_path,
-                                 pixSize=10,
-                                 originX=self.originX,
-                                 originY=self.originY)
-        TestsUtils.arrayToRaster(validity_array,
-                                 region_path,
-                                 pixSize=10,
-                                 originX=self.originX,
-                                 originY=self.originY)
+        array_to_raster(validity_array,
+                        validity_path,
+                        pixel_size=10,
+                        origin_x=self.originX,
+                        origin_y=self.originY)
+        array_to_raster(validity_array,
+                        region_path,
+                        pixel_size=10,
+                        origin_x=self.originX,
+                        origin_y=self.originY)
 
         ref_data_sampled = os.path.join(self.test_working_directory,
                                         "dataBase.sqlite")
@@ -275,11 +276,11 @@ class iota_testAutoContext(unittest.TestCase):
                                                 size=mask_array.shape,
                                                 replace=True)
         random_classif_array_mask = random_classif_array * mask_array
-        TestsUtils.arrayToRaster(random_classif_array_mask,
-                                 random_classif_mask_path,
-                                 pixSize=10,
-                                 originX=self.originX,
-                                 originY=self.originY)
+        array_to_raster(random_classif_array_mask,
+                        random_classif_mask_path,
+                        pixel_size=10,
+                        origin_x=self.originX,
+                        origin_y=self.originY)
         move_annual_samples_position(
             samples_position=ref_data_sampled,
             dataField="code",
@@ -311,11 +312,11 @@ class iota_testAutoContext(unittest.TestCase):
                                                 size=mask_array.shape,
                                                 replace=True)
         random_classif_array_mask = random_classif_array * mask_array
-        TestsUtils.arrayToRaster(random_classif_array_mask,
-                                 random_classif_mask_path,
-                                 pixSize=10,
-                                 originX=self.originX,
-                                 originY=self.originY)
+        array_to_raster(random_classif_array_mask,
+                        random_classif_mask_path,
+                        pixel_size=10,
+                        origin_x=self.originX,
+                        origin_y=self.originY)
 
         move_annual_samples_position(
             samples_position=ref_data_sampled,
@@ -348,11 +349,11 @@ class iota_testAutoContext(unittest.TestCase):
                                                 size=mask_array.shape,
                                                 replace=True)
         random_classif_array_mask = random_classif_array * mask_array
-        TestsUtils.arrayToRaster(random_classif_array_mask,
-                                 random_classif_mask_path,
-                                 pixSize=10,
-                                 originX=self.originX,
-                                 originY=self.originY)
+        array_to_raster(random_classif_array_mask,
+                        random_classif_mask_path,
+                        pixel_size=10,
+                        origin_x=self.originX,
+                        origin_y=self.originY)
 
         move_annual_samples_position(
             samples_position=ref_data_sampled,

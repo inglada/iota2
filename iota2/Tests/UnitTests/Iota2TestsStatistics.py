@@ -36,6 +36,8 @@ iota2_script = os.path.join(IOTA2DIR, "iota2")
 sys.path.append(iota2_script)
 
 from iota2.Tests.UnitTests import TestsUtils as testutils
+from iota2.Tests.UnitTests.tests_utils.tests_utils_rasters import array_to_raster
+from iota2.Tests.UnitTests.tests_utils.tests_utils_rasters import fun_array
 from iota2.simplification import ZonalStats as zs
 
 
@@ -138,8 +140,6 @@ class iota_testZonalStats(unittest.TestCase):
         """
         from iota2.Sampling.SamplesStat import samples_stats
         from iota2.Common.FileUtils import ensure_dir
-        from TestsUtils import arrayToRaster
-        from TestsUtils import fun_array
 
         ensure_dir(
             os.path.join(self.test_working_directory, "samplesSelection"))
@@ -148,7 +148,10 @@ class iota_testZonalStats(unittest.TestCase):
         raster_ref = os.path.join(self.test_working_directory,
                                   "RASTER_REF.tif")
         arr_test = fun_array("iota2_binary")
-        arrayToRaster(arr_test, raster_ref, originX=566377, originY=6284029)
+        array_to_raster(arr_test,
+                        raster_ref,
+                        origin_x=566377,
+                        origin_y=6284029)
 
         shutil.copy(
             raster_ref,

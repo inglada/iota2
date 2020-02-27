@@ -248,7 +248,7 @@ class Iota2CheckInputs(unittest.TestCase):
         """
         from iota2.Common import verifyInputs
         from iota2.Common import ServiceError
-        from TestsUtils import generate_fake_s2_data
+        from iota2.Tests.UnitTests.tests_utils.tests_utils_rasters import generate_fake_s2_data
 
         s2_data = os.path.join(self.test_working_directory, "S2_data")
         generate_fake_s2_data(s2_data, "T31TCJ",

@@ -34,8 +34,7 @@ RM_IF_ALL_OK = True
 iota2_script = os.path.join(IOTA2DIR, "iota2")
 sys.path.append(iota2_script)
 
-from Common import FileUtils as fut
-from TestsUtils import arrayToRaster
+from iota2.Tests.UnitTests.tests_utils.tests_utils_rasters import array_to_raster
 from TestsUtils import rasterToArray
 
 
@@ -120,7 +119,7 @@ class iota_testClassifications(unittest.TestCase):
         ]
         probamap_path = os.path.join(self.test_working_directory,
                                      "PROBAMAP_T31TCJ_model_1_seed_0.tif")
-        arrayToRaster(probamap_arr, probamap_path)
+        array_to_raster(probamap_arr, probamap_path)
 
         cfg = SCF.serviceConfigFile(self.config_test)
         fake_model = "model_1_seed_0.txt"
