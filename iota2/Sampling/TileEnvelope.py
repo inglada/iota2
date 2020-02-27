@@ -418,8 +418,8 @@ def genTileEnvPrio(ObjListTile, out, tmpFile, proj):
                                    [".prj", ".shp", ".dbf", ".shx"])
 
 
-def generate_shape_tile(tiles: List[str], pathOut: str, pathWd: str,
-                        output_path: str, proj: int) -> None:
+def generate_shape_tile(tiles: List[str], pathWd: str, output_path: str,
+                        proj: int) -> None:
     """generate tile's envelope with priority management
 
     Parameters
@@ -435,7 +435,9 @@ def generate_shape_tile(tiles: List[str], pathOut: str, pathWd: str,
     proj : int
         epsg code of target projection
     """
-
+    pathOut = os.path.join(output_path, "envelope")
+    if not os.path.exists(pathOut):
+        os.mkdir(pathOut)
     featuresPath = os.path.join(output_path, "features")
 
     cMaskName = "MaskCommunSL"
@@ -475,11 +477,9 @@ def generate_shape_tile(tiles: List[str], pathOut: str, pathWd: str,
 
 
 if __name__ == "__main__":
-    from iota2.Common import ServiceConfigFile as SCF
     PARSER = argparse.ArgumentParser(
-        description=
-        "This function allow you to generate tile's envelope considering tile's priority"
-    )
+        description=("This function allow you to generate tile's envelope"
+                     " considering tile's priority"))
     PARSER.add_argument("-t",
                         dest="tiles",
                         help="All the tiles",
@@ -490,6 +490,7 @@ if __name__ == "__main__":
                         help="where are stored features",
                         required=True)
     PARSER.add_argument("-out", dest="pathOut", help="path out", required=True)
+    PARSER.add_argument("-proj", dest="proj", help="projection", required=True)
     PARSER.add_argument("--wd",
                         dest="pathWd",
                         help="path to the working directory",
@@ -497,17 +498,11 @@ if __name__ == "__main__":
                         required=False)
     PARSER.add_argument(
         "-conf",
-        help=
-        "path to the configuration file which describe the learning method (mandatory)",
+        help=("path to the configuration file which describe the"
+              " learning method (mandatory)"),
         dest="pathConf",
         required=True)
     ARGS = PARSER.parse_args()
-    # load configuration file
-
-    CFG = SCF.serviceConfigFile(ARGS.pathConf)
-    OUTPUT_PATH = CFG.getParam("chain", "outputPath")
-    PROJ = int(CFG.getParam('GlobChain', 'proj').split(":")[-1])
 
     # launch GenerateShapeTile
-    generate_shape_tile(ARGS.tiles, ARGS.pathOut, ARGS.pathWd, OUTPUT_PATH,
-                        PROJ)
+    generate_shape_tile(ARGS.tiles, ARGS.pathWd, ARGS.pathOut, ARGS.proj)

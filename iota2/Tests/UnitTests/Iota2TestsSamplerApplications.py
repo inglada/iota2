@@ -1214,8 +1214,7 @@ class iota_testSamplerApplications(unittest.TestCase):
             config_path_test).get_sensors_parameters(tile)
         #shapes genereation
         commonMasks(tile, testPath, sensors_params)
-        env.generate_shape_tile(["D0005H0002"], testPath + "/envelope", None,
-                                testPath, 2154)
+        env.generate_shape_tile(["D0005H0002"], None, testPath, 2154)
         shapeRegion = os.path.join(wD, "MyFakeRegion.shp")
         area.generate_region_shape(testPath + "/envelope", shapeRegion,
                                    "region", testPath, None)
@@ -1332,8 +1331,7 @@ class iota_testSamplerApplications(unittest.TestCase):
             config_path_test).get_sensors_parameters(tile)
         #shapes genereation
         commonMasks(tile, testPath, sensors_params)
-        env.generate_shape_tile(["D0005H0002"], testPath + "/envelope", None,
-                                testPath, 2154)
+        env.generate_shape_tile(["D0005H0002"], None, testPath, 2154)
         shapeRegion = os.path.join(wD, "MyFakeRegion.shp")
         area.generate_region_shape(testPath + "/envelope", shapeRegion,
                                    "region", testPath, None)
@@ -1445,8 +1443,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         sensors_params = SCF.iota2_parameters(
             config_path_test).get_sensors_parameters(tile)
         commonMasks(tile, testPath, sensors_params)
-        env.generate_shape_tile(["D0005H0002"], testPath + "/envelope", None,
-                                testPath, 2154)
+        env.generate_shape_tile(["D0005H0002"], None, testPath, 2154)
         shapeRegion = os.path.join(wD, "MyFakeRegion.shp")
         area.generate_region_shape(testPath + "/envelope", shapeRegion,
                                    "region", testPath, None)
@@ -1556,8 +1553,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         sensors_params = SCF.iota2_parameters(
             config_path_test).get_sensors_parameters(tile)
         commonMasks(tile, testPath, sensors_params)
-        env.generate_shape_tile(["D0005H0002"], testPath + "/envelope", None,
-                                testPath, 2154)
+        env.generate_shape_tile(["D0005H0002"], None, testPath, 2154)
         shapeRegion = os.path.join(wD, "MyFakeRegion.shp")
         area.generate_region_shape(testPath + "/envelope", shapeRegion,
                                    "region", testPath, None)
