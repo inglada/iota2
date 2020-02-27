@@ -204,8 +204,10 @@ def fun_array(fun: str):
     return array
 
 
-def generate_fake_s2_data(root_directory: str, tile_name: str,
-                          dates: List[str]):
+def generate_fake_s2_data(root_directory: str,
+                          tile_name: str,
+                          dates: List[str],
+                          res: Optional[float] = 30.0):
     """
     Parameters
     ----------
@@ -244,6 +246,7 @@ def generate_fake_s2_data(root_directory: str, tile_name: str,
 
             array_to_raster(fun_array(array_name) * cpt % 2,
                             new_mask,
+                            pixel_size=res,
                             origin_x=origin_x,
                             origin_y=origin_y)
         for band in band_of_interest:
@@ -262,6 +265,7 @@ def generate_fake_s2_data(root_directory: str, tile_name: str,
 
             array_to_raster(np.array(random_array),
                             new_band,
+                            pixel_size=res,
                             origin_x=origin_x,
                             origin_y=origin_y)
             stack_date = os.path.join(
