@@ -683,54 +683,6 @@ class iota_testServiceConfigFile(unittest.TestCase):
 
 
 # test ok
-class iota_testGenerateShapeTile(unittest.TestCase):
-    @classmethod
-    def setUpClass(self):
-        # Test variables
-        self.fichierConfig = iota2dir + "/config/Config_4Tuiles_Multi_FUS_Confidence.cfg"
-        self.tiles = ['D0005H0002']  #, 'D0005H0003']
-        self.pathTilesFeat = iota2_dataTest + "/references/features/"
-        self.test_vector = iota2_dataTest + "/test_vector/"
-        self.pathEnvelope = iota2_dataTest + "/test_vector/test_GenerateShapeTile/"
-        if not os.path.exists(self.test_vector):
-            os.mkdir(self.test_vector)
-        if not os.path.exists(self.pathEnvelope):
-            os.mkdir(self.pathEnvelope)
-
-    def test_GenerateShapeTile(self):
-        from iota2.Sampling import TileEnvelope as env
-
-        #Test de création des enveloppes
-        SCF.clearConfig()
-        cfg = SCF.serviceConfigFile(self.fichierConfig)
-        IOTA2_dir = cfg.getParam("chain", "outputPath")
-        featuresPath = os.path.join(IOTA2_dir, "features")
-
-        masks_references = '../../../data/references/features'
-        if os.path.exists(featuresPath):
-            shutil.rmtree(featuresPath)
-
-        shutil.copytree(masks_references, featuresPath)
-
-        #Test de création des enveloppes
-        SCF.clearConfig()
-        cfg = SCF.serviceConfigFile(self.fichierConfig)
-
-        # Launch function
-        env.generate_shape_tile(self.tiles, self.pathEnvelope, None, IOTA2_dir,
-                                2154)
-
-        # For each tile test if the shapefile is ok
-        for i in self.tiles:
-            # generate filename
-            referenceShapeFile = iota2_dataTest + "/references/GenerateShapeTile/" + i + ".shp"
-            ShapeFile = self.pathEnvelope + i + ".shp"
-            serviceCompareVectorFile = fu.serviceCompareVectorFile()
-            # Launch shapefile comparison
-            self.assertTrue(
-                serviceCompareVectorFile.testSameShapefiles(
-                    referenceShapeFile, ShapeFile))
-        shutil.rmtree(featuresPath)
 
 
 # test ok
