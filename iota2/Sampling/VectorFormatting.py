@@ -21,10 +21,6 @@ import logging
 import os
 import shutil
 from typing import List, Optional
-# from iota2.Common import FileUtils as fut
-# from iota2.Sampling import SplitInSubSets as subset
-# from iota2.VectorTools.AddField import addField
-# from iota2.Common.Utils import run
 
 LOGGER = logging.getLogger(__name__)
 
@@ -455,7 +451,6 @@ def extract_maj_vote_samples(vec_in: str,
                     [".prj", ".shp", ".dbf", ".shx"])
 
 
-# def VectorFormatting(cfg, tile_name, workingDirectory=None, logger=LOGGER):
 def vector_formatting(
         tile_name: str,
         output_path: str,
@@ -481,10 +476,44 @@ def vector_formatting(
 
     Parameters
     ----------
-    cfg : ServiceConfig object
-    tile_name : string
-    workingDirectory : string
-    logger : Logging object
+    tile_name: str
+        tile name
+    output_path: str
+        iota2 output path
+    ground_truth_vec: str
+        path to the ground truth database
+    data_field: str
+        field into the database contining class labels
+    cloud_threshold: float
+        cloud threshold to pick up polygons in database
+    ratio: float
+        ratio between learning and validation samples-set
+    random_seed: int
+        initialize the random seed
+    enable_cross_validation: bool
+        is iota2 cross validation enable ? TODO : remove
+        this parameter
+    enable_split_ground_truth: bool,
+        flag to split input database in learning and validation
+        samples-set
+    fusion_merge_all_validation: bool
+        flag to merge all classification
+    runs: int
+        number of random learning/validation samples-set
+    epsg: int
+        epsg code
+    region_field: str
+        region field in region database
+    merge_final_classifications: bool
+        inform if finals classifications will be merged
+    merge_final_classifications_ratio : float
+        ratio of samples to extract by tile and by region
+        in order to compute confusion matrix on classification fusion
+    region_vec: str
+        region database
+    working_directory : str
+        path to a working directory
+    logger: logging
         root logger
     """
     from iota2.Common import FileUtils as fut
