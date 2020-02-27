@@ -249,15 +249,16 @@ class sentinel_2_l3a():
                     f" from {base_ref}")
         ensure_dir(os.path.dirname(self.ref_image), raise_exe=False)
         base_ref_projection = getRasterProjectionEPSG(base_ref)
-        Warp(self.ref_image,
-             base_ref,
-             multithread=True,
-             format="GTiff",
-             xRes=10,
-             yRes=10,
-             outputType=GDT_Byte,
-             srcSRS=f"EPSG:{base_ref_projection}",
-             dstSRS=f"EPSG:{self.target_proj}")
+        if not os.path.exists(self.ref_image):
+            Warp(self.ref_image,
+                 base_ref,
+                 multithread=True,
+                 format="GTiff",
+                 xRes=10,
+                 yRes=10,
+                 outputType=GDT_Byte,
+                 srcSRS=f"EPSG:{base_ref_projection}",
+                 dstSRS=f"EPSG:{self.target_proj}")
 
         # reproject / resample
         bands_proj = OrderedDict()

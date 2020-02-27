@@ -601,10 +601,11 @@ def launchClassification(tempFolderSerie,
 
     if dimred:
         logger.debug("Classification model : {}".format(model))
-        dimRedModelList = DR.GetDimRedModelsFromClassificationModel(model)
+        dimRedModelList = DR.get_dim_red_models_from_classification_model(
+            model)
         logger.debug("Dim red models : {}".format(dimRedModelList))
         [ClassifInput,
-         other_dep] = DR.ApplyDimensionalityReductionToFeatureStack(
+         other_dep] = DR.apply_dimensionality_reduction_to_feature_stack(
              reduction_mode, output_path, AllFeatures, dimRedModelList)
         if write_features:
             ClassifInput.ExecuteAndWriteOutput()

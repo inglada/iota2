@@ -197,7 +197,7 @@ def check_data_intersection(ground_truth: str, region_shape: Union[str, None],
             ]
         else:
             LOGGER.warning("Cannot check intersections")
-    if found_intersection_in_tile and any(found_intersection_in_tile) is False:
+    if found_intersection_in_tile and False in found_intersection_in_tile:
         errors.append(ServiceError.intersectionError())
     return errors
 
