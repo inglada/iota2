@@ -17,23 +17,23 @@
 import logging
 import argparse
 import random
-from osgeo import gdal
+# from osgeo import gdal
 from osgeo import ogr
-from osgeo import osr
-from osgeo.gdalconst import *
+# from osgeo import osr
+# from osgeo.gdalconst import *
 
 from iota2.Common import FileUtils as fut
 
 logger = logging.getLogger(__name__)
 
 
-def get_randomPoly(layer,
-                   field,
-                   classes,
-                   ratio,
-                   regionField,
-                   regions,
-                   random_seed=None):
+def get_random_poly(layer,
+                    field,
+                    classes,
+                    ratio,
+                    regionField,
+                    regions,
+                    random_seed=None):
     """
     use to randomly split samples in learning and validation considering
     classes in regions
@@ -228,9 +228,10 @@ def splitInSubSets(vectoFile,
             random_seed_number = None
             if random_seed is not None:
                 random_seed_number = random_seed + seed
-            id_learn, id_val = get_randomPoly(layer, dataField, class_avail,
-                                              ratio, regionField, region_avail,
-                                              random_seed_number)
+            id_learn, id_val = get_random_poly(layer, dataField, class_avail,
+                                               ratio, regionField,
+                                               region_avail,
+                                               random_seed_number)
         else:
             id_learn = id_CrossVal[seed]
 
