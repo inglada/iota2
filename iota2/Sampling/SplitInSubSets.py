@@ -22,7 +22,7 @@ from osgeo import ogr
 from osgeo import osr
 from osgeo.gdalconst import *
 
-from Common import FileUtils as fut
+from iota2.Common import FileUtils as fut
 
 logger = logging.getLogger(__name__)
 
