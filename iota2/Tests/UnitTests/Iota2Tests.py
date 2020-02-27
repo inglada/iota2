@@ -585,38 +585,6 @@ class iota_testShapeManipulations(unittest.TestCase):
                                 self.priorityEnvelope_ref,
                                 self.test_regionsByTiles, None)
 
-    def test_SplitVector(self):
-
-        self.test_split = iota2_dataTest + "/test_vector/test_splitVector"
-        if os.path.exists(self.test_split):
-            shutil.rmtree(self.test_split)
-        os.mkdir(self.test_split)
-
-        AllTrain, AllValid = RandomInSituByTile.RandomInSituByTile(
-            self.referenceShape,
-            self.dataField,
-            1,
-            self.test_split,
-            self.splitRatio,
-            None,
-            test=True)
-
-        featuresTrain = fu.getFieldElement(AllTrain[0],
-                                           driverName="ESRI Shapefile",
-                                           field="CODE",
-                                           mode="all",
-                                           elemType="int")
-        self.assertTrue(
-            len(featuresTrain) == self.nbFeatures * self.splitRatio)
-
-        featuresValid = fu.getFieldElement(AllValid[0],
-                                           driverName="ESRI Shapefile",
-                                           field="CODE",
-                                           mode="all",
-                                           elemType="int")
-        self.assertTrue(
-            len(featuresValid) == self.nbFeatures * (1 - self.splitRatio))
-
 
 class iota_testServiceConfigFile(unittest.TestCase):
     @classmethod
