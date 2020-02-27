@@ -21,10 +21,6 @@ import logging
 import os
 import shutil
 from typing import List, Optional
-# from iota2.Common import FileUtils as fut
-# from iota2.Sampling import SplitInSubSets as subset
-# from iota2.VectorTools.AddField import addField
-# from iota2.Common.Utils import run
 
 LOGGER = logging.getLogger(__name__)
 
@@ -455,7 +451,6 @@ def extract_maj_vote_samples(vec_in: str,
                     [".prj", ".shp", ".dbf", ".shx"])
 
 
-# def VectorFormatting(cfg, tile_name, workingDirectory=None, logger=LOGGER):
 def vector_formatting(
         tile_name: str,
         output_path: str,
@@ -474,17 +469,51 @@ def vector_formatting(
         merge_final_classifications_ratio: Optional[float] = None,
         region_vec: Optional[str] = None,
         working_directory=None,
-        logger=LOGGER):
+        logger=LOGGER) -> None:
     """
     dedicated to extract samples by class according to a ratio
     or a fold number.
 
     Parameters
     ----------
-    cfg : ServiceConfig object
-    tile_name : string
-    workingDirectory : string
-    logger : Logging object
+    tile_name: str
+        tile name
+    output_path: str
+        iota2 output path
+    ground_truth_vec: str
+        path to the ground truth database
+    data_field: str
+        field into the database contining class labels
+    cloud_threshold: float
+        cloud threshold to pick up polygons in database
+    ratio: float
+        ratio between learning and validation samples-set
+    random_seed: int
+        initialize the random seed
+    enable_cross_validation: bool
+        is iota2 cross validation enable ? TODO : remove
+        this parameter
+    enable_split_ground_truth: bool,
+        flag to split input database in learning and validation
+        samples-set
+    fusion_merge_all_validation: bool
+        flag to merge all classifications
+    runs: int
+        number of random learning/validation samples-set
+    epsg: int
+        epsg code
+    region_field: str
+        region field in region database
+    merge_final_classifications: bool
+        inform if finals classifications will be merged
+    merge_final_classifications_ratio : float
+        ratio of samples to extract by tile and by region
+        in order to compute confusion matrix on classification fusion
+    region_vec: str
+        region database
+    working_directory : str
+        path to a working directory
+    logger: logging
         root logger
     """
     from iota2.Common import FileUtils as fut
@@ -673,28 +702,117 @@ def vector_formatting(
 
 
 if __name__ == "__main__":
-
+    from iota2.Common.FileUtils import str2bool
     FUNC_DESCRIPTION = (
         "This function is dedicated to intersects some vector files "
         "and then, prepare them to sampling")
 
     PARSER = argparse.ArgumentParser(description=FUNC_DESCRIPTION)
 
-    PARSER.add_argument("-config",
-                        dest="config",
-                        help="path to a configuration path",
-                        required=False)
+    vector_formatting(ARGS.tile_name, ARGS.output_path, ARGS.ground_truth_vec,
+                      ARGS.data_field, ARGS.cloud_threshold, ARGS.ratio,
+                      ARGS.random_seed, ARGS.enable_cross_validation,
+                      ARGS.enable_split_ground_truth,
+                      ARGS.fusion_merge_all_validation, ARGS.runs, ARGS.epsg,
+                      ARGS.region_field, ARGS.merge_final_classifications,
+                      ARGS.merge_final_classifications_ratio, ARGS.region_vec,
+                      ARGS.working_directory)
 
-    PARSER.add_argument("-tile",
+    PARSER.add_argument("-tile_name",
                         dest="tile_name",
-                        help="tile to compute",
+                        help="tile's name",
+                        required=True)
+    PARSER.add_argument("-output_path",
+                        dest="output_path",
+                        help="path to iota2 output path",
+                        required=True)
+    PARSER.add_argument("-ground_truth",
+                        dest="ground_truth_vec",
+                        help="input database",
+                        required=True)
+    PARSER.add_argument("-data_field",
+                        dest="data_field",
+                        help="field containing labels in database",
+                        required=True)
+    PARSER.add_argument("-cloud_threshold",
+                        dest="cloud_threshold",
+                        help="cloud threshold to pick-up polygons",
+                        type=int,
+                        default=1,
                         required=False)
-
-    PARSER.add_argument("-workingDirectory",
-                        dest="workingDirectory",
+    PARSER.add_argument("-ratio",
+                        dest="ratio",
+                        help="ratio between learning and validation polygons",
+                        required=False)
+    PARSER.add_argument("-random_seed",
+                        dest="random_seed",
+                        type=int,
+                        default=1,
+                        help="initialize random seed",
+                        required=False)
+    PARSER.add_argument("-enable_cross_validation",
+                        dest="enable_cross_validation",
+                        help="is iota2 cross validation enable",
+                        type=str2bool,
+                        default=False,
+                        required=False)
+    PARSER.add_argument(
+        "-enable_split_ground_truth",
+        dest="enable_split_ground_truth",
+        help=
+        "flag to split input database in learning and validation samples-set",
+        type=str2bool,
+        required=False)
+    PARSER.add_argument("-fusion_merge_all_validation",
+                        dest="fusion_merge_all_validation",
+                        help="flag to merge all classification",
+                        default=False,
+                        type=str2bool,
+                        required=False)
+    PARSER.add_argument(
+        "-runs",
+        dest="runs",
+        help="number of random learning/validation samples-set ]0;1[",
+        type=float,
+        required=True)
+    PARSER.add_argument("-epsg",
+                        dest="epsg",
+                        help="epsg code",
+                        type=int,
+                        required=True)
+    PARSER.add_argument("-region_field",
+                        dest="region_field",
+                        help="region field in region database",
+                        required=True)
+    PARSER.add_argument("-merge_final_classifications",
+                        dest="merge_final_classifications",
+                        help="inform if finals classifications will be merged",
+                        type=str2bool,
+                        default=False,
+                        required=False)
+    PARSER.add_argument("-merge_final_classifications_ratio",
+                        dest="merge_final_classifications_ratio",
+                        help=("ratio of samples to extract by tile and by "
+                              "region in order to compute confusion matrix "
+                              "on classification fusion"),
+                        type=str2bool,
+                        required=False)
+    PARSER.add_argument("-region_vec",
+                        dest="region_vec",
+                        help="region database",
+                        required=True)
+    PARSER.add_argument("-working_directory",
+                        dest="working_directory",
                         help="path to a working directory",
+                        default=None,
                         required=False)
-    from iota2.Common import ServiceConfigFile as SCF
     ARGS = PARSER.parse_args()
-    CFG = SCF.serviceConfigFile(ARGS.config)
-    VectorFormatting(cfg, ARGS.tile_name, ARGS.workingDirectory)
+
+    vector_formatting(ARGS.tile_name, ARGS.output_path, ARGS.ground_truth_vec,
+                      ARGS.data_field, ARGS.cloud_threshold, ARGS.ratio,
+                      ARGS.random_seed, ARGS.enable_cross_validation,
+                      ARGS.enable_split_ground_truth,
+                      ARGS.fusion_merge_all_validation, ARGS.runs, ARGS.epsg,
+                      ARGS.region_field, ARGS.merge_final_classifications,
+                      ARGS.merge_final_classifications_ratio, ARGS.region_vec,
+                      ARGS.working_directory)
