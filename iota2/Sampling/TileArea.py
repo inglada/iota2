@@ -120,64 +120,69 @@ def CreateModelShapeFromTiles(tilesModel, pathTiles, pathOut, OutSHPname,
                            [".prj", ".shp", ".dbf", ".shx"])
 
 
-def generate_region_shape(pathTiles, pathOut, fieldOut, i2_output_path,
-                          pathWd):
-    """
-        create one shapeFile where all features belong to a model number according to the model description
+def generate_region_shape(envelope_directory: str, output_region_file: str,
+                          out_field_name: str, i2_output_path: str,
+                          working_directory: str) -> None:
+    """generate regions shape
 
-        IN :
-            - pathTiles : path to the tile's envelope with priority consideration
-                ex : /xx/x/xxx/x
-                /!\ the folder which contain the envelopes must contain only the envelopes   <========
-            - pathOut : path to store the resulting shapeFile
-            - fieldOut : the name of the field which will contain the model number
-                ex : "Mod"
-            - pathWd : path to working directory (not mandatory, due to cluster's architecture default = None)
-
-        OUT :
-            a shapeFile which contains for all feature the model number which it belong to
+    envelope_directory: str
+        directory containing all iota2 tile's envelope
+    output_region_file: str
+        output file
+    out_field_name: str
+        output field containing region
+    i2_output_path: str
+        iota2 output path
+    working_directory: str
+        path to a working directory
     """
 
     region = []
-    AllTiles = fu.FileSearch_AND(pathTiles, False, ".shp")
-    region.append(AllTiles)
+    all_tiles = fu.FileSearch_AND(envelope_directory, False, ".shp")
+    region.append(all_tiles)
 
-    if not pathOut:
-        pathOut = os.path.join(i2_output_path, "MyRegion.shp")
+    if not output_region_file:
+        output_region_file = os.path.join(i2_output_path, "MyRegion.shp")
 
-    p_f = pathOut.replace(" ", "").split("/")
-    outName = p_f[-1].split(".")[0]
+    p_f = output_region_file.replace(" ", "").split("/")
+    out_name = p_f[-1].split(".")[0]
 
-    pathMod = ""
+    path_mod = ""
     for i in range(1, len(p_f) - 1):
-        pathMod = pathMod + "/" + p_f[i]
+        path_mod = path_mod + "/" + p_f[i]
 
-    CreateModelShapeFromTiles(region, pathTiles, pathMod, outName, fieldOut,
-                              pathWd)
+    CreateModelShapeFromTiles(region, envelope_directory, path_mod, out_name,
+                              out_field_name, working_directory)
 
 
 if __name__ == "__main__":
 
-    PARSER = argparse.ArgumentParser(description=\
-                                     "This function allow you to create a shape by tile for a given area and a given region")
-    PARSER.add_argument("-fieldOut", dest="fieldOut",\
-                            help="field out (mandatory)", required=True)
-    PARSER.add_argument("-pathTiles", dest="pathTiles",\
-                            help="path where are only stored tile's envelope (mandatory)", default="None", required=True)
-    PARSER.add_argument("--multi.models", dest="pathToModel",\
-                            help="path to the text file which link tiles/models", default="None", required=False)
-    PARSER.add_argument("-out", dest="pathOut",\
-                            help="path where to store all shape by tiles (mandatory)", default="None", required=True)
-    PARSER.add_argument("--wd", dest="pathWd",\
-                            help="path to the working directory", default=None, required=True)
-    PARSER.add_argument("-conf", dest="pathConf",\
-                            help="path to the configuration file which describe the learning method (mandatory)", required=True)
+    PARSER = argparse.ArgumentParser(
+        description=("This function allow you to create "
+                     "a shape by tile for a given area and a given region"))
+    PARSER.add_argument("-envelope_directory",
+                        dest="envelope_directory",
+                        help="directory containing all iota2 tile's envelope",
+                        required=True)
+    PARSER.add_argument("-output_region_file",
+                        dest="output_region_file",
+                        help="output file (shapeFile format)",
+                        required=True)
+    PARSER.add_argument("-out_field_name",
+                        dest="out_field_name",
+                        help="output field containing region",
+                        required=True)
+    PARSER.add_argument("-i2_output_path",
+                        dest="i2_output_path",
+                        help="iota2 output directory",
+                        required=True)
+    PARSER.add_argument("-working_directory",
+                        dest="working_directory",
+                        help="path to a working directory",
+                        required=True)
+
     ARGS = PARSER.parse_args()
 
-    # load configuration file
-    from iota2.Common import ServiceConfigFile as SCF
-    CFG = SCF.serviceConfigFile(ARGS.pathConf)
-    OUTPUT_PATH = CFG.getParam("chain", "outputPath")
-
-    generate_region_shape(ARGS.pathTiles, ARGS.pathOut, ARGS.fieldOut,
-                          OUTPUT_PATH, ARGS.pathWd)
+    generate_region_shape(ARGS.envelope_directory, ARGS.output_region_file,
+                          ARGS.out_field_name, ARGS.i2_output_path,
+                          ARGS.working_directory)
