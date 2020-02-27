@@ -249,4 +249,4 @@ if __name__ == "__main__":
     cfg = SCF.serviceConfigFile(args.pathConf)
 
     RandomInSituByTile(args.path, args.dataField, args.N, args.pathOut,
-                       args.ratio, cfg, args.pathWd)
+                       args.ratio, args.pathWd)
