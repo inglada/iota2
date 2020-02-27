@@ -599,7 +599,6 @@ class iota_testShapeManipulations(unittest.TestCase):
             self.test_split,
             self.splitRatio,
             None,
-            None,
             test=True)
 
         featuresTrain = fu.getFieldElement(AllTrain[0],
