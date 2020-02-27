@@ -31,7 +31,6 @@ iota2_script_tests = iota2dir + "/data/test_scripts"
 sys.path.append(iota2_script)
 sys.path.append(iota2_script_tests)
 
-from Common.Tools import RandomInSituByTile
 from Sampling import VectorSampler
 from Common import FileUtils as fu
 import test_genGrid as test_genGrid
@@ -584,38 +583,6 @@ class iota_testShapeManipulations(unittest.TestCase):
         RT.createRegionsByTiles(self.typeShape, self.regionField,
                                 self.priorityEnvelope_ref,
                                 self.test_regionsByTiles, None)
-
-    def test_SplitVector(self):
-
-        self.test_split = iota2_dataTest + "/test_vector/test_splitVector"
-        if os.path.exists(self.test_split):
-            shutil.rmtree(self.test_split)
-        os.mkdir(self.test_split)
-
-        AllTrain, AllValid = RandomInSituByTile.RandomInSituByTile(
-            self.referenceShape,
-            self.dataField,
-            1,
-            self.test_split,
-            self.splitRatio,
-            None,
-            test=True)
-
-        featuresTrain = fu.getFieldElement(AllTrain[0],
-                                           driverName="ESRI Shapefile",
-                                           field="CODE",
-                                           mode="all",
-                                           elemType="int")
-        self.assertTrue(
-            len(featuresTrain) == self.nbFeatures * self.splitRatio)
-
-        featuresValid = fu.getFieldElement(AllValid[0],
-                                           driverName="ESRI Shapefile",
-                                           field="CODE",
-                                           mode="all",
-                                           elemType="int")
-        self.assertTrue(
-            len(featuresValid) == self.nbFeatures * (1 - self.splitRatio))
 
 
 class iota_testServiceConfigFile(unittest.TestCase):
@@ -1811,119 +1778,6 @@ class iota_testSplitSamples(unittest.TestCase):
                                                      epsg,
                                                      enableCrossValidation,
                                                      random_seed=None)
-
-
-class iota_testVectorSplits(unittest.TestCase):
-    @classmethod
-    def setUpClass(self):
-        # We create the test folder
-        if os.path.exists(iota2_dataTest + '/test_vector/test_VectorSplits'):
-            shutil.rmtree(iota2_dataTest + '/test_vector/test_VectorSplits')
-        shutil.copytree(iota2_dataTest + '/references/vector_splits/Input',
-                        iota2_dataTest + '/test_vector/test_VectorSplits')
-
-        self.cfg = SCF.serviceConfigFile(
-            iota2_dataTest + '/test_vector/test_VectorSplits/config.cfg')
-        self.outputEMVS = iota2_dataTest + '/test_vector/test_VectorSplits/T31TCJ.shp'
-        self.new_regions_shapes = [
-            iota2_dataTest +
-            '/test_vector/test_VectorSplits/formattingVectors/T31TCJ.shp'
-        ]
-        self.dataAppVal_dir = iota2_dataTest + '/test_vector/test_VectorSplits/dataAppVal'
-        self.dataField = 'CODE'
-        self.regionField = 'region'
-        self.ratio = 0.5
-        self.seeds = 2
-        self.epsg = 2154
-
-        # Output files for references
-        self.refSplitDbf = iota2_dataTest + '/references/vector_splits/Output/splitInSubSets/T31TCJ.dbf'
-        self.refSplitPrj = iota2_dataTest + '/references/vector_splits/Output/splitInSubSets/T31TCJ.prj'
-        self.refSplitShp = iota2_dataTest + '/references/vector_splits/Output/splitInSubSets/T31TCJ.shp'
-        self.refSplitShx = iota2_dataTest + '/references/vector_splits/Output/splitInSubSets/T31TCJ.shx'
-
-        # Output files
-        self.outSplitDbf = iota2_dataTest + '/test_vector/test_VectorSplits/formattingVectors/T31TCJ.dbf'
-        self.outSplitPrj = iota2_dataTest + '/test_vector/test_VectorSplits/formattingVectors/T31TCJ.prj'
-        self.outSplitShp = iota2_dataTest + '/test_vector/test_VectorSplits/formattingVectors/T31TCJ.shp'
-        self.outSplitShx = iota2_dataTest + '/test_vector/test_VectorSplits/formattingVectors/T31TCJ.shx'
-
-    def test_vectorSplits(self):
-        from Sampling import SplitInSubSets as VS
-        # We execute the function splitInSubSets()
-        for new_region_shape in self.new_regions_shapes:
-            tile_name = os.path.splitext(os.path.basename(new_region_shape))[0]
-            vectors_to_rm = fu.FileSearch_AND(self.dataAppVal_dir, True,
-                                              tile_name)
-            for vect in vectors_to_rm:
-                os.remove(vect)
-            VS.splitInSubSets(new_region_shape, self.dataField,
-                              self.regionField, self.ratio, self.seeds,
-                              "ESRI Shapefile")
-            print(new_region_shape)
-        # We check the output
-        self.assertEqual(
-            0, os.system('diff ' + self.refSplitPrj + ' ' + self.outSplitPrj))
-        self.assertEqual(
-            0, os.system('diff ' + self.refSplitShp + ' ' + self.outSplitShp))
-        self.assertEqual(
-            0, os.system('diff ' + self.refSplitShx + ' ' + self.outSplitShx))
-        #self.assertEqual(0, os.system('diff ' + self.refSplitDbf + ' ' + self.outSplitDbf))
-
-    def test_vectorSplitsCrossValidation(self):
-        from Sampling import SplitInSubSets as VS
-        from Common import FileUtils as fut
-        # We execute the function splitInSubSets()
-        new_region_shape = self.new_regions_shapes[0]
-        tile_name = os.path.splitext(os.path.basename(new_region_shape))[0]
-        VS.splitInSubSets(new_region_shape,
-                          self.dataField,
-                          self.regionField,
-                          self.ratio,
-                          self.seeds,
-                          "ESRI Shapefile",
-                          crossValidation=True)
-
-        seed0 = fut.getFieldElement(new_region_shape,
-                                    driverName="ESRI Shapefile",
-                                    field="seed_0",
-                                    mode="all",
-                                    elemType="str")
-        seed1 = fut.getFieldElement(new_region_shape,
-                                    driverName="ESRI Shapefile",
-                                    field="seed_1",
-                                    mode="all",
-                                    elemType="str")
-
-        for elem in seed0:
-            self.assertTrue(elem in ["unused", "learn"],
-                            msg="flag not in ['unused', 'learn']")
-        for elem in seed1:
-            self.assertTrue(elem in ["unused", "validation"],
-                            msg="flag not in ['unused', 'validation']")
-
-    def test_vectorSplitsNoSplits(self):
-        from Sampling import SplitInSubSets as VS
-        from Common import FileUtils as fut
-
-        new_region_shape = self.new_regions_shapes[0]
-        tile_name = os.path.splitext(os.path.basename(new_region_shape))[0]
-        VS.splitInSubSets(new_region_shape,
-                          self.dataField,
-                          self.regionField,
-                          self.ratio,
-                          1,
-                          "ESRI Shapefile",
-                          crossValidation=False,
-                          splitGroundTruth=False)
-        seed0 = fut.getFieldElement(new_region_shape,
-                                    driverName="ESRI Shapefile",
-                                    field="seed_0",
-                                    mode="all",
-                                    elemType="str")
-
-        for elem in seed0:
-            self.assertTrue(elem in ["learn"], msg="flag not in ['learn']")
 
 
 if __name__ == "__main__":

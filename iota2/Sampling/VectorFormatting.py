@@ -425,9 +425,11 @@ def extract_maj_vote_samples(vec_in: str,
     source = driver.Open(vec_in, 1)
     layer = source.GetLayer(0)
 
-    sample_id_to_extract, _ = subset.get_randomPoly(layer, data_field,
-                                                    class_avail, ratio_to_keep,
-                                                    region_field, region_avail)
+    sample_id_to_extract, _ = subset.get_random_poly(layer, data_field,
+                                                     class_avail,
+                                                     ratio_to_keep,
+                                                     region_field,
+                                                     region_avail)
 
     # Create new file with targeted FID
     fid_samples_in = built_where_sql_exp(sample_id_to_extract, clause="in")
