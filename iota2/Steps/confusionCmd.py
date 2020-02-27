@@ -23,14 +23,16 @@ class confusionCmd(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "gen_confusionMatrix"
-        super(confusionCmd, self).__init__(cfg, cfg_resources_file, resources_block_name)
+        super(confusionCmd, self).__init__(cfg, cfg_resources_file,
+                                           resources_block_name)
 
         # step variables
         self.workingDirectory = workingDirectory
-        self.output_path = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
+        self.output_path = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'outputPath')
         self.runs = SCF.serviceConfigFile(self.cfg).getParam('chain', 'runs')
-        self.data_field = SCF.serviceConfigFile(self.cfg).getParam('chain', 'dataField')
-
+        self.data_field = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'dataField')
 
     def step_description(self):
         """
@@ -55,14 +57,17 @@ class confusionCmd(IOTA2Step.Step):
             the function to execute as a lambda function. The returned object
             must be a lambda function.
         """
-        from Validation import GenConfusionMatrix as GCM
-        step_function = lambda x: GCM.genConfMatrix(x,
-                                                    os.path.join(self.output_path, "dataAppVal"),
-                                                    self.runs,
-                                                    self.data_field,
-                                                    os.path.join(self.output_path, "cmd", "confusion"),
-                                                    self.cfg,
-                                                    self.workingDirectory)
+        from iota2.Validation import GenConfusionMatrix as GCM
+        step_function = lambda x: GCM.gen_conf_matrix(
+            x, os.path.join(self.output_path, "dataAppVal"), self.runs, self.
+            data_field, os.path.join(self.output_path, "cmd", "confusion"
+                                     ), self.workingDirectory,
+            SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath'),
+            SCF.serviceConfigFile(self.cfg).getParam('chain',
+                                                     'spatialResolution'),
+            SCF.serviceConfigFile(self.cfg).getParam('chain', 'listTile'),
+            SCF.serviceConfigFile(self.cfg).getParam('chain',
+                                                     'enableCrossValidation'))
         return step_function
 
     def step_outputs(self):
