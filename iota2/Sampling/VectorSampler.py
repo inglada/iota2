@@ -29,11 +29,7 @@ from osgeo import ogr
 import otbApplication as otb
 
 from iota2.Common import FileUtils as fu
-
-# from iota2.Sampling import GenAnnualSamples as genAS
-
 from iota2.Sampling.VectorFormatting import split_vector_by_region
-# from iota2.Sampling.SamplesSelection import prepareSelection
 from iota2.Common.OtbAppBank import executeApp
 
 LOGGER = logging.getLogger(__name__)
@@ -96,7 +92,6 @@ def get_points_coord_in_shape(in_shape: str, gdal_driver: str) -> List[Tuple]:
     return all_coord
 
 
-# def gapFillingToSample(trainShape,
 def get_features_application(train_shape: str,
                              working_directory: str,
                              samples: str,
@@ -140,17 +135,11 @@ def get_features_application(train_shape: str,
     working_directory_features = os.path.join(working_directory, tile)
     c_mask_directory = os.path.join(output_path, "features", tile, "tmp")
 
-    # sample_sel_directory = os.path.join(output_path, "samplesSelection")
-
     if not os.path.exists(working_directory_features):
         try:
             os.mkdir(working_directory_features)
         except OSError:
             logger.warning(f"{working_directory_features} allready exists")
-    # try:
-    #     useGapFilling = cfg.getParam('GlobChain', 'useGapFilling')
-    # except:
-    #     useGapFilling = True
 
     (all_features, feat_labels,
      dep_features) = genFeatures.generateFeatures(working_directory_features,
@@ -191,7 +180,6 @@ def get_features_application(train_shape: str,
     return sample_extr, all_dep
 
 
-# generateSamples_simple
 def generate_samples_simple(folder_sample: str,
                             working_directory: str,
                             train_shape: str,
@@ -274,7 +262,7 @@ def generate_samples_simple(folder_sample: str,
         logger.info("RAM after features extraction :"
                     f" {fu.memory_usage_psutil()} MB")
         logger.info("--------> END Sample Extraction <--------")
-        # proj = cfg.getParam('GlobChain', 'proj')
+
         split_vec_directory = os.path.join(output_path, "learningSamples")
         if working_directory:
             split_vec_directory = working_directory
@@ -290,9 +278,6 @@ def generate_samples_simple(folder_sample: str,
             mode=mode)
         os.remove(sample_extr.GetParameterValue("out"))
 
-    # if not sampleSel:
-    #    os.remove(sampleSelection)
-
     if path_wd:
         for sample in split_vectors:
             shutil.copy(sample, folder_sample)
@@ -303,9 +288,6 @@ def generate_samples_simple(folder_sample: str,
                 os.makedirs(working_directory_features)
             except OSError:
                 logger.warning(f"{working_directory_features} allready exists")
-
-        # fu.updateDirectory(workingDirectory + "/" + tile + "/tmp",
-        # folderFeatures + "/" + tile + "/tmp")
 
 
 def extract_class(vec_in: str, vec_out: str, target_class: List[str],
@@ -449,7 +431,6 @@ def generate_samples_crop_mix(folder_sample: str,
             nonannual_vector_sel, na_working_directory, sample_extr_na,
             data_field, output_path, sar_optical_post_fusion, sensors_params,
             ram, mode)
-        # sampleExtr_NA.ExecuteAndWriteOutput()
         multi_proc = mp.Process(target=executeApp, args=[sample_extr_na_app])
         multi_proc.start()
         multi_proc.join()
@@ -471,7 +452,6 @@ def generate_samples_crop_mix(folder_sample: str,
             sar_optical_post_fusion,
             sensors_params,
             mode=mode)
-        # sampleExtr_A.ExecuteAndWriteOutput()
         multi_proc = mp.Process(target=executeApp, args=[sample_extr_a_app])
         multi_proc.start()
         multi_proc.join()
@@ -642,7 +622,6 @@ def extract_roi(raster: str,
     return raster_roi
 
 
-# def getRegionModelInTile(currentTile, currentRegion, pathWd, cfg, refImg,
 def get_region_model_in_tile(current_tile: str, current_region: str,
                              output_path: str, path_wd: str, ref_img: str,
                              field_region: str, test_mode: bool,
@@ -654,7 +633,6 @@ def get_region_model_in_tile(current_tile: str, current_region: str,
         currentRegion [string] : current region in tile
         output_path [str] : output path
         pathWd [string] : working directory
-        
         refImg [string] : reference image
         testMode [bool] : flag to enable test mode
         testPath [string] : path to the vector shape
@@ -733,7 +711,6 @@ def get_number_annual_sample(annu_repartition):
     return nb_feat_annu
 
 
-#def generateSamples_classifMix(folderSample,
 def generate_samples_classif_mix(folder_sample: str,
                                  working_directory: str,
                                  train_shape: str,
@@ -956,7 +933,6 @@ def generate_samples_classif_mix(folder_sample: str,
     return split_vectors
 
 
-# generateSamples
 def generate_samples(train_shape_dic,
                      path_wd,
                      data_field: str,
@@ -972,16 +948,16 @@ def generate_samples(train_shape_dic,
                      sar_optical_post_fusion: bool,
                      samples_classif_mix: Optional[bool] = False,
                      output_path_annual: Optional[str] = None,
-                     ram=128,
-                     w_mode=False,
-                     folder_annual_features=None,
+                     ram: Optional[int] = 128,
+                     w_mode: Optional[int] = False,
+                     folder_annual_features: Optional[str] = None,
                      previous_classif_path: Optional[str] = None,
                      validity_threshold: Optional[int] = None,
                      target_resolution: Optional[int] = None,
-                     test_mode=False,
-                     test_shape_region=None,
-                     sample_selection=None,
-                     logger=LOGGER):
+                     test_mode: Optional[bool] = False,
+                     test_shape_region: Optional[str] = None,
+                     sample_selection: Optional[str] = None,
+                     logger: Optional[Logger] = LOGGER):
     """
     usage : generation of vector shape of points with features
 
@@ -1092,41 +1068,110 @@ if __name__ == "__main__":
                         help="path to the working directory",
                         default=None,
                         required=False)
-    PARSER.add_argument("-conf",
-                        help="path to the configuration file (mandatory)",
-                        dest="pathConf",
+    PARSER.add_argument("-data_field",
+                        help="name of data field in shape (mandatory)",
+                        dest="data_field",
                         required=True)
+    PARSER.add_argument("-output_path",
+                        help="path to output directory (mandatory)",
+                        dest="output_path",
+                        required=True)
+    PARSER.add_argument("-annual_crop",
+                        help="path to output directory (mandatory)",
+                        dest="annual_crop",
+                        required=True)
+    PARSER.add_argument("-crop_mix",
+                        help="activate crop mix mode (optional)",
+                        dest="crop_mix",
+                        default=False,
+                        required=False)
+    PARSER.add_argument("-enable_autoContext",
+                        help="activate auto context (optional)",
+                        dest="auto_context",
+                        default=False,
+                        required=False)
+    PARSER.add_argument("-region_field",
+                        help="name for region field in shape (mandatory)",
+                        dest="region_field",
+                        required=True)
+    PARSER.add_argument("-proj",
+                        help="projection (mandatory)",
+                        dest="proj",
+                        required=True)
+    PARSER.add_argument("-enable_crossval",
+                        help="activate cross validation (optional)",
+                        dest="cross_val",
+                        default=False,
+                        required=False)
+    PARSER.add_argument("-runs",
+                        help="number of runs (mandatory)",
+                        type=int,
+                        dest="runs",
+                        required=True)
+    PARSER.add_argument("-samples_classif_mix",
+                        help="activate classif mix (optional)",
+                        dest="samples_classif_mix",
+                        default=False,
+                        required=False)
+    PARSER.add_argument("-annual_path",
+                        help="path for annual data (optional)",
+                        dest="annual_path",
+                        default=None,
+                        required=False)
+    PARSER.add_argument("-w_mode",
+                        help="activate writting of temporary files (optional)",
+                        dest="w_mode",
+                        default=False,
+                        required=False)
+    PARSER.add_argument("-ram",
+                        help="ram for otbApplications (optional)",
+                        type=int,
+                        dest="ram",
+                        default=128,
+                        required=False)
+    PARSER.add_argument("-folder_annual_feat",
+                        help="path to annual features (optional)",
+                        dest="folder_annual_feat",
+                        default=None,
+                        required=False)
+    PARSER.add_argument("-prev_classif_path",
+                        help="path to prev features (optional)",
+                        dest="prev_classif_path",
+                        default=None,
+                        required=False)
+    PARSER.add_argument("-valid_thres",
+                        help=("threshold validation for sample "
+                              "selection (optional)"),
+                        dest="valid_thres",
+                        type=int,
+                        default=None,
+                        required=False)
+    PARSER.add_argument("-target_res",
+                        help=("target resolution (optional)"),
+                        dest="target_res",
+                        type=int,
+                        default=None,
+                        required=False)
+    PARSER.add_argument("-config_file",
+                        help=("configuration file for sensors "
+                              "parameters (mandatory)"),
+                        dest="config_file",
+                        required=True)
+    PARSER.add_argument("-sar_opt_flag",
+                        help=("activate post classification fusion"
+                              " between optical and sar images (mandatory)"),
+                        dest="sar_opt_flag",
+                        default=False,
+                        required=False)
     ARGS = PARSER.parse_args()
-
-    # load configuration file
     from iota2.Common import ServiceConfigFile as SCF
-    CFG = SCF.serviceConfigFile(ARGS.pathConf)
-    DATA_FIELD = CFG.getParam("chain", "dataField")
-    OUTPUT_PATH = CFG.getParam("chain", "outputPath")
-    ANNUAL_CROP = CFG.getParam("argTrain", 'annualCrop')
-    CROP_MIX = CFG.getParam('argTrain', 'cropMix')
-    AUTO_CONTEXT_ENABLE = CFG.getParam('chain', 'enable_autoContext')
-    REGION_FIELD = (CFG.getParam('chain', 'regionField')).lower()
-    PROJ = CFG.getParam('GlobChain', 'proj')
-    ENABLE_CROSS_VALIDATION = CFG.getParam('chain', 'enableCrossValidation')
-    RUNS = CFG.getParam('chain', 'runs')
-    SAMPLES_CLASSIF_MIX = CFG.getParam('argTrain', 'samplesClassifMix')
-    ANNUAL_CONFIG_FILE = CFG.getParam('argTrain', "prevFeatures")
-    OUTPUT_PATH_ANNUAL = SCF.serviceConfigFile(ANNUAL_CONFIG_FILE).getParam(
-        "chain", "outputPath")
-    RAM = 128
-    W_MODE = False
-    FOLDER_ANNUAL_FEATURES = CFG.getParam('argTrain', 'outputPrevFeatures')
-    PREVIOUS_CLASSIF_PATH = CFG.getParam('argTrain',
-                                         'annualClassesExtractionSource')
-    VALIDITY_THRESHOLD = CFG.getParam('argTrain', 'validityThreshold')
-    TARGET_RESOLUTION = CFG.getParam('chain', 'spatialResolution')
-    SENSORS_PARAMS = SCF.iota2_parameters(CFG)
-    SAR_OPTICAL_FLAG = CFG.getParam("chain", "dempster_shafer_SAR_Opt_fusion")
-    generate_samples(ARGS.shape, ARGS.pathWd, DATA_FIELD, OUTPUT_PATH,
-                     ANNUAL_CROP, CROP_MIX, AUTO_CONTEXT_ENABLE, REGION_FIELD,
-                     PROJ, ENABLE_CROSS_VALIDATION, RUNS, SENSORS_PARAMS,
-                     SAR_OPTICAL_FLAG, SAMPLES_CLASSIF_MIX, OUTPUT_PATH_ANNUAL,
-                     RAM, W_MODE, FOLDER_ANNUAL_FEATURES,
-                     PREVIOUS_CLASSIF_PATH, VALIDITY_THRESHOLD,
-                     TARGET_RESOLUTION)
+    SENSORS_PARAMS = SCF.iota2_parameters(ARGS.conf_file)
+
+    generate_samples(ARGS.shape, ARGS.pathWd, ARGS.data_field,
+                     ARGS.output_path, ARGS.annual_crop, ARGS.crop_mix,
+                     ARGS.auto_context, ARGS.region_field, ARGS.proj,
+                     ARGS.cross_val, ARGS.runs, SENSORS_PARAMS,
+                     ARGS.sar_opt_flag, ARGS.samples_classif_mix,
+                     ARGS.annual_path, ARGS.ram, ARGS.w_mode,
+                     ARGS.folder_annual_feat, ARGS.prev_classif_path,
+                     ARGS.valid_thres, ARGS.target_res)
