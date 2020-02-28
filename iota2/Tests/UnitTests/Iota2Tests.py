@@ -50,8 +50,9 @@ from VectorTools.AddField import addField
 from VectorTools.DeleteField import deleteField
 
 #python -m unittest discover ./ -p "*Tests*.py"
-#coverage run iota2tests.py
-#coverage report
+# python -m coverage run -m unittest discover ./ -p "*Tests*"
+# coverage report
+
 iota2dir = os.environ.get('IOTA2DIR')
 iota2_dataTest = os.path.join(os.environ.get('IOTA2DIR'), "data")
 
