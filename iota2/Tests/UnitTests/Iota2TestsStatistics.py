@@ -20,9 +20,6 @@ import os
 import sys
 import shutil
 import unittest
-from Tests.UnitTests import TestsUtils as testutils
-from simplification import ZonalStats as zs
-from simplification import computeStats as cs
 
 IOTA2DIR = os.environ.get('IOTA2DIR')
 
@@ -35,6 +32,10 @@ RM_IF_ALL_OK = True
 
 IOTA2SCRIPT = os.path.join(IOTA2DIR, "iota2")
 sys.path.append(IOTA2SCRIPT)
+
+from Tests.UnitTests import TestsUtils as testutils
+from simplification import ZonalStats as zs
+from simplification import computeStats as cs
 
 
 class iota_testZonalStats(unittest.TestCase):
