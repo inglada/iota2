@@ -86,7 +86,8 @@ def get_locale(path):
     chain_log = "=" * 79 + "\n"
     chain_log += " " * 36 + "LOCALE" + " " * 37 + "\n"
     chain_log += "=" * 79 + "\n"
-    chain_log += open(tempfile, 'r').read()
+    with open(tempfile, 'r') as f_tmp:
+        chain_log += f_tmp.read()
     os.remove(tempfile)
     return chain_log + "\n" * 3
 
@@ -98,7 +99,8 @@ def get_package_version(path):
     chain_log = "=" * 79 + "\n"
     chain_log += " " * 30 + "Environment package" + " " * 30 + "\n"
     chain_log += "=" * 79 + "\n"
-    chain_log += open(tempfile, 'r').read()
+    with open(tempfile, 'r') as f_tmp:
+        chain_log += f_tmp.read()
     os.remove(tempfile)
     return chain_log + "\n" * 3
 
@@ -107,8 +109,8 @@ def get_config_file(configfile):
     chain_log = "=" * 79 + "\n"
     chain_log += " " * 30 + "Configuration file" + " " * 30 + "\n"
     chain_log += "=" * 79 + "\n"
-    cfgfile = open(configfile, "r").read()
-    chain_log += cfgfile
+    with open(configfile, 'r') as f_tmp:
+        chain_log += f_tmp.read()
     return chain_log + "\n" * 3
 
 

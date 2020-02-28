@@ -117,6 +117,7 @@ class iota_tests_runs_case(unittest.TestCase):
         from config import Config
         from iota2.Common.FileUtils import FileSearch_AND
         from iota2.Tests.UnitTests.tests_utils.tests_utils_rasters import generate_fake_s2_data
+        from iota2.Tests.UnitTests.tests_utils.tests_utils_iota2 import iota2_test_launcher
         # prepare inputs data
         tile_name = "T31TCJ"
         running_output_path = os.path.join(self.test_working_directory,
@@ -139,7 +140,8 @@ class iota_tests_runs_case(unittest.TestCase):
         cfg_test.chain.colorTable = self.color_path
         cfg_test.save(open(config_test, 'w'))
 
-        run(f"Iota2.py -config {config_test}")
+        # Launch the chain
+        iota2_test_launcher(config_test)
 
         self.assertTrue(
             FileSearch_AND(os.path.join(running_output_path, "final"), True,
