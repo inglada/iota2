@@ -142,23 +142,23 @@ class iota_tests_runs_case(unittest.TestCase):
         run(f"Iota2.py -config {config_test}")
 
         self.assertTrue(
-            FileSearch_AND(os.path.join(running_output_path), "final", True,
+            FileSearch_AND(os.path.join(running_output_path, "final"), True,
                            "Classif_Seed_0_ColorIndexed.tif"))
         self.assertTrue(
-            FileSearch_AND(os.path.join(running_output_path), "final", True,
+            FileSearch_AND(os.path.join(running_output_path, "final"), True,
                            "Classif_Seed_0.tif"))
         self.assertTrue(
-            FileSearch_AND(os.path.join(running_output_path), "final", True,
+            FileSearch_AND(os.path.join(running_output_path, "final"), True,
                            "Confidence_Seed_0.tif"))
         self.assertTrue(
-            FileSearch_AND(os.path.join(running_output_path), "final", True,
+            FileSearch_AND(os.path.join(running_output_path, "final"), True,
                            "Confusion_Matrix_Classif_Seed_0.png"))
         self.assertTrue(
-            FileSearch_AND(os.path.join(running_output_path), "final", True,
+            FileSearch_AND(os.path.join(running_output_path, "final"), True,
                            "diff_seed_0.tif"))
         self.assertTrue(
-            FileSearch_AND(os.path.join(running_output_path), "final", True,
+            FileSearch_AND(os.path.join(running_output_path, "final"), True,
                            "PixelsValidity.tif"))
         self.assertTrue(
-            FileSearch_AND(os.path.join(running_output_path), "final", True,
+            FileSearch_AND(os.path.join(running_output_path, "final"), True,
                            "RESULTS.txt"))
