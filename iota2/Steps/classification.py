@@ -125,7 +125,7 @@ class classification(IOTA2Step.Step):
             step_function = lambda x: launch_py_cmd(
                 imageClassifier.launchClassification, *x)
         elif self.enable_autoContext is True and self.use_scikitlearn is False:
-            running_parameters = iota2_parameters(self.cfg.pathConf)
+            running_parameters = iota2_parameters(self.cfg)
 
             step_function = lambda x: autoContext_launch_classif(
                 x,

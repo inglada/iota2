@@ -12,7 +12,7 @@
 #   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
 #   PURPOSE.  See the above copyright notices for more information.
 #
-# ========================================================================import Iota2Builder as chain
+# ========================================================================
 
 import os
 import shutil

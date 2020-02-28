@@ -15,15 +15,17 @@
 # =========================================================================
 import os
 
-from Steps import IOTA2Step
-from Cluster import get_RAM
-from Common import ServiceConfigFile as SCF
+from iota2.Steps import IOTA2Step
+from iota2.Cluster import get_RAM
+from iota2.Common import ServiceConfigFile as SCF
+
 
 class slicSegmentation(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "slic_segmentation"
-        super(slicSegmentation, self).__init__(cfg, cfg_resources_file, resources_block_name)
+        super(slicSegmentation, self).__init__(cfg, cfg_resources_file,
+                                               resources_block_name)
 
         # step variables
         self.RAM = 1024.0 * get_RAM(self.resources["ram"])
@@ -44,7 +46,8 @@ class slicSegmentation(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
-        tiles = SCF.serviceConfigFile(self.cfg).getParam('chain', 'listTile').split(" ")
+        tiles = SCF.serviceConfigFile(self.cfg).getParam('chain',
+                                                         'listTile').split(" ")
         return tiles
 
     def step_execute(self):
@@ -55,9 +58,16 @@ class slicSegmentation(IOTA2Step.Step):
             the function to execute as a lambda function. The returned object
             must be a lambda function.
         """
-        from Segmentation import segmentation
-        
-        step_function = lambda x: segmentation.slicSegmentation(x, self.cfg, self.RAM, self.workingDirectory)
+        from iota2.Segmentation import segmentation
+        from iota2.Common.ServiceConfigFile import iota2_parameters
+
+        running_parameters = iota2_parameters(self.cfg)
+
+        step_function = lambda x: segmentation.slicSegmentation(
+            x,
+            SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath'),
+            running_parameters.get_sensors_parameters(x), self.RAM, self.
+            workingDirectory)
         return step_function
 
     def step_outputs(self):
