@@ -68,7 +68,7 @@ class classification(IOTA2Step.Step):
         elif self.use_scikitlearn:
             parameters = fut.parseClassifCmd(
                 os.path.join(self.output_path, "cmd", "cla", "class.txt"))
-            running_parameters = iota2_parameters(self.cfg.pathConf)
+            running_parameters = iota2_parameters(self.cfg)
             parameters = [{
                 "mask":
                 param[1],
@@ -85,7 +85,7 @@ class classification(IOTA2Step.Step):
                 "working_dir":
                 param[6],
                 "tile_name":
-                param[9],
+                param[8],
                 "sar_optical_post_fusion":
                 SCF.serviceConfigFile(self.cfg).getParam(
                     'argTrain', 'dempster_shafer_SAR_Opt_fusion'),
@@ -93,7 +93,7 @@ class classification(IOTA2Step.Step):
                 SCF.serviceConfigFile(self.cfg).getParam(
                     'chain', 'outputPath'),
                 "sensors_parameters":
-                running_parameters.get_sensors_parameters(tile_name=param[9]),
+                running_parameters.get_sensors_parameters(tile_name=param[8]),
                 "pixel_type":
                 param[17],
                 "number_of_chunks":
