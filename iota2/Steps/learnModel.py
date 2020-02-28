@@ -109,10 +109,11 @@ class learnModel(IOTA2Step.Step):
             the function to execute as a lambda function. The returned object
             must be a lambda function.
         """
-        from MPI import launch_tasks as tLauncher
-        from Learning import TrainSkLearn
-        from Learning.TrainSkLearn import cast_config_cv_parameters
-        from Learning.trainAutoContext import train_autoContext
+        from iota2.MPI import launch_tasks as tLauncher
+        from iota2.Learning import TrainSkLearn
+        from iota2.Learning.TrainSkLearn import cast_config_cv_parameters
+        from iota2.Learning.trainAutoContext import train_autoContext
+        from iota2.Common.ServiceConfigFile import iota2_parameters
 
         if self.use_scikitlearn is True and self.enable_autoContext is False:
             model_parameters = SCF.serviceConfigFile(
@@ -139,9 +140,14 @@ class learnModel(IOTA2Step.Step):
                     "scikit_models_parameters", "cross_validation_folds"), self
                 .available_ram, **model_parameters)
         elif self.enable_autoContext is True:
+            running_parameters = iota2_parameters(self.cfg)
             step_function = lambda x: train_autoContext(
-                x, self.cfg, self.superpix_data_field, self.
-                autoContext_iterations, self.RAM, self.workingDirectory)
+                x,
+                SCF.serviceConfigFile(self.cfg).getParam("chain", "dataField"
+                                                         ), self.output_path,
+                running_parameters.get_sensors_parameters(self.tiles[
+                    0]), self.superpix_data_field, self.autoContext_iterations,
+                self.RAM, self.workingDirectory)
         else:
             bashLauncherFunction = tLauncher.launchBashCmd
             step_function = lambda x: bashLauncherFunction(x)
