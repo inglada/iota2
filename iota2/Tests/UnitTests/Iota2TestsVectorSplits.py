@@ -123,6 +123,7 @@ class iota_test_vector_splits(unittest.TestCase):
     def test_vector_splits(self):
         from iota2.Sampling import SplitInSubSets as VS
         from iota2.Common import FileUtils as fu
+        from iota2.Tests.UnitTests import TestsUtils
         # We execute the function splitInSubSets()
         for new_region_shape in self.new_regions_shapes:
             tile_name = os.path.splitext(os.path.basename(new_region_shape))[0]
@@ -139,14 +140,11 @@ class iota_test_vector_splits(unittest.TestCase):
                               random_seed=0)
             print(new_region_shape)
         # We check the output
-        self.assertEqual(
-            0, os.system(f'diff {self.ref_split_prj} {self.out_split_prj}'))
-        self.assertEqual(
-            0, os.system(f'diff {self.ref_split_shp} {self.out_split_shp}'))
-        self.assertEqual(
-            0, os.system(f'diff {self.ref_split_shx} {self.out_split_shx}'))
-        self.assertEqual(
-            0, os.system(f'diff {self.ref_split_dbf} {self.out_split_dbf}'))
+        self.assertTrue(
+            TestsUtils.compareVectorFile(self.ref_split_shp,
+                                         self.out_split_shp, 'coordinates',
+                                         'polygon', "ESRI Shapefile"),
+            "Split vector output are different")
 
     def test_vector_splits_cross_validation(self):
         from iota2.Sampling import SplitInSubSets as VS
