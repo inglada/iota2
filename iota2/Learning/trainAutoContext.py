@@ -40,9 +40,9 @@ def train_autoContext_parameters(iota2_directory: str,
     parameters : list
         dictionary describing input parameters
     """
-    from Common.FileUtils import FileSearch_AND
-    from Common.FileUtils import sortByFirstElem
-    from Learning.TrainingCmd import config_model
+    from iota2.Common.FileUtils import FileSearch_AND
+    from iota2.Common.FileUtils import sortByFirstElem
+    from iota2.Learning.TrainingCmd import config_model
 
     parameters = []
 
