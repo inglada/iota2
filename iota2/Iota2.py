@@ -395,8 +395,9 @@ if __name__ == "__main__":
             os.makedirs(steps[step - 1].log_step_dir)
         try:
             logFileTmp = open(steps[step - 1].logFile, "w")
-        except Exception as e:
-            print(e)
+            logFileTmp.close()
+        except Exception as exc:
+            print(exc)
             raise
 
         dico_tmp = chain_to_process.steps_group[cfg.getParam(
