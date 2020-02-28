@@ -115,6 +115,7 @@ class iota_tests_runs_case(unittest.TestCase):
         Tests iota2's run using s2 (theia format)
         """
         from config import Config
+        from iota2.Common.FileUtils import FileSearch_AND
         from iota2.Tests.UnitTests.tests_utils.tests_utils_rasters import generate_fake_s2_data
         # prepare inputs data
         tile_name = "T31TCJ"
@@ -140,4 +141,24 @@ class iota_tests_runs_case(unittest.TestCase):
 
         run(f"Iota2.py -config {config_test}")
 
-        # TODO check mandatory outputs
+        self.assertTrue(
+            FileSearch_AND(os.path.join(running_output_path), "final", True,
+                           "Classif_Seed_0_ColorIndexed.tif"))
+        self.assertTrue(
+            FileSearch_AND(os.path.join(running_output_path), "final", True,
+                           "Classif_Seed_0.tif"))
+        self.assertTrue(
+            FileSearch_AND(os.path.join(running_output_path), "final", True,
+                           "Confidence_Seed_0.tif"))
+        self.assertTrue(
+            FileSearch_AND(os.path.join(running_output_path), "final", True,
+                           "Confusion_Matrix_Classif_Seed_0.png"))
+        self.assertTrue(
+            FileSearch_AND(os.path.join(running_output_path), "final", True,
+                           "diff_seed_0.tif"))
+        self.assertTrue(
+            FileSearch_AND(os.path.join(running_output_path), "final", True,
+                           "PixelsValidity.tif"))
+        self.assertTrue(
+            FileSearch_AND(os.path.join(running_output_path), "final", True,
+                           "RESULTS.txt"))
