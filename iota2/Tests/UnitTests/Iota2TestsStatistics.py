@@ -63,6 +63,8 @@ class iota_testZonalStats(unittest.TestCase):
             IOTA2DIR, "data", "references/sampler/final/PixelsValidity.tif")
         self.vector = os.path.join(
             IOTA2DIR, "data", "references/posttreat/vectors/classifsmooth.shp")
+        self.vectorstatsref = os.path.join(
+            IOTA2DIR, "data", "references/posttreat/vectors/classifiota2.shp")
         self.vectorstats = os.path.join(self.iota2_tests_directory, self.out,
                                         "classifstats.shp")
         self.vectorstatsiota2 = os.path.join(self.iota2_tests_directory,
@@ -154,9 +156,8 @@ class iota_testZonalStats(unittest.TestCase):
 
         self.assertTrue(
             testutils.compareVectorFile(
-                os.path.join(self.out, "classifiota2.shp"),
-                os.path.join(self.wd, "classifiota2.shp"), 'coordinates',
-                'polygon', "ESRI Shapefile"),
+                self.vectorstatsref, os.path.join(self.wd, "classifiota2.shp"),
+                'coordinates', 'polygon', "ESRI Shapefile"),
             "Generated shapefile vector does not fit with shapefile reference file"
         )
 
