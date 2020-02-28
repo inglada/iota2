@@ -13,9 +13,8 @@
 #   PURPOSE.  See the above copyright notices for more information.
 #
 # =========================================================================
-
+"""Test vector split"""
 # python -m unittest Iota2TestsVectorSplits
-"""check inputs tests"""
 import os
 import sys
 import shutil
