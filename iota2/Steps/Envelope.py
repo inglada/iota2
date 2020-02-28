@@ -47,8 +47,7 @@ class Envelope(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
-        pathEnvelope = os.path.join(self.outputPath, "envelope")
-        return [pathEnvelope]
+        return [self.outputPath]
 
     def step_execute(self):
         """
@@ -63,7 +62,7 @@ class Envelope(IOTA2Step.Step):
         tiles = SCF.serviceConfigFile(self.cfg).getParam('chain',
                                                          'listTile').split(" ")
         step_function = lambda x: env.generate_shape_tile(
-            tiles, x, self.workingDirectory, self.outputPath, self.proj)
+            tiles, self.workingDirectory, x, self.proj)
         return step_function
 
     def step_outputs(self):
