@@ -35,28 +35,30 @@ sys.path.append(IOTA2_SCRIPTS)
 
 from Common import FileUtils as fut
 
+
 class iota_testObiaLearning(unittest.TestCase):
     # before launching tests
     @classmethod
     def setUpClass(self):
         # definition of local variables
         self.group_test_name = "iota_testObiaLearning"
-        self.iota2_tests_directory = os.path.join(IOTA2DIR, "data", self.group_test_name)
+        self.iota2_tests_directory = os.path.join(IOTA2DIR, "data",
+                                                  self.group_test_name)
         self.all_tests_ok = []
 
         # References
         self.config_test = os.path.join(IOTA2DIR, "data", "references",
-                                     "ObiaUnskewModel",
-                                     "config_obia.cfg")
-        self.inLearnSamplesFolder = os.path.join(IOTA2DIR, "data", "references",
-                                     "ObiaUnskewModel", "Input",
-                                     "learningSamples")
+                                        "ObiaUnskewModel", "config_obia.cfg")
+        self.inLearnSamplesFolder = os.path.join(IOTA2DIR, "data",
+                                                 "references",
+                                                 "ObiaUnskewModel", "Input",
+                                                 "learningSamples")
         self.statsOutputFolder = os.path.join(IOTA2DIR, "data", "references",
-                                     "ObiaUnskewModel", "Output",
-                                     "stats")
+                                              "ObiaUnskewModel", "Output",
+                                              "stats")
         self.modelOutputFolder = os.path.join(IOTA2DIR, "data", "references",
-                                     "ObiaUnskewModel", "Output",
-                                     "model")
+                                              "ObiaUnskewModel", "Output",
+                                              "model")
 
         # Tests directory
         self.test_working_directory = None
@@ -80,7 +82,8 @@ class iota_testObiaLearning(unittest.TestCase):
         # it changes for each tests
 
         test_name = self.id().split(".")[-1]
-        self.test_working_directory = os.path.join(self.iota2_tests_directory, test_name)
+        self.test_working_directory = os.path.join(self.iota2_tests_directory,
+                                                   test_name)
         if os.path.exists(self.test_working_directory):
             shutil.rmtree(self.test_working_directory)
         os.mkdir(self.test_working_directory)
@@ -95,7 +98,8 @@ class iota_testObiaLearning(unittest.TestCase):
             result = self.defaultTestResult()
             self._feedErrorsToResult(result, self._outcome.errors)
         else:
-            result = getattr(self, '_outcomeForDoCleanups', self._resultForDoCleanups)
+            result = getattr(self, '_outcomeForDoCleanups',
+                             self._resultForDoCleanups)
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
         ok = not error and not failure
@@ -117,13 +121,22 @@ class iota_testObiaLearning(unittest.TestCase):
 
         # prepare test input
         cfg = SCF.serviceConfigFile(self.config_test)
-        cfg.setParam("chain", "outputPath", os.path.join(self.test_working_directory, "UnskewModelTest"))
-        region_tiles_seed = [ (1,['T38KPD','T38KPE'],0) , (1,['T38KPD','T38KPE'],1) , (2,['T38KPD'],0) , (2,['T38KPD'],1) ]
+        cfg.setParam(
+            "chain", "outputPath",
+            os.path.join(self.test_working_directory, "UnskewModelTest"))
+        region_tiles_seed = [(1, ['T38KPD', 'T38KPE'], 0),
+                             (1, ['T38KPD', 'T38KPE'], 1), (2, ['T38KPD'], 0),
+                             (2, ['T38KPD'], 1)]
 
         # create IOTA2 directories
-        IOTA2Directory.GenerateDirectories(cfg)
-        shutil.rmtree(os.path.join(self.test_working_directory, "UnskewModelTest", "learningSamples"))
-        shutil.copytree(self.inLearnSamplesFolder, os.path.join(self.test_working_directory, "UnskewModelTest", "learningSamples"))
+        IOTA2Directory.GenerateDirectories(cfg, check_inputs=False)
+        shutil.rmtree(
+            os.path.join(self.test_working_directory, "UnskewModelTest",
+                         "learningSamples"))
+        shutil.copytree(
+            self.inLearnSamplesFolder,
+            os.path.join(self.test_working_directory, "UnskewModelTest",
+                         "learningSamples"))
 
         # launch function
         cmd_list = launchUnskew(region_tiles_seed, cfg)
@@ -131,10 +144,13 @@ class iota_testObiaLearning(unittest.TestCase):
             os.system(cmd)
 
         # assert
-        xmls_to_verify = glob.glob(os.path.join(self.statsOutputFolder,'*.xml'))
+        xmls_to_verify = glob.glob(
+            os.path.join(self.statsOutputFolder, '*.xml'))
         compareText = serviceCompareText()
         for xml in xmls_to_verify:
-            outXml = os.path.join(self.test_working_directory, "UnskewModelTest", "stats",os.path.basename(xml))
+            outXml = os.path.join(self.test_working_directory,
+                                  "UnskewModelTest", "stats",
+                                  os.path.basename(xml))
             same = compareText.testSameText(xml, outXml)
             self.assertTrue(same, msg="segmentation split generation failed")
 
@@ -150,30 +166,41 @@ class iota_testObiaLearning(unittest.TestCase):
 
         # prepare test input
         cfg = SCF.serviceConfigFile(self.config_test)
-        cfg.setParam("chain", "outputPath", os.path.join(self.test_working_directory, "LearnModelTest"))
+        cfg.setParam(
+            "chain", "outputPath",
+            os.path.join(self.test_working_directory, "LearnModelTest"))
         output_path = cfg.getParam('chain', 'outputPath')
         data_field = cfg.getParam('chain', 'dataField')
-        region_seed_tile = [ (1,['T38KPD','T38KPE'],0) , (1,['T38KPD','T38KPE'],1) , (2,['T38KPD'],0) , (2,['T38KPD'],1) ]
+        region_seed_tile = [(1, ['T38KPD', 'T38KPE'], 0),
+                            (1, ['T38KPD', 'T38KPE'], 1), (2, ['T38KPD'], 0),
+                            (2, ['T38KPD'], 1)]
 
         # create IOTA2 directories
-        IOTA2Directory.GenerateDirectories(cfg)
-        shutil.rmtree(os.path.join(self.test_working_directory, "LearnModelTest", "learningSamples"))
-        shutil.copytree(self.inLearnSamplesFolder, os.path.join(self.test_working_directory, "LearnModelTest", "learningSamples"))
+        IOTA2Directory.GenerateDirectories(cfg, check_inputs=False)
+        shutil.rmtree(
+            os.path.join(self.test_working_directory, "LearnModelTest",
+                         "learningSamples"))
+        shutil.copytree(
+            self.inLearnSamplesFolder,
+            os.path.join(self.test_working_directory, "LearnModelTest",
+                         "learningSamples"))
 
         # launch function
-        cmd_list = launchObiaTrainModel(cfg, 
-                                       data_field,
-                                       region_seed_tile,
-                                       os.path.join(output_path, "cmd", "train"),
-                                       os.path.join(output_path, "model"),
-                                       os.path.join(self.test_working_directory, "model"))
+        cmd_list = launchObiaTrainModel(
+            cfg, data_field, region_seed_tile,
+            os.path.join(output_path, "cmd", "train"),
+            os.path.join(output_path, "model"),
+            os.path.join(self.test_working_directory, "model"))
         for cmd in cmd_list:
             os.system(cmd)
 
         # assert
-        xmls_to_verify = glob.glob(os.path.join(self.modelOutputFolder,'*.xml'))
+        xmls_to_verify = glob.glob(
+            os.path.join(self.modelOutputFolder, '*.xml'))
         compareText = serviceCompareText()
         for xml in xmls_to_verify:
-            outXml = os.path.join(self.test_working_directory, "LearnModelTest", "model",os.path.basename(xml))
+            outXml = os.path.join(self.test_working_directory,
+                                  "LearnModelTest", "model",
+                                  os.path.basename(xml))
             same = compareText.testSameText(xml, outXml)
             self.assertTrue(same, msg="segmentation split generation failed")

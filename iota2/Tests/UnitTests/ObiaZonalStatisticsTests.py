@@ -35,37 +35,41 @@ sys.path.append(IOTA2_SCRIPTS)
 
 from Common import FileUtils as fut
 
+
 class iota_testObiaZonalStatistics(unittest.TestCase):
     # before launching tests
     @classmethod
     def setUpClass(self):
         # definition of local variables
         self.group_test_name = "iota_testObiaZonalStatistics"
-        self.iota2_tests_directory = os.path.join(IOTA2DIR, "data", self.group_test_name)
+        self.iota2_tests_directory = os.path.join(IOTA2DIR, "data",
+                                                  self.group_test_name)
         self.all_tests_ok = []
 
         # References
         self.config_test = os.path.join(IOTA2DIR, "data", "references",
-                                     "ObiaLearningZonalStatistics",
-                                     "config_obia.cfg")
-        self.inLearnSamplesFolder = os.path.join(IOTA2DIR, "data", "references",
-                                     "ObiaLearningZonalStatistics", "Input",
-                                     "segmentation")
-        self.inTilesSamplesFolder = os.path.join(IOTA2DIR, "data", "references",
-                                     "ObiaTilesZonalStatistics", "Input",
-                                     "segmentation")
+                                        "ObiaLearningZonalStatistics",
+                                        "config_obia.cfg")
+        self.inLearnSamplesFolder = os.path.join(
+            IOTA2DIR, "data", "references", "ObiaLearningZonalStatistics",
+            "Input", "segmentation")
+        self.inTilesSamplesFolder = os.path.join(IOTA2DIR, "data",
+                                                 "references",
+                                                 "ObiaTilesZonalStatistics",
+                                                 "Input", "segmentation")
         self.inSensorFolder = os.path.join(IOTA2DIR, "data", "references",
-                                     "ObiaLearningZonalStatistics", "Input",
-                                     "sensor_data")
+                                           "ObiaLearningZonalStatistics",
+                                           "Input", "sensor_data")
         self.inRegionFolder = os.path.join(IOTA2DIR, "data", "references",
-                                     "ObiaTilesZonalStatistics", "Input",
-                                     "shapeRegion")
-        self.learningSamplesOutputFolder = os.path.join(IOTA2DIR, "data", "references",
-                                   "ObiaLearningZonalStatistics", "Output",
-                                   "learningSamples")
-        self.tilesSamplesOutputFolder = os.path.join(IOTA2DIR, "data", "references",
-                                   "ObiaLearningSamples", "Output",
-                                   "tilesSamples")
+                                           "ObiaTilesZonalStatistics", "Input",
+                                           "shapeRegion")
+        self.learningSamplesOutputFolder = os.path.join(
+            IOTA2DIR, "data", "references", "ObiaLearningZonalStatistics",
+            "Output", "learningSamples")
+        self.tilesSamplesOutputFolder = os.path.join(IOTA2DIR, "data",
+                                                     "references",
+                                                     "ObiaLearningSamples",
+                                                     "Output", "tilesSamples")
 
         # Tests directory
         self.test_working_directory = None
@@ -89,7 +93,8 @@ class iota_testObiaZonalStatistics(unittest.TestCase):
         # it changes for each tests
 
         test_name = self.id().split(".")[-1]
-        self.test_working_directory = os.path.join(self.iota2_tests_directory, test_name)
+        self.test_working_directory = os.path.join(self.iota2_tests_directory,
+                                                   test_name)
         if os.path.exists(self.test_working_directory):
             shutil.rmtree(self.test_working_directory)
         os.mkdir(self.test_working_directory)
@@ -104,7 +109,8 @@ class iota_testObiaZonalStatistics(unittest.TestCase):
             result = self.defaultTestResult()
             self._feedErrorsToResult(result, self._outcome.errors)
         else:
-            result = getattr(self, '_outcomeForDoCleanups', self._resultForDoCleanups)
+            result = getattr(self, '_outcomeForDoCleanups',
+                             self._resultForDoCleanups)
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
         ok = not error and not failure
@@ -126,35 +132,54 @@ class iota_testObiaZonalStatistics(unittest.TestCase):
 
         # prepare test input
         with open(self.config_test) as f:
-            txt=''
+            txt = ''
             for l in f:
-                if ' outputPath'in l:
-                    txt += l.split(":")[0]+":'"+os.path.join(self.test_working_directory,"learnZonalStatisticsTest")+"'\n"
-                elif 'S2Path'in l:
-                    txt += l.split(":")[0]+":'"+os.path.join(self.test_working_directory,"learnZonalStatisticsTest", "sensor_data")+"'\n"
+                if ' outputPath' in l:
+                    txt += l.split(":")[0] + ":'" + os.path.join(
+                        self.test_working_directory,
+                        "learnZonalStatisticsTest") + "'\n"
+                elif 'S2Path' in l:
+                    txt += l.split(":")[0] + ":'" + os.path.join(
+                        self.test_working_directory,
+                        "learnZonalStatisticsTest", "sensor_data") + "'\n"
                 else:
-                    txt+=l
-        with open(self.config_test,'w') as f:
+                    txt += l
+        with open(self.config_test, 'w') as f:
             f.write(txt)
 
         cfg = SCF.serviceConfigFile(self.config_test)
-        region_tiles_seed = [ (1,['T38KPD','T38KPE'],0) , (1,['T38KPD','T38KPE'],1) , (2,['T38KPD'],0) , (2,['T38KPD'],1) ]
+        region_tiles_seed = [(1, ['T38KPD', 'T38KPE'], 0),
+                             (1, ['T38KPD', 'T38KPE'], 1), (2, ['T38KPD'], 0),
+                             (2, ['T38KPD'], 1)]
 
         # create IOTA2 directories
-        IOTA2Directory.GenerateDirectories(cfg)
-        shutil.rmtree(os.path.join(self.test_working_directory, "learnZonalStatisticsTest", "segmentation"))
-        shutil.copytree(self.inLearnSamplesFolder, os.path.join(self.test_working_directory, "learnZonalStatisticsTest", "segmentation"))
-        shutil.copytree(self.inSensorFolder, os.path.join(self.test_working_directory,
-                                              "learnZonalStatisticsTest", "sensor_data"))
+        IOTA2Directory.GenerateDirectories(cfg, check_inputs=False)
+        shutil.rmtree(
+            os.path.join(self.test_working_directory,
+                         "learnZonalStatisticsTest", "segmentation"))
+        shutil.copytree(
+            self.inLearnSamplesFolder,
+            os.path.join(self.test_working_directory,
+                         "learnZonalStatisticsTest", "segmentation"))
+        shutil.copytree(
+            self.inSensorFolder,
+            os.path.join(self.test_working_directory,
+                         "learnZonalStatisticsTest", "sensor_data"))
 
         # launch function
         for x in region_tiles_seed:
-            learning_samples_zonal_statistics(x, self.config_test, os.path.join(self.test_working_directory,"learnZonalStatisticsTest","learningSamples"))
+            learning_samples_zonal_statistics(
+                x, self.config_test,
+                os.path.join(self.test_working_directory,
+                             "learnZonalStatisticsTest", "learningSamples"))
         # assert
-        shps_to_verify = glob.glob(os.path.join(self.learningSamplesOutputFolder,'*.shp'))
+        shps_to_verify = glob.glob(
+            os.path.join(self.learningSamplesOutputFolder, '*.shp'))
         compareVector = serviceCompareVectorFile()
         for shp in shps_to_verify:
-            outShp = os.path.join(self.test_working_directory, "learnZonalStatisticsTest", "learningSamples",os.path.basename(shp))
+            outShp = os.path.join(self.test_working_directory,
+                                  "learnZonalStatisticsTest",
+                                  "learningSamples", os.path.basename(shp))
             same = compareVector.testSameShapefiles(shp, outShp)
             self.assertTrue(same, msg="segmentation split generation failed")
 
@@ -171,41 +196,64 @@ class iota_testObiaZonalStatistics(unittest.TestCase):
 
         # prepare test input
         with open(self.config_test) as f:
-            txt=''
+            txt = ''
             for l in f:
-                if ' outputPath'in l:
-                    txt += l.split(":")[0]+":'"+os.path.join(self.test_working_directory,"tilesZonalStatisticsTest")+"'\n"
-                elif 'S2Path'in l:
-                    txt += l.split(":")[0]+":'"+os.path.join(self.test_working_directory,"tilesZonalStatisticsTest", "sensor_data")+"'\n"
+                if ' outputPath' in l:
+                    txt += l.split(":")[0] + ":'" + os.path.join(
+                        self.test_working_directory,
+                        "tilesZonalStatisticsTest") + "'\n"
+                elif 'S2Path' in l:
+                    txt += l.split(":")[0] + ":'" + os.path.join(
+                        self.test_working_directory,
+                        "tilesZonalStatisticsTest", "sensor_data") + "'\n"
                 else:
-                    txt+=l
-        with open(self.config_test,'w') as f:
+                    txt += l
+        with open(self.config_test, 'w') as f:
             f.write(txt)
 
         cfg = SCF.serviceConfigFile(self.config_test)
-        tiles = ['T38KPD','T38KPE']
+        tiles = ['T38KPD', 'T38KPE']
 
         # create IOTA2 directories
-        IOTA2Directory.GenerateDirectories(cfg)
-        shutil.rmtree(os.path.join(self.test_working_directory, "tilesZonalStatisticsTest", "segmentation"))
-        shutil.rmtree(os.path.join(self.test_working_directory, "tilesZonalStatisticsTest", "shapeRegion"))
-        shutil.copytree(self.inTilesSamplesFolder, os.path.join(self.test_working_directory, "tilesZonalStatisticsTest", "segmentation"))
-        shutil.copytree(self.inSensorFolder, os.path.join(self.test_working_directory,
-                                              "tilesZonalStatisticsTest", "sensor_data"))
-        shutil.copytree(self.inRegionFolder, os.path.join(self.test_working_directory,
-                                              "tilesZonalStatisticsTest", "shapeRegion"))
+        IOTA2Directory.GenerateDirectories(cfg, check_inputs=False)
+        shutil.rmtree(
+            os.path.join(self.test_working_directory,
+                         "tilesZonalStatisticsTest", "segmentation"))
+        shutil.rmtree(
+            os.path.join(self.test_working_directory,
+                         "tilesZonalStatisticsTest", "shapeRegion"))
+        shutil.copytree(
+            self.inTilesSamplesFolder,
+            os.path.join(self.test_working_directory,
+                         "tilesZonalStatisticsTest", "segmentation"))
+        shutil.copytree(
+            self.inSensorFolder,
+            os.path.join(self.test_working_directory,
+                         "tilesZonalStatisticsTest", "sensor_data"))
+        shutil.copytree(
+            self.inRegionFolder,
+            os.path.join(self.test_working_directory,
+                         "tilesZonalStatisticsTest", "shapeRegion"))
 
         # launch function
         for tile in tiles:
-            tile_samples_zonal_statistics(tile, self.config_test, os.path.join(self.test_working_directory, "tilesZonalStatisticsTest", "tilesSamples"))
+            tile_samples_zonal_statistics(
+                tile, self.config_test,
+                os.path.join(self.test_working_directory,
+                             "tilesZonalStatisticsTest", "tilesSamples"))
         # assert
         for tile in tiles:
-            shps_to_verify = glob.glob(os.path.join(self.tilesSamplesOutputFolder,tile,'*.shp'))
+            shps_to_verify = glob.glob(
+                os.path.join(self.tilesSamplesOutputFolder, tile, '*.shp'))
             compareVector = serviceCompareVectorFile()
             for shp in shps_to_verify:
-                outShp = os.path.join(self.test_working_directory, "tilesZonalStatisticsTest", "tilesSamples", tile, os.path.basename(shp))
+                outShp = os.path.join(self.test_working_directory,
+                                      "tilesZonalStatisticsTest",
+                                      "tilesSamples", tile,
+                                      os.path.basename(shp))
                 same = compareVector.testSameShapefiles(shp, outShp)
-                self.assertTrue(same, msg="segmentation split generation failed")
+                self.assertTrue(same,
+                                msg="segmentation split generation failed")
 
     def test_additional_parameter(self):
         """
@@ -216,10 +264,14 @@ class iota_testObiaZonalStatistics(unittest.TestCase):
         app = otb.Registry.CreateApplication("ZonalStatistics")
         if app is None:
             result = False
-        else :
+        else:
             try:
-                app.SetParameterString("inzone.vector.iddatafield","test")
+                app.SetParameterString("inzone.vector.iddatafield", "test")
                 result = True
-            except RunTimeError :
+            except RunTimeError:
                 result = False
-        self.assertTrue(result, msg='ZonalStatistics application has no iddatafield parameter, please apply ZonalStatistics patch and recompile OTB')
+        self.assertTrue(
+            result,
+            msg=
+            'ZonalStatistics application has no iddatafield parameter, please apply ZonalStatistics patch and recompile OTB'
+        )
