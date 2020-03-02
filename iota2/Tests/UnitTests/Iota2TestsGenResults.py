@@ -19,7 +19,7 @@ import os
 import sys
 import shutil
 import unittest
-from iota2.Common import FileUtils as fu
+
 # if all tests pass, remove 'iota2_tests_directory' which contains all
 # sub-directory tests
 RM_IF_ALL_OK = True
@@ -62,7 +62,6 @@ class iota2_tests_gen_results(unittest.TestCase):
         if os.path.exists(
                 os.path.join(cls.classif_final, 'TMP',
                              'Classif_Seed_0_sq.csv')):
-            print("coucou")
             os.remove(
                 os.path.join(cls.classif_final, 'TMP',
                              'Classif_Seed_0_sq.csv'))
