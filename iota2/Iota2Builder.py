@@ -378,8 +378,9 @@ class iota2():
         if shapeRegion and classif_mode == "fusion":
             s_container.append(step_split_huge_vec, "sampling")
         s_container.append(step_merge_samples, "sampling")
-        s_container.append(step_models_samples_stats, "sampling")
+
         if OBIA_segmentation_path is None:
+            s_container.append(step_models_samples_stats, "sampling")
             s_container.append(step_samples_selection, "sampling")
 
             if enable_autoContext is True:
