@@ -279,7 +279,7 @@ def replace_annual_crop_in_conf_mat(confusion_matrix: np.ndarray,
         all_class_ac.remove(int(label_annual_crop))
     all_class_ac.append(int(label_replacement))
     all_class_ac.sort()
-    index_ac = all_class_ac.index(label_replacement)
+    index_ac = all_class_ac.index(int(label_replacement))
 
     #replace ref labels in confusion matrix
     matrix = []
