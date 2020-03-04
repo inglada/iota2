@@ -255,7 +255,7 @@ class iota_tests_runs_case(unittest.TestCase):
         cfg_test.chain.groundTruth = self.ground_truth_path
         cfg_test.chain.nomenclaturePath = self.nomenclature_path
         cfg_test.chain.colorTable = self.color_path
-        cfg_test.spatialResolution = 30
+        cfg_test.chain.spatialResolution = 30
         cfg_test.save(open(config_test, 'w'))
 
         # Launch the chain
@@ -312,7 +312,7 @@ class iota_tests_runs_case(unittest.TestCase):
         cfg_test.chain.groundTruth = self.ground_truth_path
         cfg_test.chain.nomenclaturePath = self.nomenclature_path
         cfg_test.chain.colorTable = self.color_path
-        cfg_test.spatialResolution = 30
+        cfg_test.chain.spatialResolution = 30
         cfg_test.save(open(config_test, 'w'))
 
         # Launch the chain
@@ -359,7 +359,7 @@ class iota_tests_runs_case(unittest.TestCase):
                                       ["20200101", "20200112", "20200127"],
                                       res=30.0)
         config_test = os.path.join(self.test_working_directory,
-                                   "i2_config_s2_l2a.cfg")
+                                   "i2_config_l5_old.cfg")
         shutil.copy(self.config_ref, config_test)
         cfg_test = Config(open(config_test))
         cfg_test.chain.outputPath = running_output_path
@@ -369,7 +369,7 @@ class iota_tests_runs_case(unittest.TestCase):
         cfg_test.chain.groundTruth = self.ground_truth_path
         cfg_test.chain.nomenclaturePath = self.nomenclature_path
         cfg_test.chain.colorTable = self.color_path
-        cfg_test.spatialResolution = 30
+        cfg_test.chain.spatialResolution = 30
         cfg_test.save(open(config_test, 'w'))
 
         # Launch the chain
