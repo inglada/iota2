@@ -260,7 +260,9 @@ def iota2_test_launcher(configuration_path: str):
     cfg = SCF.serviceConfigFile(configuration_path)
 
     cfg.checkConfigParameters()
-    chain_to_process = chain.iota2(cfg.pathConf, None)
+    chain_to_process = chain.iota2(cfg.pathConf,
+                                   None,
+                                   hpc_working_directory="")
     if os.path.exists(chain_to_process.iota2_pickle):
         chain_to_process = chain_to_process.load_chain()
 
