@@ -14,6 +14,7 @@
 #
 # =========================================================================
 import os
+from typing import Optional
 from collections import OrderedDict
 from iota2.Common import ServiceConfigFile as SCF
 
@@ -22,15 +23,18 @@ class iota2():
     """
     class use to describe steps sequence and variable to use at each step (config)
     """
-    def __init__(self, cfg, config_ressources):
+    def __init__(self,
+                 cfg,
+                 config_ressources,
+                 hpc_working_directory: Optional[str] = "TMPDIR"):
 
         # config object
         #~ self.cfg = cfg
         self.cfg = cfg
 
         # working directory, HPC
-        HPC_working_directory = "TMPDIR"
-        self.workingDirectory = os.getenv(HPC_working_directory)
+
+        self.workingDirectory = os.getenv(hpc_working_directory)
 
         # steps definitions
         self.steps_group = OrderedDict()
