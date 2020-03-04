@@ -547,7 +547,7 @@ def generate_fake_l5_old_data(root_directory: str,
     ensure_dir(tile_dir)
 
     band_of_interest = ["B1", "B2", "B3", "B4", "B5", "B6"]
-    masks_of_interest = ["BINARY_MASK", "DIV", "NUA", "SAT"]
+    masks_of_interest = ["DIV", "BINARY_MASK", "NUA", "SAT"]
 
     origin_x = 566377
     origin_y = 6284029
@@ -615,7 +615,7 @@ def generate_fake_l8_old_data(root_directory: str,
     ensure_dir(tile_dir)
 
     band_of_interest = ["B1", "B2", "B3", "B4", "B5", "B6", "B7"]
-    masks_of_interest = ["BINARY_MASK", "DIV", "NUA", "SAT"]
+    masks_of_interest = ["DIV", "BINARY_MASK", "NUA", "SAT"]
 
     origin_x = 566377
     origin_y = 6284029
