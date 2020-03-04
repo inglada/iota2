@@ -184,10 +184,18 @@ class iota_tests_runs_case(unittest.TestCase):
                                            "test_results")
         fake_s2_s2c_dir = os.path.join(self.test_working_directory,
                                        "s2_s2c_data")
-        TUR.generate_fake_s2_s2c_data(fake_s2_s2c_dir,
-                                      tile_name,
-                                      mtd_files,
-                                      res=10.0)
+
+        TUR.generate_fake_s2_s2c_data(
+            fake_s2_s2c_dir,
+            tile_name,
+            mtd_files,
+            res=10.0,
+            fake_raster=TUR.fun_array("iota2_binary"),
+            fake_scene_classification=1 + TUR.fun_array("iota2_binary") * 2,
+            origin_x=566377.0,
+            origin_y=6284029.0,
+            epsg_code=2154)
+
         config_test = os.path.join(self.test_working_directory,
                                    "i2_config_s2_s2c.cfg")
         shutil.copy(self.config_ref, config_test)

@@ -313,15 +313,23 @@ def generate_data_tree(directory, mtd_s2st_date, s2st_ext="jp2"):
     return products
 
 
-def generate_fake_s2_s2c_data(output_directory: str,
-                              tile_name: str,
-                              mtd_files: List[str],
-                              res: Optional[float] = 30.0):
+def generate_fake_s2_s2c_data(
+        output_directory: str,
+        tile_name: str,
+        mtd_files: List[str],
+        res: Optional[float] = 30.0,
+        fake_raster: Optional[List[np.ndarray]] = [
+            np.array([[10, 55, 61], [100, 56, 42], [1, 42, 29]])
+        ],
+        fake_scene_classification: Optional[List[np.ndarray]] = [
+            np.array([[2, 0, 4], [0, 4, 2], [1, 1, 10]])
+        ],
+        origin_x: Optional[float] = 300000.0,
+        origin_y: Optional[float] = 4900020.0,
+        epsg_code: Optional[int] = 32631):
     """
     generate fake s2_s2c data
     """
-    fake_raster = [np.array([[10, 55, 61], [100, 56, 42], [1, 42, 29]])]
-    fake_scene_classification = [np.array([[2, 0, 4], [0, 4, 2], [1, 1, 10]])]
     for mtd in mtd_files:
         prod_list = generate_data_tree(
             os.path.join(output_directory, tile_name), mtd)
@@ -341,10 +349,10 @@ def generate_fake_s2_s2c_data(output_directory: str,
                             prod,
                             output_driver="GTiff",
                             output_format="int",
-                            pixel_size=res,
-                            origin_x=300000,
-                            origin_y=4900020,
-                            epsg_code=32631)
+                            pixel_size=pix_size,
+                            origin_x=origin_x,
+                            origin_y=origin_y,
+                            epsg_code=epsg_code)
 
 
 def generate_fake_l8_data(root_directory: str,
