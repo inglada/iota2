@@ -143,7 +143,6 @@ class iota_tests_runs_case(unittest.TestCase):
 
         # Launch the chain
         TUI.iota2_test_launcher(config_test)
-
         self.assertTrue(
             FileSearch_AND(os.path.join(running_output_path, "final"), True,
                            "Classif_Seed_0_ColorIndexed.tif"))
@@ -168,7 +167,7 @@ class iota_tests_runs_case(unittest.TestCase):
 
     def test_s2_s2c_run(self):
         """
-        Tests iota2's run using s2 (theia format)
+        Tests iota2's run using s2 (peps format)
         """
         from config import Config
         from iota2.Common.FileUtils import FileSearch_AND
@@ -236,7 +235,7 @@ class iota_tests_runs_case(unittest.TestCase):
 
     def test_l8_run(self):
         """
-        Tests iota2's run using s2 (theia format)
+        Tests iota2's run using l8 (theia format)
         """
         from config import Config
         from iota2.Common.FileUtils import FileSearch_AND
@@ -263,7 +262,7 @@ class iota_tests_runs_case(unittest.TestCase):
         cfg_test.chain.groundTruth = self.ground_truth_path
         cfg_test.chain.nomenclaturePath = self.nomenclature_path
         cfg_test.chain.colorTable = self.color_path
-        cfg_test.spatialResolution = 30
+        cfg_test.chain.spatialResolution = 30
         cfg_test.save(open(config_test, 'w'))
 
         # Launch the chain
@@ -293,14 +292,14 @@ class iota_tests_runs_case(unittest.TestCase):
 
     def test_l8_old_run(self):
         """
-        Tests iota2's run using s2 (theia format)
+        Tests iota2's run using l8 (peps format)
         """
         from config import Config
         from iota2.Common.FileUtils import FileSearch_AND
         import iota2.Tests.UnitTests.tests_utils.tests_utils_rasters as TUR
         import iota2.Tests.UnitTests.tests_utils.tests_utils_iota2 as TUI
         # prepare inputs data
-        tile_name = "T31TCJ"
+        tile_name = "D0005H0002"
         running_output_path = os.path.join(self.test_working_directory,
                                            "test_results")
         fake_l8_old_dir = os.path.join(self.test_working_directory,
@@ -320,7 +319,7 @@ class iota_tests_runs_case(unittest.TestCase):
         cfg_test.chain.groundTruth = self.ground_truth_path
         cfg_test.chain.nomenclaturePath = self.nomenclature_path
         cfg_test.chain.colorTable = self.color_path
-        cfg_test.spatialResolution = 30
+        cfg_test.chain.spatialResolution = 30
         cfg_test.save(open(config_test, 'w'))
 
         # Launch the chain
@@ -350,14 +349,14 @@ class iota_tests_runs_case(unittest.TestCase):
 
     def test_l5_old_run(self):
         """
-        Tests iota2's run using s2 (theia format)
+        Tests iota2's run using l5 (peps format)
         """
         from config import Config
         from iota2.Common.FileUtils import FileSearch_AND
         import iota2.Tests.UnitTests.tests_utils.tests_utils_rasters as TUR
         import iota2.Tests.UnitTests.tests_utils.tests_utils_iota2 as TUI
         # prepare inputs data
-        tile_name = "T31TCJ"
+        tile_name = "D0005H0002"
         running_output_path = os.path.join(self.test_working_directory,
                                            "test_results")
         fake_l5_old_dir = os.path.join(self.test_working_directory,
@@ -367,7 +366,7 @@ class iota_tests_runs_case(unittest.TestCase):
                                       ["20200101", "20200112", "20200127"],
                                       res=30.0)
         config_test = os.path.join(self.test_working_directory,
-                                   "i2_config_s2_l2a.cfg")
+                                   "i2_config_l5_old.cfg")
         shutil.copy(self.config_ref, config_test)
         cfg_test = Config(open(config_test))
         cfg_test.chain.outputPath = running_output_path
@@ -377,7 +376,7 @@ class iota_tests_runs_case(unittest.TestCase):
         cfg_test.chain.groundTruth = self.ground_truth_path
         cfg_test.chain.nomenclaturePath = self.nomenclature_path
         cfg_test.chain.colorTable = self.color_path
-        cfg_test.spatialResolution = 30
+        cfg_test.chain.spatialResolution = 30
         cfg_test.save(open(config_test, 'w'))
 
         # Launch the chain
@@ -407,7 +406,7 @@ class iota_tests_runs_case(unittest.TestCase):
 
     def test_s2_l3a_run(self):
         """
-        Tests iota2's run using s2 (theia format)
+        Tests iota2's run using s2_l3a (theia format)
         """
         from config import Config
         from iota2.Common.FileUtils import FileSearch_AND
