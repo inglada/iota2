@@ -138,7 +138,7 @@ class iota2_tests_split_samples(unittest.TestCase):
                          os.path.abspath(shape_region_dir))
 
         vectors = fu.FileSearch_AND(formatting_vectors_dir, True, ".shp")
-        input(vectors)
+
         # We check we have the correct file
         self.assertEqual(self.vectors, os.path.abspath(vectors[0]))
 

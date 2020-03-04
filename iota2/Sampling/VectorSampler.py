@@ -867,16 +867,15 @@ def generate_samples_classif_mix(folder_sample: str,
 
     merge_name = train_shape.split("/")[-1].replace(".shp", "_selectionMerge")
     sample_selection = os.path.join(working_directory, f"{merge_name}.sqlite")
-    input(f'{annu_repartition}{nb_feat_nannu} {nb_feat_annu} {annual_points}')
     if (nb_feat_nannu > 0) and (nb_feat_annu > 0 and annual_points):
         fu.mergeSQLite(merge_name, working_directory,
                        [non_annual_shape, annual_shape])
 
     elif (nb_feat_nannu > 0) and not (nb_feat_annu > 0 and annual_points):
-        # TODO: define SampleSel_NA (currently undefined)
+        # If not annual samples can be added then annual classes are ignored
         shutil.copy(non_annual_shape, sample_selection)
     elif not (nb_feat_nannu > 0) and (nb_feat_annu > 0 and annual_points):
-        # TODO: define annualShape (currently undefined)
+        # If not non annual samples are found then use all annual samples
         shutil.copy(annual_shape, sample_selection)
     samples = os.path.join(
         working_directory,
