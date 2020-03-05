@@ -15,10 +15,10 @@
 # =========================================================================
 import os
 
-from Steps import IOTA2Step
-from Cluster import get_RAM
-from Common import ServiceConfigFile as SCF
-from VectorTools import vector_functions as vf
+from iota2.Steps import IOTA2Step
+from iota2.Cluster import get_RAM
+from iota2.Common import ServiceConfigFile as SCF
+from iota2.VectorTools import vector_functions as vf
 
 
 class largeSmoothing(IOTA2Step.Step):
@@ -86,7 +86,7 @@ class largeSmoothing(IOTA2Step.Step):
             the function to execute as a lambda function. The returned object
             must be a lambda function.
         """
-        from simplification import VectAndSimp as vas
+        from iota2.simplification import VectAndSimp as vas
 
         tmpdir = os.path.join(self.outputPath, 'final', 'simplification',
                               'tmp')

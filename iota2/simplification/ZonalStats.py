@@ -34,14 +34,14 @@ import numpy as np
 LOGGER = logging.getLogger(__name__)
 
 try:
-    from VectorTools import vector_functions as vf
-    from VectorTools import checkGeometryAreaThreshField as checkGeom
-    from VectorTools import BufferOgr as bfo
-    from VectorTools import splitByArea as sba
-    from VectorTools import MergeFiles as mf
-    from Common import FileUtils as fut
-    from Common import Utils
-    from simplification import nomenclature
+    from iota2.VectorTools import vector_functions as vf
+    from iota2.VectorTools import checkGeometryAreaThreshField as checkGeom
+    from iota2.VectorTools import BufferOgr as bfo
+    from iota2.VectorTools import splitByArea as sba
+    from iota2.VectorTools import MergeFiles as mf
+    from iota2.Common import FileUtils as fut
+    from iota2.Common import Utils
+    from iota2.simplification import nomenclature
 except ImportError:
     raise ImportError('Iota2 not well configured / installed')
 

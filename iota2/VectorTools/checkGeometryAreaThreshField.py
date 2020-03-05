@@ -1,18 +1,16 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
-from VectorTools import vector_functions as vf
 import sys
 import os
-from VectorTools import AddFieldID
-from VectorTools import AddField
-from VectorTools import AddFieldArea
-from VectorTools import DeleteField
-from VectorTools import DeleteDuplicateGeometriesSqlite
-from VectorTools import MultiPolyToPoly
-from VectorTools import SelectBySize
-from VectorTools import SimplifyPoly
 import argparse
+from iota2.VectorTools import vector_functions as vf
+from iota2.VectorTools import AddFieldID
+from iota2.VectorTools import AddFieldArea
+from iota2.VectorTools import DeleteField
+from iota2.VectorTools import DeleteDuplicateGeometriesSqlite
+from iota2.VectorTools import MultiPolyToPoly
+from iota2.VectorTools import SelectBySize
 
 
 def checkGeometryAreaThreshField(shapefile,

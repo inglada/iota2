@@ -1,20 +1,24 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import sys, os
-from osgeo import ogr
+import sys
+import os
 import argparse
-from VectorTools import vector_functions as vf
+from osgeo import ogr
+from iota2.VectorTools import vector_functions as vf
+
 
 def intersection(file1, file2, outfile):
-    
+
     ds1 = vf.openToRead(file1)
     ds2 = vf.openToRead(file2)
 
     layer1 = ds1.GetLayer()
-    layer2 = ds2.GetLayer()   
+    layer2 = ds2.GetLayer()
 
-    if layer1.GetSpatialRef().GetAttrValue("AUTHORITY", 1) == layer2.GetSpatialRef().GetAttrValue("AUTHORITY", 1):
+    if layer1.GetSpatialRef().GetAttrValue(
+            "AUTHORITY",
+            1) == layer2.GetSpatialRef().GetAttrValue("AUTHORITY", 1):
         srsObj = layer1.GetSpatialRef()
     else:
         print("second shapefile must have the same projection than the first shapefile (EPSG:{} vs. EPSG:{})"\
@@ -31,7 +35,9 @@ def intersection(file1, file2, outfile):
         outDataSource = outDriver.CreateDataSource(outfile)
 
         #Creates the spatial reference of the output layer
-        outLayer = outDataSource.CreateLayer("intersect", srsObj, geom_type = ogr.wkbPolygon)
+        outLayer = outDataSource.CreateLayer("intersect",
+                                             srsObj,
+                                             geom_type=ogr.wkbPolygon)
     else:
         print("This program only produces POLYGONS intersection")
 
@@ -52,14 +58,14 @@ def intersection(file1, file2, outfile):
     listfieldin2 = vf.getFields(layer2)
     listfieldout = vf.getFields(outLayer)
 
-    layer1.ResetReading() 
+    layer1.ResetReading()
     layer2.ResetReading()
     for feature1 in layer1:
         geom1 = feature1.GetGeometryRef()
         for feature2 in layer2:
             geom2 = feature2.GetGeometryRef()
             # select only the intersections
-            if geom2.Intersects(geom1): 
+            if geom2.Intersects(geom1):
                 intersection = geom2.Intersection(geom1)
                 dstfeature = ogr.Feature(outLayer.GetLayerDefn())
                 dstfeature.SetGeometry(intersection)
@@ -69,11 +75,13 @@ def intersection(file1, file2, outfile):
                 k = 0
                 while i < len(listfieldout):
                     while j < len(listfieldin1):
-                        dstfeature.SetField(listfieldout[i], feature1.GetField(listfieldin1[j]))
+                        dstfeature.SetField(listfieldout[i],
+                                            feature1.GetField(listfieldin1[j]))
                         i += 1
                         j += 1
                     while k < len(listfieldin2):
-                        dstfeature.SetField(listfieldout[i], feature2.GetField(listfieldin2[k]))
+                        dstfeature.SetField(listfieldout[i],
+                                            feature2.GetField(listfieldin2[k]))
                         i += 1
                         k += 1
                 outLayer.CreateFeature(dstfeature)
@@ -82,18 +90,19 @@ def intersection(file1, file2, outfile):
     outLayer = None
     outDataSource = None
 
+
 def defineIntersectGeometry(layer1, layer2):
-    
+
     union1 = ogr.Geometry(layer1.GetGeomType())
     # union all the geometrical features of layer 1
     for feat in layer1:
-        geom =feat.GetGeometryRef()
+        geom = feat.GetGeometryRef()
         union1 = union1.Union(geom)
 
     # same for layer2
-    union2=ogr.Geometry(layer2.GetGeomType())
+    union2 = ogr.Geometry(layer2.GetGeomType())
     for feat in layer2:
-        geom =feat.GetGeometryRef()  
+        geom = feat.GetGeometryRef()
         union2 = union2.Union(geom)
 
     # intersection
@@ -102,20 +111,22 @@ def defineIntersectGeometry(layer1, layer2):
     # retunr geometryName of the intersection
     return intersection.GetGeometryName()
 
+
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         prog = os.path.basename(sys.argv[0])
-        print('      '+sys.argv[0]+' [options]') 
+        print('      ' + sys.argv[0] + ' [options]')
         print("     Help : ", prog, " --help")
         print("        or : ", prog, " -h")
-        sys.exit(-1)  
+        sys.exit(-1)
     else:
         usage = "usage: %prog [options] "
-        parser = argparse.ArgumentParser(description = "Intersection of two shapefiles")
+        parser = argparse.ArgumentParser(
+            description="Intersection of two shapefiles")
         parser.add_argument("-s1", dest ="first", action="store", \
                             help="First shapefile path")
         parser.add_argument("-s2", dest="second", action="store", \
-                            help="Second shapefile path")        
+                            help="Second shapefile path")
         parser.add_argument("-o", dest="outshapefile", action="store", \
                             help="ESRI Shapefile output filename and path", required = True)
         args = parser.parse_args()
