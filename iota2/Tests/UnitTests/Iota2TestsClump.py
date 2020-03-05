@@ -19,8 +19,11 @@
 import os
 import sys
 import shutil
-import numpy as np
 import unittest
+import numpy as np
+
+import iota2.Tests.UnitTests.TestsUtils as testutils
+from iota2.simplification import ClumpClassif as clump
 
 IOTA2DIR = os.environ.get('IOTA2DIR')
 
@@ -31,46 +34,39 @@ if IOTA2DIR is None:
 # sub-directory tests
 RM_IF_ALL_OK = True
 
-iota2_script = os.path.join(IOTA2DIR, "iota2")
-sys.path.append(iota2_script)
-
-from Common import FileUtils as fut
-import TestsUtils as testutils
-from simplification import ClumpClassif as clump
-
 
 class iota_testClump(unittest.TestCase):
     # before launching tests
     @classmethod
-    def setUpClass(self):
+    def setUpClass(cls):
         # definition of local variables
-        self.group_test_name = "iota_testClump"
-        self.iota2_tests_directory = os.path.join(IOTA2DIR, "data",
-                                                  self.group_test_name)
-        self.all_tests_ok = []
+        cls.group_test_name = "iota_testClump"
+        cls.iota2_tests_directory = os.path.join(IOTA2DIR, "data",
+                                                 cls.group_test_name)
+        cls.all_tests_ok = []
 
         # Tests directory
-        self.test_working_directory = None
-        if os.path.exists(self.iota2_tests_directory):
-            shutil.rmtree(self.iota2_tests_directory)
-        os.mkdir(self.iota2_tests_directory)
+        cls.test_working_directory = None
+        if os.path.exists(cls.iota2_tests_directory):
+            shutil.rmtree(cls.iota2_tests_directory)
+        os.mkdir(cls.iota2_tests_directory)
 
-        self.wd = os.path.join(self.iota2_tests_directory, "wd")
-        self.out = os.path.join(self.iota2_tests_directory, "out")
-        self.rasterreg = os.path.join(
-            IOTA2DIR, "data", "references/posttreat/classif_regul.tif")
-        self.outfilename = os.path.join(self.iota2_tests_directory, self.out,
-                                        "classif_clump.tif")
-        self.rasterclump = os.path.join(
+        cls.wd = os.path.join(cls.iota2_tests_directory, "wd")
+        cls.out = os.path.join(cls.iota2_tests_directory, "out")
+        cls.rasterreg = os.path.join(IOTA2DIR, "data",
+                                     "references/posttreat/classif_regul.tif")
+        cls.outfilename = os.path.join(cls.iota2_tests_directory, cls.out,
+                                       "classif_clump.tif")
+        cls.rasterclump = os.path.join(
             os.path.join(IOTA2DIR, "data",
                          "references/posttreat/classif_clump.tif"))
 
     # after launching all tests
     @classmethod
-    def tearDownClass(self):
-        print("{} ended".format(self.group_test_name))
-        if RM_IF_ALL_OK and all(self.all_tests_ok):
-            shutil.rmtree(self.iota2_tests_directory)
+    def tearDownClass(cls):
+        print("{} ended".format(cls.group_test_name))
+        if RM_IF_ALL_OK and all(cls.all_tests_ok):
+            shutil.rmtree(cls.iota2_tests_directory)
 
     # before launching a test
     def setUp(self):

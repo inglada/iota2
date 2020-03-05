@@ -47,36 +47,36 @@ RM_IF_ALL_OK = True
 class iota_testVectortools(unittest.TestCase):
     # before launching tests
     @classmethod
-    def setUpClass(self):
+    def setUpClass(cls):
         # definition of local variables
-        self.group_test_name = "iota_testVectortools"
-        self.iota2_tests_directory = os.path.join(IOTA2DIR, "data",
-                                                  self.group_test_name)
-        self.all_tests_ok = []
+        cls.group_test_name = "iota_testVectortools"
+        cls.iota2_tests_directory = os.path.join(IOTA2DIR, "data",
+                                                 cls.group_test_name)
+        cls.all_tests_ok = []
 
         # Tests directory
-        self.test_working_directory = None
-        if os.path.exists(self.iota2_tests_directory):
-            shutil.rmtree(self.iota2_tests_directory)
-        os.mkdir(self.iota2_tests_directory)
+        cls.test_working_directory = None
+        if os.path.exists(cls.iota2_tests_directory):
+            shutil.rmtree(cls.iota2_tests_directory)
+        os.mkdir(cls.iota2_tests_directory)
 
-        self.wd = os.path.join(self.iota2_tests_directory, "wd/")
-        self.out = os.path.join(self.iota2_tests_directory, "out/")
-        self.classif = os.path.join(IOTA2DIR, "data",
-                                    "references/vectortools/classif.shp")
-        self.inter = os.path.join(IOTA2DIR, "data",
-                                  "references/vectortools/region.shp")
-        self.classifwd = os.path.join(self.out, "classif.shp")
-        self.classifout = os.path.join(
-            IOTA2DIR, "data", "references/vectortools/classifout.shp")
-        self.outinter = os.path.join(self.wd, "inter.shp")
+        cls.wd = os.path.join(cls.iota2_tests_directory, "wd/")
+        cls.out = os.path.join(cls.iota2_tests_directory, "out/")
+        cls.classif = os.path.join(IOTA2DIR, "data",
+                                   "references/vectortools/classif.shp")
+        cls.inter = os.path.join(IOTA2DIR, "data",
+                                 "references/vectortools/region.shp")
+        cls.classifwd = os.path.join(cls.out, "classif.shp")
+        cls.classifout = os.path.join(IOTA2DIR, "data",
+                                      "references/vectortools/classifout.shp")
+        cls.outinter = os.path.join(cls.wd, "inter.shp")
 
     # after launching all tests
     @classmethod
-    def tearDownClass(self):
-        print("{} ended".format(self.group_test_name))
-        if RM_IF_ALL_OK and all(self.all_tests_ok):
-            shutil.rmtree(self.iota2_tests_directory)
+    def tearDownClass(cls):
+        print("{} ended".format(cls.group_test_name))
+        if RM_IF_ALL_OK and all(cls.all_tests_ok):
+            shutil.rmtree(cls.iota2_tests_directory)
 
     # before launching a test
     def setUp(self):

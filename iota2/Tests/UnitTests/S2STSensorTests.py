@@ -30,23 +30,23 @@ sys.path.append(iota2_script)
 class iota_testS2STSensor(unittest.TestCase):
     #before launching tests
     @classmethod
-    def setUpClass(self):
+    def setUpClass(cls):
 
         # definition of local variables
-        self.group_test_name = "iota_testS2STSensor"
-        self.iota2_tests_directory = os.path.join(IOTA2DIR, "data",
-                                                  self.group_test_name)
-        self.all_tests_ok = []
-        self.test_working_directory = None
-        if os.path.exists(self.iota2_tests_directory):
-            shutil.rmtree(self.iota2_tests_directory)
-        os.mkdir(self.iota2_tests_directory)
+        cls.group_test_name = "iota_testS2STSensor"
+        cls.iota2_tests_directory = os.path.join(IOTA2DIR, "data",
+                                                 cls.group_test_name)
+        cls.all_tests_ok = []
+        cls.test_working_directory = None
+        if os.path.exists(cls.iota2_tests_directory):
+            shutil.rmtree(cls.iota2_tests_directory)
+        os.mkdir(cls.iota2_tests_directory)
 
-        self.config_test = os.path.join(
+        cls.config_test = os.path.join(
             IOTA2DIR, "config", "Config_4Tuiles_Multi_FUS_Confidence.cfg")
 
         # generate fake input data
-        self.MTD_files = [
+        cls.MTD_files = [
             os.path.join(IOTA2DIR, "data", "MTD_MSIL2A_20190506.xml"),
             os.path.join(IOTA2DIR, "data", "MTD_MSIL2A_20190501.xml")
         ]

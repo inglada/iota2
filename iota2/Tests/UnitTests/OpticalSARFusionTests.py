@@ -21,6 +21,9 @@ import sys
 import shutil
 import unittest
 import numpy as np
+from iota2.Common import FileUtils as fut
+from iota2.Tests.UnitTests.TestsUtils import rasterToArray
+from iota2.Tests.UnitTests.tests_utils.tests_utils_rasters import array_to_raster
 
 IOTA2DIR = os.environ.get('IOTA2DIR')
 
@@ -31,49 +34,42 @@ if not IOTA2DIR:
 # sub-directory tests
 RM_IF_ALL_OK = True
 
-IOTA2_SCRIPTS = os.path.join(IOTA2DIR, "iota2")
-sys.path.append(IOTA2_SCRIPTS)
-
-from iota2.Common import FileUtils as fut
-from TestsUtils import rasterToArray
-from iota2.Tests.UnitTests.tests_utils.tests_utils_rasters import array_to_raster
-
 
 class iota_testOpticalSARFusion(unittest.TestCase):
     # before launching tests
     @classmethod
-    def setUpClass(self):
+    def setUpClass(cls):
         # definition of local variables
-        self.group_test_name = "iota_testOpticalSARFusion"
-        self.iota2_tests_directory = os.path.join(IOTA2DIR, "data",
-                                                  self.group_test_name)
-        self.all_tests_ok = []
+        cls.group_test_name = "iota_testOpticalSARFusion"
+        cls.iota2_tests_directory = os.path.join(IOTA2DIR, "data",
+                                                 cls.group_test_name)
+        cls.all_tests_ok = []
 
         # input data
-        self.config_test = os.path.join(
+        cls.config_test = os.path.join(
             IOTA2DIR, "config", "Config_4Tuiles_Multi_FUS_Confidence.cfg")
-        self.sar_confusion = os.path.join(IOTA2DIR, "data", "references",
-                                          "sar_confusion.csv")
-        self.opt_confusion = os.path.join(IOTA2DIR, "data", "references",
-                                          "opt_confusion.csv")
-        self.sar_classif = np.array([[11, 12, 31], [42, 51, 11], [11, 43, 11]])
-        self.optical_classif = np.array([[12, 42, 31], [11, 43, 51],
-                                         [43, 51, 42]])
-        self.sar_confidence = np.array([[0.159699, 0.872120, 0.610836],
-                                        [0.657606, 0.110224, 0.675240],
-                                        [0.263030, 0.623490, 0.517019]])
-        self.optical_confidence = np.array([[0.208393, 0.674579, 0.507099],
-                                            [0.214745, 0.962130, 0.779217],
-                                            [0.858645, 0.258679, 0.015593]])
+        cls.sar_confusion = os.path.join(IOTA2DIR, "data", "references",
+                                         "sar_confusion.csv")
+        cls.opt_confusion = os.path.join(IOTA2DIR, "data", "references",
+                                         "opt_confusion.csv")
+        cls.sar_classif = np.array([[11, 12, 31], [42, 51, 11], [11, 43, 11]])
+        cls.optical_classif = np.array([[12, 42, 31], [11, 43, 51],
+                                        [43, 51, 42]])
+        cls.sar_confidence = np.array([[0.159699, 0.872120, 0.610836],
+                                       [0.657606, 0.110224, 0.675240],
+                                       [0.263030, 0.623490, 0.517019]])
+        cls.optical_confidence = np.array([[0.208393, 0.674579, 0.507099],
+                                           [0.214745, 0.962130, 0.779217],
+                                           [0.858645, 0.258679, 0.015593]])
         # References
-        self.ds_fusion_ref = np.array([[11, 42, 31], [42, 43, 11],
-                                       [11, 51, 11]])
-        self.choice_map_ref = np.array([[2, 3, 1], [2, 3, 2], [2, 3, 2]])
-        self.ds_fus_confidence_ref = np.array(
+        cls.ds_fusion_ref = np.array([[11, 42, 31], [42, 43, 11], [11, 51,
+                                                                   11]])
+        cls.choice_map_ref = np.array([[2, 3, 1], [2, 3, 2], [2, 3, 2]])
+        cls.ds_fus_confidence_ref = np.array(
             [[0.15969899, 0.67457902, 0.61083603],
              [0.65760601, 0.96213001, 0.67523998],
              [0.26302999, 0.258679, 0.51701897]])
-        self.parameter_ref = [{
+        cls.parameter_ref = [{
             'sar_classif':
             '/classif/Classif_T31TCJ_model_1_seed_0_SAR.tif',
             'opt_model':
@@ -93,26 +89,26 @@ class iota_testOpticalSARFusion(unittest.TestCase):
             '/dataAppVal/bymodels/model_1_seed_1_SAR.csv'
         }]
         # consts
-        self.classif_seed_pos = 5
-        self.classif_tile_pos = 1
-        self.classif_model_pos = 3
-        self.ds_choice_both = 1
-        self.ds_choice_sar = 2
-        self.ds_choice_opt = 3
-        self.ds_no_choice = 0
+        cls.classif_seed_pos = 5
+        cls.classif_tile_pos = 1
+        cls.classif_model_pos = 3
+        cls.ds_choice_both = 1
+        cls.ds_choice_sar = 2
+        cls.ds_choice_opt = 3
+        cls.ds_no_choice = 0
 
         # Tests directory
-        self.test_working_directory = None
-        if os.path.exists(self.iota2_tests_directory):
-            shutil.rmtree(self.iota2_tests_directory)
-        os.mkdir(self.iota2_tests_directory)
+        cls.test_working_directory = None
+        if os.path.exists(cls.iota2_tests_directory):
+            shutil.rmtree(cls.iota2_tests_directory)
+        os.mkdir(cls.iota2_tests_directory)
 
     # after launching all tests
     @classmethod
-    def tearDownClass(self):
-        print("{} ended".format(self.group_test_name))
-        if RM_IF_ALL_OK and all(self.all_tests_ok):
-            shutil.rmtree(self.iota2_tests_directory)
+    def tearDownClass(cls):
+        print("{} ended".format(cls.group_test_name))
+        if RM_IF_ALL_OK and all(cls.all_tests_ok):
+            shutil.rmtree(cls.iota2_tests_directory)
 
     # before launching a test
     def setUp(self):

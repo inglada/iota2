@@ -39,32 +39,32 @@ from iota2.Common import FileUtils as fut
 class iota_testVectorFormatting(unittest.TestCase):
     # before launching tests
     @classmethod
-    def setUpClass(self):
+    def setUpClass(cls):
         # definition of local variables
-        self.group_test_name = "iota_testVectorFormatting"
-        self.iota2_tests_directory = os.path.join(IOTA2DIR, "data",
-                                                  self.group_test_name)
-        self.in_vector = os.path.join(IOTA2DIR, "data", "references",
-                                      "formatting_vectors", "Input",
-                                      "formattingVectors", "T31TCJ.shp")
-        self.ref_img = os.path.join(IOTA2DIR, "data", "references",
-                                    "selectionSamples", "Input", "features",
-                                    "T31TCJ", "tmp", "MaskCommunSL.tif")
-        self.ref_region = os.path.join(IOTA2DIR, "data", "references",
-                                       "genResults", "Input", "classif",
-                                       "MASK", "Myregion_region_1_T31TCJ.shp")
+        cls.group_test_name = "iota_testVectorFormatting"
+        cls.iota2_tests_directory = os.path.join(IOTA2DIR, "data",
+                                                 cls.group_test_name)
+        cls.in_vector = os.path.join(IOTA2DIR, "data", "references",
+                                     "formatting_vectors", "Input",
+                                     "formattingVectors", "T31TCJ.shp")
+        cls.ref_img = os.path.join(IOTA2DIR, "data", "references",
+                                   "selectionSamples", "Input", "features",
+                                   "T31TCJ", "tmp", "MaskCommunSL.tif")
+        cls.ref_region = os.path.join(IOTA2DIR, "data", "references",
+                                      "genResults", "Input", "classif", "MASK",
+                                      "Myregion_region_1_T31TCJ.shp")
 
-        self.all_tests_ok = []
+        cls.all_tests_ok = []
 
         # References
-        self.config_test = os.path.join(
+        cls.config_test = os.path.join(
             IOTA2DIR, "config", "Config_4Tuiles_Multi_FUS_Confidence.cfg")
 
         # Tests directory
-        self.test_working_directory = None
-        if os.path.exists(self.iota2_tests_directory):
-            shutil.rmtree(self.iota2_tests_directory)
-        os.mkdir(self.iota2_tests_directory)
+        cls.test_working_directory = None
+        if os.path.exists(cls.iota2_tests_directory):
+            shutil.rmtree(cls.iota2_tests_directory)
+        os.mkdir(cls.iota2_tests_directory)
 
     # after launching all tests
     @classmethod

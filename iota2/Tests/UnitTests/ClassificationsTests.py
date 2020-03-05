@@ -21,6 +21,8 @@ import sys
 import shutil
 import unittest
 import numpy as np
+import iota2.Tests.UnitTests.tests_utils.tests_utils_rasters as TUR
+from TestsUtils import rasterToArray
 
 IOTA2DIR = os.environ.get('IOTA2DIR')
 
@@ -31,39 +33,33 @@ if not IOTA2DIR:
 # sub-directory tests
 RM_IF_ALL_OK = True
 
-iota2_script = os.path.join(IOTA2DIR, "iota2")
-sys.path.append(iota2_script)
-
-from iota2.Tests.UnitTests.tests_utils.tests_utils_rasters import array_to_raster
-from TestsUtils import rasterToArray
-
 
 class iota_testClassifications(unittest.TestCase):
     # before launching tests
     @classmethod
-    def setUpClass(self):
+    def setUpClass(cls):
         # definition of local variables
-        self.group_test_name = "iota_testClassifications"
-        self.iota2_tests_directory = os.path.join(IOTA2DIR, "data",
-                                                  self.group_test_name)
-        self.all_tests_ok = []
+        cls.group_test_name = "iota_testClassifications"
+        cls.iota2_tests_directory = os.path.join(IOTA2DIR, "data",
+                                                 cls.group_test_name)
+        cls.all_tests_ok = []
 
         # input data
-        self.config_test = os.path.join(
+        cls.config_test = os.path.join(
             IOTA2DIR, "config", "Config_4Tuiles_Multi_FUS_Confidence.cfg")
 
         # Tests directory
-        self.test_working_directory = None
-        if os.path.exists(self.iota2_tests_directory):
-            shutil.rmtree(self.iota2_tests_directory)
-        os.mkdir(self.iota2_tests_directory)
+        cls.test_working_directory = None
+        if os.path.exists(cls.iota2_tests_directory):
+            shutil.rmtree(cls.iota2_tests_directory)
+        os.mkdir(cls.iota2_tests_directory)
 
     # after launching all tests
     @classmethod
-    def tearDownClass(self):
-        print("{} ended".format(self.group_test_name))
-        if RM_IF_ALL_OK and all(self.all_tests_ok):
-            shutil.rmtree(self.iota2_tests_directory)
+    def tearDownClass(cls):
+        print("{} ended".format(cls.group_test_name))
+        if RM_IF_ALL_OK and all(cls.all_tests_ok):
+            shutil.rmtree(cls.iota2_tests_directory)
 
     # before launching a test
     def setUp(self):
@@ -105,8 +101,8 @@ class iota_testClassifications(unittest.TestCase):
         """
         TEST : ImageClassifier.iota2Classification.reorder_proba_map()
         """
-        from Common import ServiceConfigFile as SCF
-        from Classification.ImageClassifier import iota2Classification
+        from iota2.Common import ServiceConfigFile as SCF
+        from iota2.Classification.ImageClassifier import iota2Classification
 
         # prepare inputs
         probamap_arr = [
@@ -119,7 +115,7 @@ class iota_testClassifications(unittest.TestCase):
         ]
         probamap_path = os.path.join(self.test_working_directory,
                                      "PROBAMAP_T31TCJ_model_1_seed_0.tif")
-        array_to_raster(probamap_arr, probamap_path)
+        TUR.array_to_raster(probamap_arr, probamap_path)
 
         cfg = SCF.serviceConfigFile(self.config_test)
         fake_model = "model_1_seed_0.txt"

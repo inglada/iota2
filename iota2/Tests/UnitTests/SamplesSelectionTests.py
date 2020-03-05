@@ -20,6 +20,7 @@ import os
 import sys
 import shutil
 import unittest
+from iota2.Common import FileUtils as fut
 
 IOTA2DIR = os.environ.get('IOTA2DIR')
 
@@ -30,56 +31,51 @@ if not IOTA2DIR:
 # sub-directory tests
 RM_IF_ALL_OK = True
 
-IOTA2_SCRIPTS = os.path.join(IOTA2DIR, "iota2")
-sys.path.append(IOTA2_SCRIPTS)
-
-from iota2.Common import FileUtils as fut
-
 
 class iota_testSamplesSelection(unittest.TestCase):
     # before launching tests
     @classmethod
-    def setUpClass(self):
+    def setUpClass(cls):
         # definition of local variables
-        self.group_test_name = "iota_testSamplesSelection"
-        self.iota2_tests_directory = os.path.join(IOTA2DIR, "data",
-                                                  self.group_test_name)
-        self.all_tests_ok = []
+        cls.group_test_name = "iota_testSamplesSelection"
+        cls.iota2_tests_directory = os.path.join(IOTA2DIR, "data",
+                                                 cls.group_test_name)
+        cls.all_tests_ok = []
 
         # References
-        self.config_test = os.path.join(
+        cls.config_test = os.path.join(
             IOTA2DIR, "config", "Config_4Tuiles_Multi_FUS_Confidence.cfg")
-        self.in_shape = os.path.join(IOTA2DIR, "data", "references",
-                                     "selectionSamples", "Input",
-                                     "samplesSelection",
-                                     "samples_region_1_seed_0.shp")
-        self.in_xml = os.path.join(IOTA2DIR, "data", "references",
-                                   "selectionSamples", "Input",
-                                   "samplesSelection",
-                                   "samples_region_1_seed_0.xml")
-        self.in_xml_merge = os.path.join(IOTA2DIR, "data", "references",
-                                         "selectionSamples", "Input",
-                                         "samplesSelection", "merge_stats.xml")
-        self.features_ref = os.path.join(IOTA2DIR, "data", "references",
-                                         "selectionSamples", "Input",
-                                         "features", "T31TCJ")
-        self.selection_ref = os.path.join(
+        cls.in_shape = os.path.join(IOTA2DIR, "data", "references",
+                                    "selectionSamples", "Input",
+                                    "samplesSelection",
+                                    "samples_region_1_seed_0.shp")
+        cls.in_xml = os.path.join(IOTA2DIR, "data", "references",
+                                  "selectionSamples", "Input",
+                                  "samplesSelection",
+                                  "samples_region_1_seed_0.xml")
+        cls.in_xml_merge = os.path.join(IOTA2DIR, "data", "references",
+                                        "selectionSamples", "Input",
+                                        "samplesSelection", "merge_stats.xml")
+        cls.features_ref = os.path.join(IOTA2DIR, "data", "references",
+                                        "selectionSamples", "Input",
+                                        "features", "T31TCJ")
+        cls.selection_ref = os.path.join(
             IOTA2DIR, "data", "references", "selectionSamples", "Input",
             "samplesSelection",
             "T31TCJ_samples_region_1_seed_0_selection.sqlite")
 
         # Tests directory
-        self.test_working_directory = None
-        if os.path.exists(self.iota2_tests_directory):
-            shutil.rmtree(self.iota2_tests_directory)
-        os.mkdir(self.iota2_tests_directory)
+        cls.test_working_directory = None
+        if os.path.exists(cls.iota2_tests_directory):
+            shutil.rmtree(cls.iota2_tests_directory)
+        os.mkdir(cls.iota2_tests_directory)
 
     # after launching all tests
     @classmethod
-    def tearDownClass(self):
-        print("{} ended".format(self.group_test_name))
-        if RM_IF_ALL_OK and all(self.all_tests_ok):
-            shutil.rmtree(self.iota2_tests_directory)
+    def tearDownClass(cls):
+        print("{} ended".format(cls.group_test_name))
+        if RM_IF_ALL_OK and all(cls.all_tests_ok):
+            shutil.rmtree(cls.iota2_tests_directory)
 
     # before launching a test
     def setUp(self):
