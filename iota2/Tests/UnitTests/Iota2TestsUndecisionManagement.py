@@ -13,135 +13,150 @@
 Test of undecision_management for post classification fusion
 """
 import os
+import sys
 import unittest
 import shutil
 from iota2.Common import ServiceConfigFile as SCF
-
+RM_IF_ALL_OK = True
 IOTA2DIR = os.environ.get('IOTA2DIR')
-IOTA2_DATATEST = os.path.join(os.environ.get('IOTA2DIR'), "data")
 
 
 class iota_test_undecision_management(unittest.TestCase):
+    "test undecision management in post classification fusion"
+
     @classmethod
-    def setUpClass(self):
+    def setUpClass(cls):
         """
         Prepare constant for testing
         """
-        # definition of local variables
-        self.fichierConfig = (
-            IOTA2DIR + "/config/Config_4Tuiles_Multi_FUS_Confidence.cfg")
-        self.test_vector = (IOTA2_DATATEST +
-                            "/iota2_test_undecision_management/")
-        self.pathOut = (IOTA2_DATATEST + "/iota2_test_undecision_management/"
-                        "test_undecision_management/")
-        self.pathTilesFeat = IOTA2_DATATEST + "/references/features/"
-        self.shapeRegion = (
-            IOTA2_DATATEST +
-            "/references/GenerateRegionShape/region_need_To_env.shp")
-        self.pathClassif = self.pathOut + "/classif"
-        self.classifFinal = self.pathOut + "/final"
-        self.refData = IOTA2_DATATEST + "/references/NoData/"
-        self.cmdPath = self.pathOut + "/cmd"
+        cls.group_test_name = "iota_Iota2UndecisionManagement"
+        cls.iota2_tests_directory = os.path.join(IOTA2DIR, "data",
+                                                 cls.group_test_name)
+        cls.all_tests_ok = []
 
-        # test and creation of test_vector
-        if not os.path.exists(self.test_vector):
-            os.mkdir(self.test_vector)
-        # test and creation of pathOut
-        if not os.path.exists(self.pathOut):
-            os.mkdir(self.pathOut)
+        # Tests directory
+        cls.test_working_directory = None
+        if os.path.exists(cls.iota2_tests_directory):
+            shutil.rmtree(cls.iota2_tests_directory)
+        os.mkdir(cls.iota2_tests_directory)
+
+    # after launching all tests
+    @classmethod
+    def tearDownClass(cls):
+        print("{} ended".format(cls.group_test_name))
+        if RM_IF_ALL_OK and all(cls.all_tests_ok):
+            shutil.rmtree(cls.iota2_tests_directory)
+
+    # before launching a test
+    def setUp(self):
+        """
+        create test environement (directories)
+        """
+        # self.test_working_directory is the diretory dedicated to each tests
+        # it changes for each tests
+        test_name = self.id().split(".")[-1]
+        self.test_working_directory = os.path.join(self.iota2_tests_directory,
+                                                   test_name)
+        if os.path.exists(self.test_working_directory):
+            shutil.rmtree(self.test_working_directory)
+        # os.mkdir(self.test_working_directory)
+
+    def list2reason(self, exc_list):
+        if exc_list and exc_list[-1][0] is self:
+            return exc_list[-1][1]
+
+    # after launching a test, remove test's data if test succeed
+    def tearDown(self):
+        if sys.version_info > (3, 4, 0):
+            result = self.defaultTestResult()
+            self._feedErrorsToResult(result, self._outcome.errors)
         else:
-            shutil.rmtree(self.pathOut)
-            os.mkdir(self.pathOut)
-        # test and creation of pathClassif
-        if not os.path.exists(self.pathClassif):
-            os.mkdir(self.pathClassif)
-        if not os.path.exists(self.pathClassif + "/MASK"):
-            os.mkdir(self.pathClassif + "/MASK")
-        if not os.path.exists(self.pathClassif + "/tmpClassif"):
-            os.mkdir(self.pathClassif + "/tmpClassif")
-        # test and creation of classifFinal
-        if not os.path.exists(self.classifFinal):
-            os.mkdir(self.classifFinal)
-        # test and creation of cmdPath
-        if not os.path.exists(self.cmdPath):
-            os.mkdir(self.cmdPath)
-        if not os.path.exists(self.cmdPath + "/fusion"):
-            os.mkdir(self.cmdPath + "/fusion")
-        if not os.path.exists(self.pathOut + "/config_model"):
-            os.mkdir(self.pathOut + "/config_model")
-        src_files = os.listdir(self.refData + "/Input/Classif/MASK")
-        for file_name in src_files:
-            full_file_name = os.path.join(self.refData + "/Input/Classif/MASK",
-                                          file_name)
-            shutil.copy(full_file_name, self.pathClassif + "/MASK")
+            result = getattr(self, "_outcomeForDoCleanups",
+                             self._resultForDoCleanups)
 
-        src_files = os.listdir(self.refData + "/Input/Classif/classif")
-        for file_name in src_files:
-            full_file_name = os.path.join(
-                self.refData + "/Input/Classif/classif/", file_name)
-            shutil.copy(full_file_name, self.pathClassif)
+        error = self.list2reason(result.errors)
+        failure = self.list2reason(result.failures)
+        ok = not error and not failure
 
-        src_files = os.listdir(self.refData + "/Input/config_model")
-        for file_name in src_files:
-            full_file_name = os.path.join(self.refData + "/Input/config_model",
-                                          file_name)
-            shutil.copy(full_file_name, self.pathOut + "/config_model")
+        self.all_tests_ok.append(ok)
+        if ok:
+            shutil.rmtree(self.test_working_directory)
 
     def test_undecision_management(self):
         """
         Test undecision_management
         """
+        import filecmp
         from iota2.Classification import undecision_management as UM
         from iota2.Classification import Fusion as FUS
         from iota2.Common.Utils import run
         from iota2.Common import FileUtils as fut
-        SCF.clearConfig()
-        cfg = SCF.serviceConfigFile(self.fichierConfig)
+
+        shutil.copytree(
+            os.path.join(IOTA2DIR, "data", "references", "NoData", "Input",
+                         "Classif"), self.test_working_directory)
+        shutil.copytree(
+            os.path.join(IOTA2DIR, "data", "references", "NoData", "Input",
+                         "config_model"),
+            os.path.join(self.test_working_directory, "config_model"))
+        if not os.path.exists(
+                os.path.join(self.test_working_directory, "cmd", "fusion")):
+            os.makedirs(
+                os.path.join(self.test_working_directory, "cmd", "fusion"))
         shutil.copy(
-            os.path.join(self.pathClassif,
+            os.path.join(self.test_working_directory, "classif",
                          "Classif_D0005H0002_model_1_seed_0.tif"),
-            os.path.join(self.pathClassif,
+            os.path.join(self.test_working_directory, "classif",
                          "Classif_D0005H0002_model_1f2_seed_0.tif"))
         shutil.copy(
-            os.path.join(self.pathClassif,
+            os.path.join(self.test_working_directory, "classif",
                          "Classif_D0005H0002_model_1_seed_0.tif"),
-            os.path.join(self.pathClassif,
+            os.path.join(self.test_working_directory, "classif",
                          "Classif_D0005H0002_model_1f1_seed_0.tif"))
 
         shutil.copy(
-            os.path.join(self.pathClassif,
+            os.path.join(self.test_working_directory, "classif",
                          "D0005H0002_model_1_confidence_seed_0.tif"),
-            os.path.join(self.pathClassif,
+            os.path.join(self.test_working_directory, "classif",
                          "D0005H0002_model_1f2_confidence_seed_0.tif"))
         shutil.copy(
-            os.path.join(self.pathClassif,
+            os.path.join(self.test_working_directory, "classif",
                          "D0005H0002_model_1_confidence_seed_0.tif"),
-            os.path.join(self.pathClassif,
+            os.path.join(self.test_working_directory, "classif",
                          "D0005H0002_model_1f1_confidence_seed_0.tif"))
-        field_region = cfg.getParam('chain', 'regionField')
+
         cmd_fus = FUS.fusion(
-            self.pathClassif, 1, ["D0005H0002"],
-            cfg.getParam('argClassification', 'fusionOptions'),
-            cfg.getParam('chain', 'nomenclaturePath'),
-            cfg.getParam('chain', 'regionPath'),
-            cfg.getParam('argTrain', 'dempster_shafer_SAR_Opt_fusion'), None)
+            os.path.join(self.test_working_directory, "classif"), 1,
+            ["D0005H0002"], '-nodatalabel 0 -method majorityvoting',
+            os.path.join(IOTA2DIR, "data", "references", "nomenclature.txt"),
+            os.path.join(IOTA2DIR, "data", "regionShape",
+                         "4Tiles.shp"), False, None)
         for cmd in cmd_fus:
             run(cmd)
 
-        fusion_files = fut.FileSearch_AND(self.pathClassif, True, "_FUSION_")
+        fusion_files = fut.FileSearch_AND(
+            os.path.join(self.test_working_directory, "classif"), True,
+            "_FUSION_")
         print(fusion_files)
         pixtype = fut.getOutputPixType(
-            cfg.getParam('chain', 'nomenclaturePath'))
+            os.path.join(IOTA2DIR, "data", "references", "nomenclature.txt"))
 
         for fusionpath in fusion_files:
 
             UM.undecision_management(
-                self.pathOut, fusionpath, field_region, self.pathTilesFeat,
-                self.shapeRegion, self.pathOut,
-                cfg.getParam('argClassification', 'noLabelManagement'), None,
-                cfg.getParam("GlobChain", "features"),
-                cfg.getParam("chain", "userFeatPath"), pixtype,
-                cfg.getParam('chain', 'regionPath'),
-                cfg.getParam("userFeat", "patterns"),
-                cfg.getParam('argTrain', 'dempster_shafer_SAR_Opt_fusion'))
+                self.test_working_directory, fusionpath, "region",
+                os.path.join(IOTA2DIR, "data", "references", "features"),
+                os.path.join(IOTA2DIR, "data", "references",
+                             "GenerateRegionShape", "region_need_To_env.shp"),
+                "maxConfidence", None, ["NDVI", "NDWI", "Brightness"],
+                '../../../../MNT_L8Grid', pixtype,
+                os.path.join(IOTA2DIR, "data", "regionShape",
+                             "4Tiles.shp"), "ALT,ASP,SLP", False)
         # TODO: test intelligent
+        self.assertTrue(
+            filecmp.cmp(
+                os.path.join(self.test_working_directory, "classif",
+                             "D0005H0002_FUSION_model_1_seed_0.tif"),
+                os.path.join(IOTA2DIR, "data", "references", "NoData",
+                             "Output",
+                             "D0005H0002_FUSION_model_1_seed_0.tif")))

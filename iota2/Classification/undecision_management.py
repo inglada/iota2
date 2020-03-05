@@ -282,7 +282,6 @@ def undecision_management(path_test: str,
                           field_region: str,
                           path_to_img: str,
                           path_to_region: str,
-                          output_path: str,
                           no_label_management: str,
                           path_wd: str,
                           list_indices: List[str],
@@ -301,7 +300,6 @@ def undecision_management(path_test: str,
     path_to_img: string
     path_to_region: string
     region_vec: string
-    output_path: string
     no_label_management: string
     path_wd: string
     list_indices: List[string],
@@ -323,7 +321,7 @@ def undecision_management(path_test: str,
 
     if region_vec:
         current_model = path_fusion.split("/")[-1].split("_")[3]
-        config_model = os.path.join(output_path, "config_model",
+        config_model = os.path.join(path_test, "config_model",
                                     "configModel.cfg")
         n_fold = get_nb_split_shape(current_model, config_model)
 
@@ -344,7 +342,7 @@ def undecision_management(path_test: str,
         model_tile = gen_mask_region_by_tile(
             field_region, stack_ind, working_dir, current_tile, all_model,
             shp_rname, path_to_img, path_test,
-            os.path.join(output_path, "config_model",
+            os.path.join(path_test, "config_model",
                          "configModel.cfg"), path_wd)
     elif region_vec and no_label_management == "maxConfidence":
         model_tile = path_fusion.split("/")[-1].split("_")[3]
@@ -483,10 +481,6 @@ if __name__ == "__main__":
                         help="number of random sample(mandatory)",
                         type=int,
                         required=True)
-    PARSER.add_argument("-output_path",
-                        help="path to the output directory (mandatory)",
-                        dest="output_path",
-                        required=True)
     PARSER.add_argument("-no_label_meth",
                         dest="no_label_meth",
                         help="no label management rule",
@@ -531,7 +525,7 @@ if __name__ == "__main__":
     ARGS = PARSER.parse_args()
 
     undecision_management(ARGS.pathTest, ARGS.pathFusion, ARGS.fieldRegion,
-                          ARGS.pathToImg, ARGS.pathToRegion, ARGS.output_path,
+                          ARGS.pathToImg, ARGS.pathToRegion,
                           ARGS.no_label_meth, ARGS.pathWd, ARGS.list_feat,
                           ARGS.user_feat_path, ARGS.pixtype, ARGS.region_vec,
                           ARGS.patterns, ARGS.sar_fusion)

@@ -1589,7 +1589,7 @@ def get_feat_stack_name(list_indices: List[str],
     stack_ind = f"SL_MultiTempGapF{user_feat_pattern}.tif"
     return_list_feat = True
     if len(list_indices) > 1:
-        list_indices = list(list_indices.data)
+        list_indices = list(list_indices)
         list_indices = sorted(list_indices)
         list_feat = "_".join(list_indices)
     elif len(list_indices) == 1:

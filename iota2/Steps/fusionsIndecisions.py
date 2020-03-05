@@ -82,9 +82,9 @@ class fusionsIndecisions(IOTA2Step.Step):
         from iota2.Classification import undecision_management as UM
         return lambda x: UM.undecision_management(
             self.output_path, x, self.field_region, self.path_to_img, self.
-            shape_region, self.output_path, self.no_label, self.
-            working_directory, self.features, self.user_feat_path, self.
-            pixtype, self.region_vec, self.patterns, self.sar_opt_fusion)
+            shape_region, self.no_label, self.working_directory,
+            list(self.features), self.user_feat_path, self.pixtype, self.
+            region_vec, self.patterns, self.sar_opt_fusion)
 
     def step_outputs(self):
         """
