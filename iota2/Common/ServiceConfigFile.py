@@ -1057,7 +1057,10 @@ class iota2_parameters:
                                                   sensor_data_param_name)
         if "none" in sensor_data_path.lower():
             return sensor_dict
-        sensor_section = self.__config.getSection(sensor_section_name)
+        if sensor_section_name == "Sentinel_1":
+            sensor_section = {}
+        else:
+            sensor_section = self.__config.getSection(sensor_section_name)
         sensor_dict["tile_name"] = tile_name
         sensor_dict["target_proj"] = self.projection
         sensor_dict["all_tiles"] = self.all_tiles
