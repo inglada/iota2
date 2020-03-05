@@ -606,7 +606,7 @@ class iota_testSamplerApplications(unittest.TestCase):
         Step 4 : compare the merged sample to reference
         """
 
-        from iota2.Tests.UnitTests.TestsUtils import prepare_annual_features
+        from iota2.Tests.UnitTests.tests_utils.tests_utils_rasters import prepare_annual_features
 
         def prepareTestsFolder(workingDirectory=False):
 

@@ -13,12 +13,12 @@ import logging
 
 logger = logging.getLogger(__name__)
 try:
-    from Common import Utils
-    from VectorTools import DeleteDuplicateGeometriesSqlite as ddg
-    from VectorTools import checkGeometryAreaThreshField as checkGeom
-    from VectorTools import vector_functions as vf
-    from VectorTools import AddFieldArea as afa
-    from VectorTools import DeleteField as df
+    from iota2.Common import Utils
+    from iota2.VectorTools import DeleteDuplicateGeometriesSqlite as ddg
+    from iota2.VectorTools import checkGeometryAreaThreshField as checkGeom
+    from iota2.VectorTools import vector_functions as vf
+    from iota2.VectorTools import AddFieldArea as afa
+    from iota2.VectorTools import DeleteField as df
 except ImportError:
     raise ImportError("Vector tools not well configured / installed")
 

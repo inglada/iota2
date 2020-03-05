@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
-import sys, os
+import sys
+import os
 import argparse
 from osgeo import ogr
-from VectorTools import vector_functions as vf
+from iota2.VectorTools import vector_functions as vf
 
 
 def bufferPoly(inputfn,
@@ -61,15 +62,29 @@ if __name__ == "__main__":
         sys.exit(-1)
     else:
         usage = "usage: %prog [options] "
-        parser = argparse.ArgumentParser(description = "Apply a buffer of a defined distance"\
-        "on features of an input shapefile and create a new shapefile with same attributes")
-        parser.add_argument("-s", dest="inshapefile", action="store", \
-                            help="Input shapefile", required = True)
-        parser.add_argument("-o", dest="outshapefile", action="store", \
-                            help="Ouput shapefile", required = True)
-        parser.add_argument("-b", dest="buff", action="store", \
-                            help="Buffer size (m)", default="0")
-        parser.add_argument("-format", dest="outformat", action="store", default = "ESRI Shapefile", \
+        parser = argparse.ArgumentParser(
+            description="Apply a buffer of a defined distance"
+            "on features of an input shapefile and create a new shapefile with same attributes"
+        )
+        parser.add_argument("-s",
+                            dest="inshapefile",
+                            action="store",
+                            help="Input shapefile",
+                            required=True)
+        parser.add_argument("-o",
+                            dest="outshapefile",
+                            action="store",
+                            help="Ouput shapefile",
+                            required=True)
+        parser.add_argument("-b",
+                            dest="buff",
+                            action="store",
+                            help="Buffer size (m)",
+                            default="0")
+        parser.add_argument("-format",
+                            dest="outformat",
+                            action="store",
+                            default="ESRI Shapefile",
                             help="output format (default : ESRI Shapefile)")
         args = parser.parse_args()
         bufferPoly(args.inshapefile, args.outshapefile, args.buff,

@@ -15,9 +15,9 @@
 # =========================================================================
 import os
 
-from Steps import IOTA2Step
-from Cluster import get_RAM
-from Common import ServiceConfigFile as SCF
+from iota2.Steps import IOTA2Step
+from iota2.Cluster import get_RAM
+from iota2.Common import ServiceConfigFile as SCF
 
 
 class zonalStatistics(IOTA2Step.Step):
@@ -93,9 +93,9 @@ class zonalStatistics(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
-        from simplification import ZonalStats as zs
-        from VectorTools import vector_functions as vf
-        from Common import FileUtils as fut
+        from iota2.simplification import ZonalStats as zs
+        from iota2.VectorTools import vector_functions as vf
+        from iota2.Common import FileUtils as fut
 
         tmpdir = os.path.join(self.outputPath, 'final', 'simplification',
                               'tmp')
@@ -113,7 +113,7 @@ class zonalStatistics(IOTA2Step.Step):
             the function to execute as a lambda function. The returned object
             must be a lambda function.
         """
-        from simplification import ZonalStats as zs
+        from iota2.simplification import ZonalStats as zs
 
         tmpdir = os.path.join(self.outputPath, 'final', 'simplification',
                               'tmp')

@@ -105,9 +105,12 @@ class iota_testS2STSensor(unittest.TestCase):
         from iota2.Common.FileUtils import FileSearch_AND
         from iota2.Tests.UnitTests.TestsUtils import rasterToArray
         from iota2.Tests.UnitTests.TestsUtils import compute_brightness_from_vector
-        from iota2.Tests.UnitTests.TestsUtils import generate_fake_s2_s2c_data
+        import iota2.Tests.UnitTests.tests_utils.tests_utils_rasters as TUR
         # s2 sen2cor data
-        generate_fake_s2_s2c_data(self.test_working_directory, self.MTD_files)
+        TUR.generate_fake_s2_s2c_data(self.test_working_directory,
+                                      "T31TCJ",
+                                      self.MTD_files,
+                                      res=10)
 
         # config file
         config_path_test = os.path.join(self.test_working_directory,

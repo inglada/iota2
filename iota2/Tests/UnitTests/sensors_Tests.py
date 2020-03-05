@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -194,10 +194,11 @@ class iota2_test_sensors_test(unittest.TestCase):
         """Tests if the class sentinel_2 can be instanciate
         """
         from iota2.Sensors.Sentinel_2 import sentinel_2
-        from iota2.Tests.UnitTests.tests_utils.tests_utils_rasters import generate_fake_s2_data
+        import iota2.Tests.UnitTests.tests_utils.tests_utils_rasters as TUR
         tile_name = "T31TCJ"
-        generate_fake_s2_data(self.test_working_directory, tile_name,
-                              ["20200101", "20200120"])
+        TUR.generate_fake_s2_data(self.test_working_directory,
+                                  tile_name, ["20200101", "20200120"],
+                                  res=10)
         args = {
             "tile_name": "T31TCJ",
             "target_proj": 2154,
@@ -241,7 +242,7 @@ class iota2_test_sensors_test(unittest.TestCase):
         """Tests if the class sentinel_2_s2c can be instanciate
         """
         from iota2.Sensors.Sentinel_2_S2C import sentinel_2_s2c
-        from iota2.Tests.UnitTests.TestsUtils import generate_fake_s2_s2c_data
+        import iota2.Tests.UnitTests.tests_utils.tests_utils_rasters as TUR
         tile_name = "T31TCJ"
         # generate fake input data
         mtd_files = [
@@ -249,7 +250,10 @@ class iota2_test_sensors_test(unittest.TestCase):
             os.path.join(IOTA2DIR, "data", "MTD_MSIL2A_20190506.xml")
         ]
 
-        generate_fake_s2_s2c_data(self.test_working_directory, mtd_files)
+        TUR.generate_fake_s2_s2c_data(self.test_working_directory,
+                                      tile_name,
+                                      mtd_files,
+                                      res=10.0)
         args = {
             "tile_name": tile_name,
             "target_proj": 2154,
@@ -293,10 +297,10 @@ class iota2_test_sensors_test(unittest.TestCase):
         """Tests if the class landsat_8 can be instanciate
         """
         from iota2.Sensors.Landsat_8 import landsat_8
-        from TestsUtils import generate_fake_l8_data
+        import iota2.Tests.UnitTests.tests_utils.tests_utils_rasters as TUR
         tile_name = "T31TCJ"
-        generate_fake_l8_data(self.test_working_directory, tile_name,
-                              ["20200101", "20200120"])
+        TUR.generate_fake_l8_data(self.test_working_directory, tile_name,
+                                  ["20200101", "20200120"])
         args = {
             "tile_name": "T31TCJ",
             "target_proj": 2154,
@@ -339,12 +343,11 @@ class iota2_test_sensors_test(unittest.TestCase):
         """Tests if the class user_features can be instanciate
         """
         from iota2.Sensors.User_features import user_features
-        from TestsUtils import generate_fake_user_features_data
-
+        import iota2.Tests.UnitTests.tests_utils.tests_utils_rasters as TUR
         tile_name = "T31TCJ"
         patterns = ["NUMBER_OF_THINGS", "LAI"]
-        generate_fake_user_features_data(self.test_working_directory,
-                                         tile_name, patterns)
+        TUR.generate_fake_user_features_data(self.test_working_directory,
+                                             tile_name, patterns)
         args = {
             "tile_name": tile_name,
             "target_proj": 2154,
@@ -386,10 +389,11 @@ class iota2_test_sensors_test(unittest.TestCase):
         """Tests if the class sentinel_2_l3a can be instanciate
         """
         from iota2.Sensors.Sentinel_2_L3A import sentinel_2_l3a
-        from TestsUtils import generate_fake_s2_l3a_data
+        import iota2.Tests.UnitTests.tests_utils.tests_utils_rasters as TUR
         tile_name = "T31TCJ"
-        generate_fake_s2_l3a_data(self.test_working_directory, tile_name,
-                                  ["20200101", "20200120"])
+        TUR.generate_fake_s2_l3a_data(self.test_working_directory,
+                                      tile_name, ["20200101", "20200120"],
+                                      res=10)
         args = {
             "tile_name": "T31TCJ",
             "target_proj": 2154,
@@ -433,10 +437,10 @@ class iota2_test_sensors_test(unittest.TestCase):
         """Tests if the class landsat_8_old can be instanciate
         """
         from iota2.Sensors.Landsat_8_old import landsat_8_old
-        from TestsUtils import generate_fake_l8_old_data
+        import iota2.Tests.UnitTests.tests_utils.tests_utils_rasters as TUR
         tile_name = "France-MetropoleD0005H0002"
-        generate_fake_l8_old_data(self.test_working_directory, tile_name,
-                                  ["20200101", "20200120"])
+        TUR.generate_fake_l8_old_data(self.test_working_directory, tile_name,
+                                      ["20200101", "20200120"])
         args = {
             "tile_name": tile_name,
             "target_proj": 2154,
@@ -480,10 +484,10 @@ class iota2_test_sensors_test(unittest.TestCase):
         """Tests if the class landsat_5_old can be instanciate
         """
         from iota2.Sensors.Landsat_5_old import landsat_5_old
-        from TestsUtils import generate_fake_l5_old_data
+        import iota2.Tests.UnitTests.tests_utils.tests_utils_rasters as TUR
         tile_name = "France-MetropoleD0005H0002"
-        generate_fake_l5_old_data(self.test_working_directory, tile_name,
-                                  ["20200101", "20200120"])
+        TUR.generate_fake_l5_old_data(self.test_working_directory, tile_name,
+                                      ["20200101", "20200120"])
         args = {
             "tile_name": tile_name,
             "target_proj": 2154,

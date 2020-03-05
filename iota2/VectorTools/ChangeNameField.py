@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from osgeo import ogr
 import os
 import sys
 import argparse
-from VectorTools import DeleteField
-from VectorTools import vector_functions as vf
+from osgeo import ogr
+from iota2.VectorTools import DeleteField
+from iota2.VectorTools import vector_functions as vf
+
 
 def changeName(filein, fieldin, fieldout):
 
@@ -14,14 +15,14 @@ def changeName(filein, fieldin, fieldout):
     if fieldout in fieldList:
         print("Field name {} already exists".format(fieldout))
         sys.exit(1)
-        
-    # Get input file and field characteritics 
+
+    # Get input file and field characteritics
     source = ogr.Open(filein, 1)
     layer = source.GetLayer()
     layer_defn = layer.GetLayerDefn()
     i = layer_defn.GetFieldIndex(fieldin)
-        
-    # Create the out field with in field characteristics 
+
+    # Create the out field with in field characteristics
     try:
         fieldTypeCode = layer_defn.GetFieldDefn(i).GetType()
         fieldWidth = layer_defn.GetFieldDefn(i).GetWidth()
@@ -29,14 +30,14 @@ def changeName(filein, fieldin, fieldout):
     except:
         print("Field {} not exists in the input shapefile".format(fieldin))
         sys.exit(0)
-        
+
     newField = ogr.FieldDefn(fieldout, fieldTypeCode)
     newField.SetWidth(fieldWidth)
     newField.SetPrecision(fieldPrecision)
     layer.CreateField(newField)
 
     for feat in layer:
-        val =  feat.GetField(fieldin)
+        val = feat.GetField(fieldin)
         layer.SetFeature(feat)
         feat.SetField(fieldout, val)
         layer.SetFeature(feat)
@@ -45,13 +46,14 @@ def changeName(filein, fieldin, fieldout):
 
     DeleteField.deleteField(filein, fieldin)
 
+
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         prog = os.path.basename(sys.argv[0])
-        print('      '+sys.argv[0]+' [options]') 
+        print('      ' + sys.argv[0] + ' [options]')
         print("     Help : ", prog, " --help")
         print("        or : ", prog, " -h")
-        sys.exit(-1)  
+        sys.exit(-1)
     else:
         usage = "usage: %prog [options] "
         parser = argparse.ArgumentParser(description = "Change exsiting field name " \

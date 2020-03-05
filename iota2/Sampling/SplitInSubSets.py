@@ -126,7 +126,7 @@ def get_CrossValId(layer, dataField, classes, seeds, regionField, regions):
     list
         a list of size 'seeds' containing FIDs list
     """
-    from VectorTools import splitByArea
+    from iota2.VectorTools import splitByArea
 
     id_sets = [[] for i in range(seeds)]
     layer.ResetReading()
