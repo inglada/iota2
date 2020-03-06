@@ -13,7 +13,10 @@
 #   PURPOSE.  See the above copyright notices for more information.
 #
 # =========================================================================
+"""generate the iota2 release notes"""
+
 import re
+import argparse
 import subprocess
 from typing import List, Dict
 
@@ -60,7 +63,7 @@ def get_commits_msgs(from_tag: str, to_tag: str) -> List[Dict[str, str]]:
 
 
 def release_header(from_tag: str, to_tag: str) -> str:
-    """
+    """define release notes header
     """
     header = f"iota2-{to_tag} - Changes since version {from_tag}\n"
     header += "-" * len(header)
@@ -71,6 +74,14 @@ def release_header(from_tag: str, to_tag: str) -> str:
 def write_release(release_file: str, from_tag: str, to_tag: str) -> None:
     """write iota2 release rst file
 
+    Parameters
+    ----------
+    release_file : str
+        output file (open in append mode)
+    from_tag : str
+        older git tag to consider to build the release
+    to_tag : str
+        newer git tag to consider to build the release
     """
 
     commits = get_commits_msgs(from_tag, to_tag)
@@ -80,7 +91,6 @@ def write_release(release_file: str, from_tag: str, to_tag: str) -> None:
         filter(lambda x: TRACKED_TAGS["bug"] in x["content"], commits))
 
     release_content = ""
-
     header = release_header(from_tag, to_tag)
     release_content += header
 
@@ -111,5 +121,20 @@ def write_release(release_file: str, from_tag: str, to_tag: str) -> None:
         r_notes.write(release_content)
 
 
-release_file = "/home/uz/vincenta/tmp/RELEASE_NOTES.rst"
-write_release(release_file, "v0.5.1", "v0.5.2")
+if __name__ == "__main__":
+    DESC = "generate the iota2 release notes (rst format)"
+    PARSER = argparse.ArgumentParser(description=DESC)
+    PARSER.add_argument("-output",
+                        dest="release_notes_file",
+                        help="output file (open in append mode)",
+                        required=True)
+    PARSER.add_argument("-older_tag",
+                        dest="older_tag",
+                        help="older tag or commit ID",
+                        required=True)
+    PARSER.add_argument("-newer_tag",
+                        dest="newer_tag",
+                        help="newer tag or commit ID",
+                        required=True)
+    ARGS = PARSER.parse_args()
+    write_release(ARGS.release_notes_file, ARGS.older_tag, ARGS.newer_tag)
