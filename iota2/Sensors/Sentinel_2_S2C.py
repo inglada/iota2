@@ -239,7 +239,7 @@ class sentinel_2_s2c():
         # tile reference image generation
         base_ref = date_bands[0]
         logger.info(f"reference image generation {self.ref_image}"
-                    " from {base_ref}")
+                    f" from {base_ref}")
         ensure_dir(os.path.dirname(self.ref_image), raise_exe=False)
         base_ref_projection = getRasterProjectionEPSG(base_ref)
         if not os.path.exists(self.ref_image):
