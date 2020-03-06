@@ -132,7 +132,6 @@ def mpi_schedule(iota2_step,
     """
     A simple MPI scheduler to execute jobs in parallel.
     """
-
     if mpi_service.rank != 0:
         return None
 
@@ -142,9 +141,12 @@ def mpi_schedule(iota2_step,
     parameters_success = []
 
     if not param_array_origin:
-        raise Exception(
-            "JobArray must contain a list of parameter as argument")
-        sys.exit(1)
+        print("JobArray must contain a list of parameter as argument")
+        with open(logPath, "a+") as log_f:
+            log_f.write(
+                "JobArray must contain a list of parameter as argument.\n")
+            log_f.write("An earlier stage probably behaved erratically.")
+        return [], False
     try:
         if os.path.exists(logPath):
             os.remove(logPath)
@@ -153,6 +155,7 @@ def mpi_schedule(iota2_step,
         else:
             #shallowCopy
             param_array = [param for param in param_array_origin]
+
         if mpi_service.size > 1:
             # master
             nb_completed_tasks = 0
