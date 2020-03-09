@@ -6,7 +6,7 @@ package:
 
 source:
   git_url: https://framagit.org/iota2-project/iota2.git
-  git_rev: master
+  git_rev: v20190309
   
 
 build:
