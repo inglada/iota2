@@ -1,0 +1,63 @@
+{% set version = "4.13.1" %}
+
+package:
+  name: libitk
+  version: "{{version}}"
+
+source:
+  - url: https://github.com/InsightSoftwareConsortium/ITK/archive/v{{version}}.tar.gz
+    sha256: b352060d8b7289916a3cb033dfdbcf423423ba474643b79706966e679268e3d7
+  - patches:
+    - patches/itk-1-fftw-all.diff
+    - patches/itk-2-itktestlib-all.diff
+
+build:
+    number: 1
+
+requirements:
+  build:
+    - cmake    >=3.3
+    - ninja
+    - {{ compiler('c') }}
+    - {{ compiler('cxx') }}
+  host:
+    - expat
+    - fftw
+    - hdf5>=1.10.4,<1.10.5.0a0                      # [not win]
+    - jpeg
+    - libtiff
+    - libpng
+    - zlib
+  run:
+    - expat
+    - fftw
+    - hdf5>=1.10.4,<1.10.5.0a0                      # [not win]
+    - jpeg
+    - libtiff
+    - libpng
+    - zlib
+
+test:
+  requires:
+    - cmake
+    - {{ compiler("c") }}
+    - {{ compiler("cxx") }}
+  files:
+    - example
+  commands:
+    - test -d $PREFIX/include/ITK*                        # [not win]
+    - if not exist %LIBRARY_INC%\\ITK* exit 1             # [win]
+    - itkTestDriver -- echo "Runtime ITK OK"
+    - cmake -D "CMAKE_SYSTEM_PREFIX_PATH:FILEPATH=${PREFIX}" ./example  # [not win]
+    - cmake --build . --config Release                                  # [not win]
+
+about:
+  home: http://www.itk.org
+  license: Apache 2.0
+  license_file: LICENSE
+  summary: Runtime libraries and header files for the Insight Toolkit for segmentation and registration.
+
+extra:
+    recipe-maintainers:
+      - blowekamp
+      - bluescarni

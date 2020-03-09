@@ -1,0 +1,109 @@
+# This file created by conda-build 3.10.1
+# meta.yaml template originally from:
+# /Users/travis/build/csdms-stack/grass-recipe/recipe, last modified Wed May  2 22:38:49 2018
+# ------------------------------------------------
+
+package:
+    name: grass
+    version: 7.7
+source:
+    patches:
+      - platform.make.in.patch [osx]
+      - platform.make.in-linux.patch [linux]
+      - loader.py.patch
+      - rules.make.patch [osx]
+      - rules.make.patch [linux]
+      - aclocal.m4.patch
+      - configure.patch
+      - install.make.patch
+      - module.make.patch [osx]
+      - shlib.make.patch [osx]
+    git_url: https://github.com/OSGeo/grass.git
+    git_rev: 5c116c5a32e810f67948651dbc949ca1a6f984cf
+
+build:
+    number: 3
+requirements:
+    build:
+        - krb5
+        - sqlite
+        - fftw
+        - libcxxabi
+        - libxml2
+        - blas
+        - libtiff
+        - jpeg
+        - python=3.6
+        - xz
+        - wxpython
+        - curl
+        - compiler-rt
+        - libgfortran
+        - pandoc
+        - geos
+        - six
+        - fontconfig
+        - giflib
+        - tk
+        - cairo
+        - libpng
+        - certifi
+        - numpy>=1.14.6,<2.0a0
+        - libnetcdf
+        - icu=58
+        - pixman
+        - freetype
+        - ncurses
+        - ca-certificates
+        - pytz
+        - jbig
+        - matplotlib
+        - readline
+        - gdal 2.4.1 py36h5f563d9_10
+        - proj4=5.*
+        - hdf5
+        - zlib 
+        - openssl 
+        - libiconv 
+        - openblas 
+        - libgdal 2.4.1 hc4f5fd6_10
+        - cycler
+        - libcxx
+    run:
+        - krb5
+        - sqlite
+        - cairo
+        - blas
+        - libtiff
+        - jpeg
+        - wxpython
+        - libgcc
+        - pandoc
+        - libcxx >=4.0.1
+        - giflib
+        - libpng
+        - numpy>=1.14.6,<2.0a0
+        - freetype
+        - python=3.6
+        - matplotlib
+        - gdal 2.4.1 py36h5f563d9_10
+        - proj4
+        - fftw
+        - libiconv
+        - geos
+about:
+    description: 'GRASS GIS, commonly referred to as GRASS (Geographic Resources
+
+        Analysis Support System), is a free and open source Geographic
+
+        Information System (GIS) software suite used for geospatial data
+
+        management and analysis, image processing, graphics and maps
+
+        production, spatial modeling, and visualization.
+
+        '
+    dev_url: https://grass.osgeo.org/development/
+    home: https://grass.osgeo.org/
+    license: GPLv2
+    summary: Geographic Resources Analysis Support System
