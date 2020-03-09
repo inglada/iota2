@@ -1,0 +1,24 @@
+batis denses:1
+batis diffus:2
+zones ind et com:3
+surfaces routes:4
+colza:5
+cereales à pailles:6
+protéagineux:7
+soja:8
+tournesol:9
+maïs:10
+riz:11
+tubercules/racines:12
+prairies:13
+vergers:14
+vignes:15
+forets de feuillus:16
+forets de coniferes:17
+pelouses:18
+landes ligneuses:19
+surfaces minérales:20
+plages et dunes:21
+glaciers ou neiges: 22
+eau:23
+autres:255

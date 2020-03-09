@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -15,39 +15,53 @@
 # =========================================================================
 import os
 
-from Steps import IOTA2Step
-from Cluster import get_RAM
-from Common import ServiceConfigFile as SCF
-from VectorTools import vector_functions as vf
+from iota2.Steps import IOTA2Step
+from iota2.Common import ServiceConfigFile as SCF
+from iota2.VectorTools import vector_functions as vf
+
 
 class mosaicTilesVectorization(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "mosaictiles"
-        super(mosaicTilesVectorization, self).__init__(cfg, cfg_resources_file, resources_block_name)
+        super(mosaicTilesVectorization, self).__init__(cfg, cfg_resources_file,
+                                                       resources_block_name)
 
         # step variables
-        self.workingDirectory = workingDirectory        
-        self.outputPath = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
-        self.shapeRegion = SCF.serviceConfigFile(self.cfg).getParam('chain', 'regionPath')
-        self.field_Region = SCF.serviceConfigFile(self.cfg).getParam('chain', 'regionField')
-        self.clipfile = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'clipfile')
-        self.clipfield = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'clipfield')
-        self.clipvalue = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'clipvalue')
-        self.outprefix  = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'outprefix')
-        self.outserial = os.path.join(self.outputPath, 'final', 'simplification', 'tiles') 
-        self.outfilegrid = os.path.join(self.outputPath, 'final', 'simplification', 'grid.shp')
-        self.outmos = os.path.join(self.outputPath, 'final', 'simplification', 'mosaic')
-        self.outfilevect = os.path.join(self.outputPath, 'final', 'simplification', 'vectors')
-        self.grid = os.path.join(self.outputPath, 'final', 'simplification', 'grid.shp')
-        
+        self.workingDirectory = workingDirectory
+        self.outputPath = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'outputPath')
+        self.shapeRegion = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'regionPath')
+        self.field_Region = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'regionField')
+        self.clipfile = SCF.serviceConfigFile(self.cfg).getParam(
+            'Simplification', 'clipfile')
+        self.clipfield = SCF.serviceConfigFile(self.cfg).getParam(
+            'Simplification', 'clipfield')
+        self.clipvalue = SCF.serviceConfigFile(self.cfg).getParam(
+            'Simplification', 'clipvalue')
+        self.outprefix = SCF.serviceConfigFile(self.cfg).getParam(
+            'Simplification', 'outprefix')
+        self.outserial = os.path.join(self.outputPath, 'final',
+                                      'simplification', 'tiles')
+        self.outfilegrid = os.path.join(self.outputPath, 'final',
+                                        'simplification', 'grid.shp')
+        self.outmos = os.path.join(self.outputPath, 'final', 'simplification',
+                                   'mosaic')
+        self.outfilevect = os.path.join(self.outputPath, 'final',
+                                        'simplification', 'vectors')
+        self.grid = os.path.join(self.outputPath, 'final', 'simplification',
+                                 'grid.shp')
+
         if self.workingDirectory is None:
-            self.tmpdir = os.path.join(self.outputPath, 'final', 'simplification', 'tmp')
+            self.tmpdir = os.path.join(self.outputPath, 'final',
+                                       'simplification', 'tmp')
         else:
-            self.tmpdir = self.workingDirectory            
+            self.tmpdir = self.workingDirectory
 
         self.checkvalue = False
-        if not self.clipfile:                
+        if not self.clipfile:
             if self.shapeRegion:
                 self.clipfile = self.shapeRegion
             else:
@@ -58,7 +72,7 @@ class mosaicTilesVectorization(IOTA2Step.Step):
 
         else:
             if self.clipvalue is None:
-                self.checkvalue = True   
+                self.checkvalue = True
 
     def step_description(self):
         """
@@ -84,21 +98,16 @@ class mosaicTilesVectorization(IOTA2Step.Step):
             the function to execute as a lambda function. The returned object
             must be a lambda function.
         """
-        
-        from simplification import MergeTileRasters as mtr
-        self.tmpdir = os.path.join(self.outputPath, 'final', 'simplification', 'tmp')
-        if self.workingDirectory:
-            self.tmpdir = self.workingDirectory 
 
-        step_function = lambda x: mtr.mergeTileRaster(self.tmpdir,
-                                                      self.clipfile,
-                                                      self.clipfield,
-                                                      x,                                                                
-                                                      self.outfilegrid,
-                                                      self.outserial,
-                                                      "FID",
-                                                      "tile_",
-                                                      self.outmos)
+        from iota2.simplification import MergeTileRasters as mtr
+        self.tmpdir = os.path.join(self.outputPath, 'final', 'simplification',
+                                   'tmp')
+        if self.workingDirectory:
+            self.tmpdir = self.workingDirectory
+
+        step_function = lambda x: mtr.mergeTileRaster(
+            self.tmpdir, self.clipfile, self.clipfield, x, self.outfilegrid,
+            self.outserial, "FID", "tile_", self.outmos)
         return step_function
 
     def step_outputs(self):

@@ -25,6 +25,7 @@ y_coords = List[float]
 x_coords = List[float]
 values = List[float]
 
+
 def input_parameters(execution_dir: str) -> List[Param]:
     """function dedicated to feed merge_ref_super_pix
 
@@ -41,22 +42,26 @@ def input_parameters(execution_dir: str) -> List[Param]:
     model_position = 3
     seed_position = 5
 
-    sample_selection_directory = os.path.join(execution_dir, "samplesSelection")
-    sample_sel_content = list(set(FileSearch_AND(sample_selection_directory, False, "_samples_region_", "selection.sqlite")))
+    sample_selection_directory = os.path.join(execution_dir,
+                                              "samplesSelection")
+    sample_sel_content = list(
+        set(
+            FileSearch_AND(sample_selection_directory, False,
+                           "_samples_region_", "selection.sqlite")))
     selection_models = [(c_file.split("_")[model_position],
                          int(c_file.split("_")[seed_position]),
-                         c_file.split("_")[tile_position],
-                         c_file) for c_file in sample_sel_content]
+                         c_file.split("_")[tile_position], c_file)
+                        for c_file in sample_sel_content]
     selected_ref = sorted(selection_models, key=operator.itemgetter(0, 1, 2))
 
     parameters = []
     for model, seed, tile_name, ref in selected_ref:
-        SLIC_path = FileSearch_AND(os.path.join(execution_dir,
-                                                "features", tile_name, "tmp"),
-                                                 True, "SLIC", ".tif")[0]
-        ref_path = os.path.join(sample_selection_directory, "{}.sqlite".format(ref))
-        parameters.append({"selection_samples": ref_path,
-                           "SLIC": SLIC_path})
+        SLIC_path = FileSearch_AND(
+            os.path.join(execution_dir, "features", tile_name, "tmp"), True,
+            "SLIC", ".tif")[0]
+        ref_path = os.path.join(sample_selection_directory,
+                                "{}.sqlite".format(ref))
+        parameters.append({"selection_samples": ref_path, "SLIC": SLIC_path})
 
     return parameters
 
@@ -94,26 +99,37 @@ def choosable_annual_pixels(classification_raster: str, validity_raster: str,
     from Common.OtbAppBank import CreateBandMathApplication
     from Common.OtbAppBank import CreateSuperimposeApplication
 
-    roi_classif, _ = CreateSuperimposeApplication({"inr": region_mask,
-                                                "inm": classification_raster,
-                                                "interpolator": "nn"})
+    roi_classif, _ = CreateSuperimposeApplication({
+        "inr": region_mask,
+        "inm": classification_raster,
+        "interpolator": "nn"
+    })
     roi_classif.Execute()
-    roi_validity, _ = CreateSuperimposeApplication({"inr": region_mask,
-                                                 "inm": validity_raster,
-                                                 "interpolator": "nn"})
+    roi_validity, _ = CreateSuperimposeApplication({
+        "inr": region_mask,
+        "inm": validity_raster,
+        "interpolator": "nn"
+    })
     roi_validity.Execute()
     #~ classif_reg = CreateClassificationMapRegularization({"io.in": roi_classif,
-                                                         #~ "ip.undecidedlabel": 0})
+    #~ "ip.undecidedlabel": 0})
     #~ classif_reg.Execute()
-    mask_dummy = CreateBandMathApplication({"il": [region_mask],
-                                            "exp": "im1b1"})
+    mask_dummy = CreateBandMathApplication({
+        "il": [region_mask],
+        "exp": "im1b1"
+    })
     mask_dummy.Execute()
     #~ valid = CreateBandMathApplication({"il": [roi_validity, classif_reg],
-    valid = CreateBandMathApplication({"il": [roi_validity, roi_classif],
-                                       "exp": "im1b1>{}?im2b1:0".format(validity_threshold)})
+    valid = CreateBandMathApplication({
+        "il": [roi_validity, roi_classif],
+        "exp":
+        "im1b1>{}?im2b1:0".format(validity_threshold)
+    })
     valid.Execute()
-    choosable = CreateBandMathApplication({"il": [valid, mask_dummy],
-                                           "exp": "im1b1*(im2b1>=1?1:0)"})
+    choosable = CreateBandMathApplication({
+        "il": [valid, mask_dummy],
+        "exp": "im1b1*(im2b1>=1?1:0)"
+    })
     choosable.Execute()
     oy, ox = choosable.GetImageOrigin("out")
     spx, spy = choosable.GetImageSpacing("out")
@@ -122,8 +138,7 @@ def choosable_annual_pixels(classification_raster: str, validity_raster: str,
 
 def move_annual_samples_from_array(samples_position, target_label, dataField,
                                    samples_number, array, ox, oy, spx, spy,
-                                   tile_origin_field_value,
-                                   seed_field_value,
+                                   tile_origin_field_value, seed_field_value,
                                    region_field_value):
     """
     """
@@ -131,9 +146,10 @@ def move_annual_samples_from_array(samples_position, target_label, dataField,
     import random
     from osgeo import ogr
 
-    x_coords, y_coords = np.where(array==target_label)
+    x_coords, y_coords = np.where(array == target_label)
     #~ y_coords, x_coords = np.where(array==target_label)
-    samples_number = samples_number if len(y_coords) > samples_number else len(y_coords)
+    samples_number = samples_number if len(y_coords) > samples_number else len(
+        y_coords)
 
     geo_coordinates = []
     for y_coord, x_coord in zip(y_coords, x_coords):
@@ -155,7 +171,8 @@ def move_annual_samples_from_array(samples_position, target_label, dataField,
     for x_geo, y_geo in random_coords:
         feature = ogr.Feature(layer.GetLayerDefn())
         feature.SetField(dataField, int(target_label))
-        feature.SetField(tile_origin_field_value[0], tile_origin_field_value[1])
+        feature.SetField(tile_origin_field_value[0],
+                         tile_origin_field_value[1])
         feature.SetField(seed_field_value[0], seed_field_value[1])
         feature.SetField(region_field_value[0], region_field_value[1])
 
@@ -169,9 +186,8 @@ def move_annual_samples_from_array(samples_position, target_label, dataField,
 
 def move_annual_samples_position(samples_position, dataField, annual_labels,
                                  classification_raster, validity_raster,
-                                 region_mask, validity_threshold, 
-                                 tile_origin_field_value,
-                                 seed_field_value,
+                                 region_mask, validity_threshold,
+                                 tile_origin_field_value, seed_field_value,
                                  region_field_value):
     """move samples position of labels of interest according to rasters
     
@@ -196,29 +212,34 @@ def move_annual_samples_position(samples_position, dataField, annual_labels,
     from Common.FileUtils import getFieldElement
 
     annual_labels = map(int, annual_labels)
-    class_repartition = getFieldElement(samples_position, driverName="SQLite",
-                                        field=dataField, mode="all", elemType="int")
+    class_repartition = getFieldElement(samples_position,
+                                        driverName="SQLite",
+                                        field=dataField,
+                                        mode="all",
+                                        elemType="int")
     class_repartition = collections.Counter(class_repartition)
 
-    mask_array, (ox, oy, spx, spy) = choosable_annual_pixels(classification_raster,
-                                                             validity_raster, region_mask,
-                                                             validity_threshold)
+    mask_array, (ox, oy, spx,
+                 spy) = choosable_annual_pixels(classification_raster,
+                                                validity_raster, region_mask,
+                                                validity_threshold)
     for annual_label in annual_labels:
         if annual_label in class_repartition:
             samples_number = class_repartition[annual_label]
             move_annual_samples_from_array(samples_position, annual_label,
-                                           dataField, samples_number, mask_array,
-                                           ox, oy, spx, spy,
+                                           dataField, samples_number,
+                                           mask_array, ox, oy, spx, spy,
                                            tile_origin_field_value,
                                            seed_field_value,
                                            region_field_value)
         else:
             continue
 
+
 def SP_geo_coordinates_with_value(coordinates: Tuple[y_coords, x_coords],
-                                  SP_array: np.ndarray,
-                                  x_origin: float, y_origin: float,
-                                  x_size: float, y_size: float) -> Generator[float, float, float]:
+                                  SP_array: np.ndarray, x_origin: float,
+                                  y_origin: float, x_size: float, y_size: float
+                                  ) -> Generator[float, float, float]:
     """generator
     convert tabular coordinates to geographical
 
@@ -254,7 +275,8 @@ def SP_geo_coordinates_with_value(coordinates: Tuple[y_coords, x_coords],
 def super_pixels_coordinates(input_vector: str,
                              segmented_raster: str,
                              workingDirectory: Optional[str] = None,
-                             logger: Optional[logging.Logger] = LOGGER) -> Generator[float, float, float]:
+                             logger: Optional[logging.Logger] = LOGGER
+                             ) -> Generator[float, float, float]:
     """return superpixels coordinates which intersect input vector data-set
 
     Parameters
@@ -281,21 +303,26 @@ def super_pixels_coordinates(input_vector: str,
     from Common.FileUtils import readRaster
     from Common.FileUtils import getRasterResolution
     from Common.Utils import run
-    logger.info("getting superpixels positions from intersection of {} and {}".format(segmented_raster, input_vector))
-    
+    logger.info(
+        "getting superpixels positions from intersection of {} and {}".format(
+            segmented_raster, input_vector))
+
     if workingDirectory is None:
         tmp_dir = os.path.split(input_vector)[0]
     else:
         tmp_dir = workingDirectory
 
-    input_vector_name = "{}.tif".format(os.path.split(os.path.splitext(input_vector)[0])[-1])
+    input_vector_name = "{}.tif".format(
+        os.path.split(os.path.splitext(input_vector)[0])[-1])
     vector_raster_path = os.path.join(tmp_dir, input_vector_name)
 
-    ref_raster = CreateRasterizationApplication({"in": input_vector,
-                                                 "out": vector_raster_path,
-                                                 "im": segmented_raster,
-                                                 "mode.binary.foreground": "1",
-                                                 "background": "0"})
+    ref_raster = CreateRasterizationApplication({
+        "in": input_vector,
+        "out": vector_raster_path,
+        "im": segmented_raster,
+        "mode.binary.foreground": "1",
+        "background": "0"
+    })
     ref_raster.Execute()
 
     seg_ds = gdal.Open(segmented_raster, 0)
@@ -313,15 +340,22 @@ def super_pixels_coordinates(input_vector: str,
 
     _, _, projection, transform = readRaster(segmented_raster)
     x_min, spacing_x, _, y_max, _, spacing_y = transform
-    
-    coords = SP_geo_coordinates_with_value(coordinates=(y_coordinates, x_coordinates),
+
+    coords = SP_geo_coordinates_with_value(coordinates=(y_coordinates,
+                                                        x_coordinates),
                                            SP_array=slic_array,
-                                           x_origin=x_min, y_origin=y_max,
-                                           x_size=spacing_x, y_size=spacing_y)
+                                           x_origin=x_min,
+                                           y_origin=y_max,
+                                           x_size=spacing_x,
+                                           y_size=spacing_y)
     return coords
 
-def add_SP_to_ref(reference: str, SP_field: str, SP_belong_field: str,
-                  region_field: str, coordinates: Generator[float, float, float],
+
+def add_SP_to_ref(reference: str,
+                  SP_field: str,
+                  SP_belong_field: str,
+                  region_field: str,
+                  coordinates: Generator[float, float, float],
                   logger: Optional[logging.Logger] = LOGGER) -> None:
     """adding superPixel position to reference samples
     
@@ -340,7 +374,7 @@ def add_SP_to_ref(reference: str, SP_field: str, SP_belong_field: str,
     """
     from osgeo import ogr
     from VectorTools.AddField import addField
-    from Common.FileUtils import getAllFieldsInShape
+    from Common.FileUtils import get_all_fields_in_shape
 
     logger.info("adding superPixel position to {}".format(reference))
     learn_flag = "learn"
@@ -349,15 +383,26 @@ def add_SP_to_ref(reference: str, SP_field: str, SP_belong_field: str,
     tile_position = 0
 
     DRIVER = "SQLite"
-    if SP_field not in getAllFieldsInShape(reference, "SQLite"):
-        addField(reference, SP_field, valueField=0, valueType="int64", driver_name=DRIVER)
+    if SP_field not in get_all_fields_in_shape(reference, "SQLite"):
+        addField(reference,
+                 SP_field,
+                 valueField=0,
+                 valueType="int64",
+                 driver_name=DRIVER)
 
-    if SP_belong_field not in getAllFieldsInShape(reference, "SQLite"):
-        addField(reference, SP_belong_field, valueField=0, valueType=int, driver_name=DRIVER)
+    if SP_belong_field not in get_all_fields_in_shape(reference, "SQLite"):
+        addField(reference,
+                 SP_belong_field,
+                 valueField=0,
+                 valueType=int,
+                 driver_name=DRIVER)
 
-    seed_number = os.path.basename(os.path.split(reference)[-1]).split("_")[seed_position]
-    region_name = os.path.basename(os.path.split(reference)[-1]).split("_")[region_position]
-    tile_origin = os.path.basename(os.path.split(reference)[-1]).split("_")[tile_position]
+    seed_number = os.path.basename(
+        os.path.split(reference)[-1]).split("_")[seed_position]
+    region_name = os.path.basename(
+        os.path.split(reference)[-1]).split("_")[region_position]
+    tile_origin = os.path.basename(
+        os.path.split(reference)[-1]).split("_")[tile_position]
 
     driver = ogr.GetDriverByName(DRIVER)
     data_source = driver.Open(reference, 1)
@@ -378,12 +423,7 @@ def add_SP_to_ref(reference: str, SP_field: str, SP_belong_field: str,
     data_source = layer = None
 
 
-def geo_to_tab(x_coord,
-               y_coord,
-               x_origin,
-               y_origin,
-               x_size,
-               y_size):
+def geo_to_tab(x_coord, y_coord, x_origin, y_origin, x_size, y_size):
     """
     """
     import math
@@ -391,7 +431,9 @@ def geo_to_tab(x_coord,
     x_tab = (x_coord - x_origin) / x_size
     return math.floor(x_tab), math.floor(y_tab)
 
-def add_SP_labels(reference: str, SLIC: str, DATAREF_FIELD_NAME: str, SP_FIELD_NAME: str, ram: Optional[int]) -> None:
+
+def add_SP_labels(reference: str, SLIC: str, DATAREF_FIELD_NAME: str,
+                  SP_FIELD_NAME: str, ram: Optional[int]) -> None:
     """Add new column to a database and add raster's value in it
 
     Parameters
@@ -408,13 +450,20 @@ def add_SP_labels(reference: str, SLIC: str, DATAREF_FIELD_NAME: str, SP_FIELD_N
         available ram
     """
     from Common.OtbAppBank import CreateSampleExtractionApplication
-    
-    extraction = CreateSampleExtractionApplication({"in": SLIC,
-                                                    "vec": reference,
-                                                    "outfield": "list",
-                                                    "field":DATAREF_FIELD_NAME,
-                                                    "ram" : ram,
-                                                    "outfield.list.names": [SP_FIELD_NAME]})
+
+    extraction = CreateSampleExtractionApplication({
+        "in":
+        SLIC,
+        "vec":
+        reference,
+        "outfield":
+        "list",
+        "field":
+        DATAREF_FIELD_NAME,
+        "ram":
+        ram,
+        "outfield.list.names": [SP_FIELD_NAME]
+    })
     extraction.ExecuteAndWriteOutput()
 
 
@@ -460,24 +509,23 @@ def merge_ref_super_pix(data: Param,
         model_name = os.path.basename(reference).split("_")[3].split("f")[0]
         tile = os.path.basename(reference).split("_")[0]
         seed = os.path.basename(reference).split("_")[5]
-        region_mask = FileSearch_AND(sampling_labels_from_raster["region_mask_directory"],
-                                     True, "region_{}_{}.tif".format(model_name.split("f")[0], tile))[0]
+        region_mask = FileSearch_AND(
+            sampling_labels_from_raster["region_mask_directory"], True,
+            "region_{}_{}.tif".format(model_name.split("f")[0], tile))[0]
 
         tile_origin_field_value = ("tile_o", tile)
         seed_field_value = ("seed_{}".format(seed), "learn")
         region_field_value = (REGION_FIELD_NAME, model_name)
-        move_annual_samples_position(reference,
-                                     DATAREF_FIELD_NAME,
-                                     sampling_labels_from_raster["annual_labels"],
-                                     sampling_labels_from_raster["classification_raster"],
-                                     sampling_labels_from_raster["validity_raster"],
-                                     region_mask,
-                                     sampling_labels_from_raster["val_threshold"],
-                                     tile_origin_field_value,
-                                     seed_field_value,
-                                     region_field_value)
+        move_annual_samples_position(
+            reference, DATAREF_FIELD_NAME,
+            sampling_labels_from_raster["annual_labels"],
+            sampling_labels_from_raster["classification_raster"],
+            sampling_labels_from_raster["validity_raster"], region_mask,
+            sampling_labels_from_raster["val_threshold"],
+            tile_origin_field_value, seed_field_value, region_field_value)
 
-    add_SP_labels(reference, SLIC, DATAREF_FIELD_NAME.lower(), SP_FIELD_NAME, ram)
+    add_SP_labels(reference, SLIC, DATAREF_FIELD_NAME.lower(), SP_FIELD_NAME,
+                  ram)
 
     sp_coords_val = super_pixels_coordinates(reference, SLIC)
 
@@ -488,4 +536,3 @@ def merge_ref_super_pix(data: Param,
                   coordinates=sp_coords_val)
     if workingDirectory:
         shutil.move(reference, data["selection_samples"])
-    

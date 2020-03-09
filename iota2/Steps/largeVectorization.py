@@ -15,33 +15,46 @@
 # =========================================================================
 import os
 
-from Steps import IOTA2Step
-from Cluster import get_RAM
-from Common import ServiceConfigFile as SCF
-from VectorTools import vector_functions as vf
+from iota2.Steps import IOTA2Step
+from iota2.Cluster import get_RAM
+from iota2.Common import ServiceConfigFile as SCF
+from iota2.VectorTools import vector_functions as vf
+
 
 class largeVectorization(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "vectorisation"
-        super(largeVectorization, self).__init__(cfg, cfg_resources_file, resources_block_name)
+        super(largeVectorization, self).__init__(cfg, cfg_resources_file,
+                                                 resources_block_name)
 
         # step variables
         self.RAM = 1024.0 * get_RAM(self.resources["ram"])
         self.workingDirectory = workingDirectory
-        self.outputPath = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
-        self.grasslib = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'grasslib')
-        self.angle = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'angle')
-        self.outmos = os.path.join(self.outputPath, 'final', 'simplification', 'mosaic')
-        self.clipfile = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'clipfile')
-        self.clipfield = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'clipfield')        
-        self.grid = os.path.join(self.outputPath, 'final', 'simplification', 'grid.shp')
-        
+        self.outputPath = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'outputPath')
+        self.grasslib = SCF.serviceConfigFile(self.cfg).getParam(
+            'Simplification', 'grasslib')
+        self.angle = SCF.serviceConfigFile(self.cfg).getParam(
+            'Simplification', 'angle')
+        self.outmos = os.path.join(self.outputPath, 'final', 'simplification',
+                                   'mosaic')
+        self.clipfile = SCF.serviceConfigFile(self.cfg).getParam(
+            'Simplification', 'clipfile')
+        self.clipfield = SCF.serviceConfigFile(self.cfg).getParam(
+            'Simplification', 'clipfield')
+        self.grid = os.path.join(self.outputPath, 'final', 'simplification',
+                                 'grid.shp')
+        self.epsg = int(
+            SCF.serviceConfigFile(self.cfg).getParam('GlobChain',
+                                                     'proj').split(":")[-1])
+
     def step_description(self):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Vectorisation of classification (Serialisation strategy)")
+        description = (
+            "Vectorisation of classification (Serialisation strategy)")
         return description
 
     def step_inputs(self):
@@ -50,9 +63,19 @@ class largeVectorization(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
-        listfid = vf.getFIDSpatialFilter(self.clipfile, self.grid, self.clipfield)
-
-        return [["%s/tile_%s_%s.tif"%(self.outmos, self.clipfield, x), "%s/tile_%s_%s.shp"%(self.outmos, self.clipfield, x)] for x in listfid]
+        if not os.path.exists(self.grid):
+            return [[
+                os.path.join(self.outputPath, "final", "simplification",
+                             "classif_regul.tif"),
+                os.path.join(self.outmos, "classif.shp")
+            ]]
+        else:
+            listfid = vf.getFIDSpatialFilter(self.clipfile, self.grid,
+                                             self.clipfield)
+            return [[
+                "%s/tile_%s_%s.tif" % (self.outmos, self.clipfield, x),
+                "%s/tile_%s_%s.shp" % (self.outmos, self.clipfield, x)
+            ] for x in listfid]
 
     def step_execute(self):
         """
@@ -62,17 +85,15 @@ class largeVectorization(IOTA2Step.Step):
             the function to execute as a lambda function. The returned object
             must be a lambda function.
         """
-        from simplification import VectAndSimp as vas
-        
-        tmpdir = os.path.join(self.outputPath, 'final', 'simplification', 'tmp')
+        from iota2.simplification import VectAndSimp as vas
+
+        tmpdir = os.path.join(self.outputPath, 'final', 'simplification',
+                              'tmp')
         if self.workingDirectory:
             tmpdir = self.workingDirectory
 
-        step_function = lambda x: vas.topologicalPolygonize(tmpdir,
-                                                            self.grasslib,
-                                                            x[0],
-                                                            self.angle,
-                                                            x[1])
+        step_function = lambda x: vas.topologicalPolygonize(
+            tmpdir, self.grasslib, x[0], self.angle, x[1], epsg=self.epsg)
         return step_function
 
     def step_outputs(self):

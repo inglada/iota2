@@ -13,21 +13,23 @@
 #   PURPOSE.  See the above copyright notices for more information.
 #
 # =========================================================================
-import os
 
-from Steps import IOTA2Step
-from Common import ServiceConfigFile as SCF
+from iota2.Steps import IOTA2Step
+from iota2.Common import ServiceConfigFile as SCF
 
 
 class additionalStatisticsMerge(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "mergeOutStats"
-        super(additionalStatisticsMerge, self).__init__(cfg, cfg_resources_file, resources_block_name)
+        super(additionalStatisticsMerge,
+              self).__init__(cfg, cfg_resources_file, resources_block_name)
 
         # step variables
         self.workingDirectory = workingDirectory
-        self.output_path = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
+        self.output_path = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'outputPath')
+        self.runs = SCF.serviceConfigFile(self.cfg).getParam('chain', 'runs')
 
     def step_description(self):
         """
@@ -42,7 +44,7 @@ class additionalStatisticsMerge(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
-        return [self.cfg]
+        return [self.output_path]
 
     def step_execute(self):
         """
@@ -52,8 +54,8 @@ class additionalStatisticsMerge(IOTA2Step.Step):
             the function to execute as a lambda function. The returned object
             must be a lambda function.
         """
-        from Validation import MergeOutStats as MOutS
-        step_function = lambda x: MOutS.mergeOutStats(x)
+        from iota2.Validation import MergeOutStats as MOutS
+        step_function = lambda x: MOutS.merge_output_statistics(x, self.runs)
         return step_function
 
     def step_outputs(self):

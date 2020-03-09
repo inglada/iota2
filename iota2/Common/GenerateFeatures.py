@@ -13,56 +13,46 @@
 #   PURPOSE.  See the above copyright notices for more information.
 #
 # =========================================================================
-
+"""Module dedicated to generate the whole iota2 feature pipeline
+"""
 import argparse
 import os
 import logging
-from iota2.Common import ServiceConfigFile as SCF
+from typing import Dict, Union, List, Optional
 
-# import shutil
-# import ast
-# from config import Config
-# from Common import FileUtils as fu
-# from Common import OtbAppBank
+LOGGER = logging.getLogger(__name__)
 
-logger = logging.getLogger(__name__)
+sensors_params = Dict[str, Union[str, List[str], int]]
 
 
-def str2bool(v):
+def generateFeatures(pathWd: str,
+                     tile: str,
+                     sar_optical_post_fusion: bool,
+                     output_path: str,
+                     sensors_parameters: sensors_params,
+                     customFeatures: Optional[bool] = False,
+                     force_standard_labels: Optional[bool] = False,
+                     mode: Optional[str] = "usually"):
     """
-    usage : use in argParse as function to parse options
+    usage : Function use to compute features according to a configuration file
 
-    IN:
-    v [string]
-    out [bool]
-    """
-    if v.lower() in ("yes", "true", "t", "y", "1"):
-        return True
-    elif v.lower() in ("no", "false", "f", "n", "0"):
-        return False
-    else:
-        raise argparse.ArgumentTypeError("Boolean value expected.")
-
-
-def generateFeatures(pathWd,
-                     tile,
-                     cfg,
-                     writeFeatures=False,
-                     mode="usually",
-                     customFeatures=False,
-                     force_standard_labels=False):
-    """
-    usage : Function use to compute features according to a configuration file.
-
-    IN
-
-    OUT
-
+    Parameters
+    ----------
+    pathWd : str
+        path to a working directory
+    tile : str
+        tile's name
+    sar_optical_post_fusion : bool
+        flag use to remove SAR data from features
+    mode : str
+        'usually' / 'SAR' used to get only sar features
+    Return
+    ------
     AllFeatures [OTB Application object] : otb object ready to Execute()
     feat_labels [list] : list of strings, labels for each output band
     dep [list of OTB Applications]
     """
-    from iota2.Sensors.Sensors_container import Sensors_container
+    from iota2.Sensors.Sensors_container import sensors_container
     from iota2.Common.OtbAppBank import CreateConcatenateImagesApplication
     from iota2.Common.OtbAppBank import getInputParameterOutput
     from iota2.Common.rasterUtils import apply_function
@@ -71,25 +61,19 @@ def generateFeatures(pathWd,
     import otbApplication as otb
     import numpy as np
 
-    logger.info("prepare features for tile : " + tile)
-    # wMode = cfg.getParam("GlobChain", "writeOutputs")
-    sar_optical_post_fusion = cfg.getParam("argTrain",
-                                           "dempster_shafer_SAR_Opt_fusion")
+    LOGGER.info(f"prepare features for tile : {tile}")
 
-    config_path = cfg.pathConf
-    sensor_tile_container = Sensors_container(config_path,
-                                              tile,
-                                              working_dir=pathWd)
+    sensor_tile_container = sensors_container(tile, pathWd, output_path,
+                                              **sensors_parameters)
+
     feat_labels = []
     dep = []
     feat_app = []
     if mode == "usually" and sar_optical_post_fusion is False:
         sensors_features = sensor_tile_container.get_sensors_features(
             available_ram=1000)
-        for (
-                sensor_name,
-            ((sensor_features, sensor_features_dep), features_labels),
-        ) in sensors_features:
+        for _, ((sensor_features, sensor_features_dep),
+                features_labels) in sensors_features:
             sensor_features.Execute()
             feat_app.append(sensor_features)
             dep.append(sensor_features_dep)
@@ -98,10 +82,8 @@ def generateFeatures(pathWd,
         sensor_tile_container.remove_sensor("Sentinel1")
         sensors_features = sensor_tile_container.get_sensors_features(
             available_ram=1000)
-        for (
-                sensor_name,
-            ((sensor_features, sensor_features_dep), features_labels),
-        ) in sensors_features:
+        for _, ((sensor_features, sensor_features_dep),
+                features_labels) in sensors_features:
             sensor_features.Execute()
             feat_app.append(sensor_features)
             dep.append(sensor_features_dep)
@@ -117,18 +99,19 @@ def generateFeatures(pathWd,
     dep.append(feat_app)
 
     features_name = "{}_Features.tif".format(tile)
-    features_dir = os.path.join(cfg.getParam("chain", "outputPath"),
-                                "features", tile, "tmp")
+    features_dir = os.path.join(output_path, "features", tile, "tmp")
     features_raster = os.path.join(features_dir, features_name)
     if len(feat_app) > 1:
-        AllFeatures = CreateConcatenateImagesApplication({
-            "il": feat_app,
-            "out": features_raster
+        all_features = CreateConcatenateImagesApplication({
+            "il":
+            feat_app,
+            "out":
+            features_raster
         })
     else:
-        AllFeatures = sensor_features
+        all_features = sensor_features
         output_param_name = getInputParameterOutput(sensor_features)
-        AllFeatures.SetParameterString(output_param_name, features_raster)
+        all_features.SetParameterString(output_param_name, features_raster)
     if customFeatures:
         cust = customNumpyFeatures(config_path)
         function_partial = partial(cust.process)
@@ -136,7 +119,7 @@ def generateFeatures(pathWd,
         # TODO : how to feel labels_features_name ?
         # The output path is empty to ensure the image was not writed
         test_array, new_labels, _, _, _ = apply_function(
-            otb_pipeline=AllFeatures,
+            otb_pipeline=all_features,
             labels=labels_features_name,
             working_dir=pathWd,
             function=function_partial,
@@ -144,59 +127,56 @@ def generateFeatures(pathWd,
             chunck_size_y=5,
             ram=128,
         )
-        AllFeatures.Execute()
-        otbImage = AllFeatures.ExportImage(output_param_name)
+        all_features.Execute()
+        otbimage = all_features.ExportImage(output_param_name)
         # rasterio shape [bands, row, cols] OTB shape [row, cols, bands]
         # use move axis for OTB
         arr_resh = np.moveaxis(test_array, [0, 1, 2], [2, 0, 1])
         # ensure c order in memory
         # for OTB application
         arr_2 = np.copy(arr_resh, order="C")
-        otbImage["array"] = arr_2
+        otbimage["array"] = arr_2
         bandMath = otb.Registry.CreateApplication("BandMathX")
-        bandMath.ImportVectorImage("il", otbImage)
+        bandMath.ImportVectorImage("il", otbimage)
         bandMath.SetParameterString("out", features_raster)
         bandMath.SetParameterString("exp", "im1")
-        AllFeatures = bandMath
+        all_features = bandMath
+        dep.append(bandMath)
         # new_labels can never be empty
         feat_labels += new_labels
         if force_standard_labels:
             feat_labels = [f"value_{i}" for i in range(len(feat_labels))]
-    return AllFeatures, feat_labels, dep
+    return all_features, feat_labels, dep
 
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description=("Computes a time series"
-                                                  " of features"))
-    parser.add_argument(
-        "-wd",
-        dest="pathWd",
-        help="path to the working directory",
-        default=None,
-        required=False,
-    )
-    parser.add_argument("-tile",
+    from iota2.Common import ServiceConfigFile as SCF
+    from iota2.Common.ServiceConfigFile import iota2_parameters
+    PARSER = argparse.ArgumentParser(
+        description="Computes a time series of features")
+    PARSER.add_argument("-wd",
+                        dest="pathWd",
+                        help="path to the working directory",
+                        default=None,
+                        required=False)
+    PARSER.add_argument("-tile",
                         dest="tile",
                         help="tile to be processed",
                         required=True)
-    parser.add_argument(
-        "-conf",
-        dest="pathConf",
-        help="path to the configuration file (mandatory)",
-        required=True,
-    )
-    parser.add_argument(
-        "-writeFeatures",
-        type=str2bool,
-        dest="writeFeatures",
-        Shelp="path to the working directory",
-        default=False,
-        required=False,
-    )
-    args = parser.parse_args()
+    PARSER.add_argument("-conf",
+                        dest="pathConf",
+                        help="path to the configuration file (mandatory)",
+                        required=True)
+    ARGS = PARSER.parse_args()
 
     # load configuration file
-    cfg = SCF.serviceConfigFile(args.pathConf)
+    CFG = SCF.serviceConfigFile(ARGS.pathConf)
+    PARAMS = iota2_parameters(ARGS.pathConf)
+    SEN_PARAM = PARAMS.get_sensors_parameters(ARGS.tile)
 
-    generateFeatures(args.pathWd, args.tile, cfg, args.writeFeatures)
+    generateFeatures(ARGS.pathWd,
+                     ARGS.tile,
+                     sar_optical_post_fusion=False,
+                     output_path=CFG.getParam("chain", "outputPath"),
+                     sensors_parameters=SEN_PARAM)

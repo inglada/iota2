@@ -13,13 +13,14 @@
 #   PURPOSE.  See the above copyright notices for more information.
 #
 # =========================================================================
-
+""" Module for parse config file"""
 import os
 import sys
+from typing import Dict, Union, List
 from osgeo import ogr
-from config import Config, Sequence, Mapping
-from Common.FileUtils import get_iota2_project_dir
-from Common import ServiceError as sErr
+from config import Config, Sequence, Mapping, Container
+from iota2.Common.FileUtils import FileSearch_AND, getRasterNbands, get_iota2_project_dir
+from iota2.Common import ServiceError as sErr
 
 # this is a pointer to the module object instance itself.
 this = sys.modules[__name__]
@@ -51,7 +52,7 @@ class serviceConfigFile:
         self.cfg = Config(open(pathConf))
         # set default values
         if iota_config:
-            # init chain section
+            #init chain section
             chain_default = {
                 "outputStatistics": False,
                 "L5Path_old": "None",
@@ -96,10 +97,10 @@ class serviceConfigFile:
                 "check_inputs": True,
                 "enable_autoContext": False,
                 "autoContext_iterations": 3,
-                "remove_tmp_files": False,
+                "remove_tmp_files": False
             }
             self.init_section("chain", chain_default)
-            # init coregistration section
+            #init coregistration section
             coregistration_default = {
                 "VHRPath": "None",
                 "dateVHR": "None",
@@ -113,7 +114,7 @@ class serviceConfigFile:
                 "iterate": True,
                 "prec": 3,
                 "mode": 2,
-                "pattern": "None",
+                "pattern": "None"
             }
             self.init_section("coregistration", coregistration_default)
 
@@ -122,11 +123,11 @@ class serviceConfigFile:
                 "cross_validation_folds": 5,
                 "cross_validation_grouped": False,
                 "standardization": False,
-                "cross_validation_parameters": self.init_dicoMapping({}),
+                "cross_validation_parameters": self.init_dicoMapping({})
             }
             self.init_section("scikit_models_parameters", sklearn_default)
 
-            # init argTrain section
+            #init argTrain section
             sampleSel_default = self.init_dicoMapping({
                 "sampler": "random",
                 "strategy": "all"
@@ -151,48 +152,48 @@ class serviceConfigFile:
                 "classifier": "rf",
                 "options": " -classifier.rf.min 5 -classifier.rf.max 25 ",
                 "annualClassesExtractionSource": "None",
-                "validityThreshold": 1,
+                "validityThreshold": 1
             }
             if self.cfg.scikit_models_parameters.model_type is None:
                 del argTrain_default["classifier"]
                 del argTrain_default["options"]
 
             self.init_section("argTrain", argTrain_default)
-            # init argClassification section
+            #init argClassification section
             argClassification_default = {
                 "noLabelManagement": "maxConfidence",
                 "enable_probability_map": False,
-                "fusionOptions": "-nodatalabel 0 -method majorityvoting",
+                "fusionOptions": "-nodatalabel 0 -method majorityvoting"
             }
             self.init_section("argClassification", argClassification_default)
-            # init GlobChain section
+            #init GlobChain section
             GlobChain_default = {
                 "features":
                 self.init_listSequence(["NDVI", "NDWI", "Brightness"]),
                 "autoDate": True,
                 "writeOutputs": False,
                 "useAdditionalFeatures": False,
-                "useGapFilling": True,
+                "useGapFilling": True
             }
             self.init_section("GlobChain", GlobChain_default)
-            # init iota2FeatureExtraction reduction
+            #init iota2FeatureExtraction reduction
             iota2FeatureExtraction_default = {
                 "copyinput": True,
                 "relrefl": False,
                 "keepduplicates": True,
                 "extractBands": False,
-                "acorfeat": False,
+                "acorfeat": False
             }
             self.init_section("iota2FeatureExtraction",
                               iota2FeatureExtraction_default)
-            # init dimensionality reduction
+            #init dimensionality reduction
             dimRed_default = {
                 "dimRed": False,
                 "targetDimension": 4,
-                "reductionMode": "global",
+                "reductionMode": "global"
             }
             self.init_section("dimRed", dimRed_default)
-            # init sensors parameters
+            #init sensors parameters
             Landsat8_default = {
                 "additionalFeatures":
                 "",
@@ -206,7 +207,7 @@ class serviceConfigFile:
                 "",
                 "keepBands":
                 self.init_listSequence(
-                    ["B1", "B2", "B3", "B4", "B5", "B6", "B7"]),
+                    ["B1", "B2", "B3", "B4", "B5", "B6", "B7"])
             }
             Landsat8_old_default = {
                 "additionalFeatures":
@@ -219,7 +220,7 @@ class serviceConfigFile:
                 "",
                 "keepBands":
                 self.init_listSequence(
-                    ["B1", "B2", "B3", "B4", "B5", "B6", "B7"]),
+                    ["B1", "B2", "B3", "B4", "B5", "B6", "B7"])
             }
             Landsat5_old_default = {
                 "additionalFeatures":
@@ -231,7 +232,7 @@ class serviceConfigFile:
                 "endDate":
                 "",
                 "keepBands":
-                self.init_listSequence(["B1", "B2", "B3", "B4", "B5", "B6"]),
+                self.init_listSequence(["B1", "B2", "B3", "B4", "B5", "B6"])
             }
             Sentinel_2_default = {
                 "additionalFeatures":
@@ -248,7 +249,7 @@ class serviceConfigFile:
                 self.init_listSequence([
                     "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11",
                     "B12"
-                ]),
+                ])
             }
             Sentinel_2_S2C_default = {
                 "additionalFeatures":
@@ -265,7 +266,7 @@ class serviceConfigFile:
                 self.init_listSequence([
                     "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11",
                     "B12"
-                ]),
+                ])
             }
             Sentinel_2_L3A_default = {
                 "additionalFeatures":
@@ -282,7 +283,7 @@ class serviceConfigFile:
                 self.init_listSequence([
                     "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11",
                     "B12"
-                ]),
+                ])
             }
 
             userFeat = {"arbo": "/*", "patterns": "ALT,ASP,SLP"}
@@ -305,7 +306,7 @@ class serviceConfigFile:
                 "inland": None,
                 "rssize": 20,
                 "lib64bit": None,
-                "gridsize": 2,
+                "gridsize": None,
                 "grasslib":
                 "/work/OT/theia/oso/OTB/GRASS/grass7.2.1svn-x86_64-pc-linux-gnu-13_03_2017",
                 "douglas": 10,
@@ -321,13 +322,16 @@ class serviceConfigFile:
                 "dozip": True,
                 "bingdal": None,
                 "chunk": 10,
+                "systemcall": False,
+                "chunk": 1,
                 "nomenclature": None,
                 "statslist": {
                     1: "rate",
                     2: "statsmaj",
                     3: "statsmaj"
-                },
+                }
             }
+
             self.init_section("Simplification", simp_default)
 
     def init_section(self, sectionName, sectionDefault):
@@ -406,10 +410,8 @@ class serviceConfigFile:
                 setattr(objSection, variable, valDefaut)
             else:
                 raise sErr.parameterError(
-                    section,
-                    "mandatory variable '" + str(variable) +
-                    "' is missing in the configuration file",
-                )
+                    section, "mandatory variable '" + str(variable) +
+                    "' is missing in the configuration file")
         else:
             tmpVar = getattr(objSection, variable)
 
@@ -445,15 +447,8 @@ class serviceConfigFile:
             def check_parameters(sampleAug):
 
                 not_allowed_p = [
-                    "in",
-                    "out",
-                    "field",
-                    "layer",
-                    "label",
-                    "seed",
-                    "inxml",
-                    "progress",
-                    "help",
+                    "in", "out", "field", "layer", "label", "seed", "inxml",
+                    "progress", "help"
                 ]
                 for p in not_allowed_p:
                     if p in sampleAug:
@@ -516,16 +511,8 @@ class serviceConfigFile:
             def check_parameters(sampleSel):
 
                 not_allowed_p = [
-                    "outrates",
-                    "in",
-                    "mask",
-                    "vec",
-                    "out",
-                    "instats",
-                    "field",
-                    "layer",
-                    "rand",
-                    "inxml",
+                    "outrates", "in", "mask", "vec", "out", "instats", "field",
+                    "layer", "rand", "inxml"
                 ]
                 strats = [
                     "byclass", "constant", "percent", "total", "smallest",
@@ -550,7 +537,7 @@ class serviceConfigFile:
                     strategy = sampleSel["strategy"]
                     if strategy not in strats:
                         raise sErr.configError("strategy must be {}".format(
-                            " or ".join(
+                            ' or '.join(
                                 ["'{}'".format(elem) for elem in strats])))
                 if "strategy.byclass.in" in sampleSel:
                     byclass = sampleSel["strategy.byclass.in"]
@@ -685,125 +672,116 @@ class serviceConfigFile:
 
             if self.getParam("chain", "regionPath"):
                 check_region_vector(self.cfg)
-            self.testVarConfigFile("chain", "regionField", str)
-            self.testVarConfigFile("chain", "check_inputs", bool)
-            self.testVarConfigFile("chain", "model", str)
-            self.testVarConfigFile("chain", "enableCrossValidation", bool)
-            self.testVarConfigFile("chain", "groundTruth", str)
-            self.testVarConfigFile("chain", "dataField", str)
-            self.testVarConfigFile("chain", "runs", int)
-            self.testVarConfigFile("chain", "ratio", float)
-            self.testVarConfigFile("chain", "splitGroundTruth", bool)
-            self.testVarConfigFile("chain", "outputStatistics", bool)
-            self.testVarConfigFile("chain", "cloud_threshold", int)
-            self.testVarConfigFile("chain", "spatialResolution", int)
-            self.testVarConfigFile("chain", "colorTable", str)
-            self.testVarConfigFile("chain", "mode_outside_RegionSplit", float)
-            self.testVarConfigFile("chain", "merge_final_classifications",
+            self.testVarConfigFile('chain', 'regionField', str)
+            self.testVarConfigFile('chain', 'check_inputs', bool)
+            self.testVarConfigFile('chain', 'model', str)
+            self.testVarConfigFile('chain', 'enableCrossValidation', bool)
+            self.testVarConfigFile('chain', 'groundTruth', str)
+            self.testVarConfigFile('chain', 'dataField', str)
+            self.testVarConfigFile('chain', 'runs', int)
+            self.testVarConfigFile('chain', 'ratio', float)
+            self.testVarConfigFile('chain', 'splitGroundTruth', bool)
+            self.testVarConfigFile('chain', 'outputStatistics', bool)
+            self.testVarConfigFile('chain', 'cloud_threshold', int)
+            self.testVarConfigFile('chain', 'spatialResolution', int)
+            self.testVarConfigFile('chain', 'colorTable', str)
+            self.testVarConfigFile('chain', 'mode_outside_RegionSplit', float)
+            self.testVarConfigFile('chain', 'merge_final_classifications',
                                    bool)
-            self.testVarConfigFile("chain", "enable_autoContext", bool)
-            self.testVarConfigFile("chain", "autoContext_iterations", int)
+            self.testVarConfigFile('chain', 'enable_autoContext', bool)
+            self.testVarConfigFile('chain', 'autoContext_iterations', int)
             if self.getParam("chain", "merge_final_classifications"):
                 self.testVarConfigFile(
-                    "chain", "merge_final_classifications_undecidedlabel", int)
-                self.testVarConfigFile("chain",
-                                       "merge_final_classifications_ratio",
+                    'chain', 'merge_final_classifications_undecidedlabel', int)
+                self.testVarConfigFile('chain',
+                                       'merge_final_classifications_ratio',
                                        float)
+                self.testVarConfigFile('chain',
+                                       'merge_final_classifications_method',
+                                       str,
+                                       ["majorityvoting", "dempstershafer"])
                 self.testVarConfigFile(
-                    "chain",
-                    "merge_final_classifications_method",
-                    str,
-                    ["majorityvoting", "dempstershafer"],
-                )
+                    'chain', 'dempstershafer_mob', str,
+                    ["precision", "recall", "accuracy", "kappa"])
+                self.testVarConfigFile('chain', 'keep_runs_results', bool)
                 self.testVarConfigFile(
-                    "chain",
-                    "dempstershafer_mob",
-                    str,
-                    ["precision", "recall", "accuracy", "kappa"],
-                )
-                self.testVarConfigFile("chain", "keep_runs_results", bool)
-                self.testVarConfigFile(
-                    "chain", "fusionOfClassificationAllSamplesValidation",
+                    'chain', 'fusionOfClassificationAllSamplesValidation',
                     bool)
 
-            self.testVarConfigFile("argTrain", "classifier", str)
-            self.testVarConfigFile("argTrain", "options", str)
-            self.testVarConfigFile("argTrain", "cropMix", bool)
-            self.testVarConfigFile("argTrain", "prevFeatures", str)
-            self.testVarConfigFile("argTrain", "outputPrevFeatures", str)
-            self.testVarConfigFile("argTrain", "annualCrop", Sequence)
-            self.testVarConfigFile("argTrain", "ACropLabelReplacement",
+            self.testVarConfigFile('argTrain', 'classifier', str)
+            self.testVarConfigFile('argTrain', 'options', str)
+            self.testVarConfigFile('argTrain', 'cropMix', bool)
+            self.testVarConfigFile('argTrain', 'prevFeatures', str)
+            self.testVarConfigFile('argTrain', 'outputPrevFeatures', str)
+            self.testVarConfigFile('argTrain', 'annualCrop', Sequence)
+            self.testVarConfigFile('argTrain', 'ACropLabelReplacement',
                                    Sequence)
 
-            self.testVarConfigFile("argTrain", "sampleSelection", Mapping)
-            self.testVarConfigFile("argTrain", "samplesClassifMix", bool)
-            self.testVarConfigFile("argTrain", "validityThreshold", int)
+            self.testVarConfigFile('argTrain', 'sampleSelection', Mapping)
+            self.testVarConfigFile('argTrain', 'samplesClassifMix', bool)
+            self.testVarConfigFile('argTrain', 'validityThreshold', int)
 
             check_sampleSelection()
             check_sampleAugmentation()
 
-            self.testVarConfigFile("argClassification", "classifMode", str,
+            self.testVarConfigFile('argClassification', 'classifMode', str,
                                    ["separate", "fusion"])
-            self.testVarConfigFile("argClassification",
-                                   "enable_probability_map", bool)
-            self.testVarConfigFile(
-                "argClassification",
-                "noLabelManagement",
-                str,
-                ["maxConfidence", "learningPriority"],
-            )
+            self.testVarConfigFile('argClassification',
+                                   'enable_probability_map', bool)
+            self.testVarConfigFile('argClassification', 'noLabelManagement',
+                                   str, ["maxConfidence", "learningPriority"])
 
-            self.testVarConfigFile("GlobChain", "proj", str)
-            self.testVarConfigFile("GlobChain", "features", Sequence)
-            self.testVarConfigFile("GlobChain", "autoDate", bool)
-            self.testVarConfigFile("GlobChain", "writeOutputs", bool)
-            self.testVarConfigFile("GlobChain", "useAdditionalFeatures", bool)
-            self.testVarConfigFile("GlobChain", "useGapFilling", bool)
+            self.testVarConfigFile('GlobChain', 'proj', str)
+            self.testVarConfigFile('GlobChain', 'features', Sequence)
+            self.testVarConfigFile('GlobChain', 'autoDate', bool)
+            self.testVarConfigFile('GlobChain', 'writeOutputs', bool)
+            self.testVarConfigFile('GlobChain', 'useAdditionalFeatures', bool)
+            self.testVarConfigFile('GlobChain', 'useGapFilling', bool)
 
-            self.testVarConfigFile("iota2FeatureExtraction", "copyinput", bool)
-            self.testVarConfigFile("iota2FeatureExtraction", "relrefl", bool)
-            self.testVarConfigFile("iota2FeatureExtraction", "keepduplicates",
+            self.testVarConfigFile('iota2FeatureExtraction', 'copyinput', bool)
+            self.testVarConfigFile('iota2FeatureExtraction', 'relrefl', bool)
+            self.testVarConfigFile('iota2FeatureExtraction', 'keepduplicates',
                                    bool)
-            self.testVarConfigFile("iota2FeatureExtraction", "extractBands",
+            self.testVarConfigFile('iota2FeatureExtraction', 'extractBands',
                                    bool)
-            self.testVarConfigFile("iota2FeatureExtraction", "acorfeat", bool)
+            self.testVarConfigFile('iota2FeatureExtraction', 'acorfeat', bool)
 
-            self.testVarConfigFile("dimRed", "dimRed", bool)
-            self.testVarConfigFile("dimRed", "targetDimension", int)
-            self.testVarConfigFile("dimRed", "reductionMode", str)
+            self.testVarConfigFile('dimRed', 'dimRed', bool)
+            self.testVarConfigFile('dimRed', 'targetDimension', int)
+            self.testVarConfigFile('dimRed', 'reductionMode', str)
 
-            self.testVarConfigFile("chain", "remove_tmp_files", bool)
+            self.testVarConfigFile('chain', 'remove_tmp_files', bool)
 
-            self.testVarConfigFile("chain", "remove_tmp_files", bool)
+            self.testVarConfigFile('chain', 'remove_tmp_files', bool)
 
-            self.testVarConfigFile("chain", "remove_tmp_files", bool)
+            self.testVarConfigFile('chain', 'remove_tmp_files', bool)
 
             if self.cfg.scikit_models_parameters.model_type is not None:
-                self.testVarConfigFile("scikit_models_parameters",
-                                       "model_type", str)
-                self.testVarConfigFile("scikit_models_parameters",
-                                       "cross_validation_folds", int)
-                self.testVarConfigFile("scikit_models_parameters",
-                                       "cross_validation_grouped", bool)
-                self.testVarConfigFile("scikit_models_parameters",
-                                       "standardization", bool)
-                self.testVarConfigFile("scikit_models_parameters",
-                                       "cross_validation_parameters", Mapping)
+                self.testVarConfigFile('scikit_models_parameters',
+                                       'model_type', str)
+                self.testVarConfigFile('scikit_models_parameters',
+                                       'cross_validation_folds', int)
+                self.testVarConfigFile('scikit_models_parameters',
+                                       'cross_validation_grouped', bool)
+                self.testVarConfigFile('scikit_models_parameters',
+                                       'standardization', bool)
+                self.testVarConfigFile('scikit_models_parameters',
+                                       'cross_validation_parameters', Mapping)
 
             if self.cfg.chain.L5Path_old != "None":
-                # L5 variable check
-                self.testVarConfigFile("Landsat5_old", "temporalResolution",
+                #L5 variable check
+                self.testVarConfigFile('Landsat5_old', 'temporalResolution',
                                        int)
-                self.testVarConfigFile("Landsat5_old", "keepBands", Sequence)
+                self.testVarConfigFile('Landsat5_old', 'keepBands', Sequence)
             if self.cfg.chain.L8Path != "None":
                 # L8 variable check
                 self.testVarConfigFile("Landsat8", "temporalResolution", int)
                 self.testVarConfigFile("Landsat8", "keepBands", Sequence)
             if self.cfg.chain.L8Path_old != "None":
-                # L8 variable check
-                self.testVarConfigFile("Landsat8_old", "temporalResolution",
+                #L8 variable check
+                self.testVarConfigFile('Landsat8_old', 'temporalResolution',
                                        int)
-                self.testVarConfigFile("Landsat8_old", "keepBands", Sequence)
+                self.testVarConfigFile('Landsat8_old', 'keepBands', Sequence)
 
             if self.cfg.chain.S2Path != "None":
                 # S2 variable check
@@ -811,7 +789,7 @@ class serviceConfigFile:
                 self.testVarConfigFile("Sentinel_2", "keepBands", Sequence)
 
             if self.cfg.chain.random_seed != None:
-                self.testVarConfigFile("chain", "random_seed", int)
+                self.testVarConfigFile('chain', 'random_seed', int)
 
             nbTile = len(self.cfg.chain.listTile.split(" "))
 
@@ -823,7 +801,7 @@ class serviceConfigFile:
                 epsg = int(self.getParam("GlobChain", "proj").split(":")[-1])
             except ValueError:
                 raise ValueError(
-                    'parameter GlobChain.proj not in the right format (proj:"EPSG:2154")'
+                    "parameter GlobChain.proj not in the right format (proj:\"EPSG:2154\")"
                 )
 
             self.testDirectory(os.path.join(get_iota2_project_dir(), "iota2"))
@@ -875,8 +853,9 @@ class serviceConfigFile:
                 raise sErr.configError(
                     "enableCrossValidation not available, please set it to False\n"
                 )
-            if (self.getParam("chain", "regionPath") is None
-                    and self.cfg.argClassification.classifMode == "fusion"):
+            if self.getParam(
+                    "chain", "regionPath"
+            ) is None and self.cfg.argClassification.classifMode == "fusion":
                 raise sErr.configError(
                     "you can't chose 'one_region' mode and ask a fusion of classifications\n"
                 )
@@ -888,8 +867,7 @@ class serviceConfigFile:
                 raise sErr.configError(
                     "these parameters are incompatible runs:1 and enableCrossValidation:True"
                 )
-            if (self.cfg.chain.enableCrossValidation
-                    and self.cfg.chain.splitGroundTruth is False):
+            if self.cfg.chain.enableCrossValidation and self.cfg.chain.splitGroundTruth is False:
                 raise sErr.configError(
                     "these parameters are incompatible splitGroundTruth:False and enableCrossValidation:True"
                 )
@@ -897,28 +875,19 @@ class serviceConfigFile:
                 raise sErr.configError(
                     "these parameters are incompatible splitGroundTruth:False and runs different from 1"
                 )
-            if (self.cfg.chain.merge_final_classifications
-                    and self.cfg.chain.splitGroundTruth is False):
+            if self.cfg.chain.merge_final_classifications and self.cfg.chain.splitGroundTruth is False:
                 raise sErr.configError(
                     "these parameters are incompatible merge_final_classifications:True and splitGroundTruth:False"
                 )
-            if (self.cfg.argTrain.dempster_shafer_SAR_Opt_fusion
-                    and "None" in self.cfg.chain.S1Path):
+            if self.cfg.argTrain.dempster_shafer_SAR_Opt_fusion and 'None' in self.cfg.chain.S1Path:
                 raise sErr.configError(
                     "these parameters are incompatible dempster_shafer_SAR_Opt_fusion : True and S1Path : 'None'"
                 )
-            if (self.cfg.argTrain.dempster_shafer_SAR_Opt_fusion
-                    and "None" in self.cfg.chain.userFeatPath
-                    and "None" in self.cfg.chain.L5Path_old
-                    and "None" in self.cfg.chain.L8Path
-                    and "None" in self.cfg.chain.L8Path_old
-                    and "None" in self.cfg.chain.S2Path
-                    and "None" in self.cfg.chain.S2_S2C_Path):
+            if self.cfg.argTrain.dempster_shafer_SAR_Opt_fusion and 'None' in self.cfg.chain.userFeatPath and 'None' in self.cfg.chain.L5Path_old and 'None' in self.cfg.chain.L8Path and 'None' in self.cfg.chain.L8Path_old and 'None' in self.cfg.chain.S2Path and 'None' in self.cfg.chain.S2_S2C_Path:
                 raise sErr.configError(
                     "to perform post-classification fusion, optical data must be used"
                 )
-            if (self.cfg.scikit_models_parameters.model_type is not None
-                    and self.cfg.chain.enable_autoContext is True):
+            if self.cfg.scikit_models_parameters.model_type is not None and self.cfg.chain.enable_autoContext is True:
                 raise sErr.configError(
                     "these parameters are incompatible enable_autoContext : True and model_type"
                 )
@@ -1009,6 +978,7 @@ class serviceConfigFile:
         if not hasattr(self.cfg, section):
             raise Exception(
                 f"Section is not in the configuration file: {section}")
+
         objSection = getattr(self.cfg, section)
         if not hasattr(objSection, variable):
             setattr(objSection, variable, value)
@@ -1055,3 +1025,128 @@ class serviceConfigFile:
         else:
             flag = False
         return flag
+
+
+class iota2_parameters:
+    """
+    describe iota2 parameters as usual python dictionary
+    """
+    def __init__(self, configuration_file: str):
+        """
+        """
+        self.__config = serviceConfigFile(configuration_file)
+
+        self.projection = int(
+            self.__config.getParam('GlobChain', 'proj').split(":")[-1])
+        self.all_tiles = self.__config.getParam('chain', 'listTile')
+        self.i2_output_path = self.__config.getParam('chain', 'outputPath')
+        self.extract_bands_flag = self.__config.getParam(
+            'iota2FeatureExtraction', 'extractBands')
+        self.auto_date = self.__config.getParam('GlobChain', 'autoDate')
+        self.write_outputs_flag = self.__config.getParam(
+            'GlobChain', 'writeOutputs')
+        self.features_list = self.__config.getParam('GlobChain', 'features')
+        self.enable_gapfilling = self.__config.getParam(
+            'GlobChain', 'useGapFilling')
+        self.hand_features_flag = self.__config.getParam(
+            'GlobChain', 'useAdditionalFeatures')
+        self.copy_input = self.__config.getParam('iota2FeatureExtraction',
+                                                 'copyinput')
+        self.rel_refl = self.__config.getParam('iota2FeatureExtraction',
+                                               'relrefl')
+        self.keep_dupl = self.__config.getParam('iota2FeatureExtraction',
+                                                'keepduplicates')
+        self.vhr_path = self.__config.getParam('coregistration', 'VHRPath')
+        self.acorfeat = self.__config.getParam('iota2FeatureExtraction',
+                                               'acorfeat')
+        self.user_patterns = self.__config.getParam('userFeat',
+                                                    'patterns').split(",")
+        self.available_sensors_section = [
+            "Sentinel_2", "Sentinel_2_S2C", "Sentinel_2_L3A", "Sentinel_1",
+            "Landsat8", "Landsat8_old", "Landsat5_old", "userFeat"
+        ]
+
+    def get_sensors_parameters(
+            self, tile_name: str
+    ) -> Dict[str, Dict[str, Union[str, List[str], int]]]:
+        """get enabled sensors parameters
+        """
+        sensors_parameters = {}
+        for sensor_section_name in self.available_sensors_section:
+            sensor_parameter = self.build_sensor_dict(tile_name,
+                                                      sensor_section_name)
+            if sensor_parameter:
+                sensors_parameters[sensor_section_name] = sensor_parameter
+        return sensors_parameters
+
+    def build_sensor_dict(self, tile_name: str, sensor_section_name: str
+                          ) -> Dict[str, Union[str, List[str], int]]:
+        """get sensor parameters
+        """
+        sensor_dict = {}
+        sensor_output_target_dir = None
+        sensor_data_param_name = ""
+        if sensor_section_name == "Sentinel_2":
+            sensor_data_param_name = "S2Path"
+            sensor_output_target_dir = self.__config.getParam(
+                "chain", "S2_output_path")
+        elif sensor_section_name == "Sentinel_1":
+            sensor_data_param_name = "S1Path"
+        elif sensor_section_name == "Landsat8":
+            sensor_data_param_name = "L8Path"
+        elif sensor_section_name == "Landsat8_old":
+            sensor_data_param_name = "L8Path_old"
+        elif sensor_section_name == "Landsat5_old":
+            sensor_data_param_name = "L5Path_old"
+        elif sensor_section_name == "Sentinel_2_S2C":
+            sensor_data_param_name = "S2_S2C_Path"
+            sensor_output_target_dir = self.__config.getParam(
+                "chain", "S2_S2C_output_path")
+        elif sensor_section_name == "Sentinel_2_L3A":
+            sensor_data_param_name = "S2_L3A_Path"
+            sensor_output_target_dir = self.__config.getParam(
+                "chain", "S2_L3A_output_path")
+        elif sensor_section_name == "userFeat":
+            sensor_data_param_name = "userFeatPath"
+        else:
+            raise ValueError(f"unknown section : {sensor_section_name}")
+
+        sensor_data_path = self.__config.getParam("chain",
+                                                  sensor_data_param_name)
+        if "none" in sensor_data_path.lower():
+            return sensor_dict
+        if sensor_section_name == "Sentinel_1":
+            sensor_section = {}
+        else:
+            sensor_section = self.__config.getSection(sensor_section_name)
+        sensor_dict["tile_name"] = tile_name
+        sensor_dict["target_proj"] = self.projection
+        sensor_dict["all_tiles"] = self.all_tiles
+        sensor_dict["image_directory"] = sensor_data_path
+        sensor_dict["write_dates_stack"] = sensor_section.get(
+            "write_reproject_resampled_input_dates_stack", None)
+        sensor_dict["extract_bands_flag"] = self.extract_bands_flag
+        sensor_dict["output_target_dir"] = sensor_output_target_dir
+        sensor_dict["keep_bands"] = sensor_section.get("keepBands", None)
+        sensor_dict["i2_output_path"] = self.i2_output_path
+        sensor_dict["temporal_res"] = sensor_section.get(
+            "temporalResolution", None)
+        sensor_dict["auto_date_flag"] = self.auto_date
+        sensor_dict["date_interp_min_user"] = sensor_section.get(
+            "startDate", None)
+        sensor_dict["date_interp_max_user"] = sensor_section.get(
+            "endDate", None)
+        sensor_dict["write_outputs_flag"] = self.write_outputs_flag
+        sensor_dict["features"] = self.features_list
+        sensor_dict["enable_gapfilling"] = self.enable_gapfilling
+        sensor_dict["hand_features_flag"] = self.hand_features_flag
+        sensor_dict["hand_features"] = sensor_section.get(
+            "additionalFeatures", None)
+        sensor_dict["copy_input"] = self.copy_input
+        sensor_dict["rel_refl"] = self.rel_refl
+        sensor_dict["keep_dupl"] = self.keep_dupl
+        sensor_dict["vhr_path"] = self.vhr_path
+        sensor_dict["acorfeat"] = self.acorfeat
+        sensor_dict["patterns"] = self.user_patterns
+
+        return sensor_dict

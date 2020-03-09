@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -13,149 +13,218 @@
 #   PURPOSE.  See the above copyright notices for more information.
 #
 # =========================================================================
-
+""" Generate Confusion Matrix"""
 import argparse
-import sys
 import os
 import shutil
 import logging
+from logging import Logger
+from typing import List, Tuple, Optional
 
-from config import Config
-from Common import FileUtils as fu
-from osgeo import gdal
-from osgeo.gdalconst import *
-from Common import ServiceConfigFile as SCF
-from Common.Utils import run
+from iota2.Common import FileUtils as fu
+
+from iota2.Common.Utils import run
 
 LOGGER = logging.getLogger(__name__)
 
-def create_dummy_rasters(missing_tiles, N, cfg):
+
+def create_dummy_rasters(missing_tiles: List[str], runs: int,
+                         output_path: str) -> None:
     """
+    Parameters
+    ----------
+    missing_tiles: list(string)
+    runs: int
+    output_path: string
+    Return
+    ------
+    None
+    Notes
+    -----
     use when mode is 'one_region' but there is no validations / learning
     samples into a specific tile
     """
-    #gdal_merge.py -n 0 -createonly -o Classif_T38JPT_model_1_seed_0_fake.tif Classif_T38JPT_model_1_seed_0.tif
-    classifications_dir = os.path.join(cfg.getParam('chain', 'outputPath'), "classif")
-    final_dir = os.path.join(cfg.getParam('chain', 'outputPath'), "final", "TMP")
+
+    classifications_dir = os.path.join(output_path, "classif")
+    final_dir = os.path.join(output_path, "final", "TMP")
 
     for tile in missing_tiles:
-        classif_tile = fu.FileSearch_AND(classifications_dir, True, "Classif_" + str(tile))[0]
-        for seed in range(N):
+        classif_tile = fu.FileSearch_AND(classifications_dir, True,
+                                         "Classif_" + str(tile))[0]
+        for seed in range(runs):
             dummy_raster_name = tile + "_seed_" + str(seed) + "_CompRef.tif"
             dummy_raster = final_dir + "/" + dummy_raster_name
-            dummy_raster_cmd = "gdal_merge.py -ot Byte -n 0 -createonly -o " + dummy_raster + " " + classif_tile
+            dummy_raster_cmd = (f"gdal_merge.py -ot Byte -n 0 -createonly -o "
+                                f"{ dummy_raster} {classif_tile}")
             run(dummy_raster_cmd)
 
-def compareRef(shapeRef, shapeLearn, classif, diff, footprint, workingDirectory, cfg, pathWd):
 
-    minX, maxX, minY, maxY = fu.getRasterExtent(classif)
-    shapeRaster_val = workingDirectory+"/"+shapeRef.split("/")[-1].replace(".sqlite", ".tif")
-    shapeRaster_learn = workingDirectory+"/"+shapeLearn.split("/")[-1].replace(".sqlite", ".tif")
+def compare_ref(shape_ref: str, shape_learn: str, classif: str, diff: str,
+                working_directory: str, path_wd: str, data_field: str,
+                spatial_res: int):
+    """
+    Parameters
+    ----------
+    shape_ref: string
+    shape_learn: string
+    classif: string
+    diff: string
+    working_directory: string
+    path_wd: string
+    data_field: string
+    spatial_res: string
+    Return
+    ------
+    string
+    """
+    min_x, max_x, min_y, max_y = fu.getRasterExtent(classif)
+    shape_raster_val = working_directory + os.sep + shape_ref.split(
+        "/")[-1].replace(".sqlite", ".tif")
+    shape_raster_learn = working_directory + os.sep + shape_learn.split(
+        "/")[-1].replace(".sqlite", ".tif")
 
-    dataField = cfg.getParam('chain', 'dataField')
-    spatialRes = int(cfg.getParam('chain', 'spatialResolution'))
-
-    #Rasterise val
-    shapeRef_table_name = os.path.splitext(os.path.split(shapeRef)[-1])[0].lower()
-    cmd = "gdal_rasterize -l "+ shapeRef_table_name +" -a "+dataField+" -init 0 -tr "+str(spatialRes)+" "+str(spatialRes)+" "+shapeRef+" "+shapeRaster_val+" -te "+str(minX)+" "+str(minY)+" "+str(maxX)+" "+str(maxY)
+    # Rasterise val
+    shape_ref_table_name = os.path.splitext(
+        os.path.split(shape_ref)[-1])[0].lower()
+    cmd = (f"gdal_rasterize -l {shape_ref_table_name} -a {data_field} -init 0 "
+           f"-tr {spatial_res} {spatial_res} {shape_ref} {shape_raster_val} "
+           f"-te {min_x} {min_y} {max_x} {max_y}")
     run(cmd)
-    #Rasterise learn
-    shapeLearn_table_name = os.path.splitext(os.path.split(shapeLearn)[-1])[0].lower()
-    cmd = "gdal_rasterize -l "+ shapeLearn_table_name +" -a "+dataField+" -init 0 -tr "+str(spatialRes)+" "+str(spatialRes)+" "+shapeLearn+" "+shapeRaster_learn+" -te "+str(minX)+" "+str(minY)+" "+str(maxX)+" "+str(maxY)
+    # Rasterise learn
+    shape_learn_table_name = os.path.splitext(
+        os.path.split(shape_learn)[-1])[0].lower()
+    cmd = (
+        f"gdal_rasterize -l {shape_learn_table_name} -a {data_field} -init "
+        f"0 -tr {spatial_res} {spatial_res} {shape_learn} {shape_raster_learn}"
+        f" -te {min_x} {min_y} {max_x} {max_y}")
     run(cmd)
-    
-    #diff val
-    diff_val = workingDirectory+"/"+diff.split("/")[-1].replace(".tif", "_val.tif")
-    cmd_val = 'otbcli_BandMath -il '+shapeRaster_val+' '+classif+' -out '+diff_val+' uint8 -exp "im1b1==0?0:im1b1==im2b1?2:1"'#reference identique -> 2  | reference != -> 1 | pas de reference -> 0
+
+    # diff val
+    diff_val = working_directory + "/" + diff.split("/")[-1].replace(
+        ".tif", "_val.tif")
+    # reference identique -> 2  | reference != -> 1 | pas de reference -> 0
+    cmd_val = (f'otbcli_BandMath -il {shape_raster_val} {classif} -out '
+               f'{diff_val} uint8 -exp "im1b1==0?0:im1b1==im2b1?2:1"')
     run(cmd_val)
-    os.remove(shapeRaster_val)
+    os.remove(shape_raster_val)
 
-    #diff learn
-    diff_learn = workingDirectory+"/"+diff.split("/")[-1].replace(".tif", "_learn.tif")
-    cmd_learn = 'otbcli_BandMath -il '+shapeRaster_learn+' '+classif+' -out '+diff_learn+' uint8 -exp "im1b1==0?0:im1b1==im2b1?4:3"'#reference identique -> 4  | reference != -> 3 | pas de reference -> 0
+    # diff learn
+    diff_learn = working_directory + "/" + diff.split("/")[-1].replace(
+        ".tif", "_learn.tif")
+    # reference identique -> 4  | reference != -> 3 | pas de reference -> 0
+    cmd_learn = (f'otbcli_BandMath -il {shape_raster_learn} {classif} -out '
+                 f'{diff_learn} uint8 -exp "im1b1==0?0:im1b1==im2b1?4:3"')
     run(cmd_learn)
-    os.remove(shapeRaster_learn)
+    os.remove(shape_raster_learn)
 
-    #sum diff val + learn
-    diff_tmp = workingDirectory+"/"+diff.split("/")[-1]
-    cmd_sum = 'otbcli_BandMath -il '+diff_val+' '+diff_learn+' -out '+diff_tmp+' uint8 -exp "im1b1+im2b1"'
+    # sum diff val + learn
+    diff_tmp = working_directory + "/" + diff.split("/")[-1]
+    cmd_sum = (f'otbcli_BandMath -il {diff_val} {diff_learn} -out {diff_tmp}'
+               f' uint8 -exp "im1b1+im2b1"')
     run(cmd_sum)
     os.remove(diff_val)
     os.remove(diff_learn)
 
-    if pathWd and not os.path.exists(diff):
+    if path_wd and not os.path.exists(diff):
         shutil.copy(diff_tmp, diff)
         os.remove(diff_tmp)
 
     return diff
 
-def genConfMatrix(pathClassif, pathValid, N, dataField, pathToCmdConfusion,
-                  cfg, pathWd):
-    if not isinstance(cfg, SCF.serviceConfigFile):
-        cfg = SCF.serviceConfigFile(cfg)
-    AllCmd = []
-    pathTMP = pathClassif+"/TMP"
 
-    pathTest = cfg.getParam('chain', 'outputPath')
-    spatialRes = cfg.getParam('chain', 'spatialResolution')
-    enableCrossValidation = cfg.getParam('chain', 'enableCrossValidation')
+def gen_conf_matrix(path_classif: str, path_valid: str, runs: int,
+                    data_field: str, path_to_cmd_confusion: str, path_wd: str,
+                    path_test: str, spatial_res: int, list_tiles: List[str],
+                    enable_cross_validation: bool) -> List[str]:
+    """
+    Parameters
+    ----------
+    path_classif: string
+    path_valid: string
+    runs: int
+    data_field: string
+    path_to_cmd_confusion: string
+    path_wd: string
+    Return
+    ------
+    list(string)
+    """
+    all_cmd = []
+    path_tmp = os.path.join(path_classif, "TMP")
 
-    workingDirectory = pathClassif+"/TMP"
-    if pathWd:
-        workingDirectory = pathWd
+    # path_Test = cfg.getParam('chain', 'outputPath')
+    # spatial_Res = cfg.getParam('chain', 'spatialResolution')
+    # enable_Cross_Validation = cfg.getParam('chain', 'enableCrossValidation')
 
-    AllTiles = []
-    validationFiles = fu.FileSearch_AND(pathValid, True, "_val.sqlite")
-    for valid in validationFiles:
-        currentTile = valid.split("/")[-1].split("_")[0]
+    working_directory = os.path.join(path_classif, "TMP")
+    if path_wd:
+        working_directory = path_wd
+
+    all_tiles = []
+    validation_files = fu.FileSearch_AND(path_valid, True, "_val.sqlite")
+    for valid in validation_files:
+        current_tile = valid.split("/")[-1].split("_")[0]
         try:
-            ind = AllTiles.index(currentTile)
+            all_tiles.index(current_tile)
         except ValueError:
-            AllTiles.append(currentTile)
+            all_tiles.append(current_tile)
 
-    for seed in range(N):
-        #recherche de tout les shapeFiles par seed, par tuiles pour les fusionner
-        for tile in AllTiles:
+    for seed in range(runs):
+        # recherche de tout les shapeFiles par seed, par tuiles pour
+        # les fusionner
+        for tile in all_tiles:
             seed_val = seed
-            if enableCrossValidation:
-                seed_val = N - 1
-            if enableCrossValidation and seed == N - 1:
+            if enable_cross_validation:
+                seed_val = runs - 1
+            if enable_cross_validation and seed == runs - 1:
                 continue
-            valTile = fu.FileSearch_AND(pathValid, True, tile, "_seed_"+str(seed_val)+"_val.sqlite")[0]
-            learnTile = fu.FileSearch_AND(pathValid, True, tile, "_seed_"+str(seed)+"_learn.sqlite")[0]
-            pathDirectory = pathTMP
-            cmd = 'otbcli_ComputeConfusionMatrix -in {}/Classif_Seed_{}.tif -out {}/{}_seed_{}.csv -ref.vector.field {} -ref vector -ref.vector.in {}'.format(
-                pathClassif, seed, pathDirectory, tile, seed, dataField.lower(), valTile)
-            AllCmd.append(cmd)
-            classif = pathTMP+"/"+tile+"_seed_"+str(seed)+".tif"
-            diff = pathTMP+"/"+tile+"_seed_"+str(seed)+"_CompRef.tif"
-            footprint = pathTest+"/final/Classif_Seed_0.tif"
-            compareRef(valTile,
-                       learnTile,
-                       classif, diff, footprint, workingDirectory, cfg, pathWd)
+            val_tile = fu.FileSearch_AND(
+                path_valid, True, tile,
+                "_seed_" + str(seed_val) + "_val.sqlite")[0]
+            learn_tile = fu.FileSearch_AND(
+                path_valid, True, tile,
+                "_seed_" + str(seed) + "_learn.sqlite")[0]
+            path_directory = path_tmp
+            cmd = (f'otbcli_ComputeConfusionMatrix -in {path_classif}/"'
+                   f'"Classif_Seed_{seed}.tif -out {path_directory}/'
+                   f'{tile}_seed_{seed}.csv'
+                   f' -ref.vector.field {data_field.lower()} -ref vector '
+                   f'-ref.vector.in {val_tile}')
+            all_cmd.append(cmd)
+            classif = path_tmp + "/" + tile + "_seed_" + str(seed) + ".tif"
+            diff = path_tmp + "/" + tile + "_seed_" + str(
+                seed) + "_CompRef.tif"
 
-    fu.writeCmds(pathToCmdConfusion+"/confusion.txt", AllCmd)
+            compare_ref(val_tile, learn_tile, classif, diff, working_directory,
+                        path_wd, data_field, spatial_res)
 
-    if enableCrossValidation:
-        N = N - 1
-    for seed in range(N):
-        AllDiff = fu.FileSearch_AND(pathTMP, True, "_seed_"+str(seed)+"_CompRef.tif")
-        diff_seed = pathTest+"/final/diff_seed_"+str(seed)+".tif"
-        if pathWd:
-            diff_seed = workingDirectory+"/diff_seed_"+str(seed)+".tif"
-        fu.assembleTile_Merge(AllDiff, spatialRes, diff_seed, ot="Byte")
-        if pathWd:
-            shutil.copy(workingDirectory+"/diff_seed_"+str(seed)+".tif", pathTest+"/final/diff_seed_"+str(seed)+".tif")
+    fu.writeCmds(path_to_cmd_confusion + "/confusion.txt", all_cmd)
 
-    #Create dummy rasters if necessary
-    tile_asked = cfg.getParam('chain', 'listTile').split()
-    missing_tiles = [elem for elem in tile_asked if elem not in AllTiles]
-    create_dummy_rasters(missing_tiles, N, cfg)
+    if enable_cross_validation:
+        runs = runs - 1
+    for seed in range(runs):
+        all_diff = fu.FileSearch_AND(path_tmp, True,
+                                     f"_seed_{seed}_CompRef.tif")
+        diff_seed = os.path.join(path_test, "final", f"diff_seed_{seed}.tif")
+        if path_wd:
+            diff_seed = os.path.join(working_directory,
+                                     f"diff_seed_{seed}.tif")
+        fu.assembleTile_Merge(all_diff, spatial_res, diff_seed, ot="Byte")
+        if path_wd:
+            shutil.copy(
+                working_directory + f"/diff_seed_{seed}.tif",
+                os.path.join(path_test, "final", f"diff_seed_{seed}.tif"))
 
-    return(AllCmd)
+    # Create dummy rasters if necessary
+    tile_asked = list_tiles.split()
+    missing_tiles = [elem for elem in tile_asked if elem not in all_tiles]
+    create_dummy_rasters(missing_tiles, runs, path_test)
+
+    return all_cmd
 
 
-def confusion_sar_optical_parameter(iota2_dir, LOGGER=LOGGER):
+def confusion_sar_optical_parameter(iota2_dir: str,
+                                    logger: Optional[Logger] = LOGGER):
     """
     return a list of tuple containing the classification and the associated
     shapeFile to compute a confusion matrix
@@ -171,7 +240,8 @@ def confusion_sar_optical_parameter(iota2_dir, LOGGER=LOGGER):
     classif_model_pos = 3
 
     vectors = fu.FileSearch_AND(ref_vectors_dir, True, ".shp")
-    classifications = fu.FileSearch_AND(classifications_dir, True, "Classif", "model", "seed", ".tif")
+    classifications = fu.FileSearch_AND(classifications_dir, True, "Classif",
+                                        "model", "seed", ".tif")
 
     group = []
     for vector in vectors:
@@ -180,8 +250,13 @@ def confusion_sar_optical_parameter(iota2_dir, LOGGER=LOGGER):
         tile = vec_name.split("_")[vector_tile_pos]
         model = vec_name.split("_")[vector_model_pos]
         key = (seed, tile, model)
-        fields = fu.getAllFieldsInShape(vector)
-        if len(fu.getFieldElement(vector, driverName="ESRI Shapefile", field=fields[0], mode="all", elemType="str")):
+        fields = fu.get_all_fields_in_shape(vector)
+        if len(
+                fu.getFieldElement(vector,
+                                   driverName="ESRI Shapefile",
+                                   field=fields[0],
+                                   mode="all",
+                                   elemType="str")) != 0:
             group.append((key, vector))
     for classif in classifications:
         classif_name = os.path.basename(classif)
@@ -196,9 +271,9 @@ def confusion_sar_optical_parameter(iota2_dir, LOGGER=LOGGER):
     # check if all parameter to find are found.
     for group in groups_param_buff:
         if len(group) != 3:
-            err_message = "all parameter to use Dempster-Shafer fusion, not found : {}".format(group)
-            LOGGER.debug(err_message)
-        else :
+            logger.debug(f"all parameter to use Dempster-Shafer fusion, "
+                         f"not found : {group}")
+        else:
             groups_param.append(group)
 
     # output
@@ -209,7 +284,7 @@ def confusion_sar_optical_parameter(iota2_dir, LOGGER=LOGGER):
                 ref_vector = sub_param
             elif "SAR.tif" in sub_param:
                 classif_sar = sub_param
-            elif ".tif" in sub_param and not "SAR.tif" in sub_param:
+            elif ".tif" in sub_param and "SAR.tif" not in sub_param:
                 classif_opt = sub_param
         output_parameters.append((ref_vector, classif_opt))
         output_parameters.append((ref_vector, classif_sar))
@@ -217,10 +292,13 @@ def confusion_sar_optical_parameter(iota2_dir, LOGGER=LOGGER):
     return output_parameters
 
 
-def confusion_sar_optical(ref_vector, dataField, ram=128, LOGGER=LOGGER):
+def confusion_sar_optical(ref_vector: Tuple[str, str],
+                          data_field: str,
+                          ram: Optional[int] = 128,
+                          logger: Optional[Logger] = LOGGER):
     """
-    function use to compute a confusion matrix dedicated to the D-S classification
-    fusion.
+    function use to compute a confusion matrix dedicated to the D-S
+    classification fusion.
 
     Parameter
     ---------
@@ -233,8 +311,8 @@ def confusion_sar_optical(ref_vector, dataField, ram=128, LOGGER=LOGGER):
     LOGGER : logging
         root logger
     """
-    from Common import OtbAppBank
-    
+    from iota2.Common import OtbAppBank
+
     ref_vector, classification = ref_vector
     csv_out = ref_vector.replace(".shp", ".csv")
     if "SAR.tif" in classification:
@@ -242,33 +320,78 @@ def confusion_sar_optical(ref_vector, dataField, ram=128, LOGGER=LOGGER):
     if os.path.exists(csv_out):
         os.remove(csv_out)
 
-    confusion_parameters = {"in": classification,
-                            "out": csv_out,
-                            "ref": "vector",
-                            "ref.vector.in": ref_vector,
-                            "ref.vector.field": dataField.lower(),
-                            "ram": str(0.8 * ram)}
+    confusion_parameters = {
+        "in": classification,
+        "out": csv_out,
+        "ref": "vector",
+        "ref.vector.in": ref_vector,
+        "ref.vector.field": data_field.lower(),
+        "ram": str(0.8 * ram)
+    }
 
-    confusion_matrix = OtbAppBank.CreateComputeConfusionMatrixApplication(confusion_parameters)
+    confusion_matrix = OtbAppBank.CreateComputeConfusionMatrixApplication(
+        confusion_parameters)
 
-    LOGGER.info("Launch : {}".format(csv_out))
+    logger.info(f"Launch : {csv_out}")
     confusion_matrix.ExecuteAndWriteOutput()
-    LOGGER.debug("{} done".format(csv_out))
+    logger.debug(f"{csv_out} done")
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="this function create a confusion matrix")
-    parser.add_argument("-path.classif", help="path to the folder which contains classification images (mandatory)", dest="pathClassif", required=True)
-    parser.add_argument("-path.valid", help="path to the folder which contains validation samples (with priority) (mandatory)", dest="pathValid", required=True)
-    parser.add_argument("-N", dest="N", help="number of random sample(mandatory)", required=True, type=int)
-    parser.add_argument("-data.field", dest="dataField", help="data's field into data shape (mandatory)", required=True)
-    parser.add_argument("-confusion.out.cmd", dest="pathToCmdConfusion", help="path where all confusion cmd will be stored in a text file(mandatory)", required=True)
-    parser.add_argument("--wd", dest="pathWd", help="path to the working directory", default=None, required=False)
-    parser.add_argument("-conf", help="path to the configuration file which describe the classification (mandatory)", dest="pathConf", required=False)
-    args = parser.parse_args()
+    PARSER = argparse.ArgumentParser(
+        description="this function create a confusion matrix")
+    PARSER.add_argument(
+        "-path.classif",
+        help=("path to the folder which contains classification "
+              "images (mandatory)"),
+        dest="pathClassif",
+        required=True)
+    PARSER.add_argument(
+        "-path.valid",
+        help=("path to the folder which contains validation samples"
+              " (with priority) (mandatory)"),
+        dest="path_valid",
+        required=True)
+    PARSER.add_argument("-N",
+                        dest="N",
+                        help="number of random sample(mandatory)",
+                        required=True,
+                        type=int)
+    PARSER.add_argument("-data.field",
+                        dest="dataField",
+                        help="data's field into data shape (mandatory)",
+                        required=True)
+    PARSER.add_argument(
+        "-confusion.out.cmd",
+        dest="pathToCmdConfusion",
+        help=("path where all confusion cmd will be stored in a text file"
+              "(mandatory)"),
+        required=True)
+    PARSER.add_argument("--wd",
+                        dest="path_wd",
+                        help="path to the working directory",
+                        default=None,
+                        required=False)
+    PARSER.add_argument("-output_path",
+                        help="path to the output directory (mandatory)",
+                        dest="output_path",
+                        required=True)
+    PARSER.add_argument("-spatial_res",
+                        help="the spatial resolution (mandatory)",
+                        dest="spatial_res",
+                        required=True)
+    PARSER.add_argument(
+        "-list_tiles",
+        help="the list of tiles separated by space (mandatory)",
+        dest="list_tiles",
+        required=True)
+    PARSER.add_argument("-cross_val",
+                        help="activate cross validation ",
+                        dest="cross_val",
+                        default=False,
+                        required=False)
+    ARGS = PARSER.parse_args()
 
-    # load configuration file
-    cfg = SCF.serviceConfigFile(args.pathConf)
-
-    genConfMatrix(args.pathClassif, args.pathValid, args.N, args.dataField,
-                  args.pathToCmdConfusion, cfg, args.pathWd)
+    gen_conf_matrix(ARGS.pathClassif, ARGS.path_valid, ARGS.N, ARGS.dataField,
+                    ARGS.pathToCmdConfusion, ARGS.path_wd, ARGS.output_path,
+                    ARGS.spatial_res, ARGS.list_tiles, ARGS.cross_val)

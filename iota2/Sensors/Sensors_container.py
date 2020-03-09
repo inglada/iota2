@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -13,55 +13,53 @@
 #   PURPOSE.  See the above copyright notices for more information.
 #
 # =========================================================================
-
 """
-This class manage sensor's data by tile, providing services needed in whole IOTA²
-library
+This class manage sensor's data by tile, providing services needed in whole
+IOTA² library
 """
 import os
 
-from Sensors.Sentinel_1 import Sentinel_1
-from Sensors.Sentinel_2 import Sentinel_2
-from Sensors.Sentinel_2_S2C import Sentinel_2_S2C
-from Sensors.Sentinel_2_L3A import Sentinel_2_L3A
-from Sensors.Landsat_5_old import Landsat_5_old
-from Sensors.Landsat_8 import Landsat_8
-from Sensors.Landsat_8_old import Landsat_8_old
-from Sensors.User_features import User_features
+from iota2.Sensors.Sentinel_1 import sentinel_1
+from iota2.Sensors.Sentinel_2 import sentinel_2
+from iota2.Sensors.Sentinel_2_S2C import sentinel_2_s2c
+from iota2.Sensors.Sentinel_2_L3A import sentinel_2_l3a
+from iota2.Sensors.Landsat_5_old import landsat_5_old
+from iota2.Sensors.Landsat_8 import landsat_8
+from iota2.Sensors.Landsat_8_old import landsat_8_old
+from iota2.Sensors.User_features import user_features
 
 
-class Sensors_container(object):
-    def __init__(self, config_path, tile_name, working_dir):
+class sensors_container():
+    """
+    The sensors container class
+    """
+    def __init__(self, tile_name, working_dir, output_path, **kwargs):
         """
         Parameters
         ----------
-        config_path : string
-            absolute path to a IOTA2 configuration file
         tile_name : string
             tile to consider : "T31TCJ"
         working_dir : string
             absolute path to a working directory dedicated to compute temporary
             data
+        output_path : string
+            the final output path
+        sensors_description : dict[str, dict[str:*]]
 
-        TODO : make the class independant from a configuration file
         """
-        from Common import ServiceConfigFile as SCF
-
-        self.cfg = SCF.serviceConfigFile(config_path)
         self.tile_name = tile_name
         self.working_dir = working_dir
-
+        self.sensors_description = kwargs
         self.enabled_sensors = self.get_enabled_sensors()
         self.common_mask_name = "MaskCommunSL.tif"
-        self.features_dir = os.path.join(self.cfg.getParam("chain", "outputPath"),
-                                         "features", tile_name)
+        self.features_dir = os.path.join(output_path, "features", tile_name)
         self.common_mask_dir = os.path.join(self.features_dir, "tmp")
 
     def __str__(self):
         """return enabled sensors and the current tile
         """
-        return "tile's name : {}, available sensors : {}".format(self.tile_name,
-                                                                 ", ".join(self.print_enabled_sensors_name()))
+        return "tile's name : {}, available sensors : {}".format(
+            self.tile_name, ", ".join(self.print_enabled_sensors_name()))
 
     def __repr__(self):
         """return enabled sensors and the current tile
@@ -76,14 +74,11 @@ class Sensors_container(object):
         list
             list of manageable sensors' name
         """
-        available_sensors_name = [Landsat5.name,
-                                  Landsat8.name,
-                                  Landsat_8_old.name,
-                                  Sentinel_1.name,
-                                  Sentinel_2.name,
-                                  Sentinel_2_S2C.name,
-                                  Sentinel_2_L3A.name,
-                                  User_features.name]
+        available_sensors_name = [
+            landsat_5_old.name, landsat_8.name, landsat_8_old.name,
+            sentinel_1.name, sentinel_2.name, sentinel_2_s2c.name,
+            sentinel_2_l3a.name, user_features.name
+        ]
         return available_sensors_name
 
     def print_enabled_sensors_name(self):
@@ -94,32 +89,32 @@ class Sensors_container(object):
         list
             list of enabled sensors's name
         """
-        l5_old = self.cfg.getParam("chain", "L5Path_old")
-        l8 = self.cfg.getParam("chain", "L8Path")
-        l8_old = self.cfg.getParam("chain", "L8Path_old")
-        s1 = self.cfg.getParam("chain", "S1Path")
-        s2 = self.cfg.getParam("chain", "S2Path")
-        s2_s2c = self.cfg.getParam("chain", "S2_S2C_Path")
-        s2_l3a = self.cfg.getParam("chain", "S2_L3A_Path")
-        user_feat = self.cfg.getParam("chain", "userFeatPath")
+        l5_old = self.sensors_description.get("Landsat5_old", None)
+        land8 = self.sensors_description.get('Landsat8', None)
+        l8_old = self.sensors_description.get('Landsat8_old', None)
+        sen1 = self.sensors_description.get("Sentinel_1", None)
+        sen2 = self.sensors_description.get("Sentinel_2", None)
+        s2_s2c = self.sensors_description.get("Sentinel_2_S2C", None)
+        s2_l3a = self.sensors_description.get("Sentinel_2_L3A", None)
+        user_feat = self.sensors_description.get("userFeat", None)
 
         enabled_sensors = []
-        if not "none" in l5_old.lower():
-            enabled_sensors.append(Landsat_5_old.name)
-        if not "none" in l8.lower():
-            enabled_sensors.append(Landsat_8.name)
-        if not "none" in l8_old.lower():
-            enabled_sensors.append(Landsat_8_old.name)
-        if not "none" in s1.lower():
-            enabled_sensors.append(Sentinel_1.name)
-        if not "none" in s2.lower():
-            enabled_sensors.append(Sentinel_2.name)
-        if not "none" in s2_s2c.lower():
-            enabled_sensors.append(Sentinel_2_S2C.name)
-        if not "none" in s2_l3a.lower():
-            enabled_sensors.append(Sentinel_2_L3A.name)
-        if not "none" in user_feat.lower():
-            enabled_sensors.append(User_features.name)
+        if l5_old is not None:
+            enabled_sensors.append(landsat_5_old.name)
+        if land8 is not None:
+            enabled_sensors.append(landsat_8.name)
+        if l8_old is not None:
+            enabled_sensors.append(landsat_8_old.name)
+        if sen1 is not None:
+            enabled_sensors.append(sentinel_1.name)
+        if sen2 is not None:
+            enabled_sensors.append(sentinel_2.name)
+        if s2_s2c is not None:
+            enabled_sensors.append(sentinel_2_s2c.name)
+        if s2_l3a is None:
+            enabled_sensors.append(sentinel_2_l3a.name)
+        if user_feat is None:
+            enabled_sensors.append(user_features.name)
         return enabled_sensors
 
     def get_sensor(self, sensor_name):
@@ -133,7 +128,8 @@ class Sensors_container(object):
         Return
         ------
         sensor
-            return the sensor with the name "sensor_name". If no sensors are found
+            return the sensor with the name "sensor_name".
+            If no sensors are found
             return None
         """
         sensor_found = []
@@ -141,7 +137,8 @@ class Sensors_container(object):
             if sensor_name == sensor.__class__.name:
                 sensor_found.append(sensor)
         if len(sensor_found) > 1:
-            raise Exception("Too many sensors found with the name {}".format(sensor_name))
+            raise Exception(
+                "Too many sensors found with the name {}".format(sensor_name))
         return sensor_found[0] if sensor_found else None
 
     def remove_sensor(self, sensor_name):
@@ -155,79 +152,80 @@ class Sensors_container(object):
         for index, sensor in enumerate(self.enabled_sensors):
             if sensor_name == sensor.__class__.name:
                 self.enabled_sensors.pop(index)
-        
+
     def get_enabled_sensors(self):
         """build enabled sensor list
 
         This function define sensors to use in IOTA2 run. It is where sensor's
         order is define : Landsat-5, Landsat-8 until user-features
-        
+
         Return
         ------
         list
             list of enabled sensors
         """
-        l5_old = self.cfg.getParam("chain", "L5Path_old")
-        l8 = self.cfg.getParam("chain", "L8Path")
-        l8_old = self.cfg.getParam("chain", "L8Path_old")
-        s1 = self.cfg.getParam("chain", "S1Path")
-        s2 = self.cfg.getParam("chain", "S2Path")
-        s2_s2c = self.cfg.getParam("chain", "S2_S2C_Path")
-        s2_l3a = self.cfg.getParam("chain", "S2_L3A_Path")
-        user_feat = self.cfg.getParam("chain", "userFeatPath")
+        l5_old = self.sensors_description.get("Landsat5_old", None)
+        land8 = self.sensors_description.get('Landsat8', None)
+        l8_old = self.sensors_description.get('Landsat8_old', None)
+        sen1 = self.sensors_description.get("Sentinel_1", None)
+        sen2 = self.sensors_description.get("Sentinel_2", None)
+        s2_s2c = self.sensors_description.get("Sentinel_2_S2C", None)
+        s2_l3a = self.sensors_description.get("Sentinel_2_L3A", None)
+        user_feat = self.sensors_description.get("userFeat", None)
 
         enabled_sensors = []
-        if not "none" in l5_old.lower():
-            enabled_sensors.append(Landsat_5_old(self.cfg.pathConf, tile_name=self.tile_name))
-        if not "none" in l8.lower():
-            enabled_sensors.append(Landsat_8(self.cfg.pathConf, tile_name=self.tile_name))
-        if not "none" in l8_old.lower():
-            enabled_sensors.append(Landsat_8_old(self.cfg.pathConf, tile_name=self.tile_name))
-        if not "none" in s1.lower():
-            enabled_sensors.append(Sentinel_1(self.cfg.pathConf, tile_name=self.tile_name))
-        if not "none" in s2.lower():
-            enabled_sensors.append(Sentinel_2(self.cfg.pathConf, tile_name=self.tile_name))
-        if not "none" in s2_s2c.lower():
-            enabled_sensors.append(Sentinel_2_S2C(self.cfg.pathConf, tile_name=self.tile_name))
-        if not "none" in s2_l3a.lower():
-            enabled_sensors.append(Sentinel_2_L3A(self.cfg.pathConf, tile_name=self.tile_name))
-        if not "none" in user_feat.lower():
-            enabled_sensors.append(User_features(self.cfg.pathConf, tile_name=self.tile_name))
+        if l5_old is not None:
+            enabled_sensors.append(landsat_5_old(**l5_old))
+        if land8 is not None:
+            enabled_sensors.append(landsat_8(**land8))
+        if l8_old is not None:
+            enabled_sensors.append(landsat_8_old(**l8_old))
+        if sen1 is not None:
+            enabled_sensors.append(sentinel_1(**sen1))
+        if sen2 is not None:
+            enabled_sensors.append(sentinel_2(**sen2))
+        if s2_s2c is not None:
+            enabled_sensors.append(sentinel_2_s2c(**s2_s2c))
+        if s2_l3a is not None:
+            enabled_sensors.append(sentinel_2_l3a(**s2_l3a))
+        if user_feat is not None:
+            enabled_sensors.append(user_features(**user_feat))
         return enabled_sensors
 
     def get_enabled_sensors_path(self):
         """
+        return the enabled sensors path
         """
-        self.enabled_sensors
-        
-        l5_old = self.cfg.getParam("chain", "L5Path_old")
-        l8 = self.cfg.getParam("chain", "L8Path")
-        l8_old = self.cfg.getParam("chain", "L8Path_old")
-        s1 = self.cfg.getParam("chain", "S1Path")
-        s2 = self.cfg.getParam("chain", "S2Path")
-        s2_s2c = self.cfg.getParam("chain", "S2_S2C_Path")
-        s2_l3a = self.cfg.getParam("chain", "S2_L3A_Path")
-        user_feat = self.cfg.getParam("chain", "userFeatPath")
+        # self.enabled_sensors
+
+        l5_old = self.sensors_description.get("Landsat5_old", None)
+        land8 = self.sensors_description.get('Landsat8', None)
+        l8_old = self.sensors_description.get('Landsat8_old', None)
+        sen1 = self.sensors_description.get("Sentinel_1", None)
+        sen2 = self.sensors_description.get("Sentinel_2", None)
+        s2_s2c = self.sensors_description.get("Sentinel_2_S2C", None)
+        s2_l3a = self.sensors_description.get("Sentinel_2_L3A", None)
+        user_feat = self.sensors_description.get("userFeat", None)
 
         paths = []
         for sensor in self.enabled_sensors:
-            if Landsat_5_old.name ==  sensor.__class__.name:
-                paths.append(l5_old)
-            elif Landsat_8.name ==  sensor.__class__.name:
-                paths.append(l8)
-            elif Landsat_8_old.name ==  sensor.__class__.name:
-                paths.append(l8_old)
-            elif Sentinel_1.name ==  sensor.__class__.name:
-                paths.append(s1)
-            elif Sentinel_2.name ==  sensor.__class__.name:
-                paths.append(s2)
-            elif Sentinel_2_S2C.name ==  sensor.__class__.name:
-                paths.append(s2_s2c)
-            elif Sentinel_2_L3A.name ==  sensor.__class__.name:
-                paths.append(s2_l3a)
-            elif User_features.name ==  sensor.__class__.name:
-                paths.append(user_feat)
-            return paths
+            if landsat_5_old.name == sensor.__class__.name:
+                paths.append(l5_old["image_directory"])
+            elif landsat_8.name == sensor.__class__.name:
+                paths.append(land8["image_directory"])
+            elif landsat_8_old.name == sensor.__class__.name:
+                paths.append(l8_old["image_directory"])
+            elif sentinel_1.name == sensor.__class__.name:
+                paths.append(sen1["image_directory"])
+            elif sentinel_2.name == sensor.__class__.name:
+                paths.append(sen2["image_directory"])
+            elif sentinel_2_s2c.name == sensor.__class__.name:
+                paths.append(s2_s2c["image_directory"])
+            elif sentinel_2_l3a.name == sensor.__class__.name:
+                paths.append(s2_l3a["image_directory"])
+            elif user_features.name == sensor.__class__.name:
+                paths.append(user_feat["image_directory"])
+        return paths
 
     def sensors_preprocess(self, available_ram=128):
         """preprocessing every enabled sensors
@@ -255,19 +253,21 @@ class Sensors_container(object):
         Return
         ------
         object
-            return the object returned from sensor.preprocess. Nowadays, nothing
-            is done with it, no object's type are imposed but it could change.
+            return the object returned from sensor.preprocess. Nowadays,
+            nothing is done with it, no object's type are imposed
+            but it could change.
         """
         sensor_prepro_app = None
         if "preprocess" in dir(sensor):
-            sensor_prepro_app = sensor.preprocess(working_dir=working_dir, ram=available_ram)
+            sensor_prepro_app = sensor.preprocess(working_dir=working_dir,
+                                                  ram=available_ram)
         return sensor_prepro_app
 
     def sensors_dates(self):
         """by sensors, get available dates
 
-        if exists get_available_dates's sensor method is called. The method must
-        return a list of sorted available dates.
+        if exists get_available_dates's sensor method is called. The method
+        must return a list of sorted available dates.
 
         Return
         ------
@@ -286,8 +286,8 @@ class Sensors_container(object):
         """get sensor's footprint
 
         It provide the list of otb's application dedicated to generate sensor's
-        footprint. Each otb's application must be dedicated to the generation of
-        a binary raster, 0 meaning 'NODATA'
+        footprint. Each otb's application must be dedicated to the generation
+        of a binary raster, 0 meaning 'NODATA'
 
         Parameters
         ----------
@@ -301,14 +301,16 @@ class Sensors_container(object):
         """
         sensors_footprint = []
         for sensor in self.enabled_sensors:
-            sensors_footprint.append((sensor.__class__.name, sensor.footprint(available_ram)))
+            sensors_footprint.append(
+                (sensor.__class__.name, sensor.footprint(available_ram)))
         return sensors_footprint
 
     def get_common_sensors_footprint(self, available_ram=128):
         """get common sensor's footprint
 
-        provide an otbApplication ready to be 'ExecuteAndWriteOutput' generating
-        a binary raster which is the intersection of all sensor's footprint
+        provide an otbApplication ready to be 'ExecuteAndWriteOutput'
+        generating a binary raster which is the intersection of all sensor's
+        footprint
 
         Parameters
         ----------
@@ -320,7 +322,7 @@ class Sensors_container(object):
         tuple
             (otbApplication, dependencies)
         """
-        from Common.OtbAppBank import CreateBandMathApplication
+        from iota2.Common.OtbAppBank import CreateBandMathApplication
         sensors_footprint = []
         all_dep = []
         for sensor in self.enabled_sensors:
@@ -330,14 +332,18 @@ class Sensors_container(object):
             all_dep.append(_)
             all_dep.append(footprint)
 
-        expr = "+".join("im{}b1".format(i + 1) for i in range(len(sensors_footprint)))
+        expr = "+".join("im{}b1".format(i + 1)
+                        for i in range(len(sensors_footprint)))
         expr = "{}=={}?1:0".format(expr, len(sensors_footprint))
-        common_mask_out = os.path.join(self.common_mask_dir, self.common_mask_name)
-        common_mask = CreateBandMathApplication({"il": sensors_footprint,
-                                                 "exp":expr,
-                                                 "out": common_mask_out,
-                                                 "pixType":"uint8",
-                                                 "ram": str(available_ram)})
+        common_mask_out = os.path.join(self.common_mask_dir,
+                                       self.common_mask_name)
+        common_mask = CreateBandMathApplication({
+            "il": sensors_footprint,
+            "exp": expr,
+            "out": common_mask_out,
+            "pixType": "uint8",
+            "ram": str(available_ram)
+        })
         return common_mask, all_dep
 
     def get_sensors_time_series(self, available_ram=128):
@@ -351,13 +357,16 @@ class Sensors_container(object):
         Return
         ------
         list
-            list of tuple : (sensor's name, (otbApplication, dependencies), labels)
+            list of tuple : (sensor's name, (otbApplication, dependencies),
+                             labels)
             where labels are sorted feature's name
         """
         sensors_time_series = []
         for sensor in self.enabled_sensors:
             if "get_time_series" in dir(sensor):
-                sensors_time_series.append((sensor.__class__.name, sensor.get_time_series(available_ram)))
+                sensors_time_series.append(
+                    (sensor.__class__.name,
+                     sensor.get_time_series(available_ram)))
         return sensors_time_series
 
     def get_sensors_time_series_masks(self, available_ram=128):
@@ -371,12 +380,15 @@ class Sensors_container(object):
         Return
         ------
         list
-            list of tuple : (sensor's name, (otbApplication, dependencies, number of masks))
+            list of tuple : (sensor's name, (otbApplication, dependencies,
+                                             number of masks))
         """
         sensors_time_series_masks = []
         for sensor in self.enabled_sensors:
             if "get_time_series_masks" in dir(sensor):
-                sensors_time_series_masks.append((sensor.__class__.name, sensor.get_time_series_masks(available_ram)))
+                sensors_time_series_masks.append(
+                    (sensor.__class__.name,
+                     sensor.get_time_series_masks(available_ram)))
         return sensors_time_series_masks
 
     def get_sensors_time_series_gapfilling(self, available_ram=128):
@@ -390,13 +402,16 @@ class Sensors_container(object):
         Return
         ------
         list
-            list of tuple : (sensor's name, ((otbApplication, dependencies), labels))
+            list of tuple : (sensor's name, ((otbApplication, dependencies),
+                                              labels))
             where labels are sorted feature's name
         """
         sensors_time_series = []
         for sensor in self.enabled_sensors:
-            if "get_time_series_gapFilling" in dir(sensor):
-                sensors_time_series.append((sensor.__class__.name, sensor.get_time_series_gapFilling(available_ram)))
+            if "get_time_series_gapfilling" in dir(sensor):
+                sensors_time_series.append(
+                    (sensor.__class__.name,
+                     sensor.get_time_series_gapfilling(available_ram)))
         return sensors_time_series
 
     def get_sensors_features(self, available_ram=128):
@@ -410,11 +425,12 @@ class Sensors_container(object):
         Return
         ------
         list
-            list of tuple : (sensor's name, ((otbApplication, dependencies), labels))
+            list of tuple : (sensor's name, ((otbApplication, dependencies),
+                                              labels))
             where labels are sorted feature's name
         """
         sensors_features = []
         for sensor in self.enabled_sensors:
-            sensors_features.append((sensor.__class__.name, sensor.get_features(available_ram)))
+            sensors_features.append(
+                (sensor.__class__.name, sensor.get_features(available_ram)))
         return sensors_features
-

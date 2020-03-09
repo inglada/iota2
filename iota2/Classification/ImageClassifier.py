@@ -15,20 +15,19 @@
 # =========================================================================
 
 import argparse
-import shutil
 import os
-import ast
-from config import Config
 import logging
+from typing import List, Dict, Union
 
-from Common import ServiceConfigFile as SCF
+SENSORS_PARAMS = Dict[str, Union[str, List[str], int]]
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
 def str2bool(v):
-    if v.lower() not in ("yes", "true", "t", "y", "1", "no", "false", "f", "n", "0"):
-        raise argparse.ArgumentTypeError("Boolean value expected.")
+    if v.lower() not in ('yes', 'true', 't', 'y', '1', 'no', 'false', 'f', 'n',
+                         '0'):
+        raise argparse.ArgumentTypeError('Boolean value expected.')
 
     retour = True
     if v.lower() in ("no", "false", "f", "n", "0"):
@@ -44,14 +43,12 @@ def autoContext_classification_param(iota2_directory, data_field):
         path to iota² output path
     """
     import re
-    from Common.FileUtils import FileSearch_AND
-    from Common.FileUtils import sortByFirstElem
-    from Common.FileUtils import getListTileFromModel
-    from Common.FileUtils import getFieldElement
+    from iota2.Common.FileUtils import FileSearch_AND
+    from iota2.Common.FileUtils import getListTileFromModel
+    from iota2.Common.FileUtils import getFieldElement
 
-    models_description = os.path.join(
-        iota2_directory, "config_model", "configModel.cfg"
-    )
+    models_description = os.path.join(iota2_directory, "config_model",
+                                      "configModel.cfg")
     models_directory = os.path.join(iota2_directory, "model")
     sample_sel_directory = os.path.join(iota2_directory, "samplesSelection")
 
@@ -61,122 +58,119 @@ def autoContext_classification_param(iota2_directory, data_field):
         model_name = model.split("_")[1]
         seed_num = model.split("_")[-1]
         tiles = sorted(getListTileFromModel(model_name, models_description))
-        # ~ samples_region_1f1_seed_0.shp
+        #~ samples_region_1f1_seed_0.shp
         model_sample_sel = FileSearch_AND(
-            sample_sel_directory,
-            True,
-            "samples_region_{}_seed_{}.shp".format(model_name, seed_num),
-        )[0]
-        labels = getFieldElement(
-            model_sample_sel,
-            driverName="ESRI Shapefile",
-            field=data_field,
-            mode="unique",
-        )
-        models = FileSearch_AND(os.path.join(models_directory, model), True, ".rf")
+            sample_sel_directory, True,
+            "samples_region_{}_seed_{}.shp".format(model_name, seed_num))[0]
+        labels = getFieldElement(model_sample_sel,
+                                 driverName="ESRI Shapefile",
+                                 field=data_field,
+                                 mode="unique")
+        models = FileSearch_AND(os.path.join(models_directory, model), True,
+                                ".rf")
         for tile in tiles:
             tile_mask = FileSearch_AND(
-                os.path.join(iota2_directory, "shapeRegion"),
-                True,
-                "{}_{}.tif".format(model_name.split("f")[0], tile),
-            )[0]
+                os.path.join(iota2_directory, "shapeRegion"), True,
+                "{}_{}.tif".format(model_name.split("f")[0], tile))[0]
             tile_seg = FileSearch_AND(
-                os.path.join(iota2_directory, "features", tile, "tmp"),
-                True,
-                "SLIC_{}.tif".format(tile),
-            )[0]
-            parameters.append(
-                {
-                    "model_name": model_name,
-                    "seed_num": seed_num,
-                    "tile": tile,
-                    "tile_segmentation": tile_seg,
-                    "tile_mask": tile_mask,
-                    "labels_list": labels,
-                    "model_list": sorted(
-                        models,
-                        key=lambda x: int(re.findall("\d", os.path.basename(x))[0]),
-                    ),
-                }
-            )
+                os.path.join(iota2_directory, "features", tile, "tmp"), True,
+                "SLIC_{}.tif".format(tile))[0]
+            parameters.append({
+                "model_name":
+                model_name,
+                "seed_num":
+                seed_num,
+                "tile":
+                tile,
+                "tile_segmentation":
+                tile_seg,
+                "tile_mask":
+                tile_mask,
+                "labels_list":
+                labels,
+                "model_list":
+                sorted(models,
+                       key=lambda x: int(
+                           re.findall("\d", os.path.basename(x))[0]))
+            })
     return parameters
 
 
 def autoContext_launch_classif(
-    parameters_dict, config_path, RAM, WORKING_DIR, LOGGER=logger
-):
+        parameters_dict: List[Dict[str, Union[str, List[str]]]],
+        classifier_type: str, tile: str, proba_map_expected: bool, dimred,
+        data_field: str, write_features: bool, reduction_mode,
+        iota2_run_dir: str, sar_optical_post_fusion: bool,
+        nomenclature_path: str, sensors_parameters: SENSORS_PARAMS, RAM: int,
+        WORKING_DIR: str):
     """
     """
-    from Common.OtbAppBank import CreateRasterizationApplication
-    from Common.FileUtils import getOutputPixType
+    from iota2.Common.FileUtils import getOutputPixType
 
-    cfg = SCF.serviceConfigFile(config_path)
-
-    iota2_run_dir = cfg.getParam("chain", "outputPath")
-    pixType = getOutputPixType(cfg.getParam("chain", "nomenclaturePath"))
+    pixType = getOutputPixType(nomenclature_path)
 
     models = parameters_dict["model_list"]
     classif_mask = parameters_dict["tile_mask"]
 
     tempFolderSerie = ""
     stats = os.path.join(
-        iota2_run_dir,
-        "stats",
-        "Model_{}_seed_{}.xml".format(
-            parameters_dict["model_name"], parameters_dict["seed_num"]
-        ),
-    )
+        iota2_run_dir, "stats",
+        "Model_{}_seed_{}.xml".format(parameters_dict["model_name"],
+                                      parameters_dict["seed_num"]))
 
     outputClassif = "Classif_{}_model_{}_seed_{}.tif".format(
-        parameters_dict["tile"],
-        parameters_dict["model_name"],
-        parameters_dict["seed_num"],
-    )
+        parameters_dict["tile"], parameters_dict["model_name"],
+        parameters_dict["seed_num"])
     confmap = "{}_model_{}_confidence_seed_{}.tif".format(
-        parameters_dict["tile"],
-        parameters_dict["model_name"],
-        parameters_dict["seed_num"],
-    )
-    launchClassification(
-        tempFolderSerie,
-        classif_mask,
-        models,
-        stats,
-        outputClassif,
-        confmap,
-        WORKING_DIR,
-        config_path,
-        pixType,
-        MaximizeCPU=True,
-        RAM=RAM,
-        auto_context={
-            "labels_list": parameters_dict["labels_list"],
-            "tile_segmentation": parameters_dict["tile_segmentation"],
-        },
-    )
+        parameters_dict["tile"], parameters_dict["model_name"],
+        parameters_dict["seed_num"])
+
+    launchClassification(tempFolderSerie,
+                         classif_mask,
+                         models,
+                         stats,
+                         outputClassif,
+                         confmap,
+                         WORKING_DIR,
+                         classifier_type,
+                         tile,
+                         proba_map_expected,
+                         dimred,
+                         sar_optical_post_fusion,
+                         iota2_run_dir,
+                         data_field,
+                         write_features,
+                         reduction_mode,
+                         sensors_parameters,
+                         pixType,
+                         MaximizeCPU=True,
+                         RAM=RAM,
+                         auto_context={
+                             "labels_list":
+                             parameters_dict["labels_list"],
+                             "tile_segmentation":
+                             parameters_dict["tile_segmentation"]
+                         })
 
 
-class iota2Classification:
-    def __init__(
-        self,
-        cfg,
-        features_stack,
-        classifier_type,
-        model,
-        tile,
-        output_directory,
-        models_class,
-        confidence=True,
-        proba_map=False,
-        classif_mask=None,
-        pixType="uint8",
-        working_directory=None,
-        stat_norm=None,
-        RAM=128,
-        auto_context={},
-        logger=logger,
-        mode="usually",
-    ):
+class iota2Classification():
+    def __init__(self,
+                 features_stack,
+                 classifier_type,
+                 model,
+                 tile,
+                 output_directory,
+                 models_class,
+                 confidence=True,
+                 proba_map=False,
+                 classif_mask=None,
+                 pixType="uint8",
+                 working_directory=None,
+                 stat_norm=None,
+                 RAM=128,
+                 auto_context={},
+                 logger=LOGGER,
+                 mode="usually"):
         """
         TODO :
             remove the dependance from cfg which still needed to compute features (first, remove from generateFeatures)
@@ -200,28 +194,26 @@ class iota2Classification:
             self.seed = self.get_model_seed(model)
         self.features_stack = features_stack
         classification_name = "Classif_{}_model_{}_seed_{}.tif".format(
-            tile, self.model_name, self.seed
-        )
+            tile, self.model_name, self.seed)
         confidence_name = "{}_model_{}_confidence_seed_{}.tif".format(
-            tile, self.model_name, self.seed
-        )
+            tile, self.model_name, self.seed)
         proba_map_name = "PROBAMAP_{}_model_{}_seed_{}.tif".format(
-            tile, self.model_name, self.seed
-        )
+            tile, self.model_name, self.seed)
         if mode == "SAR":
-            classification_name = classification_name.replace(".tif", "_SAR.tif")
+            classification_name = classification_name.replace(
+                ".tif", "_SAR.tif")
             confidence_name = confidence_name.replace(".tif", "_SAR.tif")
             proba_map_name = proba_map_name.replace(".tif", "_SAR.tif")
-        self.classification = os.path.join(output_directory, classification_name)
+        self.classification = os.path.join(output_directory,
+                                           classification_name)
         self.confidence = os.path.join(output_directory, confidence_name)
-        self.proba_map_path = self.get_proba_map(
-            classifier_type, output_directory, model, tile, proba_map, proba_map_name
-        )
+        self.proba_map_path = self.get_proba_map(classifier_type,
+                                                 output_directory, model, tile,
+                                                 proba_map, proba_map_name)
         self.working_directory = working_directory
 
-    def get_proba_map(
-        self, classifier_type, output_directory, model, tile, gen_proba, proba_map_name
-    ):
+    def get_proba_map(self, classifier_type, output_directory, model, tile,
+                      gen_proba, proba_map_name):
         """get probability map absolute path
 
         Parameters
@@ -255,9 +247,9 @@ class iota2Classification:
         if gen_proba and proba_map is "":
             warn_mes = (
                 "classifier '{}' not available to generate a probability "
-                "map, those available are {}"
-            ).format(classifier_type, classifier_avail)
-            logger.warning(warn_mes)
+                "map, those available are {}").format(classifier_type,
+                                                      classifier_avail)
+            LOGGER.warning(warn_mes)
         return proba_map if gen_proba else ""
 
     def get_model_name(self, model):
@@ -274,67 +266,64 @@ class iota2Classification:
         """
         """
         import shutil
-        from Common.OtbAppBank import CreateImageClassifierApplication
-        from Common.OtbAppBank import CreateClassifyAutoContext
-        from Common.OtbAppBank import CreateBandMathApplication
-        from Common.OtbAppBank import CreateBandMathXApplication
-        from Common.FileUtils import ensure_dir
+        from iota2.Common.OtbAppBank import CreateImageClassifierApplication
+        from iota2.Common.OtbAppBank import CreateClassifyAutoContext
+        from iota2.Common.OtbAppBank import CreateBandMathApplication
+        from iota2.Common.OtbAppBank import CreateBandMathXApplication
+        from iota2.Common.FileUtils import ensure_dir
 
         if self.working_directory:
             self.classification = os.path.join(
-                self.working_directory, os.path.split(self.classification)[-1]
-            )
-            self.confidence = os.path.join(
-                self.working_directory, os.path.split(self.confidence)[-1]
-            )
+                self.working_directory,
+                os.path.split(self.classification)[-1])
+            self.confidence = os.path.join(self.working_directory,
+                                           os.path.split(self.confidence)[-1])
         classifier_options = {
             "in": self.features_stack,
             "model": self.classifier_model,
             "confmap": "{}?&writegeom=false".format(self.confidence),
             "ram": str(0.4 * float(self.RAM)),
             "pixType": self.pixType,
-            "out": "{}?&writegeom=false".format(self.classification),
+            "out": "{}?&writegeom=false".format(self.classification)
         }
         if self.auto_context:
             tmp_dir = os.path.join(
                 self.output_directory,
-                "tmp_model_{}_seed_{}_tile_{}".format(
-                    self.model_name, self.seed, self.tile
-                ),
-            )
+                "tmp_model_{}_seed_{}_tile_{}".format(self.model_name,
+                                                      self.seed, self.tile))
             if self.working_directory:
                 tmp_dir = os.path.join(
                     self.working_directory,
                     "tmp_model_{}_seed_{}_tile_{}".format(
-                        self.model_name, self.seed, self.tile
-                    ),
+                        self.model_name, self.seed, self.tile),
                 )
+
             ensure_dir(tmp_dir)
             classifier_options = {
                 "in": self.features_stack,
                 "inseg": self.auto_context["tile_segmentation"],
                 "models": self.classifier_model,
-                "lablist": [str(lab) for lab in self.auto_context["labels_list"]],
+                "lablist":
+                [str(lab) for lab in self.auto_context["labels_list"]],
                 "confmap": "{}?&writegeom=false".format(self.confidence),
                 "ram": str(0.4 * float(self.RAM)),
                 "pixType": self.pixType,
                 "tmpdir": tmp_dir,
-                "out": "{}?&writegeom=false".format(self.classification),
+                "out": "{}?&writegeom=false".format(self.classification)
             }
         if self.proba_map_path:
             all_class = []
-            for model_name, dico_seed in list(self.models_class.items()):
-                for seed_number, avail_class in list(dico_seed.items()):
+            for _, dico_seed in list(self.models_class.items()):
+                for _, avail_class in list(dico_seed.items()):
                     all_class += avail_class
             all_class = sorted(list(set(all_class)))
             nb_class_run = len(all_class)
             if self.working_directory:
                 self.proba_map_path = os.path.join(
-                    self.working_directory, os.path.split(self.proba_map_path)[-1]
-                )
+                    self.working_directory,
+                    os.path.split(self.proba_map_path)[-1])
             classifier_options["probamap"] = "{}?&writegeom=false".format(
-                self.proba_map_path
-            )
+                self.proba_map_path)
             classifier_options["nbclasses"] = str(nb_class_run)
 
         if self.stats:
@@ -344,83 +333,83 @@ class iota2Classification:
         else:
             classifier = CreateImageClassifierApplication(classifier_options)
 
-        logger.info("Compute Classification : {}".format(self.classification))
+        LOGGER.info("Compute Classification : {}".format(self.classification))
         classifier.ExecuteAndWriteOutput()
-        logger.info("Classification : {} done".format(self.classification))
+        LOGGER.info("Classification : {} done".format(self.classification))
 
         if self.classif_mask:
-            mask_filter = CreateBandMathApplication(
-                {
-                    "il": [self.classification, self.classif_mask],
-                    "ram": str(self.RAM),
-                    "pixType": self.pixType,
-                    "out": self.classification,
-                    "exp": "im2b1>=1?im1b1:0",
-                }
-            )
+            mask_filter = CreateBandMathApplication({
+                "il": [self.classification, self.classif_mask],
+                "ram":
+                str(self.RAM),
+                "pixType":
+                self.pixType,
+                "out":
+                self.classification,
+                "exp":
+                "im2b1>=1?im1b1:0"
+            })
             mask_filter.ExecuteAndWriteOutput()
-            mask_filter = CreateBandMathApplication(
-                {
-                    "il": [self.confidence, self.classif_mask],
-                    "ram": str(self.RAM),
-                    "pixType": "float",
-                    "out": self.confidence,
-                    "exp": "im2b1>=1?im1b1:0",
-                }
-            )
+            mask_filter = CreateBandMathApplication({
+                "il": [self.confidence, self.classif_mask],
+                "ram":
+                str(self.RAM),
+                "pixType":
+                "float",
+                "out":
+                self.confidence,
+                "exp":
+                "im2b1>=1?im1b1:0"
+            })
             mask_filter.ExecuteAndWriteOutput()
             if self.proba_map_path:
-                expr = "im2b1>=1?im1:{}".format(
-                    "{" + ";".join(["0"] * nb_class_run) + "}"
-                )
-                mask_filter = CreateBandMathXApplication(
-                    {
-                        "il": [self.proba_map_path, self.classif_mask],
-                        "ram": str(self.RAM),
-                        "pixType": "uint16",
-                        "out": self.proba_map_path,
-                        "exp": expr,
-                    }
-                )
+                expr = "im2b1>=1?im1:{}".format("{" + ";".join(["0"] *
+                                                               nb_class_run) +
+                                                "}")
+                mask_filter = CreateBandMathXApplication({
+                    "il": [self.proba_map_path, self.classif_mask],
+                    "ram":
+                    str(self.RAM),
+                    "pixType":
+                    "uint16",
+                    "out":
+                    self.proba_map_path,
+                    "exp":
+                    expr
+                })
                 mask_filter.ExecuteAndWriteOutput()
 
         if self.proba_map_path:
             class_model = self.models_class[self.model_name][int(self.seed)]
             if len(class_model) != len(all_class):
-                logger.info(
-                    "reordering the probability map : '{}'".format(self.proba_map_path)
-                )
-                self.reorder_proba_map(
-                    self.proba_map_path, self.proba_map_path, class_model, all_class
-                )
+                LOGGER.info("reordering the probability map : '{}'".format(
+                    self.proba_map_path))
+                self.reorder_proba_map(self.proba_map_path,
+                                       self.proba_map_path, class_model,
+                                       all_class)
 
         if self.working_directory:
             shutil.copy(
                 self.classification,
-                os.path.join(
-                    self.output_directory, os.path.split(self.classification)[-1]
-                ),
-            )
-            # ~ os.remove(self.classification)
+                os.path.join(self.output_directory,
+                             os.path.split(self.classification)[-1]))
+            # os.remove(self.classification)
             shutil.copy(
                 self.confidence,
-                os.path.join(self.output_directory, os.path.split(self.confidence)[-1]),
-            )
-            # ~ os.remove(self.confidence)
+                os.path.join(self.output_directory,
+                             os.path.split(self.confidence)[-1]))
+            # os.remove(self.confidence)
             if self.proba_map_path:
                 shutil.copy(
                     self.proba_map_path,
-                    os.path.join(
-                        self.output_directory, os.path.split(self.proba_map_path)[-1]
-                    ),
-                )
+                    os.path.join(self.output_directory,
+                                 os.path.split(self.proba_map_path)[-1]))
                 os.remove(self.proba_map_path)
             if self.auto_context:
                 shutil.rmtree(tmp_dir)
 
-    def reorder_proba_map(
-        self, proba_map_path_in, proba_map_path_out, class_model, all_class
-    ):
+    def reorder_proba_map(self, proba_map_path_in, proba_map_path_out,
+                          class_model, all_class):
         """reorder the probability map
 
         in order to merge proability raster containing a different number of effective
@@ -437,7 +426,7 @@ class iota2Classification:
         all_class : list
             list containing all possible labels
         """
-        from Common.OtbAppBank import CreateBandMathXApplication
+        from iota2.Common.OtbAppBank import CreateBandMathXApplication
 
         class_model_copy = [elem for elem in class_model]
 
@@ -456,15 +445,14 @@ class iota2Classification:
             else:
                 idx = NODATA_LABEL_idx
             index_vector.append(idx)
-        exp = "bands(im1, {})".format("{" + ",".join(map(str, index_vector)) + "}")
-        reorder_app = CreateBandMathXApplication(
-            {
-                "il": proba_map_path_in,
-                "ram": str(self.RAM),
-                "exp": exp,
-                "out": proba_map_path_out,
-            }
-        )
+        exp = "bands(im1, {})".format("{" + ",".join(map(str, index_vector)) +
+                                      "}")
+        reorder_app = CreateBandMathXApplication({
+            "il": proba_map_path_in,
+            "ram": str(self.RAM),
+            "exp": exp,
+            "out": proba_map_path_out
+        })
         reorder_app.ExecuteAndWriteOutput()
 
 
@@ -499,8 +487,8 @@ def get_class_by_models(iota2_samples_dir, data_field, model=None):
     >>> print dico_models["1"][0]
     >>> [11, 12, 31]
     """
-    from Common.FileUtils import FileSearch_AND
-    from Common.FileUtils import getFieldElement
+    from iota2.Common.FileUtils import FileSearch_AND
+    from iota2.Common.FileUtils import getFieldElement
 
     class_models = {}
     if model is not None:
@@ -508,91 +496,77 @@ def get_class_by_models(iota2_samples_dir, data_field, model=None):
         models_files = FileSearch_AND(modelpath, True, "model", "seed", ".txt")
 
         for model_file in models_files:
-            model_name = os.path.splitext(os.path.basename(model_file))[0].split("_")[1]
+            model_name = os.path.splitext(
+                os.path.basename(model_file))[0].split("_")[1]
             class_models[model_name] = {}
             seed_number = int(
-                os.path.splitext(os.path.basename(model_file))[0]
-                .split("_")[3]
-                .replace(".txt", "")
-            )
+                os.path.splitext(
+                    os.path.basename(model_file))[0].split("_")[3].replace(
+                        ".txt", ""))
             classes = get_model_dictionnary(model_file)
             class_models[model_name][seed_number] = classes
     else:
-        samples_files = FileSearch_AND(
-            iota2_samples_dir, True, "Samples_region_", "_seed", "_learn.sqlite"
-        )
+        samples_files = FileSearch_AND(iota2_samples_dir, True,
+                                       "Samples_region_", "_seed",
+                                       "_learn.sqlite")
 
         for samples_file in samples_files:
-            model_name = os.path.splitext(os.path.basename(samples_file))[0].split("_")[
-                2
-            ]
+            model_name = os.path.splitext(
+                os.path.basename(samples_file))[0].split("_")[2]
             class_models[model_name] = {}
         for samples_file in samples_files:
-            model_name = os.path.splitext(os.path.basename(samples_file))[0].split("_")[
-                2
-            ]
+            model_name = os.path.splitext(
+                os.path.basename(samples_file))[0].split("_")[2]
             seed_number = int(
-                os.path.splitext(os.path.basename(samples_file))[0]
-                .split("_")[3]
-                .replace("seed", "")
-            )
+                os.path.splitext(
+                    os.path.basename(samples_file))[0].split("_")[3].replace(
+                        "seed", ""))
             class_models[model_name][seed_number] = sorted(
-                getFieldElement(
-                    samples_file,
-                    driverName="SQLite",
-                    field=data_field.lower(),
-                    mode="unique",
-                    elemType="int",
-                )
-            )
+                getFieldElement(samples_file,
+                                driverName="SQLite",
+                                field=data_field.lower(),
+                                mode="unique",
+                                elemType="int"))
     return class_models
 
 
-def launchClassification(
-    tempFolderSerie,
-    Classifmask,
-    model,
-    stats,
-    outputClassif,
-    confmap,
-    pathWd,
-    cfg,
-    pixType,
-    MaximizeCPU=True,
-    RAM=500,
-    auto_context={},
-    logger=logger,
-    customFeatures=False,
-):
+def launchClassification(tempFolderSerie,
+                         Classifmask,
+                         model,
+                         stats,
+                         outputClassif,
+                         confmap,
+                         pathWd,
+                         classifier_type: str,
+                         tile: str,
+                         proba_map_expected: bool,
+                         dimred,
+                         sar_optical_post_fusion,
+                         output_path: str,
+                         data_field: str,
+                         write_features: bool,
+                         reduction_mode,
+                         sensors_parameters,
+                         pixType,
+                         MaximizeCPU=True,
+                         RAM=500,
+                         auto_context={},
+                         logger=LOGGER):
     """
     """
-    from Common import GenerateFeatures as genFeatures
-    from Sampling import DimensionalityReduction as DR
+    from iota2.Common import GenerateFeatures as genFeatures
+    from iota2.Sampling import DimensionalityReduction as DR
+    from iota2.Common.OtbAppBank import getInputParameterOutput
 
-    from Common import FileUtils as fu
-    from Common.OtbAppBank import getInputParameterOutput
+    output_directory = os.path.join(output_path, "classif")
 
-    if not isinstance(cfg, SCF.serviceConfigFile):
-        cfg = SCF.serviceConfigFile(cfg)
+    # wMode = cfg.getParam('GlobChain', 'writeOutputs')
+    featuresPath = os.path.join(output_path, "features")
 
-    classifier_type = cfg.getParam("argTrain", "classifier")
-    output_directory = os.path.join(cfg.getParam("chain", "outputPath"), "classif")
-    tiles = (cfg.getParam("chain", "listTile")).split()
-    tile = fu.findCurrentTileInString(Classifmask, tiles)
-
-    wMode = cfg.getParam("GlobChain", "writeOutputs")
-    outputPath = cfg.getParam("chain", "outputPath")
-    featuresPath = os.path.join(outputPath, "features")
-    dimred = cfg.getParam("dimRed", "dimRed")
-    proba_map_expected = cfg.getParam("argClassification", "enable_probability_map")
     wd = pathWd
     if not pathWd:
         wd = featuresPath
 
-    try:
-        useGapFilling = cfg.getParam("GlobChain", "useGapFilling")
-    except:
-        useGapFilling = True
     wd = os.path.join(featuresPath, tile)
 
     if pathWd:
@@ -600,18 +574,24 @@ def launchClassification(
         if not os.path.exists(wd):
             try:
                 os.mkdir(wd)
-            except:
-                logger.warning(wd + "Allready exists")
+            except Exception:
+                logger.warning(f"{wd} Allready exists")
+
     mode = "usually"
     if "SAR.tif" in outputClassif:
         mode = "SAR"
 
-    AllFeatures, feat_labels, dep_features = genFeatures.generateFeatures(
-        wd, tile, cfg, mode=mode, customFeatures=customFeatures
-    )
+    AllFeatures, _, dep_features = genFeatures.generateFeatures(
+        pathWd=wd,
+        tile=tile,
+        sar_optical_post_fusion=sar_optical_post_fusion,
+        output_path=output_path,
+        sensors_parameters=sensors_parameters,
+        mode=mode)
 
-    feature_raster = AllFeatures.GetParameterValue(getInputParameterOutput(AllFeatures))
-    if wMode:
+    feature_raster = AllFeatures.GetParameterValue(
+        getInputParameterOutput(AllFeatures))
+    if write_features:
         if not os.path.exists(feature_raster):
             AllFeatures.ExecuteAndWriteOutput()
         AllFeatures = feature_raster
@@ -622,132 +602,156 @@ def launchClassification(
 
     if dimred:
         logger.debug("Classification model : {}".format(model))
-        dimRedModelList = DR.GetDimRedModelsFromClassificationModel(model)
+        dimRedModelList = DR.get_dim_red_models_from_classification_model(
+            model)
         logger.debug("Dim red models : {}".format(dimRedModelList))
-        [ClassifInput, other] = DR.ApplyDimensionalityReductionToFeatureStack(
-            cfg, AllFeatures, dimRedModelList
-        )
-        if wMode:
+        [ClassifInput,
+         other_dep] = DR.apply_dimensionality_reduction_to_feature_stack(
+             reduction_mode, output_path, AllFeatures, dimRedModelList)
+        if write_features:
             ClassifInput.ExecuteAndWriteOutput()
         else:
             ClassifInput.Execute()
 
-    iota2_samples_dir = os.path.join(
-        cfg.getParam("chain", "outputPath"), "learningSamples"
-    )
-    data_field = cfg.getParam("chain", "dataField")
+    iota2_samples_dir = os.path.join(output_path, "learningSamples")
     models_class = get_class_by_models(
-        iota2_samples_dir, data_field, model=model if proba_map_expected else None
-    )
-    classif = iota2Classification(
-        cfg,
-        ClassifInput,
-        classifier_type,
-        model,
-        tile,
-        output_directory,
-        models_class,
-        proba_map=proba_map_expected,
-        working_directory=pathWd,
-        classif_mask=Classifmask,
-        pixType=pixType,
-        stat_norm=stats,
-        RAM=RAM,
-        mode=mode,
-        auto_context=auto_context,
-    )
+        iota2_samples_dir,
+        data_field,
+        model=model if proba_map_expected else None)
+    classif = iota2Classification(ClassifInput,
+                                  classifier_type,
+                                  model,
+                                  tile,
+                                  output_directory,
+                                  models_class,
+                                  proba_map=proba_map_expected,
+                                  working_directory=pathWd,
+                                  classif_mask=Classifmask,
+                                  pixType=pixType,
+                                  stat_norm=stats,
+                                  RAM=RAM,
+                                  mode=mode,
+                                  auto_context=auto_context)
     classif.generate()
 
 
 if __name__ == "__main__":
-
-    parser = argparse.ArgumentParser(
-        description="Performs a classification of the input image (compute in RAM) according to a model file, "
-    )
-    parser.add_argument(
+    from iota2.Common.FileUtils import str2bool
+    from iota2.Common import ServiceConfigFile as SCF
+    PARSER = argparse.ArgumentParser(
+        description=("Performs a classification of the input image "
+                     "(compute in RAM) according to a model file, "))
+    PARSER.add_argument(
         "-in",
         dest="tempFolderSerie",
         help="path to the folder which contains temporal series",
         default=None,
-        required=True,
-    )
-    parser.add_argument(
-        "-mask",
-        dest="mask",
-        help="path to classification's mask",
+        required=True)
+    PARSER.add_argument("-mask",
+                        dest="Classifmask",
+                        help="path to classification's mask",
+                        default=None,
+                        required=True)
+    PARSER.add_argument("-classifier_type",
+                        dest="classifier_type",
+                        help="classifier name",
+                        required=True)
+    PARSER.add_argument("-tile",
+                        dest="tile",
+                        help="tile's name",
+                        required=True)
+    PARSER.add_argument("-proba_map_expected",
+                        dest="proba_map_expected",
+                        help="is probality maps were generated",
+                        type=str2bool,
+                        default=False,
+                        required=False)
+    PARSER.add_argument("-dimred",
+                        dest="dimred",
+                        help="flag to use dimensionality reduction",
+                        type=str2bool,
+                        default=False,
+                        required=False)
+    PARSER.add_argument("-sar_optical_post_fusion",
+                        dest="sar_optical_post_fusion",
+                        help=("flag to enable sar and optical "
+                              "post-classification fusion"),
+                        type=str2bool,
+                        default=False,
+                        required=False)
+    PARSER.add_argument("-reduction_mode",
+                        dest="reduction_mode",
+                        help="reduction mode",
+                        default=None,
+                        required=True)
+    PARSER.add_argument(
+        "-data_field",
+        dest="data_field",
+        help="field containing labels in the groundtruth database",
         default=None,
-        required=True,
-    )
-    parser.add_argument(
-        "-pixType", dest="pixType", help="pixel format", default=None, required=True
-    )
-    parser.add_argument(
-        "-model", dest="model", help="path to the model", default=None, required=True
-    )
-    parser.add_argument(
-        "-imstat", dest="stats", help="path to statistics", default=None, required=False
-    )
-    parser.add_argument(
-        "-out",
-        dest="outputClassif",
-        help="output classification's path",
-        default=None,
-        required=True,
-    )
-    parser.add_argument(
-        "-confmap",
-        dest="confmap",
-        help="output classification confidence map",
-        default=None,
-        required=True,
-    )
-    parser.add_argument(
-        "-ram", dest="ram", help="pipeline's size", default=128, required=False
-    )
-    parser.add_argument(
-        "--wd",
-        dest="pathWd",
-        help="path to the working directory",
-        default=None,
-        required=False,
-    )
-    parser.add_argument(
-        "-conf",
-        help="path to the configuration file (mandatory)",
-        dest="pathConf",
-        required=True,
-    )
-    parser.add_argument(
-        "-maxCPU",
-        help="True : Class all the image and after apply mask",
-        dest="MaximizeCPU",
-        default="False",
-        choices=["True", "False"],
-        required=False,
-    )
-    parser.add_argument(
-        "-customFeatures",
-        help="True: activate custom features computation",
-        dest="customFeatures",
-        default="False",
-        choices=["True", "False"],
-        required=False,
-    )
-    args = parser.parse_args()
-
-    # load configuration file
-    cfg = SCF.serviceConfigFile(args.pathConf)
-
-    launchClassification(
-        args.tempFolderSerie,
-        args.mask,
-        args.model,
-        args.stats,
-        args.outputClassif,
-        args.confmap,
-        args.pathWd,
-        cfg,
-        args.pixType,
-        args.MaximizeCPU,
-        customFeatures=args.customFeatures,
-    )
+        required=True)
+    PARSER.add_argument("-pixType",
+                        dest="pixType",
+                        help="pixel format",
+                        default=None,
+                        required=True)
+    PARSER.add_argument("-model",
+                        dest="model",
+                        help="path to the model",
+                        default=None,
+                        required=True)
+    PARSER.add_argument("-imstat",
+                        dest="stats",
+                        help="path to statistics",
+                        default=None,
+                        required=False)
+    PARSER.add_argument("-out",
+                        dest="outputClassif",
+                        help="output classification's path",
+                        default=None,
+                        required=True)
+    PARSER.add_argument("-confmap",
+                        dest="confmap",
+                        help="output classification confidence map",
+                        default=None,
+                        required=True)
+    PARSER.add_argument("-output_path",
+                        dest="output_path",
+                        help="iota2 output path",
+                        required=True)
+    PARSER.add_argument("-ram",
+                        dest="ram",
+                        help="pipeline's size",
+                        default=128,
+                        required=False)
+    PARSER.add_argument("--wd",
+                        dest="pathWd",
+                        help="path to the working directory",
+                        default=None,
+                        required=False)
+    PARSER.add_argument("-conf",
+                        help="path to the configuration file (mandatory)",
+                        dest="pathConf",
+                        required=True)
+    PARSER.add_argument("-maxCPU",
+                        help="True : Class all the image and after apply mask",
+                        dest="MaximizeCPU",
+                        default="False",
+                        choices=["True", "False"],
+                        required=False)
+    ARGS = PARSER.parse_args()
+    CFG = SCF.serviceConfigFile(ARGS.pathConf)
+    I2_PARAMS = SCF.iota2_parameters(ARGS.pathConf)
+    SENSORS_PARAMETERS = I2_PARAMS.get_sensors_parameters(ARGS.tile)
+    AUTO_CONTEXT_PARAMS = {}
+    if CFG.getParam("chain", "enable_autoContext"):
+        AUTO_CONTEXT_PARAMS = autoContext_classification_param(
+            ARGS.output_path, ARGS.data_field)
+    launchClassification(ARGS.tempFolderSerie, ARGS.Classifmask, ARGS.model,
+                         ARGS.stats, ARGS.outputClassif, ARGS.confmap,
+                         ARGS.pathWd, ARGS.classifier_type, ARGS.tile,
+                         ARGS.proba_map_expected, ARGS.dimred,
+                         ARGS.sar_optical_post_fusion, ARGS.output_path,
+                         ARGS.data_field, ARGS.write_features,
+                         ARGS.reduction_mode, SENSORS_PARAMETERS, ARGS.pixType,
+                         AUTO_CONTEXT_PARAMS)
