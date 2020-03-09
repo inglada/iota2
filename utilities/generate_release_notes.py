@@ -52,7 +52,7 @@ def get_commits_msgs(from_tag: str, to_tag: str) -> List[Dict[str, str]]:
         author = re.findall(r"Author: [\w ]* <[\w\W*]*>",
                             commit)[0].replace("Author: ", "")
         date = re.findall(r"Date:[ \w:]*", commit)[0].replace("Date:   ", "")
-        content = list(filter(lambda x: x is not "", commit.split("\n")))[-1]
+        content = list(filter(lambda x: x != "", commit.split("\n")))[-1]
         commit_list_dico.append({
             "author": author,
             "date": date,
