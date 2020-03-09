@@ -674,21 +674,6 @@ chain.jobsPath
 
     ``only available`` if iota2 is launch using ``Iota2Cluster.py``
 
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-chain.OTB_HOME
-==============
-*Description*
-    absolute path to the OTB installation directory
-*Type*
-    string
-*Default value*
-    'None'
-*Example*
-    OTB_HOME : 'MyOTBInstall'
-*Notes*
-    ``only available`` if iota2 is run using ``Iota2Cluster.py``
-
 .. _tiled data storage:
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -987,6 +972,25 @@ Sensor.keepBands
     .. code-block:: python
 
         keepBands:["B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11", "B12"] # Sentinel-2 case
+
+Globchain available parameters
+******************************
+
+Globchain.proj
+==============
+*Description*
+    epsg code
+*Type*
+    str
+*Default value*
+    mandatory
+*Example*
+    .. code-block:: python
+
+        proj : "EPSG:2154"
+
+*Notes*
+    ground truth projection. Every raster data will be reprojected in this projection
 
 Use scikit-learn machine learning algorithms [NOT AVAILABLE]
 ************************************************************
