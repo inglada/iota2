@@ -21,7 +21,6 @@ import sys
 import shutil
 import unittest
 import numpy as np
-
 from iota2.Tests.UnitTests.tests_utils.tests_utils_rasters import array_to_raster
 # if all tests pass, remove 'iota2_tests_directory' which contains all
 # sub-directory tests
@@ -158,7 +157,7 @@ class Iota2TestsNumpyWorkflow(unittest.TestCase):
         """
         from functools import partial
         from iota2.Common import rasterUtils as rasterU
-        from iota2.Tests.UnitTests import TestsUtils
+        import iota2.Tests.UnitTests.tests_utils.tests_utils_rasters as TUR
         from iota2.Common.OtbAppBank import CreateBandMathXApplication
 
         def custom_features(array):
@@ -169,7 +168,7 @@ class Iota2TestsNumpyWorkflow(unittest.TestCase):
         # First create some dummy data on disk
         dummy_raster_path = os.path.join(self.test_working_directory,
                                          "DUMMY.tif")
-        array_to_rasterize = TestsUtils.fun_array("iota2_binary")
+        array_to_rasterize = TUR.fun_array("iota2_binary")
         array_to_raster(array_to_rasterize, dummy_raster_path)
 
         # Get it in a otbApplication (simulating full iota2 features pipeline)
@@ -177,6 +176,8 @@ class Iota2TestsNumpyWorkflow(unittest.TestCase):
             "il": [dummy_raster_path],
             "exp": "im1b1;im1b1"
         })
+        band_math.Execute()
+
         # Then apply function
         function_partial = partial(custom_features)
 
@@ -208,9 +209,8 @@ class Iota2TestsNumpyWorkflow(unittest.TestCase):
 
         # check if the input function is well applied
         pipeline_array = band_math.GetVectorImageAsNumpyArray("out")
-        self.assertTrue(
-            np.allclose(np.moveaxis(custom_features(pipeline_array), -1, 0),
-                        test_array))
+        ref_array, _ = custom_features(pipeline_array)
+        self.assertTrue(np.allclose(np.moveaxis(ref_array, -1, 0), test_array))
 
         self.assertTrue(new_labels is not None)
 
@@ -300,7 +300,7 @@ class Iota2TestsNumpyWorkflow(unittest.TestCase):
             predicted_array = np.apply_along_axis(func1d=wrapper,
                                                   axis=-1,
                                                   arr=array)
-            return predicted_array.astype(dtype)
+            return predicted_array.astype(dtype), []
 
         # build data to learn RF model
         from sklearn.datasets import make_classification
