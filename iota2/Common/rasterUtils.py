@@ -33,21 +33,21 @@ logger = logging.getLogger(__name__)
 
 
 def apply_function(
-    otb_pipeline: otbApplication,
-    labels: List[str],
-    working_dir: str,
-    function: partial,
-    output_path: Optional[str] = None,
-    mask: Optional[str] = None,
-    mask_value: Optional[int] = 0,
-    chunk_size_mode: Optional[str] = "user_fixed",
-    chunck_size_x: Optional[int] = 10,
-    chunck_size_y: Optional[int] = 10,
-    targeted_chunk: Optional[int] = None,
-    number_of_chunks: Optional[int] = None,
-    output_number_of_bands: Optional[int] = None,
-    ram: Optional[int] = 128,
-    logger=logger,
+        otb_pipeline: otbApplication,
+        labels: List[str],
+        working_dir: str,
+        function: partial,
+        output_path: Optional[str] = None,
+        mask: Optional[str] = None,
+        mask_value: Optional[int] = 0,
+        chunk_size_mode: Optional[str] = "user_fixed",
+        chunck_size_x: Optional[int] = 10,
+        chunck_size_y: Optional[int] = 10,
+        targeted_chunk: Optional[int] = None,
+        number_of_chunks: Optional[int] = None,
+        output_number_of_bands: Optional[int] = None,
+        ram: Optional[int] = 128,
+        logger=logger,
 ) -> Tuple[np.ndarray, List[str], Affine, int]:
     """Apply a python function to an otb pipeline
 
@@ -117,8 +117,7 @@ def apply_function(
         size_y = int(roi_raster.GetParameterString("sizey"))
 
         region_info = "processing region start_x : {} size_x : {} start_y : {} size_y : {}".format(
-            start_x, size_x, start_y, size_y
-        )
+            start_x, size_x, start_y, size_y)
         logger.info(region_info)
         print(region_info)
         print("memory usage : {}".format(memory_usage_psutil()))
@@ -141,45 +140,45 @@ def apply_function(
         mosaic, out_trans = merge(all_data_sets)
     else:
         if isinstance(new_arrays[0][0], int):
-            mosaic = np.repeat(mask[np.newaxis, :, :], output_number_of_bands, axis=0)
+            mosaic = np.repeat(mask[np.newaxis, :, :],
+                               output_number_of_bands,
+                               axis=0)
         else:
             mosaic = np.moveaxis(new_arrays[0][0], -1, 0)
         out_trans = all_data_sets[0].transform
     if output_path:
         with rasterio.open(
-            output_path,
-            "w",
-            driver="GTiff",
-            height=mosaic.shape[1],
-            width=mosaic.shape[2],
-            count=mosaic.shape[0],
-            crs="EPSG:{}".format(epsg_code),
-            transform=out_trans,
-            dtype=mosaic.dtype,
+                output_path,
+                "w",
+                driver="GTiff",
+                height=mosaic.shape[1],
+                width=mosaic.shape[2],
+                count=mosaic.shape[0],
+                crs="EPSG:{}".format(epsg_code),
+                transform=out_trans,
+                dtype=mosaic.dtype,
         ) as dest:
             dest.write(mosaic)
     return mosaic, new_labels, out_trans, epsg_code, chunks_mask
 
 
 def get_rasterio_datasets(
-    array_proj: List[Tuple[Union[np.ndarray, int], Dict]],
-    mask_value: Optional[int] = 0,
-    force_output_shape: Optional[Tuple[int, int, int]] = (1, 1, 1),
-    force_output_type: Optional[str] = "int32",
+        array_proj: List[Tuple[Union[np.ndarray, int], Dict]],
+        mask_value: Optional[int] = 0,
+        force_output_shape: Optional[Tuple[int, int, int]] = (1, 1, 1),
+        force_output_type: Optional[str] = "int32",
 ) -> List[rasterio.io.DatasetReader]:
     """transform numpy arrays (containing projection data) to rasterio datasets
         it works only with 3D arrays
     """
     all_data_sets = []
     expected_arr_shapes = set(
-        [arr[0].shape for arr in array_proj if isinstance(arr[0], np.ndarray)]
-    )
+        [arr[0].shape for arr in array_proj if isinstance(arr[0], np.ndarray)])
     if not expected_arr_shapes:
         expected_arr_shapes = [force_output_shape]
     expected_arr_shape = list(expected_arr_shapes)[0]
     expected_arr_types = set(
-        [arr[0].dtype for arr in array_proj if isinstance(arr[0], np.ndarray)]
-    )
+        [arr[0].dtype for arr in array_proj if isinstance(arr[0], np.ndarray)])
     if not expected_arr_types:
         expected_arr_types = [force_output_type]
     expected_arr_type = list(expected_arr_types)[0]
@@ -187,7 +186,9 @@ def get_rasterio_datasets(
     for index, new_array in enumerate(array_proj):
         array = new_array[0]
         if isinstance(array, int):
-            array = np.full(expected_arr_shape, mask_value, dtype=expected_arr_type)
+            array = np.full(expected_arr_shape,
+                            mask_value,
+                            dtype=expected_arr_type)
 
         proj = new_array[-1]["projection"]
         geo_transform = new_array[-1]["geo_transform"]
@@ -207,13 +208,13 @@ def get_rasterio_datasets(
             count = array_ordered_shape[0]
         with MemoryFile() as memfile:
             with memfile.open(
-                driver="GTiff",
-                height=height,
-                width=width,
-                count=count,
-                dtype=array.dtype,
-                crs="EPSG:{}".format(epsg_code),
-                transform=transform,
+                    driver="GTiff",
+                    height=height,
+                    width=width,
+                    count=count,
+                    dtype=array.dtype,
+                    crs="EPSG:{}".format(epsg_code),
+                    transform=transform,
             ) as dataset:
                 dataset.write(array_ordered)
             all_data_sets.append(memfile.open())
@@ -221,11 +222,11 @@ def get_rasterio_datasets(
 
 
 def process_function(
-    otb_pipeline: otbApplication,
-    function: partial,
-    mask_arr: Optional[np.ndarray] = None,
-    mask_value: Optional[int] = 0,
-    stream_bbox: Optional[Tuple[int, int, int, int]] = None,
+        otb_pipeline: otbApplication,
+        function: partial,
+        mask_arr: Optional[np.ndarray] = None,
+        mask_value: Optional[int] = 0,
+        stream_bbox: Optional[Tuple[int, int, int, int]] = None,
 ) -> Tuple[np.ndarray, Dict, List[str]]:
     """apply python function to the output of an otbApplication
 
@@ -254,10 +255,11 @@ def process_function(
     mask_roi = None
     if mask_arr is not None:
         start_x, size_x, start_y, size_y = stream_bbox
-        mask_roi = mask_arr[start_y : start_y + size_y, start_x : start_x + size_x]
+        mask_roi = mask_arr[start_y:start_y + size_y, start_x:start_x + size_x]
         mask_roi = binarize(mask_roi)
         unique_mask_values = np.unique(mask_roi)
-        if len(unique_mask_values) == 1 and unique_mask_values[0] == mask_value:
+        if len(unique_mask_values
+               ) == 1 and unique_mask_values[0] == mask_value:
             roi_to_ignore = True
         elif len(unique_mask_values) > 1 and mask_value in unique_mask_values:
             roi_contains_mask_part = True
@@ -271,7 +273,9 @@ def process_function(
     xres, yres = otb_pipeline.GetImageSpacing("out")
 
     # gdal offset
-    geo_transform = [origin_x - xres / 2.0, xres, 0, origin_y - yres / 2.0, 0, yres]
+    geo_transform = [
+        origin_x - xres / 2.0, xres, 0, origin_y - yres / 2.0, 0, yres
+    ]
     new_labels = []
     if roi_to_ignore is False:
 
@@ -281,12 +285,18 @@ def process_function(
             output_arr = output_arr * mask_roi[:, :, np.newaxis]
         output = (
             output_arr,
-            {"projection": projection, "geo_transform": geo_transform},
+            {
+                "projection": projection,
+                "geo_transform": geo_transform
+            },
         )
     else:
         output = (
             mask_value,
-            {"projection": projection, "geo_transform": geo_transform},
+            {
+                "projection": projection,
+                "geo_transform": geo_transform
+            },
         )
     otb_pipeline = None
 
@@ -294,12 +304,12 @@ def process_function(
 
 
 def get_chunks_boundaries(
-    chunk_size: Tuple[int, int],
-    shape: Tuple[int, int],
-    chunk_size_mode: str,
-    number_of_chunks: int,
-    ram_estimation: int,
-    ram_per_chunk: int,
+        chunk_size: Tuple[int, int],
+        shape: Tuple[int, int],
+        chunk_size_mode: str,
+        number_of_chunks: int,
+        ram_estimation: int,
+        ram_per_chunk: int,
 ) -> List[Dict[str, int]]:
     """from numpy array shape, return chunks boundaries (Extract ROI coordinates)
 
@@ -345,14 +355,12 @@ def get_chunks_boundaries(
         start_y = y
         for x in np.arange(0, size_x, chunk_size_x):
             start_x = x
-            boundaries.append(
-                {
-                    "startx": start_x,
-                    "sizex": chunk_size_x,
-                    "starty": start_y,
-                    "sizey": chunk_size_y,
-                }
-            )
+            boundaries.append({
+                "startx": start_x,
+                "sizex": chunk_size_x,
+                "starty": start_y,
+                "sizey": chunk_size_y,
+            })
     return boundaries
 
 
@@ -360,12 +368,12 @@ OTB_CHUNK = Tuple[type(otbApplication), int]
 
 
 def split_raster(
-    otb_pipeline: otbApplication,
-    chunk_size_mode: str,
-    chunk_size: Tuple[int, int],
-    number_of_chunks: int,
-    ram_per_chunk: int,
-    working_dir: str,
+        otb_pipeline: otbApplication,
+        chunk_size_mode: str,
+        chunk_size: Tuple[int, int],
+        number_of_chunks: int,
+        ram_per_chunk: int,
+        working_dir: str,
 ) -> List[OTB_CHUNK]:
     """extract regions of interest over the otbApplication
 
@@ -392,21 +400,22 @@ def split_raster(
     x_size, y_size = otb_pipeline.GetImageSize("out")
 
     ram_estimation = otb_pipeline.PropagateRequestedRegion(
-        key="out", region=otb_pipeline.GetImageRequestedRegion("out")
-    )
+        key="out", region=otb_pipeline.GetImageRequestedRegion("out"))
 
     print("x_size : {} et y_size : {}".format(x_size, y_size))
 
-    roi = CreateExtractROIApplication(
-        {"in": otb_pipeline, "cl": ["Channel1"], "ram": "60000"}
-    )
+    roi = CreateExtractROIApplication({
+        "in": otb_pipeline,
+        "cl": ["Channel1"],
+        "ram": "60000"
+    })
     boundaries = get_chunks_boundaries(
         chunk_size,
         shape=(x_size, y_size),
         chunk_size_mode=chunk_size_mode,
         number_of_chunks=number_of_chunks,
         ram_estimation=float(ram_estimation),
-        ram_per_chunk=float(ram_per_chunk) * 1024 ** 2,
+        ram_per_chunk=float(ram_per_chunk) * 1024**2,
     )
     independant_raster = []
 
@@ -414,25 +423,23 @@ def split_raster(
         output_roi = ""
         if working_dir:
             output_roi = os.path.join(working_dir, "ROI_{}.tif".format(index))
-        roi = CreateExtractROIApplication(
-            {
-                "in": otb_pipeline,
-                "startx": boundary["startx"],
-                "sizex": boundary["sizex"],
-                "starty": boundary["starty"],
-                "sizey": boundary["sizey"],
-                "out": output_roi,
-            }
-        )
+        roi = CreateExtractROIApplication({
+            "in": otb_pipeline,
+            "startx": boundary["startx"],
+            "sizex": boundary["sizex"],
+            "starty": boundary["starty"],
+            "sizey": boundary["sizey"],
+            "out": output_roi,
+        })
         independant_raster.append(roi)
     return independant_raster, projection.GetAttrValue("AUTHORITY", 1)
 
 
 def merge_rasters(
-    rasters: List[str],
-    output_path: str,
-    epsg_code: int,
-    working_dir: Optional[str] = None,
+        rasters: List[str],
+        output_path: str,
+        epsg_code: int,
+        working_dir: Optional[str] = None,
 ) -> Tuple[np.ndarray, Affine]:
     """merge geo-referenced rasters thanks to rasterio.merge
 
