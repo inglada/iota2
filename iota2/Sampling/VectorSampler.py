@@ -102,7 +102,13 @@ def get_features_application(train_shape: str,
                              mode: Optional[str] = "usually",
                              only_mask_comm: Optional[bool] = False,
                              only_sensors_masks: Optional[bool] = False,
-                             customFeatures: Optional[bool] = False,
+                             custom_features: Optional[bool] = False,
+                             code_path: Optional[str] = None,
+                             module_name: Optional[str] = None,
+                             list_functions: Optional[List[str]] = None,
+                             force_standard_labels: Optional[bool] = False,
+                             number_of_chunks: Optional[int] = 50,
+                             targeted_chunk: Optional[int] = None,
                              logger: Optional[Logger] = LOGGER
                              ) -> Tuple[otb_app_type, List[otb_app_type]]:
     """
@@ -147,7 +153,13 @@ def get_features_application(train_shape: str,
         output_path,
         sensors_parameters,
         mode=mode,
-        customFeatures=customFeatures)
+        custom_features=custom_features,
+        code_path=code_path,
+        module_name=module_name,
+        list_functions=list_functions,
+        force_standard_labels=force_standard_labels,
+        number_of_chunks=number_of_chunks,
+        targeted_chunk=targeted_chunk)
 
     if only_sensors_masks:
         # return AllRefl,AllMask,datesInterp,realDates
@@ -169,6 +181,7 @@ def get_features_application(train_shape: str,
     sample_extr.SetParameterString("vec", train_shape)
     sample_extr.SetParameterInputImage(
         "in", all_features.GetParameterOutputImage("out"))
+
     sample_extr.SetParameterString("out", samples)
     sample_extr.SetParameterString("outfield", "list")
     sample_extr.SetParameterStringList("outfield.list.names", feat_labels)
@@ -197,7 +210,13 @@ def generate_samples_simple(folder_sample: str,
                             folder_features: Optional[str] = None,
                             sample_sel=None,
                             mode: Optional[str] = "usually",
-                            customFeatures: Optional[bool] = False,
+                            custom_features: Optional[bool] = False,
+                            code_path: Optional[str] = None,
+                            module_name: Optional[str] = None,
+                            list_functions: Optional[List[str]] = None,
+                            force_standard_labels: Optional[bool] = False,
+                            number_of_chunks: Optional[int] = 50,
+                            targeted_chunk: Optional[int] = None,
                             logger: Optional[Logger] = LOGGER) -> None:
     """
     usage : from a strack of data generate samples containing points with
@@ -228,13 +247,22 @@ def generate_samples_simple(folder_sample: str,
         runs = runs - 1
     sample_sel_directory = os.path.join(output_path, "samplesSelection")
 
-    samples = os.path.join(working_directory,
-                           train_shape).split("/")[-1].replace(
-                               ".shp", "_Samples.sqlite")
+    if custom_features:
+
+        samples = os.path.join(
+            working_directory,
+            train_shape.split("/")[-1].replace(
+                ".shp", f"_Samples_{targeted_chunk}.sqlite"))
+
+    else:
+        samples = os.path.join(
+            working_directory,
+            train_shape.split("/")[-1].replace(".shp", "_Samples.sqlite"))
     if mode == "SAR":
-        samples = os.path.join(working_directory,
-                               train_shape).split("/")[-1].replace(
-                                   ".shp", "_Samples_SAR.sqlite")
+        samples = os.path.join(
+            working_directory,
+            train_shape.split("/")[-1].replace(".shp", "_Samples_SAR.sqlite"))
+
     print(sample_sel)
     if sample_sel:
         sample_selection = sample_sel
@@ -244,8 +272,22 @@ def generate_samples_simple(folder_sample: str,
                                              workingDirectory=None)
 
     sample_extr, dep_gapsample = get_features_application(
-        sample_selection, working_directory, samples, data_field, output_path,
-        sar_optical_post_fusion, sensors_parameters, ram, mode)
+        sample_selection,
+        working_directory,
+        samples,
+        data_field,
+        output_path,
+        sar_optical_post_fusion,
+        sensors_parameters,
+        ram,
+        mode,
+        custom_features=custom_features,
+        code_path=code_path,
+        module_name=module_name,
+        list_functions=list_functions,
+        force_standard_labels=force_standard_labels,
+        number_of_chunks=number_of_chunks,
+        targeted_chunk=targeted_chunk)
 
     sample_extraction_output = os.path.join(
         folder_sample, os.path.basename(sample_extr.GetParameterValue("out")))
@@ -278,7 +320,8 @@ def generate_samples_simple(folder_sample: str,
             proj_in=proj,
             proj_out=proj,
             mode=mode)
-        os.remove(sample_extr.GetParameterValue("out"))
+
+        # os.remove(sample_extr.GetParameterValue("out"))
 
     if path_wd:
         for sample in split_vectors:
@@ -346,7 +389,13 @@ def generate_samples_crop_mix(folder_sample: str,
                               mode: Optional[str] = "usually",
                               year_a: Optional[str] = '2017',
                               year_na: Optional[str] = '2016',
-                              customFeatures: Optional[bool] = False,
+                              custom_features: Optional[bool] = False,
+                              code_path: Optional[str] = None,
+                              module_name: Optional[str] = None,
+                              list_functions: Optional[List[str]] = None,
+                              force_standard_labels: Optional[bool] = False,
+                              number_of_chunks: Optional[int] = 50,
+                              targeted_chunk: Optional[int] = None,
                               logger=LOGGER) -> Union[None, List[str]]:
     """
     usage : from stracks A and B, generate samples containing points
@@ -443,7 +492,14 @@ def generate_samples_crop_mix(folder_sample: str,
             sensors_params,
             ram,
             mode,
-            customFeatures=customFeatures)
+            custom_features=custom_features,
+            code_path=code_path,
+            module_name=module_name,
+            list_functions=list_functions,
+            force_standard_labels=force_standard_labels,
+            number_of_chunks=number_of_chunks,
+            targeted_chunk=targeted_chunk)
+
         multi_proc = mp.Process(target=executeApp, args=[sample_extr_na_app])
         multi_proc.start()
         multi_proc.join()
@@ -465,7 +521,14 @@ def generate_samples_crop_mix(folder_sample: str,
             sar_optical_post_fusion,
             sensors_params,
             mode=mode,
-            customFeatures=customFeatures)
+            custom_features=custom_features,
+            code_path=code_path,
+            module_name=module_name,
+            list_functions=list_functions,
+            force_standard_labels=force_standard_labels,
+            number_of_chunks=number_of_chunks,
+            targeted_chunk=targeted_chunk)
+
         multi_proc = mp.Process(target=executeApp, args=[sample_extr_a_app])
         multi_proc.start()
         multi_proc.join()
@@ -528,9 +591,14 @@ def generate_samples_crop_mix(folder_sample: str,
             sample_extr_a,
             os.path.join(working_directory, merge_name + ".sqlite"))
 
-    samples = os.path.join(
-        working_directory,
-        train_shape.split("/")[-1].replace(".shp", "_Samples.sqlite"))
+    if custom_features:
+        samples = os.path.join(working_directory,
+                               train_shape).split("/")[-1].replace(
+                                   ".shp", f"_Samples_{targeted_chunk}.sqlite")
+    else:
+        samples = os.path.join(
+            working_directory,
+            train_shape.split("/")[-1].replace(".shp", "_Samples.sqlite"))
 
     if nb_feat_nannu > 0:
         os.remove(sample_extr_na)
@@ -749,7 +817,13 @@ def generate_samples_classif_mix(folder_sample: str,
                                  test_shape_region: Optional[str] = None,
                                  sample_sel: Optional[str] = None,
                                  mode: Optional[str] = "usually",
-                                 customFeatures: Optional[bool] = False,
+                                 custom_features: Optional[bool] = False,
+                                 code_path: Optional[str] = None,
+                                 module_name: Optional[str] = None,
+                                 list_functions: Optional[List[str]] = None,
+                                 force_standard_labels: Optional[bool] = False,
+                                 number_of_chunks: Optional[int] = 50,
+                                 targeted_chunk: Optional[int] = None,
                                  logger: Optional[Logger] = LOGGER):
     """
     usage : from one classification, chose randomly annual sample merge
@@ -892,9 +966,15 @@ def generate_samples_classif_mix(folder_sample: str,
     elif not (nb_feat_nannu > 0) and (nb_feat_annu > 0 and annual_points):
         # If not non annual samples are found then use all annual samples
         shutil.copy(annual_shape, sample_selection)
-    samples = os.path.join(
-        working_directory,
-        train_shape.split("/")[-1].replace(".shp", "_Samples.sqlite"))
+
+    if custom_features:
+        samples = os.path.join(working_directory,
+                               train_shape).split("/")[-1].replace(
+                                   ".shp", f"_Samples_{targeted_chunk}.sqlite")
+    else:
+        samples = os.path.join(
+            working_directory,
+            train_shape.split("/")[-1].replace(".shp", "_Samples.sqlite"))
 
     sample_extr, dep_tmp = get_features_application(
         sample_selection,
@@ -906,7 +986,13 @@ def generate_samples_classif_mix(folder_sample: str,
         sensors_parameters,
         ram,
         mode,
-        customFeatures=customFeatures)
+        custom_features=custom_features,
+        code_path=code_path,
+        module_name=module_name,
+        list_functions=list_functions,
+        force_standard_labels=force_standard_labels,
+        number_of_chunks=number_of_chunks,
+        targeted_chunk=targeted_chunk)
 
     # sampleExtr.ExecuteAndWriteOutput()
     multi_proc = mp.Process(target=executeApp, args=[sample_extr])
@@ -980,7 +1066,13 @@ def generate_samples(train_shape_dic,
                      test_mode: Optional[bool] = False,
                      test_shape_region: Optional[str] = None,
                      sample_selection: Optional[str] = None,
-                     customFeatures: Optional[bool] = False,
+                     custom_features: Optional[bool] = False,
+                     code_path: Optional[str] = None,
+                     module_name: Optional[str] = None,
+                     list_functions: Optional[List[str]] = None,
+                     force_standard_labels: Optional[bool] = False,
+                     number_of_chunks: Optional[int] = 50,
+                     targeted_chunk: Optional[int] = None,
                      logger: Optional[Logger] = LOGGER):
     """
     usage : generation of vector shape of points with features
@@ -1049,78 +1141,99 @@ def generate_samples(train_shape_dic,
         working_directory = path_wd
 
     if crop_mix is False or auto_context_enable:
-        samples = generate_samples_simple(folder_sample,
-                                          working_directory,
-                                          train_shape,
-                                          path_wd,
-                                          data_field,
-                                          region_field,
-                                          output_path,
-                                          runs,
-                                          proj,
-                                          enable_cross_validation,
-                                          sensors_parameters,
-                                          sar_optical_post_fusion,
-                                          ram,
-                                          w_mode,
-                                          folder_features,
-                                          sample_selection,
-                                          mode,
-                                          customFeatures=customFeatures)
+        samples = generate_samples_simple(
+            folder_sample,
+            working_directory,
+            train_shape,
+            path_wd,
+            data_field,
+            region_field,
+            output_path,
+            runs,
+            proj,
+            enable_cross_validation,
+            sensors_parameters,
+            sar_optical_post_fusion,
+            ram,
+            w_mode,
+            folder_features,
+            sample_selection,
+            mode,
+            custom_features=custom_features,
+            code_path=code_path,
+            module_name=module_name,
+            list_functions=list_functions,
+            force_standard_labels=force_standard_labels,
+            number_of_chunks=number_of_chunks,
+            targeted_chunk=targeted_chunk)
 
     elif crop_mix is True and samples_classif_mix is False:
-        samples = generate_samples_crop_mix(folder_sample,
-                                            working_directory,
-                                            output_path,
-                                            output_path_annual,
-                                            train_shape,
-                                            path_wd,
-                                            annual_crop,
-                                            all_class,
-                                            data_field,
-                                            folder_features,
-                                            folder_annual_features,
-                                            enable_cross_validation,
-                                            runs,
-                                            region_field,
-                                            proj,
-                                            sar_optical_post_fusion,
-                                            sensors_parameters,
-                                            ram,
-                                            w_mode,
-                                            test_mode,
-                                            sample_selection,
-                                            mode,
-                                            customFeatures=customFeatures)
+        samples = generate_samples_crop_mix(
+            folder_sample,
+            working_directory,
+            output_path,
+            output_path_annual,
+            train_shape,
+            path_wd,
+            annual_crop,
+            all_class,
+            data_field,
+            folder_features,
+            folder_annual_features,
+            enable_cross_validation,
+            runs,
+            region_field,
+            proj,
+            sar_optical_post_fusion,
+            sensors_parameters,
+            ram,
+            w_mode,
+            test_mode,
+            sample_selection,
+            mode,
+            custom_features=custom_features,
+            code_path=code_path,
+            module_name=module_name,
+            list_functions=list_functions,
+            force_standard_labels=force_standard_labels,
+            number_of_chunks=number_of_chunks,
+            targeted_chunk=targeted_chunk)
 
     elif crop_mix is True and samples_classif_mix is True:
         if isinstance(proj, str):
             proj = int(proj.split(":")[-1])
-        samples = generate_samples_classif_mix(folder_sample,
-                                               working_directory,
-                                               train_shape,
-                                               path_wd,
-                                               output_path,
-                                               annual_crop,
-                                               all_class,
-                                               data_field,
-                                               previous_classif_path,
-                                               proj,
-                                               runs,
-                                               enable_cross_validation,
-                                               region_field,
-                                               validity_threshold,
-                                               target_resolution,
-                                               sar_optical_post_fusion,
-                                               sensors_parameters,
-                                               folder_features,
-                                               ram,
-                                               w_mode,
-                                               test_mode,
-                                               test_shape_region,
-                                               sample_selection,
-                                               mode,
-                                               customFeatures=customFeatures)
+        samples = generate_samples_classif_mix(
+            folder_sample,
+            working_directory,
+            train_shape,
+            path_wd,
+            output_path,
+            annual_crop,
+            all_class,
+            data_field,
+            previous_classif_path,
+            proj,
+            runs,
+            enable_cross_validation,
+            region_field,
+            validity_threshold,
+            target_resolution,
+            sar_optical_post_fusion,
+            sensors_parameters,
+            folder_features,
+            ram,
+            w_mode,
+            test_mode,
+            test_shape_region,
+            sample_selection,
+            mode,
+            custom_features=custom_features,
+            code_path=code_path,
+            module_name=module_name,
+            list_functions=list_functions,
+            force_standard_labels=force_standard_labels,
+            number_of_chunks=number_of_chunks,
+            targeted_chunk=targeted_chunk)
     if test_mode:
         return samples
 
