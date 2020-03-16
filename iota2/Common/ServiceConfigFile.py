@@ -97,7 +97,8 @@ class serviceConfigFile:
                 "check_inputs": True,
                 "enable_autoContext": False,
                 "autoContext_iterations": 3,
-                "remove_tmp_files": False
+                "remove_tmp_files": False,
+                "force_standard_labels": False
             }
             self.init_section("chain", chain_default)
             #init coregistration section
