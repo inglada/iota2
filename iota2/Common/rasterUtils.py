@@ -101,6 +101,15 @@ def apply_function(
         ram_per_chunk=ram,
         working_dir=working_dir,
     )
+    if targeted_chunk > len(roi_rasters):
+
+        input(
+            f"out of range {len(roi_rasters)} {number_of_chunks} {targeted_chunk}"
+        )
+    else:
+        print("#" * 20)
+        print(f"{targeted_chunk}")
+        print("#" * 20)
     if targeted_chunk is not None:
         roi_rasters = [roi_rasters[targeted_chunk]]
 
@@ -341,26 +350,55 @@ def get_chunks_boundaries(
     chunk_size_x, chunk_size_y = chunk_size[0], chunk_size[1]
     size_x, size_y = shape[0], shape[1]
 
-    if chunk_size_mode == "auto":
-        ram_estimation = ram_estimation * 1.5
-        nb_chunks = math.ceil(ram_estimation / ram_per_chunk)
-        chunk_size_x = size_x
-        chunk_size_y = int(math.ceil(float(size_y) / float(nb_chunks)))
-    elif chunk_size_mode == "split_number":
-        chunk_size_x = size_x
-        chunk_size_y = int(math.ceil(float(size_y) / float(number_of_chunks)))
+    # if chunk_size_mode == "auto":
+    #     ram_estimation = ram_estimation * 1.5
+    #     nb_chunks = math.ceil(ram_estimation / ram_per_chunk)
+    #     chunk_size_x = size_x
+    #     chunk_size_y = int(math.ceil(float(size_y) / float(nb_chunks)))
 
-    boundaries = []
-    for y in np.arange(0, size_y, chunk_size_y):
-        start_y = y
-        for x in np.arange(0, size_x, chunk_size_x):
-            start_x = x
-            boundaries.append({
-                "startx": start_x,
-                "sizex": chunk_size_x,
-                "starty": start_y,
-                "sizey": chunk_size_y,
-            })
+    if chunk_size_mode == "user_fixed":
+        boundaries = []
+        for y in np.arange(0, size_y, chunk_size_y):
+            start_y = y
+            for x in np.arange(0, size_x, chunk_size_x):
+                start_x = x
+                boundaries.append({
+                    "startx": start_x,
+                    "sizex": chunk_size_x,
+                    "starty": start_y,
+                    "sizey": chunk_size_y,
+                })
+
+    elif chunk_size_mode == "split_number":
+        input(f"split number {number_of_chunks} {size_x} {size_y}")
+        chunk_size_x = size_x
+        if number_of_chunks > size_x * size_y:
+            raise ValueError(
+                f"Error: number of chunks ({number_of_chunks})"
+                f"vastly exceeds the image size ({size_x * size_y} pixels)")
+        if number_of_chunks > size_y:
+            unused_chunks = number_of_chunks - size_y
+            split_x = np.linspace(0, size_x, unused_chunks + 1)
+        else:
+            split_x = np.linspace(0, size_x, 2)
+
+        boundaries = []
+        split_y = np.linspace(0, size_y, number_of_chunks + 1)
+        split_y = [math.floor(x) for x in split_y]
+        split_x = [math.floor(x) for x in split_x]
+        for i, start_y in enumerate(split_y[:-1]):
+            for j, start_x in enumerate(split_x[:-1]):
+                boundaries.append({
+                    "startx": start_x,
+                    "sizex": chunk_size_x,
+                    "starty": start_y,
+                    "sizey": split_y[i + 1] - start_y
+                })
+    else:
+        raise ValueError(
+            f"Unknow split method {chunk_size_mode}, only split_number"
+            " and user_fixed are handled")
+
     return boundaries
 
 

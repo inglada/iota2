@@ -38,7 +38,7 @@ class samplesExtraction(IOTA2Step.Step):
         # read config file to init custom features and check validity
         self.custom_features = SCF.serviceConfigFile(
             self.cfg).checkCustomFeature()
-        self.number_of_chunks = 10
+        self.number_of_chunks = 30000
         # implement tests for check if custom features are well provided
         # so the chain failed during step init
     def step_description(self):

@@ -30,12 +30,16 @@ def generateFeatures(pathWd: str,
                      sar_optical_post_fusion: bool,
                      output_path: str,
                      sensors_parameters: sensors_params,
-                     customFeatures: Optional[bool] = False,
+                     custom_features: Optional[bool] = False,
+                     code_path: Optional[str] = None,
+                     module_name: Optional[str] = None,
+                     list_functions: Optional[List[str]] = None,
+                     targeted_chunk: Optional[int] = None,
+                     number_of_chunks: Optional[int] = 50,
                      force_standard_labels: Optional[bool] = False,
                      mode: Optional[str] = "usually"):
     """
     usage : Function use to compute features according to a configuration file
-
     Parameters
     ----------
     pathWd : str
@@ -57,7 +61,7 @@ def generateFeatures(pathWd: str,
     from iota2.Common.OtbAppBank import getInputParameterOutput
     from iota2.Common.rasterUtils import apply_function
     from functools import partial
-    from iota2.Common.customNumpyFeatures import customNumpyFeatures
+    from iota2.Common.customNumpyFeatures import custom_numpy_features
     import otbApplication as otb
     import numpy as np
 
@@ -95,7 +99,6 @@ def generateFeatures(pathWd: str,
         sensor_features.Execute()
         feat_app.append(sensor_features)
         dep.append(sensor_features_dep)
-
     dep.append(feat_app)
 
     features_name = "{}_Features.tif".format(tile)
@@ -112,19 +115,23 @@ def generateFeatures(pathWd: str,
         all_features = sensor_features
         output_param_name = getInputParameterOutput(sensor_features)
         all_features.SetParameterString(output_param_name, features_raster)
-    if customFeatures:
-        cust = customNumpyFeatures(config_path)
+    if custom_features:
+        cust = custom_numpy_features(tile, output_path, sensors_parameters,
+                                     code_path, module_name, list_functions)
         function_partial = partial(cust.process)
         labels_features_name = ""
         # TODO : how to feel labels_features_name ?
         # The output path is empty to ensure the image was not writed
-        test_array, new_labels, _, _, _ = apply_function(
+        test_array, new_labels, out_transform, _, _ = apply_function(
             otb_pipeline=all_features,
             labels=labels_features_name,
             working_dir=pathWd,
+            chunk_size_mode="split_number",
             function=function_partial,
-            chunck_size_x=5,
-            chunck_size_y=5,
+            output_path=output_path +
+            f"/features/{tile}/tmp/chunk_{targeted_chunk}.tif",
+            targeted_chunk=targeted_chunk,
+            number_of_chunks=number_of_chunks,
             ram=128,
         )
         all_features.Execute()
@@ -136,16 +143,31 @@ def generateFeatures(pathWd: str,
         # for OTB application
         arr_2 = np.copy(arr_resh, order="C")
         otbimage["array"] = arr_2
-        bandMath = otb.Registry.CreateApplication("BandMathX")
-        bandMath.ImportVectorImage("il", otbimage)
-        bandMath.SetParameterString("out", features_raster)
-        bandMath.SetParameterString("exp", "im1")
-        all_features = bandMath
-        dep.append(bandMath)
+        # get the chunk size
+        size = arr_2.shape
+        # get the chunk origin
+        origin = out_transform * (0, 0)
+        # add a demi pixel size to origin
+        #
+        otbimage["origin"].SetElement(0,
+                                      origin[0] + (otbimage["spacing"][0] / 2))
+        otbimage["origin"].SetElement(1,
+                                      origin[1] + (otbimage["spacing"][1] / 2))
+        otbimage["region"].SetIndex(0, 0)
+        otbimage["region"].SetIndex(1, 0)
+        otbimage["region"].SetSize(0, size[1])
+        otbimage["region"].SetSize(1, size[0])
+
+        bandmath = otb.Registry.CreateApplication("BandMathX")
+        bandmath.ImportVectorImage("il", otbimage)
+        bandmath.SetParameterString("out", features_raster)
+        bandmath.SetParameterString("exp", "im1")
+        all_features = bandmath
+        dep.append(bandmath)
         # new_labels can never be empty
         feat_labels += new_labels
-        if force_standard_labels:
-            feat_labels = [f"value_{i}" for i in range(len(feat_labels))]
+    if force_standard_labels:
+        feat_labels = [f"value_{i}" for i in range(len(feat_labels))]
     return all_features, feat_labels, dep
 
 
