@@ -334,6 +334,16 @@ class serviceConfigFile:
             }
 
             self.init_section("Simplification", simp_default)
+            custom_features = {
+                "codePath": None,
+                "namefile": None,
+                "functions": None,
+                "number_of_chunks": 50,
+                "chunk_size_x": 50,
+                "chunk_size_y": 50,
+                "chunk_size_mode": "split_number"
+            }
+            self.init_section("Features", custom_features)
 
     def init_section(self, sectionName, sectionDefault):
         """use to initialize a full configuration file section
@@ -1019,12 +1029,15 @@ class serviceConfigFile:
         is activate and all imports success
         """
         flag = False
-        blocks = self.getAvailableSections()
-        if "Features" in blocks:
-            # TODO add test on import function
+        # blocks = self.getAvailableSections()
+        # if "Features" in blocks:
+        #     # TODO add test on import function
+        #     flag = True
+        # else:
+        #     flag = False
+        # return flag
+        if self.getParam("Features", "codePath") is not None:
             flag = True
-        else:
-            flag = False
         return flag
 
 
