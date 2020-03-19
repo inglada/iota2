@@ -370,7 +370,6 @@ def get_chunks_boundaries(
                 })
 
     elif chunk_size_mode == "split_number":
-        input(f"split number {number_of_chunks} {size_x} {size_y}")
         chunk_size_x = size_x
         if number_of_chunks > size_x * size_y:
             raise ValueError(
