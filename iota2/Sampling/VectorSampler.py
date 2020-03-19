@@ -165,7 +165,6 @@ def get_features_application(train_shape: str,
         # return AllRefl,AllMask,datesInterp,realDates
         return dep_features[1], dep_features[2], dep_features[3], dep_features[
             4]
-
     all_features.Execute()
     ref = fu.FileSearch_AND(c_mask_directory, True, "MaskCommunSL.tif")
 
@@ -187,9 +186,8 @@ def get_features_application(train_shape: str,
     sample_extr.SetParameterStringList("outfield.list.names", feat_labels)
     sample_extr.UpdateParameters()
     sample_extr.SetParameterStringList("field", [data_field.lower()])
-
-    all_dep = [all_features, dep_features]
-
+    sample_extr.Execute()
+    all_dep = [all_features] + dep_features
     return sample_extr, all_dep
 
 
@@ -263,7 +261,6 @@ def generate_samples_simple(folder_sample: str,
             working_directory,
             train_shape.split("/")[-1].replace(".shp", "_Samples_SAR.sqlite"))
 
-    print(sample_sel)
     if sample_sel:
         sample_selection = sample_sel
     else:
@@ -298,6 +295,7 @@ def generate_samples_simple(folder_sample: str,
                     f" {fu.memory_usage_psutil()} MB")
         print("RAM before features extraction : "
               f"{fu.memory_usage_psutil()} MB")
+
         multi_proc = mp.Process(target=executeApp, args=[sample_extr])
         multi_proc.start()
         multi_proc.join()
@@ -319,7 +317,8 @@ def generate_samples_simple(folder_sample: str,
             driver="SQLite",
             proj_in=proj,
             proj_out=proj,
-            mode=mode)
+            mode=mode,
+            targeted_chunk=targeted_chunk)
 
         # os.remove(sample_extr.GetParameterValue("out"))
 
@@ -654,7 +653,8 @@ def generate_samples_crop_mix(folder_sample: str,
                                            runs=int(runs),
                                            driver="SQLite",
                                            proj_in=proj,
-                                           proj_out=proj)
+                                           proj_out=proj,
+                                           targeted_chunk=targeted_chunk)
 
     if test_mode:
         return split_vectors
@@ -895,8 +895,6 @@ def generate_samples_classif_mix(folder_sample: str,
                                  field=region_field,
                                  mode="unique",
                                  elemType="str")
-    print(sample_selection)
-    print(train_shape)
     # avoir la répartition des classes anuelles par seed et par region
     # -> pouvoir faire annu_repartition[11][R][S]
     annu_repartition = get_repartition(sample_selection, annual_crop,
@@ -1005,7 +1003,8 @@ def generate_samples_classif_mix(folder_sample: str,
                                            runs=int(runs),
                                            driver="SQLite",
                                            proj_in="EPSG:" + str(proj),
-                                           proj_out="EPSG:" + str(proj))
+                                           proj_out="EPSG:" + str(proj),
+                                           targeted_chunk=targeted_chunk)
     if test_mode:
         split_vectors = None
 
