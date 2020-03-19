@@ -186,7 +186,7 @@ def get_features_application(train_shape: str,
     sample_extr.SetParameterStringList("outfield.list.names", feat_labels)
     sample_extr.UpdateParameters()
     sample_extr.SetParameterStringList("field", [data_field.lower()])
-    sample_extr.Execute()
+    # sample_extr.Execute()
     all_dep = [all_features] + dep_features
     return sample_extr, all_dep
 
@@ -288,7 +288,8 @@ def generate_samples_simple(folder_sample: str,
 
     sample_extraction_output = os.path.join(
         folder_sample, os.path.basename(sample_extr.GetParameterValue("out")))
-
+    # input("before extract")
+    # input(f"{os.system(f'ls {sample_extraction_output}' )}")
     if not os.path.exists(sample_extraction_output):
         logger.info("--------> Start Sample Extraction <--------")
         logger.info(f"RAM before features extraction :"
@@ -1041,38 +1042,41 @@ def generate_samples_classif_mix(folder_sample: str,
     return split_vectors
 
 
-def generate_samples(train_shape_dic,
-                     path_wd,
-                     data_field: str,
-                     output_path: str,
-                     annual_crop: List[Union[str, int]],
-                     crop_mix: bool,
-                     auto_context_enable: bool,
-                     region_field: str,
-                     proj: Union[int, str],
-                     enable_cross_validation: bool,
-                     runs: int,
-                     sensors_parameters: sensors_params_type,
-                     sar_optical_post_fusion: bool,
-                     samples_classif_mix: Optional[bool] = False,
-                     output_path_annual: Optional[str] = None,
-                     ram: Optional[int] = 128,
-                     w_mode: Optional[int] = False,
-                     folder_annual_features: Optional[str] = None,
-                     previous_classif_path: Optional[str] = None,
-                     validity_threshold: Optional[int] = None,
-                     target_resolution: Optional[int] = None,
-                     test_mode: Optional[bool] = False,
-                     test_shape_region: Optional[str] = None,
-                     sample_selection: Optional[str] = None,
-                     custom_features: Optional[bool] = False,
-                     code_path: Optional[str] = None,
-                     module_name: Optional[str] = None,
-                     list_functions: Optional[List[str]] = None,
-                     force_standard_labels: Optional[bool] = False,
-                     number_of_chunks: Optional[int] = 50,
-                     targeted_chunk: Optional[int] = None,
-                     logger: Optional[Logger] = LOGGER):
+def generate_samples(
+        train_shape_dic,
+        path_wd,
+        data_field: str,
+        output_path: str,
+        annual_crop: List[Union[str, int]],
+        crop_mix: bool,
+        auto_context_enable: bool,
+        region_field: str,
+        proj: Union[int, str],
+        enable_cross_validation: bool,
+        runs: int,
+        sensors_parameters: sensors_params_type,
+        sar_optical_post_fusion: bool,
+        samples_classif_mix: Optional[bool] = False,
+        output_path_annual: Optional[str] = None,
+        ram: Optional[int] = 128,
+        w_mode: Optional[int] = False,
+        folder_annual_features: Optional[str] = None,
+        previous_classif_path: Optional[str] = None,
+        validity_threshold: Optional[int] = None,
+        target_resolution: Optional[int] = None,
+        test_mode: Optional[bool] = False,
+        test_shape_region: Optional[str] = None,
+        sample_selection: Optional[str] = None,
+        custom_features: Optional[bool] = False,
+        code_path: Optional[str] = None,
+        module_name: Optional[str] = None,
+        list_functions: Optional[List[str]] = None,
+        force_standard_labels: Optional[bool] = False,
+        number_of_chunks: Optional[int] = 50,
+        chunk_size_mode: Optional[
+            str] = "split_number",  # TODO faire un dico chunk 
+        targeted_chunk: Optional[int] = None,
+        logger: Optional[Logger] = LOGGER):
     """
     usage : generation of vector shape of points with features
 
