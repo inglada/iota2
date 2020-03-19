@@ -32,13 +32,16 @@ class samplesExtraction(IOTA2Step.Step):
         self.workingDirectory = workingDirectory
         self.output_path = SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'outputPath')
-        self.custom_features = ("Features" in SCF.serviceConfigFile(
-            self.cfg).getAvailableSections())
         self.ram_extraction = 1024.0 * get_RAM(self.resources["ram"])
         # read config file to init custom features and check validity
         self.custom_features = SCF.serviceConfigFile(
             self.cfg).checkCustomFeature()
-        self.number_of_chunks = 30000
+        if self.custom_features:
+            self.number_of_chunks = SCF.serviceConfigFile(self.cfg).getParam(
+                'Features', "number_of_chunks")
+            self.chunk_size_mode = SCF.serviceConfigFile(self.cfg).getParam(
+                'Features', "chunk_size_mode")
+
         # implement tests for check if custom features are well provided
         # so the chain failed during step init
     def step_description(self):
@@ -154,7 +157,9 @@ class samplesExtraction(IOTA2Step.Step):
                         "number_of_chunks":
                         self.number_of_chunks,
                         "targeted_chunk":
-                        target_chunk
+                        target_chunk,
+                        "chunk_size_mode":
+                        self.chunk_size_mode
                     }
                     parameters.append(param)
             print("activate")
