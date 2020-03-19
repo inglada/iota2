@@ -32,7 +32,8 @@ def split_vector_by_region(in_vect: str,
                            driver: Optional[str] = "ESRI shapefile",
                            proj_in: Optional[str] = "EPSG:2154",
                            proj_out: Optional[str] = "EPSG:2154",
-                           mode: Optional[str] = "usually") -> List[str]:
+                           mode: Optional[str] = "usually",
+                           targeted_chunk: Optional[str] = "0") -> List[str]:
     """
     create new files by regions in input vector.
 
@@ -52,6 +53,8 @@ def split_vector_by_region(in_vect: str,
         output projection
     mode : string
         define if we split SAR sensor to the other
+    targeted_chunk: string
+        indicate if the chunk mode is on and then keep the chunk information
     Return
     ------
     list
@@ -87,12 +90,13 @@ def split_vector_by_region(in_vect: str,
         ])
         for region in regions:
             out_vec_name_learn = "_".join([
-                tile, "region", region, "seed" + str(seed), "Samples_learn_tmp"
+                tile, "region", region, "seed" + str(seed),
+                str(targeted_chunk), "Samples_learn_tmp"
             ])
             if mode != "usually":
                 out_vec_name_learn = "_".join([
-                    tile, "region", region, "seed" + str(seed), "Samples",
-                    "SAR", "learn_tmp"
+                    tile, "region", region, "seed" + str(seed),
+                    str(targeted_chunk), "Samples", "SAR", "learn_tmp"
                 ])
             output_vec_learn = os.path.join(output_dir,
                                             out_vec_name_learn + extent)
