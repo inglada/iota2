@@ -39,6 +39,13 @@ class classification(IOTA2Step.Step):
         self.RAM = 1024.0 * get_RAM(self.resources["ram"])
         self.use_scikitlearn = SCF.serviceConfigFile(self.cfg).getParam(
             'scikit_models_parameters', 'model_type') is not None
+        self.custom_features_flag = SCF.serviceConfigFile(
+            self.cfg).checkCustomFeature()
+        if self.custom_features_flag:
+            self.number_of_chunks = SCF.serviceConfigFile(self.cfg).getParam(
+                "Features", "number_of_chunks")
+        else:
+            self.number_of_chunks = None
 
         # ~ TODO : find a smarted way to determine the attribute self.scikit_tile_split
         self.scikit_tile_split = 50
@@ -62,7 +69,8 @@ class classification(IOTA2Step.Step):
 
         if self.enable_autoContext is False and self.use_scikitlearn is False:
             parameters = fut.parseClassifCmd(
-                os.path.join(self.output_path, "cmd", "cla", "class.txt"))
+                os.path.join(self.output_path, "cmd", "cla", "class.txt"),
+                self.custom_features_flag, self.number_of_chunks)
         elif self.enable_autoContext is True:
             parameters = autoContext_classification_param(
                 self.output_path, self.data_field)

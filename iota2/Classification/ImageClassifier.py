@@ -97,12 +97,11 @@ def autoContext_classification_param(iota2_directory, data_field):
 
 
 def autoContext_launch_classif(
-        parameters_dict: List[Dict[str, Union[str, List[str]]]],
-        classifier_type: str, tile: str, proba_map_expected: bool, dimred,
-        data_field: str, write_features: bool, reduction_mode,
-        iota2_run_dir: str, sar_optical_post_fusion: bool,
-        nomenclature_path: str, sensors_parameters: SENSORS_PARAMS, RAM: int,
-        WORKING_DIR: str):
+    parameters_dict: List[Dict[str, Union[str, List[str]]]],
+    classifier_type: str, tile: str, proba_map_expected: bool, dimred,
+    data_field: str, write_features: bool, reduction_mode, iota2_run_dir: str,
+    sar_optical_post_fusion: bool, nomenclature_path: str,
+    sensors_parameters: SENSORS_PARAMS, RAM: int, WORKING_DIR: str):
     """
     """
     from iota2.Common.FileUtils import getOutputPixType
@@ -170,6 +169,7 @@ class iota2Classification():
                  RAM=128,
                  auto_context={},
                  logger=LOGGER,
+                 targeted_chunk=None,
                  mode="usually"):
         """
         TODO :
@@ -193,12 +193,13 @@ class iota2Classification():
             self.model_name = self.get_model_name(model)
             self.seed = self.get_model_seed(model)
         self.features_stack = features_stack
-        classification_name = "Classif_{}_model_{}_seed_{}.tif".format(
-            tile, self.model_name, self.seed)
-        confidence_name = "{}_model_{}_confidence_seed_{}.tif".format(
-            tile, self.model_name, self.seed)
-        proba_map_name = "PROBAMAP_{}_model_{}_seed_{}.tif".format(
-            tile, self.model_name, self.seed)
+        prefix_name = "" if targeted_chunk is None else f"Chunk_{targeted_chunk}_"
+        classification_name = (f"{prefix_name}Classif_{tile}_model_"
+                               f"{self.model_name}_seed_{self.seed}.tif")
+        confidence_name = (f"{prefix_name}{tile}_model_{self.model_name}_"
+                           f"confidence_seed_{self.seed}.tif")
+        proba_map_name = (f"{prefix_name}PROBAMAP_{ile}_model_"
+                          f"{self.model_name}_seed_{self.seed}.tif")
         if mode == "SAR":
             classification_name = classification_name.replace(
                 ".tif", "_SAR.tif")
@@ -551,12 +552,12 @@ def launchClassification(tempFolderSerie,
                          MaximizeCPU=True,
                          RAM=500,
                          auto_context={},
+                         force_standard_labels=None,
                          code_path: Optional[str] = None,
                          module_name: Optional[str] = None,
                          list_functions: Optional[str] = None,
-                         targeted_chunk: Optional[int] = None,
                          number_of_chunks: Optional[int] = None,
-                         force_standard_labels=None,
+                         targeted_chunk: Optional[int] = None,
                          logger=LOGGER):
     """
     """
@@ -643,6 +644,7 @@ def launchClassification(tempFolderSerie,
                                   stat_norm=stats,
                                   RAM=RAM,
                                   mode=mode,
+                                  targeted_chunk=targeted_chunk,
                                   auto_context=auto_context)
     classif.generate()
 
