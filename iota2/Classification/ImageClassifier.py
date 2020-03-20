@@ -17,7 +17,7 @@
 import argparse
 import os
 import logging
-from typing import List, Dict, Union
+from typing import List, Dict, Union, Optional
 
 SENSORS_PARAMS = Dict[str, Union[str, List[str], int]]
 
@@ -551,6 +551,12 @@ def launchClassification(tempFolderSerie,
                          MaximizeCPU=True,
                          RAM=500,
                          auto_context={},
+                         code_path: Optional[str] = None,
+                         module_name: Optional[str] = None,
+                         list_functions: Optional[str] = None,
+                         targeted_chunk: Optional[int] = None,
+                         number_of_chunks: Optional[int] = None,
+                         force_standard_labels=None,
                          logger=LOGGER):
     """
     """
@@ -587,7 +593,13 @@ def launchClassification(tempFolderSerie,
         sar_optical_post_fusion=sar_optical_post_fusion,
         output_path=output_path,
         sensors_parameters=sensors_parameters,
-        mode=mode)
+        mode=mode,
+        code_path=code_path,
+        module_name=module_name,
+        list_functions=list_functions,
+        targeted_chunk=targeted_chunk,
+        number_of_chunks=number_of_chunks,
+        force_standard_labels=force_standard_labels)
 
     feature_raster = AllFeatures.GetParameterValue(
         getInputParameterOutput(AllFeatures))
