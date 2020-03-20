@@ -97,11 +97,12 @@ def autoContext_classification_param(iota2_directory, data_field):
 
 
 def autoContext_launch_classif(
-    parameters_dict: List[Dict[str, Union[str, List[str]]]],
-    classifier_type: str, tile: str, proba_map_expected: bool, dimred,
-    data_field: str, write_features: bool, reduction_mode, iota2_run_dir: str,
-    sar_optical_post_fusion: bool, nomenclature_path: str,
-    sensors_parameters: SENSORS_PARAMS, RAM: int, WORKING_DIR: str):
+        parameters_dict: List[Dict[str, Union[str, List[str]]]],
+        classifier_type: str, tile: str, proba_map_expected: bool, dimred,
+        data_field: str, write_features: bool, reduction_mode,
+        iota2_run_dir: str, sar_optical_post_fusion: bool,
+        nomenclature_path: str, sensors_parameters: SENSORS_PARAMS, RAM: int,
+        WORKING_DIR: str):
     """
     """
     from iota2.Common.FileUtils import getOutputPixType
@@ -193,12 +194,13 @@ class iota2Classification():
             self.model_name = self.get_model_name(model)
             self.seed = self.get_model_seed(model)
         self.features_stack = features_stack
-        prefix_name = "" if targeted_chunk is None else f"Chunk_{targeted_chunk}_"
+        prefix_name = ("" if targeted_chunk is None else
+                       f"Chunk_{targeted_chunk}_")
         classification_name = (f"{prefix_name}Classif_{tile}_model_"
                                f"{self.model_name}_seed_{self.seed}.tif")
         confidence_name = (f"{prefix_name}{tile}_model_{self.model_name}_"
                            f"confidence_seed_{self.seed}.tif")
-        proba_map_name = (f"{prefix_name}PROBAMAP_{ile}_model_"
+        proba_map_name = (f"{prefix_name}PROBAMAP_{tile}_model_"
                           f"{self.model_name}_seed_{self.seed}.tif")
         if mode == "SAR":
             classification_name = classification_name.replace(
@@ -553,6 +555,7 @@ def launchClassification(tempFolderSerie,
                          RAM=500,
                          auto_context={},
                          force_standard_labels=None,
+                         custom_features: Optional[bool] = False,
                          code_path: Optional[str] = None,
                          module_name: Optional[str] = None,
                          list_functions: Optional[str] = None,
@@ -595,6 +598,7 @@ def launchClassification(tempFolderSerie,
         output_path=output_path,
         sensors_parameters=sensors_parameters,
         mode=mode,
+        custom_features=custom_features,
         code_path=code_path,
         module_name=module_name,
         list_functions=list_functions,

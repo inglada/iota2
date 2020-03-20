@@ -260,7 +260,8 @@ def parseClassifCmd(cmdPath,
                 ]
             else:
                 param_list = param_list_temp[:]
-            parameters.append(param_list)
+
+            parameters += param_list
 
     return parameters
 
