@@ -21,11 +21,13 @@ from iota2.Common import FileUtils as fu
 from iota2.Common.Utils import run
 
 
-def launchClassification(model, path_cfg, output_path: str,
-                         classifier_name: str, classification_mode: str,
-                         nomenclature_path: str, stat, pathToRT, pathToImg,
-                         pathToRegion, fieldRegion, pathToCmdClassif, pathOut,
-                         RAM, pathWd):
+# def launchClassification(model, path_cfg, output_path: str,
+def write_classification_command(model, path_cfg, output_path: str,
+                                 classifier_name: str,
+                                 classification_mode: str,
+                                 nomenclature_path: str, stat, pathToRT,
+                                 pathToImg, pathToRegion, fieldRegion,
+                                 pathToCmdClassif, pathOut, RAM, pathWd):
     """
     Parameters
     ----------
