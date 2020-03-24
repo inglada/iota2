@@ -321,7 +321,7 @@ def generate_samples_simple(folder_sample: str,
             mode=mode,
             targeted_chunk=targeted_chunk)
 
-        # os.remove(sample_extr.GetParameterValue("out"))
+        os.remove(sample_extr.GetParameterValue("out"))
 
     if path_wd:
         for sample in split_vectors:
