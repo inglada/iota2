@@ -101,15 +101,6 @@ def apply_function(
         ram_per_chunk=ram,
         working_dir=working_dir,
     )
-    if targeted_chunk > len(roi_rasters):
-
-        input(
-            f"out of range {len(roi_rasters)} {number_of_chunks} {targeted_chunk}"
-        )
-    else:
-        print("#" * 20)
-        print(f"{targeted_chunk}")
-        print("#" * 20)
     if targeted_chunk is not None:
         roi_rasters = [roi_rasters[targeted_chunk]]
 
@@ -119,14 +110,14 @@ def apply_function(
 
     new_arrays = []
     chunks_mask = []
-    for index, roi_raster in enumerate(roi_rasters):
+    for roi_raster in roi_rasters:
         start_x = int(roi_raster.GetParameterString("startx"))
         size_x = int(roi_raster.GetParameterString("sizex"))
         start_y = int(roi_raster.GetParameterString("starty"))
         size_y = int(roi_raster.GetParameterString("sizey"))
 
-        region_info = "processing region start_x : {} size_x : {} start_y : {} size_y : {}".format(
-            start_x, size_x, start_y, size_y)
+        region_info = (f"processing region start_x : {start_x} size_x :"
+                       f" {size_x} start_y : {start_y} size_y : {size_y}")
         logger.info(region_info)
         print(region_info)
         print("memory usage : {}".format(memory_usage_psutil()))
