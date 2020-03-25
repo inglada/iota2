@@ -242,7 +242,7 @@ def parseClassifCmd(cmdPath,
                 force_standard_labels = cfg.getParam("chain",
                                                      "force_standard_labels")
                 custom_param_list = [
-                    auto_context, force_standard_labels, code_path,
+                    auto_context, force_standard_labels, True, code_path,
                     module_name, list_functions, number_of_chunks
                 ]
 
@@ -259,7 +259,7 @@ def parseClassifCmd(cmdPath,
                     param_list_temp + [x] for x in range(number_of_chunks)
                 ]
             else:
-                param_list = param_list_temp[:]
+                param_list = [param_list_temp[:]]
 
             parameters += param_list
 

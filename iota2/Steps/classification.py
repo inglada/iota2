@@ -71,7 +71,7 @@ class classification(IOTA2Step.Step):
             parameters = fut.parseClassifCmd(
                 os.path.join(self.output_path, "cmd", "cla", "class.txt"),
                 self.custom_features_flag, self.number_of_chunks)
-            input(f"input param {parameters}")
+
         elif self.enable_autoContext is True:
             parameters = autoContext_classification_param(
                 self.output_path, self.data_field)

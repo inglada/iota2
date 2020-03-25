@@ -186,7 +186,7 @@ class iota2Classification():
         self.classifier_model = model
         self.auto_context = auto_context
         self.tile = tile
-
+        self.custom_features = targeted_chunk is not None
         if isinstance(model, list):
             self.model_name = self.get_model_name(os.path.split(model[0])[0])
             self.seed = self.get_model_seed(os.path.split(model[0])[0])
@@ -194,14 +194,14 @@ class iota2Classification():
             self.model_name = self.get_model_name(model)
             self.seed = self.get_model_seed(model)
         self.features_stack = features_stack
-        prefix_name = ("" if targeted_chunk is None else
-                       f"Chunk_{targeted_chunk}_")
-        classification_name = (f"{prefix_name}Classif_{tile}_model_"
-                               f"{self.model_name}_seed_{self.seed}.tif")
-        confidence_name = (f"{prefix_name}{tile}_model_{self.model_name}_"
-                           f"confidence_seed_{self.seed}.tif")
-        proba_map_name = (f"{prefix_name}PROBAMAP_{tile}_model_"
-                          f"{self.model_name}_seed_{self.seed}.tif")
+        sub_name = ("" if targeted_chunk is None else
+                    f"_SUBREGION_{targeted_chunk}_")
+        classification_name = (f"Classif_{tile}_model_{self.model_name}"
+                               f"_seed_{self.seed}{sub_name}.tif")
+        confidence_name = (f"{tile}_model_{self.model_name}_"
+                           f"confidence_seed_{self.seed}{sub_name}.tif")
+        proba_map_name = (f"PROBAMAP_{tile}_model_"
+                          f"{self.model_name}_seed_{self.seed}{sub_name}.tif")
         if mode == "SAR":
             classification_name = classification_name.replace(
                 ".tif", "_SAR.tif")
@@ -567,6 +567,7 @@ def launchClassification(tempFolderSerie,
     from iota2.Common import GenerateFeatures as genFeatures
     from iota2.Sampling import DimensionalityReduction as DR
     from iota2.Common.OtbAppBank import getInputParameterOutput
+    from iota2.Common.OtbAppBank import CreateExtractROIApplication
 
     output_directory = os.path.join(output_path, "classif")
 
@@ -629,7 +630,21 @@ def launchClassification(tempFolderSerie,
             ClassifInput.ExecuteAndWriteOutput()
         else:
             ClassifInput.Execute()
-
+    remove_flag = False
+    if Classifmask and custom_features:
+        chunked_mask = os.path.join(
+            wd, f"Chunk_{targeted_chunk}_classif_mask.tif")
+        roi_param = {
+            "in": Classifmask,
+            "out": chunked_mask,
+            "mode": "fit",
+            "mode.fit.im": AllFeatures,
+            "ram": RAM
+        }
+        roi_mask = CreateExtractROIApplication(roi_param)
+        roi_mask.ExecuteAndWriteOutput()
+        Classifmask = chunked_mask
+        remove_flag = True
     iota2_samples_dir = os.path.join(output_path, "learningSamples")
     models_class = get_class_by_models(
         iota2_samples_dir,
@@ -651,6 +666,8 @@ def launchClassification(tempFolderSerie,
                                   targeted_chunk=targeted_chunk,
                                   auto_context=auto_context)
     classif.generate()
+    if remove_flag:
+        os.remove(chunked_mask)
 
 
 if __name__ == "__main__":

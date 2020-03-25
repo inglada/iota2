@@ -236,7 +236,8 @@ class iota2():
             'Simplification', 'nomenclature')
         enable_autoContext = SCF.serviceConfigFile(cfg).getParam(
             'chain', 'enable_autoContext')
-
+        enable_custom_features = SCF.serviceConfigFile(
+            cfg).checkCustomFeature()
         # will contains all IOTA² steps
         s_container = StepContainer()
 
@@ -387,7 +388,7 @@ class iota2():
         if enable_autoContext is False:
             s_container.append(step_classiCmd, "classification")
         s_container.append(step_classification, "classification")
-        if use_scikitlearn:
+        if use_scikitlearn or enable_custom_features:
             s_container.append(step_sk_classifications_merge, "classification")
         if ds_sar_opt:
             s_container.append(step_confusion_sar_opt, "classification")
