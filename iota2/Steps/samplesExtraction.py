@@ -78,90 +78,89 @@ class samplesExtraction(IOTA2Step.Step):
                             list(list_shapefiles[0].items())[0][1]))[0])
             parameters = []
             for shape in list_shapefiles:
+                param = {
+                    "train_shape_dic":
+                    shape,
+                    "path_wd":
+                    self.workingDirectory,
+                    "data_field":
+                    SCF.serviceConfigFile(self.cfg).getParam(
+                        'chain', 'dataField'),
+                    "output_path":
+                    SCF.serviceConfigFile(self.cfg).getParam(
+                        'chain', 'outputPath'),
+                    "annual_crop":
+                    SCF.serviceConfigFile(self.cfg).getParam(
+                        'argTrain', 'annualCrop'),
+                    "crop_mix":
+                    SCF.serviceConfigFile(self.cfg).getParam(
+                        'argTrain', 'cropMix'),
+                    "auto_context_enable":
+                    SCF.serviceConfigFile(self.cfg).getParam(
+                        'chain', 'enable_autoContext'),
+                    "region_field":
+                    SCF.serviceConfigFile(self.cfg).getParam(
+                        'chain', 'regionField'),
+                    "proj":
+                    SCF.serviceConfigFile(self.cfg).getParam(
+                        'GlobChain', 'proj'),
+                    "enable_cross_validation":
+                    SCF.serviceConfigFile(self.cfg).getParam(
+                        'chain', 'enableCrossValidation'),
+                    "runs":
+                    SCF.serviceConfigFile(self.cfg).getParam('chain', 'runs'),
+                    "sensors_parameters":
+                    sensors_params,
+                    "sar_optical_post_fusion":
+                    SCF.serviceConfigFile(self.cfg).getParam(
+                        'argTrain', 'dempster_shafer_SAR_Opt_fusion'),
+                    "samples_classif_mix":
+                    SCF.serviceConfigFile(self.cfg).getParam(
+                        'argTrain', 'samplesClassifMix'),
+                    "output_path_annual":
+                    output_path_annual,
+                    "ram":
+                    self.ram_extraction,
+                    "w_mode":
+                    SCF.serviceConfigFile(self.cfg).getParam(
+                        'GlobChain', 'writeOutputs'),
+                    "folder_annual_features":
+                    SCF.serviceConfigFile(self.cfg).getParam(
+                        'argTrain', 'outputPrevFeatures'),
+                    "previous_classif_path":
+                    SCF.serviceConfigFile(self.cfg).getParam(
+                        'argTrain', 'annualClassesExtractionSource'),
+                    "validity_threshold":
+                    SCF.serviceConfigFile(self.cfg).getParam(
+                        'argTrain', 'validityThreshold'),
+                    "target_resolution":
+                    SCF.serviceConfigFile(self.cfg).getParam(
+                        'chain', 'spatialResolution'),
+                    "test_mode":
+                    None,
+                    "custom_features":
+                    True,
+                    "code_path":
+                    SCF.serviceConfigFile(self.cfg).getParam(
+                        'Features', 'codePath'),
+                    "module_name":
+                    SCF.serviceConfigFile(self.cfg).getParam(
+                        'Features', 'namefile'),
+                    "list_functions":
+                    SCF.serviceConfigFile(self.cfg).getParam(
+                        'Features', 'functions').split(" "),
+                    "force_standard_labels":
+                    SCF.serviceConfigFile(self.cfg).getParam(
+                        'chain', 'force_standard_labels'),
+                    "number_of_chunks":
+                    self.number_of_chunks,
+                    "chunk_size_mode":
+                    self.chunk_size_mode
+                }
                 for target_chunk in range(self.number_of_chunks):
-                    param = {
-                        "train_shape_dic":
-                        shape,
-                        "path_wd":
-                        self.workingDirectory,
-                        "data_field":
-                        SCF.serviceConfigFile(self.cfg).getParam(
-                            'chain', 'dataField'),
-                        "output_path":
-                        SCF.serviceConfigFile(self.cfg).getParam(
-                            'chain', 'outputPath'),
-                        "annual_crop":
-                        SCF.serviceConfigFile(self.cfg).getParam(
-                            'argTrain', 'annualCrop'),
-                        "crop_mix":
-                        SCF.serviceConfigFile(self.cfg).getParam(
-                            'argTrain', 'cropMix'),
-                        "auto_context_enable":
-                        SCF.serviceConfigFile(self.cfg).getParam(
-                            'chain', 'enable_autoContext'),
-                        "region_field":
-                        SCF.serviceConfigFile(self.cfg).getParam(
-                            'chain', 'regionField'),
-                        "proj":
-                        SCF.serviceConfigFile(self.cfg).getParam(
-                            'GlobChain', 'proj'),
-                        "enable_cross_validation":
-                        SCF.serviceConfigFile(self.cfg).getParam(
-                            'chain', 'enableCrossValidation'),
-                        "runs":
-                        SCF.serviceConfigFile(self.cfg).getParam(
-                            'chain', 'runs'),
-                        "sensors_parameters":
-                        sensors_params,
-                        "sar_optical_post_fusion":
-                        SCF.serviceConfigFile(self.cfg).getParam(
-                            'argTrain', 'dempster_shafer_SAR_Opt_fusion'),
-                        "samples_classif_mix":
-                        SCF.serviceConfigFile(self.cfg).getParam(
-                            'argTrain', 'samplesClassifMix'),
-                        "output_path_annual":
-                        output_path_annual,
-                        "ram":
-                        self.ram_extraction,
-                        "w_mode":
-                        SCF.serviceConfigFile(self.cfg).getParam(
-                            'GlobChain', 'writeOutputs'),
-                        "folder_annual_features":
-                        SCF.serviceConfigFile(self.cfg).getParam(
-                            'argTrain', 'outputPrevFeatures'),
-                        "previous_classif_path":
-                        SCF.serviceConfigFile(self.cfg).getParam(
-                            'argTrain', 'annualClassesExtractionSource'),
-                        "validity_threshold":
-                        SCF.serviceConfigFile(self.cfg).getParam(
-                            'argTrain', 'validityThreshold'),
-                        "target_resolution":
-                        SCF.serviceConfigFile(self.cfg).getParam(
-                            'chain', 'spatialResolution'),
-                        "test_mode":
-                        None,
-                        "custom_features":
-                        True,
-                        "code_path":
-                        SCF.serviceConfigFile(self.cfg).getParam(
-                            'Features', 'codePath'),
-                        "module_name":
-                        SCF.serviceConfigFile(self.cfg).getParam(
-                            'Features', 'namefile'),
-                        "list_functions":
-                        SCF.serviceConfigFile(self.cfg).getParam(
-                            'Features', 'functions').split(" "),
-                        "force_standard_labels":
-                        SCF.serviceConfigFile(self.cfg).getParam(
-                            'chain', 'force_standard_labels'),
-                        "number_of_chunks":
-                        self.number_of_chunks,
-                        "targeted_chunk":
-                        target_chunk,
-                        "chunk_size_mode":
-                        self.chunk_size_mode
-                    }
-                    parameters.append(param)
+                    param_d = param.copy()
+                    param_d["targeted_chunk"] = target_chunk
+                    parameters.append(param_d)
             print("activate")
         else:
             parameters = list_shapefiles[:]
