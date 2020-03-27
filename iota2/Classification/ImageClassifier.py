@@ -18,7 +18,7 @@ import argparse
 import os
 import logging
 from typing import List, Dict, Union, Optional
-
+from iota2.Common import FileUtils as fu
 SENSORS_PARAMS = Dict[str, Union[str, List[str], int]]
 
 LOGGER = logging.getLogger(__name__)
@@ -336,8 +336,12 @@ class iota2Classification():
         else:
             classifier = CreateImageClassifierApplication(classifier_options)
 
-        LOGGER.info("Compute Classification : {}".format(self.classification))
+        LOGGER.info(f"Compute Classification : {self.classification}")
+        LOGGER.info("RAM before classification : "
+                    f"{fu.memory_usage_psutil()} MB")
         classifier.ExecuteAndWriteOutput()
+        LOGGER.info("RAM after classification : "
+                    f"{fu.memory_usage_psutil()} MB")
         LOGGER.info("Classification : {} done".format(self.classification))
 
         if self.classif_mask:
@@ -606,7 +610,6 @@ def launchClassification(tempFolderSerie,
         targeted_chunk=targeted_chunk,
         number_of_chunks=number_of_chunks,
         force_standard_labels=force_standard_labels)
-
     feature_raster = AllFeatures.GetParameterValue(
         getInputParameterOutput(AllFeatures))
     if write_features:
@@ -615,11 +618,10 @@ def launchClassification(tempFolderSerie,
         AllFeatures = feature_raster
     else:
         AllFeatures.Execute()
-
     ClassifInput = AllFeatures
 
     if dimred:
-        logger.debug("Classification model : {}".format(model))
+        logger.debug(f"Classification model : {model}")
         dimRedModelList = DR.get_dim_red_models_from_classification_model(
             model)
         logger.debug("Dim red models : {}".format(dimRedModelList))
@@ -643,6 +645,7 @@ def launchClassification(tempFolderSerie,
         }
         roi_mask = CreateExtractROIApplication(roi_param)
         roi_mask.ExecuteAndWriteOutput()
+        roi_mask = None
         Classifmask = chunked_mask
         remove_flag = True
     iota2_samples_dir = os.path.join(output_path, "learningSamples")
