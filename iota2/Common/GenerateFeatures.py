@@ -128,8 +128,6 @@ def generateFeatures(pathWd: str,
             working_dir=pathWd,
             chunk_size_mode="split_number",
             function=function_partial,
-            output_path=output_path +
-            f"/features/{tile}/tmp/chunk_{targeted_chunk}.tif",
             targeted_chunk=targeted_chunk,
             number_of_chunks=number_of_chunks,
             ram=128,
