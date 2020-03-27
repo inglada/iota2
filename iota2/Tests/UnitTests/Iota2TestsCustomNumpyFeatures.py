@@ -172,7 +172,7 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
         labels_features_name = ["NDVI_20200101", "NDVI_20200102"]
         new_features_path = os.path.join(self.test_working_directory,
                                          "DUMMY_test.tif")
-        test_array, new_labels, _, _, _ = rasterU.apply_function(
+        test_array, new_labels, _, _, _, _ = rasterU.apply_function(
             otb_pipeline=time_s_app,
             labels=labels_features_name,
             working_dir=self.test_working_directory,
@@ -269,7 +269,7 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
         labels_features_name = ["NDVI_20200101", "NDVI_20200102"]
         new_features_path = os.path.join(self.test_working_directory,
                                          "Custom_feature_outside.tif")
-        test_array, new_labels, _, _, _ = rasterU.apply_function(
+        test_array, new_labels, _, _, _, _ = rasterU.apply_function(
             otb_pipeline=ori_features,
             labels=labels_features_name,
             working_dir=self.test_working_directory,
