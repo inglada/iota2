@@ -1029,6 +1029,7 @@ class serviceConfigFile:
         is activate and all imports success
         """
         flag = False
+
         # blocks = self.getAvailableSections()
         # if "Features" in blocks:
         #     # TODO add test on import function
@@ -1036,7 +1037,23 @@ class serviceConfigFile:
         # else:
         #     flag = False
         # return flag
-        if self.getParam("Features", "codePath") is not None:
+        def check_code_path(code_path):
+            valid = True
+            if code_path is None:
+                valid = False
+            if code_path.lower() == "none":
+                valid = False
+            if len(code_path) < 1:
+                valid = False
+            return valid
+
+        code_path = self.getParam("Features", "codePath")
+        code_path_valid = check_code_path(code_path)
+
+        # if code_path is not None and code_path.lower() != "none" and len(
+        #         code_path) > 0:
+        #     code_path_valid = True
+        if code_path_valid:
             flag = True
         return flag
 
