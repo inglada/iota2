@@ -458,3 +458,64 @@ class iota_tests_runs_case(unittest.TestCase):
         self.assertTrue(
             FileSearch_AND(os.path.join(running_output_path, "final"), True,
                            "RESULTS.txt"))
+
+    def test_s2_theia_custom_features_run(self):
+        """
+        Tests iota2's run using s2 (theia format) 
+        and custom features
+        """
+        from config import Config
+        from iota2.Common.FileUtils import FileSearch_AND
+        import iota2.Tests.UnitTests.tests_utils.tests_utils_rasters as TUR
+        import iota2.Tests.UnitTests.tests_utils.tests_utils_iota2 as TUI
+        # prepare inputs data
+        tile_name = "T31TCJ"
+        running_output_path = os.path.join(self.test_working_directory,
+                                           "test_results")
+        fake_s2_theia_dir = os.path.join(self.test_working_directory,
+                                         "s2_data")
+        TUR.generate_fake_s2_data(fake_s2_theia_dir,
+                                  tile_name,
+                                  ["20200101", "20200112", "20200127"],
+                                  res=10.0)
+        config_test = os.path.join(self.test_working_directory,
+                                   "i2_config_s2_l2a.cfg")
+        shutil.copy(self.config_ref, config_test)
+        cfg_test = Config(open(config_test))
+        cfg_test.chain.outputPath = running_output_path
+        cfg_test.chain.S2Path = fake_s2_theia_dir
+        cfg_test.chain.dataField = "code"
+        cfg_test.chain.listTile = tile_name
+        cfg_test.chain.groundTruth = self.ground_truth_path
+        cfg_test.chain.nomenclaturePath = self.nomenclature_path
+        cfg_test.chain.colorTable = self.color_path
+        cfg_test.Features.codePath = os.path.join(IOTA2DIR, "data",
+                                                  "numpy_features")
+        cfg_test.Features.namefile = "user_custom_function"
+        cfg_test.Features.functions = "get_cari get_ndsi"
+        cfg_test.Features.number_of_chunks = 3
+        cfg_test.save(open(config_test, 'w'))
+
+        # Launch the chain
+        TUI.iota2_test_launcher(config_test)
+        self.assertTrue(
+            FileSearch_AND(os.path.join(running_output_path, "final"), True,
+                           "Classif_Seed_0_ColorIndexed.tif"))
+        self.assertTrue(
+            FileSearch_AND(os.path.join(running_output_path, "final"), True,
+                           "Classif_Seed_0.tif"))
+        self.assertTrue(
+            FileSearch_AND(os.path.join(running_output_path, "final"), True,
+                           "Confidence_Seed_0.tif"))
+        self.assertTrue(
+            FileSearch_AND(os.path.join(running_output_path, "final"), True,
+                           "Confusion_Matrix_Classif_Seed_0.png"))
+        self.assertTrue(
+            FileSearch_AND(os.path.join(running_output_path, "final"), True,
+                           "diff_seed_0.tif"))
+        self.assertTrue(
+            FileSearch_AND(os.path.join(running_output_path, "final"), True,
+                           "PixelsValidity.tif"))
+        self.assertTrue(
+            FileSearch_AND(os.path.join(running_output_path, "final"), True,
+                           "RESULTS.txt"))
