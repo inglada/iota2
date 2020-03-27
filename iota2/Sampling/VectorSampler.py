@@ -165,6 +165,7 @@ def get_features_application(train_shape: str,
         # return AllRefl,AllMask,datesInterp,realDates
         return dep_features[1], dep_features[2], dep_features[3], dep_features[
             4]
+
     all_features.Execute()
     ref = fu.FileSearch_AND(c_mask_directory, True, "MaskCommunSL.tif")
 
@@ -186,7 +187,7 @@ def get_features_application(train_shape: str,
     sample_extr.SetParameterStringList("outfield.list.names", feat_labels)
     sample_extr.UpdateParameters()
     sample_extr.SetParameterStringList("field", [data_field.lower()])
-    # sample_extr.Execute()
+
     all_dep = [all_features] + dep_features
     return sample_extr, all_dep
 
