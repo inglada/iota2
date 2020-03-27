@@ -19,7 +19,7 @@ import argparse
 import os
 import logging
 from typing import Dict, Union, List, Optional
-
+from iota2.Common import FileUtils as fu
 LOGGER = logging.getLogger(__name__)
 
 sensors_params = Dict[str, Union[str, List[str], int]]
@@ -122,7 +122,7 @@ def generateFeatures(pathWd: str,
         labels_features_name = ""
         # TODO : how to feel labels_features_name ?
         # The output path is empty to ensure the image was not writed
-        test_array, new_labels, out_transform, _, _ = apply_function(
+        test_array, new_labels, out_transform, _, _, otbimage = apply_function(
             otb_pipeline=all_features,
             labels=labels_features_name,
             working_dir=pathWd,
@@ -134,17 +134,23 @@ def generateFeatures(pathWd: str,
             number_of_chunks=number_of_chunks,
             ram=128,
         )
-        all_features.Execute()
-        otbimage = all_features.ExportImage(output_param_name)
+        print("out apply function, launch execute"
+              f"{fu.memory_usage_psutil()} MB")
         # rasterio shape [bands, row, cols] OTB shape [row, cols, bands]
         # use move axis for OTB
         arr_resh = np.moveaxis(test_array, [0, 1, 2], [2, 0, 1])
         # ensure c order in memory
         # for OTB application
-        arr_2 = np.copy(arr_resh, order="C")
-        otbimage["array"] = arr_2
+
+        print("before copy" f"{fu.memory_usage_psutil()} MB")
+        # arr_2 = np.copy(arr_resh, order="C")
+        # print("end copy")
+        otbimage["array"] = np.copy(arr_resh, order="C")  # arr_2
+
+        print("otbimage " f"{fu.memory_usage_psutil()} MB")
         # get the chunk size
-        size = arr_2.shape
+        size = otbimage["array"].shape  #arr_2.shape
+
         # get the chunk origin
         origin = out_transform * (0, 0)
         # add a demi pixel size to origin
@@ -153,6 +159,7 @@ def generateFeatures(pathWd: str,
                                       origin[0] + (otbimage["spacing"][0] / 2))
         otbimage["origin"].SetElement(1,
                                       origin[1] + (otbimage["spacing"][1] / 2))
+        # Set buffer image region
         otbimage["region"].SetIndex(0, 0)
         otbimage["region"].SetIndex(1, 0)
         otbimage["region"].SetSize(0, size[1])
@@ -162,10 +169,13 @@ def generateFeatures(pathWd: str,
         bandmath.ImportVectorImage("il", otbimage)
         bandmath.SetParameterString("out", features_raster)
         bandmath.SetParameterString("exp", "im1")
+        # bandmath.SetParameterString("ram", "200000")
         all_features = bandmath
         dep.append(bandmath)
+        dep.append(otbimage)
         # new_labels can never be empty
         feat_labels += new_labels
+
     if force_standard_labels:
         feat_labels = [f"value_{i}" for i in range(len(feat_labels))]
     return all_features, feat_labels, dep
