@@ -1,0 +1,35 @@
+{% set name = "config" %}
+{% set version = "0.4.2" %}
+
+package:
+  name: "{{ name|lower }}"
+  version: "{{ version }}"
+
+source:
+  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
+  sha256: bec126d9e550c2b03c815d20121a73a17b9f78b5a36c749a07db573dd712c206
+  patches:
+    - patches/config_py35.diff
+build:
+  number: 0
+  script: "{{ PYTHON }} -m pip install . --no-deps --ignore-installed -vv "
+
+requirements:
+  host:
+    - pip
+    - python=3.6
+  run:
+    - python=3.6
+
+about:
+  home: http://www.red-dove.com/python_config.html
+  license: BSD
+  license_family: BSD
+  license_file: 
+  summary: A hierarchical, easy-to-use, powerful configuration module for Python
+  doc_url: 
+  dev_url: 
+
+extra:
+  recipe-maintainers:
+    - your-github-id-here

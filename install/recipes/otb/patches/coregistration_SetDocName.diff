@@ -1,0 +1,32 @@
+diff --git a/app/otbPointMatchCoregistrationModel.c__ b/app/otbPointMatchCoregistrationModel.c__
+index 3f5e994..d182fbf 100644
+--- a/app/otbPointMatchCoregistrationModel.c__
++++ b/app/otbPointMatchCoregistrationModel.c__
+@@ -106,11 +106,9 @@ private:
+   void DoInit() override
+   {
+     SetName("PointMatchCoregistrationModel");
+-    SetDocName("PointMatchCoregistrationModel");
+     SetDescription("Compute a RPC model based on tie points between a source and a reference image.");
+     SetDocLongDescription("To be done!");
+     // Documentation
+-    SetDocName("PointMatchCoregistrationModel");
+     SetDocLimitations("Contact Author.");
+     SetDocSeeAlso("HomologousPointsExtraction, GenerateRPCModel");
+     SetDocAuthors("R. Gaetano (thanks OTB-Team)");
+diff --git a/app/otbPointMatchCoregistrationModel.cxx b/app/otbPointMatchCoregistrationModel.cxx
+index 3f5e994..d182fbf 100644
+--- a/app/otbPointMatchCoregistrationModel.cxx
++++ b/app/otbPointMatchCoregistrationModel.cxx
+@@ -106,11 +106,9 @@ private:
+   void DoInit() override
+   {
+     SetName("PointMatchCoregistrationModel");
+-    SetDocName("PointMatchCoregistrationModel");
+     SetDescription("Compute a RPC model based on tie points between a source and a reference image.");
+     SetDocLongDescription("To be done!");
+     // Documentation
+-    SetDocName("PointMatchCoregistrationModel");
+     SetDocLimitations("Contact Author.");
+     SetDocSeeAlso("HomologousPointsExtraction, GenerateRPCModel");
+     SetDocAuthors("R. Gaetano (thanks OTB-Team)");
