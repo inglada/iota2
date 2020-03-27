@@ -26,7 +26,7 @@ def custom_function_inv(self):
 def get_ndsi(self):
     coef = (self.get_Sentinel2_band_B3() - self.get_Sentinel2_band_B11()) / (
         self.get_Sentinel2_band_B3() + self.get_Sentinel2_band_B11())
-    labels = [f"ndvi_{i+1}" for i in range(coef.shape[2])]
+    labels = [f"ndsi_{i+1}" for i in range(coef.shape[2])]
     print("out custom features")
     return coef, labels
 
