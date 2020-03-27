@@ -44,6 +44,7 @@ class classification(IOTA2Step.Step):
         if self.custom_features_flag:
             self.number_of_chunks = SCF.serviceConfigFile(self.cfg).getParam(
                 "Features", "number_of_chunks")
+
         else:
             self.number_of_chunks = None
 
