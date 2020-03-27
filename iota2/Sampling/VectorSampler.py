@@ -289,8 +289,6 @@ def generate_samples_simple(folder_sample: str,
 
     sample_extraction_output = os.path.join(
         folder_sample, os.path.basename(sample_extr.GetParameterValue("out")))
-    # input("before extract")
-    # input(f"{os.system(f'ls {sample_extraction_output}' )}")
     if not os.path.exists(sample_extraction_output):
         logger.info("--------> Start Sample Extraction <--------")
         logger.info(f"RAM before features extraction :"
