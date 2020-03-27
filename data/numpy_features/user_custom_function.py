@@ -45,3 +45,21 @@ def get_cari(self):
     labels = [f"cari_{i+1}" for i in range(coef.shape[2])]
 
     return coef, labels
+
+
+def get_red_edge2(self):
+    coef = (self.get_Sentinel2_band_B5() - self.get_Sentinel2_band_B4()) / (
+        self.get_Sentinel2_band_B5() + self.get_Sentinel2_band_B4())
+    labels = [f"rededge2_{i+1}" for i in range(coef.shape[2])]
+    return coef, labels
+
+
+def get_gndvi(self):
+    """
+       compute the green normalized difference vegetation
+       index
+    """
+    coef = (self.get_Sentinel2_band_B9() - self.get_Sentinel2_band_B3()) / (
+        self.get_Sentinel2_band_B9() + self.get_Sentinel2_band_B3())
+    labels = [f"gndvi_{i+1}" for i in range(coef.shape[2])]
+    return coef, labels
