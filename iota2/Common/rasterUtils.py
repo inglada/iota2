@@ -121,13 +121,14 @@ def apply_function(
         logger.info(region_info)
         print(region_info)
         print("memory usage : {}".format(memory_usage_psutil()))
-        (roi_array, proj_geotransform), mask, new_labels = process_function(
-            roi_raster,
-            function=function,
-            mask_arr=mask_array,
-            mask_value=mask_value,
-            stream_bbox=(start_x, size_x, start_y, size_y),
-        )
+        (roi_array,
+         proj_geotransform), mask, new_labels, otbimage = process_function(
+             roi_raster,
+             function=function,
+             mask_arr=mask_array,
+             mask_value=mask_value,
+             stream_bbox=(start_x, size_x, start_y, size_y),
+         )
         new_arrays.append((roi_array, proj_geotransform))
         chunks_mask.append(mask)
 
@@ -159,7 +160,10 @@ def apply_function(
                 dtype=mosaic.dtype,
         ) as dest:
             dest.write(mosaic)
-    return mosaic, new_labels, out_trans, epsg_code, chunks_mask
+    # the returned otbimage is a dictionary
+    # we don't need a list as only the object (swig) is relevant
+    # the final dictionary is overwritted by apply_function
+    return mosaic, new_labels, out_trans, epsg_code, chunks_mask, otbimage
 
 
 def get_rasterio_datasets(
@@ -298,9 +302,11 @@ def process_function(
                 "geo_transform": geo_transform
             },
         )
+    otbimage = otb_pipeline.ExportImage("out")
+    # otbimage["array"] = None
     otb_pipeline = None
 
-    return output, mask_roi, new_labels
+    return output, mask_roi, new_labels, otbimage
 
 
 def get_chunks_boundaries(
@@ -362,21 +368,26 @@ def get_chunks_boundaries(
 
     elif chunk_size_mode == "split_number":
         chunk_size_x = size_x
-        if number_of_chunks > size_x * size_y:
+        if number_of_chunks > size_x + size_y:
             raise ValueError(
                 f"Error: number of chunks ({number_of_chunks})"
                 f"vastly exceeds the image size ({size_x * size_y} pixels)")
         if number_of_chunks > size_y:
             unused_chunks = number_of_chunks - size_y
             split_x = np.linspace(0, size_x, unused_chunks + 1)
+            split_y = np.linspace(0, size_y, size_y + 1)
+            print(split_y)
         else:
             split_x = np.linspace(0, size_x, 2)
+            split_y = np.linspace(0, size_y, number_of_chunks + 1)
 
         boundaries = []
-        split_y = np.linspace(0, size_y, number_of_chunks + 1)
+
         split_y = [math.floor(x) for x in split_y]
         split_x = [math.floor(x) for x in split_x]
+        print("before for")
         for i, start_y in enumerate(split_y[:-1]):
+
             for j, start_x in enumerate(split_x[:-1]):
                 boundaries.append({
                     "startx": start_x,
@@ -437,6 +448,7 @@ def split_raster(
         "cl": ["Channel1"],
         "ram": "60000"
     })
+    print("Compute bounds")
     boundaries = get_chunks_boundaries(
         chunk_size,
         shape=(x_size, y_size),
@@ -446,7 +458,7 @@ def split_raster(
         ram_per_chunk=float(ram_per_chunk) * 1024**2,
     )
     independant_raster = []
-
+    print("Create ROI app")
     for index, boundary in enumerate(boundaries):
         output_roi = ""
         if working_dir:
@@ -460,6 +472,7 @@ def split_raster(
             "out": output_roi,
         })
         independant_raster.append(roi)
+    print("end split")
     return independant_raster, projection.GetAttrValue("AUTHORITY", 1)
 
 
