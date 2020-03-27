@@ -56,10 +56,20 @@ def get_red_edge2(self):
 
 def get_gndvi(self):
     """
-       compute the green normalized difference vegetation
-       index
+        compute the Green Normalized Difference Vegetation Index
+        DO NOT USE this except for test as Sentinel2 has not B9
     """
     coef = (self.get_Sentinel2_band_B9() - self.get_Sentinel2_band_B3()) / (
         self.get_Sentinel2_band_B9() + self.get_Sentinel2_band_B3())
     labels = [f"gndvi_{i+1}" for i in range(coef.shape[2])]
+    return coef, labels
+
+
+def get_soi(self):
+    """
+       compute the Soil Composition Index
+    """
+    coef = (self.get_Sentinel2_band_B11() - self.get_Sentinel2_band_B8()) / (
+        self.get_Sentinel2_band_B11() + self.get_Sentinel2_band_B8())
+    labels = [f"soi_{i+1}" for i in range(coef.shape[2])]
     return coef, labels
