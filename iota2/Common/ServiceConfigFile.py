@@ -1040,7 +1040,7 @@ class serviceConfigFile:
         def check_code_path(code_path):
             valid = True
             if code_path is None:
-                valid = False
+                return False
             if code_path.lower() == "none":
                 valid = False
             if len(code_path) < 1:
