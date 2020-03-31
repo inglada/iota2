@@ -125,5 +125,5 @@ class custom_numpy_features(data_container):
                 self.data = np.concatenate((self.data, feat), axis=2)
             return self.data, new_labels
         except Exception as e:
-            print(f"Error during custom_features computation : {fun_name}")
+            print(f"Error during custom_features computation")
             print(e)
