@@ -269,7 +269,11 @@ def process_function(
             roi_contains_mask_part = True
 
     otb_pipeline.Execute()
-    array = otb_pipeline.GetVectorImageAsNumpyArray("out")
+    # remove this call to GetVectorImageAsNumpyArray
+    # allow a gain of few seconds requiered to initialise otbimage object
+    # This step is very time consumming as the whole pipeline is computed here
+    # array = otb_pipeline.GetVectorImageAsNumpyArray("out")
+    otbimage = otb_pipeline.ExportImage("out")
     proj = otb_pipeline.GetImageProjection("out")
     projection = osr.SpatialReference()
     projection.ImportFromWkt(proj)
@@ -283,7 +287,7 @@ def process_function(
     new_labels = []
     if roi_to_ignore is False:
 
-        output_arr, new_labels = function(array)
+        output_arr, new_labels = function(otbimage["array"])
 
         if roi_contains_mask_part:
             output_arr = output_arr * mask_roi[:, :, np.newaxis]
@@ -302,8 +306,6 @@ def process_function(
                 "geo_transform": geo_transform
             },
         )
-    otbimage = otb_pipeline.ExportImage("out")
-    # otbimage["array"] = None
     otb_pipeline = None
 
     return output, mask_roi, new_labels, otbimage
