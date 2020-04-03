@@ -13,26 +13,27 @@
 #   PURPOSE.  See the above copyright notices for more information.
 #
 # =========================================================================
+""""""
 import os
 
 import logging
-import rasterio
+from typing import List, Dict, Optional, Tuple, Union
+from functools import partial
 import numpy as np
+import rasterio
 from rasterio.merge import merge
 from rasterio.io import MemoryFile
 from rasterio.transform import Affine
-from typing import List, Dict, Optional, Tuple, Union
-
 from iota2.Common.FileUtils import memory_usage_psutil
 
 # Only for typing
 import otbApplication
-from functools import partial
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
-def apply_function(
+# def apply_function(
+def insert_external_function_to_pipeline(
         otb_pipeline: otbApplication,
         labels: List[str],
         working_dir: str,
@@ -41,13 +42,13 @@ def apply_function(
         mask: Optional[str] = None,
         mask_value: Optional[int] = 0,
         chunk_size_mode: Optional[str] = "user_fixed",
-        chunck_size_x: Optional[int] = 10,
-        chunck_size_y: Optional[int] = 10,
+        chunk_size_x: Optional[int] = 10,
+        chunk_size_y: Optional[int] = 10,
         targeted_chunk: Optional[int] = None,
         number_of_chunks: Optional[int] = None,
         output_number_of_bands: Optional[int] = None,
         ram: Optional[int] = 128,
-        logger=logger,
+        logger=LOGGER,
 ) -> Tuple[np.ndarray, List[str], Affine, int]:
     """Apply a python function to an otb pipeline
 
@@ -73,14 +74,14 @@ def apply_function(
         input mask value to consider (optional)
     chunk_size_mode : str
         "user_fixed" / "auto" / "split_number"
-    chunck_size_x: int
-        chunck x size (optional)
-    chunck_size_y: int
-        chunck y size (optional)
+    chunk_size_x: int
+        chunk x size (optional)
+    chunk_size_y: int
+        chunk y size (optional)
     targeted_chunk : int
         process only the targeted chunk
     output_number_of_bands : int
-        use only if targeted_chunk and mask are set
+        used only if targeted_chunk and mask are set
     ram: int
         available ram
 
@@ -96,7 +97,7 @@ def apply_function(
     roi_rasters, epsg_code = split_raster(
         otb_pipeline=otb_pipeline,
         chunk_size_mode=chunk_size_mode,
-        chunk_size=(chunck_size_x, chunck_size_y),
+        chunk_size=(chunk_size_x, chunk_size_y),
         number_of_chunks=number_of_chunks,
         ram_per_chunk=ram,
         working_dir=working_dir,
@@ -161,8 +162,8 @@ def apply_function(
         ) as dest:
             dest.write(mosaic)
     # the returned otbimage is a dictionary
-    # we don't need a list as only the object (swig) is relevant
-    # the final dictionary is overwritted by apply_function
+    # we don't need a list as only the object (swig) is relevant the
+    # final dictionary is overwritted by insert_external_function_to_pipeline
     return mosaic, new_labels, out_trans, epsg_code, chunks_mask, otbimage
 
 

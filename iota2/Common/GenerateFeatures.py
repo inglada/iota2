@@ -37,6 +37,9 @@ def generate_features(pathWd: str,
                       targeted_chunk: Optional[int] = None,
                       number_of_chunks: Optional[int] = 50,
                       force_standard_labels: Optional[bool] = False,
+                      chunk_size_mode: Optional[str] = "split_number",
+                      chunk_size_x: Optional[int] = None,
+                      chunk_size_y: Optional[int] = None,
                       mode: Optional[str] = "usually",
                       logger: Optional[logging.Logger] = LOGGER):
     """
@@ -60,7 +63,7 @@ def generate_features(pathWd: str,
     from iota2.Sensors.Sensors_container import sensors_container
     from iota2.Common.OtbAppBank import CreateConcatenateImagesApplication
     from iota2.Common.OtbAppBank import getInputParameterOutput
-    from iota2.Common.rasterUtils import apply_function
+    from iota2.Common.rasterUtils import insert_external_function_to_pipeline
     from functools import partial
     from iota2.Common.customNumpyFeatures import custom_numpy_features
     import otbApplication as otb
@@ -122,16 +125,19 @@ def generate_features(pathWd: str,
         labels_features_name = ""
         # TODO : how to feel labels_features_name ?
         # The output path is empty to ensure the image was not writed
-        feat_array, new_labels, out_transform, _, _, otbimage = apply_function(
-            otb_pipeline=all_features,
-            labels=labels_features_name,
-            working_dir=pathWd,
-            chunk_size_mode="split_number",
-            function=function_partial,
-            targeted_chunk=targeted_chunk,
-            number_of_chunks=number_of_chunks,
-            ram=128,
-        )
+        (feat_array, new_labels, out_transform, _, _,
+         otbimage) = insert_external_function_to_pipeline(
+             otb_pipeline=all_features,
+             labels=labels_features_name,
+             working_dir=pathWd,
+             chunk_size_mode=chunk_size_mode,
+             function=function_partial,
+             targeted_chunk=targeted_chunk,
+             number_of_chunks=number_of_chunks,
+             chunk_size_x=chunk_size_x,
+             chunk_size_y=chunk_size_y,
+             ram=128,
+         )
         # rasterio shape [bands, row, cols] OTB shape [row, cols, bands]
         # use rasterio reshape_as_image function to move axis
         otbimage["array"] = reshape_as_image(feat_array)

@@ -29,11 +29,11 @@ sensors_params = Dict[str, Union[str, List[str], int]]
 logger = logging.getLogger(__name__)
 
 
-def merge_sk_classifications(rasters_to_merge_dic: List[Dict[str, Union[
-        str, List[str]]]],
-                             epsg_code: int,
-                             working_dir: str,
-                             logger=logger) -> None:
+def merge_sk_classifications(
+        rasters_to_merge_dic: List[Dict[str, Union[str, List[str]]]],
+        epsg_code: int,
+        working_dir: str,
+        logger=logger) -> None:
     """mosaic rasters
 
     Parameters
@@ -57,9 +57,8 @@ def merge_sk_classifications(rasters_to_merge_dic: List[Dict[str, Union[
                       epsg_code, working_dir)
 
 
-def sk_classifications_to_merge(
-    iota2_classif_directory: str
-) -> List[Dict[str, Union[str, List[str]]]]:
+def sk_classifications_to_merge(iota2_classif_directory: str
+                                ) -> List[Dict[str, Union[str, List[str]]]]:
     """feed function merge_sk_classifications
 
     Parameters
@@ -255,11 +254,11 @@ def proba_to_label(
     return labels_map
 
 
-def probabilities_to_max_proba(
-        proba_map: np.ndarray,
-        transform: Affine,
-        epsg_code: int,
-        out_max_confidence: Optional[str] = None) -> np.ndarray:
+def probabilities_to_max_proba(proba_map: np.ndarray,
+                               transform: Affine,
+                               epsg_code: int,
+                               out_max_confidence: Optional[str] = None
+                               ) -> np.ndarray:
     """from the prediction probabilities vector, get the max probility
 
     Parameters
@@ -396,19 +395,20 @@ def predict(mask: str,
     # ~ Then we have to compute the full probability vector to get the maximum
     # ~ confidence and generate the confidence map
 
-    predicted_proba, _, transform, epsg, masks = rasterU.apply_function(
-        feat_stack,
-        feat_labels,
-        working_dir,
-        function_partial,
-        out_proba,
-        mask=mask,
-        mask_value=0,
-        chunk_size_mode="split_number",
-        number_of_chunks=number_of_chunks,
-        targeted_chunk=targeted_chunk,
-        output_number_of_bands=len(model.classes_),
-        ram=ram)
+    (predicted_proba, _, transform, epsg,
+     masks) = rasterU.insert_external_function_to_pipeline(
+         feat_stack,
+         feat_labels,
+         working_dir,
+         function_partial,
+         out_proba,
+         mask=mask,
+         mask_value=0,
+         chunk_size_mode="split_number",
+         number_of_chunks=number_of_chunks,
+         targeted_chunk=targeted_chunk,
+         output_number_of_bands=len(model.classes_),
+         ram=ram)
     logger.info("predictions done")
     if len(masks) > 1:
         raise ValueError("Only one mask is expected")

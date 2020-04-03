@@ -185,15 +185,16 @@ class Iota2TestsNumpyWorkflow(unittest.TestCase):
 
         new_features_path = os.path.join(self.test_working_directory,
                                          "DUMMY_test.tif")
-        test_array, new_labels, _, _, _, _ = rasterU.apply_function(
-            otb_pipeline=band_math,
-            labels=labels_features_name,
-            working_dir=self.test_working_directory,
-            function=function_partial,
-            output_path=new_features_path,
-            chunck_size_x=5,
-            chunck_size_y=5,
-            ram=128)
+        (test_array, new_labels, _, _, _,
+         _) = rasterU.insert_external_function_to_pipeline(
+             otb_pipeline=band_math,
+             labels=labels_features_name,
+             working_dir=self.test_working_directory,
+             function=function_partial,
+             output_path=new_features_path,
+             chunk_size_x=5,
+             chunk_size_y=5,
+             ram=128)
         # asserts
 
         # check array' shape consistency
@@ -334,14 +335,15 @@ class Iota2TestsNumpyWorkflow(unittest.TestCase):
         function_partial = partial(do_predict, model=clf)
         prediction_path = os.path.join(self.test_working_directory,
                                        "Classif_test.tif")
-        test_array, new_labels, _, _, _, _ = rasterU.apply_function(
-            otb_pipeline=band_math,
-            labels=[""],
-            working_dir=self.test_working_directory,
-            function=function_partial,
-            output_path=prediction_path,
-            chunck_size_x=5,
-            chunck_size_y=5,
-            ram=128)
+        (test_array, new_labels, _, _, _,
+         _) = rasterU.insert_external_function_to_pipeline(
+             otb_pipeline=band_math,
+             labels=[""],
+             working_dir=self.test_working_directory,
+             function=function_partial,
+             output_path=prediction_path,
+             chunk_size_x=5,
+             chunk_size_y=5,
+             ram=128)
         self.assertTrue(os.path.exists(prediction_path))
         self.assertTrue(test_array.shape == (1, 16, 86))

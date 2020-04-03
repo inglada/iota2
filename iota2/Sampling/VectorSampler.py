@@ -108,6 +108,9 @@ def get_features_application(train_shape: str,
                              force_standard_labels: Optional[bool] = False,
                              number_of_chunks: Optional[int] = 50,
                              targeted_chunk: Optional[int] = None,
+                             chunk_size_mode: Optional[str] = "split_number",
+                             chunk_size_x: Optional[int] = None,
+                             chunk_size_y: Optional[int] = None,
                              logger: Optional[Logger] = LOGGER
                              ) -> Tuple[otb_app_type, List[otb_app_type]]:
     """
@@ -157,7 +160,10 @@ def get_features_application(train_shape: str,
         list_functions=list_functions,
         force_standard_labels=force_standard_labels,
         number_of_chunks=number_of_chunks,
-        targeted_chunk=targeted_chunk)
+        targeted_chunk=targeted_chunk,
+        chunk_size_mode=chunk_size_mode,
+        chunk_size_x=chunk_size_x,
+        chunk_size_y=chunk_size_y)
 
     if only_sensors_masks:
         # return AllRefl,AllMask,datesInterp,realDates
@@ -213,6 +219,9 @@ def generate_samples_simple(folder_sample: str,
                             force_standard_labels: Optional[bool] = False,
                             number_of_chunks: Optional[int] = 50,
                             targeted_chunk: Optional[int] = None,
+                            chunk_size_x: Optional[int] = None,
+                            chunk_size_y: Optional[int] = None,
+                            chunk_size_mode: Optional[str] = "split_number",
                             logger: Optional[Logger] = LOGGER) -> None:
     """
     usage : from a strack of data generate samples containing points with
@@ -281,7 +290,10 @@ def generate_samples_simple(folder_sample: str,
         list_functions=list_functions,
         force_standard_labels=force_standard_labels,
         number_of_chunks=number_of_chunks,
-        targeted_chunk=targeted_chunk)
+        targeted_chunk=targeted_chunk,
+        chunk_size_mode=chunk_size_mode,
+        chunk_size_x=chunk_size_x,
+        chunk_size_y=chunk_size_y)
 
     sample_extraction_output = os.path.join(
         folder_sample, os.path.basename(sample_extr.GetParameterValue("out")))
@@ -390,6 +402,9 @@ def generate_samples_crop_mix(folder_sample: str,
                               force_standard_labels: Optional[bool] = False,
                               number_of_chunks: Optional[int] = 50,
                               targeted_chunk: Optional[int] = None,
+                              chunk_size_mode: Optional[str] = "split_number",
+                              chunk_size_x: Optional[int] = None,
+                              chunk_size_y: Optional[int] = None,
                               logger=LOGGER) -> Union[None, List[str]]:
     """
     usage : from stracks A and B, generate samples containing points
@@ -487,11 +502,14 @@ def generate_samples_crop_mix(folder_sample: str,
             ram,
             mode,
             custom_features=custom_features,
-            module_path=module_name,
+            module_path=module_path,
             list_functions=list_functions,
             force_standard_labels=force_standard_labels,
             number_of_chunks=number_of_chunks,
-            targeted_chunk=targeted_chunk)
+            targeted_chunk=targeted_chunk,
+            chunk_size_mode=chunk_size_mode,
+            chunk_size_x=chunk_size_x,
+            chunk_size_y=chunk_size_y)
 
         multi_proc = mp.Process(target=executeApp, args=[sample_extr_na_app])
         multi_proc.start()
@@ -519,7 +537,10 @@ def generate_samples_crop_mix(folder_sample: str,
             list_functions=list_functions,
             force_standard_labels=force_standard_labels,
             number_of_chunks=number_of_chunks,
-            targeted_chunk=targeted_chunk)
+            targeted_chunk=targeted_chunk,
+            chunk_size_mode=chunk_size_mode,
+            chunk_size_x=chunk_size_x,
+            chunk_size_y=chunk_size_y)
 
         multi_proc = mp.Process(target=executeApp, args=[sample_extr_a_app])
         multi_proc.start()
@@ -786,37 +807,41 @@ def get_number_annual_sample(annu_repartition):
     return nb_feat_annu
 
 
-def generate_samples_classif_mix(folder_sample: str,
-                                 working_directory: str,
-                                 train_shape: str,
-                                 path_wd: str,
-                                 output_path: str,
-                                 annual_crop: List[Union[str, int]],
-                                 all_class: List[Union[str, int]],
-                                 data_field: str,
-                                 previous_classif_path: str,
-                                 proj: int,
-                                 runs: Union[str, int],
-                                 enable_cross_validation: bool,
-                                 region_field: str,
-                                 validity_threshold: int,
-                                 target_resolution: int,
-                                 sar_optical_post_fusion: bool,
-                                 sensors_parameters: sensors_params_type,
-                                 folder_features: Optional[str] = None,
-                                 ram: Optional[int] = 128,
-                                 w_mode: Optional[bool] = False,
-                                 test_mode: Optional[bool] = False,
-                                 test_shape_region: Optional[str] = None,
-                                 sample_sel: Optional[str] = None,
-                                 mode: Optional[str] = "usually",
-                                 custom_features: Optional[bool] = False,
-                                 module_path: Optional[str] = None,
-                                 list_functions: Optional[List[str]] = None,
-                                 force_standard_labels: Optional[bool] = False,
-                                 number_of_chunks: Optional[int] = 50,
-                                 targeted_chunk: Optional[int] = None,
-                                 logger: Optional[Logger] = LOGGER):
+def generate_samples_classif_mix(
+        folder_sample: str,
+        working_directory: str,
+        train_shape: str,
+        path_wd: str,
+        output_path: str,
+        annual_crop: List[Union[str, int]],
+        all_class: List[Union[str, int]],
+        data_field: str,
+        previous_classif_path: str,
+        proj: int,
+        runs: Union[str, int],
+        enable_cross_validation: bool,
+        region_field: str,
+        validity_threshold: int,
+        target_resolution: int,
+        sar_optical_post_fusion: bool,
+        sensors_parameters: sensors_params_type,
+        folder_features: Optional[str] = None,
+        ram: Optional[int] = 128,
+        w_mode: Optional[bool] = False,
+        test_mode: Optional[bool] = False,
+        test_shape_region: Optional[str] = None,
+        sample_sel: Optional[str] = None,
+        mode: Optional[str] = "usually",
+        custom_features: Optional[bool] = False,
+        module_path: Optional[str] = None,
+        list_functions: Optional[List[str]] = None,
+        force_standard_labels: Optional[bool] = False,
+        number_of_chunks: Optional[int] = 50,
+        targeted_chunk: Optional[int] = None,
+        chunk_size_mode: Optional[str] = "split_number",
+        chunk_size_x: Optional[int] = None,
+        chunk_size_y: Optional[int] = None,
+        logger: Optional[Logger] = LOGGER):
     """
     usage : from one classification, chose randomly annual sample merge
             with non annual sample and extract features.
@@ -981,7 +1006,10 @@ def generate_samples_classif_mix(folder_sample: str,
         list_functions=list_functions,
         force_standard_labels=force_standard_labels,
         number_of_chunks=number_of_chunks,
-        targeted_chunk=targeted_chunk)
+        targeted_chunk=targeted_chunk,
+        chunk_size_mode=chunk_size_mode,
+        chunk_size_x=chunk_size_x,
+        chunk_size_y=chunk_size_y)
 
     # sampleExtr.ExecuteAndWriteOutput()
     multi_proc = mp.Process(target=executeApp, args=[sample_extr])
@@ -1032,40 +1060,40 @@ def generate_samples_classif_mix(folder_sample: str,
     return split_vectors
 
 
-def generate_samples(
-        train_shape_dic,
-        path_wd,
-        data_field: str,
-        output_path: str,
-        annual_crop: List[Union[str, int]],
-        crop_mix: bool,
-        auto_context_enable: bool,
-        region_field: str,
-        proj: Union[int, str],
-        enable_cross_validation: bool,
-        runs: int,
-        sensors_parameters: sensors_params_type,
-        sar_optical_post_fusion: bool,
-        samples_classif_mix: Optional[bool] = False,
-        output_path_annual: Optional[str] = None,
-        ram: Optional[int] = 128,
-        w_mode: Optional[int] = False,
-        folder_annual_features: Optional[str] = None,
-        previous_classif_path: Optional[str] = None,
-        validity_threshold: Optional[int] = None,
-        target_resolution: Optional[int] = None,
-        test_mode: Optional[bool] = False,
-        test_shape_region: Optional[str] = None,
-        sample_selection: Optional[str] = None,
-        custom_features: Optional[bool] = False,
-        module_path: Optional[str] = None,
-        list_functions: Optional[List[str]] = None,
-        force_standard_labels: Optional[bool] = False,
-        number_of_chunks: Optional[int] = 50,
-        chunk_size_mode: Optional[
-            str] = "split_number",  # TODO faire un dico chunk 
-        targeted_chunk: Optional[int] = None,
-        logger: Optional[Logger] = LOGGER):
+def generate_samples(train_shape_dic,
+                     path_wd,
+                     data_field: str,
+                     output_path: str,
+                     annual_crop: List[Union[str, int]],
+                     crop_mix: bool,
+                     auto_context_enable: bool,
+                     region_field: str,
+                     proj: Union[int, str],
+                     enable_cross_validation: bool,
+                     runs: int,
+                     sensors_parameters: sensors_params_type,
+                     sar_optical_post_fusion: bool,
+                     samples_classif_mix: Optional[bool] = False,
+                     output_path_annual: Optional[str] = None,
+                     ram: Optional[int] = 128,
+                     w_mode: Optional[int] = False,
+                     folder_annual_features: Optional[str] = None,
+                     previous_classif_path: Optional[str] = None,
+                     validity_threshold: Optional[int] = None,
+                     target_resolution: Optional[int] = None,
+                     test_mode: Optional[bool] = False,
+                     test_shape_region: Optional[str] = None,
+                     sample_selection: Optional[str] = None,
+                     custom_features: Optional[bool] = False,
+                     module_path: Optional[str] = None,
+                     list_functions: Optional[List[str]] = None,
+                     force_standard_labels: Optional[bool] = False,
+                     number_of_chunks: Optional[int] = 50,
+                     chunk_size_mode: Optional[str] = "split_number",
+                     chunk_size_x: Optional[int] = None,
+                     chunk_size_y: Optional[int] = None,
+                     targeted_chunk: Optional[int] = None,
+                     logger: Optional[Logger] = LOGGER):
     """
     usage : generation of vector shape of points with features
 
@@ -1156,7 +1184,10 @@ def generate_samples(
             list_functions=list_functions,
             force_standard_labels=force_standard_labels,
             number_of_chunks=number_of_chunks,
-            targeted_chunk=targeted_chunk)
+            targeted_chunk=targeted_chunk,
+            chunk_size_mode=chunk_size_mode,
+            chunk_size_x=chunk_size_x,
+            chunk_size_y=chunk_size_y)
 
     elif crop_mix is True and samples_classif_mix is False:
         samples = generate_samples_crop_mix(
@@ -1187,7 +1218,10 @@ def generate_samples(
             list_functions=list_functions,
             force_standard_labels=force_standard_labels,
             number_of_chunks=number_of_chunks,
-            targeted_chunk=targeted_chunk)
+            targeted_chunk=targeted_chunk,
+            chunk_size_mode=chunk_size_mode,
+            chunk_size_x=chunk_size_x,
+            chunk_size_y=chunk_size_y)
 
     elif crop_mix is True and samples_classif_mix is True:
         if isinstance(proj, str):
@@ -1222,7 +1256,10 @@ def generate_samples(
             list_functions=list_functions,
             force_standard_labels=force_standard_labels,
             number_of_chunks=number_of_chunks,
-            targeted_chunk=targeted_chunk)
+            targeted_chunk=targeted_chunk,
+            chunk_size_mode=chunk_size_mode,
+            chunk_size_x=chunk_size_x,
+            chunk_size_y=chunk_size_y)
     if test_mode:
         return samples
 

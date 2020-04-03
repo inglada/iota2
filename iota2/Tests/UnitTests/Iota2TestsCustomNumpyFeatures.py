@@ -283,16 +283,17 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
         labels_features_name = ["NDVI_20200101", "NDVI_20200102"]
         new_features_path = os.path.join(self.test_working_directory,
                                          "DUMMY_test.tif")
-        test_array, new_labels, _, _, _, _ = rasterU.apply_function(
-            otb_pipeline=time_s_app,
-            labels=labels_features_name,
-            working_dir=self.test_working_directory,
-            function=function_partial,
-            output_path=new_features_path,
-            chunck_size_x=5,
-            chunck_size_y=5,
-            ram=128,
-        )
+        (test_array, new_labels, _, _, _,
+         _) = rasterU.insert_external_function_to_pipeline(
+             otb_pipeline=time_s_app,
+             labels=labels_features_name,
+             working_dir=self.test_working_directory,
+             function=function_partial,
+             output_path=new_features_path,
+             chunk_size_x=5,
+             chunk_size_y=5,
+             ram=128,
+         )
         self.assertTrue(os.path.exists(new_features_path))
         self.assertTrue(new_labels is not None)
         # self.assertTrue(False)
@@ -383,16 +384,17 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
         labels_features_name = ["NDVI_20200101", "NDVI_20200102"]
         new_features_path = os.path.join(self.test_working_directory,
                                          "Custom_feature_outside.tif")
-        test_array, new_labels, _, _, _, _ = rasterU.apply_function(
-            otb_pipeline=ori_features,
-            labels=labels_features_name,
-            working_dir=self.test_working_directory,
-            function=function_partial,
-            output_path=new_features_path,
-            chunck_size_x=5,
-            chunck_size_y=5,
-            ram=128,
-        )
+        (test_array, new_labels, _, _, _,
+         _) = rasterU.insert_external_function_to_pipeline(
+             otb_pipeline=ori_features,
+             labels=labels_features_name,
+             working_dir=self.test_working_directory,
+             function=function_partial,
+             output_path=new_features_path,
+             chunk_size_x=5,
+             chunk_size_y=5,
+             ram=128,
+         )
         # write gapfilled time series
         time_s_app.ExecuteAndWriteOutput()
         features, feat_labels, dep = generate_features(
