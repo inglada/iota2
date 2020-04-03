@@ -140,7 +140,7 @@ def train_autoContext(parameter_dict: Param,
     """
     import shutil
     from iota2.Sampling import GenAnnualSamples
-    from iota2.Common.GenerateFeatures import generateFeatures
+    from iota2.Common.GenerateFeatures import generate_features
     from iota2.Common.OtbAppBank import CreateTrainAutoContext
     from iota2.Common.FileUtils import ensure_dir
 
@@ -164,11 +164,12 @@ def train_autoContext(parameter_dict: Param,
             WORKING_DIR, "model_{}_seed_{}_tmp".format(model_name, seed_num))
     ensure_dir(tmp_dir)
 
-    _, feat_labels, _ = generateFeatures(pathWd=WORKING_DIR,
-                                         tile=tiles[0],
-                                         sar_optical_post_fusion=False,
-                                         output_path=output_path,
-                                         sensors_parameters=sensors_parameters)
+    _, feat_labels, _ = generate_features(
+        pathWd=WORKING_DIR,
+        tile=tiles[0],
+        sar_optical_post_fusion=False,
+        output_path=output_path,
+        sensors_parameters=sensors_parameters)
 
     feat_labels = [elem.lower() for elem in feat_labels]
 

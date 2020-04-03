@@ -29,11 +29,11 @@ sensors_params = Dict[str, Union[str, List[str], int]]
 logger = logging.getLogger(__name__)
 
 
-def merge_sk_classifications(
-        rasters_to_merge_dic: List[Dict[str, Union[str, List[str]]]],
-        epsg_code: int,
-        working_dir: str,
-        logger=logger) -> None:
+def merge_sk_classifications(rasters_to_merge_dic: List[Dict[str, Union[
+        str, List[str]]]],
+                             epsg_code: int,
+                             working_dir: str,
+                             logger=logger) -> None:
     """mosaic rasters
 
     Parameters
@@ -57,8 +57,9 @@ def merge_sk_classifications(
                       epsg_code, working_dir)
 
 
-def sk_classifications_to_merge(iota2_classif_directory: str
-                                ) -> List[Dict[str, Union[str, List[str]]]]:
+def sk_classifications_to_merge(
+    iota2_classif_directory: str
+) -> List[Dict[str, Union[str, List[str]]]]:
     """feed function merge_sk_classifications
 
     Parameters
@@ -254,11 +255,11 @@ def proba_to_label(
     return labels_map
 
 
-def probabilities_to_max_proba(proba_map: np.ndarray,
-                               transform: Affine,
-                               epsg_code: int,
-                               out_max_confidence: Optional[str] = None
-                               ) -> np.ndarray:
+def probabilities_to_max_proba(
+        proba_map: np.ndarray,
+        transform: Affine,
+        epsg_code: int,
+        out_max_confidence: Optional[str] = None) -> np.ndarray:
     """from the prediction probabilities vector, get the max probility
 
     Parameters
@@ -364,7 +365,7 @@ def predict(mask: str,
 
     from iota2.Common import rasterUtils as rasterU
     from iota2.Common import ServiceConfigFile as serviceConf
-    from iota2.Common.GenerateFeatures import generateFeatures
+    from iota2.Common.GenerateFeatures import generate_features
     from iota2.Common.FileUtils import findCurrentTileInString
 
     mode = "usually" if "SAR.txt" not in model else "SAR"
@@ -381,7 +382,7 @@ def predict(mask: str,
 
     function_partial = partial(do_predict, model=model, scaler=scaler)
     classification_dir = os.path.join(output_path, "classif")
-    feat_stack, feat_labels, _ = generateFeatures(
+    feat_stack, feat_labels, _ = generate_features(
         working_dir,
         tile_name,
         sar_optical_post_fusion=sar_optical_post_fusion,

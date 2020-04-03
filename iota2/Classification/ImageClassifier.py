@@ -97,12 +97,11 @@ def autoContext_classification_param(iota2_directory, data_field):
 
 
 def autoContext_launch_classif(
-        parameters_dict: List[Dict[str, Union[str, List[str]]]],
-        classifier_type: str, tile: str, proba_map_expected: bool, dimred,
-        data_field: str, write_features: bool, reduction_mode,
-        iota2_run_dir: str, sar_optical_post_fusion: bool,
-        nomenclature_path: str, sensors_parameters: SENSORS_PARAMS, RAM: int,
-        WORKING_DIR: str):
+    parameters_dict: List[Dict[str, Union[str, List[str]]]],
+    classifier_type: str, tile: str, proba_map_expected: bool, dimred,
+    data_field: str, write_features: bool, reduction_mode, iota2_run_dir: str,
+    sar_optical_post_fusion: bool, nomenclature_path: str,
+    sensors_parameters: SENSORS_PARAMS, RAM: int, WORKING_DIR: str):
     """
     """
     from iota2.Common.FileUtils import getOutputPixType
@@ -174,7 +173,7 @@ class iota2Classification():
                  mode="usually"):
         """
         TODO :
-            remove the dependance from cfg which still needed to compute features (first, remove from generateFeatures)
+            remove the dependance from cfg which still needed to compute features (first, remove from generate_features)
             remove the 'mode' parameter
         """
         self.models_class = models_class
@@ -595,7 +594,7 @@ def launchClassification(tempFolderSerie,
     if "SAR.tif" in outputClassif:
         mode = "SAR"
 
-    AllFeatures, _, dep_features = genFeatures.generateFeatures(
+    AllFeatures, _, dep_features = genFeatures.generate_features(
         pathWd=wd,
         tile=tile,
         sar_optical_post_fusion=sar_optical_post_fusion,

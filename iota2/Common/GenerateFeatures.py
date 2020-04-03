@@ -26,18 +26,19 @@ LOGGER = logging.getLogger(__name__)
 sensors_params = Dict[str, Union[str, List[str], int]]
 
 
-def generateFeatures(pathWd: str,
-                     tile: str,
-                     sar_optical_post_fusion: bool,
-                     output_path: str,
-                     sensors_parameters: sensors_params,
-                     custom_features: Optional[bool] = False,
-                     module_name: Optional[str] = None,
-                     list_functions: Optional[List[str]] = None,
-                     targeted_chunk: Optional[int] = None,
-                     number_of_chunks: Optional[int] = 50,
-                     force_standard_labels: Optional[bool] = False,
-                     mode: Optional[str] = "usually"):
+def generate_features(pathWd: str,
+                      tile: str,
+                      sar_optical_post_fusion: bool,
+                      output_path: str,
+                      sensors_parameters: sensors_params,
+                      custom_features: Optional[bool] = False,
+                      module_name: Optional[str] = None,
+                      list_functions: Optional[List[str]] = None,
+                      targeted_chunk: Optional[int] = None,
+                      number_of_chunks: Optional[int] = 50,
+                      force_standard_labels: Optional[bool] = False,
+                      mode: Optional[str] = "usually",
+                      logger: Optional[logging.Logger] = LOGGER):
     """
     usage : Function use to compute features according to a configuration file
     Parameters
@@ -63,9 +64,8 @@ def generateFeatures(pathWd: str,
     from functools import partial
     from iota2.Common.customNumpyFeatures import custom_numpy_features
     import otbApplication as otb
-    import numpy as np
 
-    LOGGER.info(f"prepare features for tile : {tile}")
+    logger.info(f"prepare features for tile : {tile}")
 
     sensor_tile_container = sensors_container(tile, pathWd, output_path,
                                               **sensors_parameters)
@@ -132,37 +132,28 @@ def generateFeatures(pathWd: str,
             number_of_chunks=number_of_chunks,
             ram=128,
         )
-        # print("out apply function, launch execute"
-        #       f"{fu.memory_usage_psutil()} MB")
         # rasterio shape [bands, row, cols] OTB shape [row, cols, bands]
-        # use move axis for OTB
-        # arr_resh = np.moveaxis(test_array, [0, 1, 2], [2, 0, 1])
-        # ensure c order in memory
-        # for OTB application
-
-        # print("before copy" f"{fu.memory_usage_psutil()} MB")
-        # arr_2 = np.copy(arr_resh, order="C")
-        # print("end copy")
-        # otbimage["array"] = np.copy(arr_resh, order="C")  # arr_2
+        # use rasterio reshape_as_image function to move axis
         otbimage["array"] = reshape_as_image(feat_array)
-        print("otbimage " f"{fu.memory_usage_psutil()} MB")
+        logger.debug("Numpy image inserted in otb pipeline: "
+                     f"{fu.memory_usage_psutil()} MB")
         # get the chunk size
-        size = otbimage["array"].shape  #arr_2.shape
-
+        size = otbimage["array"].shape
         # get the chunk origin
         origin = out_transform * (0, 0)
         # add a demi pixel size to origin
-        #
+        # offset between rasterio (gdal) and OTB
         otbimage["origin"].SetElement(0,
                                       origin[0] + (otbimage["spacing"][0] / 2))
         otbimage["origin"].SetElement(1,
                                       origin[1] + (otbimage["spacing"][1] / 2))
         # Set buffer image region
+        # Mandatory to keep the projection in OTB pipeline
         otbimage["region"].SetIndex(0, 0)
         otbimage["region"].SetIndex(1, 0)
         otbimage["region"].SetSize(0, size[1])
         otbimage["region"].SetSize(1, size[0])
-
+        # TODO: remove this bandmath and return an OTB image
         bandmath = otb.Registry.CreateApplication("BandMathX")
         bandmath.ImportVectorImage("il", otbimage)
         bandmath.SetParameterString("out", features_raster)
@@ -205,8 +196,8 @@ if __name__ == "__main__":
     PARAMS = iota2_parameters(ARGS.pathConf)
     SEN_PARAM = PARAMS.get_sensors_parameters(ARGS.tile)
 
-    generateFeatures(ARGS.pathWd,
-                     ARGS.tile,
-                     sar_optical_post_fusion=False,
-                     output_path=CFG.getParam("chain", "outputPath"),
-                     sensors_parameters=SEN_PARAM)
+    generate_features(ARGS.pathWd,
+                      ARGS.tile,
+                      sar_optical_post_fusion=False,
+                      output_path=CFG.getParam("chain", "outputPath"),
+                      sensors_parameters=SEN_PARAM)

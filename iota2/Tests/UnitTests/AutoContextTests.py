@@ -158,7 +158,7 @@ class iota_testAutoContext(unittest.TestCase):
         from iota2.Common.OtbAppBank import CreateSampleSelectionApplication
         from iota2.Common.OtbAppBank import CreatePolygonClassStatisticsApplication
         from iota2.Common.OtbAppBank import CreateSampleExtractionApplication
-        from iota2.Common.GenerateFeatures import generateFeatures
+        from iota2.Common.GenerateFeatures import generate_features
         from iota2.Common import ServiceConfigFile as SCF
 
         raster_ref = FileSearch_AND(self.fake_data_dir, True, ".tif")[0]
@@ -193,7 +193,7 @@ class iota_testAutoContext(unittest.TestCase):
         cfg = SCF.serviceConfigFile(config_path_test)
         params = iota2_parameters(config_path_test)
         sensors_parameters = params.get_sensors_parameters("T31TCJ")
-        features, feat_labels, dep = generateFeatures(
+        features, feat_labels, dep = generate_features(
             None,
             "T31TCJ",
             sar_optical_post_fusion=False,

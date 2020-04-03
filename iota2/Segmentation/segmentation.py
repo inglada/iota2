@@ -51,14 +51,14 @@ def slicSegmentation(tile_name: str,
     """
     import math
     import shutil
-    from iota2.Common.GenerateFeatures import generateFeatures
+    from iota2.Common.GenerateFeatures import generate_features
     from iota2.Common.OtbAppBank import CreateSLICApplication
     from iota2.Common.OtbAppBank import getInputParameterOutput
     from iota2.Common.FileUtils import ensure_dir
 
     SLIC_NAME = "SLIC_{}.tif".format(tile_name)
 
-    all_features, feat_labels, dep = generateFeatures(
+    all_features, feat_labels, dep = generate_features(
         working_dir,
         tile_name,
         sar_optical_post_fusion=False,

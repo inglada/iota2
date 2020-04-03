@@ -309,7 +309,7 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
         from iota2.Common import IOTA2Directory
         from config import Config
         from iota2.Sensors.Sensors_container import sensors_container
-        from iota2.Common.GenerateFeatures import generateFeatures
+        from iota2.Common.GenerateFeatures import generate_features
 
         TUR.generate_fake_s2_data(
             self.test_working_directory,
@@ -364,9 +364,9 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
 
         ((time_s_app, app_dep),
          features_labels) = sensor.get_time_series_gapfilling()
-        # Compute custom features outside generateFeatures
+        # Compute custom features outside generate_features
         # 1. generate iota2 features
-        ori_features, ori_feat_labels, ori_dep = generateFeatures(
+        ori_features, ori_feat_labels, ori_dep = generate_features(
             working_dir,
             "T31TCJ",
             False,
@@ -395,7 +395,7 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
         )
         # write gapfilled time series
         time_s_app.ExecuteAndWriteOutput()
-        features, feat_labels, dep = generateFeatures(
+        features, feat_labels, dep = generate_features(
             working_dir,
             "T31TCJ",
             False,

@@ -17,7 +17,7 @@ from typing import Dict, Union, List
 from functools import partial
 import argparse
 
-from iota2.Common.GenerateFeatures import generateFeatures
+from iota2.Common.GenerateFeatures import generate_features
 from iota2.Common import IOTA2Directory
 from iota2.Common import rasterUtils
 
@@ -52,7 +52,7 @@ def compute_features(output_path: str,
         function to apply on iota²' stack
     """
     IOTA2Directory.generate_directories(output_path, check_inputs=False)
-    feat_stack, feat_labels, _ = generateFeatures(
+    feat_stack, feat_labels, _ = generate_features(
         working_dir,
         tile_name,
         sar_optical_post_fusion=False,
