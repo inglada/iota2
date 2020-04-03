@@ -267,7 +267,6 @@ def process_function(
             roi_to_ignore = True
         elif len(unique_mask_values) > 1 and mask_value in unique_mask_values:
             roi_contains_mask_part = True
-
     otb_pipeline.Execute()
     # remove this call to GetVectorImageAsNumpyArray
     # allow a gain of few seconds requiered to initialise otbimage object
@@ -279,7 +278,6 @@ def process_function(
     projection.ImportFromWkt(proj)
     origin_x, origin_y = otb_pipeline.GetImageOrigin("out")
     xres, yres = otb_pipeline.GetImageSpacing("out")
-
     # gdal offset
     geo_transform = [
         origin_x - xres / 2.0, xres, 0, origin_y - yres / 2.0, 0, yres
@@ -387,7 +385,7 @@ def get_chunks_boundaries(
 
         split_y = [math.floor(x) for x in split_y]
         split_x = [math.floor(x) for x in split_x]
-        print("before for")
+
         for i, start_y in enumerate(split_y[:-1]):
 
             for j, start_x in enumerate(split_x[:-1]):

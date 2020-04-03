@@ -489,11 +489,11 @@ class iota_tests_runs_case(unittest.TestCase):
         cfg_test.chain.groundTruth = self.ground_truth_path
         cfg_test.chain.nomenclaturePath = self.nomenclature_path
         cfg_test.chain.colorTable = self.color_path
-        cfg_test.Features.codePath = os.path.join(IOTA2DIR, "data",
-                                                  "numpy_features")
-        cfg_test.Features.namefile = "user_custom_function"
+        cfg_test.Features.module = os.path.join(IOTA2DIR, "data",
+                                                "numpy_features",
+                                                "user_custom_function.py")
         cfg_test.Features.functions = "get_cari get_ndsi"
-        cfg_test.Features.number_of_chunks = 3
+        cfg_test.Features.number_of_chunks = 1
         cfg_test.save(open(config_test, 'w'))
 
         # Launch the chain

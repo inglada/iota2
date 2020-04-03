@@ -140,12 +140,9 @@ class samplesExtraction(IOTA2Step.Step):
                     None,
                     "custom_features":
                     True,
-                    "code_path":
+                    "module_path":
                     SCF.serviceConfigFile(self.cfg).getParam(
-                        'Features', 'codePath'),
-                    "module_name":
-                    SCF.serviceConfigFile(self.cfg).getParam(
-                        'Features', 'namefile'),
+                        'Features', 'module'),
                     "list_functions":
                     SCF.serviceConfigFile(self.cfg).getParam(
                         'Features', 'functions').split(" "),

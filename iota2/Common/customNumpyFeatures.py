@@ -78,25 +78,27 @@ class custom_numpy_features(data_container):
                  tile_name: str,
                  output_path: str,
                  sensors_params: sensors_params_type,
-                 code_path: str,
                  module_name: str,
                  list_functions: List[str],
                  working_dir: Optional[str] = None):
-        import sys
         import os
-        import importlib
         import types  # solves issues about type and inheritance
         super(custom_numpy_features,
               self).__init__(tile_name, output_path, sensors_params,
                              working_dir)
-        if code_path is None:
-            raise "For use custom features, the codePath must no be None"
-        if not os.path.isdir(code_path):
-            raise f"Error: {code_path} is not a correct path"
-        sys.path.insert(0, code_path)
-        # TODO: check if module is a module and func a function
-        mod = importlib.import_module(module_name)
-        # Function can be multiple
+
+        def check_import(module_path):
+            import importlib
+
+            spec = importlib.util.spec_from_file_location(
+                module_path.split(os.sep)[-1].split('.')[0], module_path)
+            print(spec)
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            print(dir(module))
+            return module
+
+        mod = check_import(module_name)
         self.fun_name_list = []
 
         if list_functions is not None and len(list_functions) != 0:

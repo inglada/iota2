@@ -19,6 +19,7 @@ import argparse
 import os
 import logging
 from typing import Dict, Union, List, Optional
+from rasterio.plot import reshape_as_image
 from iota2.Common import FileUtils as fu
 LOGGER = logging.getLogger(__name__)
 
@@ -31,7 +32,6 @@ def generateFeatures(pathWd: str,
                      output_path: str,
                      sensors_parameters: sensors_params,
                      custom_features: Optional[bool] = False,
-                     code_path: Optional[str] = None,
                      module_name: Optional[str] = None,
                      list_functions: Optional[List[str]] = None,
                      targeted_chunk: Optional[int] = None,
@@ -117,12 +117,12 @@ def generateFeatures(pathWd: str,
         all_features.SetParameterString(output_param_name, features_raster)
     if custom_features:
         cust = custom_numpy_features(tile, output_path, sensors_parameters,
-                                     code_path, module_name, list_functions)
+                                     module_name, list_functions)
         function_partial = partial(cust.process)
         labels_features_name = ""
         # TODO : how to feel labels_features_name ?
         # The output path is empty to ensure the image was not writed
-        test_array, new_labels, out_transform, _, _, otbimage = apply_function(
+        feat_array, new_labels, out_transform, _, _, otbimage = apply_function(
             otb_pipeline=all_features,
             labels=labels_features_name,
             working_dir=pathWd,
@@ -132,19 +132,19 @@ def generateFeatures(pathWd: str,
             number_of_chunks=number_of_chunks,
             ram=128,
         )
-        print("out apply function, launch execute"
-              f"{fu.memory_usage_psutil()} MB")
+        # print("out apply function, launch execute"
+        #       f"{fu.memory_usage_psutil()} MB")
         # rasterio shape [bands, row, cols] OTB shape [row, cols, bands]
         # use move axis for OTB
-        arr_resh = np.moveaxis(test_array, [0, 1, 2], [2, 0, 1])
+        # arr_resh = np.moveaxis(test_array, [0, 1, 2], [2, 0, 1])
         # ensure c order in memory
         # for OTB application
 
-        print("before copy" f"{fu.memory_usage_psutil()} MB")
+        # print("before copy" f"{fu.memory_usage_psutil()} MB")
         # arr_2 = np.copy(arr_resh, order="C")
         # print("end copy")
-        otbimage["array"] = np.copy(arr_resh, order="C")  # arr_2
-
+        # otbimage["array"] = np.copy(arr_resh, order="C")  # arr_2
+        otbimage["array"] = reshape_as_image(feat_array)
         print("otbimage " f"{fu.memory_usage_psutil()} MB")
         # get the chunk size
         size = otbimage["array"].shape  #arr_2.shape

@@ -69,6 +69,7 @@ class classification(IOTA2Step.Step):
         from iota2.Common.ServiceConfigFile import iota2_parameters
 
         if self.enable_autoContext is False and self.use_scikitlearn is False:
+            # Custom features are handled in parseClassifCmd
             parameters = fut.parseClassifCmd(
                 os.path.join(self.output_path, "cmd", "cla", "class.txt"),
                 self.custom_features_flag, self.number_of_chunks)

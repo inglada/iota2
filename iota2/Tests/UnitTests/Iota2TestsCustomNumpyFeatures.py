@@ -42,7 +42,6 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
         cls.all_tests_ok = []
         cls.config_test = os.path.join(IOTA2DIR, "data", "numpy_features",
                                        "config_plugins.cfg")
-        cls.code_path = os.path.join(IOTA2DIR, "data", "numpy_features")
         # Tests directory
         cls.test_working_directory = None
         if os.path.exists(cls.iota2_tests_directory):
@@ -92,6 +91,113 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
             shutil.rmtree(self.test_working_directory)
 
     # Tests definitions
+    def check_custom_features_valid_inputs(self):
+        """Test the behaviour of check custom features"""
+        from config import Config
+        from iota2.Common import ServiceConfigFile as SCF
+        s2st_data = self.test_working_directory
+        test_path = os.path.join(self.test_working_directory, "RUN")
+
+        # Valid test
+        config_path_test = os.path.join(self.test_working_directory,
+                                        "Config_TEST_valid.cfg")
+
+        shutil.copy(self.config_test, config_path_test)
+        cfg_test = Config(open(config_path_test))
+        cfg_test.chain.outputPath = test_path
+        cfg_test.chain.listTile = "T31TCJ"
+        cfg_test.chain.L8Path_old = "None"
+        cfg_test.chain.L8Path = "None"
+        cfg_test.chain.check_inputs = False
+        cfg_test.chain.S2Path = s2st_data
+        cfg_test.chain.userFeatPath = "None"
+        cfg_test.chain.regionField = "region"
+        cfg_test.argTrain.cropMix = False
+        cfg_test.argTrain.samplesClassifMix = False
+        cfg_test.argTrain.annualClassesExtractionSource = None
+        cfg_test.GlobChain.useAdditionalFeatures = False
+        cfg_test.GlobChain.writeOutputs = False
+        cfg_test.Features.module = os.path.join(IOTA2DIR, "data",
+                                                "numpy_features",
+                                                "user_custom_function.py")
+
+        # cfg_test.Features.module = self.module
+        # cfg_test.Features.namefile = "user_custom_function"  # whithout .py ?
+        cfg_test.Features.functions = "get_identity get_ndvi"
+        cfg_test.save(open(config_path_test, "w"))
+        cfg = SCF.serviceConfigFile(config_path_test)
+
+        self.assertTrue(cfg.checkCustomFeature())
+
+    def check_invalid_module_name(self):
+        """Test the behaviour of check custom features"""
+        from config import Config
+        from iota2.Common import ServiceConfigFile as SCF
+        s2st_data = self.test_working_directory
+        test_path = os.path.join(self.test_working_directory, "RUN")
+
+        # Invalid module name
+        config_path_test = os.path.join(self.test_working_directory,
+                                        "Config_TEST_invalidmodule.cfg")
+
+        shutil.copy(self.config_test, config_path_test)
+        cfg_test = Config(open(config_path_test))
+        cfg_test.chain.outputPath = test_path
+        cfg_test.chain.listTile = "T31TCJ"
+        cfg_test.chain.L8Path_old = "None"
+        cfg_test.chain.L8Path = "None"
+        cfg_test.chain.check_inputs = False
+        cfg_test.chain.S2Path = s2st_data
+        cfg_test.chain.userFeatPath = "None"
+        cfg_test.chain.regionField = "region"
+        cfg_test.argTrain.cropMix = False
+        cfg_test.argTrain.samplesClassifMix = False
+        cfg_test.argTrain.annualClassesExtractionSource = None
+        cfg_test.GlobChain.useAdditionalFeatures = False
+        cfg_test.GlobChain.writeOutputs = False
+        cfg_test.Features.module = os.path.join(IOTA2DIR, "data",
+                                                "numpy_features", "dummy.py")
+
+        cfg_test.Features.functions = "get_identity get_ndvi"
+        cfg_test.save(open(config_path_test, "w"))
+        cfg = SCF.serviceConfigFile(config_path_test)
+        self.assertRaises(ValueError, cfg.checkCustomFeature)
+
+    def check_invalid_function_name(self):
+        """Test the behaviour of check custom features"""
+        from config import Config
+        from iota2.Common import ServiceConfigFile as SCF
+        s2st_data = self.test_working_directory
+        test_path = os.path.join(self.test_working_directory, "RUN")
+
+        # Invalid function name
+        config_path_test = os.path.join(self.test_working_directory,
+                                        "Config_TEST_invalid_functions.cfg")
+
+        shutil.copy(self.config_test, config_path_test)
+        cfg_test = Config(open(config_path_test))
+        cfg_test.chain.outputPath = test_path
+        cfg_test.chain.listTile = "T31TCJ"
+        cfg_test.chain.L8Path_old = "None"
+        cfg_test.chain.L8Path = "None"
+        cfg_test.chain.check_inputs = False
+        cfg_test.chain.S2Path = s2st_data
+        cfg_test.chain.userFeatPath = "None"
+        cfg_test.chain.regionField = "region"
+        cfg_test.argTrain.cropMix = False
+        cfg_test.argTrain.samplesClassifMix = False
+        cfg_test.argTrain.annualClassesExtractionSource = None
+        cfg_test.GlobChain.useAdditionalFeatures = False
+        cfg_test.GlobChain.writeOutputs = False
+        cfg_test.Features.module = os.path.join(IOTA2DIR, "data",
+                                                "numpy_features",
+                                                "user_custom_function.py")
+
+        cfg_test.Features.functions = "dummy_function"  # " get_ndvi"
+        cfg_test.save(open(config_path_test, "w"))
+        cfg = SCF.serviceConfigFile(config_path_test)
+        self.assertRaises(AttributeError, cfg.checkCustomFeature)
+
     def test_apply_function_with_custom_features(self):
         """
         TEST : check the whole workflow
@@ -131,8 +237,11 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
         cfg_test.argTrain.annualClassesExtractionSource = None
         cfg_test.GlobChain.useAdditionalFeatures = False
         cfg_test.GlobChain.writeOutputs = False
-        cfg_test.Features.codePath = self.code_path
-        cfg_test.Features.namefile = "user_custom_function"  # whithout .py ?
+        cfg_test.Features.module = os.path.join(IOTA2DIR, "data",
+                                                "numpy_features",
+                                                "user_custom_function.py")
+        # cfg_test.Features.codePath = self.code_path
+        # cfg_test.Features.namefile = "user_custom_function"  # whithout .py ?
         cfg_test.Features.functions = "get_identity"  # " get_ndvi"
         cfg_test.save(open(config_path_test, "w"))
         cfg = SCF.serviceConfigFile(config_path_test)
@@ -163,10 +272,12 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
         # ( (time_s_app, app_dep), features_labels) = time_s
 
         # Then apply function
+        module_path = os.path.join(IOTA2DIR, "data", "numpy_features",
+                                   "user_custom_function.py")
         list_functions = ["get_identity", "get_ndvi"]
         cust = custom_numpy_features(tile_name, self.test_working_directory,
-                                     sensors_param, self.code_path,
-                                     "user_custom_function", list_functions)
+                                     sensors_param, module_path,
+                                     list_functions)
         function_partial = partial(cust.process)
 
         labels_features_name = ["NDVI_20200101", "NDVI_20200102"]
@@ -224,8 +335,10 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
         cfg_test.argTrain.annualClassesExtractionSource = None
         cfg_test.GlobChain.useAdditionalFeatures = False
         cfg_test.GlobChain.writeOutputs = False
-        cfg_test.Features.codePath = self.code_path
-        cfg_test.Features.namefile = "user_custom_function"  # whithout .py ?
+        cfg_test.Features.module = os.path.join(IOTA2DIR, "data",
+                                                "numpy_features",
+                                                "user_custom_function.py")
+        cfg_test.Features.number_of_chunks = 1
         cfg_test.Features.functions = "get_identity get_ndvi"
         cfg_test.save(open(config_path_test, "w"))
         cfg = SCF.serviceConfigFile(config_path_test)
@@ -261,9 +374,10 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
             sensors_param,
             custom_features=False)
         list_functions = ["get_identity", "get_ndvi"]
-        cust = custom_numpy_features(tile_name, self.test_working_directory,
-                                     sensors_param, self.code_path,
-                                     "user_custom_function", list_functions)
+        cust = custom_numpy_features(
+            tile_name, self.test_working_directory, sensors_param,
+            os.path.join(IOTA2DIR, "data", "numpy_features",
+                         "user_custom_function.py"), list_functions)
         function_partial = partial(cust.process)
 
         labels_features_name = ["NDVI_20200101", "NDVI_20200102"]
@@ -288,9 +402,10 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
             self.test_working_directory,
             sensors_param,
             custom_features=True,
-            code_path=self.code_path,
-            module_name="user_custom_function",
-            list_functions=["get_identity", "get_ndvi"])
+            module_name=os.path.join(IOTA2DIR, "data", "numpy_features",
+                                     "user_custom_function.py"),
+            list_functions=["get_identity", "get_ndvi"],
+            number_of_chunks=1)
         # write time series features and custom features
         features.ExecuteAndWriteOutput()
         # self.assertTrue(pipeline_shape == test_array.shape)

@@ -58,7 +58,7 @@ def autoContext_classification_param(iota2_directory, data_field):
         model_name = model.split("_")[1]
         seed_num = model.split("_")[-1]
         tiles = sorted(getListTileFromModel(model_name, models_description))
-        #~ samples_region_1f1_seed_0.shp
+        # samples_region_1f1_seed_0.shp
         model_sample_sel = FileSearch_AND(
             sample_sel_directory, True,
             "samples_region_{}_seed_{}.shp".format(model_name, seed_num))[0]
@@ -560,8 +560,7 @@ def launchClassification(tempFolderSerie,
                          auto_context={},
                          force_standard_labels=None,
                          custom_features: Optional[bool] = False,
-                         code_path: Optional[str] = None,
-                         module_name: Optional[str] = None,
+                         module_path: Optional[str] = None,
                          list_functions: Optional[str] = None,
                          number_of_chunks: Optional[int] = None,
                          targeted_chunk: Optional[int] = None,
@@ -604,8 +603,7 @@ def launchClassification(tempFolderSerie,
         sensors_parameters=sensors_parameters,
         mode=mode,
         custom_features=custom_features,
-        code_path=code_path,
-        module_name=module_name,
+        module_name=module_path,
         list_functions=list_functions,
         targeted_chunk=targeted_chunk,
         number_of_chunks=number_of_chunks,

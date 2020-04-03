@@ -335,8 +335,7 @@ class serviceConfigFile:
 
             self.init_section("Simplification", simp_default)
             custom_features = {
-                "codePath": None,
-                "namefile": None,
+                "module": None,
                 "functions": None,
                 "number_of_chunks": 50,
                 "chunk_size_x": 50,
@@ -1030,30 +1029,44 @@ class serviceConfigFile:
         """
         flag = False
 
-        # blocks = self.getAvailableSections()
-        # if "Features" in blocks:
-        #     # TODO add test on import function
-        #     flag = True
-        # else:
-        #     flag = False
-        # return flag
         def check_code_path(code_path):
-            valid = True
+
             if code_path is None:
                 return False
             if code_path.lower() == "none":
-                valid = False
+                return False
             if len(code_path) < 1:
-                valid = False
-            return valid
+                return False
+            if not os.path.isfile(code_path):
+                raise ValueError(f"Error: {code_path} is not a correct path")
+            return True
 
-        code_path = self.getParam("Features", "codePath")
-        code_path_valid = check_code_path(code_path)
+        def check_import(module_path):
+            import importlib
 
-        # if code_path is not None and code_path.lower() != "none" and len(
-        #         code_path) > 0:
-        #     code_path_valid = True
-        if code_path_valid:
+            spec = importlib.util.spec_from_file_location(
+                module_path.split(os.sep)[-1].split('.')[0], module_path)
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            return module
+
+        def check_function_in_module(module, list_functions):
+            for fun in list_functions:
+                try:
+                    getattr(module, fun)
+                except AttributeError:
+                    raise AttributeError(
+                        f"{module.__name__} has no function {fun}")
+
+        module_path = self.getParam("Features", "module")
+        module_path_valid = check_code_path(module_path)
+        print(module_path_valid)
+        if module_path_valid:
+            module = check_import(module_path)
+            check_function_in_module(
+                module,
+                self.getParam("Features", "functions").split(" "))
+
             flag = True
         return flag
 
