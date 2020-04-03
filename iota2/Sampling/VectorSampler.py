@@ -39,9 +39,9 @@ LOGGER.addHandler(logging.NullHandler())
 sensors_params_type = Dict[str, Union[str, List[str], int]]
 
 
-def get_vectors_to_sample(
-        iota2_formatting_dir: str,
-        ds_fusion_sar_opt: Optional[bool] = False) -> List[Dict[str, str]]:
+def get_vectors_to_sample(iota2_formatting_dir: str,
+                          ds_fusion_sar_opt: Optional[bool] = False
+                          ) -> List[Dict[str, str]]:
     """
     get vectors to sample
     IN :
@@ -91,26 +91,25 @@ def get_points_coord_in_shape(in_shape: str, gdal_driver: str) -> List[Tuple]:
     return all_coord
 
 
-def get_features_application(
-    train_shape: str,
-    working_directory: str,
-    samples: str,
-    data_field: str,
-    output_path: str,
-    sar_optical_post_fusion: bool,
-    sensors_parameters: sensors_params_type,
-    ram: Optional[int] = 128,
-    mode: Optional[str] = "usually",
-    only_mask_comm: Optional[bool] = False,
-    only_sensors_masks: Optional[bool] = False,
-    custom_features: Optional[bool] = False,
-    module_path: Optional[str] = None,
-    list_functions: Optional[List[str]] = None,
-    force_standard_labels: Optional[bool] = False,
-    number_of_chunks: Optional[int] = 50,
-    targeted_chunk: Optional[int] = None,
-    logger: Optional[Logger] = LOGGER
-) -> Tuple[otb_app_type, List[otb_app_type]]:
+def get_features_application(train_shape: str,
+                             working_directory: str,
+                             samples: str,
+                             data_field: str,
+                             output_path: str,
+                             sar_optical_post_fusion: bool,
+                             sensors_parameters: sensors_params_type,
+                             ram: Optional[int] = 128,
+                             mode: Optional[str] = "usually",
+                             only_mask_comm: Optional[bool] = False,
+                             only_sensors_masks: Optional[bool] = False,
+                             custom_features: Optional[bool] = False,
+                             module_path: Optional[str] = None,
+                             list_functions: Optional[List[str]] = None,
+                             force_standard_labels: Optional[bool] = False,
+                             number_of_chunks: Optional[int] = 50,
+                             targeted_chunk: Optional[int] = None,
+                             logger: Optional[Logger] = LOGGER
+                             ) -> Tuple[otb_app_type, List[otb_app_type]]:
     """
     usage : compute from a stack of data -> gapFilling -> features computation
             -> sampleExtractions
@@ -1034,39 +1033,39 @@ def generate_samples_classif_mix(folder_sample: str,
 
 
 def generate_samples(
-    train_shape_dic,
-    path_wd,
-    data_field: str,
-    output_path: str,
-    annual_crop: List[Union[str, int]],
-    crop_mix: bool,
-    auto_context_enable: bool,
-    region_field: str,
-    proj: Union[int, str],
-    enable_cross_validation: bool,
-    runs: int,
-    sensors_parameters: sensors_params_type,
-    sar_optical_post_fusion: bool,
-    samples_classif_mix: Optional[bool] = False,
-    output_path_annual: Optional[str] = None,
-    ram: Optional[int] = 128,
-    w_mode: Optional[int] = False,
-    folder_annual_features: Optional[str] = None,
-    previous_classif_path: Optional[str] = None,
-    validity_threshold: Optional[int] = None,
-    target_resolution: Optional[int] = None,
-    test_mode: Optional[bool] = False,
-    test_shape_region: Optional[str] = None,
-    sample_selection: Optional[str] = None,
-    custom_features: Optional[bool] = False,
-    module_path: Optional[str] = None,
-    list_functions: Optional[List[str]] = None,
-    force_standard_labels: Optional[bool] = False,
-    number_of_chunks: Optional[int] = 50,
-    chunk_size_mode: Optional[
-        str] = "split_number",  # TODO faire un dico chunk 
-    targeted_chunk: Optional[int] = None,
-    logger: Optional[Logger] = LOGGER):
+        train_shape_dic,
+        path_wd,
+        data_field: str,
+        output_path: str,
+        annual_crop: List[Union[str, int]],
+        crop_mix: bool,
+        auto_context_enable: bool,
+        region_field: str,
+        proj: Union[int, str],
+        enable_cross_validation: bool,
+        runs: int,
+        sensors_parameters: sensors_params_type,
+        sar_optical_post_fusion: bool,
+        samples_classif_mix: Optional[bool] = False,
+        output_path_annual: Optional[str] = None,
+        ram: Optional[int] = 128,
+        w_mode: Optional[int] = False,
+        folder_annual_features: Optional[str] = None,
+        previous_classif_path: Optional[str] = None,
+        validity_threshold: Optional[int] = None,
+        target_resolution: Optional[int] = None,
+        test_mode: Optional[bool] = False,
+        test_shape_region: Optional[str] = None,
+        sample_selection: Optional[str] = None,
+        custom_features: Optional[bool] = False,
+        module_path: Optional[str] = None,
+        list_functions: Optional[List[str]] = None,
+        force_standard_labels: Optional[bool] = False,
+        number_of_chunks: Optional[int] = 50,
+        chunk_size_mode: Optional[
+            str] = "split_number",  # TODO faire un dico chunk 
+        targeted_chunk: Optional[int] = None,
+        logger: Optional[Logger] = LOGGER):
     """
     usage : generation of vector shape of points with features
 

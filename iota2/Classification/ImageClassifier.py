@@ -97,11 +97,12 @@ def autoContext_classification_param(iota2_directory, data_field):
 
 
 def autoContext_launch_classif(
-    parameters_dict: List[Dict[str, Union[str, List[str]]]],
-    classifier_type: str, tile: str, proba_map_expected: bool, dimred,
-    data_field: str, write_features: bool, reduction_mode, iota2_run_dir: str,
-    sar_optical_post_fusion: bool, nomenclature_path: str,
-    sensors_parameters: SENSORS_PARAMS, RAM: int, WORKING_DIR: str):
+        parameters_dict: List[Dict[str, Union[str, List[str]]]],
+        classifier_type: str, tile: str, proba_map_expected: bool, dimred,
+        data_field: str, write_features: bool, reduction_mode,
+        iota2_run_dir: str, sar_optical_post_fusion: bool,
+        nomenclature_path: str, sensors_parameters: SENSORS_PARAMS, RAM: int,
+        WORKING_DIR: str):
     """
     """
     from iota2.Common.FileUtils import getOutputPixType
