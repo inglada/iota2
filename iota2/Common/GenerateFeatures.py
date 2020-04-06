@@ -19,8 +19,7 @@ import argparse
 import os
 import logging
 from typing import Dict, Union, List, Optional
-from rasterio.plot import reshape_as_image
-from iota2.Common import FileUtils as fu
+
 LOGGER = logging.getLogger(__name__)
 
 sensors_params = Dict[str, Union[str, List[str], int]]
@@ -31,15 +30,7 @@ def generate_features(pathWd: str,
                       sar_optical_post_fusion: bool,
                       output_path: str,
                       sensors_parameters: sensors_params,
-                      custom_features: Optional[bool] = False,
-                      module_name: Optional[str] = None,
-                      list_functions: Optional[List[str]] = None,
-                      targeted_chunk: Optional[int] = None,
-                      number_of_chunks: Optional[int] = 50,
                       force_standard_labels: Optional[bool] = False,
-                      chunk_size_mode: Optional[str] = "split_number",
-                      chunk_size_x: Optional[int] = None,
-                      chunk_size_y: Optional[int] = None,
                       mode: Optional[str] = "usually",
                       logger: Optional[logging.Logger] = LOGGER):
     """
@@ -63,10 +54,6 @@ def generate_features(pathWd: str,
     from iota2.Sensors.Sensors_container import sensors_container
     from iota2.Common.OtbAppBank import CreateConcatenateImagesApplication
     from iota2.Common.OtbAppBank import getInputParameterOutput
-    from iota2.Common.rasterUtils import insert_external_function_to_pipeline
-    from functools import partial
-    from iota2.Common.customNumpyFeatures import custom_numpy_features
-    import otbApplication as otb
 
     logger.info(f"prepare features for tile : {tile}")
 
@@ -118,59 +105,8 @@ def generate_features(pathWd: str,
         all_features = sensor_features
         output_param_name = getInputParameterOutput(sensor_features)
         all_features.SetParameterString(output_param_name, features_raster)
-    if custom_features:
-        cust = custom_numpy_features(tile, output_path, sensors_parameters,
-                                     module_name, list_functions)
-        function_partial = partial(cust.process)
-        labels_features_name = ""
-        # TODO : how to feel labels_features_name ?
-        # The output path is empty to ensure the image was not writed
-        (feat_array, new_labels, out_transform, _, _,
-         otbimage) = insert_external_function_to_pipeline(
-             otb_pipeline=all_features,
-             labels=labels_features_name,
-             working_dir=pathWd,
-             chunk_size_mode=chunk_size_mode,
-             function=function_partial,
-             targeted_chunk=targeted_chunk,
-             number_of_chunks=number_of_chunks,
-             chunk_size_x=chunk_size_x,
-             chunk_size_y=chunk_size_y,
-             ram=128,
-         )
-        # rasterio shape [bands, row, cols] OTB shape [row, cols, bands]
-        # use rasterio reshape_as_image function to move axis
-        otbimage["array"] = reshape_as_image(feat_array)
-        logger.debug("Numpy image inserted in otb pipeline: "
-                     f"{fu.memory_usage_psutil()} MB")
-        # get the chunk size
-        size = otbimage["array"].shape
-        # get the chunk origin
-        origin = out_transform * (0, 0)
-        # add a demi pixel size to origin
-        # offset between rasterio (gdal) and OTB
-        otbimage["origin"].SetElement(0,
-                                      origin[0] + (otbimage["spacing"][0] / 2))
-        otbimage["origin"].SetElement(1,
-                                      origin[1] + (otbimage["spacing"][1] / 2))
-        # Set buffer image region
-        # Mandatory to keep the projection in OTB pipeline
-        otbimage["region"].SetIndex(0, 0)
-        otbimage["region"].SetIndex(1, 0)
-        otbimage["region"].SetSize(0, size[1])
-        otbimage["region"].SetSize(1, size[0])
-        # TODO: remove this bandmath and return an OTB image
-        bandmath = otb.Registry.CreateApplication("BandMathX")
-        bandmath.ImportVectorImage("il", otbimage)
-        bandmath.SetParameterString("out", features_raster)
-        bandmath.SetParameterString("exp", "im1")
-        # bandmath.SetParameterString("ram", "200000")
-        all_features = bandmath
-        dep.append(bandmath)
-        dep.append(otbimage)
-        # new_labels can never be empty
-        feat_labels += new_labels
-
+    # This option allow to impose a standard labeling in vector file
+    # so they can be easily merged (usefull for multi annual classification)
     if force_standard_labels:
         feat_labels = [f"value_{i}" for i in range(len(feat_labels))]
     return all_features, feat_labels, dep
