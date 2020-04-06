@@ -52,171 +52,124 @@ class samplesExtraction(IOTA2Step.Step):
         return description
 
     def step_inputs(self):
-        """
-        Return
-        ------
-            the return could be and iterable or a callable
-        """
+        # found all shapes
         list_shapefiles = vs.get_vectors_to_sample(
             os.path.join(self.output_path, "formattingVectors"),
             SCF.serviceConfigFile(self.cfg).getParam(
                 'argTrain', 'dempster_shafer_SAR_Opt_fusion'))
+        # check if prevFeatures is enabled
         annual_config_file = SCF.serviceConfigFile(self.cfg).getParam(
             'argTrain', 'prevFeatures')
         output_path_annual = None
-        if annual_config_file is not None and not "none" in annual_config_file.lower(
-        ):
+        if (annual_config_file is not None
+                and "none" not in annual_config_file.lower()):
             output_path_annual = SCF.serviceConfigFile(
                 annual_config_file).getParam('chain', 'outputPath')
-
+        # Initialize the sensors dictionnary with the first tile found
+        # Sensors are the same for all tiles
+        sensors_params = SCF.iota2_parameters(self.cfg).get_sensors_parameters(
+            os.path.splitext(
+                os.path.basename(list(list_shapefiles[0].items())[0][1]))[0])
+        inv_dict = {
+            "path_wd":
+            self.workingDirectory,
+            "data_field":
+            SCF.serviceConfigFile(self.cfg).getParam('chain', 'dataField'),
+            "output_path":
+            SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath'),
+            "annual_crop":
+            SCF.serviceConfigFile(self.cfg).getParam('argTrain', 'annualCrop'),
+            "crop_mix":
+            SCF.serviceConfigFile(self.cfg).getParam('argTrain', 'cropMix'),
+            "auto_context_enable":
+            SCF.serviceConfigFile(self.cfg).getParam('chain',
+                                                     'enable_autoContext'),
+            "region_field":
+            SCF.serviceConfigFile(self.cfg).getParam('chain', 'regionField'),
+            "proj":
+            SCF.serviceConfigFile(self.cfg).getParam('GlobChain', 'proj'),
+            "enable_cross_validation":
+            SCF.serviceConfigFile(self.cfg).getParam('chain',
+                                                     'enableCrossValidation'),
+            "runs":
+            SCF.serviceConfigFile(self.cfg).getParam('chain', 'runs'),
+            "sensors_parameters":
+            sensors_params,
+            "sar_optical_post_fusion":
+            SCF.serviceConfigFile(self.cfg).getParam(
+                'argTrain', 'dempster_shafer_SAR_Opt_fusion'),
+            "samples_classif_mix":
+            SCF.serviceConfigFile(self.cfg).getParam('argTrain',
+                                                     'samplesClassifMix'),
+            "ram":
+            self.ram_extraction,
+            "w_mode":
+            SCF.serviceConfigFile(self.cfg).getParam('GlobChain',
+                                                     'writeOutputs'),
+            "folder_annual_features":
+            SCF.serviceConfigFile(self.cfg).getParam('argTrain',
+                                                     'outputPrevFeatures'),
+            "previous_classif_path":
+            SCF.serviceConfigFile(self.cfg).getParam(
+                'argTrain', 'annualClassesExtractionSource'),
+            "validity_threshold":
+            SCF.serviceConfigFile(self.cfg).getParam('argTrain',
+                                                     'validityThreshold'),
+            "target_resolution":
+            SCF.serviceConfigFile(self.cfg).getParam('chain',
+                                                     'spatialResolution'),
+            "test_mode":
+            None,
+            "output_path_annual":
+            output_path_annual,
+            "custom_features":
+            False
+        }
         if self.custom_features:
-            print(list_shapefiles[0])
-            sensors_params = SCF.iota2_parameters(
-                self.cfg).get_sensors_parameters(
-                    os.path.splitext(
-                        os.path.basename(
-                            list(list_shapefiles[0].items())[0][1]))[0])
-            parameters = []
-            for shape in list_shapefiles:
-                param = {
-                    "train_shape_dic":
-                    shape,
-                    "path_wd":
-                    self.workingDirectory,
-                    "data_field":
-                    SCF.serviceConfigFile(self.cfg).getParam(
-                        'chain', 'dataField'),
-                    "output_path":
-                    SCF.serviceConfigFile(self.cfg).getParam(
-                        'chain', 'outputPath'),
-                    "annual_crop":
-                    SCF.serviceConfigFile(self.cfg).getParam(
-                        'argTrain', 'annualCrop'),
-                    "crop_mix":
-                    SCF.serviceConfigFile(self.cfg).getParam(
-                        'argTrain', 'cropMix'),
-                    "auto_context_enable":
-                    SCF.serviceConfigFile(self.cfg).getParam(
-                        'chain', 'enable_autoContext'),
-                    "region_field":
-                    SCF.serviceConfigFile(self.cfg).getParam(
-                        'chain', 'regionField'),
-                    "proj":
-                    SCF.serviceConfigFile(self.cfg).getParam(
-                        'GlobChain', 'proj'),
-                    "enable_cross_validation":
-                    SCF.serviceConfigFile(self.cfg).getParam(
-                        'chain', 'enableCrossValidation'),
-                    "runs":
-                    SCF.serviceConfigFile(self.cfg).getParam('chain', 'runs'),
-                    "sensors_parameters":
-                    sensors_params,
-                    "sar_optical_post_fusion":
-                    SCF.serviceConfigFile(self.cfg).getParam(
-                        'argTrain', 'dempster_shafer_SAR_Opt_fusion'),
-                    "samples_classif_mix":
-                    SCF.serviceConfigFile(self.cfg).getParam(
-                        'argTrain', 'samplesClassifMix'),
-                    "output_path_annual":
-                    output_path_annual,
-                    "ram":
-                    self.ram_extraction,
-                    "w_mode":
-                    SCF.serviceConfigFile(self.cfg).getParam(
-                        'GlobChain', 'writeOutputs'),
-                    "folder_annual_features":
-                    SCF.serviceConfigFile(self.cfg).getParam(
-                        'argTrain', 'outputPrevFeatures'),
-                    "previous_classif_path":
-                    SCF.serviceConfigFile(self.cfg).getParam(
-                        'argTrain', 'annualClassesExtractionSource'),
-                    "validity_threshold":
-                    SCF.serviceConfigFile(self.cfg).getParam(
-                        'argTrain', 'validityThreshold'),
-                    "target_resolution":
-                    SCF.serviceConfigFile(self.cfg).getParam(
-                        'chain', 'spatialResolution'),
-                    "test_mode":
-                    None,
-                    "custom_features":
-                    True,
-                    "module_path":
-                    SCF.serviceConfigFile(self.cfg).getParam(
-                        'Features', 'module'),
-                    "list_functions":
-                    SCF.serviceConfigFile(self.cfg).getParam(
-                        'Features', 'functions').split(" "),
-                    "force_standard_labels":
-                    SCF.serviceConfigFile(self.cfg).getParam(
-                        'chain', 'force_standard_labels'),
-                    "number_of_chunks":
-                    self.number_of_chunks,
-                    "chunk_size_mode":
-                    self.chunk_size_mode
-                }
+            param_custom_features = {
+                "custom_features":
+                True,
+                "module_path":
+                SCF.serviceConfigFile(self.cfg).getParam('Features', 'module'),
+                "list_functions":
+                SCF.serviceConfigFile(self.cfg).getParam(
+                    'Features', 'functions').split(" "),
+                "force_standard_labels":
+                SCF.serviceConfigFile(self.cfg).getParam(
+                    'chain', 'force_standard_labels'),
+                "number_of_chunks":
+                self.number_of_chunks,
+                "chunk_size_mode":
+                self.chunk_size_mode
+            }
+        else:
+            param_custom_features = {}
+        # Merge and update inv_dict with custom features parameters
+        input_dict = {**inv_dict, **param_custom_features}
+        # Create the parameter list
+        parameters = []
+        for shape in list_shapefiles:
+            if self.custom_features:
+                # Create as job as number of chunks requiered
                 for target_chunk in range(self.number_of_chunks):
-                    param_d = param.copy()
+                    # avoid overwriting parameters
+                    param_d = input_dict.copy()
+                    param_d["train_shape_dic"] = shape
                     param_d["targeted_chunk"] = target_chunk
                     parameters.append(param_d)
-            print("activate")
-        else:
-            parameters = list_shapefiles[:]
+            else:
+                param_d = input_dict.copy()
+                param_d["train_shape_dic"] = shape
+                parameters.append(param_d)
         return parameters
 
     def step_execute(self):
-        """
+        """ 
         Return
         ------
         lambda
-            the function to execute as a lambda function. The returned object
-            must be a lambda function.
         """
-        annual_config_file = SCF.serviceConfigFile(self.cfg).getParam(
-            'argTrain', 'prevFeatures')
-        output_path_annual = None
-        if annual_config_file is not None and not "none" in annual_config_file.lower(
-        ):
-            output_path_annual = SCF.serviceConfigFile(
-                annual_config_file).getParam('chain', 'outputPath')
-        if self.custom_features:
-            step_function = lambda x: vs.generate_samples(**x)
-        else:
-            step_function = lambda x: vs.generate_samples(
-                x, self.workingDirectory,
-                SCF.serviceConfigFile(self.cfg).getParam('chain', 'dataField'),
-                SCF.serviceConfigFile(self.cfg).getParam(
-                    'chain', 'outputPath'),
-                SCF.serviceConfigFile(self.cfg).getParam(
-                    'argTrain', 'annualCrop'),
-                SCF.serviceConfigFile(self.cfg).getParam(
-                    'argTrain', 'cropMix'),
-                SCF.serviceConfigFile(self.cfg).getParam(
-                    'chain', 'enable_autoContext'),
-                SCF.serviceConfigFile(self.cfg).getParam(
-                    'chain', 'regionField'),
-                SCF.serviceConfigFile(self.cfg).getParam('GlobChain', 'proj'),
-                SCF.serviceConfigFile(self.cfg).getParam(
-                    'chain', 'enableCrossValidation'),
-                SCF.serviceConfigFile(self.cfg).getParam('chain', 'runs'),
-                SCF.iota2_parameters(self.cfg).get_sensors_parameters(
-                    os.path.splitext(os.path.basename(list(x.items())[0][1]))[
-                        0]),
-                SCF.serviceConfigFile(self.cfg).getParam(
-                    'argTrain', 'dempster_shafer_SAR_Opt_fusion'),
-                SCF.serviceConfigFile(self.cfg).getParam(
-                    'argTrain', 'samplesClassifMix'), output_path_annual, self.
-                ram_extraction,
-                SCF.serviceConfigFile(self.cfg).getParam(
-                    'GlobChain', 'writeOutputs'),
-                SCF.serviceConfigFile(self.cfg).getParam(
-                    'argTrain', 'outputPrevFeatures'),
-                SCF.serviceConfigFile(self.cfg).getParam(
-                    'argTrain', 'annualClassesExtractionSource'),
-                SCF.serviceConfigFile(self.cfg).getParam(
-                    'argTrain', 'validityThreshold'),
-                SCF.serviceConfigFile(self.cfg).getParam(
-                    'chain', 'spatialResolution'), None)
-        return step_function
+        return lambda x: vs.generate_samples(**x)
 
     def step_outputs(self):
         """
