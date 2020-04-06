@@ -240,9 +240,13 @@ def parseClassifCmd(cmdPath,
                                               "functions").split(" ")
                 force_standard_labels = cfg.getParam("chain",
                                                      "force_standard_labels")
+                chunk_size_mode = cfg.getParam("Features", "chunk_size_mode")
+                chunk_size_x = cfg.getParam("Features", "chunk_size_x")
+                chunk_size_y = cfg.getParam("Features", "chunk_size_y")
                 custom_param_list = [
                     auto_context, force_standard_labels, True, module_path,
-                    list_functions, number_of_chunks
+                    list_functions, number_of_chunks, chunk_size_mode,
+                    chunk_size_x, chunk_size_y
                 ]
 
             param_list_temp = ([
