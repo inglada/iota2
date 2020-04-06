@@ -345,6 +345,11 @@ def CreateImageClassifierApplication(OtbParameters):
     in_img = OtbParameters["in"]
     if isinstance(in_img, str):
         classifier.SetParameterString("in", in_img)
+    elif isinstance(in_img, dict) and all(
+            elem in in_img.keys() for elem in
+        ["array", "origin", "spacing", "size", "region", "metadata"]):
+        # an otb image has only this 5 keys
+        classifier.ImportVectorImage("in", in_img)
     else:
         classifier.SetParameterInputImage(
             "in",
@@ -1951,6 +1956,11 @@ def CreateExtractROIApplication(OtbParameters):
             erApp.SetParameterInputImage(
                 "mode.fit.im", refImg[0].GetParameterOutputImage(
                     getInputParameterOutput(refImg[0])))
+        elif (isinstance(refImg, dict) and all(
+                elem in refImg.keys() for elem in
+            ["array", "origin", "spacing", "size", "region", "metadata"])):
+            # an otb image has only this 5 keys
+            erApp.ImportVectorImage("mode.fit.im", refImg)
         else:
             raise Exception("input image not recognize")
     if "mode.fit.vect" in OtbParameters:
