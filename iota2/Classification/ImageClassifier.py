@@ -170,6 +170,7 @@ class iota2Classification():
                  RAM=128,
                  auto_context={},
                  logger=LOGGER,
+                 custom_features_flag: Optional[bool] = False,
                  targeted_chunk=None,
                  mode="usually"):
         """
@@ -186,7 +187,10 @@ class iota2Classification():
         self.classifier_model = model
         self.auto_context = auto_context
         self.tile = tile
-        self.custom_features = targeted_chunk is not None
+        self.custom_features = custom_features_flag
+        # use this to remove one parameter
+        # self.custom_features = targeted_chunk is not None
+
         if isinstance(model, list):
             self.model_name = self.get_model_name(os.path.split(model[0])[0])
             self.seed = self.get_model_seed(os.path.split(model[0])[0])
@@ -281,6 +285,7 @@ class iota2Classification():
                 os.path.split(self.classification)[-1])
             self.confidence = os.path.join(self.working_directory,
                                            os.path.split(self.confidence)[-1])
+
         classifier_options = {
             "in": self.features_stack,
             "model": self.classifier_model,
@@ -289,6 +294,7 @@ class iota2Classification():
             "pixType": self.pixType,
             "out": "{}?&writegeom=false".format(self.classification)
         }
+
         if self.auto_context:
             tmp_dir = os.path.join(
                 self.output_directory,
@@ -335,6 +341,8 @@ class iota2Classification():
             classifier = CreateClassifyAutoContext(classifier_options)
         else:
             classifier = CreateImageClassifierApplication(classifier_options)
+            if self.custom_features:
+                classifier.ImportVectorImage("in", self.features_stack)
 
         LOGGER.info(f"Compute Classification : {self.classification}")
         LOGGER.info("RAM before classification : "
@@ -563,14 +571,19 @@ def launchClassification(tempFolderSerie,
                          module_path: Optional[str] = None,
                          list_functions: Optional[str] = None,
                          number_of_chunks: Optional[int] = None,
+                         chunk_size_mode: Optional[str] = None,
+                         chunk_size_x: Optional[int] = None,
+                         chunk_size_y: Optional[int] = None,
                          targeted_chunk: Optional[int] = None,
                          logger=LOGGER):
     """
+    targeted_chunk must always be the last parameter (before logger)
     """
     from iota2.Common import GenerateFeatures as genFeatures
     from iota2.Sampling import DimensionalityReduction as DR
     from iota2.Common.OtbAppBank import getInputParameterOutput
     from iota2.Common.OtbAppBank import CreateExtractROIApplication
+    from iota2.Common.customNumpyFeatures import compute_custom_features
 
     output_directory = os.path.join(output_path, "classif")
 
@@ -602,11 +615,6 @@ def launchClassification(tempFolderSerie,
         output_path=output_path,
         sensors_parameters=sensors_parameters,
         mode=mode,
-        custom_features=custom_features,
-        module_name=module_path,
-        list_functions=list_functions,
-        targeted_chunk=targeted_chunk,
-        number_of_chunks=number_of_chunks,
         force_standard_labels=force_standard_labels)
     feature_raster = AllFeatures.GetParameterValue(
         getInputParameterOutput(AllFeatures))
@@ -631,21 +639,37 @@ def launchClassification(tempFolderSerie,
         else:
             ClassifInput.Execute()
     remove_flag = False
-    if Classifmask and custom_features:
-        chunked_mask = os.path.join(
-            wd, f"Chunk_{targeted_chunk}_classif_mask.tif")
-        roi_param = {
-            "in": Classifmask,
-            "out": chunked_mask,
-            "mode": "fit",
-            "mode.fit.im": AllFeatures,
-            "ram": RAM
-        }
-        roi_mask = CreateExtractROIApplication(roi_param)
-        roi_mask.ExecuteAndWriteOutput()
-        roi_mask = None
-        Classifmask = chunked_mask
-        remove_flag = True
+    if custom_features:
+        otbimage, _ = compute_custom_features(
+            tile=tile,
+            output_path=output_path,
+            sensors_parameters=sensors_parameters,
+            module_path=module_path,
+            list_functions=list_functions,
+            otb_pipeline=AllFeatures,
+            feat_labels=[],
+            path_wd=wd,
+            chunk_size_mode=chunk_size_mode,
+            targeted_chunk=targeted_chunk,
+            number_of_chunks=number_of_chunks,
+            chunk_size_x=chunk_size_x,
+            chunk_size_y=chunk_size_y)
+        ClassifInput = otbimage
+        if Classifmask:
+            chunked_mask = os.path.join(
+                wd, f"Chunk_{targeted_chunk}_classif_mask.tif")
+            roi_param = {
+                "in": Classifmask,
+                "out": chunked_mask,
+                "mode": "fit",
+                "mode.fit.im": otbimage,
+                "ram": RAM
+            }
+            roi_mask = CreateExtractROIApplication(roi_param)
+            roi_mask.ExecuteAndWriteOutput()
+            roi_mask = None
+            Classifmask = chunked_mask
+            remove_flag = True
     iota2_samples_dir = os.path.join(output_path, "learningSamples")
     models_class = get_class_by_models(
         iota2_samples_dir,
@@ -664,6 +688,7 @@ def launchClassification(tempFolderSerie,
                                   stat_norm=stats,
                                   RAM=RAM,
                                   mode=mode,
+                                  custom_features_flag=custom_features,
                                   targeted_chunk=targeted_chunk,
                                   auto_context=auto_context)
     classif.generate()
