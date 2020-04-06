@@ -31,6 +31,7 @@ import otbApplication as otb
 from iota2.Common import FileUtils as fu
 from iota2.Sampling.VectorFormatting import split_vector_by_region
 from iota2.Common.OtbAppBank import executeApp
+from iota2.Common.customNumpyFeatures import compute_custom_features
 
 LOGGER = logging.getLogger(__name__)
 otb_app_type = TypeVar('otbApplication')
@@ -155,15 +156,7 @@ def get_features_application(train_shape: str,
         output_path,
         sensors_parameters,
         mode=mode,
-        custom_features=custom_features,
-        module_name=module_path,
-        list_functions=list_functions,
-        force_standard_labels=force_standard_labels,
-        number_of_chunks=number_of_chunks,
-        targeted_chunk=targeted_chunk,
-        chunk_size_mode=chunk_size_mode,
-        chunk_size_x=chunk_size_x,
-        chunk_size_y=chunk_size_y)
+        force_standard_labels=force_standard_labels)
 
     if only_sensors_masks:
         # return AllRefl,AllMask,datesInterp,realDates
@@ -183,9 +176,25 @@ def get_features_application(train_shape: str,
     sample_extr = otb.Registry.CreateApplication("SampleExtraction")
     sample_extr.SetParameterString("ram", str(0.7 * ram))
     sample_extr.SetParameterString("vec", train_shape)
-    sample_extr.SetParameterInputImage(
-        "in", all_features.GetParameterOutputImage("out"))
-
+    if not custom_features:
+        sample_extr.SetParameterInputImage(
+            "in", all_features.GetParameterOutputImage("out"))
+    else:
+        otbimage, feat_labels = compute_custom_features(
+            tile=tile,
+            output_path=output_path,
+            sensors_parameters=sensors_parameters,
+            module_path=module_path,
+            list_functions=list_functions,
+            otb_pipeline=all_features,
+            feat_labels=feat_labels,
+            path_wd=working_directory_features,
+            targeted_chunk=targeted_chunk,
+            number_of_chunks=number_of_chunks,
+            chunk_size_x=chunk_size_x,
+            chunk_size_y=chunk_size_y,
+            chunk_size_mode=chunk_size_mode)
+        sample_extr.ImportVectorImage("in", otbimage)
     sample_extr.SetParameterString("out", samples)
     sample_extr.SetParameterString("outfield", "list")
     sample_extr.SetParameterStringList("outfield.list.names", feat_labels)
