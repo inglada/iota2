@@ -1,7 +1,14 @@
 def get_identity(self):
     # print("get identity")
     # print(self.get_B2())
+
     return self.get_Sentinel2_B2(), []
+
+
+def duplicate_ndvi(self):
+    ndvi = self.get_Sentinel_NDVI()
+    labels = [f"dupndvi_{i+1}" for i in range(ndvi.shape[2])]
+    return ndvi, labels
 
 
 def get_ndvi(self):
