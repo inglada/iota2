@@ -36,7 +36,7 @@ class data_container:
 
         # Get the first tile, all the tiles must come from same sensor
 
-        def compute_indices_after_gapfilling(sensor, bands):
+        def compute_reflectances_indices_after_gapfilling(sensor, bands):
             _, dates = sensor.write_interpolation_dates_file(write=False)
             indices = []
             for i, band in enumerate(bands):
@@ -46,6 +46,27 @@ class data_container:
                 indices.append(ind)
             return indices
 
+        def compute_indices_after_gapfilling(sensor,
+                                             spectral_bands,
+                                             spectral_indices,
+                                             shift=0):
+            _, dates = sensor.write_interpolation_dates_file(write=False)
+            indices = []
+            for i, _ in enumerate(spectral_bands):
+                ind = [
+                    shift + i + len(spectral_bands) * x
+                    for x, _ in enumerate(dates)
+                ]
+                indices.append(ind)
+            len_spectral_band = len(dates) * len(spectral_bands) + shift
+            for i, band in enumerate(spectral_indices):
+                spect_begin = len_spectral_band + i * len(dates)
+                ind = range(spect_begin, spect_begin + len(dates))
+                indices.append(ind)
+            new_shift = (len(dates) * len(spectral_bands) +
+                         len(dates) * len(spectral_indices) + shift)
+            return indices, new_shift
+
         # From this tile get enabled sensors
         sensor_tile_container = sensors_container(tile_name, working_dir,
                                                   output_path,
@@ -54,13 +75,20 @@ class data_container:
         list_of_bands = []
         time_series_indices = []
         list_sensors = []
+        shift = 0
         for sensor in sensor_tile_container.get_enabled_sensors():
 
-            bands = sensor.stack_band_position
-            tmp_indices = compute_indices_after_gapfilling(sensor, bands)
-            list_of_bands += bands
+            spectral_bands = sensor.stack_band_position
+            spectral_indices = sensor.features_names_list
+            # tmp_indices = compute_indices_after_gapfilling(sensor, bands)
+            tmp_indices, shift = compute_indices_after_gapfilling(
+                sensor, spectral_bands, spectral_indices, shift)
+
+            list_of_bands += spectral_bands
+            list_of_bands += spectral_indices
             time_series_indices += tmp_indices
-            list_sensors += [sensor.name] * len(bands)
+            list_sensors += [sensor.name
+                             ] * (len(spectral_bands) + len(spectral_indices))
         # TODO: handle user feature selection
         print(list_of_bands)
 
@@ -72,7 +100,7 @@ class data_container:
                 data = np.take(self.data, indices, axis=2)
                 return data
 
-            setattr(data_container, f"get_{sensor}_band_{band}", get_band)
+            setattr(data_container, f"get_{sensor}_{band}", get_band)
 
 
 class custom_numpy_features(data_container):
