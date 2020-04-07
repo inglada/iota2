@@ -59,7 +59,7 @@ class data_container:
                 ]
                 indices.append(ind)
             len_spectral_band = len(dates) * len(spectral_bands) + shift
-            for i, band in enumerate(spectral_indices):
+            for i, _ in enumerate(spectral_indices):
                 spect_begin = len_spectral_band + i * len(dates)
                 ind = range(spect_begin, spect_begin + len(dates))
                 indices.append(ind)
@@ -113,13 +113,31 @@ class custom_numpy_features(data_container):
                  module_name: str,
                  list_functions: List[str],
                  working_dir: Optional[str] = None):
+        """
+        Parameters
+        ----------
+        tile_name: str
+            The tile name, mandatory to get the sensor container
+        output_path: str
+        sensors_param:
+            A dictionary containing all requiered information to instanciate
+            the enabled sensors
+        module_name: str
+            The user provided python code. The full path to a file is requiered
+        list_functions: list[str]
+            A lisf of function name that will be applied
+        working_dir: optional (str)
+            Use to store temporary data
+        """
         import os
         import types  # solves issues about type and inheritance
         super(custom_numpy_features,
               self).__init__(tile_name, output_path, sensors_params,
                              working_dir)
 
-        def check_import(module_path):
+        def check_import(module_path: str):
+            """ This fonction check if the user provided module can be 
+            imported"""
             import importlib
 
             spec = importlib.util.spec_from_file_location(
@@ -140,7 +158,19 @@ class custom_numpy_features(data_container):
                 setattr(self, fun_name, types.MethodType(func, data_container))
 
     def process(self, data):
-        """ This function apply a set of functions to data"""
+        """ 
+        This function apply a set of functions to data
+        Parameters
+        ----------
+        data: numpy array
+            the numpy array to process
+        Return
+        ------
+        data: numpy array
+            the original numpy array concatenated with the custom features processed
+        new_labels: list[str]
+            the labels corresponding to the features computed
+        """
         import numpy as np
 
         self.data = data
@@ -209,35 +239,8 @@ def compute_custom_features(tile,
          chunk_size_y=chunk_size_y,
          ram=128,
      )
-    # rasterio shape [bands, row, cols] OTB shape [row, cols, bands]
-    # use rasterio reshape_as_image function to move axis
-    # otbimage["array"] = reshape_as_image(feat_array)
-    # logger.debug("Numpy image inserted in otb pipeline: "
-    #              f"{fu.memory_usage_psutil()} MB")
-    # # get the chunk size
-    # size = otbimage["array"].shape
-    # # get the chunk origin
-    # origin = out_transform * (0, 0)
-    # # add a demi pixel size to origin
-    # # offset between rasterio (gdal) and OTB
-    # otbimage["origin"].SetElement(0, origin[0] + (otbimage["spacing"][0] / 2))
-    # otbimage["origin"].SetElement(1, origin[1] + (otbimage["spacing"][1] / 2))
-    # # Set buffer image region
-    # # Mandatory to keep the projection in OTB pipeline
-    # otbimage["region"].SetIndex(0, 0)
-    # otbimage["region"].SetIndex(1, 0)
-    # otbimage["region"].SetSize(0, size[1])
-    # otbimage["region"].SetSize(1, size[0])
-    # # TODO: remove this bandmath and return an OTB image
-    # bandmath = otb.Registry.CreateApplication("BandMathX")
-    # bandmath.ImportVectorImage("il", otbimage)
-    # bandmath.SetParameterString("out", features_raster)
-    # bandmath.SetParameterString("exp", "im1")
-    # # bandmath.SetParameterString("ram", "200000")
-    # all_features = bandmath
-    # dep.append(bandmath)
-    # dep.append(otbimage)
-    # new_labels can never be empty
+    # feat_array is an raster array with shape
+    # [band, rows, cols] but otb requires [rows, cols, bands]
     crop_otbimage = convert_numpy_array_to_otb_image(otbimage, feat_array,
                                                      out_transform)
 
