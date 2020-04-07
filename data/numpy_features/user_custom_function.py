@@ -6,7 +6,7 @@ def get_identity(self):
 
 
 def duplicate_ndvi(self):
-    ndvi = self.get_Sentinel_NDVI()
+    ndvi = self.get_Sentinel2_NDVI()
     labels = [f"dupndvi_{i+1}" for i in range(ndvi.shape[2])]
     return ndvi, labels
 
