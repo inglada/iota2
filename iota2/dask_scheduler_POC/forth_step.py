@@ -71,7 +71,7 @@ class forth_step(step):
             task = self.i2_task(
                 task_name=f"learn_model_{model_name}",
                 log_dir=self.log_dir,
-                execution_mode="cluster",
+                execution_mode=self.execution_mode,
                 task_parameters=step_params_from_model_name[model_name],
                 task_resources=self.step_resources)
             task_in_graph = self.add_task_to_i2_processing_graph(
