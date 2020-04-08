@@ -269,7 +269,7 @@ class step():
                 sub_results.result()
                 cluster.close()
                 client.close()
-                time.sleep(10)
+                time.sleep(5)
                 # wait and see : restart if fail ? differents strategies
                 # of relaunch can be implemented here...
             elif scheduler_type == "local":
