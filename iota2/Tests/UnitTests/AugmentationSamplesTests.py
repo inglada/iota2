@@ -19,54 +19,57 @@ import sys
 import shutil
 import unittest
 
+from iota2.Sampling import DataAugmentation
+from iota2.Common import FileUtils as fut
+
 IOTA2DIR = os.environ.get('IOTA2DIR')
 RM_IF_ALL_OK = True
 
-iota2_script = os.path.join(IOTA2DIR, "iota2")
-sys.path.append(iota2_script)
-
-from Sampling import DataAugmentation
-from Common import FileUtils as fut
 
 class iota_testSamplesAugmentation(unittest.TestCase):
-    #before launching tests
+    # before launching tests
     @classmethod
-    def setUpClass(self):
+    def setUpClass(cls):
 
         # definition of local variables
-        self.group_test_name = "iota_testSamplesAugmentation"
-        self.iota2_tests_directory = os.path.join(IOTA2DIR, "data", self.group_test_name)
-        self.vector = os.path.join(IOTA2DIR, "data", "references", "sampler",
-                                   "D0005H0002_polygons_To_Sample_Samples_ref_bindings.sqlite")
-        self.class_count = {51: 147, 11: 76, 12: 37, 42: 19}
-        self.csvFile = os.path.join(IOTA2DIR, "data", "references", "sampleAugmentation.csv")
-        self.all_tests_ok = []
-        self.test_working_directory = None
-        if os.path.exists(self.iota2_tests_directory):
-            shutil.rmtree(self.iota2_tests_directory)
-        os.mkdir(self.iota2_tests_directory)
+        cls.group_test_name = "iota_testSamplesAugmentation"
+        cls.iota2_tests_directory = os.path.join(IOTA2DIR, "data",
+                                                 cls.group_test_name)
+        cls.vector = os.path.join(
+            IOTA2DIR, "data", "references", "sampler",
+            "D0005H0002_polygons_To_Sample_Samples_ref_bindings.sqlite")
+        cls.class_count = {51: 147, 11: 76, 12: 37, 42: 19}
+        cls.csvFile = os.path.join(IOTA2DIR, "data", "references",
+                                   "sampleAugmentation.csv")
+        cls.all_tests_ok = []
+        cls.test_working_directory = None
+        if os.path.exists(cls.iota2_tests_directory):
+            shutil.rmtree(cls.iota2_tests_directory)
+        os.mkdir(cls.iota2_tests_directory)
 
-    #after launching tests
+    # after launching tests
     @classmethod
-    def tearDownClass(self):
-        print("{} ended".format(self.group_test_name))
-        if RM_IF_ALL_OK and all(self.all_tests_ok):
-            shutil.rmtree(self.iota2_tests_directory)
+    def tearDownClass(cls):
+        print("{} ended".format(cls.group_test_name))
+        if RM_IF_ALL_OK and all(cls.all_tests_ok):
+            shutil.rmtree(cls.iota2_tests_directory)
 
-    #before launching a test
+    # before launching a test
     def setUp(self):
         """
         create test environement (directories)
         """
-        #create directories
+        # create directories
         test_name = self.id().split(".")[-1]
-        self.test_working_directory = os.path.join(self.iota2_tests_directory, test_name)
+        self.test_working_directory = os.path.join(self.iota2_tests_directory,
+                                                   test_name)
         if os.path.exists(self.test_working_directory):
             shutil.rmtree(self.test_working_directory)
         os.mkdir(self.test_working_directory)
 
-        #Create test data
-        self.vector_test = os.path.join(self.test_working_directory, "vector_TEST_1_seed0.sqlite")
+        # Create test data
+        self.vector_test = os.path.join(self.test_working_directory,
+                                        "vector_TEST_1_seed0.sqlite")
         if os.path.exists(self.vector_test):
             os.remove(self.vector_test)
         shutil.copy(self.vector, self.vector_test)
@@ -75,13 +78,14 @@ class iota_testSamplesAugmentation(unittest.TestCase):
         if exc_list and exc_list[-1][0] is self:
             return exc_list[-1][1]
 
-    #after launching a test, remove test's data if test succeed
+    # after launching a test, remove test's data if test succeed
     def tearDown(self):
         if sys.version_info > (3, 4, 0):
             result = self.defaultTestResult()
             self._feedErrorsToResult(result, self._outcome.errors)
         else:
-            result = getattr(self, '_outcomeForDoCleanups', self._resultForDoCleanups)
+            result = getattr(self, '_outcomeForDoCleanups',
+                             self._resultForDoCleanups)
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
         ok = not error and not failure
@@ -90,46 +94,54 @@ class iota_testSamplesAugmentation(unittest.TestCase):
         if ok:
             shutil.rmtree(self.test_working_directory)
 
-    #Tests definitions
+    # Tests definitions
     def test_iota2_augmentation_counter(self):
         """
         Test how many samples must be add to the sample set
         test the 3 differents strategies
         """
-        self.test_working_directory
-        
+
         balance_expected = {42: 128, 11: 71, 12: 110}
         atLeast_expected = {42: 101, 11: 44, 12: 83}
         byClass_expected = {42: 11, 51: 33, 12: 1}
-        class_augmentation_balance = DataAugmentation.SamplesAugmentationCounter(self.class_count, mode="balance",
-                                                                                    minNumber=None,
-                                                                                    byClass=None)
+        class_augmentation_balance = DataAugmentation.SamplesAugmentationCounter(
+            self.class_count, mode="balance", minNumber=None, byClass=None)
         self.assertTrue(class_augmentation_balance, balance_expected)
-        
-        class_augmentation_atLeast = DataAugmentation.SamplesAugmentationCounter(self.class_count, mode="minNumber",
-                                                                                    minNumber=120,
-                                                                                    byClass=None)
+
+        class_augmentation_atLeast = DataAugmentation.SamplesAugmentationCounter(
+            self.class_count, mode="minNumber", minNumber=120, byClass=None)
         self.assertTrue(class_augmentation_atLeast, atLeast_expected)
-        
-        class_augmentation_byClass = DataAugmentation.SamplesAugmentationCounter(self.class_count, mode="byClass",
-                                                                                    minNumber=None,
-                                                                                    byClass=self.csvFile)
+
+        class_augmentation_byClass = DataAugmentation.SamplesAugmentationCounter(
+            self.class_count,
+            mode="byClass",
+            minNumber=None,
+            byClass=self.csvFile)
         self.assertTrue(class_augmentation_byClass, byClass_expected)
 
     def test_iota2_augmentation(self):
         """Test data augmentation workflow
         """
         from collections import Counter
-        class_augmentation_balance = DataAugmentation.SamplesAugmentationCounter(self.class_count, mode="balance",
-                                                                                    minNumber=None,
-                                                                                    byClass=None)
-        DataAugmentation.DoAugmentation(self.vector_test, class_augmentation_balance,
+        class_augmentation_balance = DataAugmentation.SamplesAugmentationCounter(
+            self.class_count, mode="balance", minNumber=None, byClass=None)
+        DataAugmentation.DoAugmentation(self.vector_test,
+                                        class_augmentation_balance,
                                         strategy="jitter",
-                                        field="code", excluded_fields=[],
+                                        field="code",
+                                        excluded_fields=[],
                                         Jstdfactor=10,
                                         Sneighbors=None,
                                         workingDirectory=None)
-        class_count_test = Counter(fut.getFieldElement(self.vector_test, driverName="SQLite", field="code",
-                                                  mode="all", elemType="int"))
-        samples_number = self.class_count[max(self.class_count, key=lambda key: self.class_count[key])]
-        self.assertTrue(all([samples_number == v for k, v in list(class_count_test.items())]))
+        class_count_test = Counter(
+            fut.getFieldElement(self.vector_test,
+                                driverName="SQLite",
+                                field="code",
+                                mode="all",
+                                elemType="int"))
+        samples_number = self.class_count[max(
+            self.class_count, key=lambda key: self.class_count[key])]
+        self.assertTrue(
+            all([
+                samples_number == v for k, v in list(class_count_test.items())
+            ]))

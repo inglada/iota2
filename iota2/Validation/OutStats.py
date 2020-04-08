@@ -12,112 +12,137 @@
 #   PURPOSE.  See the above copyright notices for more information.
 #
 # =========================================================================
+"""
+compute statistics (histograms of training/validation samples
+well/bad classified) by tiles
+"""
 
 import argparse
 import os
 import sys
-from config import Config
 from osgeo import gdal
 from osgeo.gdalconst import *
 from osgeo import ogr
 import numpy as np
-from Common import FileUtils as fu
-from Common import ServiceConfigFile as SCF
+
 
 def raster2array(rasterfn):
+    """get raster as a numpy array"""
     raster = gdal.Open(rasterfn)
     band = raster.GetRasterBand(1)
     return band.ReadAsArray()
 
 
-def getDiffHisto(confMin, confMax, confStep, confidence, difference):
-
+def get_diff_histo(conf_min, conf_max, conf_step, confidence, difference):
+    """compute histrograms"""
     diff = [[], [], [], [], [], [], []]
-    for currentConf in np.arange(confMin, confMax+1, confStep):
-        y, x = np.where(confidence == currentConf)
+    for current_conf in np.arange(conf_min, conf_max + 1, conf_step):
+        y, x = np.where(confidence == current_conf)
         if len(y) >= 1:
-            coord = [(currentX, currentY) for currentX, currentY in zip(x, y)]
-            for currentX, currentY in coord:
-                diff[difference[currentY][currentX]].append(currentConf)
+            coord = [(current_x, current_y)
+                     for current_x, current_y in zip(x, y)]
+            for current_x, current_y in coord:
+                diff[difference[current_y][current_x]].append(current_conf)
     return diff
 
 
-def genStatsDiff(pathToConfigstats, StatsName, histo, bins):
-    stats = open(pathToConfigstats, "a")
-    stats.write(StatsName+":\n{\n\thistogram:'"+histo+"'\n\tbins:'"+bins+"'\n}\n\n")
+def gen_stats_diff(path_to_config_stats, stats_name, histrogram, bins):
+    """write histrogram"""
+    stats = open(path_to_config_stats, "a")
+    stats.write(stats_name + ":\n{\n\thistogram:'" + histrogram +
+                "'\n\tbins:'" + bins + "'\n}\n\n")
     stats.close()
 
 
 def histo(array, bins):
+    """compute histogram"""
     hist = []
-    for currentBin in bins:
-        indexes = np.where(array == currentBin)
+    for current_bin in bins:
+        indexes = np.where(array == current_bin)
         hist.append(len(indexes[0]))
     return hist, bins
 
 
-def outStats(cfg, tile, sample, workingDirectory):
-
-    if not isinstance(cfg, SCF.serviceConfigFile):
-        cfg = SCF.serviceConfigFile(cfg)
-
-    Testpath = cfg.getParam('chain', 'outputPath')
-    Nruns = cfg.getParam('chain', 'runs')
-
-    #config = cfg.pathConf
-    #stackName = fu.getFeatStackName(config)
-    statsName = ["ValidNOK", "ValidOK", "AppNOK", "AppOK"]
+def out_statistics(iota2_output_path: str, tile: str, runs: int) -> None:
     """
-        1 valid NOK
-        2 valid OK
-        3 app NOK
-        4 app OK
+    compute statistics (histograms of training/validation samples
+    well/bad classified) to a given tile
+
+    Parameters
+    ----------
+    iota2_output_path : str
+        iota2 output directory
+    tile : str
+        tile to compute statistics
+    runs : int
+        number of random learning/validation sample-set
     """
 
-    confStep = 1
-    confMin = 1
-    confMax = 100
-    cloudAllTile = Testpath+"/final/PixelsValidity.tif"
-    src_ds = gdal.Open(cloudAllTile)
+    # 1 valid NOK
+    # 2 valid OK
+    # 3 app NOK
+    # 4 app OK
+    stats_name = ["ValidNOK", "ValidOK", "AppNOK", "AppOK"]
+
+    conf_step = 1
+    conf_min = 1
+    conf_max = 100
+    cloud_all_tile = iota2_output_path + "/final/PixelsValidity.tif"
+    src_ds = gdal.Open(cloud_all_tile)
     if src_ds is None:
-        print('Unable to open %s'%cloudAllTile)
+        print('Unable to open %s' % cloud_all_tile)
         sys.exit(1)
     srcband = src_ds.GetRasterBand(1).ReadAsArray()
-    maxView = np.amax(srcband)
-    Cloud = raster2array(Testpath+"/final/TMP/"+tile+"_Cloud_StatsOK.tif")
-    for seed in range(Nruns):
-        Classif = raster2array(Testpath+"/final/TMP/"+tile+"_seed_"+str(seed)+".tif")
-        confidence = raster2array(Testpath+"/final/TMP/"+tile+"_GlobalConfidence_seed_"+str(seed)+".tif")
-        difference = raster2array(Testpath+"/final/TMP/"+tile+"_seed_"+str(seed)+"_CompRef.tif")
-        diffHisto = getDiffHisto(confMin, confMax, confStep, confidence, difference)
-        statsTile = Testpath+"/final/TMP/"+tile+"_stats_seed_"+str(seed)+".cfg"
-        if os.path.exists(statsTile):
-            os.remove(statsTile)
-        stats = open(statsTile, "a")
-        stats.write("AllDiffStats:'"+", ".join(statsName)+"'\n")
+    max_view = np.amax(srcband)
+    cloud = raster2array(iota2_output_path + "/final/TMP/" + tile +
+                         "_Cloud_StatsOK.tif")
+    for seed in range(runs):
+        confidence = raster2array(iota2_output_path + "/final/TMP/" + tile +
+                                  "_GlobalConfidence_seed_" + str(seed) +
+                                  ".tif")
+        difference = raster2array(iota2_output_path + "/final/TMP/" + tile +
+                                  "_seed_" + str(seed) + "_CompRef.tif")
+        diff_histo = get_diff_histo(conf_min, conf_max, conf_step, confidence,
+                                    difference)
+        stats_tile = os.path.join(iota2_output_path, "final", "TMP",
+                                  f"{tile}_stats_seed_f{seed}.cfg")
+        if os.path.exists(stats_tile):
+            os.remove(stats_tile)
+        stats = open(stats_tile, "a")
+        stats.write("AllDiffStats:'" + ", ".join(stats_name) + "'\n")
         stats.close()
-        for i in range(len(statsName)):
-            hist, bin_edges = histo(diffHisto[i+1], bins=np.arange(confMin, confMax+1, confStep))
+        for i in range(len(stats_name)):
+            hist, bin_edges = histo(diff_histo[i + 1],
+                                    bins=np.arange(conf_min, conf_max + 1,
+                                                   conf_step))
             hist_str = " ".join([str(currentVal) for currentVal in hist])
-            bin_edges_str = " ".join([str(currentVal) for currentVal in bin_edges])
-            genStatsDiff(statsTile, statsName[i], hist_str, bin_edges_str)
-        histNView, binsNview = histo(Cloud, bins=np.arange(0, maxView+1, 1))
-        hist_str = " ".join([str(currentVal) for currentVal in histNView])
-        bin_edges_str = " ".join([str(currentVal) for currentVal in binsNview])
-        genStatsDiff(statsTile, "TileValidity", hist_str, bin_edges_str)
+            bin_edges_str = " ".join(
+                [str(currentVal) for currentVal in bin_edges])
+            gen_stats_diff(stats_tile, stats_name[i], hist_str, bin_edges_str)
+        hist_n_view, bins_n_view = histo(cloud,
+                                         bins=np.arange(0, max_view + 1, 1))
+        hist_str = " ".join([str(currentVal) for currentVal in hist_n_view])
+        bin_edges_str = " ".join(
+            [str(currentVal) for currentVal in bins_n_view])
+        gen_stats_diff(stats_tile, "TileValidity", hist_str, bin_edges_str)
+
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description="This function allows you launch the chain according to a configuration file")
-    parser.add_argument("-conf", dest="config", help="path to configuration file", required=True)
-    parser.add_argument("-tile", dest="tile", help="Tile to extract statistics", required=True)
-    parser.add_argument("--sample", dest="sample", help="path to configuration file", required=False, default=None)
-    parser.add_argument("--wd", dest="workingDirectory", help="path to the working directory", required=False, default=None)
-    args = parser.parse_args()
+    PARSER = argparse.ArgumentParser(description="")
+    PARSER.add_argument("-i2_output_path",
+                        dest="iota2_output_path",
+                        help="iota2 output directory",
+                        required=True)
+    PARSER.add_argument("-tile",
+                        dest="tile",
+                        help="Tile to extract statistics",
+                        required=True)
+    PARSER.add_argument(
+        "-runs",
+        dest="runs",
+        help="number of random learning/validation sample-sets",
+        required=True)
+    ARGS = PARSER.parse_args()
 
-    # load configuration file
-    cfg = SCF.serviceConfigFile(args.config)
-
-    outStats(cfg, args.tile, args.sample, args.workingDirectory)
-
-
+    out_statistics(ARGS.iota2_output_path, ARGS.tile, ARGS.runs)

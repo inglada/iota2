@@ -15,6 +15,8 @@
 # =========================================================================
 import os
 from typing import List, Optional
+from iota2.Tests.UnitTests.tests_utils.tests_utils_rasters import array_to_raster
+from iota2.Tests.UnitTests.tests_utils.tests_utils_rasters import fun_array
 
 
 def add_empty_geom(db_path, driver_name: Optional[str] = "ESRI Shapefile"):
@@ -52,11 +54,16 @@ def compare_vector_raster(in_vec: str, vec_field: str, field_values: List[int],
     import numpy as np
     from Common.OtbAppBank import CreateRasterizationApplication
 
-    rasterization = CreateRasterizationApplication({"in": in_vec,
-                                                    "im": in_img,
-                                                    "mode": "attribute",
-                                                    "mode.attribute.field":
-                                                    vec_field})
+    rasterization = CreateRasterizationApplication({
+        "in":
+        in_vec,
+        "im":
+        in_img,
+        "mode":
+        "attribute",
+        "mode.attribute.field":
+        vec_field
+    })
     rasterization.Execute()
 
     vec_array = rasterization.GetImageAsNumpyArray("out")
@@ -96,10 +103,14 @@ def test_raster_unique_value(raster_path, value, band_num=-1):
     return (len(unique == 1) and value == unique[0])
 
 
-def random_ground_truth_generator(output_shape, data_field, number_of_class,
+def random_ground_truth_generator(output_shape,
+                                  data_field,
+                                  number_of_class,
                                   region_field=None,
-                                  min_cl_samples=10, max_cl_samples=100,
-                                  epsg_code=2154, set_geom=True):
+                                  min_cl_samples=10,
+                                  max_cl_samples=100,
+                                  epsg_code=2154,
+                                  set_geom=True):
     """generate a shape file with random integer values in appropriate field
 
     Parameters
@@ -130,8 +141,9 @@ def random_ground_truth_generator(output_shape, data_field, number_of_class,
 
     label_number = []
     for class_label in range(number_of_class):
-        label_number.append((class_label + 1,
-                             random.randrange(min_cl_samples, max_cl_samples)))
+        label_number.append(
+            (class_label + 1, random.randrange(min_cl_samples,
+                                               max_cl_samples)))
 
     driver = ogr.GetDriverByName("ESRI Shapefile")
     if os.path.exists(output_shape):
@@ -181,212 +193,8 @@ def compute_brightness_from_vector(input_vector):
     """
     import math
     brightness = None
-    brightness = math.sqrt(sum([val ** 2 for val in input_vector]))
+    brightness = math.sqrt(sum([val**2 for val in input_vector]))
     return brightness
-
-
-def generate_fake_s2_data(root_directory, tile_name, dates):
-    """
-    Parameters
-    ----------
-    root_directory : string
-        path to generate Sentinel-2 dates
-    tile_name : string
-        THEIA tile name (ex:T31TCJ)
-    dates : list
-        list of strings reprensentig dates format : YYYYMMDD
-    """
-    import numpy as np
-    import random
-    from Common.FileUtils import ensure_dir
-    from Common.OtbAppBank import CreateConcatenateImagesApplication
-
-    tile_dir = os.path.join(root_directory, tile_name)
-    ensure_dir(tile_dir)
-
-    band_of_interest = ["B2", "B3", "B4", "B5", "B6", "B7", "B8",
-                        "B8A", "B11", "B12"]
-    masks_of_interest = ["BINARY_MASK", "CLM_R1", "EDG_R1", "SAT_R1"]
-
-    originX = 566377
-    originY = 6284029
-    array_name = "iota2_binary"
-    for date in dates:
-        date_dir = os.path.join(tile_dir,
-                                ("SENTINEL2B_{}-000000-"
-                                 "000_L2A_{}_D_V1-7".format(date, tile_name)))
-        mask_date_dir = os.path.join(date_dir,
-                                     "MASKS")
-        ensure_dir(date_dir)
-        ensure_dir(mask_date_dir)
-        all_bands = []
-        for cpt, mask in enumerate(masks_of_interest):
-            new_mask = os.path.join(mask_date_dir,
-                                    ("SENTINEL2B_{}-000000-000_L2A"
-                                     "_{}_D_V1-7_FRE_{}.tif".format(date,
-                                                                    tile_name,
-                                                                    mask)))
-
-            arrayToRaster(fun_array(array_name) * cpt % 2, new_mask,
-                          originX=originX, originY=originY)
-        for band in band_of_interest:
-            new_band = os.path.join(date_dir,
-                                    ("SENTINEL2B_{}-000000-000_L2A"
-                                     "_{}_D_V1-7_FRE_{}.tif".format(date,
-                                                                    tile_name,
-                                                                    band)))
-            all_bands.append(new_band)
-            array = fun_array(array_name)
-            random_array = []
-            for y in array:
-                y_tmp = []
-                for pix_val in y:
-                    y_tmp.append(pix_val * random.random() * 1000)
-                random_array.append(y_tmp)
-
-            arrayToRaster(np.array(random_array),
-                          new_band, originX=originX, originY=originY)
-            stack_date = os.path.join(date_dir,
-                                      ("SENTINEL2B_{}-000000-000_L2A_{}_D_V1-7"
-                                       "_FRE_STACK.tif".format(date,
-                                                               tile_name)))
-            stack_app = CreateConcatenateImagesApplication({"il": all_bands,
-                                                            "out": stack_date})
-            stack_app.ExecuteAndWriteOutput()
-
-
-def fun_array(fun):
-    """arrays use in unit tests
-    """
-    import numpy as np
-    if fun == "iota2_binary":
-        array = [[0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0,
-                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                  0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                  1, 1, 0, 0, 0, 0],
-                 [0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0,
-                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                  0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                  1, 1, 1, 1, 0, 0],
-                 [0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0,
-                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                  0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                  1, 1, 1, 1, 1, 0],
-                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0,
-                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                  0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1,
-                  1, 1, 1, 1, 1, 0],
-                 [1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                  1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                  1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                  1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
-                  1, 1, 1, 1, 1, 0],
-                 [1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                  1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                  1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                  1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
-                  1, 1, 1, 1, 1, 0],
-                 [0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                  1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                  1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1,
-                  1, 1, 1, 1, 0, 0],
-                 [0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                  1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-                  1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                  1, 1, 1, 0, 0, 0],
-                 [0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1,
-                  1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0,
-                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
-                  1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                  1, 0, 0, 0, 0, 0],
-                 [0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1,
-                  1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0,
-                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                  1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0,
-                  0, 0, 0, 0, 0, 0],
-                 [0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1,
-                  1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0,
-                  0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                  1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0,
-                  0, 0, 0, 0, 0, 0],
-                 [0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1,
-                  1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0,
-                  0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1,
-                  1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0,
-                  0, 0, 0, 0, 0, 0],
-                 [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                  1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1,
-                  1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0,
-                  1, 1, 1, 1, 1, 1],
-                 [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                  1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                  1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                  1, 1, 1, 1, 1, 1],
-                 [1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                  1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1,
-                  1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                  1, 1, 1, 1, 1, 1],
-                 [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                  1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1,
-                  1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                  0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                  1, 1, 1, 1, 1, 1]]
-    array = np.array(array)
-    return array
-
-
-def arrayToRaster(inArray, outRaster_path, output_format="int",
-                  output_driver="GTiff",
-                  pixSize=30, originX=777225.58, originY=6825084.53,
-                  epsg_code=2154):
-    """usage : from an array of a list of array, create a raster
-
-    Parameters
-    ----------
-    inArray : list
-        list of numpy.array sorted by bands (fisrt array = band 1,
-                                             N array = band N)
-    outRaster_path : string
-        output path
-    output_format : string
-        'int' or 'float'
-    """
-    import gdal
-    import osr
-    if not isinstance(inArray, list):
-        inArray = [inArray]
-    NB_BANDS = len(inArray)
-    rows = inArray[0].shape[0]
-    cols = inArray[0].shape[1]
-
-    driver = gdal.GetDriverByName(output_driver)
-    if output_format == 'int':
-        outRaster = driver.Create(outRaster_path, cols, rows, len(inArray),
-                                  gdal.GDT_UInt16)
-    elif output_format == 'float':
-        outRaster = driver.Create(outRaster_path, cols, rows, len(inArray),
-                                  gdal.GDT_Float32)
-    if not outRaster:
-        raise Exception("can not create : "+outRaster)
-    outRaster.SetGeoTransform((originX, pixSize, 0, originY, 0, -pixSize))
-
-    for i in range(NB_BANDS):
-        outband = outRaster.GetRasterBand(i + 1)
-        outband.WriteArray(inArray[i])
-
-    outRasterSRS = osr.SpatialReference()
-    outRasterSRS.ImportFromEPSG(epsg_code)
-    outRaster.SetProjection(outRasterSRS.ExportToWkt())
-    outband.FlushCache()
 
 
 def rasterToArray(InRaster):
@@ -400,7 +208,10 @@ def rasterToArray(InRaster):
     return arrayOut
 
 
-def compareVectorFile(vect_1, vect_2, mode='table', typegeom='point',
+def compareVectorFile(vect_1,
+                      vect_2,
+                      mode='table',
+                      typegeom='point',
                       drivername="SQLite"):
     """used to compare two SQLite vector files
 
@@ -445,7 +256,7 @@ def compareVectorFile(vect_1, vect_2, mode='table', typegeom='point',
         driver = ogr.GetDriverByName(drivername)
         ds = driver.Open(vector, 0)
         lyr = ds.GetLayer()
-        fields = fu.getAllFieldsInShape(vector, drivername)
+        fields = fu.get_all_fields_in_shape(vector, drivername)
         for feature in lyr:
             if typegeom == "point":
                 x = feature.GetGeometryRef().GetX(),
@@ -459,8 +270,8 @@ def compareVectorFile(vect_1, vect_2, mode='table', typegeom='point',
         values = sorted(values, key=priority)
         return values
 
-    fields_1 = fu.getAllFieldsInShape(vect_1, drivername)
-    fields_2 = fu.getAllFieldsInShape(vect_2, drivername)
+    fields_1 = fu.get_all_fields_in_shape(vect_1, drivername)
+    fields_2 = fu.get_all_fields_in_shape(vect_2, drivername)
 
     for field_1, field_2 in zip_longest(fields_1, fields_2, fillvalue=None):
         if not field_1 == field_2:
@@ -485,8 +296,7 @@ def compareVectorFile(vect_1, vect_2, mode='table', typegeom='point',
     elif mode == 'coordinates':
         values_1 = getValuesSortedByCoordinates(vect_1)
         values_2 = getValuesSortedByCoordinates(vect_2)
-        sameFeat = [val_1 == val_2 for val_1, val_2 in
-                    zip(values_1, values_2)]
+        sameFeat = [val_1 == val_2 for val_1, val_2 in zip(values_1, values_2)]
         if False in sameFeat:
             return False
         return True

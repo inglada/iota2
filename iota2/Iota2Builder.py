@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+#-*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -14,23 +14,27 @@
 #
 # =========================================================================
 import os
+from typing import Optional
 from collections import OrderedDict
-from Common import ServiceConfigFile as SCF
+from iota2.Common import ServiceConfigFile as SCF
 
 
 class iota2():
     """
     class use to describe steps sequence and variable to use at each step (config)
     """
-    def __init__(self, cfg, config_ressources):
+    def __init__(self,
+                 cfg,
+                 config_ressources,
+                 hpc_working_directory: Optional[str] = "TMPDIR"):
 
         # config object
         #~ self.cfg = cfg
         self.cfg = cfg
 
         # working directory, HPC
-        HPC_working_directory = "TMPDIR"
-        self.workingDirectory = os.getenv(HPC_working_directory)
+
+        self.workingDirectory = os.getenv(hpc_working_directory)
 
         # steps definitions
         self.steps_group = OrderedDict()
@@ -51,7 +55,7 @@ class iota2():
         self.steps_group["clipvectors"] = OrderedDict()
         self.steps_group["lcstatistics"] = OrderedDict()
 
-        # build steps
+        #build steps
         self.steps = self.build_steps(self.cfg, config_ressources)
         self.sort_step()
 
@@ -167,10 +171,11 @@ class iota2():
         """
         build steps
         """
+
         import os
         from MPI import ressourcesByStep as iota2Ressources
-        from Common import ServiceConfigFile as SCF
-        from Steps.IOTA2Step import StepContainer
+        from iota2.Common import ServiceConfigFile as SCF
+        from iota2.Steps.IOTA2Step import StepContainer
 
         from Steps import (
             IOTA2DirTree, CommonMasks, PixelValidity, Envelope,
@@ -180,18 +185,17 @@ class iota2():
             samplesExtraction, samplesByModels, learningSamplesZonalStatistics,
             tilesSamplesZonalStatistics, obiaLearning, reduceModelSkew,
             obiaClassification, reassembleTileParts, copySamples,
-            genSyntheticSamples, samplesDimReduction, samplesNormalization,
-            learnModel, classiCmd, classification, confusionSAROpt,
-            confusionSAROptMerge, SAROptFusion, classificationsFusion,
-            fusionsIndecisions, mosaic, confusionCmd, confusionGeneration,
-            confusionsMerge, reportGeneration, mergeSeedClassifications,
-            additionalStatistics, additionalStatisticsMerge, sensorsPreprocess,
-            Coregistration, Regularization, mergeRegularization, Clump, Grid,
-            crownSearch, crownBuild, mosaicTilesVectorization,
-            largeVectorization, mosaicTilesVectorization, largeSimplification,
-            largeSmoothing, clipVectors, zonalStatistics, prodVectors,
-            slicSegmentation, superPixPos, superPixSplit,
-            skClassificationsMerge)
+            genSyntheticSamples, samplesDimReduction, learnModel, classiCmd,
+            classification, confusionSAROpt, confusionSAROptMerge,
+            SAROptFusion, classificationsFusion, fusionsIndecisions, mosaic,
+            confusionCmd, confusionGeneration, confusionsMerge,
+            reportGeneration, mergeSeedClassifications, additionalStatistics,
+            additionalStatisticsMerge, sensorsPreprocess, Coregistration,
+            Regularization, mergeRegularization, Clump, Grid, crownSearch,
+            crownBuild, mosaicTilesVectorization, largeVectorization,
+            mosaicTilesVectorization, largeSimplification, largeSmoothing,
+            clipVectors, zonalStatistics, prodVectors, slicSegmentation,
+            superPixPos, superPixSplit, skClassificationsMerge)
         # control variable
         Sentinel1 = SCF.serviceConfigFile(cfg).getParam('chain', 'S1Path')
         shapeRegion = SCF.serviceConfigFile(cfg).getParam(
@@ -221,6 +225,7 @@ class iota2():
         VHR = SCF.serviceConfigFile(cfg).getParam('coregistration', 'VHRPath')
         OBIA_segmentation_path = SCF.serviceConfigFile(cfg).getParam(
             'chain', 'OBIA_segmentation_path')
+
         gridsize = SCF.serviceConfigFile(cfg).getParam('Simplification',
                                                        'gridsize')
         umc1 = SCF.serviceConfigFile(cfg).getParam('Simplification', 'umc1')
@@ -261,6 +266,7 @@ class iota2():
             cfg, config_ressources, self.workingDirectory)
         step_merge_samples = samplesMerge.samplesMerge(cfg, config_ressources,
                                                        self.workingDirectory)
+        # OBIA steps
         step_split_segmentation_by_tiles_regions = splitSegmentationByTiles.splitSegmentationByTiles(
             cfg, config_ressources, self.workingDirectory)
         step_format_samples_to_segmentation = formatSamplesToSegmentation.formatSamplesToSegmentation(
@@ -277,6 +283,7 @@ class iota2():
             cfg, config_ressources, self.workingDirectory)
         step_reassembleTileParts = reassembleTileParts.reassembleTileParts(
             cfg, config_ressources, self.workingDirectory)
+        # End obia steps
         step_models_samples_stats = statsSamplesModel.statsSamplesModel(
             cfg, config_ressources, self.workingDirectory)
         step_samples_selection = samplingLearningPolygons.samplingLearningPolygons(
@@ -293,8 +300,6 @@ class iota2():
             cfg, config_ressources, self.workingDirectory)
         step_dimRed = samplesDimReduction.samplesDimReduction(
             cfg, config_ressources, self.workingDirectory)
-        step_normalize_samples = samplesNormalization.samplesNormalization(
-            cfg, config_ressources)
         step_learning = learnModel.learnModel(cfg, config_ressources,
                                               self.workingDirectory)
         step_classiCmd = classiCmd.classiCmd(cfg, config_ressources,
@@ -358,7 +363,6 @@ class iota2():
             cfg, config_ressources, self.workingDirectory)
         step_prod_vectors = prodVectors.prodVectors(cfg, config_ressources,
                                                     self.workingDirectory)
-
         # build chain
         # init steps
         s_container.append(step_build_tree, "init")
@@ -378,7 +382,6 @@ class iota2():
         if shapeRegion and classif_mode == "fusion":
             s_container.append(step_split_huge_vec, "sampling")
         s_container.append(step_merge_samples, "sampling")
-
         if OBIA_segmentation_path is None:
             s_container.append(step_models_samples_stats, "sampling")
             s_container.append(step_samples_selection, "sampling")
@@ -422,7 +425,7 @@ class iota2():
                 s_container.append(step_classif_fusion, "classification")
                 s_container.append(step_manage_fus_indecision,
                                    "classification")
-        else:  # OBIA MODE
+        else:  # Obia model
             s_container.append(step_split_segmentation_by_tiles_regions,
                                "sampling")
             s_container.append(step_format_samples_to_segmentation, "sampling")
@@ -436,9 +439,6 @@ class iota2():
 
             # classifications steps
             s_container.append(step_obia_classification, "classification")
-
-            # mosaic step
-            s_container.append(step_reassembleTileParts, "mosaic")
 
         # mosaic step
         s_container.append(step_mosaic, "mosaic")
@@ -461,8 +461,7 @@ class iota2():
             outregul = os.path.join(iota2_outputs_dir, "final",
                                     "simplification", "classif_regul.tif")
 
-            regulruns = 2 if umc2 else 1
-
+            regulruns = 2 if umc2 is not None else 1
             if not os.path.exists(outregul):
                 lognamereg = 'regul1'
                 lognamemerge = "merge_regul1"

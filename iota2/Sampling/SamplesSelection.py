@@ -16,13 +16,15 @@
 import logging
 import os
 import shutil
-
-from Common import FileUtils as fut
+from typing import Dict, Union, Optional, Tuple, List
+from iota2.Common import FileUtils as fut
 
 LOGGER = logging.getLogger(__name__)
 
 
-def prepareSelection(sample_sel_directory, tile_name, workingDirectory=None, LOGGER=LOGGER):
+def prepare_selection(sample_sel_directory: str,
+                      tile_name: str,
+                      workingDirectory: Optional[str] = None):
     """
     this function is dedicated to merge selection comming from different
     models by tiles. It is necessary in order to prepare sampleExtraction
@@ -44,15 +46,23 @@ def prepareSelection(sample_sel_directory, tile_name, workingDirectory=None, LOG
     if workingDirectory:
         wd = workingDirectory
 
-    vectors = fut.FileSearch_AND(sample_sel_directory, True, tile_name, "selection.sqlite")
+    vectors = fut.FileSearch_AND(sample_sel_directory, True, tile_name,
+                                 "selection.sqlite")
     merge_selection_name = "{}_selection_merge".format(tile_name)
     output_selection_merge = os.path.join(wd, merge_selection_name + ".sqlite")
 
     if not os.path.exists(output_selection_merge):
-        fut.mergeVectors(merge_selection_name, wd, vectors, ext="sqlite", out_Tbl_name="output")
+        fut.mergeVectors(merge_selection_name,
+                         wd,
+                         vectors,
+                         ext="sqlite",
+                         out_Tbl_name="output")
         if workingDirectory:
-            shutil.copy(output_selection_merge, os.path.join(sample_sel_directory, merge_selection_name + ".sqlite"))
-            
+            shutil.copy(
+                output_selection_merge,
+                os.path.join(sample_sel_directory,
+                             merge_selection_name + ".sqlite"))
+
     return os.path.join(sample_sel_directory, merge_selection_name + ".sqlite")
 
 
@@ -71,7 +81,9 @@ def write_xml(samples_per_class, samples_per_vector, output_merged_stats):
     Note
     ----
 
-    output xml format as `PolygonClassStatistics <http://www.orfeo-toolbox.org/Applications/PolygonClassStatistics.html>`_'s output
+    output xml format as `PolygonClassStatistics
+    <http://www.orfeo-toolbox.org/Applications/PolygonClassStatistics.html>`_'s
+    output
     """
     import xml.dom.minidom as minidom
     from xml.etree.ElementTree import Element, SubElement, tostring, XML
@@ -85,11 +97,19 @@ def write_xml(samples_per_class, samples_per_vector, output_merged_stats):
     parent_a = SubElement(top, 'Statistic', name='samplesPerClass')
     parent_b = SubElement(top, 'Statistic', name='samplesPerVector')
 
-    samples_per_class_xml = "".join(['<StatisticMap value="{}" />'.format(count) for _, count in list(samples_per_class.items())])
-    samples_per_class_part = XML('''<root>{}</root>'''.format(samples_per_class_xml))
+    samples_per_class_xml = "".join([
+        '<StatisticMap value="{}" />'.format(count)
+        for _, count in list(samples_per_class.items())
+    ])
+    samples_per_class_part = XML(
+        '''<root>{}</root>'''.format(samples_per_class_xml))
 
-    samples_per_vector_xml = "".join(['<StatisticMap value="{}" />'.format(count) for _, count in list(samples_per_vector.items())])
-    samples_per_vector_part = XML('''<root>{}</root>'''.format(samples_per_vector_xml))
+    samples_per_vector_xml = "".join([
+        '<StatisticMap value="{}" />'.format(count)
+        for _, count in list(samples_per_vector.items())
+    ])
+    samples_per_vector_part = XML(
+        '''<root>{}</root>'''.format(samples_per_vector_xml))
 
     for index, c_statistic_map in enumerate(samples_per_class_part):
         c_statistic_map.set('key', list(samples_per_class.keys())[index])
@@ -129,9 +149,11 @@ def merge_write_stats(stats, merged_stats):
         root_vector = tree.getroot()[1]
 
         for val_class in root_class.iter("StatisticMap"):
-            samples_per_class.append((val_class.attrib["key"], int(val_class.attrib["value"])))
+            samples_per_class.append(
+                (val_class.attrib["key"], int(val_class.attrib["value"])))
         for val_vector in root_vector.iter("StatisticMap"):
-            samples_per_vector.append((val_vector.attrib["key"], int(val_vector.attrib["value"])))
+            samples_per_vector.append(
+                (val_vector.attrib["key"], int(val_vector.attrib["value"])))
 
     samples_per_class = dict(fut.sortByFirstElem(samples_per_class))
     samples_per_vector = dict(fut.sortByFirstElem(samples_per_vector))
@@ -151,7 +173,7 @@ def merge_write_stats(stats, merged_stats):
     write_xml(samples_per_class_sum, samples_per_vector_sum, merged_stats)
 
 
-def gen_raster_ref(vec, cfg, working_directory):
+def gen_raster_ref(vec, output_path, masks_name, working_directory):
     """
     generate the reference image needed to sampleSelection application
 
@@ -165,25 +187,41 @@ def gen_raster_ref(vec, cfg, working_directory):
     working_directory : string
         Path to a working directory
     """
-    from Common.Utils import run
+    from iota2.Common.Utils import run
     tile_field_name = "tile_o"
-    iota2_dir = cfg.getParam('chain', 'outputPath')
-    features_directory = os.path.join(iota2_dir, "features")
-    tiles = fut.getFieldElement(vec, driverName="ESRI Shapefile",
+    # iota2_dir = cfg.getParam('chain', 'outputPath')
+    features_directory = os.path.join(output_path, "features")
+    tiles = fut.getFieldElement(vec,
+                                driverName="ESRI Shapefile",
                                 field=tile_field_name,
-                                mode="unique", elemType="str")
+                                mode="unique",
+                                elemType="str")
 
-    masks_name = fut.getCommonMaskName(cfg) + ".tif"
-    rasters_tiles = [fut.FileSearch_AND(os.path.join(features_directory, tile_name), True, masks_name)[0] for tile_name in tiles]
-    raster_ref_name = "ref_raster_{}.tif".format(os.path.splitext(os.path.basename(vec))[0])
+    # masks_name = fut.getCommonMaskName(cfg) + ".tif"
+    rasters_tiles = [
+        fut.FileSearch_AND(os.path.join(features_directory, tile_name), True,
+                           masks_name)[0] for tile_name in tiles
+    ]
+    raster_ref_name = "ref_raster_{}.tif".format(
+        os.path.splitext(os.path.basename(vec))[0])
     raster_ref = os.path.join(working_directory, raster_ref_name)
-    raster_ref_cmd = "gdal_merge.py -ot Byte -n 0 -createonly -o {} {}".format(raster_ref,
-                                                                               " ".join(rasters_tiles))
+    raster_ref_cmd = "gdal_merge.py -ot Byte -n 0 -createonly -o {} {}".format(
+        raster_ref, " ".join(rasters_tiles))
     run(raster_ref_cmd)
     return raster_ref, tiles
 
 
-def get_sample_selection_param(cfg, model_name, stats, vec, working_directory):
+def get_sample_selection_param(
+        model_name: str,
+        stats: str,
+        vec: str,
+        working_directory: str,
+        parameters: Dict[str, Union[str, int, list]],
+        data_field: str,
+        masks_name: str,
+        output_path: str,
+        random_seed: Optional[int] = None
+) -> Tuple[Dict[str, Union[str, int, list]], List[str]]:
     """
     use to determine SampleSelection otb's parameters
 
@@ -200,11 +238,12 @@ def get_sample_selection_param(cfg, model_name, stats, vec, working_directory):
     Note
     ----
 
-    SampleSelection's parameters are define `here <http://www.orfeo-toolbox.org/Applications/SampleSelection.html>`_
+    SampleSelection's parameters are define
+    `here <http://www.orfeo-toolbox.org/Applications/SampleSelection.html>`_
     """
     per_model = None
-    parameters = dict(cfg.getParam('argTrain', 'sampleSelection'))
-    random_seed = cfg.getParam('chain', 'random_seed')
+    # parameters = dict(cfg.getParam('argTrain', 'sampleSelection'))
+    # random_seed = cfg.getParam('chain', 'random_seed')
     if random_seed is not None:
         parameters["rand"] = random_seed
 
@@ -218,15 +257,18 @@ def get_sample_selection_param(cfg, model_name, stats, vec, working_directory):
                 parameters = dict(strat)
                 parameters.pop("target_model", None)
 
-    parameters["field"] = (cfg.getParam('chain', 'dataField')).lower()
+    # parameters["field"] = (cfg.getParam('chain', 'dataField')).lower()
+    parameters["field"] = data_field.lower()
     parameters["vec"] = vec
     parameters["instats"] = stats
 
-    raster_ref, tiles_model = gen_raster_ref(vec, cfg, working_directory)
+    raster_ref, tiles_model = gen_raster_ref(vec, output_path, masks_name,
+                                             working_directory)
 
     parameters["in"] = raster_ref
 
-    sample_sel_name = "{}_selection.sqlite".format(os.path.splitext(os.path.basename(vec))[0])
+    sample_sel_name = "{}_selection.sqlite".format(
+        os.path.splitext(os.path.basename(vec))[0])
     sample_sel = os.path.join(working_directory, sample_sel_name)
     parameters["out"] = sample_sel
 
@@ -250,7 +292,7 @@ def split_sel(model_selection, tiles, working_directory, epsg):
         path to a working directory
     """
     import sqlite3 as lite
-    from Common.Utils import run
+    from iota2.Common.Utils import run
 
     tile_field_name = "tile_o"
 
@@ -258,22 +300,26 @@ def split_sel(model_selection, tiles, working_directory, epsg):
     for tile in tiles:
         mod_sel_name = os.path.splitext(os.path.basename(model_selection))[0]
         tile_mod_sel_name_tmp = "{}_{}_tmp".format(tile, mod_sel_name)
-        tile_mod_sel_tmp = os.path.join(working_directory, tile_mod_sel_name_tmp + ".sqlite")
+        tile_mod_sel_tmp = os.path.join(working_directory,
+                                        tile_mod_sel_name_tmp + ".sqlite")
         if os.path.exists(tile_mod_sel_tmp):
             os.remove(tile_mod_sel_tmp)
 
         conn = lite.connect(tile_mod_sel_tmp)
         cursor = conn.cursor()
         cursor.execute("ATTACH '{}' AS db".format(model_selection))
-        cursor.execute("CREATE TABLE {} as SELECT * FROM db.output WHERE {}='{}'".format(tile_mod_sel_name_tmp.lower(), tile_field_name, tile))
+        cursor.execute(
+            "CREATE TABLE {} as SELECT * FROM db.output WHERE {}='{}'".format(
+                tile_mod_sel_name_tmp.lower(), tile_field_name, tile))
         conn.commit()
 
         tile_mod_sel_name = "{}_{}".format(tile, mod_sel_name)
-        tile_mod_sel = os.path.join(working_directory, tile_mod_sel_name + ".sqlite")
+        tile_mod_sel = os.path.join(working_directory,
+                                    tile_mod_sel_name + ".sqlite")
         clause = "SELECT * FROM {}".format(tile_mod_sel_name_tmp)
-        cmd = 'ogr2ogr -sql "{}" -dialect "SQLite" -f "SQLite" -s_srs {} -t_srs {} -nln {} {} {}'.format(clause, epsg, epsg,
-                                                                                                         tile_mod_sel_name.lower(),
-                                                                                                         tile_mod_sel, tile_mod_sel_tmp)
+        cmd = (f'ogr2ogr -sql "{clause}" -dialect "SQLite" -f "SQLite" -s_srs '
+               f'{epsg} -t_srs {epsg} -nln {tile_mod_sel_name.lower()}'
+               f' {tile_mod_sel} {tile_mod_sel_tmp}')
         run(cmd)
 
         os.remove(tile_mod_sel_tmp)
@@ -288,7 +334,8 @@ def print_dict(dico):
     usage : use to print some dictionnary
     """
     sep = "\n" + "\t".join(["" for _ in range(22)])
-    return sep + sep.join(["{} : {}".format(key, val) for key, val in list(dico.items())])
+    return sep + sep.join(
+        ["{} : {}".format(key, val) for key, val in list(dico.items())])
 
 
 def update_flags(vec_in, runs, flag_val="XXXX", table_name="output"):
@@ -307,10 +354,14 @@ def update_flags(vec_in, runs, flag_val="XXXX", table_name="output"):
     """
     import sqlite3 as lite
 
-    current_seed = int(os.path.splitext(os.path.basename(vec_in))[0].split("_")[-2])
+    current_seed = int(
+        os.path.splitext(os.path.basename(vec_in))[0].split("_")[-2])
 
     if runs > 1:
-        update_seed = ",".join(["seed_{} = '{}'".format(run, flag_val) for run in range(runs) if run != current_seed])
+        update_seed = ",".join([
+            "seed_{} = '{}'".format(run, flag_val) for run in range(runs)
+            if run != current_seed
+        ])
         conn = lite.connect(vec_in)
         cursor = conn.cursor()
         sql_clause = "UPDATE {} SET {}".format(table_name, update_seed)
@@ -318,7 +369,16 @@ def update_flags(vec_in, runs, flag_val="XXXX", table_name="output"):
         conn.commit()
 
 
-def samples_selection(model, cfg, working_directory, logger=LOGGER):
+def samples_selection(model: str,
+                      working_directory: str,
+                      output_path: str,
+                      runs: int,
+                      epsg: str,
+                      masks_name: str,
+                      parameters: Dict[str, Union[str, int, list]],
+                      data_field: str,
+                      random_seed: Optional[int] = None,
+                      logger=LOGGER):
     """
     compute sample selection.
 
@@ -333,17 +393,9 @@ def samples_selection(model, cfg, working_directory, logger=LOGGER):
     logger : logging object
         root logger
     """
-    from Common import OtbAppBank
-    from Common import ServiceConfigFile as SCF
+    from iota2.Common import OtbAppBank
 
-    # because serviceConfigFile's objects are not serializable
-    if not isinstance(cfg, SCF.serviceConfigFile):
-        cfg = SCF.serviceConfigFile(cfg)
-
-    iota2_directory = cfg.getParam('chain', 'outputPath')
-    runs = cfg.getParam('chain', 'runs')
-    epsg = cfg.getParam('GlobChain', 'proj')
-    samples_sel_dir = os.path.join(iota2_directory, "samplesSelection")
+    samples_sel_dir = os.path.join(output_path, "samplesSelection")
 
     merged_stats = model.replace(".shp", ".xml")
     if os.path.exists(merged_stats):
@@ -356,22 +408,29 @@ def samples_selection(model, cfg, working_directory, logger=LOGGER):
     model_name = os.path.splitext(os.path.basename(model))[0].split("_")[2]
     seed = os.path.splitext(os.path.basename(model))[0].split("_")[4]
 
-    logger.info("Launch sample selection for the model '{}' run {}".format(model_name, seed))
+    logger.info(
+        f"Launch sample selection for the model {model_name} run {seed}")
 
     # merge stats
-    stats = fut.FileSearch_AND(samples_sel_dir, True, "region_" + str(model_name), ".xml", "seed_" + str(seed))
+    stats = fut.FileSearch_AND(samples_sel_dir, True,
+                               "region_" + str(model_name), ".xml",
+                               "seed_" + str(seed))
     merge_write_stats(stats, merged_stats)
 
     # samples Selection
-    sel_parameters, tiles_model = get_sample_selection_param(cfg, model_name, merged_stats, model, wdir)
+    sel_parameters, tiles_model = get_sample_selection_param(
+        model_name, merged_stats, model, wdir, parameters, data_field,
+        masks_name, output_path, random_seed)
 
-    logger.debug("SampleSelection parameters : {}".format(print_dict(sel_parameters)))
+    logger.debug(f"SampleSelection parameters : {print_dict(sel_parameters)}")
 
-    sample_sel_app = OtbAppBank.CreateSampleSelectionApplication(sel_parameters)
+    sample_sel_app = OtbAppBank.CreateSampleSelectionApplication(
+        sel_parameters)
     sample_sel_app.ExecuteAndWriteOutput()
     logger.info("sample selection terminated")
 
-    # update samples flag -> keep current values in seed field and set 'XXXX' values to the others
+    # update samples flag -> keep current values in seed field and
+    # set 'XXXX' values to the others
     update_flags(sel_parameters["out"], runs)
 
     # split by tiles

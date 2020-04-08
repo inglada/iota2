@@ -1,0 +1,10 @@
+conda build muparserx
+conda build openthreads
+conda build ossim
+conda build shark
+conda build tinyxml 
+conda build libitk
+conda build otb
+conda build config
+conda build grass
+conda build iota2

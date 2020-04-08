@@ -1,0 +1,138 @@
+{% set version = "6.7" %}
+
+#~ variables:
+  #~ environment:
+    #~ GIT_LFS_SKIP_SMUDGE: "1"
+
+package:
+  name: otb
+  version: {{ version }}
+
+source:
+  - git_url: https://gitlab.orfeo-toolbox.org/ArthurV/otb.git
+    git_rev: issue1989/ReadingVectors
+    folder: OTB
+  - git_url: https://framagit.org/iota2-project/iota2.git
+    folder: iota2
+  - git_url: https://gitlab.orfeo-toolbox.org/jinglada/temporalgapfilling.git
+    folder: temporalgapfilling
+  - git_url: https://framagit.org/SPeillet/otbPointMatchCoregistrationModel.git
+    folder: otbPointMatchCoregistrationModel
+  - git_url: https://framagit.org/ArthurV/otb-for-biomass.git
+    folder: MultitempFiltering
+    git_rev: memChain
+  - git_url: https://gitlab.orfeo-toolbox.org/ArthurV/otb.git
+    folder: slicAutoContext
+    git_rev: otb-slic-autoContext
+  - patches:
+    - patches/qgis_descriptors.diff
+build:
+  number: 1001
+  skip: True  # [win and vc<14]
+
+requirements:
+  build:
+    - cmake
+    - ninja
+    - pkg-config >=0.21  # [not win]
+    - {{ compiler('c') }}
+    - {{ compiler('cxx') }}
+  host:
+    - boost
+    - curl
+    - expat
+    - fftw
+    - gdal
+    - geos
+    - geotiff
+    - gsl 
+    - hdf4
+    - hdf5
+    - itk=4.13.2
+    - jpeg
+    - libboost=1.67.0
+    - libitk=4.13.1
+    - libgdal
+    - libkml
+    - libsvm
+    - libnetcdf
+    - libpng
+    - libtiff
+    - muparser
+    - muparserx
+    - opencv=3.4.4
+    - openjpeg
+    - openmp
+    - openssl
+    - openthreads
+    - ossim
+    - pcre
+    - proj4
+    - shark=3.1.4
+    - sqlite
+    - swig
+    - tinyxml
+    - zlib
+    - python=3.6
+    - numpy>=1.14.6,<2.0a0
+    - openmpi=3.1.3
+  run:
+    - boost
+    - curl
+    - expat
+    - fftw
+    - gdal
+    - geos
+    - geotiff
+    - gsl 
+    - hdf4
+    - hdf5
+    - itk=4.13.2
+    - jpeg
+    - libboost=1.67.0
+    - libitk=4.13.1
+    - libgdal
+    - libkml
+    - libsvm
+    - libnetcdf
+    - libpng
+    - libtiff
+    - muparser
+    - muparserx
+    - opencv=3.4.4
+    - openjpeg
+    - openmp
+    - openssl
+    - openthreads
+    - ossim
+    - pcre
+    - proj4
+    - shark=3.1.4
+    - sqlite
+    - swig
+    - tinyxml
+    - zlib
+    - python=3.6
+    - numpy>=1.14.6,<2.0a0
+    - openmpi=3.1.3
+
+test:
+  imports:
+    - otbApplication
+  files:
+    - test_data
+  commands:
+    - test -d $PREFIX/include/OTB*                        # [not win]
+    - if not exist %LIBRARY_INC%\\OTB* exit 1             # [win]
+    - otbcli_ReadImageInfo -in test_data/scene.png
+
+about:
+  home: https://www.orfeo-toolbox.org/
+  license: Apache 2.0
+  license_file: LICENSE
+  summary: |
+    Description Orfeo Toolbox
+
+extra:
+  recipe-maintainers:
+    - CNES

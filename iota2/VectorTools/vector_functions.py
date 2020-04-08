@@ -270,6 +270,8 @@ def intersect_shp(t1,
 
 
 #--------------------------------------------------------------------
+
+
 def getLayerName(shapefile, driver="ESRI Shapefile", layernb=0):
     """
    Return the name of the nth layer of a vector file
@@ -415,12 +417,10 @@ def copyShapefile(shape, outshape):
 
 
 #--------------------------------------------------------------------
-
-
 def copyShp(shp, keyname):
     """
-   Creates an empty new layer based on the properties and attributs of an input file
-   """
+    Creates an empty new layer based on the properties and attributs of an input file
+    """
     outShapefile = shp.split('.')[0] + '-' + keyname + '.shp'
     print(outShapefile)
     ds = openToRead(shp)
@@ -453,13 +453,10 @@ def copyShp(shp, keyname):
     return outShapefile
 
 
-# --------------------------------------------------------------------
-
-
 def copyShp2(shp, outShapefile):
     """
-   Creates an empty new layer based on the properties and attributs of an input file
-   """
+    Creates an empty new layer based on the properties and attributs of an input file
+    """
     ds = openToRead(shp)
     layer = ds.GetLayer()
     inLayerDefn = layer.GetLayerDefn()
@@ -515,6 +512,8 @@ def cloneVectorDataStructure(ds_in, out, ly=0, epsg=None):
 
 
 # -------------------------------------------------------------------
+
+
 def CreateNewLayer(layer, outShapefile, outformat="ESRI Shapefile"):
     """
       This function creates a new shapefile with a layer as input
@@ -842,7 +841,7 @@ def explain_validity(shp):
         geom = feat.GetGeometryRef()
         ob = loads(geom.ExportToWkt())
         print(lgeos.GEOSisValidReason(ob._geom))
-        a = raw_input()
+
     return 0
 
 

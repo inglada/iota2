@@ -1,0 +1,13 @@
+diff --git a/config.py b/config.py
+index 1975ff4..b40474e 100644
+--- a/config.py
++++ b/config.py
+@@ -850,7 +850,7 @@ class Sequence(Container):
+         data = object.__getattribute__(self, 'data')
+         comments = object.__getattribute__(self, 'comments')
+         indstr = indent * '  '
+-        for i in xrange(0, len(data)):
++        for i in range(0, len(data)):
+             value = data[i]
+             comment = comments[i]
+             if comment:

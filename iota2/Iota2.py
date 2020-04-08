@@ -14,21 +14,19 @@
 #
 # =========================================================================
 
-
 import Iota2Builder as chain
-from Common import FileUtils as fut
+from iota2.Common import FileUtils as fut
 import argparse
 
 import sys
 import traceback
 import datetime
-import pickle
 import dill
 import time
 import numpy as np
 from mpi4py import MPI
-from Common import ServiceLogger as sLog
-from Common.FileUtils import ensure_dir
+from iota2.Common import ServiceLogger as sLog
+from iota2.Common.FileUtils import ensure_dir
 import os
 import shutil
 
@@ -41,6 +39,7 @@ if MPI_VERSION == 200:
 elif MPI_VERSION >= 300:
     MPI.pickle.__init__(dill.dumps, dill.loads)
 
+
 class MPIService():
     """
     Class for storing the MPI context
@@ -49,6 +48,7 @@ class MPIService():
         self.comm = MPI.COMM_WORLD
         self.rank = self.comm.Get_rank()
         self.size = self.comm.Get_size()
+
 
 class JobArray():
     """
@@ -62,7 +62,8 @@ class JobArray():
 
 
 def str2bool(v):
-    if v.lower() not in ('yes', 'true', 't', 'y', '1', 'no', 'false', 'f', 'n', '0'):
+    if v.lower() not in ('yes', 'true', 't', 'y', '1', 'no', 'false', 'f', 'n',
+                         '0'):
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
     retour = True
@@ -70,13 +71,15 @@ def str2bool(v):
         retour = False
     return retour
 
+
 def stop_workers(mpi_service):
     """
     stop workers
     :param mpi_service
     """
     for i in range(1, mpi_service.size):
-        print("Worker process with rank {}/{} stopped".format(i,mpi_service.size-1))
+        print("Worker process with rank {}/{} stopped".format(
+            i, mpi_service.size - 1))
         mpi_service.comm.send(None, dest=i, tag=1)
 
 
@@ -87,10 +90,10 @@ def launchTask(function, parameter, logger, mpi_services=None):
     OUT
     """
     import sys
-    logger.root.log(51,'************* WORKER REPORT *************')
+    logger.root.log(51, '************* WORKER REPORT *************')
     if mpi_services:
         logger.root.log(51, "worker : " + str(mpi_services.rank))
-    
+
     logger.root.log(51, "-----------> TRACE <-----------")
 
     start_job = time.time()
@@ -102,7 +105,7 @@ def launchTask(function, parameter, logger, mpi_services=None):
         logger.root.log(51, "parameter : '" + str(parameter) + "' : ended")
     except KeyboardInterrupt:
         raise
-    except :
+    except:
         traceback.print_exc()
         parameter_success = False
         logger.root.log(51, "parameter : '" + str(parameter) + "' : failed")
@@ -120,23 +123,30 @@ def launchTask(function, parameter, logger, mpi_services=None):
     return worker_complete_log, start_date, end_date, returned_data, parameter_success
 
 
-def mpi_schedule(iota2_step, param_array_origin, mpi_service=MPIService(),logPath=None,
-                 logger_lvl="INFO", enable_console=False):
+def mpi_schedule(iota2_step,
+                 param_array_origin,
+                 mpi_service=MPIService(),
+                 logPath=None,
+                 logger_lvl="INFO",
+                 enable_console=False):
     """
     A simple MPI scheduler to execute jobs in parallel.
     """
-    
     if mpi_service.rank != 0:
         return None
 
     job = iota2_step.step_execute()
-    
+
     returned_data_list = []
     parameters_success = []
-    
+
     if not param_array_origin:
-        raise Exception("JobArray must contain a list of parameter as argument")
-        sys.exit(1)
+        print("JobArray must contain a list of parameter as argument")
+        with open(logPath, "a+") as log_f:
+            log_f.write(
+                "JobArray must contain a list of parameter as argument.\n")
+            log_f.write("An earlier stage probably behaved erratically.")
+        return [], False
     try:
         if os.path.exists(logPath):
             os.remove(logPath)
@@ -145,6 +155,7 @@ def mpi_schedule(iota2_step, param_array_origin, mpi_service=MPIService(),logPat
         else:
             #shallowCopy
             param_array = [param for param in param_array_origin]
+
         if mpi_service.size > 1:
             # master
             nb_completed_tasks = 0
@@ -152,28 +163,36 @@ def mpi_schedule(iota2_step, param_array_origin, mpi_service=MPIService(),logPat
             for i in range(1, mpi_service.size):
                 if len(param_array) > 0:
                     task_param = param_array.pop(0)
-                    mpi_service.comm.send([job, task_param, logger_lvl, enable_console], dest=i, tag=0)
+                    mpi_service.comm.send(
+                        [job, task_param, logger_lvl, enable_console],
+                        dest=i,
+                        tag=0)
             while nb_completed_tasks < nb_tasks:
-                [worker_rank, [start, end, worker_complete_log, returned_data, success]] = mpi_service.comm.recv(source=MPI.ANY_SOURCE, tag=0)
+                [
+                    worker_rank,
+                    [start, end, worker_complete_log, returned_data, success]
+                ] = mpi_service.comm.recv(source=MPI.ANY_SOURCE, tag=0)
                 returned_data_list.append(returned_data)
                 parameters_success.append(success)
                 #Write worker log
                 fut.ensure_dir(os.path.split(logPath)[0])
-                with open(logPath,"a+") as log_f:
+                with open(logPath, "a+") as log_f:
                     log_f.write(worker_complete_log)
                 nb_completed_tasks += 1
                 if len(param_array) > 0:
                     task_param = param_array.pop(0)
-                    mpi_service.comm.send([job, task_param,logger_lvl, enable_console], dest=worker_rank, tag=0)
+                    mpi_service.comm.send(
+                        [job, task_param, logger_lvl, enable_console],
+                        dest=worker_rank,
+                        tag=0)
         else:
             #if not lanch thanks to mpirun, launch each parameters one by one
             for param in param_array:
                 worker_log = sLog.Log_task(logger_lvl, enable_console)
-                worker_complete_log, start_date, end_date, returned_data, success = launchTask(job,
-                                                                                               param,
-                                                                                               worker_log)
+                worker_complete_log, start_date, end_date, returned_data, success = launchTask(
+                    job, param, worker_log)
                 fut.ensure_dir(os.path.split(logPath)[0])
-                with open(logPath,"a+") as log_f:
+                with open(logPath, "a+") as log_f:
                     log_f.write(worker_complete_log)
                 returned_data_list.append(returned_data)
                 parameters_success.append(success)
@@ -198,29 +217,39 @@ def start_workers(mpi_service):
     mpi_service.comm.barrier()
     if mpi_service.rank != 0:
         # Sending started signal
-        mpi_service.comm.send(mpi_service.rank,dest=0,tag=0)
+        mpi_service.comm.send(mpi_service.rank, dest=0, tag=0)
         mpi_status = MPI.Status()
         while 1:
             # waiting sending works by master
-            task = mpi_service.comm.recv(source=0, tag=MPI.ANY_TAG, status=mpi_status)
+            task = mpi_service.comm.recv(source=0,
+                                         tag=MPI.ANY_TAG,
+                                         status=mpi_status)
             if task is None:
                 sys.exit(0)
             # unpack task
-            
+
             [task_job, task_param, logger_lvl, enable_console] = task
-            
+
             worker_log = sLog.Log_task(logger_lvl, enable_console)
-            worker_complete_log, start_date, end_date, returned_data, success = launchTask(task_job,
-                                                                                           task_param,
-                                                                                           worker_log,
-                                                                                           mpi_service)
-            mpi_service.comm.send([mpi_service.rank, [start_date, end_date, worker_complete_log, returned_data, success]], dest=0, tag=0)
+            worker_complete_log, start_date, end_date, returned_data, success = launchTask(
+                task_job, task_param, worker_log, mpi_service)
+            mpi_service.comm.send([
+                mpi_service.rank,
+                [
+                    start_date, end_date, worker_complete_log, returned_data,
+                    success
+                ]
+            ],
+                                  dest=0,
+                                  tag=0)
     else:
         nb_started_workers = 0
-        while nb_started_workers < mpi_service.size-1:
+        while nb_started_workers < mpi_service.size - 1:
             rank = mpi_service.comm.recv(source=MPI.ANY_SOURCE, tag=0)
-            print("Worker process with rank {}/{} started".format(rank,mpi_service.size-1))
-            nb_started_workers+=1
+            print("Worker process with rank {}/{} started".format(
+                rank, mpi_service.size - 1))
+            nb_started_workers += 1
+
 
 def remove_tmp_files(cfg, current_step, chain):
     """
@@ -233,7 +262,9 @@ def remove_tmp_files(cfg, current_step, chain):
 
     last_step = chain.get_steps_number()[-1]
     directories = chain.get_dir()
-    dirs_to_rm = [d for d in directories if not os.path.split(d)[-1] in keep_dir]
+    dirs_to_rm = [
+        d for d in directories if not os.path.split(d)[-1] in keep_dir
+    ]
 
     if current_step == last_step:
         for dir_to_rm in dirs_to_rm:
@@ -243,37 +274,50 @@ def remove_tmp_files(cfg, current_step, chain):
 
 if __name__ == "__main__":
 
-    from Common import ServiceConfigFile as SCF
-    from Common import DebugUtils as du
-    parser = argparse.ArgumentParser(description = "This function allow you to"
-                                                   "launch iota2 processing chain"
-                                                   "as MPI process or not")
+    from iota2.Common import ServiceConfigFile as SCF
+    from iota2.Common import DebugUtils as du
+    parser = argparse.ArgumentParser(description="This function allow you to"
+                                     "launch iota2 processing chain"
+                                     "as MPI process or not")
 
-    parser.add_argument("-config",dest = "configPath",help = "path to the configuration"
-                                                             "file which rule le run",
+    parser.add_argument("-config",
+                        dest="configPath",
+                        help="path to the configuration"
+                        "file which rule le run",
                         required=True)
-    parser.add_argument("-starting_step",dest = "start",help ="start chain from 'starting_step'",
-                        default=0,
-                        type=int,
-                           required=False)
-    parser.add_argument("-ending_step",dest = "end",help ="run chain until 'ending_step'"
-                                                          "-1 mean 'to the end'",
+    parser.add_argument("-starting_step",
+                        dest="start",
+                        help="start chain from 'starting_step'",
                         default=0,
                         type=int,
                         required=False)
-    parser.add_argument("-parameters",dest = "parameters",help ="Launch specific parameters",
+    parser.add_argument("-ending_step",
+                        dest="end",
+                        help="run chain until 'ending_step'"
+                        "-1 mean 'to the end'",
+                        default=0,
+                        type=int,
+                        required=False)
+    parser.add_argument("-parameters",
+                        dest="parameters",
+                        help="Launch specific parameters",
                         nargs='+',
                         default=None,
                         required=False)
-    parser.add_argument("-config_ressources", dest="config_ressources",
+    parser.add_argument("-config_ressources",
+                        dest="config_ressources",
                         help="path to IOTA2 ressources configuration file",
                         required=False)
-    parser.add_argument("-only_summary", dest="launchChain",
-                        help="if set, only the summary will be printed. The chain will not be launched",
-                        default=None,
-                        action='store_false',
-                        required=False)
-    parser.add_argument("-param_index", dest="param_index",
+    parser.add_argument(
+        "-only_summary",
+        dest="launchChain",
+        help=
+        "if set, only the summary will be printed. The chain will not be launched",
+        default=None,
+        action='store_false',
+        required=False)
+    parser.add_argument("-param_index",
+                        dest="param_index",
                         help="index of parameter to consider",
                         required=False,
                         type=int,
@@ -292,7 +336,7 @@ if __name__ == "__main__":
         rm_tmp = cfg.getParam('chain', 'remove_tmp_files')
     except:
         rm_tmp = False
-            
+
     if args.start == args.end == 0:
         all_steps = chain_to_process.get_steps_number()
         args.start = all_steps[0]
@@ -304,28 +348,31 @@ if __name__ == "__main__":
         args.end = len(steps)
 
     if MPIService().rank == 0:
-        print(chain_to_process.print_step_summarize(args.start,
-                                                    args.end,
-                                                    args.config_ressources is not None))
+        print(
+            chain_to_process.print_step_summarize(
+                args.start, args.end, args.config_ressources is not None))
     if args.launchChain is False:
         sys.exit()
-    
+
     # Initialize MPI service
     mpi_service = MPIService()
 
     # Start worker processes
     start_workers(mpi_service)
-    # Remove all existing outputs 
+    # Remove all existing outputs
     root = cfg.getParam('chain', 'outputPath')
     rm_PathTEST = cfg.getParam("chain", "remove_outputPath")
     start_step = cfg.getParam("chain", "firstStep")
-    
-    for step in np.arange(args.start, args.end+1):
 
-        if os.path.exists(root) and root != "/" and rm_PathTEST and start_step == "init" and steps[step-1].step_name == "IOTA2DirTree": 
-            shutil.rmtree(root,ignore_errors=False)
+    for step in np.arange(args.start, args.end + 1):
+
+        if os.path.exists(
+                root
+        ) and root != "/" and rm_PathTEST and start_step == "init" and steps[
+                step - 1].step_name == "IOTA2DirTree":
+            shutil.rmtree(root, ignore_errors=False)
         ensure_dir(root)
-        params = steps[step-1].step_inputs()
+        params = steps[step - 1].step_inputs()
         param_array = []
         if callable(params):
             param_array = params()
@@ -333,71 +380,80 @@ if __name__ == "__main__":
             param_array = [param for param in params]
         for group in list(chain_to_process.steps_group.keys()):
             if step in list(chain_to_process.steps_group[group].keys()):
-                print ("Running step {}: {} ({} tasks)".format(step, chain_to_process.steps_group[group][step],
-                                                               len(param_array)))
+                print("Running step {}: {} ({} tasks)".format(
+                    step, chain_to_process.steps_group[group][step],
+                    len(param_array)))
                 break
-        
+
         if args.parameters:
             params = args.parameters
         else:
             params = param_array
         #~ if steps[step-1].previous_step:
-            #~ print "Etape précédente : {}".format(steps[step-1].previous_step.step_status)
-        steps[step-1].step_status = "running"
-        logFile = steps[step-1].logFile
-        
-        if not os.path.exists(steps[step-1].log_step_dir):
-            os.makedirs(steps[step-1].log_step_dir)
-        try: 
-            logFileTmp = open(steps[step-1].logFile,"w")
-        except Exception as e:
-            print (e)
+        #~ print "Etape précédente : {}".format(steps[step-1].previous_step.step_status)
+        steps[step - 1].step_status = "running"
+        logFile = steps[step - 1].logFile
+
+        if not os.path.exists(steps[step - 1].log_step_dir):
+            os.makedirs(steps[step - 1].log_step_dir)
+        try:
+            logFileTmp = open(steps[step - 1].logFile, "w")
+            logFileTmp.close()
+        except Exception as exc:
+            print(exc)
             raise
 
-        dico_tmp = chain_to_process.steps_group[cfg.getParam('chain', 'firstStep')].copy()
+        dico_tmp = chain_to_process.steps_group[cfg.getParam(
+            'chain', 'firstStep')].copy()
         key_init = dico_tmp.popitem(last=False)[0]
-        states = chain_to_process.print_step_summarize(key_init, step, log=True, running_step=True)
-        global_log_file = os.path.join(cfg.getParam('chain', 'outputPath'), "logs/Global_status.log")
-        global_log = open(global_log_file,"w")
+        states = chain_to_process.print_step_summarize(key_init,
+                                                       step,
+                                                       log=True,
+                                                       running_step=True)
+        global_log_file = os.path.join(cfg.getParam('chain', 'outputPath'),
+                                       "logs/Global_status.log")
+        global_log = open(global_log_file, "w")
         global_log.write(states)
         global_log.close()
-        
 
         if param_index is not None:
             params = [params[param_index]]
-            logFile = (steps[step-1].logFile).replace(".log", "_{}.log".format(param_index))
-        _, step_completed = mpi_schedule(steps[step-1], params,
-                                         mpi_service, logFile,
-                                         logger_lvl)
+            logFile = (steps[step - 1].logFile).replace(
+                ".log", "_{}.log".format(param_index))
+        _, step_completed = mpi_schedule(steps[step - 1], params, mpi_service,
+                                         logFile, logger_lvl)
         if not step_completed:
-            steps[step-1].step_status = "fail"
-            states = chain_to_process.print_step_summarize(key_init, step,
+            steps[step - 1].step_status = "fail"
+            states = chain_to_process.print_step_summarize(key_init,
+                                                           step,
                                                            log=True,
                                                            running_step=True,
                                                            running_sym='f')
             global_log_file = os.path.join(cfg.getParam('chain', 'outputPath'),
                                            "logs/Global_status.log")
-            global_log = open(global_log_file,"w")
+            global_log = open(global_log_file, "w")
             global_log.write(states)
-            log_info= du.get_log_info(cfg.getParam('chain',
-                                                          'outputPath'),
-                                      args.configPath, logFile)
+            log_info = du.get_log_info(cfg.getParam('chain', 'outputPath'),
+                                       args.configPath, logFile)
             global_log.write(log_info)
             global_log.close()
-            
+
             break
-        else :
-            steps[step-1].step_status = "success"            
-            states = chain_to_process.print_step_summarize(key_init, step, log=True)
-            global_log_file = os.path.join(cfg.getParam('chain', 'outputPath'), "logs/Global_status.log")
-            global_log = open(global_log_file,"w")
+        else:
+            steps[step - 1].step_status = "success"
+            states = chain_to_process.print_step_summarize(key_init,
+                                                           step,
+                                                           log=True)
+            global_log_file = os.path.join(cfg.getParam('chain', 'outputPath'),
+                                           "logs/Global_status.log")
+            global_log = open(global_log_file, "w")
             global_log.write(states)
             global_log.close()
-            
+
         if rm_tmp and param_index is None:
             remove_tmp_files(cfg, current_step=step, chain=chain_to_process)
     #~ chain_to_process.save_chain()
     stop_workers(mpi_service)
-    
+
     if not step_completed:
         sys.exit(-1)

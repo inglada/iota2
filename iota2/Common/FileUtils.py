@@ -20,24 +20,23 @@ import shutil
 import glob
 import math
 import tarfile
-import re
 import random
-import logging
 from collections import defaultdict
-from datetime import timedelta, date
+from datetime import timedelta
 import datetime
 import errno
 import warnings
 import numpy as np
-from config import Config, Sequence
+from config import Config
 import osgeo
 from osgeo import gdal
 from osgeo import ogr
 from osgeo import osr
 from osgeo.gdalconst import *
 #~ import otbApplication as otb
-from Common.Utils import run
-from Common.Utils import remove_in_string_list
+from iota2.Common.Utils import run
+from iota2.Common.Utils import remove_in_string_list
+from typing import Optional, List
 
 
 def is_writable_directory(directory_path):
@@ -131,7 +130,7 @@ def parseClassifCmd(cmdPath):
     OUT
     list of list
     """
-    from Common import ServiceConfigFile as SCF
+    from iota2.Common import ServiceConfigFile as SCF
     import argparse
     import shlex
 
@@ -212,271 +211,35 @@ def parseClassifCmd(cmdPath):
                     "$TMPDIR", workingDirectory)
                 args.confmap = args.confmap.replace("$TMPDIR",
                                                     workingDirectory)
+            cfg = SCF.serviceConfigFile(args.pathConf)
+            data_field = cfg.getParam("chain", "dataField")
+            classifier_type = cfg.getParam("chain", "dataField")
+            tile = findCurrentTileInString(
+                args.mask,
+                cfg.getParam("chain", "listTile").split())
+            sensors_parameters = SCF.iota2_parameters(
+                args.pathConf).get_sensors_parameters(tile)
+            data_field = cfg.getParam("chain", "dataField")
+            proba_map_expected = cfg.getParam("argClassification",
+                                              "enable_probability_map")
+            dimred = cfg.getParam("dimRed", "dimRed")
+            sar_optical_post_fusion = cfg.getParam(
+                "argTrain", "dempster_shafer_SAR_Opt_fusion")
+            output_path = cfg.getParam("chain", "outputPath")
+            write_features = cfg.getParam("GlobChain", "writeOutputs")
+            reduction_mode = cfg.getParam("dimRed", "reductionMode")
+            data_field = cfg.getParam("chain", "dataField")
 
             parameters.append([
                 args.tempFolderSerie, args.mask, args.model, args.stats,
                 args.outputClassif, args.confmap, workingDirectory,
-                args.pathConf, args.pixType, args.MaximizeCPU, args.ram
+                classifier_type, tile, proba_map_expected, dimred,
+                sar_optical_post_fusion, output_path, data_field,
+                write_features, reduction_mode, sensors_parameters,
+                args.pixType, args.MaximizeCPU, args.ram
             ])
 
     return parameters
-
-
-def commonMaskSARgeneration(cfg, tile, cMaskName):
-    """
-    generate SAR common mask
-    """
-    import configparser
-    from Common import ServiceConfigFile as SCF
-    S1Path = cfg.getParam('chain', 'S1Path')
-    featureFolder = os.path.join(cfg.getParam('chain', 'outputPath'),
-                                 "features")
-    config = configparser.ConfigParser()
-    config.read(S1Path)
-    referenceFolder = config.get('Processing', 'ReferencesFolder') + "/" + tile
-    stackPattern = config.get('Processing', 'RasterPattern')
-    if not os.path.exists(referenceFolder):
-        raise Exception(referenceFolder + "does not exists")
-    refRaster = FileSearch_AND(referenceFolder, True, stackPattern)[0]
-    cMaskPath = featureFolder + "/" + tile + "/tmp/" + cMaskName + ".tif"
-    if not os.path.exists(featureFolder + "/" + tile):
-        os.mkdir(featureFolder + "/" + tile)
-        os.mkdir(featureFolder + "/" + tile + "/tmp/")
-
-    cmd = "otbcli_BandMath -il " + refRaster + " -out " + cMaskPath + ' uint8 -exp "1"'
-    if not os.path.exists(cMaskPath):
-        os.system(cmd)
-    cMaskPathVec = featureFolder + "/" + tile + "/tmp/" + cMaskName + ".shp"
-    VectorMask = "gdal_polygonize.py -f \"ESRI Shapefile\" -mask " + cMaskPath + " " + cMaskPath +\
-                 " " + cMaskPathVec
-    print(VectorMask)
-    if not os.path.exists(cMaskPathVec):
-        os.system(VectorMask)
-    os.system(VectorMask)
-    return cMaskPath
-
-
-def commonMaskUserFeatures(cfg, tile, cMaskName):
-    """compute the common masks if only user features is selected
-    
-    Parameters
-    ----------
-    
-    cfg : serviceConfig object
-        configuration object
-    tile : string
-        tile to compute
-    cMaskName : string
-        mask's name
-    """
-    from Common import ServiceConfigFile as SCF
-    from Common import OtbAppBank
-
-    if not isinstance(cfg, SCF.serviceConfigFile):
-        cfg = SCF.serviceConfigFile(cfg)
-
-    featuresPath = os.path.join(cfg.getParam('chain', 'outputPath'),
-                                "features")
-    userFeatPath = cfg.getParam('chain', 'userFeatPath')
-    userFeat_arbo = cfg.getParam('userFeat', 'arbo')
-    userFeat_patterns = (cfg.getParam('userFeat', 'patterns')).split(",")
-
-    for dir_user in os.listdir(userFeatPath):
-        if tile in dir_user and os.path.isdir(
-                os.path.join(userFeatPath, dir_user)):
-            ref_raster = FileSearch_AND(os.path.join(userFeatPath,
-                                                     dir_user), True,
-                                        userFeat_patterns[0].replace(" ",
-                                                                     ""))[0]
-    ref_raster_out = os.path.join(featuresPath, tile, "tmp",
-                                  cMaskName + ".tif")
-    ref_raster_app = OtbAppBank.CreateBandMathApplication({
-        "il": ref_raster,
-        "out": ref_raster_out,
-        "exp": "1",
-        "pixType": "uint8"
-    })
-    if not os.path.exists(ref_raster_out):
-        ref_raster_app.ExecuteAndWriteOutput()
-
-    cMaskPathVec = ref_raster_out.replace(".tif", ".shp")
-    if not os.path.exists(cMaskPathVec):
-        VectorMask = "gdal_polygonize.py -f \"ESRI Shapefile\" -mask {} {} {}".format(
-            ref_raster_out, ref_raster_out, cMaskPathVec)
-        run(VectorMask)
-
-
-def getCommonMasks(tile, cfg, workingDirectory=None):
-    """
-    usage : get common mask (sensors common area) for one tile
-
-    IN
-    tile [string]
-    cfg [serviceConfig obj]
-    workingDirectory [string]
-
-    OUT
-    commonMask [string] : common mask path
-    """
-
-    from Sensors import TimeSeriesStacks
-    from Common import ServiceConfigFile as SCF
-
-    if not isinstance(cfg, SCF.serviceConfigFile):
-        cfg = SCF.serviceConfigFile(cfg)
-
-    outputDirectory = os.path.join(cfg.getParam('chain', 'outputPath'),
-                                   "features")
-    out_dir = os.path.join(outputDirectory, tile)
-
-    if not os.path.exists(out_dir):
-        try:
-            os.mkdir(out_dir)
-            os.mkdir(os.path.join(out_dir, "tmp"))
-        except OSError:
-            pass
-
-    cMaskName = getCommonMaskName(cfg)
-
-    #check if mask allready exists. If it exists, remove it
-    maskCommun = FileSearch_AND(out_dir, True, cMaskName, ".tif")
-    if len(maskCommun) == 1:
-        os.remove(maskCommun[0])
-    elif len(maskCommun) > 1:
-        raise Exception("too many common masks found")
-    if cMaskName == "SARMask":
-        commonMask = commonMaskSARgeneration(cfg, tile, cMaskName)
-    elif cMaskName == "UserFeatmask":
-        commonMask = commonMaskUserFeatures(cfg, tile, cMaskName)
-    else:
-        tileFeaturePath = outputDirectory + "/" + tile
-        if not os.path.exists(tileFeaturePath):
-            os.mkdir(tileFeaturePath)
-        _, _, _, _, commonMask = TimeSeriesStacks.generateStack(
-            tile,
-            cfg,
-            outputDirectory=tileFeaturePath,
-            writeOutput=False,
-            workingDirectory=workingDirectory,
-            testMode=False,
-            testSensorData=None)
-
-    return commonMask
-
-
-def cleanFiles(cfg):
-    """
-    remove files which as to be re-computed
-
-    IN
-    cfgFile [string] configuration file path
-    """
-
-    import configparser
-    S1Path = cfg.getParam('chain', 'S1Path')
-    if "None" in S1Path:
-        S1Path = None
-
-    #Remove nbView.tif
-    """
-    features = cfg.getParam('chain', 'featuresPath')
-    validity = FileSearch_AND(features,True,"nbView.tif")
-    for Cvalidity in validity:
-        if os.path.exists(Cvalidity):
-            os.remove(Cvalidity)
-    """
-    #Remove SAR dates files
-    if S1Path:
-        config = configparser.ConfigParser()
-        config.read(S1Path)
-        outputDirectory = config.get('Paths', 'Output')
-        inDates = FileSearch_AND(outputDirectory, True, "inputDates.txt")
-        interpDates = FileSearch_AND(outputDirectory, True,
-                                     "interpolationDates.txt")
-        for cDate in inDates:
-            if os.path.exists(cDate):
-                os.remove(cDate)
-        for cDate in interpDates:
-            if os.path.exists(cDate):
-                os.remove(cDate)
-
-
-def sensorUserList(cfg):
-    """
-        Construct list of sensor used
-        :param cfg: class serviceConfigFile
-        :return sensorList: The list of sensor used
-    """
-    from Common import ServiceConfigFile as SCF
-
-    if not isinstance(cfg, SCF.serviceConfigFile):
-        cfg = SCF.serviceConfigFile(cfg)
-    L5Path = cfg.getParam('chain', 'L5Path')
-    L8Path = cfg.getParam('chain', 'L8Path')
-    S2Path = cfg.getParam('chain', 'S2Path')
-    S2_S2C_Path = cfg.getParam('chain', 'S2_S2C_Path')
-    S1Path = cfg.getParam('chain', 'S1Path')
-
-    sensorList = []
-
-    if "None" not in L5Path:
-        sensorList.append("L5")
-    if "None" not in L8Path:
-        sensorList.append("L8")
-    if "None" not in S2Path:
-        sensorList.append("S2")
-    if "None" not in S2_S2C_Path:
-        sensorList.append("S2_S2C_Path")
-    if "None" not in S1Path:
-        sensorList.append("S1")
-
-    return sensorList
-
-
-def onlySAR(cfg):
-    """
-        Test if only SAR data is available
-        :param cfg: class serviceConfigFile
-        :return retour: bool True if only S1 is set in configuration file
-    """
-    from Common import ServiceConfigFile as SCF
-    if not isinstance(cfg, SCF.serviceConfigFile):
-        cfg = SCF.serviceConfigFile(cfg)
-    # TODO refactoring de la fonction à faire : gestion des erreurs en particulier
-    L5Path = cfg.getParam('chain', 'L5Path')
-    L8Path = cfg.getParam('chain', 'L8Path')
-    S2Path = cfg.getParam('chain', 'S2Path')
-    S1Path = cfg.getParam('chain', 'S1Path')
-
-    if "None" in L5Path:
-        L5Path = None
-    if "None" in L8Path:
-        L8Path = None
-    if "None" in S2Path:
-        S2Path = None
-    if "None" in S1Path:
-        S1Path = None
-
-    retour = False
-
-    if L5Path or L8Path or S2Path:
-        retour = False
-    elif not L5Path and not L8Path and not S2Path and not S1Path:
-        warnings.warn("No sensors path found")
-    else:
-        retour = True
-
-    return retour
-
-
-def getCommonMaskName(cfg):
-    """
-        Test if only SAR data is available
-        :param cfg: class serviceConfigFile
-        :return retour: string name of the mask
-    """
-    mask_name = "MaskCommunSL"
-    return mask_name
 
 
 def dateInterval(dateMin, dataMax, tr):
@@ -785,7 +548,7 @@ def keepBiggestArea(shpin, shpout):
 
     gdal.UseExceptions()
     driver = ogr.GetDriverByName('ESRI Shapefile')
-    field_name_list = getAllFieldsInShape(shpin)
+    field_name_list = get_all_fields_in_shape(shpin)
     in_ds = driver.Open(shpin, 0)
     in_lyr = in_ds.GetLayer()
     inLayerDefn = in_lyr.GetLayerDefn()
@@ -1053,7 +816,7 @@ def getVectorFeatures(ground_truth, region_field, InputShape):
     AllFeat : [lsit of string] : list of all feature fought in InputShape. This vector must
     contains field with pattern 'value_N' N:[0,int(someInt)]
     """
-    input_fields = getAllFieldsInShape(ground_truth) + [
+    input_fields = get_all_fields_in_shape(ground_truth) + [
         region_field, "originfid", "tile_o"
     ]
 
@@ -1123,17 +886,18 @@ def getGroundSpacing(pathToFeat, ImgInfo):
     return spx, spy
 
 
-def str2bool(v):
+def str2bool(value):
     """
     usage : use in argParse as function to parse options
 
     IN:
-    v [string]
+    value [string]
     out [bool]
     """
-    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+    import argparse
+    if value.lower() in ('yes', 'true', 't', 'y', '1'):
         return True
-    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+    elif value.lower() in ('no', 'false', 'f', 'n', '0'):
         return False
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')
@@ -1222,7 +986,7 @@ def multiSearch(shp, ogrDriver='ESRI Shapefile'):
     return retour
 
 
-def getAllFieldsInShape(vector, driver='ESRI Shapefile'):
+def get_all_fields_in_shape(vector, driver='ESRI Shapefile'):
     """
     IN :
     vector [string] : path to vector file
@@ -1232,14 +996,14 @@ def getAllFieldsInShape(vector, driver='ESRI Shapefile'):
     [list of string] : all fields in vector
     """
     driver = ogr.GetDriverByName(driver)
-    dataSource = driver.Open(vector, 0)
-    if dataSource is None:
+    data_source = driver.Open(vector, 0)
+    if data_source is None:
         raise Exception("Could not open " + vector)
-    layer = dataSource.GetLayer()
-    layerDefinition = layer.GetLayerDefn()
+    layer = data_source.GetLayer()
+    layer_definition = layer.GetLayerDefn()
     return [
-        layerDefinition.GetFieldDefn(i).GetName()
-        for i in range(layerDefinition.GetFieldCount())
+        layer_definition.GetFieldDefn(i).GetName()
+        for i in range(layer_definition.GetFieldCount())
     ]
 
 
@@ -1278,7 +1042,7 @@ def multiPolyToPoly(shpMulti, shpSingle):
 
     gdal.UseExceptions()
     driver = ogr.GetDriverByName('ESRI Shapefile')
-    field_name_list = getAllFieldsInShape(shpMulti)
+    field_name_list = get_all_fields_in_shape(shpMulti)
     in_ds = driver.Open(shpMulti, 0)
     in_lyr = in_ds.GetLayer()
     inLayerDefn = in_lyr.GetLayerDefn()
@@ -1796,36 +1560,46 @@ def getShapeExtent(shape_in):
     return env[0], env[2], env[1], env[3]
 
 
-def getFeatStackName(pathConf):
+# def getFeatStackName(list_indices: List[str],
+def get_feat_stack_name(list_indices: List[str],
+                        user_feat_path: str,
+                        user_feat_pattern: Optional[str] = None) -> str:
     """
     usage : get Feature Stack name
+    Parameters
+    ----------
+    list_indices: list(string)
+        the features list
+    user_feat_path: string
+        the path to images
+    user_feat_pattern: string
+        contains features name separated by comma
+    Return
+    ------
+    string: the image stack name
     """
-    from Common import ServiceConfigFile as SCF
-    if not isinstance(pathConf, SCF.serviceConfigFile):
-        cfg = SCF.serviceConfigFile(pathConf)
-    listIndices = cfg.getParam("GlobChain", "features")
-    userFeatPath = cfg.getParam("chain", "userFeatPath")
-    if "None" in userFeatPath:
-        userFeatPath = None
-    userFeat_pattern = ""
-    if userFeatPath:
-        userFeat_pattern = "_".join((cfg.getParam("userFeat",
-                                                  "patterns")).split(","))
 
-    Stack_ind = "SL_MultiTempGapF" + userFeat_pattern + ".tif"
-    retourListFeat = True
-    if len(listIndices) > 1:
-        listIndices = list(listIndices.data)
-        listIndices = sorted(listIndices)
-        listFeat = "_".join(listIndices)
-    elif len(listIndices) == 1:
-        listFeat = listIndices[0]
+    if "None" in user_feat_path:
+        user_feat_path = None
+    if user_feat_pattern is None:
+        user_feat_pattern = ""
     else:
-        retourListFeat = False
+        user_feat_pattern = "_".join(user_feat_pattern.split(","))
 
-    if retourListFeat is True:
-        Stack_ind = "SL_MultiTempGapF_" + listFeat + "_" + userFeat_pattern + "_.tif"
-    return Stack_ind
+    stack_ind = f"SL_MultiTempGapF{user_feat_pattern}.tif"
+    return_list_feat = True
+    if len(list_indices) > 1:
+        list_indices = list(list_indices)
+        list_indices = sorted(list_indices)
+        list_feat = "_".join(list_indices)
+    elif len(list_indices) == 1:
+        list_feat = list_indices[0]
+    else:
+        return_list_feat = False
+
+    if return_list_feat is True:
+        stack_ind = f"SL_MultiTempGapF_{list_feat}_{user_feat_pattern}_.tif"
+    return stack_ind
 
 
 def writeCmds(path, cmds, mode="w"):
@@ -2284,8 +2058,8 @@ class serviceCompareVectorFile:
 
                 geom1 = feature1.GetGeometryRef()
                 geom2 = feature2.GetGeometryRef()
-                # print(geom1)
-                # print(geom2)
+                print(geom1)
+                print(geom2)
                 # check if coordinates are equal
                 isEqual(str(geom1), str(geom2))
 
@@ -2327,30 +2101,3 @@ class serviceCompareVectorFile:
             retour = True
 
         return retour
-
-
-class serviceCompareText:
-    """
-    The class serviceCompareShapeFile provides methods to compare
-    two text file
-    """
-    def testSameText(self, txt1, txt2):
-        """
-            IN :
-                txt1 [string] : path to text file 1
-                txt2 [string] : path to text file 2
-            OUT :
-                retour [bool] : True if same file False if different
-        """
-
-        with open(txt2) as txt:
-            t2 = txt.readlines()
-
-        result = None
-        with open(txt1) as t1:
-            for i, l in enumerate(t1):
-                if l == t2[i] and result != False:
-                    result = True
-                else:
-                    result = False
-        return result

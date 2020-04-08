@@ -19,17 +19,21 @@ from Steps import IOTA2Step
 from Common import ServiceConfigFile as SCF
 from Cluster import get_RAM
 
+
 class confusionSAROptMerge(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "SAROptConfusionMatrixFusion"
-        super(confusionSAROptMerge, self).__init__(cfg, cfg_resources_file, resources_block_name)
+        super(confusionSAROptMerge, self).__init__(cfg, cfg_resources_file,
+                                                   resources_block_name)
 
         # step variables
         self.workingDirectory = workingDirectory
-        self.output_path = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
-        self.data_field = SCF.serviceConfigFile(self.cfg).getParam('chain', 'dataField')
-        
+        self.output_path = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'outputPath')
+        self.data_field = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'dataField')
+
     def step_description(self):
         """
         function use to print a short description of the step's purpose
@@ -43,7 +47,7 @@ class confusionSAROptMerge(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
-        from Validation import ConfusionFusion as confFus
+        from iota2.Validation import ConfusionFusion as confFus
         return confFus.confusion_models_merge_parameters(self.output_path)
 
     def step_execute(self):
@@ -54,8 +58,8 @@ class confusionSAROptMerge(IOTA2Step.Step):
             the function to execute as a lambda function. The returned object
             must be a lambda function.
         """
-        from Validation import ConfusionFusion as confFus
-        step_function = lambda x: confFus.confusion_models_merge(x, self.data_field)
+        from iota2.Validation import ConfusionFusion as confFus
+        step_function = lambda x: confFus.confusion_models_merge(x)
         return step_function
 
     def step_outputs(self):
