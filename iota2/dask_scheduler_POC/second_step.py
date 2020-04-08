@@ -66,7 +66,7 @@ class second_step(step):
             task = self.i2_task(
                 task_name=f"prepro_{tile}",
                 log_dir=self.log_dir,
-                execution_mode="cluster",
+                execution_mode=self.execution_mode,
                 task_parameters=step_params_from_tile_name[tile],
                 task_resources=self.step_resources)
             task_in_graph = self.add_task_to_i2_processing_graph(
