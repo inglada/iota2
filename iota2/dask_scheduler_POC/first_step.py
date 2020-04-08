@@ -37,7 +37,7 @@ class first_step(step):
 
         dir_task = self.i2_task(task_name="gen_dir",
                                 log_dir=self.log_dir,
-                                execution_mode="cluster",
+                                execution_mode=self.execution_mode,
                                 task_parameters={
                                     "f":
                                     self.generate_directories,
