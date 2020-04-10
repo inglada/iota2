@@ -1,5 +1,5 @@
 #!/usr/bin/python
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -14,40 +14,38 @@
 #
 # =========================================================================
 
-import argparse
 import os
-from config import Config
-from Learning import GetModel as GM
-from Common import FileUtils as fu
-from Common import ServiceConfigFile as SCF
 
-def launchUnskew(region_seed_tile, cfg):
+
+def launch_unskew(region_seed_tile, iota2_directory):
     """ Compute command line for features statistics (one per region and run)
 
     Parameters
     ----------
     region_seed_tile : list
         list [region, tiles, seed], cf. Sampling/SamplesMerge
-    cfg : serviceConfig obj
-        configuration object for parameters
+    iota2_directory : str
+        path where iota2 directories have been created
     Note
     ------
     """
-    if not isinstance(cfg, SCF.serviceConfigFile):
-        cfg = SCF.serviceConfigFile(cfg)
-    iota2_directory = cfg.getParam('chain', 'outputPath')
+
     lsamples_directory = os.path.join(iota2_directory, "learningSamples")
     stats_directory = os.path.join(iota2_directory, "stats")
 
-    cmd_list=[]
-    #compute feature statistics for each model
-    for region, tiles, seed in region_seed_tile :
-        shp = os.path.join(lsamples_directory, "learn_samples_region_{}_seed_{}_stats.shp".format(region, seed))
-        output = os.path.join(stats_directory, "features_stats_region_{}_seed_{}.xml".format(region, seed))
-        ft_file = os.path.join(lsamples_directory, "learn_samples_region_{}_seed_{}_stats_label.txt".format(region, seed))
-        feats = open(ft_file).read().replace('\n',' ')
-        cmd = "otbcli_ComputeVectorFeaturesStatistics -io.vd {} -io.stats {} -feat {}".format(shp, output, feats)
+    cmd_list = []
+    # compute feature statistics for each model
+    for region, _, seed in region_seed_tile:
+        shp = os.path.join(
+            lsamples_directory,
+            f"learn_samples_region_{region}_seed_{seed}_stats.shp")
+        output = os.path.join(
+            stats_directory, f"features_stats_region_{region}_seed_{seed}.xml")
+        ft_file = os.path.join(
+            lsamples_directory,
+            f"learn_samples_region_{region}_seed_{seed}_stats_label.txt")
+        feats = open(ft_file).read().replace('\n', ' ')
+        cmd = (f"otbcli_ComputeVectorFeaturesStatistics -io.vd {shp} "
+               f" -io.stats {output} -feat {feats}")
         cmd_list.append(cmd)
     return cmd_list
-
-

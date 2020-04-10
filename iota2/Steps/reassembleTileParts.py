@@ -15,23 +15,34 @@
 # =========================================================================
 import os
 
-from Steps import IOTA2Step
-from Cluster import get_RAM
-from Common import ServiceConfigFile as SCF
+from iota2.Steps import IOTA2Step
+from iota2.Cluster import get_RAM
+from iota2.Common import ServiceConfigFile as SCF
+
 
 class reassembleTileParts(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "reassembleTileParts"
-        super(reassembleTileParts, self).__init__(cfg, cfg_resources_file, resources_block_name)
+        super(reassembleTileParts, self).__init__(cfg, cfg_resources_file,
+                                                  resources_block_name)
 
         # step variables
         self.workingDirectory = workingDirectory
         self.cfg = cfg
         self.runs = SCF.serviceConfigFile(self.cfg).getParam('chain', 'runs')
-        if cfg_resources_file != None :
-            self.nb_cpu = SCF.serviceConfigFile(cfg_resources_file).getParam(resources_block_name,'nb_cpu')
-        else :
+        self.tiles = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'listTile').split(" ")
+        self.output_path = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'outputPath')
+        self.data_field = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'dataField')
+        self.im_ref = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'OBIA_segmentation_path')
+        if cfg_resources_file is not None:
+            self.nb_cpu = SCF.serviceConfigFile(cfg_resources_file).getParam(
+                resources_block_name, 'nb_cpu')
+        else:
             self.nb_cpu = 1
 
     def step_description(self):
@@ -58,9 +69,14 @@ class reassembleTileParts(IOTA2Step.Step):
             the function to execute as a lambda function. The returned object
             must be a lambda function.
         """
-        from Classification import ObiaClassification as OCC
-        step_function = lambda x: OCC.reassembleParts(x, self.nb_cpu, self.cfg, self.workingDirectory)
-        return step_function
+        from iota2.Classification import ObiaClassification as OCC
+        return lambda x: OCC.reassembleParts(seed=x,
+                                             nb_cpu=self.nb_cpu,
+                                             tiles=self.tiles,
+                                             data_field=self.data_field,
+                                             output_path=self.output_path,
+                                             im_ref=self.im_ref,
+                                             path_wd=self.workingDirectory)
 
     def step_outputs(self):
         """

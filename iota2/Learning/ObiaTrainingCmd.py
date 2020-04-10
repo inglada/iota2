@@ -14,15 +14,12 @@
 #
 # =========================================================================
 
-import argparse
 import os
-from config import Config
-import numpy as np
-from Common import FileUtils as fu
-from osgeo import ogr
-from Common import ServiceConfigFile as SCF
+from iota2.Common import FileUtils as fu
 
-def buildObiaTrainCmd(sample, classif, options, dataField, out, feats, stat):
+
+def build_obia_train_cmd(sample, classif, options, dataField, out, feats,
+                         stat):
     """ Compute command line for model creation (one per region and run)
 
     Parameters
@@ -46,17 +43,16 @@ def buildObiaTrainCmd(sample, classif, options, dataField, out, feats, stat):
     ------
     """
     cmd = "otbcli_TrainVectorClassifier -io.vd"
-    cmd += " {} -classifier {} {} -cfield {} -feat {} -io.out {}".format(sample,
-                                                          classif,
-                                                          options,
-                                                          dataField,
-                                                          feats,
-                                                          out)
-    if stat != None :
+    cmd += " {} -classifier {} {} -cfield {} -feat {} -io.out {}".format(
+        sample, classif, options, dataField, feats, out)
+    if stat is not None:
         cmd += " -io.stats {}".format(stat)
     return cmd
 
-def launchObiaTrainModel(cfg, dataField, region_seed_tile, pathToCmdTrain, outfolder, pathWd = None):
+
+def launch_obia_train_model(iota2_directory, data_field, region_seed_tile,
+                            path_to_cmd_train, out_folder, classifier,
+                            options):
     """ Compute command line for model creation (one per region and run)
 
     Parameters
@@ -77,29 +73,30 @@ def launchObiaTrainModel(cfg, dataField, region_seed_tile, pathToCmdTrain, outfo
     Note
     ------
     """
-    if not isinstance(cfg, SCF.serviceConfigFile):
-        cfg = SCF.serviceConfigFile(cfg)
 
-    classif = cfg.getParam('argTrain', 'classifier')
-    options = cfg.getParam('argTrain', 'options')
-    iota2_directory = cfg.getParam('chain', 'outputPath')
     lsamples_directory = os.path.join(iota2_directory, "learningSamples")
     stats_directory = os.path.join(iota2_directory, "stats")
-    wd = stats_directory
-    if pathWd != None :
-        wd = pathWd
 
     cmd_list = []
     # Construct every cmd
-    for region, tiles, seed in region_seed_tile :
-        sample = os.path.join(lsamples_directory, "learn_samples_region_{}_seed_{}_stats.shp".format(region, seed))
-        stat = os.path.join(stats_directory, "features_stats_region_{}_seed_{}.xml".format(region, seed))
-        if os.path.exists(stat) == False:
+    for region, _, seed in region_seed_tile:
+        sample = os.path.join(
+            lsamples_directory,
+            f"learn_samples_region_{region}_seed_{seed}_stats.shp")
+        stat = os.path.join(stats_directory,
+                            f"features_stats_region_{region}_seed_{seed}.xml")
+        if not os.path.exists(stat):
             stat = None
-        feats = open(os.path.join(lsamples_directory, "learn_samples_region_{}_seed_{}_stats_label.txt".format(region,seed))).read().replace('\n',' ')
-        output = os.path.join(outfolder,"model_region_{}_seed_{}.txt".format(region, seed))
-        cmd = buildObiaTrainCmd(sample, classif, options, dataField, output, feats, stat)
+        feats = open(
+            os.path.join(
+                lsamples_directory,
+                f"learn_samples_region_{region}_seed_{seed}_stats_label.txt")
+        ).read().replace('\n', ' ')
+        output = os.path.join(out_folder,
+                              f"model_region_{region}_seed_{seed}.txt")
+        cmd = build_obia_train_cmd(sample, classifier, options, data_field,
+                                   output, feats, stat)
         cmd_list.append(cmd)
     # Save these cmd to a txt file
-    fu.writeCmds(pathToCmdTrain + "/train.txt", cmd_list)
+    fu.writeCmds(path_to_cmd_train + "/train.txt", cmd_list)
     return cmd_list

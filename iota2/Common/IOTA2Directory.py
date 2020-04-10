@@ -30,7 +30,8 @@ def generate_directories(root: str,
                          region_field: Optional[str] = None,
                          epsg: Optional[int] = None,
                          sensor_path: Optional[str] = None,
-                         tiles: Optional[List[str]] = None) -> None:
+                         tiles: Optional[List[str]] = None,
+                         obia_seg_path: Optional[str] = None) -> None:
     """
     generate IOTA2 output directories
 
@@ -130,8 +131,8 @@ def generate_directories(root: str,
             shutil.rmtree(root + "/final/merge_final_classifications")
         os.mkdir(root + "/final/merge_final_classifications")
 
-    obia = cfg.getParam('chain', 'OBIA_segmentation_path')
-    if obia:
+    if obia_seg_path:
+
         if os.path.exists(root + "/segmentation"):
             shutil.rmtree(root + "/segmentation")
         os.mkdir(root + "/segmentation")

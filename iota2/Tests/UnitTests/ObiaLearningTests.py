@@ -33,7 +33,7 @@ RM_IF_ALL_OK = True
 IOTA2_SCRIPTS = IOTA2DIR + "/iota2"
 sys.path.append(IOTA2_SCRIPTS)
 
-from Common import FileUtils as fut
+from iota2.Common import FileUtils as fut
 
 
 class iota_testObiaLearning(unittest.TestCase):
@@ -59,6 +59,10 @@ class iota_testObiaLearning(unittest.TestCase):
         self.modelOutputFolder = os.path.join(IOTA2DIR, "data", "references",
                                               "ObiaUnskewModel", "Output",
                                               "model")
+        # used to activate obia mode
+        self.in_seg = os.path.join(IOTA2DIR, "data", "references",
+                                   "ObiaReassembleParts", "Input", "seg_input",
+                                   "seg_input.tif")
 
         # Tests directory
         self.test_working_directory = None
@@ -113,84 +117,74 @@ class iota_testObiaLearning(unittest.TestCase):
         """
         test unskew model for classification based on learning features
         """
-        from Learning.ModelUnskew import launchUnskew
-        from Common import IOTA2Directory
-        from Common import ServiceConfigFile as SCF
-        from Common.FileUtils import serviceCompareText
+        from iota2.Learning.ModelUnskew import launch_unskew
+        from iota2.Common import IOTA2Directory
+        from iota2.Common.FileUtils import serviceCompareText
         import glob
 
         # prepare test input
-        cfg = SCF.serviceConfigFile(self.config_test)
-        cfg.setParam(
-            "chain", "outputPath",
-            os.path.join(self.test_working_directory, "UnskewModelTest"))
         region_tiles_seed = [(1, ['T38KPD', 'T38KPE'], 0),
                              (1, ['T38KPD', 'T38KPE'], 1), (2, ['T38KPD'], 0),
                              (2, ['T38KPD'], 1)]
 
         # create IOTA2 directories
-        IOTA2Directory.GenerateDirectories(cfg, check_inputs=False)
+        IOTA2Directory.generate_directories(self.test_working_directory,
+                                            check_inputs=False,
+                                            obia_seg_path=self.in_seg)
         shutil.rmtree(
-            os.path.join(self.test_working_directory, "UnskewModelTest",
-                         "learningSamples"))
+            os.path.join(self.test_working_directory, "learningSamples"))
         shutil.copytree(
             self.inLearnSamplesFolder,
-            os.path.join(self.test_working_directory, "UnskewModelTest",
-                         "learningSamples"))
+            os.path.join(self.test_working_directory, "learningSamples"))
 
         # launch function
-        cmd_list = launchUnskew(region_tiles_seed, cfg)
+        cmd_list = launch_unskew(region_tiles_seed,
+                                 self.test_working_directory)
         for cmd in cmd_list:
             os.system(cmd)
 
         # assert
         xmls_to_verify = glob.glob(
             os.path.join(self.statsOutputFolder, '*.xml'))
-        compareText = serviceCompareText()
+        compare_text = serviceCompareText()
         for xml in xmls_to_verify:
-            outXml = os.path.join(self.test_working_directory,
-                                  "UnskewModelTest", "stats",
-                                  os.path.basename(xml))
-            same = compareText.testSameText(xml, outXml)
+            out_xml = os.path.join(self.test_working_directory, "stats",
+                                   os.path.basename(xml))
+            same = compare_text.testSameText(xml, out_xml)
             self.assertTrue(same, msg="segmentation split generation failed")
 
     def test_learn_model(self):
         """
         test producing learning model for classification
         """
-        from Learning.ObiaTrainingCmd import launchObiaTrainModel
-        from Common import IOTA2Directory
-        from Common import ServiceConfigFile as SCF
-        from Common.FileUtils import serviceCompareText
+        from iota2.Learning.ObiaTrainingCmd import launch_obia_train_model
+        from iota2.Common import IOTA2Directory
+        from iota2.Common.FileUtils import serviceCompareText
         import glob
 
         # prepare test input
-        cfg = SCF.serviceConfigFile(self.config_test)
-        cfg.setParam(
-            "chain", "outputPath",
-            os.path.join(self.test_working_directory, "LearnModelTest"))
-        output_path = cfg.getParam('chain', 'outputPath')
-        data_field = cfg.getParam('chain', 'dataField')
+        data_field = "codecg"
         region_seed_tile = [(1, ['T38KPD', 'T38KPE'], 0),
                             (1, ['T38KPD', 'T38KPE'], 1), (2, ['T38KPD'], 0),
                             (2, ['T38KPD'], 1)]
 
         # create IOTA2 directories
-        IOTA2Directory.GenerateDirectories(cfg, check_inputs=False)
+        IOTA2Directory.generate_directories(self.test_working_directory,
+                                            check_inputs=False,
+                                            obia_seg_path=self.in_seg)
         shutil.rmtree(
-            os.path.join(self.test_working_directory, "LearnModelTest",
-                         "learningSamples"))
+            os.path.join(self.test_working_directory, "learningSamples"))
         shutil.copytree(
             self.inLearnSamplesFolder,
-            os.path.join(self.test_working_directory, "LearnModelTest",
-                         "learningSamples"))
+            os.path.join(self.test_working_directory, "learningSamples"))
 
         # launch function
-        cmd_list = launchObiaTrainModel(
-            cfg, data_field, region_seed_tile,
-            os.path.join(output_path, "cmd", "train"),
-            os.path.join(output_path, "model"),
-            os.path.join(self.test_working_directory, "model"))
+        cmd_list = launch_obia_train_model(
+            self.test_working_directory, data_field, region_seed_tile,
+            os.path.join(self.test_working_directory, "cmd", "train"),
+            os.path.join(self.test_working_directory, "model"), "rf",
+            ' -classifier.rf.min 5 -classifier.rf.max 10'
+            ' -classifier.rf.nbtrees 400')
         for cmd in cmd_list:
             os.system(cmd)
 

@@ -105,19 +105,23 @@ def compare_ref(shape_ref: str,
         f" -te {min_x} {min_y} {max_x} {max_y}")
     run(cmd)
 
-    if obia_seg_path != None:
-        #Superimpose val
-        supimp_shapeRaster_val = shapeRaster_val.replace('.', '_supimp.')
+    if obia_seg_path is not None:
+        # Superimpose val
+        supimp_shape_raster_val = os.path.join(
+            working_directory,
+            os.path.basename(shape_raster_val).replace('.', '_supimp.'))
         cmd = "otbcli_Superimpose -inm {} -inr {} -out {} -interpolator nn".format(
-            shapeRaster_val, classif, supimp_shapeRaster_val)
+            shape_raster_val, classif, supimp_shape_raster_val)
         run(cmd)
-        shapeRaster_val = supimp_shapeRaster_val
-        #Rasterise learn
-        supimp_shapeRaster_learn = shapeRaster_learn.replace('.', '_supimp.')
+        shape_raster_val = supimp_shape_raster_val
+        # Rasterise learn
+        supimp_shape_raster_learn = os.path.join(
+            working_directory,
+            os.path.basename(shape_raster_learn).replace('.', '_supimp.'))
         cmd = "otbcli_Superimpose -inm {} -inr {} -out {} -interpolator nn".format(
-            shapeRaster_learn, classif, supimp_shapeRaster_learn)
+            shape_raster_learn, classif, supimp_shape_raster_learn)
         run(cmd)
-        shapeRaster_learn = supimp_shapeRaster_learn
+        shape_raster_learn = supimp_shape_raster_learn
 
     # diff val
     diff_val = working_directory + "/" + diff.split("/")[-1].replace(
@@ -152,10 +156,17 @@ def compare_ref(shape_ref: str,
     return diff
 
 
-def gen_conf_matrix(path_classif: str, path_valid: str, runs: int,
-                    data_field: str, path_to_cmd_confusion: str, path_wd: str,
-                    path_test: str, spatial_res: int, list_tiles: List[str],
-                    enable_cross_validation: bool) -> List[str]:
+def gen_conf_matrix(path_classif: str,
+                    path_valid: str,
+                    runs: int,
+                    data_field: str,
+                    path_to_cmd_confusion: str,
+                    path_wd: str,
+                    path_test: str,
+                    spatial_res: int,
+                    list_tiles: List[str],
+                    enable_cross_validation: bool,
+                    obia_seg_path: Optional[str] = None) -> List[str]:
     """
     Parameters
     ----------
@@ -205,8 +216,8 @@ def gen_conf_matrix(path_classif: str, path_valid: str, runs: int,
                 path_valid, True, tile,
                 "_seed_" + str(seed) + "_learn.sqlite")[0]
             path_directory = path_tmp
-            cmd = (f'otbcli_ComputeConfusionMatrix -in {path_classif}/"'
-                   f'"Classif_Seed_{seed}.tif -out {path_directory}/'
+            cmd = (f'otbcli_ComputeConfusionMatrix -in {path_classif}{os.sep}'
+                   f'Classif_Seed_{seed}.tif -out {path_directory}/'
                    f'{tile}_seed_{seed}.csv'
                    f' -ref.vector.field {data_field.lower()} -ref vector '
                    f'-ref.vector.in {val_tile}')
@@ -216,7 +227,7 @@ def gen_conf_matrix(path_classif: str, path_valid: str, runs: int,
                 seed) + "_CompRef.tif"
 
             compare_ref(val_tile, learn_tile, classif, diff, working_directory,
-                        path_wd, data_field, spatial_res)
+                        path_wd, data_field, spatial_res, obia_seg_path)
 
     fu.writeCmds(path_to_cmd_confusion + "/confusion.txt", all_cmd)
 

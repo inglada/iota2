@@ -33,6 +33,8 @@ class confusionCmd(IOTA2Step.Step):
         self.runs = SCF.serviceConfigFile(self.cfg).getParam('chain', 'runs')
         self.data_field = SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'dataField')
+        self.obia_seg = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'OBIA_segmentation_path')
 
     def step_description(self):
         """
@@ -66,8 +68,8 @@ class confusionCmd(IOTA2Step.Step):
             SCF.serviceConfigFile(self.cfg).getParam('chain',
                                                      'spatialResolution'),
             SCF.serviceConfigFile(self.cfg).getParam('chain', 'listTile'),
-            SCF.serviceConfigFile(self.cfg).getParam('chain',
-                                                     'enableCrossValidation'))
+            SCF.serviceConfigFile(self.cfg).getParam(
+                'chain', 'enableCrossValidation'), self.obia_seg)
         return step_function
 
     def step_outputs(self):

@@ -22,7 +22,7 @@ import argparse
 import logging
 import numpy as np
 from osgeo import gdal
-from typing import List
+from typing import List, Optional
 from osgeo.gdalconst import *
 
 from iota2.Common import FileUtils as fu
@@ -359,14 +359,12 @@ def classification_shaping(path_classif: str,
         for tmp_folder in all_tmp_folder:
             shutil.rmtree(tmp_folder)
 
-    if obia_seg_path != None:
-        OBIA_segmentation_path = cfg.getParam('chain',
-                                              'OBIA_segmentation_path')
-        spx, spy = fu.getRasterResolution(OBIA_segmentation_path)
-        spatialResolution = spx
-    else:
-        OBIA_segmentation_path = None
-        spatialResolution = cfg.getParam('chain', 'spatialResolution')
+    # if obia_seg_path is not None:
+    #     spx, _ = fu.getRasterResolution(obia_seg_path)
+    #     spatialResolution = spx
+    # else:
+    #     OBIA_segmentation_path = None
+    #     # spatialResolution = cfg.getParam('chain', 'spatialResolution')
     suffix = "*"
     if ds_sar_opt:
         suffix = "*DS*"
@@ -441,12 +439,12 @@ def classification_shaping(path_classif: str,
             cloud_tile = fu.FileSearch_AND(features_path + "/" + tile, True,
                                            "nbView.tif")[0]
             classif_tile = tmp + "/" + tile + "_seed_" + str(seed) + ".tif"
-            if OBIA_segmentation_path != None:
-                supImpCloudTile = cloudTile.replace('.', '_supimp.')
+            if obia_seg_path is not None:
+                sup_imp_cloud_tile = cloud_tile.replace('.', '_supimp.')
                 cmd_supimp = 'otbcli_Superimpose -inr {} -inm {} -out {} -interpolator nn'.format(
-                    ClassifTile, cloudTile, supImpCloudTile)
+                    classif_tile, cloud_tile, sup_imp_cloud_tile)
                 run(cmd_supimp)
-                cloudTile = supImpCloudTile
+                cloud_tile = sup_imp_cloud_tile
             cloud_tile_priority = path_test + "/final/TMP/" + tile + "_Cloud.tif"
             cloud_tile_priority_tmp = tmp + "/" + tile + "_Cloud.tif"
             cloud_tile_priority_stats_ok = path_test + "/final/TMP/" + tile + "_Cloud_StatsOK.tif"
@@ -456,7 +454,10 @@ def classification_shaping(path_classif: str,
                 cmd_cloud = f'otbcli_BandMath -il {cloud_tile}  {classif_tile} -out {cloud_tile_priority_tmp} int16 -exp "im2b1>0?im1b1:0"'
                 run(cmd_cloud)
                 if output_statistics:
-                    cmd_cloud = 'otbcli_BandMath -il ' + cloud_tile + ' ' + classif_tile + ' -out ' + cloud_tile_priority_tmp_stats_ok + ' int16 -exp "im2b1>0?im1b1:-1"'
+                    cmd_cloud = ('otbcli_BandMath -il ' + cloud_tile + ' ' +
+                                 classif_tile + ' -out ' +
+                                 cloud_tile_priority_tmp_stats_ok +
+                                 ' int16 -exp "im2b1>0?im1b1:-1"')
                     run(cmd_cloud)
                     if path_wd:
                         shutil.copy(cloud_tile_priority_tmp_stats_ok,

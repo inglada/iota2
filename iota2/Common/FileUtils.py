@@ -2101,3 +2101,30 @@ class serviceCompareVectorFile:
             retour = True
 
         return retour
+
+
+class serviceCompareText:
+    """
+    The class serviceCompareShapeFile provides methods to compare
+    two text file
+    """
+    def testSameText(self, txt1, txt2):
+        """
+            IN :
+                txt1 [string] : path to text file 1
+                txt2 [string] : path to text file 2
+            OUT :
+                retour [bool] : True if same file False if different
+        """
+
+        with open(txt2) as txt:
+            t2 = txt.readlines()
+
+        result = None
+        with open(txt1) as t1:
+            for i, l in enumerate(t1):
+                if l == t2[i] and result != False:
+                    result = True
+                else:
+                    result = False
+        return result

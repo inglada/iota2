@@ -79,7 +79,9 @@ class IOTA2DirTree(IOTA2Step.Step):
             SCF.serviceConfigFile(self.cfg).getParam('chain', 'regionField'),
             int(
                 SCF.serviceConfigFile(self.cfg).getParam('GlobChain', 'proj').
-                split(":")[-1]), sensor_path, tiles)
+                split(":")[-1]), sensor_path, tiles,
+            SCF.serviceConfigFile(self.cfg).getParam("chain",
+                                                     "OBIA_segmentation_path"))
         return step_function
 
     def step_outputs(self):

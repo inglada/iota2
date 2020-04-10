@@ -439,6 +439,8 @@ class iota2():
 
             # classifications steps
             s_container.append(step_obia_classification, "classification")
+            # mosaic step
+            s_container.append(step_reassembleTileParts, "mosaic")
 
         # mosaic step
         s_container.append(step_mosaic, "mosaic")

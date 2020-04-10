@@ -121,10 +121,10 @@ class iota_testObiaClassification(unittest.TestCase):
                              self._resultForDoCleanups)
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
-        ok = not error and not failure
+        ok_test = not error and not failure
 
-        self.all_tests_ok.append(ok)
-        if ok:
+        self.all_tests_ok.append(ok_test)
+        if ok_test:
             shutil.rmtree(self.test_working_directory)
 
     # Tests definitions
@@ -132,68 +132,49 @@ class iota_testObiaClassification(unittest.TestCase):
         """
         test classification for obia workflow
         """
-        from Classification.ObiaClassification import launchObiaClassification
-        from Common import IOTA2Directory
-        from Common import ServiceConfigFile as SCF
-        from Common.FileUtils import serviceCompareVectorFile
+        from iota2.Classification.ObiaClassification import launchObiaClassification
+        from iota2.Common import IOTA2Directory
+        from iota2.Common.FileUtils import serviceCompareVectorFile
         import glob
 
-        # prepare test input
-        cfg = SCF.serviceConfigFile(self.config_test)
-        cfg.setParam(
-            "chain", "outputPath",
-            os.path.join(self.test_working_directory,
-                         "ObiaClassificationTest"))
-
         # create IOTA2 directories
-        IOTA2Directory.GenerateDirectories(cfg, check_inputs=False)
+        IOTA2Directory.generate_directories(self.test_working_directory,
+                                            check_inputs=False,
+                                            obia_seg_path=self.in_seg)
+        shutil.rmtree(os.path.join(self.test_working_directory,
+                                   "tilesSamples"))
         shutil.rmtree(
-            os.path.join(self.test_working_directory, "ObiaClassificationTest",
-                         "tilesSamples"))
-        shutil.rmtree(
-            os.path.join(self.test_working_directory, "ObiaClassificationTest",
-                         "learningSamples"))
-        shutil.rmtree(
-            os.path.join(self.test_working_directory, "ObiaClassificationTest",
-                         "model"))
-        shutil.rmtree(
-            os.path.join(self.test_working_directory, "ObiaClassificationTest",
-                         "stats"))
+            os.path.join(self.test_working_directory, "learningSamples"))
+        shutil.rmtree(os.path.join(self.test_working_directory, "model"))
+        shutil.rmtree(os.path.join(self.test_working_directory, "stats"))
         shutil.copytree(
             self.inTilesSamplesFolder,
-            os.path.join(self.test_working_directory, "ObiaClassificationTest",
-                         "tilesSamples"))
+            os.path.join(self.test_working_directory, "tilesSamples"))
         shutil.copytree(
             self.inLearnSamplesFolder,
-            os.path.join(self.test_working_directory, "ObiaClassificationTest",
-                         "learningSamples"))
-        shutil.copytree(
-            self.inModelFolder,
-            os.path.join(self.test_working_directory, "ObiaClassificationTest",
-                         "model"))
-        shutil.copytree(
-            self.inStatsFolder,
-            os.path.join(self.test_working_directory, "ObiaClassificationTest",
-                         "stats"))
+            os.path.join(self.test_working_directory, "learningSamples"))
+        shutil.copytree(self.inModelFolder,
+                        os.path.join(self.test_working_directory, "model"))
+        shutil.copytree(self.inStatsFolder,
+                        os.path.join(self.test_working_directory, "stats"))
 
         # launch function
         runs = [run for run in range(0, self.runs)]
         for run in runs:
+            print("launch obia")
             launchObiaClassification(
-                run, 2, cfg,
-                os.path.join(self.test_working_directory,
-                             "ObiaClassificationTest", "classif"))
-
+                run, 2, "codecg", self.test_working_directory,
+                os.path.join(self.test_working_directory, "classif"))
+            print("end launch")
         # assert
         shps_to_verify = glob.glob(
             os.path.join(self.classifOutputFolder, '*', '*.shp'))
-        compareVector = serviceCompareVectorFile()
+        compare_vector = serviceCompareVectorFile()
         for shp in shps_to_verify:
             tile = os.path.basename(shp).split('_')[0]
-            outShp = os.path.join(self.test_working_directory,
-                                  "ObiaClassificationTest", "classif", tile,
-                                  os.path.basename(shp))
-            same = compareVector.testSameShapefiles(shp, outShp)
+            out_shp = os.path.join(self.test_working_directory, "classif",
+                                   tile, os.path.basename(shp))
+            same = compare_vector.testSameShapefiles(shp, out_shp)
             self.assertTrue(
                 same,
                 msg="Splitting learning samples with segmentation  failed")
@@ -202,57 +183,41 @@ class iota_testObiaClassification(unittest.TestCase):
         """
         test reassemble parts to produce files suitable for standard worflow that follows classification (mosaic)
         """
-        from Classification.ObiaClassification import reassembleParts
-        from Common import IOTA2Directory
-        from Common import ServiceConfigFile as SCF
-        from Common.FileUtils import serviceCompareImageFile
+        from iota2.Classification.ObiaClassification import reassembleParts
+        from iota2.Common import IOTA2Directory
+
+        from iota2.Common.FileUtils import serviceCompareImageFile
         import glob
 
-        # prepare test input
-        cfg = SCF.serviceConfigFile(self.config_test)
-        cfg.setParam(
-            "chain", "outputPath",
-            os.path.join(self.test_working_directory, "ObiaReassembleTest"))
-        cfg.setParam("chain", "OBIA_segmentation_path", self.in_seg)
-
+        tiles = "T38KPD T38KPE".split(" ")
         # create IOTA2 directories
-        IOTA2Directory.GenerateDirectories(cfg, check_inputs=False)
-        shutil.rmtree(
-            os.path.join(self.test_working_directory, "ObiaReassembleTest",
-                         "classif"))
-        shutil.rmtree(
-            os.path.join(self.test_working_directory, "ObiaReassembleTest",
-                         "model"))
-        shutil.copytree(
-            self.inClassifFolder,
-            os.path.join(self.test_working_directory, "ObiaReassembleTest",
-                         "classif"))
-        shutil.copytree(
-            self.inModelFolder,
-            os.path.join(self.test_working_directory, "ObiaReassembleTest",
-                         "model"))
+        IOTA2Directory.generate_directories(self.test_working_directory,
+                                            check_inputs=False,
+                                            obia_seg_path=self.in_seg)
+        shutil.rmtree(os.path.join(self.test_working_directory, "classif"))
+        shutil.rmtree(os.path.join(self.test_working_directory, "model"))
+        shutil.copytree(self.inClassifFolder,
+                        os.path.join(self.test_working_directory, "classif"))
+        shutil.copytree(self.inModelFolder,
+                        os.path.join(self.test_working_directory, "model"))
 
         # launch function
         runs = [run for run in range(0, self.runs)]
         for run in runs:
             reassembleParts(
-                run, 2, cfg,
-                os.path.join(self.test_working_directory, "ObiaReassembleTest",
-                             "classif"))
+                run, 2, tiles, "codecg", self.test_working_directory,
+                self.in_seg,
+                os.path.join(self.test_working_directory, "classif"))
 
         # assert
         tifs_to_verify = glob.glob(
             os.path.join(self.classifOutput2Folder, '*.tif'))
-        compareImage = serviceCompareImageFile()
+        compare_image = serviceCompareImageFile()
         for tif in tifs_to_verify:
-            outTif = os.path.join(self.test_working_directory,
-                                  "ObiaReassembleTest", "classif",
-                                  os.path.basename(tif))
-            nb = compareImage.gdalFileCompare(tif, outTif)
-            if nb == 0:
-                same = True
-            else:
-                same = False
+            out_tif = os.path.join(self.test_working_directory, "classif",
+                                   os.path.basename(tif))
+            cmp_val = compare_image.gdalFileCompare(tif, out_tif)
+            same = cmp_val == 0
             self.assertTrue(
                 same,
-                msg="Splitting learning samples with segmentation  failed")
+                msg="Splitting learning samples with segmentation failed")

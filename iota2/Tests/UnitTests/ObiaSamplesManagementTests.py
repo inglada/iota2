@@ -33,7 +33,7 @@ RM_IF_ALL_OK = True
 IOTA2_SCRIPTS = IOTA2DIR + "/iota2"
 sys.path.append(IOTA2_SCRIPTS)
 
-from Common import FileUtils as fut
+from iota2.Common import FileUtils as fut
 
 
 class iota_testObiaFormatSamples(unittest.TestCase):
@@ -126,122 +126,116 @@ class iota_testObiaFormatSamples(unittest.TestCase):
         """
         test spliting segmentation by tiles and regions(main function of splitSegmentationByTiles step)
         """
-        from Sampling.SplitSamplesForOBIA import split_segmentation_by_tiles
-        from Common import IOTA2Directory
-        from Common import ServiceConfigFile as SCF
-        from Common.FileUtils import serviceCompareVectorFile
+        from iota2.Sampling.SplitSamplesForOBIA import split_segmentation_by_tiles
+        from iota2.Common import IOTA2Directory
+        from iota2.Common import ServiceConfigFile as SCF
+        from iota2.Common.FileUtils import serviceCompareVectorFile
         import glob
 
         # prepare test input
-        cfg = SCF.serviceConfigFile(self.config_test)
-        cfg.setParam("chain", "outputPath",
-                     os.path.join(self.test_working_directory, "splitTest"))
-        cfg.setParam("chain", "OBIA_segmentation_path", self.in_seg)
+        # values readed from original config fiel self.config_test
+        tiles = 'T38KPD T38KPE'.split(" ")
+        epsg = 32738
+        region_path = None  # No field for regionPath in file
+        # cfg = SCF.serviceConfigFile(self.config_test)
+        # cfg.setParam("chain", "outputPath",
+        #            os.path.join(self.test_working_directory, "splitTest"))
+        # cfg.setParam("chain", "OBIA_segmentation_path", self.in_seg)
 
         # create IOTA2 directories
-        IOTA2Directory.GenerateDirectories(cfg, check_inputs=False)
-        shutil.rmtree(
-            os.path.join(self.test_working_directory, "splitTest",
-                         "shapeRegion"))
-        shutil.rmtree(
-            os.path.join(self.test_working_directory, "splitTest", "envelope"))
+        IOTA2Directory.generate_directories(self.test_working_directory,
+                                            check_inputs=False,
+                                            obia_seg_path=self.in_seg)
+        shutil.rmtree(os.path.join(self.test_working_directory, "shapeRegion"))
+        shutil.rmtree(os.path.join(self.test_working_directory, "envelope"))
         shutil.copytree(
             self.in_shapeRegionFolder,
-            os.path.join(self.test_working_directory, "splitTest",
-                         "shapeRegion"))
-        shutil.copytree(
-            self.in_enveloppeFolder,
-            os.path.join(self.test_working_directory, "splitTest", "envelope"))
-        shutil.copy(
-            self.in_seg,
-            os.path.join(self.test_working_directory, "splitTest",
-                         "seg_input.tif"))
-        cfg.setParam(
-            "chain", "OBIA_segmentation_path",
-            os.path.join(self.test_working_directory, "splitTest",
-                         "seg_input.tif"))
+            os.path.join(self.test_working_directory, "shapeRegion"))
+        shutil.copytree(self.in_enveloppeFolder,
+                        os.path.join(self.test_working_directory, "envelope"))
+        shutil.copy(self.in_seg,
+                    os.path.join(self.test_working_directory, "seg_input.tif"))
+        segmentation = os.path.join(self.test_working_directory,
+                                    "seg_input.tif")
         # launch function
-        split_segmentation_by_tiles(
-            cfg,
-            os.path.join(self.test_working_directory, "splitTest",
-                         "seg_input.tif"),
-            os.path.join(self.test_working_directory, "splitTest",
-                         "segmentation"), 100)
+        split_segmentation_by_tiles(self.test_working_directory,
+                                    tiles,
+                                    segmentation,
+                                    epsg,
+                                    os.path.join(self.test_working_directory,
+                                                 "segmentation"),
+                                    region_path=region_path,
+                                    size=100)
         # assert
         shps_to_verify = glob.glob(
             os.path.join(self.splitTilesOutputFolder, '*', '*.shp'))
-        compareVector = serviceCompareVectorFile()
+        compare_vector = serviceCompareVectorFile()
         for shp in shps_to_verify:
             tile = os.path.basename(shp).split('_')[0]
-            outShp = os.path.join(self.test_working_directory, "splitTest",
-                                  "segmentation", tile, os.path.basename(shp))
+            out_shp = os.path.join(self.test_working_directory, "segmentation",
+                                   tile, os.path.basename(shp))
 
-            same = compareVector.testSameShapefiles(shp, outShp)
+            same = compare_vector.testSameShapefiles(shp, out_shp)
             self.assertTrue(
                 same,
                 msg="Splitting learning samples with segmentation  failed")
 
     def test_obia_learn_samples(self):
         """
-        test intersecting learning samples with segments (main function of formatSamplesToSegmentation step)
+        test intersecting learning samples with segments 
+        (main function of formatSamplesToSegmentation step)
         """
-        from Sampling.SplitSamplesForOBIA import format_sample_to_segmentation
-        from Common import IOTA2Directory
-        from Common import ServiceConfigFile as SCF
-        from Common.FileUtils import serviceCompareVectorFile
-        from Sampling import SamplesMerge as samples_merge
+        from iota2.Sampling.SplitSamplesForOBIA import format_sample_to_segmentation
+        from iota2.Common import IOTA2Directory
+        from iota2.Common.FileUtils import serviceCompareVectorFile
         import glob
 
         # prepare test input
-        cfg = SCF.serviceConfigFile(self.config_test)
-        cfg.setParam(
-            "chain", "outputPath",
-            os.path.join(self.test_working_directory,
-                         "formatLearningSamplesTest"))
+        # cfg = SCF.serviceConfigFile(self.config_test)
+        # cfg.setParam(
+        #     "chain", "outputPath",
+        #     os.path.join(self.test_working_directory,
+        #                  "formatLearningSamplesTest"))
         region_tiles_seed = [(1, ['T38KPD', 'T38KPE'], 0),
                              (1, ['T38KPD', 'T38KPE'], 1), (2, ['T38KPD'], 0),
                              (2, ['T38KPD'], 1)]
-
+        region_path = None
         # create IOTA2 directories
-        IOTA2Directory.GenerateDirectories(cfg, check_inputs=False)
+        IOTA2Directory.generate_directories(self.test_working_directory,
+                                            check_inputs=False,
+                                            obia_seg_path=self.in_seg)
+        shutil.rmtree(os.path.join(self.test_working_directory, "shapeRegion"))
         shutil.rmtree(
-            os.path.join(self.test_working_directory,
-                         "formatLearningSamplesTest", "shapeRegion"))
-        shutil.rmtree(
-            os.path.join(self.test_working_directory,
-                         "formatLearningSamplesTest", "samplesSelection"))
-        shutil.rmtree(
-            os.path.join(self.test_working_directory,
-                         "formatLearningSamplesTest", "segmentation"))
+            os.path.join(self.test_working_directory, "samplesSelection"))
+        shutil.rmtree(os.path.join(self.test_working_directory,
+                                   "segmentation"))
         shutil.copytree(
             self.in_shapeRegionFolder,
-            os.path.join(self.test_working_directory,
-                         "formatLearningSamplesTest", "shapeRegion"))
+            os.path.join(self.test_working_directory, "shapeRegion"))
         shutil.copytree(
             self.in_samplesSelection,
-            os.path.join(self.test_working_directory,
-                         "formatLearningSamplesTest", "samplesSelection"))
+            os.path.join(self.test_working_directory, "samplesSelection"))
         shutil.copytree(
             self.in_tiled_segmentation,
-            os.path.join(self.test_working_directory,
-                         "formatLearningSamplesTest", "segmentation"))
+            os.path.join(self.test_working_directory, "segmentation"))
 
-        #launch function
-        for x in region_tiles_seed:
-            format_sample_to_segmentation(
-                cfg, x,
-                os.path.join(self.test_working_directory,
-                             "formatLearningSamplesTest", "segmentation"))
+        # launch function
+        for param in region_tiles_seed:
+            format_sample_to_segmentation(self.test_working_directory,
+                                          param,
+                                          os.path.join(
+                                              self.test_working_directory,
+                                              "segmentation"),
+                                          region_path=region_path)
 
         shps_to_verify = glob.glob(
             os.path.join(self.formatOutputFolder, '*.shp'))
-        compareVector = serviceCompareVectorFile()
+        compare_vector = serviceCompareVectorFile()
         for shp in shps_to_verify:
-            outShp = os.path.join(self.test_working_directory,
-                                  "formatLearningSamplesTest", "segmentation",
-                                  os.path.basename(shp))
+            out_shp = os.path.join(self.test_working_directory, "segmentation",
+                                   os.path.basename(shp))
 
-            same = compareVector.testSameShapefiles(shp, outShp)
+            same = compare_vector.testSameShapefiles(shp, out_shp)
             self.assertTrue(
                 same,
                 msg="Splitting learning samples with segmentation  failed")

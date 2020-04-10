@@ -233,8 +233,8 @@ def intersect_shp(t1,
                   drivervect="ESRI Shapefile",
                   driverout="ESRI Shapefile"):
     """
-   Return intersection of t1 by t2, using SpatialFilter to be quicker
-   """
+    Return intersection of t1 by t2, using SpatialFilter to be quicker
+    """
     dsvect = openToRead(t1, drivervect)
     dsclip = openToRead(t2, driverclip)
     lyrvect = dsvect.GetLayer()

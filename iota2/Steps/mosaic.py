@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -38,6 +38,8 @@ class mosaic(IOTA2Step.Step):
         self.fieldEnv = "FID"
         self.color_table = SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'colorTable')
+        self.obia_seg = SCF.serviceConfigFile(self.cfg).getParam(
+            "chain", "OBIA_segmentation_path")
 
     def step_description(self):
         """
@@ -63,6 +65,7 @@ class mosaic(IOTA2Step.Step):
             must be a lambda function.
         """
         from iota2.Validation import ClassificationShaping as CS
+        from iota2.Common import FileUtils as fu
         region_path = SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'regionPath')
         classif_mode = SCF.serviceConfigFile(self.cfg).getParam(
@@ -76,16 +79,19 @@ class mosaic(IOTA2Step.Step):
             "chain", "nomenclaturePath")
         enable_proba_map = SCF.serviceConfigFile(self.cfg).getParam(
             "argClassification", "enable_probability_map")
-        spatial_res = SCF.serviceConfigFile(self.cfg).getParam(
-            "chain", "spatialResolution")
+        if self.obia_seg:
+            spatial_res, _ = fu.getRasterResolution(self.obia_seg)
+        else:
+            spatial_res = SCF.serviceConfigFile(self.cfg).getParam(
+                "chain", "spatialResolution")
         output_statistics = SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'outputStatistics')
-        step_function = lambda x: CS.classification_shaping(
-            x, self.runs, os.path.join(self.output_path, "final"), self.
-            workingDirectory, classif_mode, self.output_path,
-            ds_fusion_sar_opt, proj, nomenclature_path, output_statistics,
-            spatial_res, enable_proba_map, region_path, self.color_table)
-        return step_function
+        return lambda x: CS.classification_shaping(
+            x, self.runs, os.path.join(self.output_path, "final"
+                                       ), self.workingDirectory, classif_mode,
+            self.output_path, ds_fusion_sar_opt, proj, nomenclature_path,
+            output_statistics, spatial_res, enable_proba_map, region_path, self
+            .color_table, self.obia_seg)
 
     def step_outputs(self):
         """

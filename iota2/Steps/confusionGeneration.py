@@ -15,19 +15,21 @@
 # =========================================================================
 import os
 
-from Steps import IOTA2Step
-from Common import ServiceConfigFile as SCF
+from iota2.Steps import IOTA2Step
+from iota2.Common import ServiceConfigFile as SCF
 
 
 class confusionGeneration(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "confusionMatrix"
-        super(confusionGeneration, self).__init__(cfg, cfg_resources_file, resources_block_name)
+        super(confusionGeneration, self).__init__(cfg, cfg_resources_file,
+                                                  resources_block_name)
 
         # step variables
         self.workingDirectory = workingDirectory
-        self.output_path = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
+        self.output_path = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'outputPath')
 
     def step_description(self):
         """
@@ -42,8 +44,10 @@ class confusionGeneration(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
-        from Common import FileUtils as fut
-        return fut.getCmd(os.path.join(self.output_path, "cmd", "confusion", "confusion.txt"))
+        from iota2.Common import FileUtils as fut
+        return fut.getCmd(
+            os.path.join(self.output_path, "cmd", "confusion",
+                         "confusion.txt"))
 
     def step_execute(self):
         """
@@ -53,7 +57,7 @@ class confusionGeneration(IOTA2Step.Step):
             the function to execute as a lambda function. The returned object
             must be a lambda function.
         """
-        from MPI import launch_tasks as tLauncher
+        from iota2.MPI import launch_tasks as tLauncher
         bashLauncherFunction = tLauncher.launchBashCmd
         step_function = lambda x: bashLauncherFunction(x)
         return step_function
