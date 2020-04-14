@@ -18,6 +18,8 @@ import os
 from iota2.Steps import IOTA2Step
 from iota2.Cluster import get_RAM
 from iota2.Common import ServiceConfigFile as SCF
+from iota2.Segmentation import segmentation
+from iota2.Common.ServiceConfigFile import iota2_parameters
 
 
 class slicSegmentation(IOTA2Step.Step):
@@ -30,6 +32,38 @@ class slicSegmentation(IOTA2Step.Step):
         # step variables
         self.RAM = 1024.0 * get_RAM(self.resources["ram"])
         self.workingDirectory = workingDirectory
+        self.execution_mode = "cluster"
+        self.step_tasks = []
+        running_parameters = iota2_parameters(self.cfg)
+
+        for tile in self.tiles:
+            task = self.i2_task(
+                task_name=f"slic_segmentation_{tile}",
+                log_dir=self.log_step_dir,
+                execution_mode=self.execution_mode,
+                task_parameters={
+                    "f":
+                    segmentation.slicSegmentation,
+                    "tile_name":
+                    tile,
+                    "output_path":
+                    SCF.serviceConfigFile(self.cfg).getParam(
+                        'chain', 'outputPath'),
+                    "sensors_parameters":
+                    running_parameters.get_sensors_parameters(tile),
+                    "ram":
+                    self.RAM,
+                    "working_dir":
+                    self.workingDirectory
+                },
+                task_resources=self.resources)
+            task_in_graph = self.add_task_to_i2_processing_graph(
+                task,
+                task_group="tile_tasks",
+                task_sub_group=tile,
+                task_dep_group="tile_tasks",
+                task_dep_sub_group=[tile])
+            self.step_tasks.append(task_in_graph)
 
     def step_description(self):
         """
@@ -39,38 +73,3 @@ class slicSegmentation(IOTA2Step.Step):
         #~ About SLIC segmentation implementation :
         #~     https://ieeexplore.ieee.org/document/8606448
         return description
-
-    def step_inputs(self):
-        """
-        Return
-        ------
-            the return could be and iterable or a callable
-        """
-        tiles = SCF.serviceConfigFile(self.cfg).getParam('chain',
-                                                         'listTile').split(" ")
-        return tiles
-
-    def step_execute(self):
-        """
-        Return
-        ------
-        lambda
-            the function to execute as a lambda function. The returned object
-            must be a lambda function.
-        """
-        from iota2.Segmentation import segmentation
-        from iota2.Common.ServiceConfigFile import iota2_parameters
-
-        running_parameters = iota2_parameters(self.cfg)
-
-        step_function = lambda x: segmentation.slicSegmentation(
-            x,
-            SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath'),
-            running_parameters.get_sensors_parameters(x), self.RAM, self.
-            workingDirectory)
-        return step_function
-
-    def step_outputs(self):
-        """
-        """
-        pass

@@ -26,6 +26,67 @@ class IOTA2DirTree(IOTA2Step.Step):
         resources_block_name = "iota2_dir"
         super(IOTA2DirTree, self).__init__(cfg, cfg_resources_file,
                                            resources_block_name)
+        self.execution_mode = "cluster"
+
+        from iota2.Sensors.Sensors_container import sensors_container
+        from iota2.Common.ServiceConfigFile import iota2_parameters
+
+        check_inputs = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'check_inputs')
+        tiles = SCF.serviceConfigFile(self.cfg).getParam('chain',
+                                                         'listTile').split(" ")
+        output_path = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'outputPath')
+        running_parameters = iota2_parameters(
+            SCF.serviceConfigFile(self.cfg).pathConf)
+        sensors_parameters = running_parameters.get_sensors_parameters(
+            tiles[0])
+        sensor_tile_container = sensors_container(tiles[0], None, output_path,
+                                                  **sensors_parameters)
+
+        sensor_path = sensor_tile_container.get_enabled_sensors_path()[0]
+        self.step_tasks = []
+        dir_task = self.i2_task(
+            task_name="generate_directories",
+            log_dir=self.log_step_dir,
+            execution_mode=self.execution_mode,
+            task_parameters={
+                "f":
+                IOTA2_dir.generate_directories,
+                "root":
+                SCF.serviceConfigFile(self.cfg).getParam(
+                    'chain', 'outputPath'),
+                "check_inputs":
+                SCF.serviceConfigFile(self.cfg).getParam(
+                    'chain', 'check_inputs'),
+                "merge_final_classifications":
+                SCF.serviceConfigFile(self.cfg).getParam(
+                    'chain', 'merge_final_classifications'),
+                "ground_truth":
+                SCF.serviceConfigFile(self.cfg).getParam(
+                    'chain', 'groundTruth'),
+                "region_shape":
+                SCF.serviceConfigFile(self.cfg).getParam(
+                    'chain', 'regionPath'),
+                "data_field":
+                SCF.serviceConfigFile(self.cfg).getParam('chain', 'dataField'),
+                "region_field":
+                SCF.serviceConfigFile(self.cfg).getParam(
+                    'chain', 'regionField'),
+                "epsg":
+                int(
+                    SCF.serviceConfigFile(self.cfg).getParam(
+                        'GlobChain', 'proj').split(":")[-1]),
+                "sensor_path":
+                sensor_path,
+                "tiles":
+                SCF.serviceConfigFile(self.cfg).getParam('chain',
+                                                         'listTile').split(" ")
+            },
+            task_resources=self.resources)
+        task_in_graph = self.add_task_to_i2_processing_graph(
+            dir_task, "first_task")
+        self.step_tasks.append(task_in_graph)
 
     def step_description(self):
         """
@@ -33,16 +94,6 @@ class IOTA2DirTree(IOTA2Step.Step):
         """
         description = ("Construct IOTA² output directories")
         return description
-
-    def step_inputs(self):
-        """
-        Return
-        ------
-            the return could be and iterable or a callable
-        """
-        return [
-            SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
-        ]
 
     def step_execute(self):
         """
@@ -81,9 +132,3 @@ class IOTA2DirTree(IOTA2Step.Step):
                 SCF.serviceConfigFile(self.cfg).getParam('GlobChain', 'proj').
                 split(":")[-1]), sensor_path, tiles)
         return step_function
-
-    def step_outputs(self):
-        from iota2.Common import ServiceConfigFile as SCF
-        outputPath = SCF.serviceConfigFile(self.cfg).getParam(
-            'chain', 'outputPath')
-        return os.path.exists(outputPath)

@@ -26,13 +26,43 @@ class statsSamplesModel(IOTA2Step.Step):
         resources_block_name = "samplesStatistics"
         super(statsSamplesModel, self).__init__(cfg, cfg_resources_file,
                                                 resources_block_name)
-
         # step variables
+        self.execution_mode = "cluster"
+        self.step_tasks = []
         self.workingDirectory = workingDirectory
         self.output_path = SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'outputPath')
         self.data_field = SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'dataField')
+        self.nb_runs = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'runs')
+        for model_name, model_meta in self.spatial_models_distribution.items():
+            for seed in range(self.nb_runs):
+                for tile in model_meta["tiles"]:
+                    target_model = f"{model_name}_S_{seed}_T_{tile}"
+                    task = self.i2_task(task_name=f"stats_{target_model}",
+                                        log_dir=self.log_step_dir,
+                                        execution_mode=self.execution_mode,
+                                        task_parameters={
+                                            "f":
+                                            SamplesStat.samples_stats,
+                                            "region_seed_tile":
+                                            (model_name, seed, tile),
+                                            "iota2_directory":
+                                            self.output_path,
+                                            "data_field":
+                                            self.data_field,
+                                            "working_directory":
+                                            self.workingDirectory
+                                        },
+                                        task_resources=self.resources)
+                    task_in_graph = self.add_task_to_i2_processing_graph(
+                        task,
+                        task_group="tile_tasks_model",
+                        task_sub_group=f"{tile}_{model_name}_{seed}",
+                        task_dep_group="region_tasks",
+                        task_dep_sub_group=[f"model_{model_name}_seed_{seed}"])
+                    self.step_tasks.append(task_in_graph)
 
     def step_description(self):
         """
@@ -40,30 +70,3 @@ class statsSamplesModel(IOTA2Step.Step):
         """
         description = ("Generate samples statistics by models")
         return description
-
-    def step_inputs(self):
-        """
-        Return
-        ------
-            the return could be and iterable or a callable
-        """
-        return SamplesStat.region_tile(
-            os.path.join(self.output_path, "samplesSelection"))
-
-    def step_execute(self):
-        """
-        Return
-        ------
-        lambda
-            the function to execute as a lambda function. The returned object
-            must be a lambda function.
-        """
-
-        step_function = lambda x: SamplesStat.samples_stats(
-            x, self.output_path, self.data_field, self.workingDirectory)
-        return step_function
-
-    def step_outputs(self):
-        """
-        """
-        pass

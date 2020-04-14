@@ -14,9 +14,131 @@
 #
 # =========================================================================
 import os
+import math
 from typing import Optional
 from collections import OrderedDict
 from iota2.Common import ServiceConfigFile as SCF
+from typing import List, Dict, Optional
+
+
+def get_region_area(ground_truth: str,
+                    region_file: str,
+                    region_field: str,
+                    sensor_path: str,
+                    epsg_code: int,
+                    tiles: List[str],
+                    ground_truth_driver: Optional[str] = "ESRI ShapeFile",
+                    region_driver: Optional[str] = "ESRI ShapeFile"):
+    """
+    """
+    import time
+    from iota2.Common.verifyInputs import get_tile_raster_footprint
+    from iota2.Common.FileUtils import sortByFirstElem
+    import ogr
+    print("DANS la fonction")
+    start = time.time()
+    areas_container = set()
+
+    multipolygon = ogr.Geometry(ogr.wkbMultiPolygon)
+    for cpt, tile in enumerate(tiles):
+        print(f"tile : {cpt+1}/{len(tiles)}")
+        geom_raster_envelope = get_tile_raster_footprint(
+            tile, sensor_path, epsg_code)
+        multipolygon.AddGeometry(geom_raster_envelope)
+
+    driver_reg = ogr.GetDriverByName(region_driver)
+    reg_src = driver_reg.Open(region_file, 0)
+    reg_layer = reg_src.GetLayer()
+    reg_layer.SetSpatialFilter(multipolygon)
+    for cpt_reg, region_feat in enumerate(reg_layer):
+        print(f"region {cpt_reg +1}/{len(reg_layer)}")
+        region_val = region_feat.GetField(region_field)
+        driver_gt = ogr.GetDriverByName(ground_truth_driver)
+        gt_src = driver_gt.Open(ground_truth, 0)
+        gt_layer = gt_src.GetLayer()
+        region_geom = region_feat.GetGeometryRef()
+        gt_layer.SetSpatialFilter(region_geom)
+        for learning_polygon_gt in gt_layer:
+            geom = learning_polygon_gt.GetGeometryRef()
+            areas_container.add((region_val, geom.GetArea()))
+    end = time.time()
+    print(f"recuperation terminé en {end-start} secondes")
+    areas_sorted = sortByFirstElem(areas_container)
+    time_sort = time.time()
+    print(f"trie en {time_sort-end} secondes")
+    dico = {}
+
+    for area_name, areas in areas_sorted:
+        dico[area_name] = sum(areas)
+    time_sum = time.time()
+    print(f"calcul des sommes en {time_sum-time_sort} secondes")
+    print(dico)
+
+    return dico
+
+
+def get_region_tile_distribution(
+        sensor_path: str,
+        tiles: List[str],
+        region_vector_file: str,
+        region_vector_datafield: str,
+        epsg_code: int,
+        region_vector_driver: Optional[str] = "ESRI ShapeFile"
+) -> Dict[str, List[str]]:
+    """get spatial model repartition across tiles
+
+    Parameters
+    ----------
+    sensor_path: str
+        path to a directory containing sensor's data by tile
+    tiles: list
+        list of tile's name
+    region_vector_file: str
+        region shapeFile
+    region_vector_datafield: str
+        datafield in the region shapeFile discriminating regions
+    epsg_code: int
+        targeted epsg code
+    region_vector_driver: str
+        ogr driver's name
+
+    Return
+    ------
+    dict
+        dictionary containing by regions every tiles intersected
+    """
+    output_distribution = {}
+    import ogr
+
+    from iota2.Common.FileUtils import sortByFirstElem
+    from iota2.Common.ServiceError import invalidProjection
+    from iota2.VectorTools.vector_functions import get_vector_proj
+    from iota2.Common.verifyInputs import get_tile_raster_footprint
+
+    if region_vector_file:
+        if int(get_vector_proj(region_vector_file)) != int(epsg_code):
+            raise invalidProjection(
+                f"wrong projection of {region_vector_file}, must be {epsg_code}"
+            )
+        region_list = []
+        for tile in tiles:
+            geom_raster_envelope = get_tile_raster_footprint(
+                tile, sensor_path, epsg_code)
+            driver_reg = ogr.GetDriverByName(region_vector_driver)
+            reg_src = driver_reg.Open(region_vector_file, 0)
+            reg_layer = reg_src.GetLayer()
+            reg_layer.SetSpatialFilter(geom_raster_envelope)
+            for feature in reg_layer:
+                region_list.append(
+                    (feature.GetField(region_vector_datafield), tile))
+        output_distribution_tmp = [
+            (model_name, sorted(list(set(tile_list))))
+            for model_name, tile_list in sortByFirstElem(region_list)
+        ]
+        output_distribution = dict(output_distribution_tmp)
+    else:
+        output_distribution = {"1": tiles}
+    return output_distribution
 
 
 class iota2():
@@ -28,13 +150,11 @@ class iota2():
                  config_ressources,
                  hpc_working_directory: Optional[str] = "TMPDIR"):
 
-        # config object
-        #~ self.cfg = cfg
         self.cfg = cfg
-
-        # working directory, HPC
-
         self.workingDirectory = os.getenv(hpc_working_directory)
+
+        self.model_spatial_distrib, self.tiles = self.get_run_spatial_informations(
+        )
 
         # steps definitions
         self.steps_group = OrderedDict()
@@ -63,6 +183,79 @@ class iota2():
         self.iota2_pickle = os.path.join(
             SCF.serviceConfigFile(self.cfg).getParam("chain", "outputPath"),
             "logs", "iota2.txt")
+
+    def get_run_spatial_informations(self):
+        """
+        Return
+        ------
+        tuple(dict, list)
+            dict[str, dict[str,list[str]; str, int]]:
+                dictionary which gives for each model the intersecting tiles
+                and the number if sub models to generate if needed
+            list : list of all tiles in the run intersecting groundtruth
+
+        >>> get_run_spatial_informations()
+        >>> {"1": {"tiles": [T31TCJ, T31TDJ], "nb_sub_models": 2}, ...}
+        """
+        from iota2.Common.ServiceConfigFile import iota2_parameters
+        from iota2.Sensors.Sensors_container import sensors_container
+        tiles = SCF.serviceConfigFile(self.cfg).getParam('chain',
+                                                         'listTile').split(" ")
+        i2_epsg_code = int(
+            SCF.serviceConfigFile(self.cfg).getParam(
+                'GlobChain', 'proj').replace(" ", "").split(":")[-1])
+        output_path = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'outputPath')
+        region_vector_file = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'regionPath')
+        region_vector_datafield = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'regionField')
+        region_area_threshold = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'mode_outside_RegionSplit')
+        ground_truth = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'groundTruth')
+        classif_mode = SCF.serviceConfigFile(self.cfg).getParam(
+            'argClassification', 'classifMode')
+
+        running_parameters = iota2_parameters(
+            SCF.serviceConfigFile(self.cfg).pathConf)
+        sensors_parameters = running_parameters.get_sensors_parameters(
+            tiles[0])
+        sensor_tile_container = sensors_container(tiles[0], None, output_path,
+                                                  **sensors_parameters)
+        sensor_path = sensor_tile_container.get_enabled_sensors_path()[0]
+        region_distrib = get_region_tile_distribution(sensor_path, tiles,
+                                                      region_vector_file,
+                                                      region_vector_datafield,
+                                                      i2_epsg_code)
+        # models_area = get_region_area(ground_truth, region_vector_file,
+        #                               region_vector_datafield, sensor_path,
+        #                               i2_epsg_code, tiles)
+        # print(models_area)
+        models_area = {
+            '1': 11231498215.206795,
+            '3': 16472562392.370218,
+            '7': 2724834982.7134705,
+            '9': 3870489666.7596097,
+            '2': 8439352266.304428,
+            '4': 14254915616.995539,
+            '5': 21577358792.3973,
+            '8': 7172610794.366812,
+            '6': 8892182957.883936
+        }
+        spatial_region_info = {}
+        for models_name, tiles in region_distrib.items():
+            spatial_region_info[models_name] = {}
+            spatial_region_info[models_name]["tiles"] = tiles
+            spatial_region_info[models_name]["nb_sub_models"] = None
+            if region_vector_file and classif_mode == "fusion":
+                spatial_region_info[models_name]["nb_sub_models"] = math.ceil(
+                    models_area[models_name] / (region_area_threshold * 10e5))
+        run_tiles = []
+        for _, tiles in region_distrib.items():
+            run_tiles += tiles
+        run_tiles = sorted(list(set(run_tiles)))
+        return spatial_region_info, run_tiles
 
     def save_chain(self):
         """
@@ -173,9 +366,8 @@ class iota2():
         """
 
         import os
-        from MPI import ressourcesByStep as iota2Ressources
-        from iota2.Common import ServiceConfigFile as SCF
         from iota2.Steps.IOTA2Step import StepContainer
+        from iota2.Steps.IOTA2Step import Step
 
         from Steps import (
             IOTA2DirTree, CommonMasks, PixelValidity, Envelope,
@@ -193,6 +385,9 @@ class iota2():
             mosaicTilesVectorization, largeSimplification, largeSmoothing,
             clipVectors, zonalStatistics, prodVectors, slicSegmentation,
             superPixPos, superPixSplit, skClassificationsMerge)
+        print(self.model_spatial_distrib)
+        Step.set_models_spatial_information(self.tiles,
+                                            self.model_spatial_distrib)
         # control variable
         Sentinel1 = SCF.serviceConfigFile(cfg).getParam('chain', 'S1Path')
         shapeRegion = SCF.serviceConfigFile(cfg).getParam(
@@ -240,261 +435,56 @@ class iota2():
         # will contains all IOTA² steps
         s_container = StepContainer()
 
-        # class instance
-        step_build_tree = IOTA2DirTree.IOTA2DirTree(cfg, config_ressources)
-        step_PreProcess = sensorsPreprocess.sensorsPreprocess(
-            cfg, config_ressources, self.workingDirectory)
-        step_CommonMasks = CommonMasks.CommonMasks(cfg, config_ressources,
-                                                   self.workingDirectory)
-        step_coregistration = Coregistration.Coregistration(
-            cfg, config_ressources, self.workingDirectory)
-        step_pixVal = PixelValidity.PixelValidity(cfg, config_ressources,
-                                                  self.workingDirectory)
-        step_env = Envelope.Envelope(cfg, config_ressources,
-                                     self.workingDirectory)
-        step_reg_vector = genRegionVector.genRegionVector(
-            cfg, config_ressources, self.workingDirectory)
-        step_vector_form = VectorFormatting.VectorFormatting(
-            cfg, config_ressources, self.workingDirectory)
-        step_split_huge_vec = splitSamples.splitSamples(
-            cfg, config_ressources, self.workingDirectory)
-        step_merge_samples = samplesMerge.samplesMerge(cfg, config_ressources,
-                                                       self.workingDirectory)
-        step_models_samples_stats = statsSamplesModel.statsSamplesModel(
-            cfg, config_ressources, self.workingDirectory)
-        step_samples_selection = samplingLearningPolygons.samplingLearningPolygons(
-            cfg, config_ressources, self.workingDirectory)
-        step_prepare_selection = samplesByTiles.samplesByTiles(
-            cfg, config_ressources, self.workingDirectory)
-        step_generate_learning_samples = samplesExtraction.samplesExtraction(
-            cfg, config_ressources, self.workingDirectory)
-        step_merge_learning_samples = samplesByModels.samplesByModels(
-            cfg, config_ressources)
-        step_copy_sample_between_models = copySamples.copySamples(
-            cfg, config_ressources, self.workingDirectory)
-        step_generate_samples = genSyntheticSamples.genSyntheticSamples(
-            cfg, config_ressources, self.workingDirectory)
-        step_dimRed = samplesDimReduction.samplesDimReduction(
-            cfg, config_ressources, self.workingDirectory)
-        step_learning = learnModel.learnModel(cfg, config_ressources,
-                                              self.workingDirectory)
-        step_classiCmd = classiCmd.classiCmd(cfg, config_ressources,
-                                             self.workingDirectory)
-        step_classification = classification.classification(
-            cfg, config_ressources, self.workingDirectory)
-        step_sk_classifications_merge = skClassificationsMerge.ScikitClassificationsMerge(
-            cfg, config_ressources, self.workingDirectory)
-        step_confusion_sar_opt = confusionSAROpt.confusionSAROpt(
-            cfg, config_ressources, self.workingDirectory)
-        step_confusion_sar_opt_fusion = confusionSAROptMerge.confusionSAROptMerge(
-            cfg, config_ressources, self.workingDirectory)
-        step_sar_opt_fusion = SAROptFusion.SAROptFusion(
-            cfg, config_ressources, self.workingDirectory)
-        step_classif_fusion = classificationsFusion.classificationsFusion(
-            cfg, config_ressources, self.workingDirectory)
-        step_manage_fus_indecision = fusionsIndecisions.fusionsIndecisions(
-            cfg, config_ressources, self.workingDirectory)
-        step_mosaic = mosaic.mosaic(cfg, config_ressources,
-                                    self.workingDirectory)
-
-        step_confusions_cmd = confusionCmd.confusionCmd(
-            cfg, config_ressources, self.workingDirectory)
-        step_confusions = confusionGeneration.confusionGeneration(
-            cfg, config_ressources, self.workingDirectory)
-        step_confusions_merge = confusionsMerge.confusionsMerge(
-            cfg, config_ressources, self.workingDirectory)
-        step_report = reportGeneration.reportGeneration(
-            cfg, config_ressources, self.workingDirectory)
-        step_merge_iota_classif = mergeSeedClassifications.mergeSeedClassifications(
-            cfg, config_ressources, self.workingDirectory)
-        step_additional_statistics = additionalStatistics.additionalStatistics(
-            cfg, config_ressources, self.workingDirectory)
-        step_additional_statistics_merge = additionalStatisticsMerge.additionalStatisticsMerge(
-            cfg, config_ressources, self.workingDirectory)
-
-        step_clump = Clump.Clump(cfg, config_ressources, self.workingDirectory)
-        step_grid = Grid.Grid(cfg, config_ressources, self.workingDirectory)
-        step_crown_search = crownSearch.crownSearch(cfg, config_ressources,
-                                                    self.workingDirectory)
-        step_crown_build = crownBuild.crownBuild(cfg, config_ressources,
-                                                 self.workingDirectory)
-        step_mosaic_tiles = mosaicTilesVectorization.mosaicTilesVectorization(
-            cfg, config_ressources, self.workingDirectory)
-        step_large_vecto = largeVectorization.largeVectorization(
-            cfg, config_ressources, self.workingDirectory)
-        step_large_simp = largeSimplification.largeSimplification(
-            cfg, config_ressources, self.workingDirectory)
-        step_large_smoothing = largeSmoothing.largeSmoothing(
-            cfg, config_ressources, self.workingDirectory)
-        step_clip_vectors = clipVectors.clipVectors(cfg, config_ressources,
-                                                    self.workingDirectory)
-
-        step_zonal_stats = zonalStatistics.zonalStatistics(
-            cfg, config_ressources, self.workingDirectory)
-        step_SLIC_seg = slicSegmentation.slicSegmentation(
-            cfg, config_ressources, self.workingDirectory)
-        step_add_superPix_pos = superPixPos.superPixPos(
-            cfg, config_ressources, self.workingDirectory)
-        step_split_superPix_ref = superPixSplit.superPixSplit(
-            cfg, config_ressources, self.workingDirectory)
-        step_prod_vectors = prodVectors.prodVectors(cfg, config_ressources,
-                                                    self.workingDirectory)
         # build chain
         # init steps
-        s_container.append(step_build_tree, "init")
-        s_container.append(step_PreProcess, "init")
+        s_container.append(IOTA2DirTree.IOTA2DirTree(cfg, config_ressources),
+                           "init")
+        s_container.append(
+            sensorsPreprocess.sensorsPreprocess(cfg, config_ressources,
+                                                self.workingDirectory), "init")
         if not "none" in VHR.lower():
-            s_container.append(step_coregistration, "init")
-        s_container.append(step_CommonMasks, "init")
-        s_container.append(step_pixVal, "init")
+            s_container.append(
+                Coregistration.Coregistration(cfg, config_ressources,
+                                              self.workingDirectory), "init")
+        s_container.append(
+            CommonMasks.CommonMasks(cfg, config_ressources,
+                                    self.workingDirectory), "init")
+        s_container.append(
+            PixelValidity.PixelValidity(cfg, config_ressources,
+                                        self.workingDirectory), "init")
         if enable_autoContext:
-            s_container.append(step_SLIC_seg, "init")
-
+            s_container.append(
+                slicSegmentation.slicSegmentation(cfg, config_ressources,
+                                                  self.workingDirectory),
+                "init")
         # sampling steps
-        s_container.append(step_env, "sampling")
+        s_container.append(
+            Envelope.Envelope(cfg, config_ressources, self.workingDirectory),
+            "sampling")
         if not shapeRegion:
-            s_container.append(step_reg_vector, "sampling")
-        s_container.append(step_vector_form, "sampling")
+            s_container.append(
+                genRegionVector.genRegionVector(cfg, config_ressources,
+                                                self.workingDirectory),
+                "sampling")
+        s_container.append(
+            VectorFormatting.VectorFormatting(cfg, config_ressources,
+                                              self.workingDirectory),
+            "sampling")
+        huge_models = False
         if shapeRegion and classif_mode == "fusion":
-            s_container.append(step_split_huge_vec, "sampling")
-        s_container.append(step_merge_samples, "sampling")
-        s_container.append(step_models_samples_stats, "sampling")
-        s_container.append(step_samples_selection, "sampling")
-
-        if enable_autoContext is True:
-            s_container.append(step_add_superPix_pos, "sampling")
-
-        s_container.append(step_prepare_selection, "sampling")
-
-        s_container.append(step_generate_learning_samples, "sampling")
-
-        if enable_autoContext is False:
-            s_container.append(step_merge_learning_samples, "sampling")
-            if sampleManagement and sampleManagement.lower() != 'none':
-                s_container.append(step_copy_sample_between_models, "sampling")
-            if sample_augmentation_flag:
-                s_container.append(step_generate_samples, "sampling")
-            if dimred:
-                s_container.append(step_dimRed, "sampling")
-
-        if enable_autoContext is True:
-            s_container.append(step_split_superPix_ref, "sampling")
-
-        #~ # learning step
-        s_container.append(step_learning, "learning")
-
-        #~ # classifications steps
-        if enable_autoContext is False:
-            s_container.append(step_classiCmd, "classification")
-        s_container.append(step_classification, "classification")
-        if use_scikitlearn:
-            s_container.append(step_sk_classifications_merge, "classification")
-        if ds_sar_opt:
-            s_container.append(step_confusion_sar_opt, "classification")
-            s_container.append(step_confusion_sar_opt_fusion, "classification")
-            s_container.append(step_sar_opt_fusion, "classification")
-        if classif_mode == "fusion" and shapeRegion:
-            s_container.append(step_classif_fusion, "classification")
-            s_container.append(step_manage_fus_indecision, "classification")
-
-        # mosaic step
-        s_container.append(step_mosaic, "mosaic")
-
-        # validation steps
-        s_container.append(step_confusions_cmd, "validation")
-        if keep_runs_results:
-            s_container.append(step_confusions, "validation")
-            s_container.append(step_confusions_merge, "validation")
-            s_container.append(step_report, "validation")
-        if merge_final_classifications and runs > 1:
-            s_container.append(step_merge_iota_classif, "validation")
-        if outStat:
-            s_container.append(step_additional_statistics, "validation")
-            s_container.append(step_additional_statistics_merge, "validation")
-
-        # regularisation steps
-        if umc1:
-            # TODO : creer une variable adaptative / oso / regulier (avec "connection" en paramètre supplémentaire)
-            outregul = os.path.join(iota2_outputs_dir, "final",
-                                    "simplification", "classif_regul.tif")
-
-            regulruns = 2 if umc2 is not None else 1
-            if not os.path.exists(outregul):
-                lognamereg = 'regul1'
-                lognamemerge = "merge_regul1"
-                if regulruns == 2:
-
-                    outregul = os.path.join(iota2_outputs_dir, "final",
-                                            "simplification", "tmp",
-                                            "regul1.tif")
-                    s_container.append(
-                        Regularization.Regularization(
-                            cfg,
-                            config_ressources,
-                            umc=umc1,
-                            nomenclature=nomenclature,
-                            stepname="regul1",
-                            workingDirectory=self.workingDirectory),
-                        "regularisation")
-
-                    s_container.append(
-                        mergeRegularization.mergeRegularization(
-                            cfg,
-                            config_ressources,
-                            workingDirectory=self.workingDirectory,
-                            resample=rssize,
-                            umc=umc1,
-                            stepname="merge_regul1",
-                            output=outregul), "regularisation")
-                    umc1 = umc2
-                    rssize = None
-                    outregul = os.path.join(iota2_outputs_dir, "final",
-                                            "simplification",
-                                            "classif_regul.tif")
-                    logname = 'regul2'
-                    lognamemerge = "merge_regul2"
-
-                s_container.append(
-                    Regularization.Regularization(
-                        cfg,
-                        config_ressources,
-                        umc=umc1,
-                        nomenclature=nomenclature,
-                        stepname=logname,
-                        workingDirectory=self.workingDirectory),
-                    "regularisation")
-
-                s_container.append(
-                    mergeRegularization.mergeRegularization(
-                        cfg,
-                        config_ressources,
-                        workingDirectory=self.workingDirectory,
-                        resample=rssize,
-                        water=inland,
-                        umc=umc1,
-                        stepname=lognamemerge,
-                        output=outregul), "regularisation")
-
-        s_container.append(step_clump, "regularisation")
-
-        if gridsize is not None:
-            # crown steps
-            s_container.append(step_grid, "crown")
-            s_container.append(step_crown_search, "crown")
-            s_container.append(step_crown_build, "crown")
-            # mosaic step
-            s_container.append(step_mosaic_tiles, "mosaictiles")
-            # vectorization step
-            s_container.append(step_large_vecto, "vectorisation")
-            s_container.append(step_large_simp, "simplification")
-            s_container.append(step_large_smoothing, "smoothing")
-            s_container.append(step_clip_vectors, "clipvectors")
-        else:
-            # vectorization step
-            s_container.append(step_large_vecto, "vectorisation")
-            s_container.append(step_large_simp, "simplification")
-            s_container.append(step_large_smoothing, "smoothing")
-            s_container.append(step_clip_vectors, "clipvectors")
-        s_container.append(step_zonal_stats, "lcstatistics")
-        s_container.append(step_prod_vectors, "lcstatistics")
+            huge_models = True
+            s_container.append(
+                splitSamples.splitSamples(cfg, config_ressources,
+                                          self.workingDirectory), "sampling")
+        s_container.append(
+            samplesMerge.samplesMerge(cfg, config_ressources,
+                                      self.workingDirectory, huge_models),
+            "sampling")
+        s_container.append(
+            statsSamplesModel.statsSamplesModel(cfg, config_ressources,
+                                                self.workingDirectory),
+            "sampling")
+        # s_container.append(
+        #     samplingLearningPolygons.samplingLearningPolygons(
+        #         cfg, config_ressources, self.workingDirectory), "sampling")
         return s_container

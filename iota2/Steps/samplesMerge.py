@@ -14,6 +14,7 @@
 #
 # =========================================================================
 import os
+from typing import Optional
 
 from iota2.Steps import IOTA2Step
 from iota2.Common import ServiceConfigFile as SCF
@@ -21,20 +22,61 @@ from iota2.Sampling import SamplesMerge as samples_merge
 
 
 class samplesMerge(IOTA2Step.Step):
-    def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
+    def __init__(self,
+                 cfg: str,
+                 cfg_resources_file: str,
+                 workingDirectory: Optional[str] = None,
+                 huge_models: Optional[bool] = False):
         # heritage init
         resources_block_name = "samplesMerge"
         super(samplesMerge, self).__init__(cfg, cfg_resources_file,
                                            resources_block_name)
-
+        self.execution_mode = "cluster"
+        self.step_tasks = []
         # step variables
-        self.workingDirectory = workingDirectory
+        self.working_directory = workingDirectory
         self.output_path = SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'outputPath')
         self.field_region = SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'regionField')
         self.nb_runs = SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'runs')
+        for model_name, model_meta in self.spatial_models_distribution.items():
+            for seed in range(self.nb_runs):
+                target_model = f"model_{model_name}_seed_{seed}"
+                task = self.i2_task(
+                    task_name=f"merge_{target_model}",
+                    log_dir=self.log_step_dir,
+                    execution_mode=self.execution_mode,
+                    task_parameters={
+                        "f":
+                        samples_merge.samples_merge,
+                        "region_tiles_seed":
+                        (model_name, model_meta["tiles"], seed),
+                        "output_path":
+                        self.output_path,
+                        "region_field":
+                        self.field_region,
+                        "runs":
+                        self.nb_runs,
+                        "enable_cross_validation":
+                        SCF.serviceConfigFile(self.cfg).getParam(
+                            'chain', 'enableCrossValidation'),
+                        "ds_sar_opt_flag":
+                        SCF.serviceConfigFile(self.cfg).getParam(
+                            'argTrain', 'dempster_shafer_SAR_Opt_fusion'),
+                        "working_directory":
+                        self.working_directory
+                    },
+                    task_resources=self.resources)
+                task_in_graph = self.add_task_to_i2_processing_graph(
+                    task,
+                    task_group="region_tasks",
+                    task_sub_group=target_model,
+                    task_dep_group="vector" if huge_models else "tile_tasks",
+                    task_dep_sub_group=["vector"]
+                    if huge_models else model_meta["tiles"])
+                self.step_tasks.append(task_in_graph)
 
     def step_description(self):
         """
@@ -42,38 +84,3 @@ class samplesMerge(IOTA2Step.Step):
         """
         description = ("merge samples by models")
         return description
-
-    def step_inputs(self):
-        """
-        Return
-        ------
-            the return could be and iterable or a callable
-        """
-        return samples_merge.get_models(
-            os.path.join(self.output_path, "formattingVectors"),
-            self.field_region, self.nb_runs)
-
-    def step_execute(self):
-        """
-        Return
-        ------
-        lambda
-            the function to execute as a lambda function. The returned object
-            must be a lambda function.
-        """
-        step_function = lambda x: samples_merge.samples_merge(
-            x,
-            SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath'),
-            SCF.serviceConfigFile(self.cfg).getParam('chain', 'regionField'),
-            SCF.serviceConfigFile(self.cfg).getParam('chain', 'runs'),
-            SCF.serviceConfigFile(self.cfg).getParam('chain',
-                                                     'enableCrossValidation'),
-            SCF.serviceConfigFile(self.cfg).getParam(
-                'argTrain', 'dempster_shafer_SAR_Opt_fusion'), self.
-            workingDirectory)
-        return step_function
-
-    def step_outputs(self):
-        """
-        """
-        pass

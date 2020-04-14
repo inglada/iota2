@@ -17,6 +17,7 @@ import os
 
 from iota2.Steps import IOTA2Step
 from iota2.Common import ServiceConfigFile as SCF
+from iota2.Sampling import TileEnvelope as env
 
 
 class Envelope(IOTA2Step.Step):
@@ -33,6 +34,27 @@ class Envelope(IOTA2Step.Step):
         self.proj = int(
             SCF.serviceConfigFile(self.cfg).getParam('GlobChain',
                                                      'proj').split(":")[-1])
+        self.execution_mode = "cluster"
+        self.step_tasks = []
+
+        task = self.i2_task(task_name=f"tiles_envelopes",
+                            log_dir=self.log_step_dir,
+                            execution_mode=self.execution_mode,
+                            task_parameters={
+                                "f": env.generate_shape_tile,
+                                "tiles": self.tiles,
+                                "pathWd": self.workingDirectory,
+                                "output_path": self.outputPath,
+                                "proj": self.proj
+                            },
+                            task_resources=self.resources)
+        task_in_graph = self.add_task_to_i2_processing_graph(
+            task,
+            task_group="vector",
+            task_sub_group="vector",
+            task_dep_group="tile_tasks",
+            task_dep_sub_group=self.tiles)
+        self.step_tasks.append(task_in_graph)
 
     def step_description(self):
         """
@@ -40,32 +62,3 @@ class Envelope(IOTA2Step.Step):
         """
         description = ("Generate tile's envelope")
         return description
-
-    def step_inputs(self):
-        """
-        Return
-        ------
-            the return could be and iterable or a callable
-        """
-        return [self.outputPath]
-
-    def step_execute(self):
-        """
-        Return
-        ------
-        lambda
-            the function to execute as a lambda function. The returned object
-            must be a lambda function.
-        """
-        from iota2.Sampling import TileEnvelope as env
-
-        tiles = SCF.serviceConfigFile(self.cfg).getParam('chain',
-                                                         'listTile').split(" ")
-        step_function = lambda x: env.generate_shape_tile(
-            tiles, self.workingDirectory, x, self.proj)
-        return step_function
-
-    def step_outputs(self):
-        """
-        """
-        pass

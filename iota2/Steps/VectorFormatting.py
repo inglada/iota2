@@ -17,6 +17,7 @@ import os
 
 from iota2.Steps import IOTA2Step
 from iota2.Common import ServiceConfigFile as SCF
+from iota2.Sampling import VectorFormatting as VF
 
 
 class VectorFormatting(IOTA2Step.Step):
@@ -28,33 +29,9 @@ class VectorFormatting(IOTA2Step.Step):
 
         # step variables
         self.working_directory = workingDirectory
-
-    def step_description(self):
-        """
-        function use to print a short description of the step's purpose
-        """
-        description = ("Prepare samples")
-        return description
-
-    def step_inputs(self):
-        """
-        Return
-        ------
-            the return could be and iterable or a callable
-        """
-        tiles = SCF.serviceConfigFile(self.cfg).getParam('chain',
-                                                         'listTile').split(" ")
-        return tiles
-
-    def step_execute(self):
-        """
-        Return
-        ------
-        lambda
-            the function to execute as a lambda function. The returned object
-            must be a lambda function.
-        """
-        from iota2.Sampling import VectorFormatting as VF
+        self.execution_mode = "cluster"
+        self.step_tasks = []
+        # parameters
         output_path = SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'outputPath')
         ground_truth_vec = SCF.serviceConfigFile(self.cfg).getParam(
@@ -90,16 +67,45 @@ class VectorFormatting(IOTA2Step.Step):
             'chain', 'merge_final_classifications')
         merge_final_classifications_ratio = SCF.serviceConfigFile(
             self.cfg).getParam('chain', 'merge_final_classifications_ratio')
-        step_function = lambda x: VF.vector_formatting(
-            x, output_path, ground_truth_vec, data_field, cloud_threshold,
-            ratio, random_seed, enable_cross_validation,
-            enable_split_ground_truth, fusion_merge_all_validation, runs, epsg,
-            region_field, merge_final_classifications,
-            merge_final_classifications_ratio, region_vec, self.
-            working_directory)
-        return step_function
 
-    def step_outputs(self):
+        for tile in self.tiles:
+            task = self.i2_task(
+                task_name=f"vector_form_{tile}",
+                log_dir=self.log_step_dir,
+                execution_mode=self.execution_mode,
+                task_parameters={
+                    "f": VF.vector_formatting,
+                    "tile_name": tile,
+                    "output_path": output_path,
+                    "ground_truth_vec": ground_truth_vec,
+                    "data_field": data_field,
+                    "cloud_threshold": cloud_threshold,
+                    "ratio": ratio,
+                    "random_seed": random_seed,
+                    "enable_cross_validation": enable_cross_validation,
+                    "enable_split_ground_truth": enable_split_ground_truth,
+                    "fusion_merge_all_validation": fusion_merge_all_validation,
+                    "runs": runs,
+                    "epsg": epsg,
+                    "region_field": region_field,
+                    "merge_final_classifications": merge_final_classifications,
+                    "merge_final_classifications_ratio":
+                    merge_final_classifications_ratio,
+                    "region_vec": region_vec,
+                    "working_directory": self.working_directory
+                },
+                task_resources=self.resources)
+            task_in_graph = self.add_task_to_i2_processing_graph(
+                task,
+                task_group="tile_tasks",
+                task_sub_group=tile,
+                task_dep_group="vector",
+                task_dep_sub_group=["vector"])
+            self.step_tasks.append(task_in_graph)
+
+    def step_description(self):
         """
+        function use to print a short description of the step's purpose
         """
-        pass
+        description = ("Prepare samples")
+        return description

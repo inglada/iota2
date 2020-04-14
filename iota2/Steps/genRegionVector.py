@@ -17,6 +17,7 @@ import os
 
 from iota2.Steps import IOTA2Step
 from iota2.Common import ServiceConfigFile as SCF
+from iota2.Sampling import TileArea as area
 
 
 class genRegionVector(IOTA2Step.Step):
@@ -30,6 +31,35 @@ class genRegionVector(IOTA2Step.Step):
         self.workingDirectory = workingDirectory
         self.outputPath = SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'outputPath')
+        self.execution_mode = "cluster"
+        self.step_tasks = []
+        task = self.i2_task(task_name=f"region_generation",
+                            log_dir=self.log_step_dir,
+                            execution_mode=self.execution_mode,
+                            task_parameters={
+                                "f":
+                                area.generate_region_shape,
+                                "envelope_directory":
+                                os.path.join(self.outputPath, "envelope"),
+                                "output_region_file":
+                                SCF.serviceConfigFile(self.cfg).getParam(
+                                    'chain', 'regionPath'),
+                                "out_field_name":
+                                SCF.serviceConfigFile(self.cfg).getParam(
+                                    'chain', 'regionField'),
+                                "i2_output_path":
+                                self.outputPath,
+                                "working_directory":
+                                self.workingDirectory
+                            },
+                            task_resources=self.resources)
+        task_in_graph = self.add_task_to_i2_processing_graph(
+            task,
+            task_group="vector",
+            task_sub_group="vector",
+            task_dep_group="vector",
+            task_dep_sub_group=["vector"])
+        self.step_tasks.append(task_in_graph)
 
     def step_description(self):
         """
@@ -37,37 +67,3 @@ class genRegionVector(IOTA2Step.Step):
         """
         description = ("Generate a region vector")
         return description
-
-    def step_inputs(self):
-        """
-        Return
-        ------
-            the return could be and iterable or a callable
-        """
-        shapeRegion = SCF.serviceConfigFile(self.cfg).getParam(
-            'chain', 'regionPath')
-        return [shapeRegion]
-
-    def step_execute(self):
-        """
-        Return
-        ------
-        lambda
-            the function to execute as a lambda function. The returned object
-            must be a lambda function.
-        """
-        from iota2.Sampling import TileArea as area
-
-        pathEnvelope = os.path.join(self.outputPath, "envelope")
-        field_Region = SCF.serviceConfigFile(self.cfg).getParam(
-            'chain', 'regionField')
-
-        step_function = lambda x: area.generate_region_shape(
-            pathEnvelope, x, field_Region, self.outputPath, self.
-            workingDirectory)
-        return step_function
-
-    def step_outputs(self):
-        """
-        """
-        pass

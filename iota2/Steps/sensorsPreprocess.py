@@ -18,6 +18,7 @@ import os
 from iota2.Steps import IOTA2Step
 from iota2.Cluster import get_RAM
 from iota2.Common import ServiceConfigFile as SCF
+from iota2.Sensors import ProcessLauncher
 
 
 class sensorsPreprocess(IOTA2Step.Step):
@@ -33,38 +34,32 @@ class sensorsPreprocess(IOTA2Step.Step):
         self.output_path = SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'outputPath')
 
+        self.execution_mode = "cluster"
+        self.step_tasks = []
+
+        for tile in self.tiles:
+            task = self.i2_task(task_name=f"preprocessing_{tile}",
+                                log_dir=self.log_step_dir,
+                                execution_mode=self.execution_mode,
+                                task_parameters={
+                                    "f": ProcessLauncher.preprocess,
+                                    "tile_name": tile,
+                                    "config_path": self.cfg,
+                                    "output_path": self.output_path,
+                                    "working_directory": self.workingDirectory,
+                                    "RAM": self.RAM
+                                },
+                                task_resources=self.resources)
+            task_in_graph = self.add_task_to_i2_processing_graph(
+                task,
+                task_group="tile_tasks",
+                task_sub_group=tile,
+                task_dep_group="first_task")
+            self.step_tasks.append(task_in_graph)
+
     def step_description(self):
         """
         function use to print a short description of the step's purpose
         """
         description = ("Sensors pre-processing")
         return description
-
-    def step_inputs(self):
-        """
-        Return
-        ------
-            the return could be and iterable or a callable
-        """
-        from iota2.Common import ServiceConfigFile as SCF
-        tiles = SCF.serviceConfigFile(self.cfg).getParam('chain',
-                                                         'listTile').split(" ")
-        return tiles
-
-    def step_execute(self):
-        """
-        Return
-        ------
-        lambda
-            the function to execute as a lambda function. The returned object
-            must be a lambda function.
-        """
-        from iota2.Sensors import ProcessLauncher
-        step_function = lambda x: ProcessLauncher.preprocess(
-            x, self.cfg, self.output_path, self.workingDirectory, self.RAM)
-        return step_function
-
-    def step_outputs(self):
-        """
-        """
-        pass
