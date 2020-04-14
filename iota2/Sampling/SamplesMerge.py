@@ -111,8 +111,8 @@ def extract_poi(tile_vector: str,
         run(cmd)
 
 
-def samples_merge(region_tiles_seed: str, output_path: str, region_field: str,
-                  runs: int, enable_cross_validation: bool,
+def samples_merge(region_tiles_seed: Tuple[str], output_path: str,
+                  region_field: str, runs: int, enable_cross_validation: bool,
                   ds_sar_opt_flag: bool, working_directory: str) -> None:
     """
     to a given region and seed, extract features through tiles
