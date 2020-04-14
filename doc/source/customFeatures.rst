@@ -8,7 +8,10 @@ This module propose to use an external code, to compute additional features whic
 
 By default, and if possible depending on sensors, iota2 computes three spectral indices: NDVI, NDWI and Brightness.
 
-But it will be usefull for particular application case to compute NDSI or RED_EDGE for instance. Now it will be simple to add these features.
+But it will be usefull for particular application case to compute NDSI for instance. This mode allows to compute several kind of features.
+
+The main idea is to extract the pixels values as numpy array, so it is easy to compute everything you want.
+
 
 How use it ?
 ------------
@@ -16,7 +19,7 @@ The custom features module require only one python file, containing one or more 
 
 The user must provide, using the configuration file, the path to this file, it's name, and the list of functions to be computed.
 
-It is necessary to add the field ``Features`` to your configuration file.
+It is necessary to add the section ``Features`` to your configuration file.
 
 To activate the custom features mode, there are two mandatory parameters:
 
