@@ -1335,3 +1335,99 @@ Simplification.lib64bit
     lib64bit: '/path/to/otbbinaries'
 *Notes*
     By default OTB applications use internally 32 bits float
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Custom Features available parameters
+************************************
+
+Features.module
+===============
+*Description*
+    The fullpath to the python file containing the different function
+*Type*
+    string
+*Default value*
+    None
+*Example*
+    module: '/home/code/custom_module.py'
+*Notes*
+    The file can contain several function. For convenience it is highly recommended to put all imports outside functions.
+	
+	
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Features.functions
+==================
+*Description*
+    The list of function to be processed, separated by a space
+*Type*
+    string
+*Default value*
+    None
+*Example*
+    functions: 'fun1 fun2 fun3'
+*Notes*
+    It is possible to provide multiple function, but they must be all in one file. 
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Features.chunk_size_mode
+========================
+*Description*
+    Set the chunk mode. There are two modes. user_split or number_split.
+*Type*
+    string
+*Default value*
+    split_number
+*Example*
+    chunk_size_mode: 'split_number'
+*Notes*
+    Each mode have particular related arguments.
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Features.number_of_chunk
+========================
+*Description*
+    Fix the number of split for each tile. The same processing is applied to each chunk.
+*Type*
+    int
+*Default value*
+    50
+*Example*
+    number_of_chunk: 50
+*Notes*
+    This parameter is used only if the chunkçsize_mode is set to split_number.
+	
+	
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Features.chunk_size_x
+=====================
+*Description*
+    Indicate the number of row by chunk
+*Type*
+    int
+*Default value*
+    50
+*Example*
+    chunk_size_x: 50
+*Notes*
+    Used only in user_split mode. chunk_size_y must be set too.
+	
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Features.chunk_size_y
+=====================
+*Description*
+    Indicates the number of cols by chunk.
+*Type*
+    int
+*Default value*
+    50
+*Example*
+    chunk_size_y: 50
+*Notes*
+    Used only in user_split mode. chunk_size_x must be set too.
+	
