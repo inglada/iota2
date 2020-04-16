@@ -77,18 +77,20 @@ class data_container:
         list_sensors = []
         shift = 0
         for sensor in sensor_tile_container.get_enabled_sensors():
+            if sensor.name != "userFeatures":
+                spectral_bands = sensor.stack_band_position
+                spectral_indices = sensor.features_names_list
+                # tmp_indices = compute_indices_after_gapfilling(sensor, bands)
+                tmp_indices, shift = compute_indices_after_gapfilling(
+                    sensor, spectral_bands, spectral_indices, shift)
 
-            spectral_bands = sensor.stack_band_position
-            spectral_indices = sensor.features_names_list
-            # tmp_indices = compute_indices_after_gapfilling(sensor, bands)
-            tmp_indices, shift = compute_indices_after_gapfilling(
-                sensor, spectral_bands, spectral_indices, shift)
-
-            list_of_bands += spectral_bands
-            list_of_bands += spectral_indices
-            time_series_indices += tmp_indices
-            list_sensors += [sensor.name
-                             ] * (len(spectral_bands) + len(spectral_indices))
+                list_of_bands += spectral_bands
+                list_of_bands += spectral_indices
+                time_series_indices += tmp_indices
+                list_sensors += [sensor.name] * (len(spectral_bands) +
+                                                 len(spectral_indices))
+            else:
+                LOGGER.info("userFeatures sensor is not supported")
         # TODO: handle user feature selection
         print(list_of_bands)
 
