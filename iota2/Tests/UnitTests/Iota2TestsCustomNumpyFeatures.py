@@ -91,7 +91,7 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
             shutil.rmtree(self.test_working_directory)
 
     # Tests definitions
-    def check_custom_features_valid_inputs(self):
+    def test_check_custom_features_valid_inputs(self):
         """Test the behaviour of check custom features"""
         from config import Config
         from iota2.Common import ServiceConfigFile as SCF
@@ -129,7 +129,7 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
 
         self.assertTrue(cfg.checkCustomFeature())
 
-    def check_invalid_module_name(self):
+    def test_check_invalid_module_name(self):
         """Test the behaviour of check custom features"""
         from config import Config
         from iota2.Common import ServiceConfigFile as SCF
@@ -163,7 +163,7 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
         cfg = SCF.serviceConfigFile(config_path_test)
         self.assertRaises(ValueError, cfg.checkCustomFeature)
 
-    def check_invalid_function_name(self):
+    def test_check_invalid_function_name(self):
         """Test the behaviour of check custom features"""
         from config import Config
         from iota2.Common import ServiceConfigFile as SCF
