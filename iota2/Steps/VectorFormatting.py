@@ -30,7 +30,7 @@ class VectorFormatting(IOTA2Step.Step):
         # step variables
         self.working_directory = workingDirectory
         self.execution_mode = "cluster"
-        self.step_tasks = []
+
         # parameters
         output_path = SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'outputPath')
@@ -95,13 +95,11 @@ class VectorFormatting(IOTA2Step.Step):
                     "working_directory": self.working_directory
                 },
                 task_resources=self.resources)
-            task_in_graph = self.add_task_to_i2_processing_graph(
-                task,
-                task_group="tile_tasks",
-                task_sub_group=tile,
-                task_dep_group="vector",
-                task_dep_sub_group=["vector"])
-            self.step_tasks.append(task_in_graph)
+            self.add_task_to_i2_processing_graph(task,
+                                                 task_group="tile_tasks",
+                                                 task_sub_group=tile,
+                                                 task_dep_group="vector",
+                                                 task_dep_sub_group=["vector"])
 
     @classmethod
     def step_description(cls):

@@ -35,7 +35,6 @@ class PixelValidity(IOTA2Step.Step):
         cloud_threshold = SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'cloud_threshold')
         self.execution_mode = "cluster"
-        self.step_tasks = []
 
         for tile in self.tiles:
             task = self.i2_task(task_name=f"validity_raster_{tile}",
@@ -53,13 +52,11 @@ class PixelValidity(IOTA2Step.Step):
                                     "RAM": self.ram
                                 },
                                 task_resources=self.resources)
-            task_in_graph = self.add_task_to_i2_processing_graph(
-                task,
-                task_group="tile_tasks",
-                task_sub_group=tile,
-                task_dep_group="tile_tasks",
-                task_dep_sub_group=[tile])
-            self.step_tasks.append(task_in_graph)
+            self.add_task_to_i2_processing_graph(task,
+                                                 task_group="tile_tasks",
+                                                 task_sub_group=tile,
+                                                 task_dep_group="tile_tasks",
+                                                 task_dep_sub_group=[tile])
 
     @classmethod
     def step_description(cls):

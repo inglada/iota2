@@ -33,7 +33,6 @@ class Coregistration(IOTA2Step.Step):
         self.RAM = 1024.0 * get_RAM(self.resources["ram"])
         self.workingDirectory = workingDirectory
         self.execution_mode = "cluster"
-        self.step_tasks = []
 
         l5_path = None
         l8_path = None
@@ -120,12 +119,10 @@ class Coregistration(IOTA2Step.Step):
                     sensors_parameters.get_sensors_parameters(tile)
                 },
                 task_resources=self.resources)
-            task_in_graph = self.add_task_to_i2_processing_graph(
-                task,
-                task_group="tile_tasks",
-                task_sub_group=tile,
-                task_dep_group="first_task")
-            self.step_tasks.append(task_in_graph)
+            self.add_task_to_i2_processing_graph(task,
+                                                 task_group="tile_tasks",
+                                                 task_sub_group=tile,
+                                                 task_dep_group="first_task")
 
     @classmethod
     def step_description(cls):

@@ -32,7 +32,6 @@ class genRegionVector(IOTA2Step.Step):
         self.outputPath = SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'outputPath')
         self.execution_mode = "cluster"
-        self.step_tasks = []
         task = self.i2_task(task_name=f"region_generation",
                             log_dir=self.log_step_dir,
                             execution_mode=self.execution_mode,
@@ -53,13 +52,11 @@ class genRegionVector(IOTA2Step.Step):
                                 self.workingDirectory
                             },
                             task_resources=self.resources)
-        task_in_graph = self.add_task_to_i2_processing_graph(
-            task,
-            task_group="vector",
-            task_sub_group="vector",
-            task_dep_group="vector",
-            task_dep_sub_group=["vector"])
-        self.step_tasks.append(task_in_graph)
+        self.add_task_to_i2_processing_graph(task,
+                                             task_group="vector",
+                                             task_sub_group="vector",
+                                             task_dep_group="vector",
+                                             task_dep_sub_group=["vector"])
 
     @classmethod
     def step_description(cls):

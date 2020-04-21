@@ -137,7 +137,6 @@ class Step(object):
 
     # will contains every steps
     step_container = []
-    step_container_first = []
 
     # useful to control the fact that tasks must be unique
     tasks_container = set()
@@ -149,12 +148,17 @@ class Step(object):
         "region_tasks": {},
         "tile_tasks_model": {}
     }
+    tasks_graph_figure = {
+        "first_task": None,
+        "tile_tasks": {},
+        "region_tasks": {},
+        "tile_tasks_model": {}
+    }
 
     def __init__(self, cfg, cfg_resources_file, resources_block_name=None):
         """
         """
         from iota2.Common import ServiceConfigFile as SCF
-
         # attributes
         self.cfg = cfg
         self.step_name = self.build_step_name()
@@ -172,7 +176,17 @@ class Step(object):
         self.log_dir = log_dir
         self.log_step_dir = os.path.join(self.log_dir,
                                          "{}".format(self.step_name))
+
+        self.step_tasks = []
+        self.step_tasks_figure = []
         self.step_container.append(self)
+
+    def __getstate__(self):
+        # do not pickle step_tasks_figure attribute
+        return {
+            k: v
+            for k, v in self.__dict__.items() if k != "step_tasks_figure"
+        }
 
     @classmethod
     def set_models_spatial_information(cls, tiles,
@@ -186,6 +200,14 @@ class Step(object):
         """
         return dask.delayed(
             cls.task_launcher)(*cls.step_container[-1].step_tasks)
+
+    @classmethod
+    def get_figure_graph(cls):
+        """
+        """
+        # chain.generate_graphical_exe_graph(args.graph_figure)
+        return dask.delayed(change_name("ending chain")(
+            cls.task_launcher))(*cls.step_container[-1].step_tasks_figure)
 
     @classmethod
     def get_dependencies_keys(cls):
@@ -293,6 +315,9 @@ class Step(object):
         else:
             LOGGER.warning("WARNING : the variable 'task_kwargs' is missing")
 
+    def trace_graph(self, *args, **kwargs) -> None:
+        """
+        """
     def set_working_dir_parameter(self, t_kwargs: Dict,
                                   worker_working_dir: str) -> Dict:
         """
@@ -307,74 +332,20 @@ class Step(object):
                 new_t_kwargs[working_dir_name] = worker_working_dir
         return new_t_kwargs
 
-    def add_task_to_i2_processing_graph_graph(
-            self,
-            task,
-            task_group: str,
-            task_sub_group: Optional[str] = None,
-            task_dep_group: Optional[str] = None,
-            task_dep_sub_group: Optional[str] = None) -> dask.delayed:
-        """
-        """
-        new_task = None
-
-        if task_group not in self.tasks_graph:
-            self.tasks_graph[task_group] = {}
-
-        if task_group == "first_task":
-            if self.tasks_graph["first_task"] is not None:
-                raise ValueError("first task already present")
-            new_task = dask.delayed(
-                change_name(task.task_name)(self.task_launcher))(
-                    log_err=task.log_err,
-                    log_out=task.log_out,
-                    scheduler_type=task.execution_mode,
-                    pbs_worker_name=task.task_name,
-                    resources=task.resources,
-                    task_kwargs=task.parameters)
-            self.tasks_graph["first_task"] = new_task
-        else:
-            # second step case, then the dependency is the "first_task"
-            if task_dep_sub_group is None:
-                new_task = dask.delayed(
-                    change_name(task.task_name)(self.task_launcher))(
-                        self.tasks_graph[task_dep_group],
-                        log_err=task.log_err,
-                        log_out=task.log_out,
-                        scheduler_type=task.execution_mode,
-                        pbs_worker_name=task.task_name,
-                        resources=task.resources,
-                        task_kwargs=task.parameters)
-            else:
-                new_task = dask.delayed(
-                    change_name(task.task_name)(self.task_launcher))(
-                        *[
-                            self.tasks_graph[task_dep_group][dep]
-                            for dep in task_dep_sub_group
-                        ],
-                        log_err=task.log_err,
-                        log_out=task.log_out,
-                        scheduler_type=task.execution_mode,
-                        pbs_worker_name=task.task_name,
-                        resources=task.resources,
-                        task_kwargs=task.parameters)
-            self.tasks_graph[task_group][task_sub_group] = new_task
-
-        return new_task
-
     def add_task_to_i2_processing_graph(
             self,
             task,
             task_group: str,
             task_sub_group: Optional[str] = None,
             task_dep_group: Optional[str] = None,
-            task_dep_sub_group: Optional[str] = None) -> dask.delayed:
+            task_dep_sub_group: Optional[str] = None) -> None:
         """
         """
         new_task = None
 
         if task_group not in self.tasks_graph:
             self.tasks_graph[task_group] = {}
+            self.tasks_graph_figure[task_group] = {}
 
         if task_group == "first_task":
             if self.tasks_graph["first_task"] is not None:
@@ -386,7 +357,10 @@ class Step(object):
                 pbs_worker_name=task.task_name,
                 resources=task.resources,
                 task_kwargs=task.parameters)
+            new_task_figure = dask.delayed(
+                change_name(task.task_name)(self.trace_graph))()
             self.tasks_graph["first_task"] = new_task
+            self.tasks_graph_figure["first_task"] = new_task_figure
         else:
             # second step case, then the dependency is the "first_task"
             if task_dep_sub_group is None:
@@ -398,6 +372,10 @@ class Step(object):
                     pbs_worker_name=task.task_name,
                     resources=task.resources,
                     task_kwargs=task.parameters)
+                new_task_figure = dask.delayed(
+                    change_name(task.task_name)(self.trace_graph))(
+                        self.tasks_graph_figure[task_dep_group])
+
             elif len(self.step_container) != 1:
                 new_task = dask.delayed(self.task_launcher)(
                     *[
@@ -410,6 +388,11 @@ class Step(object):
                     pbs_worker_name=task.task_name,
                     resources=task.resources,
                     task_kwargs=task.parameters)
+                new_task_figure = dask.delayed(
+                    change_name(task.task_name)(self.trace_graph))(*[
+                        self.tasks_graph_figure[task_dep_group][dep]
+                        for dep in task_dep_sub_group
+                    ])
             else:
                 new_task = dask.delayed(self.task_launcher)(
                     log_err=task.log_err,
@@ -418,9 +401,13 @@ class Step(object):
                     pbs_worker_name=task.task_name,
                     resources=task.resources,
                     task_kwargs=task.parameters)
+                new_task_figure = dask.delayed(
+                    change_name(task.task_name)(self.trace_graph))()
             self.tasks_graph[task_group][task_sub_group] = new_task
-
-        return new_task
+            self.tasks_graph_figure[task_group][
+                task_sub_group] = new_task_figure
+        self.step_tasks.append(new_task)
+        self.step_tasks_figure.append(new_task_figure)
 
     def parse_resource_file(self, step_name, cfg_resources_file):
         """

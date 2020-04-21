@@ -50,12 +50,11 @@ class sensorsPreprocess(IOTA2Step.Step):
                                     "RAM": self.RAM
                                 },
                                 task_resources=self.resources)
-            task_in_graph = self.add_task_to_i2_processing_graph(
-                task,
-                task_group="tile_tasks",
-                task_sub_group=tile,
-                task_dep_group="first_task")
-            self.step_tasks.append(task_in_graph)
+            self.add_task_to_i2_processing_graph(task,
+                                                 task_group="tile_tasks",
+                                                 task_sub_group=tile,
+                                                 task_dep_group="first_task")
+            #self.step_tasks.append(task_in_graph)
 
     @classmethod
     def step_description(cls):

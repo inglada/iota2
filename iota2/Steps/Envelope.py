@@ -35,7 +35,6 @@ class Envelope(IOTA2Step.Step):
             SCF.serviceConfigFile(self.cfg).getParam('GlobChain',
                                                      'proj').split(":")[-1])
         self.execution_mode = "cluster"
-        self.step_tasks = []
 
         task = self.i2_task(task_name=f"tiles_envelopes",
                             log_dir=self.log_step_dir,
@@ -48,13 +47,11 @@ class Envelope(IOTA2Step.Step):
                                 "proj": self.proj
                             },
                             task_resources=self.resources)
-        task_in_graph = self.add_task_to_i2_processing_graph(
-            task,
-            task_group="vector",
-            task_sub_group="vector",
-            task_dep_group="tile_tasks",
-            task_dep_sub_group=self.tiles)
-        self.step_tasks.append(task_in_graph)
+        self.add_task_to_i2_processing_graph(task,
+                                             task_group="vector",
+                                             task_sub_group="vector",
+                                             task_dep_group="tile_tasks",
+                                             task_dep_sub_group=self.tiles)
 
     @classmethod
     def step_description(cls):

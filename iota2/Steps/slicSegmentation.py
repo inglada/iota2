@@ -33,7 +33,7 @@ class slicSegmentation(IOTA2Step.Step):
         self.RAM = 1024.0 * get_RAM(self.resources["ram"])
         self.workingDirectory = workingDirectory
         self.execution_mode = "cluster"
-        self.step_tasks = []
+
         running_parameters = iota2_parameters(self.cfg)
 
         for tile in self.tiles:
@@ -57,13 +57,11 @@ class slicSegmentation(IOTA2Step.Step):
                     self.workingDirectory
                 },
                 task_resources=self.resources)
-            task_in_graph = self.add_task_to_i2_processing_graph(
-                task,
-                task_group="tile_tasks",
-                task_sub_group=tile,
-                task_dep_group="tile_tasks",
-                task_dep_sub_group=[tile])
-            self.step_tasks.append(task_in_graph)
+            self.add_task_to_i2_processing_graph(task,
+                                                 task_group="tile_tasks",
+                                                 task_sub_group=tile,
+                                                 task_dep_group="tile_tasks",
+                                                 task_dep_sub_group=[tile])
 
     @classmethod
     def step_description(cls):

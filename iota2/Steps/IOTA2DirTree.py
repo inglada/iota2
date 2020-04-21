@@ -45,7 +45,6 @@ class IOTA2DirTree(IOTA2Step.Step):
                                                   **sensors_parameters)
 
         sensor_path = sensor_tile_container.get_enabled_sensors_path()[0]
-        self.step_tasks = []
         dir_task = self.i2_task(
             task_name="generate_directories",
             log_dir=self.log_step_dir,
@@ -84,9 +83,7 @@ class IOTA2DirTree(IOTA2Step.Step):
                                                          'listTile').split(" ")
             },
             task_resources=self.resources)
-        task_in_graph = self.add_task_to_i2_processing_graph(
-            dir_task, "first_task")
-        self.step_tasks.append(task_in_graph)
+        self.add_task_to_i2_processing_graph(dir_task, "first_task")
 
     @classmethod
     def step_description(cls):
