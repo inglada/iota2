@@ -254,9 +254,10 @@ def generate_samples_simple(folder_sample: str,
                     f" {fu.memory_usage_psutil()} MB")
         print("RAM before features extraction : "
               f"{fu.memory_usage_psutil()} MB")
-        multi_proc = mp.Process(target=executeApp, args=[sample_extr])
-        multi_proc.start()
-        multi_proc.join()
+        sample_extr.ExecuteAndWriteOutput()
+        # multi_proc = mp.Process(target=executeApp, args=[sample_extr])
+        # multi_proc.start()
+        # multi_proc.join()
         print("RAM after features extraction :"
               f" {fu.memory_usage_psutil()} MB")
         logger.info("RAM after features extraction :"
@@ -431,9 +432,10 @@ def generate_samples_crop_mix(folder_sample: str,
             nonannual_vector_sel, na_working_directory, sample_extr_na,
             data_field, output_path, sar_optical_post_fusion, sensors_params,
             ram, mode)
-        multi_proc = mp.Process(target=executeApp, args=[sample_extr_na_app])
-        multi_proc.start()
-        multi_proc.join()
+        sample_extr_na_app.ExecuteAndWriteOutput()
+        # multi_proc = mp.Process(target=executeApp, args=[sample_extr_na_app])
+        # multi_proc.start()
+        # multi_proc.join()
 
     if nb_feat_annu > 0:
         a_working_directory = os.path.join(working_directory,
@@ -452,9 +454,10 @@ def generate_samples_crop_mix(folder_sample: str,
             sar_optical_post_fusion,
             sensors_params,
             mode=mode)
-        multi_proc = mp.Process(target=executeApp, args=[sample_extr_a_app])
-        multi_proc.start()
-        multi_proc.join()
+        sample_extr_a_app.ExecuteAndWriteOutput()
+        # multi_proc = mp.Process(target=executeApp, args=[sample_extr_a_app])
+        # multi_proc.start()
+        # multi_proc.join()
 
     end_extraction = time.time()
     logger.debug(f"Samples Extraction time : "
@@ -885,10 +888,10 @@ def generate_samples_classif_mix(folder_sample: str,
         sample_selection, working_directory, samples, data_field, output_path,
         sar_optical_post_fusion, sensors_parameters, ram, mode)
 
-    # sampleExtr.ExecuteAndWriteOutput()
-    multi_proc = mp.Process(target=executeApp, args=[sample_extr])
-    multi_proc.start()
-    multi_proc.join()
+    sample_extr.ExecuteAndWriteOutput()
+    # multi_proc = mp.Process(target=executeApp, args=[sample_extr])
+    # multi_proc.start()
+    # multi_proc.join()
 
     split_vectors = split_vector_by_region(in_vect=samples,
                                            output_dir=working_directory,
