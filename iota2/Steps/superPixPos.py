@@ -16,10 +16,10 @@
 import os
 from typing import Optional, TypeVar, Generic
 
-from Steps import IOTA2Step
-from Common import ServiceConfigFile as SCF
-from Cluster import get_RAM
-from Sampling import VectorSampler as vs
+from iota2.Steps import IOTA2Step
+from iota2.Common import ServiceConfigFile as SCF
+from iota2.Cluster import get_RAM
+from iota2.Sampling.SuperPixelsSelection import merge_ref_super_pix
 
 
 class superPixPos(IOTA2Step.Step):
@@ -37,7 +37,9 @@ class superPixPos(IOTA2Step.Step):
                                           resources_block_name)
 
         # step variables
-        self.workingDirectory = workingDirectory
+        self.execution_mode = "cluster"
+        self.step_tasks = []
+        self.working_directory = workingDirectory
         self.execution_dir = SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'outputPath')
         self.superPix_field = "superpix"
@@ -47,7 +49,8 @@ class superPixPos(IOTA2Step.Step):
         self.data_field = SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'dataField')
         self.ram = 1024.0 * get_RAM(self.resources["ram"])
-
+        self.nb_runs = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'runs')
         self.sampling_labels_from_raster = {}
         if (SCF.serviceConfigFile(self.cfg).getParam('argTrain', 'cropMix')
                 and SCF.serviceConfigFile(self.cfg).getParam(
@@ -71,6 +74,43 @@ class superPixPos(IOTA2Step.Step):
                 "region_mask_directory": region_mask_dir,
                 "val_threshold": val_thresh
             }
+        for model_name, model_meta in self.spatial_models_distribution.items():
+            for seed in range(self.nb_runs):
+                for tile in model_meta["tiles"]:
+                    target_model = f"model_{model_name}_seed_{seed}"
+                    task = self.i2_task(
+                        task_name=f"SP_{target_model}_{tile}",
+                        log_dir=self.log_step_dir,
+                        execution_mode=self.execution_mode,
+                        task_parameters={
+                            "f": merge_ref_super_pix,
+                            "data": {
+                                "SLIC":
+                                os.path.join(self.execution_dir, "features",
+                                             tile, "tmp", f"SLIC_{tile}.tif"),
+                                "selection_samples":
+                                os.path.join(
+                                    self.execution_dir, "samplesSelection",
+                                    f"{tile}_samples_region_{model_name}_seed_{seed}_selection.sqlite"
+                                )
+                            },
+                            "DATAREF_FIELD_NAME": self.data_field,
+                            "SP_FIELD_NAME": self.superPix_field,
+                            "SP_BELONG_FIELD_NAME": self.superPix_belong_field,
+                            "REGION_FIELD_NAME": self.region_field,
+                            "sampling_labels_from_raster":
+                            self.sampling_labels_from_raster,
+                            "workingDirectory": self.working_directory,
+                            "ram": self.ram
+                        },
+                        task_resources=self.resources)
+                    task_in_graph = self.add_task_to_i2_processing_graph(
+                        task,
+                        task_group="tile_tasks_model",
+                        task_sub_group=f"{tile}_{model_name}_{seed}",
+                        task_dep_group="region_tasks",
+                        task_dep_sub_group=[target_model])
+                    self.step_tasks.append(task_in_graph)
 
     def step_description(self):
         """
@@ -78,33 +118,3 @@ class superPixPos(IOTA2Step.Step):
         """
         description = ("Add superPixels positions to reference data")
         return description
-
-    def step_inputs(self):
-        """
-        Return
-        ------
-            the return could be and iterable or a callable
-        """
-        from Sampling.SuperPixelsSelection import input_parameters
-        return input_parameters(self.execution_dir)
-
-    def step_execute(self):
-        """
-        Return
-        ------
-        lambda
-            the function to execute as a lambda function. The returned object
-            must be a lambda function.
-        """
-        from Sampling.SuperPixelsSelection import merge_ref_super_pix
-
-        step_function = lambda x: merge_ref_super_pix(
-            x, self.data_field, self.superPix_field, self.
-            superPix_belong_field, self.region_field, self.
-            sampling_labels_from_raster, self.workingDirectory, self.ram)
-        return step_function
-
-    def step_outputs(self):
-        """
-        """
-        pass

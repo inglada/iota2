@@ -50,6 +50,30 @@ class learnModel(IOTA2Step.Step):
         self.available_ram = 1024.0 * get_RAM(self.resources["ram"])
         self.use_scikitlearn = SCF.serviceConfigFile(self.cfg).getParam(
             'scikit_models_parameters', 'model_type') is not None
+        self.execution_mode = "cluster"
+        self.step_tasks = []
+        self.suffix_list = ["usually"]
+        if SCF.serviceConfigFile(self.cfg).getParam(
+                'argTrain', 'dempster_shafer_SAR_Opt_fusion') is True:
+            self.suffix_list.append("SAR")
+
+        for suffix in self.suffix_list:
+            for model_name, model_meta in self.spatial_models_distribution.items(
+            ):
+                for seed in range(self.runs):
+                    target_model = f"model_{model_name}_seed_{seed}_{suffix}"
+                    task = self.i2_task(task_name=f"learning_{target_model}",
+                                        log_dir=self.log_step_dir,
+                                        execution_mode=self.execution_mode,
+                                        task_parameters={"f": ""},
+                                        task_resources=self.resources)
+                    task_in_graph = self.add_task_to_i2_processing_graph(
+                        task,
+                        task_group="region_tasks",
+                        task_sub_group=f"{target_model}",
+                        task_dep_group="region_tasks",
+                        task_dep_sub_group=[target_model])
+                    self.step_tasks.append(task_in_graph)
 
     def step_description(self):
         """
@@ -57,6 +81,11 @@ class learnModel(IOTA2Step.Step):
         """
         description = ("Learn model")
         return description
+
+    def simulate_learning(self, vector_file):
+        """
+        """
+        print(f"learning : {vector_file}")
 
     def step_inputs(self):
         """

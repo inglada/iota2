@@ -17,6 +17,7 @@ import os
 
 from iota2.Steps import IOTA2Step
 from iota2.Common import ServiceConfigFile as SCF
+from iota2.Sampling import SamplesSelection
 
 
 class samplingLearningPolygons(IOTA2Step.Step):
@@ -27,11 +28,65 @@ class samplingLearningPolygons(IOTA2Step.Step):
                                                        resources_block_name)
 
         # step variables
-        self.workingDirectory = workingDirectory
+        self.working_directory = workingDirectory
         self.output_path = SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'outputPath')
         self.enable_cross_validation = SCF.serviceConfigFile(
             self.cfg).getParam('chain', 'enableCrossValidation')
+        self.execution_mode = "cluster"
+        self.step_tasks = []
+        self.nb_runs = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'runs')
+        epsg = SCF.serviceConfigFile(self.cfg).getParam('GlobChain', 'proj')
+        parameters = dict(
+            SCF.serviceConfigFile(self.cfg).getParam('argTrain',
+                                                     'sampleSelection'))
+        data_field = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'dataField').lower()
+        random_seed = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'random_seed')
+        for model_name, model_meta in self.spatial_models_distribution.items():
+            for seed in range(self.nb_runs):
+                target_model = f"model_{model_name}_seed_{seed}"
+                task = self.i2_task(
+                    task_name=f"s_sel_{target_model}",
+                    log_dir=self.log_step_dir,
+                    execution_mode=self.execution_mode,
+                    task_parameters={
+                        "f":
+                        SamplesSelection.samples_selection,
+                        "model":
+                        os.path.join(
+                            self.output_path, "samplesSelection",
+                            f"samples_region_{model_name}_seed_{seed}.shp"),
+                        "working_directory":
+                        self.working_directory,
+                        "output_path":
+                        self.output_path,
+                        "runs":
+                        self.nb_runs,
+                        "epsg":
+                        epsg,
+                        "masks_name":
+                        "MaskCommunSL.tif",
+                        "parameters":
+                        parameters,
+                        "data_field":
+                        data_field,
+                        "random_seed":
+                        random_seed
+                    },
+                    task_resources=self.resources)
+                task_in_graph = self.add_task_to_i2_processing_graph(
+                    task,
+                    task_group="region_tasks",
+                    task_sub_group=target_model,
+                    task_dep_group="tile_tasks_model",
+                    task_dep_sub_group=[
+                        f"{tile}_{model_name}_{seed}"
+                        for tile in model_meta["tiles"]
+                    ])
+                self.step_tasks.append(task_in_graph)
 
     def step_description(self):
         """
@@ -39,54 +94,3 @@ class samplingLearningPolygons(IOTA2Step.Step):
         """
         description = ("Select pixels in learning polygons by models")
         return description
-
-    def sort_by_seed(self, item):
-        """
-        """
-        return os.path.splitext(os.path.basename(item))[0].split("_")[4]
-
-    def step_inputs(self):
-        """
-        Return
-        ------
-            the return could be and iterable or a callable
-        """
-        from iota2.Common import FileUtils as fut
-        selected_polygons = fut.FileSearch_AND(
-            os.path.join(self.output_path, "samplesSelection"), True, ".shp")
-        if self.enable_cross_validation:
-            selected_polygons = sorted(selected_polygons,
-                                       key=self.sort_by_seed)[:-1]
-        return selected_polygons
-
-    def step_execute(self):
-        """
-        Return
-        ------
-        lambda
-            the function to execute as a lambda function. The returned object
-            must be a lambda function.
-        """
-        from iota2.Sampling import SamplesSelection
-
-        output_path = SCF.serviceConfigFile(self.cfg).getParam(
-            "chain", "outputPath")
-        runs = SCF.serviceConfigFile(self.cfg).getParam('chain', 'runs')
-        epsg = SCF.serviceConfigFile(self.cfg).getParam('GlobChain', 'proj')
-        random_seed = SCF.serviceConfigFile(self.cfg).getParam(
-            'chain', 'random_seed')
-        data_field = SCF.serviceConfigFile(self.cfg).getParam(
-            'chain', 'dataField').lower()
-        parameters = dict(
-            SCF.serviceConfigFile(self.cfg).getParam('argTrain',
-                                                     'sampleSelection'))
-        masks_name = "MaskCommunSL.tif"
-        step_function = lambda x: SamplesSelection.samples_selection(
-            x, self.workingDirectory, output_path, runs, epsg, masks_name,
-            parameters, data_field, random_seed)
-        return step_function
-
-    def step_outputs(self):
-        """
-        """
-        pass

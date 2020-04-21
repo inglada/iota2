@@ -109,21 +109,15 @@ class Step(object):
 
             if not isinstance(task_name, str):
                 raise ValueError("parameter 'task_name' must be a string")
-            # due to PBS limitations
-            if len(task_name) > 25:
-                self.task_name = task_name[0:24]
-                print(
-                    "WARNING: task_name = {task_name} too long, casted as {self.task_name}"
-                )
             if " " in self.task_name:
                 self.task_name = self.task_name.replace(" ", "")
                 print(
-                    "WARNING: task_name = {task_name} contains whitespaces, casted as {self.task_name}"
+                    f"WARNING: task_name = {task_name} contains whitespaces, casted as {self.task_name}"
                 )
             if "-" in self.task_name:
                 self.task_name = self.task_name.replace("-", "")
                 print(
-                    "WARNING: task_name contains '-' character, automatically removed"
+                    f"WARNING: task_name contains '-' character, automatically removed"
                 )
             self.log_err = os.path.join(log_dir, f"{task_name}.err")
             self.log_out = os.path.join(log_dir, f"{task_name}.out")
@@ -143,6 +137,7 @@ class Step(object):
 
     # will contains every steps
     step_container = []
+    step_container_first = []
 
     # useful to control the fact that tasks must be unique
     tasks_container = set()
@@ -186,11 +181,11 @@ class Step(object):
         cls.spatial_models_distribution = spatial_models_distribution
 
     @classmethod
-    def get_final_i2_exec_graph(cls):
+    def get_exec_graph(cls):
         """
         """
-        return dask.delayed(change_name("gather results")(
-            cls.task_launcher))(*cls.step_container[-1].step_tasks)
+        return dask.delayed(
+            cls.task_launcher)(*cls.step_container[-1].step_tasks)
 
     @classmethod
     def get_dependencies_keys(cls):
@@ -237,26 +232,32 @@ class Step(object):
            dictionary containing the function to launch with its parameters
         """
         import time
-
+        from iota2.Common.FileUtils import ensure_dir
         kwargs = kwargs.copy()
         task_kwargs = kwargs.get("task_kwargs", None)
+
         if task_kwargs:
+            log_dir, _ = os.path.split(log_err)
+            if not os.path.exists(log_dir):
+                ensure_dir(log_dir)
+
             func = task_kwargs["f"]
             task_kwargs.pop('f', None)
             f_kwargs = task_kwargs
+
             # here we launch the fonction with all the arguments of kwargs
             if scheduler_type == "cluster":
 
                 env_vars = [
-                    f"export PYTHONPATH={os.environ.get('PYTHONPATH')}:{os.path.dirname(os.path.realpath(__file__))}",
-                    f"export PATH={os.environ.get('PATH')}:{os.path.dirname(os.path.realpath(__file__))}",
+                    f"export PYTHONPATH={os.environ.get('PYTHONPATH')}",
+                    f"export PATH={os.environ.get('PATH')}",
                     f"export LD_LIBRARY_PATH={os.environ.get('LD_LIBRARY_PATH')}",
                     f"export OTB_APPLICATION_PATH={os.environ.get('OTB_APPLICATION_PATH')}",
                     f"export GDAL_DATA={os.environ.get('GDAL_DATA')}",
                     f"export GEOTIFF_CSV={os.environ.get('GEOTIFF_CSV')}"
                 ]
 
-                extras = [f"-N {pbs_worker_name}"]
+                extras = [f"-N {pbs_worker_name[0:30]}"]
                 if log_err is not None:
                     extras.append(f"-e {log_err}")
                 if log_out is not None:
@@ -273,6 +274,13 @@ class Step(object):
                                      local_directory='$TMPDIR')
 
                 client = Client(cluster)
+                client.wait_for_workers(1)
+                for _, worker_meta in client.scheduler_info()["workers"].items(
+                ):
+                    working_dir = os.path.split(
+                        worker_meta["local_directory"])[0]
+                f_kwargs = self.set_working_dir_parameter(
+                    f_kwargs, working_dir)
                 sub_results = client.submit(func, **f_kwargs)
                 sub_results.result()
                 cluster.close()
@@ -285,7 +293,21 @@ class Step(object):
         else:
             LOGGER.warning("WARNING : the variable 'task_kwargs' is missing")
 
-    def add_task_to_i2_processing_graph(
+    def set_working_dir_parameter(self, t_kwargs: Dict,
+                                  worker_working_dir: str) -> Dict:
+        """
+        """
+        new_t_kwargs = t_kwargs.copy()
+        working_dir_names = [
+            "working_directory", "pathWd", "workingDirectory", "working_dir",
+            "path_wd"
+        ]
+        for working_dir_name in working_dir_names:
+            if working_dir_name in new_t_kwargs:
+                new_t_kwargs[working_dir_name] = worker_working_dir
+        return new_t_kwargs
+
+    def add_task_to_i2_processing_graph_graph(
             self,
             task,
             task_group: str,
@@ -337,6 +359,70 @@ class Step(object):
                         resources=task.resources,
                         task_kwargs=task.parameters)
             self.tasks_graph[task_group][task_sub_group] = new_task
+
+        return new_task
+
+    def add_task_to_i2_processing_graph(
+            self,
+            task,
+            task_group: str,
+            task_sub_group: Optional[str] = None,
+            task_dep_group: Optional[str] = None,
+            task_dep_sub_group: Optional[str] = None) -> dask.delayed:
+        """
+        """
+        # print(self.step_container)
+        # print(len(self.step_container))
+        # pause = input("W8")
+        new_task = None
+
+        if task_group not in self.tasks_graph:
+            self.tasks_graph[task_group] = {}
+
+        if task_group == "first_task":
+            if self.tasks_graph["first_task"] is not None:
+                raise ValueError("first task already present")
+            new_task = dask.delayed(self.task_launcher)(
+                log_err=task.log_err,
+                log_out=task.log_out,
+                scheduler_type=task.execution_mode,
+                pbs_worker_name=task.task_name,
+                resources=task.resources,
+                task_kwargs=task.parameters)
+            self.tasks_graph["first_task"] = new_task
+        else:
+            # second step case, then the dependency is the "first_task"
+            if task_dep_sub_group is None:
+                new_task = dask.delayed(self.task_launcher)(
+                    self.tasks_graph[task_dep_group],
+                    log_err=task.log_err,
+                    log_out=task.log_out,
+                    scheduler_type=task.execution_mode,
+                    pbs_worker_name=task.task_name,
+                    resources=task.resources,
+                    task_kwargs=task.parameters)
+            elif len(self.step_container) != 1:
+                new_task = dask.delayed(self.task_launcher)(
+                    *[
+                        self.tasks_graph[task_dep_group][dep]
+                        for dep in task_dep_sub_group
+                    ],
+                    log_err=task.log_err,
+                    log_out=task.log_out,
+                    scheduler_type=task.execution_mode,
+                    pbs_worker_name=task.task_name,
+                    resources=task.resources,
+                    task_kwargs=task.parameters)
+            else:
+                new_task = dask.delayed(self.task_launcher)(
+                    log_err=task.log_err,
+                    log_out=task.log_out,
+                    scheduler_type=task.execution_mode,
+                    pbs_worker_name=task.task_name,
+                    resources=task.resources,
+                    task_kwargs=task.parameters)
+            self.tasks_graph[task_group][task_sub_group] = new_task
+
         return new_task
 
     def parse_resource_file(self, step_name, cfg_resources_file):
@@ -348,8 +434,6 @@ class Step(object):
         default_cpu = 1
         default_ram = "5gb"
         default_walltime = "00:10:00"
-        default_process_min = 1
-        default_process_max = -1
 
         cfg_resources = None
         if cfg_resources_file and os.path.exists(cfg_resources_file):
@@ -361,10 +445,6 @@ class Step(object):
         resource["ram"] = getattr(cfg_step_resources, "ram", default_ram)
         resource["walltime"] = getattr(cfg_step_resources, "walltime",
                                        default_walltime)
-        resource["process_min"] = getattr(cfg_step_resources, "process_min",
-                                          default_process_min)
-        resource["process_max"] = getattr(cfg_step_resources, "process_max",
-                                          default_process_max)
         resource["resource_block_name"] = str(step_name)
         resource["resource_block_found"] = False
         if cfg_resources:

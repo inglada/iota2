@@ -46,7 +46,7 @@ class sensorsPreprocess(IOTA2Step.Step):
                                     "tile_name": tile,
                                     "config_path": self.cfg,
                                     "output_path": self.output_path,
-                                    "working_directory": self.workingDirectory,
+                                    "working_directory": os.getenv('TMPDIR'),
                                     "RAM": self.RAM
                                 },
                                 task_resources=self.resources)

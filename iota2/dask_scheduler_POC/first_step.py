@@ -17,12 +17,13 @@ import os
 import logging
 from typing import Optional
 
-from iota2_step import step
+#from iota2_step import step
+from iota2.dask_scheduler_POC import iota2_step
 
 LOGGER = logging.getLogger(__name__)
 
 
-class first_step(step):
+class first_step(iota2_step.step):
     def __init__(self, running_directory: str):
         super(first_step, self).__init__()
         self.running_directory = running_directory

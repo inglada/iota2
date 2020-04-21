@@ -16,18 +16,21 @@
 import os
 import argparse
 
-from iota2_step import step
-from first_step import first_step
-from second_step import second_step
-from third_step import third_step
-from forth_step import forth_step
-from fifth_step import fifth_step
-from fusion_step import fusion_step
-from mosaic_step import mosaic_step
+#from iota2_step import step
+#import iota2_step
+from iota2.dask_scheduler_POC import iota2_step
+# from iota2.dask_scheduler_POC import first_step
+from iota2.dask_scheduler_POC.first_step import first_step
+from iota2.dask_scheduler_POC.second_step import second_step
+from iota2.dask_scheduler_POC.third_step import third_step
+from iota2.dask_scheduler_POC.forth_step import forth_step
+from iota2.dask_scheduler_POC.fifth_step import fifth_step
+from iota2.dask_scheduler_POC.fusion_step import fusion_step
+from iota2.dask_scheduler_POC.mosaic_step import mosaic_step
 
 from dask.distributed import Client
 from dask.distributed import LocalCluster
-from dask_jobqueue import PBSCluster
+# from dask_jobqueue import PBSCluster
 
 if __name__ == "__main__":
     PARSER = argparse.ArgumentParser(description="iota2 dask scheduling POC")
@@ -52,13 +55,11 @@ if __name__ == "__main__":
         fusion_step(running_directory),
         mosaic_step(running_directory)
     ]
-    # list_of_sorted_i2_steps = [
-    #     first_step(running_directory),
-    #     second_step(running_directory)
-    # ]
+    #list_of_sorted_i2_steps = [first_step.first_step(running_directory)]
 
     # get tasks to be launched
-    final_graph = step.get_final_i2_exec_graph()
+    final_graph = iota2_step.step.get_final_i2_exec_graph()
+    #final_graph = list_of_sorted_i2_steps[-1].get_final_i2_exec_graph()
 
     # visualizing graph could be useful in case of long run in order to
     # know what tasks as been processes and what tasks as to be launched
@@ -68,13 +69,18 @@ if __name__ == "__main__":
     # color="order"
     final_graph.visualize(filename=graph_file)
 
-    cluster = cluster = LocalCluster(n_workers=1)
+    cluster = LocalCluster(n_workers=1)
     client = Client(cluster)
     #final_graph.compute()
 
     print(f"dashboard available at : {client.dashboard_link}")
 
     # then, launch tasks (it's a blocking line)
+    # import sys
+    # print(dir(sys.modules["iota2_step"]))
+    # pause = input("sys !")
+
     res = client.submit(final_graph.compute)
     res.result()
+
     # python launcher.py -running_dir /home/uz/vincenta/tmp/dask_scheduler/dask_scheduler -graph_file /home/uz/vincenta/tmp/dask_scheduler/dask_scheduler/graphe_POC.png

@@ -17,12 +17,13 @@ import os
 import logging
 from typing import Optional, List
 
-from iota2_step import step
+#from iota2_step import step
+from iota2.dask_scheduler_POC import iota2_step
 
 LOGGER = logging.getLogger(__name__)
 
 
-class fusion_step(step):
+class fusion_step(iota2_step.step):
     """simulate classification stage"""
     def __init__(self, running_directory: str):
         super(fusion_step, self).__init__()

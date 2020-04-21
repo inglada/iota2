@@ -14,7 +14,7 @@
 #
 # =========================================================================
 import os
-
+from typing import List, Dict
 from iota2.Steps import IOTA2Step
 from iota2.Common import ServiceConfigFile as SCF
 from iota2.Sampling import VectorSamplesMerge as VSM
@@ -30,6 +30,62 @@ class samplesByModels(IOTA2Step.Step):
         # step variables
         self.output_path = SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'outputPath')
+        self.nb_runs = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'runs')
+        self.execution_mode = "cluster"
+        self.step_tasks = []
+
+        self.suffix_list = ["usually"]
+        if SCF.serviceConfigFile(self.cfg).getParam(
+                'argTrain', 'dempster_shafer_SAR_Opt_fusion') is True:
+            self.suffix_list.append("SAR")
+
+        dico_model_samples_files = self.expected_files_to_merge()
+        for suffix in self.suffix_list:
+            for model_name, model_meta in self.spatial_models_distribution.items(
+            ):
+                for seed in range(self.nb_runs):
+                    target_model = f"model_{model_name}_seed_{seed}_{suffix}"
+                    task = self.i2_task(
+                        task_name=f"merge_{target_model}",
+                        log_dir=self.log_step_dir,
+                        execution_mode=self.execution_mode,
+                        task_parameters={
+                            "f": VSM.vector_samples_merge,
+                            "vector_list":
+                            dico_model_samples_files[target_model],
+                            "output_path": self.output_path
+                        },
+                        task_resources=self.resources)
+                    task_in_graph = self.add_task_to_i2_processing_graph(
+                        task,
+                        task_group="region_tasks",
+                        task_sub_group=f"{target_model}",
+                        task_dep_group="tile_tasks",
+                        task_dep_sub_group=[
+                            f"{tile}_{suffix}" for tile in model_meta["tiles"]
+                        ])
+                    self.step_tasks.append(task_in_graph)
+
+    def expected_files_to_merge(self) -> Dict[str, List[str]]:
+        """
+        """
+        files_to_merge = {}
+        for suffix in self.suffix_list:
+            for seed in range(self.nb_runs):
+                for model_name, model_meta in self.spatial_models_distribution.items(
+                ):
+                    file_list = []
+                    for tile in model_meta["tiles"]:
+                        file_name = f"{tile}_region_{model_name}_seed{seed}_Samples_learn.sqlite"
+                        if suffix == "SAR":
+                            file_name = f"{tile}_region_{model_name}_seed{seed}_Samples_SAR_learn.sqlite"
+                        file_list.append(
+                            os.path.join(self.output_path, "learningSamples",
+                                         file_name))
+                    files_to_merge[
+                        f"model_{model_name}_seed_{seed}_{suffix}"] = file_list
+        return files_to_merge
 
     def step_description(self):
         """
@@ -37,30 +93,3 @@ class samplesByModels(IOTA2Step.Step):
         """
         description = ("Merge samples dedicated to the same model")
         return description
-
-    def step_inputs(self):
-        """
-        Return
-        ------
-            the return could be and iterable or a callable
-        """
-        return VSM.tile_vectors_to_models(
-            os.path.join(self.output_path, "learningSamples"))
-
-    def step_execute(self):
-        """
-        Return
-        ------
-        lambda
-            the function to execute as a lambda function. The returned object
-            must be a lambda function.
-        """
-        step_function = lambda x: VSM.vector_samples_merge(
-            x,
-            SCF.serviceConfigFile(self.cfg).getParam("chain", "outputPath"))
-        return step_function
-
-    def step_outputs(self):
-        """
-        """
-        pass

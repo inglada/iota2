@@ -47,7 +47,7 @@ class statsSamplesModel(IOTA2Step.Step):
                                             "f":
                                             SamplesStat.samples_stats,
                                             "region_seed_tile":
-                                            (model_name, seed, tile),
+                                            (model_name, str(seed), tile),
                                             "iota2_directory":
                                             self.output_path,
                                             "data_field":

@@ -17,10 +17,16 @@ import os
 
 from iota2.Steps import IOTA2Step
 from iota2.Common import ServiceConfigFile as SCF
+from iota2.Common.FileUtils import sortByFirstElem
+from iota2.Sampling import SamplesSelection
 
 
 class samplesByTiles(IOTA2Step.Step):
-    def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
+    def __init__(self,
+                 cfg,
+                 cfg_resources_file,
+                 enable_autocontext,
+                 workingDirectory=None):
         # heritage init
         resources_block_name = "samplesSelection_tiles"
         super(samplesByTiles, self).__init__(cfg, cfg_resources_file,
@@ -30,7 +36,55 @@ class samplesByTiles(IOTA2Step.Step):
         self.workingDirectory = workingDirectory
         self.output_path = SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'outputPath')
-        self.tile_name_pos = 0
+        self.nb_runs = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'runs')
+        self.execution_mode = "cluster"
+        self.step_tasks = []
+
+        tiles_model_distribution_tmp = []
+        for model_name, model_meta in self.spatial_models_distribution.items():
+            for tile in model_meta["tiles"]:
+                tiles_model_distribution_tmp.append((tile, model_name))
+        tiles_model_distribution_tmp = sortByFirstElem(
+            tiles_model_distribution_tmp)
+
+        tiles_model_distribution = {}
+        for tile_name, model_list in tiles_model_distribution_tmp:
+            tiles_model_distribution[tile_name] = [
+                f"{tile_name}_{model_name}_{seed}" for model_name in model_list
+                for seed in range(self.nb_runs)
+            ]
+        model_distribution = {}
+        for tile_name, model_list in tiles_model_distribution_tmp:
+            model_distribution[tile_name] = [
+                f"model_{model_name}_seed_{seed}" for model_name in model_list
+                for seed in range(self.nb_runs)
+            ]
+        for tile in self.tiles:
+            task = self.i2_task(task_name=f"merge_samples_{tile}",
+                                log_dir=self.log_step_dir,
+                                execution_mode=self.execution_mode,
+                                task_parameters={
+                                    "f":
+                                    SamplesSelection.prepare_selection,
+                                    "sample_sel_directory":
+                                    os.path.join(self.output_path,
+                                                 "samplesSelection"),
+                                    "tile_name":
+                                    tile,
+                                    "workingDirectory":
+                                    self.workingDirectory
+                                },
+                                task_resources=self.resources)
+            task_in_graph = self.add_task_to_i2_processing_graph(
+                task,
+                task_group="tile_tasks",
+                task_sub_group=tile,
+                task_dep_group="tile_tasks_model"
+                if enable_autocontext else "region_tasks",
+                task_dep_sub_group=tiles_model_distribution[tile]
+                if enable_autocontext else model_distribution[tile])
+            self.step_tasks.append(task_in_graph)
 
     def step_description(self):
         """
@@ -38,43 +92,3 @@ class samplesByTiles(IOTA2Step.Step):
         """
         description = ("Split pixels selected to learn models by tiles")
         return description
-
-    def step_inputs(self):
-        """
-        Return
-        ------
-            the return could be and iterable or a callable
-        """
-        from iota2.Common.FileUtils import FileSearch_AND
-        sample_sel_directory = os.path.join(
-            SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath'),
-            "samplesSelection")
-        sampled_vectors = FileSearch_AND(sample_sel_directory, True,
-                                         "selection.sqlite")
-        tiles = []
-        for sampled_vector in sampled_vectors:
-            tile_name = os.path.splitext(os.path.basename(
-                sampled_vector))[0].split("_")[self.tile_name_pos]
-            if not tile_name in tiles and tile_name != "samples":
-                tiles.append(tile_name)
-        tiles = sorted(tiles)
-        return tiles
-
-    def step_execute(self):
-        """
-        Return
-        ------
-        lambda
-            the function to execute as a lambda function. The returned object
-            must be a lambda function.
-        """
-        from iota2.Sampling import SamplesSelection
-        step_function = lambda x: SamplesSelection.prepare_selection(
-            os.path.join(self.output_path, "samplesSelection"), x, self.
-            workingDirectory)
-        return step_function
-
-    def step_outputs(self):
-        """
-        """
-        pass
