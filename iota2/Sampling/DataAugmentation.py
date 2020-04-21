@@ -54,7 +54,8 @@ def GetDataAugmentationSyntheticParameters(IOTA2_dir):
         a list of sqlite files containing samples
     """
     IOTA2_dir_learningSamples = os.path.join(IOTA2_dir, "learningSamples")
-    return fut.FileSearch_AND(IOTA2_dir_learningSamples, True, ".sqlite")
+    return fut.FileSearch_AND(IOTA2_dir_learningSamples, True,
+                              "Samples_region", ".sqlite")
 
 
 def GetDataAugmentationByCopyParameters(iota2_dir_samples):
