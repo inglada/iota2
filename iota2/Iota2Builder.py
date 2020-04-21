@@ -15,6 +15,7 @@
 # =========================================================================
 import os
 import math
+from functools import partial
 from typing import Optional
 from collections import OrderedDict
 from iota2.Common import ServiceConfigFile as SCF
@@ -107,6 +108,7 @@ def get_region_tile_distribution(
     dict
         dictionary containing by regions every tiles intersected
     """
+    # TODO : manage the Sentinel-1 sensor path is a configuration file
     output_distribution = {}
     import ogr
 
@@ -136,6 +138,7 @@ def get_region_tile_distribution(
             for model_name, tile_list in sortByFirstElem(region_list)
         ]
         output_distribution = dict(output_distribution_tmp)
+
     else:
         output_distribution = {"1": tiles}
     return output_distribution
@@ -228,21 +231,21 @@ class iota2():
                                                       region_vector_file,
                                                       region_vector_datafield,
                                                       i2_epsg_code)
-        # models_area = get_region_area(ground_truth, region_vector_file,
-        #                               region_vector_datafield, sensor_path,
-        #                               i2_epsg_code, tiles)
+        models_area = get_region_area(ground_truth, region_vector_file,
+                                      region_vector_datafield, sensor_path,
+                                      i2_epsg_code, tiles)
         # print(models_area)
-        models_area = {
-            '1': 11231498215.206795,
-            '3': 16472562392.370218,
-            '7': 2724834982.7134705,
-            '9': 3870489666.7596097,
-            '2': 8439352266.304428,
-            '4': 14254915616.995539,
-            '5': 21577358792.3973,
-            '8': 7172610794.366812,
-            '6': 8892182957.883936
-        }
+        # models_area = {
+        #     '1': 11231498215.206795,
+        #     '3': 16472562392.370218,
+        #     '7': 2724834982.7134705,
+        #     '9': 3870489666.7596097,
+        #     '2': 8439352266.304428,
+        #     '4': 14254915616.995539,
+        #     '5': 21577358792.3973,
+        #     '8': 7172610794.366812,
+        #     '6': 8892182957.883936
+        # }
         spatial_region_info = {}
         for models_name, tiles in region_distrib.items():
             spatial_region_info[models_name] = {}
@@ -282,8 +285,14 @@ class iota2():
         """
 
         for step_place, step in enumerate(self.steps):
-            self.steps_group[step.step_group][step_place +
-                                              1] = step.step_description()
+            print(step)
+            print(dir(step))
+            print(step.args)
+            print(step.func)
+            print(step.func.step_description())
+            pause = input("W8")
+            # self.steps_group[step.step_group][step_place +
+            #                                   1] = step.step_description()
 
     def print_step_summarize(self,
                              start,
@@ -360,6 +369,17 @@ class iota2():
         step_to_compute = [step for step_group in steps for step in step_group]
         return step_to_compute
 
+    def get_final_i2_exec_graph(self, first_step_index: int,
+                                last_step_index: int):
+        """
+        """
+        from iota2.Steps.IOTA2Step import Step
+        # instanciate steps which must me launched
+        steps_to_exe = [
+            step() for step in self.steps[first_step_index:last_step_index + 1]
+        ]
+        return Step.get_exec_graph()
+
     def build_steps(self, cfg, config_ressources=None):
         """
         build steps
@@ -385,7 +405,74 @@ class iota2():
             mosaicTilesVectorization, largeSimplification, largeSmoothing,
             clipVectors, zonalStatistics, prodVectors, slicSegmentation,
             superPixPos, superPixSplit, skClassificationsMerge)
-        print(self.model_spatial_distrib)
+
+        # self.model_spatial_distrib = {
+        #     '6': {
+        #         'tiles': [
+        #             'T30TXP', 'T30TXR', 'T30TYP', 'T31TCH', 'T31TCJ', 'T31TDH',
+        #             'T31TDJ', 'T31TEH', 'T31TEJ', 'T31TEK', 'T31TFJ', 'T31TFK',
+        #             'T31TFL', 'T31TGH', 'T31TGJ', 'T31TGK', 'T32TLP', 'T32TLQ'
+        #         ],
+        #         'nb_sub_models':
+        #         None
+        #     },
+        #     '4': {
+        #         'tiles': [
+        #             'T30TXN', 'T30TXP', 'T30TXQ', 'T30TXR', 'T30TYN', 'T30TYP',
+        #             'T30TYQ', 'T31TCH', 'T31TCJ', 'T31TCK', 'T31TDH', 'T31TDJ',
+        #             'T31TDK', 'T31TEK', 'T31TFK', 'T31TFL', 'T31TGK', 'T31TGL',
+        #             'T32TLQ', 'T32TLR'
+        #         ],
+        #         'nb_sub_models':
+        #         None
+        #     },
+        #     '5': {
+        #         'tiles': [
+        #             'T30TXN', 'T30TXP', 'T30TXQ', 'T30TXR', 'T30TYQ', 'T31TGK',
+        #             'T32TLQ'
+        #         ],
+        #         'nb_sub_models':
+        #         None
+        #     },
+        #     '2': {
+        #         'tiles': [
+        #             'T30TXN', 'T30TXP', 'T30TYN', 'T30TYP', 'T31TCH', 'T31TDH',
+        #             'T31TDJ', 'T31TDK', 'T31TEJ', 'T31TEK', 'T31TFK', 'T31TFL',
+        #             'T31TGJ', 'T31TGK', 'T31TGL', 'T32TLP', 'T32TLQ', 'T32TLR'
+        #         ],
+        #         'nb_sub_models':
+        #         None
+        #     },
+        #     '1': {
+        #         'tiles': [
+        #             'T30TXN', 'T30TYN', 'T31TCH', 'T31TDH', 'T31TDJ', 'T31TDK',
+        #             'T31TEJ', 'T31TEK', 'T31TFK', 'T31TFL', 'T31TGJ', 'T31TGK',
+        #             'T31TGL', 'T32TLP', 'T32TLQ', 'T32TLR'
+        #         ],
+        #         'nb_sub_models':
+        #         None
+        #     },
+        #     '7': {
+        #         'tiles': [
+        #             'T30TYP', 'T30TYQ', 'T31TCH', 'T31TCJ', 'T31TCK', 'T31TDH',
+        #             'T31TDJ', 'T31TDK', 'T31TFK', 'T31TFL'
+        #         ],
+        #         'nb_sub_models':
+        #         None
+        #     },
+        #     '8': {
+        #         'tiles': [
+        #             'T31TDH', 'T31TDJ', 'T31TEH', 'T31TEJ', 'T31TEK', 'T31TFH',
+        #             'T31TFJ', 'T31TFK', 'T31TGH', 'T31TGJ', 'T32TLP'
+        #         ],
+        #         'nb_sub_models':
+        #         None
+        #     },
+        #     '3': {
+        #         'tiles': ['T31TFL'],
+        #         'nb_sub_models': None
+        #     }
+        # }
         Step.set_models_spatial_information(self.tiles,
                                             self.model_spatial_distrib)
         # control variable
@@ -437,54 +524,100 @@ class iota2():
 
         # build chain
         # init steps
-        s_container.append(IOTA2DirTree.IOTA2DirTree(cfg, config_ressources),
-                           "init")
         s_container.append(
-            sensorsPreprocess.sensorsPreprocess(cfg, config_ressources,
-                                                self.workingDirectory), "init")
+            partial(IOTA2DirTree.IOTA2DirTree, cfg, config_ressources), "init")
+        s_container.append(
+            partial(sensorsPreprocess.sensorsPreprocess, cfg,
+                    config_ressources, self.workingDirectory), "init")
         if not "none" in VHR.lower():
             s_container.append(
-                Coregistration.Coregistration(cfg, config_ressources,
-                                              self.workingDirectory), "init")
+                partial(Coregistration.Coregistration, cfg, config_ressources,
+                        self.workingDirectory), "init")
         s_container.append(
-            CommonMasks.CommonMasks(cfg, config_ressources,
-                                    self.workingDirectory), "init")
+            partial(CommonMasks.CommonMasks, cfg, config_ressources,
+                    self.workingDirectory), "init")
         s_container.append(
-            PixelValidity.PixelValidity(cfg, config_ressources,
-                                        self.workingDirectory), "init")
+            partial(PixelValidity.PixelValidity, cfg, config_ressources,
+                    self.workingDirectory), "init")
         if enable_autoContext:
             s_container.append(
-                slicSegmentation.slicSegmentation(cfg, config_ressources,
-                                                  self.workingDirectory),
-                "init")
+                partial(slicSegmentation.slicSegmentation, cfg,
+                        config_ressources, self.workingDirectory), "init")
         # sampling steps
         s_container.append(
-            Envelope.Envelope(cfg, config_ressources, self.workingDirectory),
-            "sampling")
-        if not shapeRegion:
-            s_container.append(
-                genRegionVector.genRegionVector(cfg, config_ressources,
-                                                self.workingDirectory),
-                "sampling")
-        s_container.append(
-            VectorFormatting.VectorFormatting(cfg, config_ressources,
-                                              self.workingDirectory),
-            "sampling")
-        huge_models = False
-        if shapeRegion and classif_mode == "fusion":
-            huge_models = True
-            s_container.append(
-                splitSamples.splitSamples(cfg, config_ressources,
-                                          self.workingDirectory), "sampling")
-        s_container.append(
-            samplesMerge.samplesMerge(cfg, config_ressources,
-                                      self.workingDirectory, huge_models),
-            "sampling")
-        s_container.append(
-            statsSamplesModel.statsSamplesModel(cfg, config_ressources,
-                                                self.workingDirectory),
-            "sampling")
+            partial(
+                partial(Envelope.Envelope, cfg, config_ressources,
+                        self.workingDirectory), "sampling"))
+        # if not shapeRegion:
+        #     s_container.append(
+        #         genRegionVector.genRegionVector(cfg, config_ressources,
+        #                                         self.workingDirectory),
+        #         "sampling")
+        # s_container.append(
+        #     VectorFormatting.VectorFormatting(cfg, config_ressources,
+        #                                       self.workingDirectory),
+        #     "sampling")
+        # huge_models = False
+        # if shapeRegion and classif_mode == "fusion":
+        #     huge_models = True
+        #     s_container.append(
+        #         splitSamples.splitSamples(cfg, config_ressources,
+        #                                   self.workingDirectory), "sampling")
+        # s_container.append(
+        #     samplesMerge.samplesMerge(cfg, config_ressources,
+        #                               self.workingDirectory, huge_models),
+        #     "sampling")
+        # s_container.append(
+        #     statsSamplesModel.statsSamplesModel(cfg, config_ressources,
+        #                                         self.workingDirectory),
+        #     "sampling")
         # s_container.append(
         #     samplingLearningPolygons.samplingLearningPolygons(
         #         cfg, config_ressources, self.workingDirectory), "sampling")
+        # if enable_autoContext is True:
+        #     s_container.append(
+        #         superPixPos.superPixPos(cfg, config_ressources,
+        #                                 self.workingDirectory), "sampling")
+        # s_container.append(
+        #     samplesByTiles.samplesByTiles(cfg, config_ressources,
+        #                                   enable_autoContext,
+        #                                   self.workingDirectory), "sampling")
+        # s_container.append(
+        #     samplesExtraction.samplesExtraction(cfg, config_ressources,
+        #                                         self.workingDirectory),
+        #     "sampling")
+        # # enable_autoContext = False
+        # # sampleManagement = "truc"
+        # # sample_augmentation_flag = False
+        # # dimred = True
+        # if enable_autoContext is False:
+        #     s_container.append(
+        #         samplesByModels.samplesByModels(cfg, config_ressources),
+        #         "sampling")
+        #     transfert_samples = False
+        #     if sampleManagement and sampleManagement.lower() != 'none':
+        #         transfert_samples = True
+        #         s_container.append(
+        #             copySamples.copySamples(cfg, config_ressources,
+        #                                     self.workingDirectory), "sampling")
+        #     if sample_augmentation_flag:
+        #         s_container.append(
+        #             genSyntheticSamples.genSyntheticSamples(
+        #                 cfg, config_ressources, transfert_samples,
+        #                 self.workingDirectory), "sampling")
+        #     if dimred:
+        #         s_container.append(
+        #             samplesDimReduction.samplesDimReduction(
+        #                 cfg, config_ressources, transfert_samples
+        #                 and not sample_augmentation_flag,
+        #                 self.workingDirectory), "sampling")
+        # else:
+        #     s_container.append(
+        #         superPixSplit.superPixSplit(cfg, config_ressources,
+        #                                     self.workingDirectory), "sampling")
+        # learning
+        # s_container.append(
+        #     learnModel.learnModel(cfg, config_ressources,
+        #                           self.workingDirectory), "learning")
+
         return s_container
