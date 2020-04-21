@@ -36,13 +36,13 @@ def get_region_area(ground_truth: str,
     from iota2.Common.verifyInputs import get_tile_raster_footprint
     from iota2.Common.FileUtils import sortByFirstElem
     import ogr
-    print("DANS la fonction")
+
     start = time.time()
     areas_container = set()
 
     multipolygon = ogr.Geometry(ogr.wkbMultiPolygon)
     for cpt, tile in enumerate(tiles):
-        print(f"tile : {cpt+1}/{len(tiles)}")
+        # print(f"tile : {cpt+1}/{len(tiles)}")
         geom_raster_envelope = get_tile_raster_footprint(
             tile, sensor_path, epsg_code)
         multipolygon.AddGeometry(geom_raster_envelope)
@@ -52,7 +52,7 @@ def get_region_area(ground_truth: str,
     reg_layer = reg_src.GetLayer()
     reg_layer.SetSpatialFilter(multipolygon)
     for cpt_reg, region_feat in enumerate(reg_layer):
-        print(f"region {cpt_reg +1}/{len(reg_layer)}")
+        # print(f"region {cpt_reg +1}/{len(reg_layer)}")
         region_val = region_feat.GetField(region_field)
         driver_gt = ogr.GetDriverByName(ground_truth_driver)
         gt_src = driver_gt.Open(ground_truth, 0)
@@ -63,17 +63,17 @@ def get_region_area(ground_truth: str,
             geom = learning_polygon_gt.GetGeometryRef()
             areas_container.add((region_val, geom.GetArea()))
     end = time.time()
-    print(f"recuperation terminé en {end-start} secondes")
+    # print(f"recuperation terminé en {end-start} secondes")
     areas_sorted = sortByFirstElem(areas_container)
     time_sort = time.time()
-    print(f"trie en {time_sort-end} secondes")
+    # print(f"trie en {time_sort-end} secondes")
     dico = {}
 
     for area_name, areas in areas_sorted:
         dico[area_name] = sum(areas)
     time_sum = time.time()
-    print(f"calcul des sommes en {time_sum-time_sort} secondes")
-    print(dico)
+    # print(f"calcul des sommes en {time_sum-time_sort} secondes")
+    # print(dico)
 
     return dico
 
@@ -285,13 +285,6 @@ class iota2():
         """
 
         for step_place, step in enumerate(self.steps):
-            # print(step)
-            # print(dir(step))
-            # print(step.args)
-            # print(step.func)
-            # print(step.func.step_description())
-            # pause = input("W8")
-            print(step.step_group)
             self.steps_group[step.step_group][
                 step_place + 1] = step.func.step_description()
 
@@ -370,8 +363,10 @@ class iota2():
         step_to_compute = [step for step_group in steps for step in step_group]
         return step_to_compute
 
-    def get_final_i2_exec_graph(self, first_step_index: int,
-                                last_step_index: int):
+    def get_final_i2_exec_graph(self,
+                                first_step_index: int,
+                                last_step_index: int,
+                                output_figure: Optional[str] = None):
         """
         """
         from iota2.Steps.IOTA2Step import Step
@@ -379,6 +374,11 @@ class iota2():
         steps_to_exe = [
             step() for step in self.steps[first_step_index:last_step_index + 1]
         ]
+        if output_figure:
+            figure_graph = Step.get_figure_graph()
+            figure_graph.visualize(filename=output_figure,
+                                   optimize_graph=True,
+                                   collapse_outputs=True)
         return Step.get_exec_graph()
 
     def build_steps(self, cfg, config_ressources=None):
@@ -530,33 +530,31 @@ class iota2():
         s_container.append(
             partial(sensorsPreprocess.sensorsPreprocess, cfg,
                     config_ressources, self.workingDirectory), "init")
-        # if not "none" in VHR.lower():
-        #     s_container.append(
-        #         partial(Coregistration.Coregistration, cfg, config_ressources,
-        #                 self.workingDirectory), "init")
-        # s_container.append(
-        #     partial(CommonMasks.CommonMasks, cfg, config_ressources,
-        #             self.workingDirectory), "init")
-        # s_container.append(
-        #     partial(PixelValidity.PixelValidity, cfg, config_ressources,
-        #             self.workingDirectory), "init")
-        # if enable_autoContext:
-        #     s_container.append(
-        #         partial(slicSegmentation.slicSegmentation, cfg,
-        #                 config_ressources, self.workingDirectory), "init")
-        # # sampling steps
-        # s_container.append(
-        #     partial(Envelope.Envelope, cfg, config_ressources,
-        #             self.workingDirectory), "sampling")
-        # if not shapeRegion:
-        #     s_container.append(
-        #         genRegionVector.genRegionVector(cfg, config_ressources,
-        #                                         self.workingDirectory),
-        #         "sampling")
-        # s_container.append(
-        #     VectorFormatting.VectorFormatting(cfg, config_ressources,
-        #                                       self.workingDirectory),
-        #     "sampling")
+        if not "none" in VHR.lower():
+            s_container.append(
+                partial(Coregistration.Coregistration, cfg, config_ressources,
+                        self.workingDirectory), "init")
+        s_container.append(
+            partial(CommonMasks.CommonMasks, cfg, config_ressources,
+                    self.workingDirectory), "init")
+        s_container.append(
+            partial(PixelValidity.PixelValidity, cfg, config_ressources,
+                    self.workingDirectory), "init")
+        if enable_autoContext:
+            s_container.append(
+                partial(slicSegmentation.slicSegmentation, cfg,
+                        config_ressources, self.workingDirectory), "init")
+        # sampling steps
+        s_container.append(
+            partial(Envelope.Envelope, cfg, config_ressources,
+                    self.workingDirectory), "sampling")
+        if not shapeRegion:
+            s_container.append(
+                partial(genRegionVector.genRegionVector, cfg,
+                        config_ressources, self.workingDirectory), "sampling")
+        s_container.append(
+            partial(VectorFormatting.VectorFormatting, cfg, config_ressources,
+                    self.workingDirectory), "sampling")
         # huge_models = False
         # if shapeRegion and classif_mode == "fusion":
         #     huge_models = True
