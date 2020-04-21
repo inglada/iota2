@@ -35,7 +35,8 @@ class confusionsMerge(IOTA2Step.Step):
         self.ground_truth = SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'groundTruth')
 
-    def step_description(self):
+    @classmethod
+    def step_description(cls):
         """
         function use to print a short description of the step's purpose
         """

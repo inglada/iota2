@@ -18,7 +18,6 @@ from dask.distributed import Client
 from dask.distributed import LocalCluster
 
 from iota2 import Iota2Builder as chain
-from iota2.Steps.IOTA2Step import Step
 
 if __name__ == "__main__":
 
@@ -55,6 +54,11 @@ if __name__ == "__main__":
                         dest="config_ressources",
                         help="path to IOTA2 ressources configuration file",
                         required=False)
+    parser.add_argument("-execution_graph_file",
+                        dest="graph_figure",
+                        help="output execution graph",
+                        default="",
+                        required=False)
     parser.add_argument(
         "-only_summary",
         dest="launchChain",
@@ -86,9 +90,10 @@ if __name__ == "__main__":
             args.start, args.end, args.config_ressources is not None))
     final_graph = chain_to_process.get_final_i2_exec_graph(
         first_step_index, last_step_index)
-    final_graph.visualize(filename="/home/uz/vincenta/tmp/POC.png",
-                          optimize_graph=True,
-                          collapse_outputs=True)
+    if args.graph_figure:
+        final_graph.visualize(filename=args.graph_figure,
+                              optimize_graph=True,
+                              collapse_outputs=True)
     cluster = LocalCluster(n_workers=1)
     client = Client(cluster)
 

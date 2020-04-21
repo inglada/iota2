@@ -51,7 +51,8 @@ class largeSmoothing(IOTA2Step.Step):
             SCF.serviceConfigFile(self.cfg).getParam('GlobChain',
                                                      'proj').split(":")[-1])
 
-    def step_description(self):
+    @classmethod
+    def step_description(cls):
         """
         function use to print a short description of the step's purpose
         """

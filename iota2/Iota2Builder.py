@@ -285,14 +285,15 @@ class iota2():
         """
 
         for step_place, step in enumerate(self.steps):
-            print(step)
-            print(dir(step))
-            print(step.args)
-            print(step.func)
-            print(step.func.step_description())
-            pause = input("W8")
-            # self.steps_group[step.step_group][step_place +
-            #                                   1] = step.step_description()
+            # print(step)
+            # print(dir(step))
+            # print(step.args)
+            # print(step.func)
+            # print(step.func.step_description())
+            # pause = input("W8")
+            print(step.step_group)
+            self.steps_group[step.step_group][
+                step_place + 1] = step.func.step_description()
 
     def print_step_summarize(self,
                              start,
@@ -529,25 +530,24 @@ class iota2():
         s_container.append(
             partial(sensorsPreprocess.sensorsPreprocess, cfg,
                     config_ressources, self.workingDirectory), "init")
-        if not "none" in VHR.lower():
-            s_container.append(
-                partial(Coregistration.Coregistration, cfg, config_ressources,
-                        self.workingDirectory), "init")
-        s_container.append(
-            partial(CommonMasks.CommonMasks, cfg, config_ressources,
-                    self.workingDirectory), "init")
-        s_container.append(
-            partial(PixelValidity.PixelValidity, cfg, config_ressources,
-                    self.workingDirectory), "init")
-        if enable_autoContext:
-            s_container.append(
-                partial(slicSegmentation.slicSegmentation, cfg,
-                        config_ressources, self.workingDirectory), "init")
-        # sampling steps
-        s_container.append(
-            partial(
-                partial(Envelope.Envelope, cfg, config_ressources,
-                        self.workingDirectory), "sampling"))
+        # if not "none" in VHR.lower():
+        #     s_container.append(
+        #         partial(Coregistration.Coregistration, cfg, config_ressources,
+        #                 self.workingDirectory), "init")
+        # s_container.append(
+        #     partial(CommonMasks.CommonMasks, cfg, config_ressources,
+        #             self.workingDirectory), "init")
+        # s_container.append(
+        #     partial(PixelValidity.PixelValidity, cfg, config_ressources,
+        #             self.workingDirectory), "init")
+        # if enable_autoContext:
+        #     s_container.append(
+        #         partial(slicSegmentation.slicSegmentation, cfg,
+        #                 config_ressources, self.workingDirectory), "init")
+        # # sampling steps
+        # s_container.append(
+        #     partial(Envelope.Envelope, cfg, config_ressources,
+        #             self.workingDirectory), "sampling")
         # if not shapeRegion:
         #     s_container.append(
         #         genRegionVector.genRegionVector(cfg, config_ressources,

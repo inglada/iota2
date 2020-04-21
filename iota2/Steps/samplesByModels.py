@@ -87,7 +87,8 @@ class samplesByModels(IOTA2Step.Step):
                         f"model_{model_name}_seed_{seed}_{suffix}"] = file_list
         return files_to_merge
 
-    def step_description(self):
+    @classmethod
+    def step_description(cls):
         """
         function use to print a short description of the step's purpose
         """

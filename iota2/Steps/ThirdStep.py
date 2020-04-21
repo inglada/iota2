@@ -18,8 +18,10 @@ import os
 from Steps import IOTA2Step
 from Cluster import get_RAM
 
+
 def awesome_function(arg1, arg2):
-    print ("My variable parameter : {} const parameter : {}".format(arg1, arg2))
+    print("My variable parameter : {} const parameter : {}".format(arg1, arg2))
+
 
 class ThirdStep(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file):
@@ -28,8 +30,8 @@ class ThirdStep(IOTA2Step.Step):
 
         # init
 
-
-    def step_description(self):
+    @classmethod
+    def step_description(cls):
         """
         function use to print a short description of the step's purpose
         """
@@ -52,7 +54,7 @@ class ThirdStep(IOTA2Step.Step):
         return step_function
 
     def step_outputs(self):
-        print ("no outputs")
+        print("no outputs")
 
     def step_clean(self):
         """

@@ -54,7 +54,8 @@ class fusionsIndecisions(IOTA2Step.Step):
             'argTrain', 'dempster_shafer_SAR_Opt_fusion')
         self.path_to_img = os.path.join(self.output_path, "features")
 
-    def step_description(self):
+    @classmethod
+    def step_description(cls):
         """
         function use to print a short description of the step's purpose
         """

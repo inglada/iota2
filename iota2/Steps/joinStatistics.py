@@ -19,21 +19,27 @@ from Steps import IOTA2Step
 from Cluster import get_RAM
 from Common import ServiceConfigFile as SCF
 
+
 class joinStatistics(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "join"
-        super(joinStatistics, self).__init__(cfg, cfg_resources_file, resources_block_name)
+        super(joinStatistics, self).__init__(cfg, cfg_resources_file,
+                                             resources_block_name)
 
         # step variables
         self.RAM = 1024.0 * get_RAM(self.resources["ram"])
         self.CPU = self.resources["cpu"]
         self.workingDirectory = workingDirectory
-        self.outputPath = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
-        self.outprefix = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'outprefix')
-        self.dozip = SCF.serviceConfigFile(self.cfg).getParam('Simplification', 'dozip')
+        self.outputPath = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'outputPath')
+        self.outprefix = SCF.serviceConfigFile(self.cfg).getParam(
+            'Simplification', 'outprefix')
+        self.dozip = SCF.serviceConfigFile(self.cfg).getParam(
+            'Simplification', 'dozip')
 
-    def step_description(self):
+    @classmethod
+    def step_description(cls):
         """
         function use to print a short description of the step's purpose
         """
@@ -47,8 +53,8 @@ class joinStatistics(IOTA2Step.Step):
             the return could be and iterable or a callable
         """
         from simplification import computeStats as cs
-        csvfilestojoin = os.path.join(self.outputPath, 'final', 'simplification',
-                                      'vectors')
+        csvfilestojoin = os.path.join(self.outputPath, 'final',
+                                      'simplification', 'vectors')
         return cs.getStatsList(csvfilestojoin)
 
     def step_execute(self):
@@ -65,11 +71,10 @@ class joinStatistics(IOTA2Step.Step):
         if tmpdir is None:
             tmpdir = os.path.join(self.outputPath, 'final', 'simplification',
                                   'tmp')
-        outfilevecttojoin = os.path.join(self.outputPath, 'final', 'simplification',
-                                         'vectors', '%s_.shp'%(self.outprefix))
-        step_function = lambda x: cs.computeStats(outfilevecttojoin,
-                                                  x,
-                                                  tmpdir,
+        outfilevecttojoin = os.path.join(self.outputPath, 'final',
+                                         'simplification', 'vectors',
+                                         '%s_.shp' % (self.outprefix))
+        step_function = lambda x: cs.computeStats(outfilevecttojoin, x, tmpdir,
                                                   self.dozip)
         return step_function
 

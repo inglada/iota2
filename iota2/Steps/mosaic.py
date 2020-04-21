@@ -39,7 +39,8 @@ class mosaic(IOTA2Step.Step):
         self.color_table = SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'colorTable')
 
-    def step_description(self):
+    @classmethod
+    def step_description(cls):
         """
         function use to print a short description of the step's purpose
         """

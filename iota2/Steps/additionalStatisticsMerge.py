@@ -31,7 +31,8 @@ class additionalStatisticsMerge(IOTA2Step.Step):
             'chain', 'outputPath')
         self.runs = SCF.serviceConfigFile(self.cfg).getParam('chain', 'runs')
 
-    def step_description(self):
+    @classmethod
+    def step_description(cls):
         """
         function use to print a short description of the step's purpose
         """

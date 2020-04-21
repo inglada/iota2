@@ -94,7 +94,8 @@ class splitSamples(IOTA2Step.Step):
         #self.set_models_spatial_information(self.tiles, models_ditribution_tmp)
         IOTA2Step.Step.spatial_models_distribution = models_ditribution_tmp
 
-    def step_description(self):
+    @classmethod
+    def step_description(cls):
         """
         function use to print a short description of the step's purpose
         """

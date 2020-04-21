@@ -42,7 +42,8 @@ class classification(IOTA2Step.Step):
         # ~ TODO : find a smarted way to determine the attribute self.scikit_tile_split
         self.scikit_tile_split = 50
 
-    def step_description(self):
+    @classmethod
+    def step_description(cls):
         """
         function use to print a short description of the step's purpose
         """

@@ -35,7 +35,8 @@ class prodVectors(IOTA2Step.Step):
         self.nomenclature = SCF.serviceConfigFile(self.cfg).getParam(
             'Simplification', 'nomenclature')
 
-    def step_description(self):
+    @classmethod
+    def step_description(cls):
         """
         function use to print a short description of the step's purpose
         """

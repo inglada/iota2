@@ -78,7 +78,8 @@ class samplesMerge(IOTA2Step.Step):
                     if huge_models else model_meta["tiles"])
                 self.step_tasks.append(task_in_graph)
 
-    def step_description(self):
+    @classmethod
+    def step_description(cls):
         """
         function use to print a short description of the step's purpose
         """

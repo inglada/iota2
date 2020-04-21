@@ -79,7 +79,8 @@ class zonalStatistics(IOTA2Step.Step):
             self.rastconf = os.path.join(self.outputPath, 'final',
                                          'Confidence_Seed_0.tif')
 
-    def step_description(self):
+    @classmethod
+    def step_description(cls):
         """
         function use to print a short description of the step's purpose
         """

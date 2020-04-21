@@ -75,7 +75,8 @@ class learnModel(IOTA2Step.Step):
                         task_dep_sub_group=[target_model])
                     self.step_tasks.append(task_in_graph)
 
-    def step_description(self):
+    @classmethod
+    def step_description(cls):
         """
         function use to print a short description of the step's purpose
         """

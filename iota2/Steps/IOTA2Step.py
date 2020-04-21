@@ -371,9 +371,6 @@ class Step(object):
             task_dep_sub_group: Optional[str] = None) -> dask.delayed:
         """
         """
-        # print(self.step_container)
-        # print(len(self.step_container))
-        # pause = input("W8")
         new_task = None
 
         if task_group not in self.tasks_graph:
@@ -461,5 +458,6 @@ class Step(object):
     def __str__(self):
         return "{}".format(self.step_name)
 
-    def step_description(self):
+    @classmethod
+    def step_description(cls):
         return "quick step description"

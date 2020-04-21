@@ -23,15 +23,22 @@ class ScikitClassificationsMerge(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, working_directory=None):
         # heritage init
         resources_block_name = "mergeClassifications"
-        super(ScikitClassificationsMerge, self).__init__(cfg, cfg_resources_file, resources_block_name)
+        super(ScikitClassificationsMerge,
+              self).__init__(cfg, cfg_resources_file, resources_block_name)
 
         # step variables
         self.working_directory = working_directory
-        self.output_path = ServiceConfigFile.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
-        self.epsg_code = int(ServiceConfigFile.serviceConfigFile(self.cfg).getParam('GlobChain', 'proj').split(":")[-1])
-        self.use_scikitlearn = ServiceConfigFile.serviceConfigFile(self.cfg).getParam('scikit_models_parameters', 'model_type') is not None
+        self.output_path = ServiceConfigFile.serviceConfigFile(
+            self.cfg).getParam('chain', 'outputPath')
+        self.epsg_code = int(
+            ServiceConfigFile.serviceConfigFile(self.cfg).getParam(
+                'GlobChain', 'proj').split(":")[-1])
+        self.use_scikitlearn = ServiceConfigFile.serviceConfigFile(
+            self.cfg).getParam('scikit_models_parameters',
+                               'model_type') is not None
 
-    def step_description(self):
+    @classmethod
+    def step_description(cls):
         """
         function use to print a short description of the step's purpose
         """
@@ -45,7 +52,8 @@ class ScikitClassificationsMerge(IOTA2Step.Step):
             the return could be and iterable or a callable
         """
         from iota2.Classification.skClassifier import sk_classifications_to_merge
-        parameters = sk_classifications_to_merge(os.path.join(self.output_path, "classif"))
+        parameters = sk_classifications_to_merge(
+            os.path.join(self.output_path, "classif"))
         # ~ in order to get only one task and iterate over raster to merge
         parameters = [parameters]
         return parameters
@@ -59,18 +67,18 @@ class ScikitClassificationsMerge(IOTA2Step.Step):
             must be a lambda function.
         """
         from iota2.Classification.skClassifier import merge_sk_classifications
-        
+
         from iota2.Common.rasterUtils import merge_rasters
-        step_function = lambda x: merge_sk_classifications(x,
-                                                           self.epsg_code,
-                                                           self.working_directory)
+        step_function = lambda x: merge_sk_classifications(
+            x, self.epsg_code, self.working_directory)
         return step_function
 
     def step_clean(self):
         """
         """
         from iota2.Classification.skClassifier import sk_classifications_to_merge
-        rasters = sk_classifications_to_merge(os.path.join(self.output_path, "classif"))
+        rasters = sk_classifications_to_merge(
+            os.path.join(self.output_path, "classif"))
         for rasters_already_merged in rasters:
             for raster in rasters_already_merged["rasters_list"]:
                 os.remove(raster)

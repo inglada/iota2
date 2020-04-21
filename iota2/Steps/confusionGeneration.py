@@ -23,13 +23,16 @@ class confusionGeneration(IOTA2Step.Step):
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "confusionMatrix"
-        super(confusionGeneration, self).__init__(cfg, cfg_resources_file, resources_block_name)
+        super(confusionGeneration, self).__init__(cfg, cfg_resources_file,
+                                                  resources_block_name)
 
         # step variables
         self.workingDirectory = workingDirectory
-        self.output_path = SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath')
+        self.output_path = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'outputPath')
 
-    def step_description(self):
+    @classmethod
+    def step_description(cls):
         """
         function use to print a short description of the step's purpose
         """
@@ -43,7 +46,9 @@ class confusionGeneration(IOTA2Step.Step):
             the return could be and iterable or a callable
         """
         from Common import FileUtils as fut
-        return fut.getCmd(os.path.join(self.output_path, "cmd", "confusion", "confusion.txt"))
+        return fut.getCmd(
+            os.path.join(self.output_path, "cmd", "confusion",
+                         "confusion.txt"))
 
     def step_execute(self):
         """

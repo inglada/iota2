@@ -38,7 +38,8 @@ class classiCmd(IOTA2Step.Step):
             'chain', 'regionPath')
         self.ram_classification = 1024.0 * get_RAM(self.resources["ram"])
 
-    def step_description(self):
+    @classmethod
+    def step_description(cls):
         """
         function use to print a short description of the step's purpose
         """
