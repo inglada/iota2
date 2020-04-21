@@ -17,7 +17,7 @@ import argparse
 from dask.distributed import Client
 from dask.distributed import LocalCluster
 
-import Iota2Builder as chain
+from iota2 import Iota2Builder as chain
 from iota2.Steps.IOTA2Step import Step
 
 if __name__ == "__main__":
@@ -76,14 +76,16 @@ if __name__ == "__main__":
     chain_to_process = chain.iota2(cfg.pathConf, args.config_ressources)
     if args.start == args.end == 0:
         all_steps = chain_to_process.get_steps_number()
-        args.start = all_steps[0]
-        args.end = all_steps[-1]
-
+        first_step_index = all_steps[0]
+        last_step_index = all_steps[-1]
+    else:
+        first_step_index = args.start - 1
+        last_step_index = args.end - 1
     print(
         chain_to_process.print_step_summarize(
             args.start, args.end, args.config_ressources is not None))
-
-    final_graph = Step.get_final_i2_exec_graph()
+    final_graph = chain_to_process.get_final_i2_exec_graph(
+        first_step_index, last_step_index)
     final_graph.visualize(filename="/home/uz/vincenta/tmp/POC.png",
                           optimize_graph=True,
                           collapse_outputs=True)
@@ -92,6 +94,5 @@ if __name__ == "__main__":
 
     print(f"dashboard available at : {client.dashboard_link}")
 
-    # then, launch tasks (it's a blocking line)
-    # res = client.submit(final_graph.compute)
-    # res.result()
+    res = client.submit(final_graph.compute)
+    res.result()
