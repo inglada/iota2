@@ -100,5 +100,5 @@ if __name__ == "__main__":
 
     print(f"dashboard available at : {client.dashboard_link}")
 
-    # res = client.submit(final_graph.compute)
-    # res.result()
+    res = client.submit(final_graph.compute)
+    res.result()
