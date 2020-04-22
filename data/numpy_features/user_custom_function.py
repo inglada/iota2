@@ -77,3 +77,29 @@ def get_soi(self):
         self.get_Sentinel2_B11() + self.get_Sentinel2_B8())
     labels = [f"soi_{i+1}" for i in range(coef.shape[2])]
     return coef, labels
+
+
+import numpy as np
+
+
+def get_cumulative_productivity(self):
+    print("cumul")
+    coef = np.sum(self.get_Sentinel2_NDVI(), axis=2)
+    labels = ["cumul_prod"]
+    return coef, labels
+
+
+def get_minimum_productivity(self):
+    print("min")
+    coef = np.min(self.get_Sentinel2_NDVI(), axis=2)
+    labels = ["min_prod"]
+    return coef, labels
+
+
+def get_seasonal_variation(self):
+    print("var")
+    coef = (np.std(self.get_Sentinel2_NDVI(), axis=2) /
+            (np.mean(self.get_Sentinel2_NDVI(), axis=2) + 1E-6))
+
+    labels = ["var_prod"]
+    return coef, labels
