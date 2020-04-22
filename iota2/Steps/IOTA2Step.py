@@ -181,12 +181,12 @@ class Step(object):
         self.step_tasks_figure = []
         self.step_container.append(self)
 
-    def __getstate__(self):
-        # do not pickle step_tasks_figure attribute
-        return {
-            k: v
-            for k, v in self.__dict__.items() if k != "step_tasks_figure"
-        }
+    # def __getstate__(self):
+    #     # do not pickle step_tasks_figure attribute
+    #     return {
+    #         k: v
+    #         for k, v in self.__dict__.items() if k != "step_tasks_figure"
+    #     }
 
     @classmethod
     def set_models_spatial_information(cls, tiles,
