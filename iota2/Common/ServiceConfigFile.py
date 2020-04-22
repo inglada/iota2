@@ -340,7 +340,8 @@ class serviceConfigFile:
                 "number_of_chunks": 50,
                 "chunk_size_x": 50,
                 "chunk_size_y": 50,
-                "chunk_size_mode": "split_number"
+                "chunk_size_mode": "split_number",
+                "custom_write_mode": False
             }
             self.init_section("Features", custom_features)
 

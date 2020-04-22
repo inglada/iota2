@@ -112,6 +112,7 @@ def get_features_application(train_shape: str,
                              chunk_size_mode: Optional[str] = "split_number",
                              chunk_size_x: Optional[int] = None,
                              chunk_size_y: Optional[int] = None,
+                             custom_write_mode: Optional[bool] = False,
                              logger: Optional[Logger] = LOGGER
                              ) -> Tuple[otb_app_type, List[otb_app_type]]:
     """
@@ -193,7 +194,8 @@ def get_features_application(train_shape: str,
             number_of_chunks=number_of_chunks,
             chunk_size_x=chunk_size_x,
             chunk_size_y=chunk_size_y,
-            chunk_size_mode=chunk_size_mode)
+            chunk_size_mode=chunk_size_mode,
+            write_mode=custom_write_mode)
         sample_extr.ImportVectorImage("in", otbimage)
     sample_extr.SetParameterString("out", samples)
     sample_extr.SetParameterString("outfield", "list")
@@ -231,6 +233,7 @@ def generate_samples_simple(folder_sample: str,
                             chunk_size_x: Optional[int] = None,
                             chunk_size_y: Optional[int] = None,
                             chunk_size_mode: Optional[str] = "split_number",
+                            custom_write_mode: Optional[bool] = False,
                             logger: Optional[Logger] = LOGGER) -> None:
     """
     usage : from a strack of data generate samples containing points with
@@ -302,7 +305,8 @@ def generate_samples_simple(folder_sample: str,
         targeted_chunk=targeted_chunk,
         chunk_size_mode=chunk_size_mode,
         chunk_size_x=chunk_size_x,
-        chunk_size_y=chunk_size_y)
+        chunk_size_y=chunk_size_y,
+        custom_write_mode=custom_write_mode)
 
     sample_extraction_output = os.path.join(
         folder_sample, os.path.basename(sample_extr.GetParameterValue("out")))
@@ -1102,6 +1106,7 @@ def generate_samples(train_shape_dic,
                      chunk_size_x: Optional[int] = None,
                      chunk_size_y: Optional[int] = None,
                      targeted_chunk: Optional[int] = None,
+                     custom_write_mode: Optional[bool] = False,
                      logger: Optional[Logger] = LOGGER):
     """
     usage : generation of vector shape of points with features
@@ -1196,7 +1201,8 @@ def generate_samples(train_shape_dic,
             targeted_chunk=targeted_chunk,
             chunk_size_mode=chunk_size_mode,
             chunk_size_x=chunk_size_x,
-            chunk_size_y=chunk_size_y)
+            chunk_size_y=chunk_size_y,
+            custom_write_mode=custom_write_mode)
 
     elif crop_mix is True and samples_classif_mix is False:
         samples = generate_samples_crop_mix(

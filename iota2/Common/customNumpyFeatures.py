@@ -14,10 +14,14 @@
 #
 # =========================================================================
 """ This module allow to use python function in an OTB pipeline"""
+import os
 import logging
 from typing import Dict, Union, List, Optional
 from rasterio.plot import reshape_as_image
 from iota2.Common import FileUtils as fu
+# Only for typing
+import otbApplication
+
 LOGGER = logging.getLogger(__name__)
 
 sensors_params_type = Dict[str, Union[str, List[str], int]]
@@ -42,7 +46,7 @@ class data_container:
             for i, band in enumerate(bands):
                 # print(i, band)
                 ind = [i + len(bands) * x for x, _ in enumerate(dates)]
-                print(band, ind)
+
                 indices.append(ind)
             return indices
 
@@ -58,11 +62,13 @@ class data_container:
                     for x, _ in enumerate(dates)
                 ]
                 indices.append(ind)
+
             len_spectral_band = len(dates) * len(spectral_bands) + shift
             for i, _ in enumerate(spectral_indices):
                 spect_begin = len_spectral_band + i * len(dates)
                 ind = range(spect_begin, spect_begin + len(dates))
                 indices.append(ind)
+
             new_shift = (len(dates) * len(spectral_bands) +
                          len(dates) * len(spectral_indices) + shift)
             return indices, new_shift
@@ -131,7 +137,6 @@ class custom_numpy_features(data_container):
         working_dir: optional (str)
             Use to store temporary data
         """
-        import os
         import types  # solves issues about type and inheritance
         super(custom_numpy_features,
               self).__init__(tile_name, output_path, sensors_params,
@@ -181,7 +186,19 @@ class custom_numpy_features(data_container):
             for i, fun_name in enumerate(self.fun_name_list):
                 func = getattr(self, fun_name)
                 feat, labels = func()
+                # ensure that feat is fill with number
+                if not np.isfinite(feat).all():
+                    raise ValueError("Error during custom_features computation"
+                                     " np.nan or infinite founded."
+                                     " Check if there is no division by zero")
                 # feat is a numpy array with shape [row, cols, bands]
+
+                # handle the case when return a 1d feature
+                if len(feat.shape) == 2:
+                    feat = feat[:, :, None]
+                elif len(feat.shape) != 3:
+                    raise ValueError(
+                        "The return feature must be a 2d or 3d array")
                 # check if user defined well labels
                 if len(labels) != feat.shape[2]:
                     labels = [
@@ -190,24 +207,25 @@ class custom_numpy_features(data_container):
                 new_labels += labels
                 self.data = np.concatenate((self.data, feat), axis=2)
             return self.data, new_labels
-        except Exception as e:
+        except Exception as err:
             print(f"Error during custom_features computation")
-            print(e)
+            raise err
 
 
-def compute_custom_features(tile,
-                            output_path,
-                            sensors_parameters,
-                            module_path,
-                            list_functions,
-                            otb_pipeline,
-                            feat_labels,
-                            path_wd,
-                            chunk_size_mode,
-                            targeted_chunk,
-                            number_of_chunks,
-                            chunk_size_x,
-                            chunk_size_y,
+def compute_custom_features(tile: str,
+                            output_path: str,
+                            sensors_parameters: sensors_params_type,
+                            module_path: str,
+                            list_functions: List[str],
+                            otb_pipeline: otbApplication,
+                            feat_labels: List[str],
+                            path_wd: str,
+                            chunk_size_mode: str,
+                            targeted_chunk: int,
+                            number_of_chunks: int,
+                            chunk_size_x: int,
+                            chunk_size_y: int,
+                            write_mode: Optional[bool] = False,
                             logger=LOGGER):
     """
     This function apply a list of function to an otb pipeline data and
@@ -228,6 +246,12 @@ def compute_custom_features(tile,
     labels_features_name = ""
     # TODO : how to feel labels_features_name ?
     # The output path is empty to ensure the image was not writed
+    output_name = None
+    if write_mode:
+        opath = os.path.join(output_path, "customF")
+        if not os.path.exists(opath):
+            os.mkdir(opath)
+        output_name = os.path.join(opath, f"{tile}_chunk_{targeted_chunk}.tif")
     (feat_array, new_labels, out_transform, _, _,
      otbimage) = insert_external_function_to_pipeline(
          otb_pipeline=otb_pipeline,
@@ -235,6 +259,7 @@ def compute_custom_features(tile,
          working_dir=path_wd,
          chunk_size_mode=chunk_size_mode,
          function=function_partial,
+         output_path=output_name,
          targeted_chunk=targeted_chunk,
          number_of_chunks=number_of_chunks,
          chunk_size_x=chunk_size_x,
