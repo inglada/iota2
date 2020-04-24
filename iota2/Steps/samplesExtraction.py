@@ -27,14 +27,12 @@ class samplesExtraction(IOTA2Step.Step):
         resources_block_name = "vectorSampler"
         super(samplesExtraction, self).__init__(cfg, cfg_resources_file,
                                                 resources_block_name)
-
         # step variables
         self.working_directory = workingDirectory
         self.output_path = SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'outputPath')
         self.ram_extraction = 1024.0 * get_RAM(self.resources["ram"])
         self.execution_mode = "cluster"
-        self.step_tasks = []
         output_path_annual = None
         annual_config_file = SCF.serviceConfigFile(self.cfg).getParam(
             'argTrain', 'prevFeatures')
@@ -49,8 +47,11 @@ class samplesExtraction(IOTA2Step.Step):
             suffix_list.append("SAR")
         for suffix in suffix_list:
             for tile in self.tiles:
+                task_name = f"extraction_{tile}"
+                if suffix == "SAR":
+                    task_name += f"_{suffix}"
                 task = self.i2_task(
-                    task_name=f"extraction_{tile}_{suffix}",
+                    task_name=task_name,
                     log_dir=self.log_step_dir,
                     execution_mode=self.execution_mode,
                     task_parameters={
@@ -120,13 +121,12 @@ class samplesExtraction(IOTA2Step.Step):
                             'chain', 'spatialResolution')
                     },
                     task_resources=self.resources)
-                task_in_graph = self.add_task_to_i2_processing_graph(
+                self.add_task_to_i2_processing_graph(
                     task,
                     task_group="tile_tasks",
                     task_sub_group=f"{tile}_{suffix}",
                     task_dep_group="tile_tasks",
                     task_dep_sub_group=[tile])
-                self.step_tasks.append(task_in_graph)
 
     @classmethod
     def step_description(cls):

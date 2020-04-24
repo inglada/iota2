@@ -30,7 +30,6 @@ class splitSamples(IOTA2Step.Step):
         # step variables
         self.workingDirectory = workingDirectory
         self.execution_mode = "cluster"
-        self.step_tasks = []
 
         task = self.i2_task(
             task_name=f"models_subdivision",
@@ -66,33 +65,11 @@ class splitSamples(IOTA2Step.Step):
                 self.workingDirectory
             },
             task_resources=self.resources)
-        task_in_graph = self.add_task_to_i2_processing_graph(
-            task,
-            task_group="vector",
-            task_sub_group="vector",
-            task_dep_group="tile_tasks",
-            task_dep_sub_group=self.tiles)
-        self.step_tasks.append(task_in_graph)
-        self.update_models_distribution()
-
-    def update_models_distribution(self):
-        """
-        """
-        print(len(self.spatial_models_distribution))
-        models_ditribution_tmp = {}
-        for model_name, model_meta in self.spatial_models_distribution.items():
-            nb_sub_models = model_meta["nb_sub_models"]
-            if nb_sub_models is not None and nb_sub_models != 1:
-                for nb_sub_model in range(nb_sub_models):
-                    models_ditribution_tmp[
-                        f"{model_name}f{nb_sub_model + 1}"] = {
-                            "tiles": model_meta["tiles"],
-                            "nb_sub_model": None
-                        }
-            else:
-                models_ditribution_tmp[model_name] = model_meta
-        #self.set_models_spatial_information(self.tiles, models_ditribution_tmp)
-        IOTA2Step.Step.spatial_models_distribution = models_ditribution_tmp
+        self.add_task_to_i2_processing_graph(task,
+                                             task_group="vector",
+                                             task_sub_group="vector",
+                                             task_dep_group="tile_tasks",
+                                             task_dep_sub_group=self.tiles)
 
     @classmethod
     def step_description(cls):

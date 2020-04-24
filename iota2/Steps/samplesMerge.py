@@ -32,7 +32,7 @@ class samplesMerge(IOTA2Step.Step):
         super(samplesMerge, self).__init__(cfg, cfg_resources_file,
                                            resources_block_name)
         self.execution_mode = "cluster"
-        self.step_tasks = []
+
         # step variables
         self.working_directory = workingDirectory
         self.output_path = SCF.serviceConfigFile(self.cfg).getParam(
@@ -69,14 +69,13 @@ class samplesMerge(IOTA2Step.Step):
                         self.working_directory
                     },
                     task_resources=self.resources)
-                task_in_graph = self.add_task_to_i2_processing_graph(
+                self.add_task_to_i2_processing_graph(
                     task,
                     task_group="region_tasks",
                     task_sub_group=target_model,
                     task_dep_group="vector" if huge_models else "tile_tasks",
                     task_dep_sub_group=["vector"]
                     if huge_models else model_meta["tiles"])
-                self.step_tasks.append(task_in_graph)
 
     @classmethod
     def step_description(cls):

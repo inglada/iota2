@@ -33,8 +33,6 @@ class samplesByModels(IOTA2Step.Step):
         self.nb_runs = SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'runs')
         self.execution_mode = "cluster"
-        self.step_tasks = []
-
         self.suffix_list = ["usually"]
         if SCF.serviceConfigFile(self.cfg).getParam(
                 'argTrain', 'dempster_shafer_SAR_Opt_fusion') is True:
@@ -57,7 +55,7 @@ class samplesByModels(IOTA2Step.Step):
                             "output_path": self.output_path
                         },
                         task_resources=self.resources)
-                    task_in_graph = self.add_task_to_i2_processing_graph(
+                    self.add_task_to_i2_processing_graph(
                         task,
                         task_group="region_tasks",
                         task_sub_group=f"{target_model}",
@@ -65,7 +63,6 @@ class samplesByModels(IOTA2Step.Step):
                         task_dep_sub_group=[
                             f"{tile}_{suffix}" for tile in model_meta["tiles"]
                         ])
-                    self.step_tasks.append(task_in_graph)
 
     def expected_files_to_merge(self) -> Dict[str, List[str]]:
         """

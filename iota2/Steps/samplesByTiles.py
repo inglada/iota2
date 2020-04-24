@@ -39,7 +39,6 @@ class samplesByTiles(IOTA2Step.Step):
         self.nb_runs = SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'runs')
         self.execution_mode = "cluster"
-        self.step_tasks = []
 
         tiles_model_distribution_tmp = []
         for model_name, model_meta in self.spatial_models_distribution.items():
@@ -76,7 +75,7 @@ class samplesByTiles(IOTA2Step.Step):
                                     self.workingDirectory
                                 },
                                 task_resources=self.resources)
-            task_in_graph = self.add_task_to_i2_processing_graph(
+            self.add_task_to_i2_processing_graph(
                 task,
                 task_group="tile_tasks",
                 task_sub_group=tile,
@@ -84,7 +83,6 @@ class samplesByTiles(IOTA2Step.Step):
                 if enable_autocontext else "region_tasks",
                 task_dep_sub_group=tiles_model_distribution[tile]
                 if enable_autocontext else model_distribution[tile])
-            self.step_tasks.append(task_in_graph)
 
     @classmethod
     def step_description(cls):

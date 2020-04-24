@@ -28,7 +28,6 @@ class statsSamplesModel(IOTA2Step.Step):
                                                 resources_block_name)
         # step variables
         self.execution_mode = "cluster"
-        self.step_tasks = []
         self.workingDirectory = workingDirectory
         self.output_path = SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'outputPath')
@@ -56,13 +55,12 @@ class statsSamplesModel(IOTA2Step.Step):
                                             self.workingDirectory
                                         },
                                         task_resources=self.resources)
-                    task_in_graph = self.add_task_to_i2_processing_graph(
+                    self.add_task_to_i2_processing_graph(
                         task,
                         task_group="tile_tasks_model",
                         task_sub_group=f"{tile}_{model_name}_{seed}",
                         task_dep_group="region_tasks",
                         task_dep_sub_group=[f"model_{model_name}_seed_{seed}"])
-                    self.step_tasks.append(task_in_graph)
 
     @classmethod
     def step_description(cls):

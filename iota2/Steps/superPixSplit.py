@@ -45,7 +45,6 @@ class superPixSplit(IOTA2Step.Step):
             'chain', 'runs')
         self.ram = 1024.0 * get_RAM(self.resources["ram"])
         self.execution_mode = "cluster"
-        self.step_tasks = []
 
         suffix_list = ["usually"]
         if SCF.serviceConfigFile(self.cfg).getParam(
@@ -75,14 +74,13 @@ class superPixSplit(IOTA2Step.Step):
                                 self.working_directory
                             },
                             task_resources=self.resources)
-                        task_in_graph = self.add_task_to_i2_processing_graph(
+                        self.add_task_to_i2_processing_graph(
                             task,
                             task_group="tile_tasks_model",
                             task_sub_group=
                             f"{tile}_{model_name}_seed_{seed}_{suffix}",
                             task_dep_group="tile_tasks",
                             task_dep_sub_group=[tile])
-                        self.step_tasks.append(task_in_graph)
 
     @classmethod
     def step_description(cls):

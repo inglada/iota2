@@ -45,7 +45,6 @@ class genSyntheticSamples(IOTA2Step.Step):
             'chain', 'runs')
 
         self.execution_mode = "cluster"
-        self.step_tasks = []
 
         self.suffix_list = ["usually"]
         if SCF.serviceConfigFile(self.cfg).getParam(
@@ -79,7 +78,7 @@ class genSyntheticSamples(IOTA2Step.Step):
                             "workingDirectory": self.working_directory
                         },
                         task_resources=self.resources)
-                    task_in_graph = self.add_task_to_i2_processing_graph(
+                    self.add_task_to_i2_processing_graph(
                         task,
                         task_group="region_tasks",
                         task_sub_group=f"{target_model}",
@@ -87,7 +86,6 @@ class genSyntheticSamples(IOTA2Step.Step):
                         if transfert_samples else "region_tasks",
                         task_dep_sub_group=[seed]
                         if transfert_samples else [target_model])
-                    self.step_tasks.append(task_in_graph)
 
     @classmethod
     def step_description(cls):

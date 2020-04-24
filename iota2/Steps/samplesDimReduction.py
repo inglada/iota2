@@ -42,8 +42,6 @@ class samplesDimReduction(IOTA2Step.Step):
         self.reductionMode = SCF.serviceConfigFile(self.cfg).getParam(
             'dimRed', 'reductionMode')
         self.execution_mode = "cluster"
-        self.step_tasks = []
-
         self.suffix_list = ["usually"]
         if SCF.serviceConfigFile(self.cfg).getParam(
                 'argTrain', 'dempster_shafer_SAR_Opt_fusion') is True:
@@ -81,7 +79,7 @@ class samplesDimReduction(IOTA2Step.Step):
                             self.reductionMode
                         },
                         task_resources=self.resources)
-                    task_in_graph = self.add_task_to_i2_processing_graph(
+                    self.add_task_to_i2_processing_graph(
                         task,
                         task_group="region_tasks",
                         task_sub_group=f"{target_model}",
@@ -89,7 +87,6 @@ class samplesDimReduction(IOTA2Step.Step):
                         if not seed_granularity else "seed_tasks",
                         task_dep_sub_group=[target_model]
                         if not seed_granularity else [seed])
-                    self.step_tasks.append(task_in_graph)
 
     @classmethod
     def step_description(cls):
@@ -98,30 +95,3 @@ class samplesDimReduction(IOTA2Step.Step):
         """
         description = ("Dimensionality reduction")
         return description
-
-    def step_inputs(self):
-        """
-        Return
-        ------
-            the return could be and iterable or a callable
-        """
-        from iota2.Sampling import DimensionalityReduction as DR
-        return DR.build_io_sample_file_lists(self.output_path)
-
-    def step_execute(self):
-        """
-        Return
-        ------
-        lambda
-            the function to execute as a lambda function. The returned object
-            must be a lambda function.
-        """
-        from iota2.Sampling import DimensionalityReduction as DR
-        step_function = lambda x: DR.sample_dimensionality_reduction(
-            x, self.output_path, self.targetDimension, self.reductionMode)
-        return step_function
-
-    def step_outputs(self):
-        """
-        """
-        pass

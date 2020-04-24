@@ -34,7 +34,6 @@ class samplingLearningPolygons(IOTA2Step.Step):
         self.enable_cross_validation = SCF.serviceConfigFile(
             self.cfg).getParam('chain', 'enableCrossValidation')
         self.execution_mode = "cluster"
-        self.step_tasks = []
         self.nb_runs = SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'runs')
         epsg = SCF.serviceConfigFile(self.cfg).getParam('GlobChain', 'proj')
@@ -77,7 +76,7 @@ class samplingLearningPolygons(IOTA2Step.Step):
                         random_seed
                     },
                     task_resources=self.resources)
-                task_in_graph = self.add_task_to_i2_processing_graph(
+                self.add_task_to_i2_processing_graph(
                     task,
                     task_group="region_tasks",
                     task_sub_group=target_model,
@@ -86,7 +85,6 @@ class samplingLearningPolygons(IOTA2Step.Step):
                         f"{tile}_{model_name}_{seed}"
                         for tile in model_meta["tiles"]
                     ])
-                self.step_tasks.append(task_in_graph)
 
     @classmethod
     def step_description(cls):

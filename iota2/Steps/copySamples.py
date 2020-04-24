@@ -27,7 +27,6 @@ class copySamples(IOTA2Step.Step):
         super(copySamples, self).__init__(cfg, cfg_resources_file,
                                           resources_block_name)
         self.execution_mode = "cluster"
-        self.step_tasks = []
         self.working_directory = workingDirectory
         self.output_path = SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'outputPath')
@@ -75,13 +74,12 @@ class copySamples(IOTA2Step.Step):
                                     "workingDirectory": self.working_directory
                                 },
                                 task_resources=self.resources)
-            task_in_graph = self.add_task_to_i2_processing_graph(
+            self.add_task_to_i2_processing_graph(
                 task,
                 task_group="seed_tasks",
                 task_sub_group=seed,
                 task_dep_group="region_tasks",
                 task_dep_sub_group=models_by_seeds[seed]["dep"])
-            self.step_tasks.append(task_in_graph)
 
     @classmethod
     def step_description(cls):
