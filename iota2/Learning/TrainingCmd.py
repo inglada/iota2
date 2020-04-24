@@ -27,13 +27,12 @@ from typing import Tuple, List, Dict
 LOGGER = logging.getLogger(__name__)
 
 
-def learn_autoContext_model(model_name: str, seed: int,
+def learn_autocontext_model(model_name: str, seed: int,
                             list_learning_samples: List[str],
                             list_superPixel_samples: List[str],
-                            list_tiles: List[str], list_slic: List[str],
-                            data_field: str, output_path,
-                            sensors_parameters: Dict, superpix_data_field: str,
-                            iterations: int, ram: int, working_directory: str):
+                            list_slic: List[str], data_field: str, output_path,
+                            superpix_data_field: str, iterations: int,
+                            ram: int, working_directory: str):
     """
     """
     auto_context_dic = {
@@ -41,13 +40,18 @@ def learn_autoContext_model(model_name: str, seed: int,
         "seed": seed,
         "list_learning_samples": list_learning_samples,
         "list_superPixel_samples": list_superPixel_samples,
-        "list_tiles": list_tiles,
         "list_slic": list_slic
     }
+    features_list_name = getFeatures_labels(list_learning_samples[0])
+
+    for slic_field in ["superpix", "is_super_pix"]:
+        if slic_field in features_list_name:
+            features_list_name.remove(slic_field)
+
     train_autoContext(parameter_dict=auto_context_dic,
                       data_field=data_field,
                       output_path=output_path,
-                      sensors_parameters=sensors_parameters,
+                      features_list_name=features_list_name,
                       superpix_data_field=superpix_data_field,
                       iterations=iterations,
                       RAM=ram,
@@ -76,15 +80,24 @@ def learn_scikitlearn_model(samples_file: str, output_model: str,
 
 
 def learn_otb_model(samples_file: str, output_model: str, data_field: str,
-                    classifier: str, classifier_options: str) -> None:
+                    classifier: str, classifier_options: str,
+                    i2_running_dir: str, model_name: str, seed: int,
+                    region_field: str, ground_truth: str) -> None:
     """
     """
-    # TODO get statistics if necessary
-    # writeStatsFromSample(sample, out_stats, ground_truth, region_field)
+
     features = " ".join(getFeatures_labels(samples_file))
 
     cmd = f"otbcli_TrainVectorClassifier -classifier {classifier} {classifier_options} -io.vd {samples_file} -io.out {output_model} -cfield {data_field} -feat {features}"
-    LOGGER.error(cmd)
+    if classifier.lower() == "svm" or classifier.lower() == "libsvm":
+        learning_stats_file = os.path.join(
+            i2_running_dir, "stats",
+            "Model_{}_seed_{}.xml".format(model_name, seed))
+        if os.path.exists(learning_stats_file):
+            os.remove(learning_stats_file)
+        writeStatsFromSample(samples_file, learning_stats_file, ground_truth,
+                             region_field)
+        cmd = f"{cmd} -io.stats {learning_stats_file}"
     run(cmd)
 
 

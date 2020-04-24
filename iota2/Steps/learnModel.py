@@ -19,9 +19,11 @@ from typing import Dict
 from iota2.Steps import IOTA2Step
 from iota2.Cluster import get_RAM
 from iota2.Common import ServiceConfigFile as SCF
+
 from iota2.Learning.TrainingCmd import config_model
 from iota2.Learning.TrainingCmd import learn_otb_model
 from iota2.Learning.TrainingCmd import learn_scikitlearn_model
+from iota2.Learning.TrainingCmd import learn_autocontext_model
 from iota2.Learning.TrainSkLearn import cast_config_cv_parameters
 
 
@@ -41,6 +43,8 @@ class learnModel(IOTA2Step.Step):
 
         self.region_field = SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'regionField')
+        self.ground_truth = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'groundTruth')
         self.runs = SCF.serviceConfigFile(self.cfg).getParam('chain', 'runs')
 
         self.enable_autoContext = SCF.serviceConfigFile(self.cfg).getParam(
@@ -68,14 +72,13 @@ class learnModel(IOTA2Step.Step):
             "scikit_models_parameters", "cross_validation_grouped")
         self.folds_number = SCF.serviceConfigFile(self.cfg).getParam(
             "scikit_models_parameters", "cross_validation_folds")
-
-        # fonctionne pas, il faut transformer ce qu'il y a en dessous en dictionaire
         self.sk_model_parameters = dict(
             SCF.serviceConfigFile(
                 self.cfg).getSection("scikit_models_parameters"))
 
-        self.sk_model_name = self.sk_model_parameters['model_type']
+        self.sensors_parameters = ""
 
+        self.sk_model_name = self.sk_model_parameters['model_type']
         del self.sk_model_parameters['model_type']
         del self.sk_model_parameters['standardization']
         del self.sk_model_parameters['cross_validation_grouped']
@@ -105,26 +108,34 @@ class learnModel(IOTA2Step.Step):
                         vector_file = vector_file.replace(
                             ".sqlite", "_SAR.sqlite")
                         output_model = output_model.replace(".txt", "_SAR.txt")
+
                     task_params = self.get_learning_i2_task_parameters(
-                        vector_file, output_model)
+                        vector_file, output_model, model_name, seed)
 
                     task = self.i2_task(task_name=task_name,
                                         log_dir=self.log_step_dir,
                                         execution_mode=self.execution_mode,
                                         task_parameters=task_params,
                                         task_resources=self.resources)
-
                     self.add_task_to_i2_processing_graph(
                         task,
                         task_group="region_tasks",
                         task_sub_group=f"{target_model}",
-                        task_dep_group="region_tasks",
-                        task_dep_sub_group=[target_model])
+                        task_dep_group="region_tasks"
+                        if self.enable_autoContext is False else
+                        "tile_tasks_model",
+                        task_dep_sub_group=[target_model]
+                        if self.enable_autoContext is False else [
+                            f"{tile}_{model_name}_seed_{seed}_{suffix}"
+                            for tile in model_meta["tiles"]
+                        ])
 
     def get_learning_i2_task_parameters(self, vector_file: str,
-                                        output_model: str) -> Dict:
+                                        output_model: str, model_name: str,
+                                        seed: int) -> Dict:
         """
         """
+
         task_params = {}
         if self.use_scikitlearn is True and self.enable_autoContext is True:
             raise ValueError(
@@ -145,7 +156,40 @@ class learnModel(IOTA2Step.Step):
             }
 
         elif self.enable_autoContext is True:
-            task_params = {}
+            model_tiles = self.spatial_models_distribution[model_name]["tiles"]
+            suffix_learning_samples = ".sqlite"
+            if "_SAR.sqlite" in vector_file:
+                suffix_learning_samples = "_SAR.sqlite"
+            list_learning_samples = [
+                os.path.join(
+                    self.output_path, "learningSamples",
+                    f'{tile}_region_{model_name}_seed{seed}_Samples_learn{suffix_learning_samples}'
+                ) for tile in model_tiles
+            ]
+            list_super_pixel_samples = [
+                os.path.join(
+                    self.output_path, "learningSamples",
+                    f'{tile}_region_{model_name}_seed{seed}_Samples_SP.sqlite')
+                for tile in model_tiles
+            ]
+            list_slic = [
+                os.path.join(self.output_path, "features", tile, "tmp",
+                             f'SLIC_{tile}.tif') for tile in model_tiles
+            ]
+            task_params = {
+                "f": learn_autocontext_model,
+                "model_name": model_name,
+                "output_path": self.output_path,
+                "superpix_data_field": self.superpix_data_field,
+                "seed": seed,
+                "list_learning_samples": list_learning_samples,
+                "list_superPixel_samples": list_super_pixel_samples,
+                "list_slic": list_slic,
+                "data_field": self.data_field,
+                "iterations": self.autoContext_iterations,
+                "ram": self.available_ram,
+                "working_directory": self.workingDirectory
+            }
         else:
             task_params = {
                 "f": learn_otb_model,
@@ -153,7 +197,12 @@ class learnModel(IOTA2Step.Step):
                 "output_model": output_model,
                 "data_field": self.data_field,
                 "classifier": self.classifier,
-                "classifier_options": self.classifier_options
+                "classifier_options": self.classifier_options,
+                "i2_running_dir": self.output_path,
+                "model_name": model_name,
+                "seed": seed,
+                "region_field": self.region_field,
+                "ground_truth": self.ground_truth
             }
         return task_params
 

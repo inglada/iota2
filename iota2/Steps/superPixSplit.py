@@ -67,7 +67,8 @@ class superPixSplit(IOTA2Step.Step):
                                 "f":
                                 split_superpixels_and_reference,
                                 "vector_file":
-                                os.path.join(self.execution_dir, in_file_name),
+                                os.path.join(self.execution_dir,
+                                             "learningSamples", in_file_name),
                                 "superpix_column":
                                 self.is_superPix_field,
                                 "working_dir":
@@ -80,7 +81,7 @@ class superPixSplit(IOTA2Step.Step):
                             task_sub_group=
                             f"{tile}_{model_name}_seed_{seed}_{suffix}",
                             task_dep_group="tile_tasks",
-                            task_dep_sub_group=[tile])
+                            task_dep_sub_group=[f"{tile}_{suffix}"])
 
     @classmethod
     def step_description(cls):
