@@ -124,9 +124,10 @@ def train_autoContext(parameter_dict: Param,
         dictionnary containing autoContext's input parameters
         {"model_name": string,
          "seed": integer,
-         "list_selection": list,
+         "list_learning_samples": list,
          "list_tiles": list,
-         "list_slic": list}
+         "list_slic": list,
+         "list_superPixel_samples": list}
     config_path : string
         path to the configuration file
     iterations : int
