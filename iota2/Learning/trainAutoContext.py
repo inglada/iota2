@@ -110,7 +110,7 @@ def train_autoContext_parameters(iota2_directory: str,
 def train_autoContext(parameter_dict: Param,
                       data_field: str,
                       output_path: str,
-                      sensors_parameters: SENSORS_PARAMS,
+                      features_list_name: List[str],
                       superpix_data_field: Optional[str] = "superpix",
                       iterations: Optional[int] = 3,
                       RAM: Optional[int] = 128,
@@ -128,8 +128,13 @@ def train_autoContext(parameter_dict: Param,
          "list_tiles": list,
          "list_slic": list,
          "list_superPixel_samples": list}
-    config_path : string
-        path to the configuration file
+    output_path : sting
+        path to a directory where will be stored models
+        in a directory 'model'
+    data_field : string
+        class field name in learning database samples files
+    superpix_data_field : string
+        field in database discriminating superpixels labels
     iterations : int
         number of auto-context iterations
     RAM : integer
@@ -140,12 +145,9 @@ def train_autoContext(parameter_dict: Param,
         root logger
     """
     import shutil
-    from iota2.Sampling import GenAnnualSamples
-    from iota2.Common.GenerateFeatures import generateFeatures
     from iota2.Common.OtbAppBank import CreateTrainAutoContext
     from iota2.Common.FileUtils import ensure_dir
 
-    tiles = parameter_dict["list_tiles"]
     model_name = parameter_dict["model_name"]
     seed_num = parameter_dict["seed"]
     data_ref = parameter_dict["list_learning_samples"]
@@ -165,13 +167,7 @@ def train_autoContext(parameter_dict: Param,
             WORKING_DIR, "model_{}_seed_{}_tmp".format(model_name, seed_num))
     ensure_dir(tmp_dir)
 
-    _, feat_labels, _ = generateFeatures(pathWd=WORKING_DIR,
-                                         tile=tiles[0],
-                                         sar_optical_post_fusion=False,
-                                         output_path=output_path,
-                                         sensors_parameters=sensors_parameters)
-
-    feat_labels = [elem.lower() for elem in feat_labels]
+    feat_labels = [elem.lower() for elem in features_list_name]
 
     train_autoContext_app = CreateTrainAutoContext({
         "refdata":
