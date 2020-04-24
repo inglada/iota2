@@ -18,10 +18,74 @@ import logging
 import os
 import numpy as np
 from iota2.Common import FileUtils as fu
+from iota2.Learning import TrainSkLearn
+from iota2.Learning.trainAutoContext import train_autoContext
+from iota2.Common.Utils import run
 from osgeo import ogr
-from typing import Tuple, List
+from typing import Tuple, List, Dict
 
 LOGGER = logging.getLogger(__name__)
+
+
+def learn_autoContext_model(model_name: str, seed: int,
+                            list_learning_samples: List[str],
+                            list_superPixel_samples: List[str],
+                            list_tiles: List[str], list_slic: List[str],
+                            data_field: str, output_path,
+                            sensors_parameters: Dict, superpix_data_field: str,
+                            iterations: int, ram: int, working_directory: str):
+    """
+    """
+    auto_context_dic = {
+        "model_name": model_name,
+        "seed": seed,
+        "list_learning_samples": list_learning_samples,
+        "list_superPixel_samples": list_superPixel_samples,
+        "list_tiles": list_tiles,
+        "list_slic": list_slic
+    }
+    train_autoContext(parameter_dict=auto_context_dic,
+                      data_field=data_field,
+                      output_path=output_path,
+                      sensors_parameters=sensors_parameters,
+                      superpix_data_field=superpix_data_field,
+                      iterations=iterations,
+                      RAM=ram,
+                      WORKING_DIR=working_directory)
+
+
+def learn_scikitlearn_model(samples_file: str, output_model: str,
+                            data_field: str, sk_model_name: str,
+                            apply_standardization: bool,
+                            cross_valid_params: Dict, cross_val_grouped: bool,
+                            folds_number: int, available_ram: int,
+                            sk_model_params: Dict):
+    """
+    """
+    TrainSkLearn.sk_learn(dataset_path=samples_file,
+                          features_labels=getFeatures_labels(samples_file),
+                          model_path=output_model,
+                          data_field=data_field,
+                          sk_model_name=sk_model_name,
+                          apply_standardization=apply_standardization,
+                          cv_parameters=cross_valid_params,
+                          cv_grouped=cross_val_grouped,
+                          cv_folds=folds_number,
+                          available_ram=available_ram,
+                          **sk_model_params)
+
+
+def learn_otb_model(samples_file: str, output_model: str, data_field: str,
+                    classifier: str, classifier_options: str) -> None:
+    """
+    """
+    # TODO get statistics if necessary
+    # writeStatsFromSample(sample, out_stats, ground_truth, region_field)
+    features = " ".join(getFeatures_labels(samples_file))
+
+    cmd = f"otbcli_TrainVectorClassifier -classifier {classifier} {classifier_options} -io.vd {samples_file} -io.out {output_model} -cfield {data_field} -feat {features}"
+    LOGGER.error(cmd)
+    run(cmd)
 
 
 def getStatsFromSamples(in_samples: str, ground_truth: str,
