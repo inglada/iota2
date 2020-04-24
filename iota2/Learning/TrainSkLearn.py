@@ -31,17 +31,13 @@ from config import Mapping
 
 logger = logging.getLogger(__name__)
 
-AVAIL_SKL_CLF = Union[SVC,
-                      RandomForestClassifier,
-                      ExtraTreesClassifier,
-                      AdaBoostClassifier,
-                      BaggingClassifier,
-                      GradientBoostingClassifier,
-                      VotingClassifier]
+AVAIL_SKL_CLF = Union[SVC, RandomForestClassifier, ExtraTreesClassifier,
+                      AdaBoostClassifier, BaggingClassifier,
+                      GradientBoostingClassifier, VotingClassifier]
 
 
-def get_learning_samples(learning_samples_dir: str,
-                         config_path: str) -> List[Dict[str, Union[str, List[str]]]]:
+def get_learning_samples(learning_samples_dir: str, config_path: str
+                         ) -> List[Dict[str, Union[str, List[str]]]]:
     """get sorted learning samples files from samples directory
 
     Parameters
@@ -63,60 +59,65 @@ def get_learning_samples(learning_samples_dir: str,
                                   ...
                                  ]
     """
-    from Common import ServiceConfigFile
+    from iota2.Common import ServiceConfigFile
     from iota2.Common.FileUtils import FileSearch_AND
     from iota2.Common.FileUtils import getVectorFeatures
 
     sar_suffix = "SAR"
 
-    ground_truth = ServiceConfigFile.serviceConfigFile(config_path).getParam("chain",
-                                                                             "groundTruth")
-    region_field = ServiceConfigFile.serviceConfigFile(config_path).getParam("chain",
-                                                                             "regionField")
-    sar_opt_post_fusion = ServiceConfigFile.serviceConfigFile(config_path).getParam("argTrain",
-                                                                                    "dempster_shafer_SAR_Opt_fusion")
-    iota2_outputs = ServiceConfigFile.serviceConfigFile(config_path).getParam("chain",
-                                                                              "outputPath")
+    ground_truth = ServiceConfigFile.serviceConfigFile(config_path).getParam(
+        "chain", "groundTruth")
+    region_field = ServiceConfigFile.serviceConfigFile(config_path).getParam(
+        "chain", "regionField")
+    sar_opt_post_fusion = ServiceConfigFile.serviceConfigFile(
+        config_path).getParam("argTrain", "dempster_shafer_SAR_Opt_fusion")
+    iota2_outputs = ServiceConfigFile.serviceConfigFile(config_path).getParam(
+        "chain", "outputPath")
     iota2_models_dir = os.path.join(iota2_outputs, "model")
 
     parameters = []
     seed_pos = 3
     model_pos = 2
-    learning_files = FileSearch_AND(learning_samples_dir,
-                                    True,
+    learning_files = FileSearch_AND(learning_samples_dir, True,
                                     "Samples_region_", "_learn.sqlite")
     if sar_opt_post_fusion:
-        learning_files_sar = FileSearch_AND(learning_samples_dir,
-                                            True,
-                                            "Samples_region_", "_learn_{}.sqlite".format(sar_suffix))
+        learning_files_sar = FileSearch_AND(
+            learning_samples_dir, True, "Samples_region_",
+            "_learn_{}.sqlite".format(sar_suffix))
         learning_files += learning_files_sar
 
     learning_files_sorted = []
     output_model_files_sorted = []
     features_labels_sorted = []
     for learning_file in learning_files:
-        seed = os.path.basename(learning_file).split("_")[seed_pos].replace("seed", "")
+        seed = os.path.basename(learning_file).split("_")[seed_pos].replace(
+            "seed", "")
         model = os.path.basename(learning_file).split("_")[model_pos]
         learning_files_sorted.append((seed, model, learning_file))
 
-    learning_files_sorted = sorted(learning_files_sorted, key=operator.itemgetter(0, 1))
+    learning_files_sorted = sorted(learning_files_sorted,
+                                   key=operator.itemgetter(0, 1))
 
     for _, _, learning_file in learning_files_sorted:
-        seed = os.path.basename(learning_file).split("_")[seed_pos].replace("seed", "")
+        seed = os.path.basename(learning_file).split("_")[seed_pos].replace(
+            "seed", "")
         model = os.path.basename(learning_file).split("_")[model_pos]
         model_name = "model_{}_seed_{}.txt".format(model, seed)
         if "{}.sqlite".format(sar_suffix) in learning_file:
-            model_name = model_name.replace(".txt", "_{}.txt".format(sar_suffix))
+            model_name = model_name.replace(".txt",
+                                            "_{}.txt".format(sar_suffix))
         model_path = os.path.join(iota2_models_dir, model_name)
         output_model_files_sorted.append(model_path)
-        features_labels_sorted.append(getVectorFeatures(ground_truth, region_field, learning_file))
+        features_labels_sorted.append(
+            getVectorFeatures(ground_truth, region_field, learning_file))
 
-    parameters = [{"learning_file": learning_file,
-                   "feat_labels": features_labels,
-                   "model_path": model_path
-                   } for (seed, model, learning_file), model_path, features_labels in zip(learning_files_sorted,
-                                                                                          output_model_files_sorted,
-                                                                                          features_labels_sorted)]
+    parameters = [{
+        "learning_file": learning_file,
+        "feat_labels": features_labels,
+        "model_path": model_path
+    } for (seed, model, learning_file), model_path, features_labels in zip(
+        learning_files_sorted, output_model_files_sorted,
+        features_labels_sorted)]
     return parameters
 
 
@@ -135,16 +136,18 @@ def model_name_to_function(model_name: str) -> AVAIL_SKL_CLF:
     ------
     a scikit-learn classifier object
     """
-    dico_clf = {"RandomForestClassifier": RandomForestClassifier,
-                "AdaBoostClassifier": AdaBoostClassifier,
-                "BaggingClassifier": BaggingClassifier,
-                "ExtraTreesClassifier": ExtraTreesClassifier,
-                "GradientBoostingClassifier": GradientBoostingClassifier,
-                "VotingClassifier": VotingClassifier,
-                "SupportVectorClassification": SVC}
+    dico_clf = {
+        "RandomForestClassifier": RandomForestClassifier,
+        "AdaBoostClassifier": AdaBoostClassifier,
+        "BaggingClassifier": BaggingClassifier,
+        "ExtraTreesClassifier": ExtraTreesClassifier,
+        "GradientBoostingClassifier": GradientBoostingClassifier,
+        "VotingClassifier": VotingClassifier,
+        "SupportVectorClassification": SVC
+    }
     if model_name not in dico_clf:
-        raise ValueError("{} not suported in iota2 sklearn models : {}".format(model_name,
-                                                                               ", ".join(dico_clf.keys())))
+        raise ValueError("{} not suported in iota2 sklearn models : {}".format(
+            model_name, ", ".join(dico_clf.keys())))
     return dico_clf[model_name]
 
 
@@ -166,12 +169,16 @@ def can_perform_cv(cv_paramerters, clf) -> bool:
     # get_params is comming from scikit-learn BaseEstimator class -> Base class for all estimators
     user_cv_parameters = list(cv_paramerters.keys())
     avail_cv_parameters = list(clf.get_params(clf).keys())
-    check = [user_cv_parameter in avail_cv_parameters for user_cv_parameter in user_cv_parameters]
+    check = [
+        user_cv_parameter in avail_cv_parameters
+        for user_cv_parameter in user_cv_parameters
+    ]
 
     return all(check)
 
 
-def cast_config_cv_parameters(config_cv_parameters: Mapping) -> Dict[str, List[int]]:
+def cast_config_cv_parameters(config_cv_parameters: Mapping
+                              ) -> Dict[str, List[int]]:
     """cast cross validation parameters coming from config to a compatible sklearn type
 
     Parameters
@@ -207,12 +214,9 @@ def save_cross_val_best_param(output_path: str, clf: AVAIL_SKL_CLF) -> None:
 
         means = clf.cv_results_['mean_test_score']
         stds = clf.cv_results_['std_test_score']
-        for mean, std, params in zip(means,
-                                     stds,
-                                     clf.cv_results_['params']):
-            cv_results.write("{0} (+/- {1}) for {2}\n".format(mean,
-                                                              2 * std,
-                                                              params))
+        for mean, std, params in zip(means, stds, clf.cv_results_['params']):
+            cv_results.write("{0} (+/- {1}) for {2}\n".format(
+                mean, 2 * std, params))
 
 
 def force_proba(sk_classifier: AVAIL_SKL_CLF) -> None:
@@ -287,14 +291,13 @@ def sk_learn(dataset_path: str,
     logger.info("Features use to build model : {}".format(features_labels))
     layer_name = getLayerName(dataset_path, "SQLite")
     conn = sqlite3.connect(dataset_path)
-    df_features = pd.read_sql_query("select {} from {}".format(",".join(features_labels),
-                                                               layer_name),
-                                    conn)
+    df_features = pd.read_sql_query(
+        "select {} from {}".format(",".join(features_labels), layer_name),
+        conn)
     features_values = df_features.to_numpy()
 
-    df_labels = pd.read_sql_query("select {} from {}".format(data_field,
-                                                             layer_name),
-                                  conn)
+    df_labels = pd.read_sql_query(
+        "select {} from {}".format(data_field, layer_name), conn)
     labels_values = np.ravel(df_labels.to_numpy())
 
     clf = model_name_to_function(sk_model_name)
@@ -302,8 +305,8 @@ def sk_learn(dataset_path: str,
     if cv_parameters:
         if not can_perform_cv(cv_parameters, clf):
             fail_msg = ("ERROR : impossible to cross validate the model `{}` "
-                        "with the parameters {}".format(sk_model_name,
-                                                        list(cv_parameters.keys())))
+                        "with the parameters {}".format(
+                            sk_model_name, list(cv_parameters.keys())))
             logger.error(fail_msg)
             raise ValueError(fail_msg)
 
@@ -314,7 +317,9 @@ def sk_learn(dataset_path: str,
     if apply_standardization:
         logger.info("Apply standardization")
         scaler = StandardScaler()
-        scaler.fit(features_values)  # TODO: if regression, we have to scale also labels_values
+        scaler.fit(
+            features_values
+        )  # TODO: if regression, we have to scale also labels_values
         if .0 in scaler.var_:
             logger.warning(("features std with 0 values was found, "
                             "automatically replaced by 1 by scikit-learn"))
@@ -323,14 +328,13 @@ def sk_learn(dataset_path: str,
     if cv_parameters:
         logger.info("Cross validation in progress")
         if cv_grouped:
-            df_groups = pd.read_sql_query("select {} from {}".format("originfid",
-                                                                     layer_name),
-                                          conn)
+            df_groups = pd.read_sql_query(
+                "select {} from {}".format("originfid", layer_name), conn)
             groups = np.ravel(df_groups.to_numpy())
 
-            splitter = list(GroupKFold(n_splits=cv_folds).split(features_values,
-                                                                labels_values,
-                                                                groups))
+            splitter = list(
+                GroupKFold(n_splits=cv_folds).split(features_values,
+                                                    labels_values, groups))
         else:
             splitter = KFold(n_splits=cv_folds)
 
