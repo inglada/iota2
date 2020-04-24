@@ -247,37 +247,32 @@ class iota2():
         #     '6': 8892182957.883936
         # }
         spatial_region_info = {}
+        spatial_region_info_tmp = {}
         for models_name, tiles in region_distrib.items():
-            spatial_region_info[models_name] = {}
-            spatial_region_info[models_name]["tiles"] = tiles
-            spatial_region_info[models_name]["nb_sub_models"] = None
+            spatial_region_info_tmp[models_name] = {}
+            spatial_region_info_tmp[models_name]["tiles"] = tiles
+            spatial_region_info_tmp[models_name]["nb_sub_models"] = None
             if region_vector_file and classif_mode == "fusion":
-                spatial_region_info[models_name]["nb_sub_models"] = math.ceil(
-                    models_area[models_name] / (region_area_threshold * 10e5))
+                spatial_region_info_tmp[models_name][
+                    "nb_sub_models"] = math.ceil(
+                        models_area[models_name] /
+                        (region_area_threshold * 10e5))
+        for model_name, model_meta in spatial_region_info_tmp.items():
+            nb_sub_models = model_meta["nb_sub_models"]
+            if nb_sub_models is not None and nb_sub_models != 1:
+                for nb_sub_model in range(nb_sub_models):
+                    spatial_region_info[f"{model_name}f{nb_sub_model + 1}"] = {
+                        "tiles": model_meta["tiles"]
+                    }
+            else:
+                spatial_region_info[model_name] = {
+                    "tiles": model_meta["tiles"]
+                }
         run_tiles = []
         for _, tiles in region_distrib.items():
             run_tiles += tiles
         run_tiles = sorted(list(set(run_tiles)))
         return spatial_region_info, run_tiles
-
-    def save_chain(self):
-        """
-        use dill to save chain instance
-        """
-        import dill
-        if os.path.exists(self.iota2_pickle):
-            os.remove(self.iota2_pickle)
-        with open(self.iota2_pickle, 'wb') as fp:
-            dill.dump(self, fp)
-
-    def load_chain(self):
-        import dill
-        if os.path.exists(self.iota2_pickle):
-            with open(self.iota2_pickle, 'rb') as fp:
-                iota2_chain = dill.load(fp)
-        else:
-            iota2_chain = self
-        return iota2_chain
 
     def sort_step(self):
         """
@@ -474,6 +469,28 @@ class iota2():
         #         'nb_sub_models': None
         #     }
         # }
+        self.tiles = ["T31TCJ"]
+        self.model_spatial_distrib = {
+            '1f1': {
+                'tiles': ["T31TCJ"]
+            },
+            '1f2': {
+                'tiles': ["T31TCJ"]
+            },
+            '1f3': {
+                'tiles': ["T31TCJ"]
+            },
+            '2f1': {
+                'tiles': ['T31TCJ']
+            },
+            '2f2': {
+                'tiles': ['T31TCJ']
+            },
+            '2f3': {
+                'tiles': ['T31TCJ']
+            }
+        }
+
         Step.set_models_spatial_information(self.tiles,
                                             self.model_spatial_distrib)
         # control variable
@@ -555,67 +572,59 @@ class iota2():
         s_container.append(
             partial(VectorFormatting.VectorFormatting, cfg, config_ressources,
                     self.workingDirectory), "sampling")
-        # huge_models = False
-        # if shapeRegion and classif_mode == "fusion":
-        #     huge_models = True
-        #     s_container.append(
-        #         splitSamples.splitSamples(cfg, config_ressources,
-        #                                   self.workingDirectory), "sampling")
-        # s_container.append(
-        #     samplesMerge.samplesMerge(cfg, config_ressources,
-        #                               self.workingDirectory, huge_models),
-        #     "sampling")
-        # s_container.append(
-        #     statsSamplesModel.statsSamplesModel(cfg, config_ressources,
-        #                                         self.workingDirectory),
-        #     "sampling")
-        # s_container.append(
-        #     samplingLearningPolygons.samplingLearningPolygons(
-        #         cfg, config_ressources, self.workingDirectory), "sampling")
-        # if enable_autoContext is True:
-        #     s_container.append(
-        #         superPixPos.superPixPos(cfg, config_ressources,
-        #                                 self.workingDirectory), "sampling")
-        # s_container.append(
-        #     samplesByTiles.samplesByTiles(cfg, config_ressources,
-        #                                   enable_autoContext,
-        #                                   self.workingDirectory), "sampling")
-        # s_container.append(
-        #     samplesExtraction.samplesExtraction(cfg, config_ressources,
-        #                                         self.workingDirectory),
-        #     "sampling")
-        # # enable_autoContext = False
-        # # sampleManagement = "truc"
-        # # sample_augmentation_flag = False
-        # # dimred = True
-        # if enable_autoContext is False:
-        #     s_container.append(
-        #         samplesByModels.samplesByModels(cfg, config_ressources),
-        #         "sampling")
-        #     transfert_samples = False
-        #     if sampleManagement and sampleManagement.lower() != 'none':
-        #         transfert_samples = True
-        #         s_container.append(
-        #             copySamples.copySamples(cfg, config_ressources,
-        #                                     self.workingDirectory), "sampling")
-        #     if sample_augmentation_flag:
-        #         s_container.append(
-        #             genSyntheticSamples.genSyntheticSamples(
-        #                 cfg, config_ressources, transfert_samples,
-        #                 self.workingDirectory), "sampling")
-        #     if dimred:
-        #         s_container.append(
-        #             samplesDimReduction.samplesDimReduction(
-        #                 cfg, config_ressources, transfert_samples
-        #                 and not sample_augmentation_flag,
-        #                 self.workingDirectory), "sampling")
-        # else:
-        #     s_container.append(
-        #         superPixSplit.superPixSplit(cfg, config_ressources,
-        #                                     self.workingDirectory), "sampling")
+        huge_models = False
+        if shapeRegion and classif_mode == "fusion":
+            huge_models = True
+            s_container.append(
+                partial(splitSamples.splitSamples, cfg, config_ressources,
+                        self.workingDirectory), "sampling")
+        s_container.append(
+            partial(samplesMerge.samplesMerge, cfg, config_ressources,
+                    self.workingDirectory, huge_models), "sampling")
+        s_container.append(
+            partial(statsSamplesModel.statsSamplesModel, cfg,
+                    config_ressources, self.workingDirectory), "sampling")
+        s_container.append(
+            partial(samplingLearningPolygons.samplingLearningPolygons, cfg,
+                    config_ressources, self.workingDirectory), "sampling")
+        if enable_autoContext is True:
+            s_container.append(
+                partial(superPixPos.superPixPos, cfg, config_ressources,
+                        self.workingDirectory), "sampling")
+        s_container.append(
+            partial(samplesByTiles.samplesByTiles, cfg, config_ressources,
+                    enable_autoContext, self.workingDirectory), "sampling")
+        s_container.append(
+            partial(samplesExtraction.samplesExtraction, cfg,
+                    config_ressources, self.workingDirectory), "sampling")
+        if enable_autoContext is False:
+            s_container.append(
+                partial(samplesByModels.samplesByModels, cfg,
+                        config_ressources), "sampling")
+            transfert_samples = False
+            if sampleManagement and sampleManagement.lower() != 'none':
+                transfert_samples = True
+                s_container.append(
+                    partial(copySamples.copySamples, cfg, config_ressources,
+                            self.workingDirectory), "sampling")
+            if sample_augmentation_flag:
+                s_container.append(
+                    partial(genSyntheticSamples.genSyntheticSamples, cfg,
+                            config_ressources, transfert_samples,
+                            self.workingDirectory), "sampling")
+            if dimred:
+                s_container.append(
+                    partial(samplesDimReduction.samplesDimReduction, cfg,
+                            config_ressources, transfert_samples
+                            and not sample_augmentation_flag,
+                            self.workingDirectory), "sampling")
+        else:
+            s_container.append(
+                partial(superPixSplit.superPixSplit, cfg, config_ressources,
+                        self.workingDirectory), "sampling")
         # learning
-        # s_container.append(
-        #     learnModel.learnModel(cfg, config_ressources,
-        #                           self.workingDirectory), "learning")
+        s_container.append(
+            partial(learnModel.learnModel, cfg, config_ressources,
+                    self.workingDirectory), "learning")
 
         return s_container
