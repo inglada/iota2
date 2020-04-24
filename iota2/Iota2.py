@@ -44,12 +44,6 @@ if __name__ == "__main__":
                         default=0,
                         type=int,
                         required=False)
-    parser.add_argument("-parameters",
-                        dest="parameters",
-                        help="Launch specific parameters",
-                        nargs='+',
-                        default=None,
-                        required=False)
     parser.add_argument("-config_ressources",
                         dest="config_ressources",
                         help="path to IOTA2 ressources configuration file",
@@ -61,11 +55,11 @@ if __name__ == "__main__":
                         required=False)
     parser.add_argument(
         "-only_summary",
-        dest="launchChain",
+        dest="only_summary",
         help=
         "if set, only the summary will be printed. The chain will not be launched",
-        default=None,
-        action='store_false',
+        default=False,
+        action='store_true',
         required=False)
     parser.add_argument("-param_index",
                         dest="param_index",
@@ -79,13 +73,8 @@ if __name__ == "__main__":
     chain_to_process = chain.iota2(cfg.pathConf, args.config_ressources)
     if args.start == args.end == 0:
         all_steps = chain_to_process.get_steps_number()
-        # first_step_index = all_steps[0]
-        # last_step_index = all_steps[-1]
         args.start = all_steps[0]
         args.end = all_steps[-1]
-    # else:
-    #     first_step_index = args.start - 1
-    #     last_step_index = args.end - 1
 
     first_step_index = args.start - 1
     last_step_index = args.end - 1
@@ -100,5 +89,7 @@ if __name__ == "__main__":
 
     print(f"dashboard available at : {client.dashboard_link}")
 
-    res = client.submit(final_graph.compute)
-    res.result()
+    # launch chain
+    if not args.only_summary:
+        res = client.submit(final_graph.compute)
+        res.result()
