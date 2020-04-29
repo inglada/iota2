@@ -14,13 +14,20 @@
 #
 # =========================================================================
 import os
-
+from typing import Optional
 from iota2.Steps import IOTA2Step
 from iota2.Cluster import get_RAM
 from iota2.Common import ServiceConfigFile as SCF
+from iota2.Common import FileUtils as fut
+from iota2.Classification import skClassifier
+from iota2.Classification import ImageClassifier as imageClassifier
+from iota2.Classification.ImageClassifier import autoContext_launch_classif
 
 
 class classification(IOTA2Step.Step):
+    # ~ TODO : find a smarted way to determine the attribute self.scikit_tile_split
+    scikit_tile_split = 50
+
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
         resources_block_name = "classifications"
@@ -28,9 +35,13 @@ class classification(IOTA2Step.Step):
                                              resources_block_name)
 
         # step variables
-        self.workingDirectory = workingDirectory
+        self.working_directory = workingDirectory
+        self.autoContext_iterations = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'autoContext_iterations')
         self.output_path = SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'outputPath')
+        self.nomenclature_path = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'nomenclaturePath')
         self.data_field = SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'dataField')
         self.enable_autoContext = SCF.serviceConfigFile(self.cfg).getParam(
@@ -38,9 +49,236 @@ class classification(IOTA2Step.Step):
         self.RAM = 1024.0 * get_RAM(self.resources["ram"])
         self.use_scikitlearn = SCF.serviceConfigFile(self.cfg).getParam(
             'scikit_models_parameters', 'model_type') is not None
+        self.runs = SCF.serviceConfigFile(self.cfg).getParam('chain', 'runs')
+        self.classifier = SCF.serviceConfigFile(self.cfg).getParam(
+            'argTrain', 'classifier')
+        self.available_ram = 1024.0 * get_RAM(self.resources["ram"])
 
-        # ~ TODO : find a smarted way to determine the attribute self.scikit_tile_split
-        self.scikit_tile_split = 50
+        self.pixel_type = fut.getOutputPixType(self.nomenclature_path)
+
+        self.execution_mode = "cluster"
+        self.suffix_list = ["usually"]
+        if SCF.serviceConfigFile(self.cfg).getParam(
+                'argTrain', 'dempster_shafer_SAR_Opt_fusion') is True:
+            self.suffix_list.append("SAR")
+
+        for suffix in self.suffix_list:
+            for model_name, model_meta in self.spatial_models_distribution.items(
+            ):
+                for seed in range(self.runs):
+                    for tile in model_meta["tiles"]:
+                        task_name = f"classification_{tile}_model_{model_name}_seed_{seed}"
+                        if suffix == "SAR":
+                            task_name += "_SAR"
+                        target_model = f"model_{model_name}_seed_{seed}_{suffix}"
+                        task_params = self.get_classification_params(
+                            model_name, tile, seed, suffix)
+                        if self.enable_autoContext is False and self.use_scikitlearn is True:
+                            for chunk in range(self.scikit_tile_split):
+                                task_params = self.get_classification_params(
+                                    model_name, tile, seed, suffix, chunk)
+                                task = self.i2_task(
+                                    task_name=f"{task_name}_{chunk}",
+                                    log_dir=self.log_step_dir,
+                                    execution_mode=self.execution_mode,
+                                    task_parameters=task_params,
+                                    task_resources=self.resources)
+
+                                self.add_task_to_i2_processing_graph(
+                                    task,
+                                    task_group="tile_tasks_model",
+                                    task_sub_group=
+                                    f"{tile}_{model_name}_{seed}_{chunk}",
+                                    task_dep_group="region_tasks",
+                                    task_dep_sub_group=[target_model])
+                        else:
+                            task = self.i2_task(
+                                task_name=task_name,
+                                log_dir=self.log_step_dir,
+                                execution_mode=self.execution_mode,
+                                task_parameters=task_params,
+                                task_resources=self.resources)
+
+                            self.add_task_to_i2_processing_graph(
+                                task,
+                                task_group="tile_tasks_model",
+                                task_sub_group=f"{tile}_{model_name}_{seed}",
+                                task_dep_group="region_tasks",
+                                task_dep_sub_group=[target_model])
+
+    def get_classification_params(self,
+                                  region_name: str,
+                                  tile_name: str,
+                                  seed: int,
+                                  suffix: str,
+                                  target_chunk: Optional[int] = None):
+
+        param = None
+        region_mask_name = region_name.split("f")[0]
+        target_model_name = f"model_{region_name}_seed_{seed}.txt"
+        classif_file = os.path.join(
+            self.output_path, "classif",
+            f"Classif_{tile_name}_model_{region_name}_seed_{seed}.tif")
+        confidence_file = os.path.join(
+            self.output_path, "classif",
+            f"{tile_name}_model_{region_name}_confidence_seed_{seed}.tif")
+        if suffix == "SAR":
+            target_model_name = target_model_name.replace(".txt", "_SAR.txt")
+            classif_file = classif_file.replace(".tif", "_SAR.tif")
+            confidence_file = confidence_file.replace(".tif", "_SAR.tif")
+        classif_mask_file = os.path.join(
+            self.output_path, "classif", "MASK",
+            f"MASK_region_{region_mask_name}_{tile_name}.tif")
+        model_file = os.path.join(self.output_path, "model", target_model_name)
+        stats_file = None
+
+        if "svm" in self.classifier:
+            stats_file = os.path.join(self.output_path, "stats",
+                                      f"Model_{region_name}_seed_{seed}.xml")
+
+        if self.enable_autoContext is False and self.use_scikitlearn is False:
+            param = {
+                "f":
+                imageClassifier.launchClassification,
+                "Classifmask":
+                classif_mask_file,
+                "model":
+                model_file,
+                "stats":
+                stats_file,
+                "outputClassif":
+                classif_file,
+                "pathWd":
+                self.working_directory,
+                "classifier_type":
+                self.classifier,
+                "tile":
+                tile_name,
+                "proba_map_expected":
+                SCF.serviceConfigFile(self.cfg).getParam(
+                    'argClassification', 'enable_probability_map'),
+                "dimred":
+                SCF.serviceConfigFile(self.cfg).getParam('dimRed', 'dimRed'),
+                "sar_optical_post_fusion":
+                SCF.serviceConfigFile(self.cfg).getParam(
+                    'argTrain', 'dempster_shafer_SAR_Opt_fusion'),
+                "output_path":
+                self.output_path,
+                "data_field":
+                self.data_field,
+                "write_features":
+                SCF.serviceConfigFile(self.cfg).getParam(
+                    'GlobChain', 'writeOutputs'),
+                "reduction_mode":
+                SCF.serviceConfigFile(self.cfg).getParam(
+                    'dimRed', 'reductionMode'),
+                "sensors_parameters":
+                SCF.iota2_parameters(
+                    self.cfg).get_sensors_parameters(tile_name),
+                "pixType":
+                self.pixel_type,
+                "RAM":
+                self.available_ram,
+                "auto_context":
+                False
+            }
+
+        elif self.enable_autoContext is True and self.use_scikitlearn is False:
+            param = {
+                "f":
+                autoContext_launch_classif,
+                "parameters_dict": {
+                    "model_name":
+                    region_name,
+                    "seed_num":
+                    seed,
+                    "tile":
+                    tile_name,
+                    "tile_segmentation":
+                    os.path.join(self.output_path, "features", tile_name,
+                                 "tmp", f"SLIC_{tile_name}.tif"),
+                    "tile_mask":
+                    classif_mask_file,
+                    "model_list": [
+                        os.path.join(self.output_path, "model",
+                                     f"model_{region_name}_seed_{seed}",
+                                     f"model_it_{auto_it}.rf")
+                        for auto_it in range(self.autoContext_iterations)
+                    ]
+                },
+                "classifier_type":
+                self.classifier,
+                "tile":
+                tile_name,
+                "proba_map_expected":
+                SCF.serviceConfigFile(self.cfg).getParam(
+                    'argClassification', 'enable_probability_map'),
+                "dimred":
+                SCF.serviceConfigFile(self.cfg).getParam('dimRed', 'dimRed'),
+                "data_field":
+                self.data_field,
+                "write_features":
+                SCF.serviceConfigFile(self.cfg).getParam(
+                    'GlobChain', 'writeOutputs'),
+                "reduction_mode":
+                SCF.serviceConfigFile(self.cfg).getParam(
+                    'dimRed', 'reductionMode'),
+                "iota2_run_dir":
+                self.output_path,
+                "sar_optical_post_fusion":
+                SCF.serviceConfigFile(self.cfg).getParam(
+                    'argTrain', 'dempster_shafer_SAR_Opt_fusion'),
+                "nomenclature_path":
+                self.nomenclature_path,
+                "sensors_parameters":
+                SCF.iota2_parameters(
+                    self.cfg).get_sensors_parameters(tile_name),
+                "RAM":
+                self.available_ram,
+                "WORKING_DIR":
+                self.working_directory
+            }
+
+        elif self.enable_autoContext is False and self.use_scikitlearn is True:
+            param = {
+                "f":
+                skClassifier.predict,
+                "mask":
+                classif_mask_file,
+                "model":
+                model_file,
+                "stat":
+                stats_file,
+                "out_classif":
+                classif_file,
+                "out_confidence":
+                confidence_file,
+                "out_proba":
+                None,
+                "working_dir":
+                self.working_directory,
+                "tile_name":
+                tile_name,
+                "sar_optical_post_fusion":
+                SCF.serviceConfigFile(self.cfg).getParam(
+                    'argTrain', 'dempster_shafer_SAR_Opt_fusion'),
+                "output_path":
+                SCF.serviceConfigFile(self.cfg).getParam(
+                    'chain', 'outputPath'),
+                "sensors_parameters":
+                SCF.iota2_parameters(
+                    self.cfg).get_sensors_parameters(tile_name),
+                "pixel_type":
+                self.pixel_type,
+                "number_of_chunks":
+                self.scikit_tile_split,
+                "targeted_chunk":
+                target_chunk,
+                "ram":
+                self.available_ram
+            }
+
+        return param
 
     @classmethod
     def step_description(cls):
@@ -49,111 +287,3 @@ class classification(IOTA2Step.Step):
         """
         description = ("Generate classifications")
         return description
-
-    def step_inputs(self):
-        """
-        Return
-        ------
-            the return could be and iterable or a callable
-        """
-        from iota2.Common import FileUtils as fut
-        from iota2.Classification.ImageClassifier import autoContext_classification_param
-        from iota2.Common.ServiceConfigFile import iota2_parameters
-
-        if self.enable_autoContext is False and self.use_scikitlearn is False:
-            parameters = fut.parseClassifCmd(
-                os.path.join(self.output_path, "cmd", "cla", "class.txt"))
-        elif self.enable_autoContext is True:
-            parameters = autoContext_classification_param(
-                self.output_path, self.data_field)
-        elif self.use_scikitlearn:
-            parameters = fut.parseClassifCmd(
-                os.path.join(self.output_path, "cmd", "cla", "class.txt"))
-            running_parameters = iota2_parameters(self.cfg)
-            parameters = [{
-                "mask":
-                param[1],
-                "model":
-                param[2],
-                "stat":
-                param[3],
-                "out_classif":
-                param[4],
-                "out_confidence":
-                param[5],
-                "out_proba":
-                None,
-                "working_dir":
-                param[6],
-                "tile_name":
-                param[8],
-                "sar_optical_post_fusion":
-                SCF.serviceConfigFile(self.cfg).getParam(
-                    'argTrain', 'dempster_shafer_SAR_Opt_fusion'),
-                "output_path":
-                SCF.serviceConfigFile(self.cfg).getParam(
-                    'chain', 'outputPath'),
-                "sensors_parameters":
-                running_parameters.get_sensors_parameters(tile_name=param[8]),
-                "pixel_type":
-                param[17],
-                "number_of_chunks":
-                self.scikit_tile_split,
-                "targeted_chunk":
-                target_chunk,
-                "ram":
-                param[19]
-            } for param in parameters
-                          for target_chunk in range(self.scikit_tile_split)]
-        return parameters
-
-    def step_execute(self):
-        """
-        Return
-        ------
-        lambda
-            the function to execute as a lambda function. The returned object
-            must be a lambda function.
-        """
-        from iota2.Classification.ImageClassifier import autoContext_launch_classif
-        from iota2.Classification import ImageClassifier as imageClassifier
-        from iota2.Common.ServiceConfigFile import iota2_parameters
-        from iota2.Classification import skClassifier
-        from iota2.MPI import launch_tasks as tLauncher
-
-        if self.enable_autoContext is False and self.use_scikitlearn is False:
-            launch_py_cmd = tLauncher.launchPythonCmd
-            step_function = lambda x: launch_py_cmd(
-                imageClassifier.launchClassification, *x)
-        elif self.enable_autoContext is True and self.use_scikitlearn is False:
-            running_parameters = iota2_parameters(self.cfg)
-
-            step_function = lambda x: autoContext_launch_classif(
-                x,
-                SCF.serviceConfigFile(self.cfg).getParam(
-                    'argTrain', 'classifier'), x["tile"],
-                SCF.serviceConfigFile(self.cfg).getParam(
-                    'argClassification', 'enable_probability_map'),
-                SCF.serviceConfigFile(self.cfg).getParam('dimRed', 'dimRed'),
-                SCF.serviceConfigFile(self.cfg).getParam('chain', 'dataField'),
-                SCF.serviceConfigFile(self.cfg).getParam(
-                    'GlobChain', 'writeOutputs'),
-                SCF.serviceConfigFile(self.cfg).getParam(
-                    'dimRed', 'reductionMode'),
-                SCF.serviceConfigFile(self.cfg).getParam(
-                    'chain', 'outputPath'),
-                SCF.serviceConfigFile(self.cfg).getParam(
-                    'argTrain', 'dempster_shafer_SAR_Opt_fusion'),
-                SCF.serviceConfigFile(self.cfg).getParam(
-                    'chain', 'nomenclaturePath'),
-                running_parameters.get_sensors_parameters(x["tile"]), self.RAM,
-                self.workingDirectory)
-        elif self.enable_autoContext is False and self.use_scikitlearn is True:
-            step_function = lambda x: skClassifier.predict(**x)
-
-        return step_function
-
-    def step_outputs(self):
-        """
-        """
-        pass
