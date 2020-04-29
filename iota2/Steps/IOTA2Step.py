@@ -268,6 +268,7 @@ class Step(object):
             f_kwargs = task_kwargs
 
             # here we launch the fonction with all the arguments of kwargs
+            scheduler_type = "local"
             if scheduler_type == "cluster":
 
                 env_vars = [
@@ -325,7 +326,7 @@ class Step(object):
         new_t_kwargs = t_kwargs.copy()
         working_dir_names = [
             "working_directory", "pathWd", "workingDirectory", "working_dir",
-            "path_wd"
+            "path_wd", "WORKING_DIR"
         ]
         for working_dir_name in working_dir_names:
             if working_dir_name in new_t_kwargs:
