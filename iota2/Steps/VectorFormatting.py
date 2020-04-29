@@ -38,7 +38,8 @@ class VectorFormatting(IOTA2Step.Step):
             'chain', 'groundTruth')
         data_field = (SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'dataField')).lower()
-
+        classif_mode = SCF.serviceConfigFile(self.cfg).getParam(
+            'argClassification', 'classifMode')
         cloud_threshold = SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'cloud_threshold')
         ratio = SCF.serviceConfigFile(self.cfg).getParam('chain', 'ratio')
@@ -92,6 +93,7 @@ class VectorFormatting(IOTA2Step.Step):
                     "merge_final_classifications_ratio":
                     merge_final_classifications_ratio,
                     "region_vec": region_vec,
+                    "classif_mode": classif_mode,
                     "working_directory": self.working_directory
                 },
                 task_resources=self.resources)
