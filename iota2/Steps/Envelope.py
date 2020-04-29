@@ -50,8 +50,10 @@ class Envelope(IOTA2Step.Step):
         self.add_task_to_i2_processing_graph(task,
                                              task_group="vector",
                                              task_sub_group="vector",
-                                             task_dep_group="tile_tasks",
-                                             task_dep_sub_group=self.tiles)
+                                             task_dep_dico={
+                                                 "tile_tasks": self.tiles,
+                                                 "poc": ["poc_task"]
+                                             })
 
     @classmethod
     def step_description(cls):

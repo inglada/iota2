@@ -54,11 +54,11 @@ class CommonMasks(IOTA2Step.Step):
                     self.RAM
                 },
                 task_resources=self.resources)
-            self.add_task_to_i2_processing_graph(task,
-                                                 task_group="tile_tasks",
-                                                 task_sub_group=tile,
-                                                 task_dep_group="tile_tasks",
-                                                 task_dep_sub_group=[tile])
+            self.add_task_to_i2_processing_graph(
+                task,
+                task_group="tile_tasks_cm",
+                task_sub_group=tile,
+                task_dep_dico={"tile_tasks_prepro": [tile]})
 
     @classmethod
     def step_description(cls):
