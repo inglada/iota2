@@ -35,67 +35,6 @@ def str2bool(v):
     return retour
 
 
-def autoContext_classification_param(iota2_directory, data_field):
-    """
-    Parameters
-    ----------
-    iota2_run_dir : string
-        path to iota² output path
-    """
-    import re
-    from iota2.Common.FileUtils import FileSearch_AND
-    from iota2.Common.FileUtils import getListTileFromModel
-    from iota2.Common.FileUtils import getFieldElement
-
-    models_description = os.path.join(iota2_directory, "config_model",
-                                      "configModel.cfg")
-    models_directory = os.path.join(iota2_directory, "model")
-    sample_sel_directory = os.path.join(iota2_directory, "samplesSelection")
-
-    parameters = []
-    all_models = sorted(os.listdir(models_directory))
-    for model in all_models:
-        model_name = model.split("_")[1]
-        seed_num = model.split("_")[-1]
-        tiles = sorted(getListTileFromModel(model_name, models_description))
-        #~ samples_region_1f1_seed_0.shp
-        model_sample_sel = FileSearch_AND(
-            sample_sel_directory, True,
-            "samples_region_{}_seed_{}.shp".format(model_name, seed_num))[0]
-        labels = getFieldElement(model_sample_sel,
-                                 driverName="ESRI Shapefile",
-                                 field=data_field,
-                                 mode="unique")
-        models = FileSearch_AND(os.path.join(models_directory, model), True,
-                                ".rf")
-        for tile in tiles:
-            tile_mask = FileSearch_AND(
-                os.path.join(iota2_directory, "shapeRegion"), True,
-                "{}_{}.tif".format(model_name.split("f")[0], tile))[0]
-            tile_seg = FileSearch_AND(
-                os.path.join(iota2_directory, "features", tile, "tmp"), True,
-                "SLIC_{}.tif".format(tile))[0]
-            parameters.append({
-                "model_name":
-                model_name,
-                "seed_num":
-                seed_num,
-                "tile":
-                tile,
-                "tile_segmentation":
-                tile_seg,
-                "tile_mask":
-                tile_mask,
-                "labels_list":
-                labels,
-                "model_list":
-                sorted(models,
-                       key=lambda x: int(
-                           re.findall("\d", os.path.basename(x))[0]))
-            })
-    return parameters
-
-
 def autoContext_launch_classif(
         parameters_dict: List[Dict[str, Union[str, List[str]]]],
         classifier_type: str, tile: str, proba_map_expected: bool, dimred,
@@ -105,6 +44,8 @@ def autoContext_launch_classif(
         WORKING_DIR: str):
     """
     """
+    from iota2.Common.FileUtils import FileSearch_AND
+    from iota2.Common.FileUtils import getFieldElement
     from iota2.Common.FileUtils import getOutputPixType
 
     pixType = getOutputPixType(nomenclature_path)
@@ -112,7 +53,17 @@ def autoContext_launch_classif(
     models = parameters_dict["model_list"]
     classif_mask = parameters_dict["tile_mask"]
 
-    tempFolderSerie = ""
+    class_labels_in_model = []
+    sample_sel_directory = os.path.join(iota2_run_dir, "samplesSelection")
+    model_sample_sel = FileSearch_AND(
+        sample_sel_directory, True,
+        "samples_region_{}_seed_{}.shp".format(parameters_dict["model_name"],
+                                               parameters_dict["seed_num"]))[0]
+    class_labels_in_model = getFieldElement(model_sample_sel,
+                                            driverName="ESRI Shapefile",
+                                            field=data_field,
+                                            mode="unique")
+
     stats = os.path.join(
         iota2_run_dir, "stats",
         "Model_{}_seed_{}.xml".format(parameters_dict["model_name"],
@@ -121,16 +72,11 @@ def autoContext_launch_classif(
     outputClassif = "Classif_{}_model_{}_seed_{}.tif".format(
         parameters_dict["tile"], parameters_dict["model_name"],
         parameters_dict["seed_num"])
-    confmap = "{}_model_{}_confidence_seed_{}.tif".format(
-        parameters_dict["tile"], parameters_dict["model_name"],
-        parameters_dict["seed_num"])
 
-    launchClassification(tempFolderSerie,
-                         classif_mask,
+    launchClassification(classif_mask,
                          models,
                          stats,
                          outputClassif,
-                         confmap,
                          WORKING_DIR,
                          classifier_type,
                          tile,
@@ -143,11 +89,10 @@ def autoContext_launch_classif(
                          reduction_mode,
                          sensors_parameters,
                          pixType,
-                         MaximizeCPU=True,
                          RAM=RAM,
                          auto_context={
                              "labels_list":
-                             parameters_dict["labels_list"],
+                             class_labels_in_model,
                              "tile_segmentation":
                              parameters_dict["tile_segmentation"]
                          })
@@ -528,12 +473,10 @@ def get_class_by_models(iota2_samples_dir, data_field, model=None):
     return class_models
 
 
-def launchClassification(tempFolderSerie,
-                         Classifmask,
+def launchClassification(Classifmask,
                          model,
                          stats,
                          outputClassif,
-                         confmap,
                          pathWd,
                          classifier_type: str,
                          tile: str,
@@ -546,7 +489,6 @@ def launchClassification(tempFolderSerie,
                          reduction_mode,
                          sensors_parameters,
                          pixType,
-                         MaximizeCPU=True,
                          RAM=500,
                          auto_context={},
                          logger=LOGGER):
@@ -746,10 +688,9 @@ if __name__ == "__main__":
     if CFG.getParam("chain", "enable_autoContext"):
         AUTO_CONTEXT_PARAMS = autoContext_classification_param(
             ARGS.output_path, ARGS.data_field)
-    launchClassification(ARGS.tempFolderSerie, ARGS.Classifmask, ARGS.model,
-                         ARGS.stats, ARGS.outputClassif, ARGS.confmap,
-                         ARGS.pathWd, ARGS.classifier_type, ARGS.tile,
-                         ARGS.proba_map_expected, ARGS.dimred,
+    launchClassification(ARGS.Classifmask, ARGS.model, ARGS.stats,
+                         ARGS.outputClassif, ARGS.pathWd, ARGS.classifier_type,
+                         ARGS.tile, ARGS.proba_map_expected, ARGS.dimred,
                          ARGS.sar_optical_post_fusion, ARGS.output_path,
                          ARGS.data_field, ARGS.write_features,
                          ARGS.reduction_mode, SENSORS_PARAMETERS, ARGS.pixType,
