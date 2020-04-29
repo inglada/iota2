@@ -153,7 +153,7 @@ def samples_merge(region_tiles_seed: Tuple[str], output_path: str,
         # if SAR and Optical post-classification fusion extract validation
         # samples
         if ds_sar_opt_flag:
-            poi_val_name = "{tile}_region_{region}_seed_{seed}_samples_val.shp"
+            poi_val_name = f"{tile}_region_{region}_seed_{seed}_samples_val.shp"
             poi_val = os.path.join(wd_val, poi_val_name)
             vector_region_val.append(poi_val)
         extract_poi(vector_tile, region, seed, region_field, poi_learn,
