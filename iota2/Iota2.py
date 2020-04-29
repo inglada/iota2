@@ -89,6 +89,7 @@ if __name__ == "__main__":
 
     print(f"dashboard available at : {client.dashboard_link}")
 
+    # final_graph.compute()
     # launch chain
     if not args.only_summary:
         res = client.submit(final_graph.compute)
