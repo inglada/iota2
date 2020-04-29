@@ -123,7 +123,9 @@ def split_vector_by_region(in_vect: str,
 
 def create_tile_region_masks(tile_region: str, region_field: str,
                              tile_name: str, output_directory: str,
-                             origin_name: str, img_ref: str) -> None:
+                             origin_name: str, img_ref: str,
+                             i2_running_dir: str,
+                             classification_mode: str) -> None:
     """
     Parameters
     ----------
@@ -183,6 +185,30 @@ def create_tile_region_masks(tile_region: str, region_field: str,
             "1"
         })
         tile_region_app.ExecuteAndWriteOutput()
+
+        # generate classification mask
+        classification_mask_dir = os.path.join(i2_running_dir, "classif",
+                                               "MASK")
+        classification_mask_name = f"MASK_region_{region}_{tile_name}.tif"
+        classification_mask_file = os.path.join(classification_mask_dir,
+                                                classification_mask_name)
+        fut.ensure_dir(classification_mask_dir)
+        if classification_mode == "separate":
+            classif_mask_app = otb.CreateRasterizationApplication({
+                "in":
+                output_path,
+                "out":
+                classification_mask_file,
+                "im":
+                img_ref,
+                "mode":
+                "attribute",
+                "mode.attribute.field":
+                region_field
+            })
+            classif_mask_app.ExecuteAndWriteOutput()
+        else:
+            shutil.copy(tile_region_raster, classification_mask_file)
 
 
 def keep_fields(vec_in: str,
@@ -467,6 +493,7 @@ def vector_formatting(
         runs: int,
         epsg: int,
         region_field: str,
+        classif_mode: str,
         merge_final_classifications: Optional[bool] = False,
         merge_final_classifications_ratio: Optional[float] = None,
         region_vec: Optional[str] = None,
@@ -506,6 +533,8 @@ def vector_formatting(
         epsg code
     region_field: str
         region field in region database
+    classif_mode: string
+        sub-division of too huge region ?
     merge_final_classifications: bool
         inform if finals classifications will be merged
     merge_final_classifications_ratio : float
@@ -597,9 +626,14 @@ def vector_formatting(
         raise Exception(error_msg)
 
     region_vector_name = os.path.splitext(os.path.basename(region_vec))[0]
-    create_tile_region_masks(tile_region, region_field, tile_name,
+    create_tile_region_masks(tile_region,
+                             region_field,
+                             tile_name,
                              os.path.join(output_path, "shapeRegion"),
-                             region_vector_name, img_ref)
+                             region_vector_name,
+                             img_ref,
+                             i2_running_dir=output_path,
+                             classification_mode=classif_mode)
 
     logger.info(
         "launch intersection between tile's envelopeRegion and groundTruth")
