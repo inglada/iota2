@@ -51,17 +51,16 @@ def prepare_selection(sample_sel_directory: str,
     merge_selection_name = "{}_selection_merge".format(tile_name)
     output_selection_merge = os.path.join(wd, merge_selection_name + ".sqlite")
 
-    if not os.path.exists(output_selection_merge):
-        fut.mergeVectors(merge_selection_name,
-                         wd,
-                         vectors,
-                         ext="sqlite",
-                         out_Tbl_name="output")
-        if workingDirectory:
-            shutil.copy(
-                output_selection_merge,
-                os.path.join(sample_sel_directory,
-                             merge_selection_name + ".sqlite"))
+    fut.mergeVectors(merge_selection_name,
+                     wd,
+                     vectors,
+                     ext="sqlite",
+                     out_Tbl_name="output")
+    if workingDirectory:
+        shutil.copy(
+            output_selection_merge,
+            os.path.join(sample_sel_directory,
+                         merge_selection_name + ".sqlite"))
 
     return os.path.join(sample_sel_directory, merge_selection_name + ".sqlite")
 
