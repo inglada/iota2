@@ -56,7 +56,7 @@ To have an exhaustive list of available functions, it is possible to instanciate
 
 All functions contained in ``data_container`` are named as : ``get_sensors-name_Bx``, where ``x`` is the name of bands available in each sensor.
 
-For instance for Sentinel2 (Theia format) it is possible to get all pixels corresponding to the band 2 with ``get_Sentinel2_B2()`` function.
+For instance for Sentinel2 (Theia format) it is possible to get all pixels corresponding to the band 2 with ``get_Sentinel2_B2()`` function. The returned numpy array is the complete time series for the corresponding spectral band. 
 It is also possible to use iota2 default spectral indices, like NDVI. In this case, the get function is named ``get_Sentinel2_NDVI``.
 
 

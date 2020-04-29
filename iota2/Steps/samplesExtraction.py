@@ -38,9 +38,9 @@ class samplesExtraction(IOTA2Step.Step):
             self.cfg).checkCustomFeature()
         if self.custom_features:
             self.number_of_chunks = SCF.serviceConfigFile(self.cfg).getParam(
-                'Features', "number_of_chunks")
+                'external_features', "number_of_chunks")
             self.chunk_size_mode = SCF.serviceConfigFile(self.cfg).getParam(
-                'Features', "chunk_size_mode")
+                'external_features', "chunk_size_mode")
 
         # implement tests for check if custom features are well provided
         # so the chain failed during step init
@@ -130,10 +130,11 @@ class samplesExtraction(IOTA2Step.Step):
                 "custom_features":
                 True,
                 "module_path":
-                SCF.serviceConfigFile(self.cfg).getParam('Features', 'module'),
+                SCF.serviceConfigFile(self.cfg).getParam(
+                    'external_features', 'module'),
                 "list_functions":
                 SCF.serviceConfigFile(self.cfg).getParam(
-                    'Features', 'functions').split(" "),
+                    'external_features', 'functions').split(" "),
                 "force_standard_labels":
                 SCF.serviceConfigFile(self.cfg).getParam(
                     'chain', 'force_standard_labels'),
@@ -143,7 +144,7 @@ class samplesExtraction(IOTA2Step.Step):
                 self.chunk_size_mode,
                 "custom_write_mode":
                 SCF.serviceConfigFile(self.cfg).getParam(
-                    'Features', "custom_write_mode")
+                    'external_features', "custom_write_mode")
             }
         else:
             param_custom_features = {}

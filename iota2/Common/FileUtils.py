@@ -235,14 +235,17 @@ def parseClassifCmd(cmdPath,
             custom_param_list = []
             if custom_features_flag:
                 auto_context = {}
-                module_path = cfg.getParam("Features", "module")
-                list_functions = cfg.getParam("Features",
+                module_path = cfg.getParam("external_features", "module")
+                list_functions = cfg.getParam("external_features",
                                               "functions").split(" ")
                 force_standard_labels = cfg.getParam("chain",
                                                      "force_standard_labels")
-                chunk_size_mode = cfg.getParam("Features", "chunk_size_mode")
-                chunk_size_x = cfg.getParam("Features", "chunk_size_x")
-                chunk_size_y = cfg.getParam("Features", "chunk_size_y")
+                chunk_size_mode = cfg.getParam("external_features",
+                                               "chunk_size_mode")
+                chunk_size_x = cfg.getParam("external_features",
+                                            "chunk_size_x")
+                chunk_size_y = cfg.getParam("external_features",
+                                            "chunk_size_y")
                 custom_param_list = [
                     auto_context, force_standard_labels, True, module_path,
                     list_functions, number_of_chunks, chunk_size_mode,

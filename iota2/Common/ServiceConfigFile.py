@@ -343,7 +343,7 @@ class serviceConfigFile:
                 "chunk_size_mode": "split_number",
                 "custom_write_mode": False
             }
-            self.init_section("Features", custom_features)
+            self.init_section("external_features", custom_features)
 
     def init_section(self, sectionName, sectionDefault):
         """use to initialize a full configuration file section
@@ -1059,14 +1059,14 @@ class serviceConfigFile:
                     raise AttributeError(
                         f"{module.__name__} has no function {fun}")
 
-        module_path = self.getParam("Features", "module")
+        module_path = self.getParam("external_features", "module")
         module_path_valid = check_code_path(module_path)
         print(module_path_valid)
         if module_path_valid:
             module = check_import(module_path)
             check_function_in_module(
                 module,
-                self.getParam("Features", "functions").split(" "))
+                self.getParam("external_features", "functions").split(" "))
 
             flag = True
         return flag
