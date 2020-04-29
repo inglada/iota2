@@ -156,8 +156,8 @@ class iota2():
         self.cfg = cfg
         self.workingDirectory = os.getenv(hpc_working_directory)
 
-        self.model_spatial_distrib, self.tiles = self.get_run_spatial_informations(
-        )
+        # self.model_spatial_distrib, self.tiles = self.get_run_spatial_informations(
+        # )
 
         # steps definitions
         self.steps_group = OrderedDict()
@@ -231,21 +231,10 @@ class iota2():
                                                       region_vector_file,
                                                       region_vector_datafield,
                                                       i2_epsg_code)
-        models_area = get_region_area(ground_truth, region_vector_file,
-                                      region_vector_datafield, sensor_path,
-                                      i2_epsg_code, tiles)
-        # print(models_area)
-        # models_area = {
-        #     '1': 11231498215.206795,
-        #     '3': 16472562392.370218,
-        #     '7': 2724834982.7134705,
-        #     '9': 3870489666.7596097,
-        #     '2': 8439352266.304428,
-        #     '4': 14254915616.995539,
-        #     '5': 21577358792.3973,
-        #     '8': 7172610794.366812,
-        #     '6': 8892182957.883936
-        # }
+        if region_vector_file:
+            models_area = get_region_area(ground_truth, region_vector_file,
+                                          region_vector_datafield, sensor_path,
+                                          i2_epsg_code, tiles)
         spatial_region_info = {}
         spatial_region_info_tmp = {}
         for models_name, tiles in region_distrib.items():
@@ -469,27 +458,29 @@ class iota2():
         #         'nb_sub_models': None
         #     }
         # }
+
         self.tiles = ["T31TCJ"]
-        self.model_spatial_distrib = {
-            '1f1': {
-                'tiles': ["T31TCJ"]
-            },
-            '1f2': {
-                'tiles': ["T31TCJ"]
-            },
-            '1f3': {
-                'tiles': ["T31TCJ"]
-            },
-            '2f1': {
-                'tiles': ['T31TCJ']
-            },
-            '2f2': {
-                'tiles': ['T31TCJ']
-            },
-            '2f3': {
-                'tiles': ['T31TCJ']
-            }
-        }
+        # self.model_spatial_distrib = {
+        #     '1f1': {
+        #         'tiles': ["T31TCJ"]
+        #     },
+        #     '1f2': {
+        #         'tiles': ["T31TCJ"]
+        #     },
+        #     '1f3': {
+        #         'tiles': ["T31TCJ"]
+        #     },
+        #     '2f1': {
+        #         'tiles': ['T31TCJ']
+        #     },
+        #     '2f2': {
+        #         'tiles': ['T31TCJ']
+        #     },
+        #     '2f3': {
+        #         'tiles': ['T31TCJ']
+        #     }
+        # }
+        self.model_spatial_distrib = {'1': {'tiles': ["T31TCJ"]}}
 
         Step.set_models_spatial_information(self.tiles,
                                             self.model_spatial_distrib)
@@ -626,5 +617,14 @@ class iota2():
         s_container.append(
             partial(learnModel.learnModel, cfg, config_ressources,
                     self.workingDirectory), "learning")
+
+        s_container.append(
+            partial(classification.classification, cfg, config_ressources,
+                    self.workingDirectory), "classification")
+        if use_scikitlearn:
+            s_container.append(
+                partial(skClassificationsMerge.ScikitClassificationsMerge, cfg,
+                        config_ressources, self.workingDirectory),
+                "classification")
 
         return s_container
