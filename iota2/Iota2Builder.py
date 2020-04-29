@@ -389,7 +389,7 @@ class iota2():
             crownBuild, mosaicTilesVectorization, largeVectorization,
             mosaicTilesVectorization, largeSimplification, largeSmoothing,
             clipVectors, zonalStatistics, prodVectors, slicSegmentation,
-            superPixPos, superPixSplit, skClassificationsMerge)
+            superPixPos, superPixSplit, skClassificationsMerge, step_poc)
 
         # self.model_spatial_distrib = {
         #     '6': {
@@ -459,7 +459,7 @@ class iota2():
         #     }
         # }
 
-        self.tiles = ["T31TCJ"]
+        # self.tiles = ["T31TCJ"]
         # self.model_spatial_distrib = {
         #     '1f1': {
         #         'tiles': ["T31TCJ"]
@@ -480,8 +480,34 @@ class iota2():
         #         'tiles': ['T31TCJ']
         #     }
         # }
-        self.model_spatial_distrib = {'1': {'tiles': ["T31TCJ"]}}
-
+        # self.model_spatial_distrib = {'1': {'tiles': ["T31TCJ"]}}
+        self.tiles = ['T30TXN', 'T31TCJ', 'T31TEH']
+        self.model_spatial_distrib = {
+            '4': {
+                'tiles': ['T30TXN', 'T31TCJ']
+            },
+            '7': {
+                'tiles': ['T31TCJ']
+            },
+            '6': {
+                'tiles': ['T31TCJ', 'T31TEH']
+            },
+            '8f1': {
+                'tiles': ['T31TEH']
+            },
+            '8f2': {
+                'tiles': ['T31TEH']
+            },
+            '1': {
+                'tiles': ['T30TXN']
+            },
+            '2': {
+                'tiles': ['T30TXN']
+            },
+            '5': {
+                'tiles': ['T30TXN']
+            }
+        }
         Step.set_models_spatial_information(self.tiles,
                                             self.model_spatial_distrib)
         # control variable
@@ -538,93 +564,20 @@ class iota2():
         s_container.append(
             partial(sensorsPreprocess.sensorsPreprocess, cfg,
                     config_ressources, self.workingDirectory), "init")
-        if not "none" in VHR.lower():
-            s_container.append(
-                partial(Coregistration.Coregistration, cfg, config_ressources,
-                        self.workingDirectory), "init")
         s_container.append(
             partial(CommonMasks.CommonMasks, cfg, config_ressources,
                     self.workingDirectory), "init")
         s_container.append(
             partial(PixelValidity.PixelValidity, cfg, config_ressources,
                     self.workingDirectory), "init")
-        if enable_autoContext:
-            s_container.append(
-                partial(slicSegmentation.slicSegmentation, cfg,
-                        config_ressources, self.workingDirectory), "init")
+
+        s_container.append(
+            partial(step_poc.poc_multi_step_dep, cfg, config_ressources,
+                    self.workingDirectory), "init")
+
         # sampling steps
         s_container.append(
             partial(Envelope.Envelope, cfg, config_ressources,
                     self.workingDirectory), "sampling")
-        if not shapeRegion:
-            s_container.append(
-                partial(genRegionVector.genRegionVector, cfg,
-                        config_ressources, self.workingDirectory), "sampling")
-        s_container.append(
-            partial(VectorFormatting.VectorFormatting, cfg, config_ressources,
-                    self.workingDirectory), "sampling")
-        huge_models = False
-        if shapeRegion and classif_mode == "fusion":
-            huge_models = True
-            s_container.append(
-                partial(splitSamples.splitSamples, cfg, config_ressources,
-                        self.workingDirectory), "sampling")
-        s_container.append(
-            partial(samplesMerge.samplesMerge, cfg, config_ressources,
-                    self.workingDirectory, huge_models), "sampling")
-        s_container.append(
-            partial(statsSamplesModel.statsSamplesModel, cfg,
-                    config_ressources, self.workingDirectory), "sampling")
-        s_container.append(
-            partial(samplingLearningPolygons.samplingLearningPolygons, cfg,
-                    config_ressources, self.workingDirectory), "sampling")
-        if enable_autoContext is True:
-            s_container.append(
-                partial(superPixPos.superPixPos, cfg, config_ressources,
-                        self.workingDirectory), "sampling")
-        s_container.append(
-            partial(samplesByTiles.samplesByTiles, cfg, config_ressources,
-                    enable_autoContext, self.workingDirectory), "sampling")
-        s_container.append(
-            partial(samplesExtraction.samplesExtraction, cfg,
-                    config_ressources, self.workingDirectory), "sampling")
-        if enable_autoContext is False:
-            s_container.append(
-                partial(samplesByModels.samplesByModels, cfg,
-                        config_ressources), "sampling")
-            transfert_samples = False
-            if sampleManagement and sampleManagement.lower() != 'none':
-                transfert_samples = True
-                s_container.append(
-                    partial(copySamples.copySamples, cfg, config_ressources,
-                            self.workingDirectory), "sampling")
-            if sample_augmentation_flag:
-                s_container.append(
-                    partial(genSyntheticSamples.genSyntheticSamples, cfg,
-                            config_ressources, transfert_samples,
-                            self.workingDirectory), "sampling")
-            if dimred:
-                s_container.append(
-                    partial(samplesDimReduction.samplesDimReduction, cfg,
-                            config_ressources, transfert_samples
-                            and not sample_augmentation_flag,
-                            self.workingDirectory), "sampling")
-        else:
-            s_container.append(
-                partial(superPixSplit.superPixSplit, cfg, config_ressources,
-                        self.workingDirectory), "sampling")
-        # learning
-        s_container.append(
-            partial(learnModel.learnModel, cfg, config_ressources,
-                    self.workingDirectory), "learning")
-
-        s_container.append(
-            partial(classification.classification, cfg, config_ressources,
-                    self.workingDirectory), "classification")
-        if use_scikitlearn:
-            s_container.append(
-                partial(skClassificationsMerge.ScikitClassificationsMerge, cfg,
-                        config_ressources, self.workingDirectory),
-                "classification")
 
         return s_container
