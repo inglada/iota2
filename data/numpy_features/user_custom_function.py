@@ -1,8 +1,23 @@
+import numpy as np
+
+
 def get_identity(self):
     # print("get identity")
     # print(self.get_B2())
 
     return self.get_Sentinel2_B2(), []
+
+
+def test_index_sum(self):
+    coef = self.get_Sentinel2_B2() + self.get_Sentinel2_B4()
+    labels = []
+    return np.sum(coef, axis=2), labels
+
+
+def test_index(self):
+    coef = self.get_Sentinel2_B2() + self.get_Sentinel2_B4()
+    labels = []
+    return coef, labels
 
 
 def duplicate_ndvi(self):
@@ -77,9 +92,6 @@ def get_soi(self):
         self.get_Sentinel2_B11() + self.get_Sentinel2_B8())
     labels = [f"soi_{i+1}" for i in range(coef.shape[2])]
     return coef, labels
-
-
-import numpy as np
 
 
 def get_cumulative_productivity(self):

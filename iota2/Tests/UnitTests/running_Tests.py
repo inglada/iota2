@@ -491,7 +491,7 @@ class iota_tests_runs_case(unittest.TestCase):
         cfg_test.chain.colorTable = self.color_path
         cfg_test.external_features.module = os.path.join(
             IOTA2DIR, "data", "numpy_features", "user_custom_function.py")
-        cfg_test.external_features.functions = "get_cari get_ndsi"
+        cfg_test.external_features.functions = "test_index test_index_sum"
         cfg_test.external_features.number_of_chunks = 1
         cfg_test.save(open(config_test, 'w'))
 
