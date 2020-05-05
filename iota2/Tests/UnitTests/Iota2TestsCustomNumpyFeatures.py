@@ -272,7 +272,7 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
             sensors_param)
         # Then apply function
         module_path = os.path.join(IOTA2DIR, "data", "numpy_features",
-                                   "dhi.py")
+                                   "user_custom_function.py")
         # list_functions = ["get_identity", "get_ndvi", "duplicate_ndvi"]
         list_functions = [
             "get_cumulative_productivity", "get_seasonal_variation"
@@ -379,7 +379,7 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
             sensors_param)
         # Then apply function
         module_path = os.path.join(IOTA2DIR, "data", "numpy_features",
-                                   "dhi.py")
+                                   "user_custom_function.py")
         # list_functions = ["get_identity", "get_ndvi", "duplicate_ndvi"]
         list_functions = [
             "get_cumulative_productivity", "get_seasonal_variation"
