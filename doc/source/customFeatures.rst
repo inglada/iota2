@@ -114,3 +114,9 @@ In the configuration file, add the following block to enable custom feature mode
         chunk_size_mode:"split_number"
         number_of_chunks:50
     }
+
+Limitations:
+------------
+.. warning::
+    Custom features can not be used with ``userFeatures`` sensors.
+	Indeed, it is mandatory to have the bands information to provide the ``get`` methods.
