@@ -119,9 +119,6 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
         cfg_test.GlobChain.writeOutputs = False
         cfg_test.external_features.module = os.path.join(
             IOTA2DIR, "data", "numpy_features", "user_custom_function.py")
-
-        # cfg_test.Features.module = self.module
-        # cfg_test.Features.namefile = "user_custom_function"  # whithout .py ?
         cfg_test.external_features.functions = "get_identity get_ndvi"
         cfg_test.save(open(config_path_test, "w"))
         cfg = SCF.serviceConfigFile(config_path_test)
@@ -237,8 +234,6 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
         cfg_test.GlobChain.writeOutputs = False
         cfg_test.external_features.module = os.path.join(
             IOTA2DIR, "data", "numpy_features", "user_custom_function.py")
-        # cfg_test.external_features.codePath = self.code_path
-        # cfg_test.external_features.namefile = "user_custom_function"  # whithout .py ?
         cfg_test.external_features.functions = "get_identity"  # " get_ndvi"
         cfg_test.save(open(config_path_test, "w"))
         cfg = SCF.serviceConfigFile(config_path_test)
@@ -299,7 +294,6 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
 
         self.assertTrue(os.path.exists(new_features_path))
         self.assertTrue(new_labels is not None)
-        # self.assertTrue(False)
 
     def test_compute_custom_features(self):
         """
@@ -344,8 +338,6 @@ class Iota2TestsCustomNumpyFeatures(unittest.TestCase):
         cfg_test.GlobChain.writeOutputs = False
         cfg_test.external_features.module = os.path.join(
             IOTA2DIR, "data", "numpy_features", "user_custom_function.py")
-        # cfg_test.external_features.codePath = self.code_path
-        # cfg_test.external_features.namefile = "user_custom_function"  # whithout .py ?
         cfg_test.external_features.functions = "get_identity"  # " get_ndvi"
         cfg_test.save(open(config_path_test, "w"))
         cfg = SCF.serviceConfigFile(config_path_test)
