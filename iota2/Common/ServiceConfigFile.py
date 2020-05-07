@@ -344,6 +344,8 @@ class serviceConfigFile:
                 "custom_write_mode": False
             }
             self.init_section("external_features", custom_features)
+            builder = {"mode": "classification", "mode.custom": None}
+            self.init_section("builder", builder)
 
     def init_section(self, sectionName, sectionDefault):
         """use to initialize a full configuration file section

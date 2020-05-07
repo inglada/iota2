@@ -14,7 +14,6 @@
 #
 # =========================================================================
 
-import Iota2Builder as chain
 from iota2.Common import FileUtils as fut
 import argparse
 
@@ -326,7 +325,13 @@ if __name__ == "__main__":
     args = parser.parse_args()
     cfg = SCF.serviceConfigFile(args.configPath)
     cfg.checkConfigParameters()
-    chain_to_process = chain.iota2(cfg.pathConf, args.config_ressources)
+    builder = cfg.getParam("builder", "mode")
+    if builder == "classification":
+        from iota2.scheduling.i2_classification import i2_classification as chain
+    else:
+        raise NotImplementedError
+
+    chain_to_process = chain(cfg.pathConf, args.config_ressources)
     if os.path.exists(chain_to_process.iota2_pickle):
         chain_to_process = chain_to_process.load_chain()
 
