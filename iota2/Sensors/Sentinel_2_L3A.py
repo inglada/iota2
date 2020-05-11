@@ -633,8 +633,8 @@ class sentinel_2_l3a():
 
         time_series.Execute()
         masks.Execute()
-        time_series.ExecuteAndWriteOutput()
-        masks.ExecuteAndWriteOutput()
+        # time_series.ExecuteAndWriteOutput()
+        # masks.ExecuteAndWriteOutput()
         comp = len(
             self.stack_band_position) if not self.extracted_bands else len(
                 self.extracted_bands)
