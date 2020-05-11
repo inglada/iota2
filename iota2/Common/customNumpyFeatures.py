@@ -37,6 +37,7 @@ class data_container:
         from iota2.Sensors.Sensors_container import sensors_container
 
         self.data = None  # empty attribute to address data
+        self.out_data = None
 
         # Get the first tile, all the tiles must come from same sensor
 
@@ -120,6 +121,7 @@ class custom_numpy_features(data_container):
                  sensors_params: sensors_params_type,
                  module_name: str,
                  list_functions: List[str],
+                 concat_mode: Optional[bool] = True,
                  working_dir: Optional[str] = None):
         """
         Parameters
@@ -157,7 +159,7 @@ class custom_numpy_features(data_container):
 
         mod = check_import(module_name)
         self.fun_name_list = []
-
+        self.concat_mode = concat_mode
         if list_functions is not None and len(list_functions) != 0:
             self.fun_name_list = list_functions
             for fun_name in self.fun_name_list:
@@ -181,6 +183,7 @@ class custom_numpy_features(data_container):
         import numpy as np
 
         self.data = data
+
         new_labels = []
         try:
             for i, fun_name in enumerate(self.fun_name_list):
@@ -205,8 +208,16 @@ class custom_numpy_features(data_container):
                         f"custFeat_{i+1}_b{j+1}" for j in range(feat.shape[2])
                     ]
                 new_labels += labels
-                self.data = np.concatenate((self.data, feat), axis=2)
-            return self.data, new_labels
+                if self.concat_mode and i == 0:
+                    self.out_data = feat[:]
+                else:
+                    self.out_data = np.concatenate((self.out_data, feat),
+                                                   axis=2)
+
+            if not self.concat_mode:
+                self.out_data = np.concatenate((self.data, self.out_data),
+                                               axis=2)
+            return self.out_data, new_labels
         except Exception as err:
             print(f"Error during custom_features computation")
             raise err
@@ -225,7 +236,8 @@ def compute_custom_features(tile: str,
                             number_of_chunks: int,
                             chunk_size_x: int,
                             chunk_size_y: int,
-                            write_mode: Optional[bool] = False,
+                            concat_mode: Optional[bool] = True,
+                            output_name: Optional[str] = None,
                             logger=LOGGER):
     """
     This function apply a list of function to an otb pipeline data and
@@ -241,17 +253,12 @@ def compute_custom_features(tile: str,
     from functools import partial
 
     cust = custom_numpy_features(tile, output_path, sensors_parameters,
-                                 module_path, list_functions)
+                                 module_path, list_functions, concat_mode)
     function_partial = partial(cust.process)
     labels_features_name = ""
     # TODO : how to feel labels_features_name ?
     # The output path is empty to ensure the image was not writed
-    output_name = None
-    if write_mode:
-        opath = os.path.join(output_path, "customF")
-        if not os.path.exists(opath):
-            os.mkdir(opath)
-        output_name = os.path.join(opath, f"{tile}_chunk_{targeted_chunk}.tif")
+
     (feat_array, new_labels, out_transform, _, _,
      otbimage) = insert_external_function_to_pipeline(
          otb_pipeline=otb_pipeline,
@@ -264,8 +271,7 @@ def compute_custom_features(tile: str,
          number_of_chunks=number_of_chunks,
          chunk_size_x=chunk_size_x,
          chunk_size_y=chunk_size_y,
-         ram=128,
-     )
+         ram=128)
     # feat_array is an raster array with shape
     # [band, rows, cols] but otb requires [rows, cols, bands]
     crop_otbimage = convert_numpy_array_to_otb_image(otbimage, feat_array,

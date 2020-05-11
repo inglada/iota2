@@ -344,7 +344,11 @@ class serviceConfigFile:
                 "custom_write_mode": False
             }
             self.init_section("external_features", custom_features)
-            builder = {"mode": "classification", "mode.custom": None}
+            builder = {
+                "mode": "classification",
+                "custom_file": None,
+                "custom_builder_class": None
+            }
             self.init_section("builder", builder)
 
     def init_section(self, sectionName, sectionDefault):
