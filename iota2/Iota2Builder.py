@@ -626,5 +626,12 @@ class iota2():
                 partial(skClassificationsMerge.ScikitClassificationsMerge, cfg,
                         config_ressources, self.workingDirectory),
                 "classification")
+        if ds_sar_opt:
+            s_container.append(
+                confusionSAROptMerge.confusionSAROptMerge(
+                    cfg, config_ressources, self.workingDirectory),
+                "classification")
+            # s_container.append(step_confusion_sar_opt_fusion, "classification")
+            # s_container.append(step_sar_opt_fusion, "classification")
 
         return s_container
