@@ -19,7 +19,7 @@ from collections import OrderedDict
 from iota2.Common import ServiceConfigFile as SCF
 
 
-class i2_scheduler():
+class i2_builder():
     """
     class use to describe steps sequence and variable to use at each step (config)
     """
