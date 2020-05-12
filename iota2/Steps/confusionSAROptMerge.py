@@ -13,11 +13,9 @@
 #   PURPOSE.  See the above copyright notices for more information.
 #
 # =========================================================================
-import os
-
-from Steps import IOTA2Step
-from Common import ServiceConfigFile as SCF
-from Cluster import get_RAM
+from iota2.Steps import IOTA2Step
+from iota2.Common import ServiceConfigFile as SCF
+from iota2.Cluster import get_RAM
 
 
 class confusionSAROptMerge(IOTA2Step.Step):
