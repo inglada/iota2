@@ -67,9 +67,7 @@ class samplesExtraction(IOTA2Step.Step):
                 annual_config_file).getParam('chain', 'outputPath')
         # Initialize the sensors dictionnary with the first tile found
         # Sensors are the same for all tiles
-        sensors_params = SCF.iota2_parameters(self.cfg).get_sensors_parameters(
-            os.path.splitext(
-                os.path.basename(list(list_shapefiles[0].items())[0][1]))[0])
+        sensors_params = SCF.iota2_parameters(self.cfg)
         inv_dict = {
             "path_wd":
             self.workingDirectory,
@@ -93,8 +91,6 @@ class samplesExtraction(IOTA2Step.Step):
                                                      'enableCrossValidation'),
             "runs":
             SCF.serviceConfigFile(self.cfg).getParam('chain', 'runs'),
-            "sensors_parameters":
-            sensors_params,
             "sar_optical_post_fusion":
             SCF.serviceConfigFile(self.cfg).getParam(
                 'argTrain', 'dempster_shafer_SAR_Opt_fusion'),
@@ -153,17 +149,27 @@ class samplesExtraction(IOTA2Step.Step):
         # Create the parameter list
         parameters = []
         for shape in list_shapefiles:
+
             if self.custom_features:
                 # Create as job as number of chunks requiered
                 for target_chunk in range(self.number_of_chunks):
                     # avoid overwriting parameters
                     param_d = input_dict.copy()
                     param_d["train_shape_dic"] = shape
+
+                    param_d["sensors_parameters"] = (
+                        sensors_params.get_sensors_parameters(
+                            os.path.basename(list(
+                                shape.items())[0][1]).split(".")[0]))
                     param_d["targeted_chunk"] = target_chunk
                     parameters.append(param_d)
             else:
                 param_d = input_dict.copy()
                 param_d["train_shape_dic"] = shape
+                param_d["sensors_parameters"] = (
+                    sensors_params.get_sensors_parameters(
+                        os.path.basename(list(
+                            shape.items())[0][1]).split(".")[0]))
                 parameters.append(param_d)
         return parameters
 
