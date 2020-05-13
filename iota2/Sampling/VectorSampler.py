@@ -1106,7 +1106,7 @@ def generate_samples(train_shape_dic,
                      chunk_size_x: Optional[int] = None,
                      chunk_size_y: Optional[int] = None,
                      targeted_chunk: Optional[int] = None,
-                     custom_write_mode: Optional[bool] = False,
+                     concat_mode: Optional[bool] = True,
                      logger: Optional[Logger] = LOGGER):
     """
     usage : generation of vector shape of points with features
@@ -1202,7 +1202,7 @@ def generate_samples(train_shape_dic,
             chunk_size_mode=chunk_size_mode,
             chunk_size_x=chunk_size_x,
             chunk_size_y=chunk_size_y,
-            custom_write_mode=custom_write_mode)
+            concat_mode=concat_mode)
 
     elif crop_mix is True and samples_classif_mix is False:
         samples = generate_samples_crop_mix(

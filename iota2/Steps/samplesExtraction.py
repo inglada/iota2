@@ -142,9 +142,9 @@ class samplesExtraction(IOTA2Step.Step):
                 self.number_of_chunks,
                 "chunk_size_mode":
                 self.chunk_size_mode,
-                "custom_write_mode":
+                "concat_mode":
                 SCF.serviceConfigFile(self.cfg).getParam(
-                    'external_features', "custom_write_mode")
+                    'external_features', "concat_mode")
             }
         else:
             param_custom_features = {}

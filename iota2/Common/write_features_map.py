@@ -5,6 +5,7 @@ import os
 import logging
 from typing import Optional, List, Dict, Union
 import iota2.Common.FileUtils as fu
+from logging import Logger
 sensors_params_type = Dict[str, Union[str, List[str], int]]
 
 LOGGER = logging.getLogger(__name__)
@@ -103,6 +104,7 @@ def merge_features_maps(iota2_directory,
                         compress=None):
     list_tile = fu.FileSearch_AND(os.path.join(iota2_directory, "customF"),
                                   True, ".tif")
+
     if output_name is None:
         feature_map = os.path.join(iota2_directory, "final",
                                    "features_map.tif")

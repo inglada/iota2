@@ -129,3 +129,27 @@ def generate_directories(root: str,
         if os.path.exists(root + "/final/merge_final_classifications"):
             shutil.rmtree(root + "/final/merge_final_classifications")
         os.mkdir(root + "/final/merge_final_classifications")
+
+
+def generate_features_maps_directories(root: str) -> None:
+    """
+    generate output directories for write features maps
+
+    Parameters
+    ----------
+    root : str
+        iota2 output path
+    """
+    from iota2.Common.FileUtils import ensure_dir
+
+    ensure_dir(root)
+
+    if os.path.exists(root + "/final"):
+        shutil.rmtree(root + "/final")
+    os.mkdir(root + "/final")
+    if os.path.exists(root + "/features"):
+        shutil.rmtree(root + "/features")
+    os.mkdir(root + "/features")
+    if os.path.exists(root + "/customF"):
+        shutil.rmtree(root + "/customF")
+    os.mkdir(root + "/customF")

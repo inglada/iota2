@@ -341,7 +341,8 @@ class serviceConfigFile:
                 "chunk_size_x": 50,
                 "chunk_size_y": 50,
                 "chunk_size_mode": "split_number",
-                "custom_write_mode": False
+                "concat_mode": True,
+                "output_name": None
             }
             self.init_section("external_features", custom_features)
             builder = {

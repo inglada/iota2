@@ -18,7 +18,7 @@ import os
 from iota2.Steps import IOTA2Step
 from iota2.Common import ServiceConfigFile as SCF
 from iota2.Cluster import get_RAM
-from iota2.Sampling import VectorSampler as vs
+import iota2.Common.write_features_map as wfm
 
 
 class write_features_map(IOTA2Step.Step):
@@ -56,104 +56,46 @@ class write_features_map(IOTA2Step.Step):
 
         # Initialize the sensors dictionnary with the first tile found
         # Sensors are the same for all tiles
-        sensors_params = SCF.iota2_parameters(self.cfg).get_sensors_parameters(
-            os.path.splitext(
-                os.path.basename(list(list_shapefiles[0].items())[0][1]))[0])
-        inv_dict = {
-            "path_wd":
+        tiles = SCF.serviceConfigFile(self.cfg).getParam("chain",
+                                                         "listTile").split(" ")
+
+        params = {
+            "working_directory":
             self.workingDirectory,
-            "data_field":
-            SCF.serviceConfigFile(self.cfg).getParam('chain', 'dataField'),
             "output_path":
             SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath'),
-            "annual_crop":
-            SCF.serviceConfigFile(self.cfg).getParam('argTrain', 'annualCrop'),
-            "crop_mix":
-            SCF.serviceConfigFile(self.cfg).getParam('argTrain', 'cropMix'),
-            "auto_context_enable":
-            SCF.serviceConfigFile(self.cfg).getParam('chain',
-                                                     'enable_autoContext'),
-            "region_field":
-            SCF.serviceConfigFile(self.cfg).getParam('chain', 'regionField'),
-            "proj":
-            SCF.serviceConfigFile(self.cfg).getParam('GlobChain', 'proj'),
-            "enable_cross_validation":
-            SCF.serviceConfigFile(self.cfg).getParam('chain',
-                                                     'enableCrossValidation'),
-            "runs":
-            SCF.serviceConfigFile(self.cfg).getParam('chain', 'runs'),
-            "sensors_parameters":
-            sensors_params,
             "sar_optical_post_fusion":
             SCF.serviceConfigFile(self.cfg).getParam(
                 'argTrain', 'dempster_shafer_SAR_Opt_fusion'),
-            "samples_classif_mix":
-            SCF.serviceConfigFile(self.cfg).getParam('argTrain',
-                                                     'samplesClassifMix'),
-            "ram":
-            self.ram_extraction,
-            "w_mode":
-            SCF.serviceConfigFile(self.cfg).getParam('GlobChain',
-                                                     'writeOutputs'),
-            "folder_annual_features":
-            SCF.serviceConfigFile(self.cfg).getParam('argTrain',
-                                                     'outputPrevFeatures'),
-            "previous_classif_path":
-            SCF.serviceConfigFile(self.cfg).getParam(
-                'argTrain', 'annualClassesExtractionSource'),
-            "validity_threshold":
-            SCF.serviceConfigFile(self.cfg).getParam('argTrain',
-                                                     'validityThreshold'),
-            "target_resolution":
+            "module_path":
+            SCF.serviceConfigFile(self.cfg).getParam('external_features',
+                                                     'module'),
+            "list_functions":
+            SCF.serviceConfigFile(self.cfg).getParam('external_features',
+                                                     'functions').split(" "),
+            "force_standard_labels":
             SCF.serviceConfigFile(self.cfg).getParam('chain',
-                                                     'spatialResolution'),
-            "test_mode":
-            None,
-            "output_path_annual":
-            output_path_annual,
-            "custom_features":
-            False
+                                                     'force_standard_labels'),
+            "number_of_chunks":
+            self.number_of_chunks,
+            "chunk_size_mode":
+            self.chunk_size_mode,
+            "concat_mode":
+            SCF.serviceConfigFile(self.cfg).getParam('external_features',
+                                                     "concat_mode")
         }
-        if self.custom_features:
-            param_custom_features = {
-                "custom_features":
-                True,
-                "module_path":
-                SCF.serviceConfigFile(self.cfg).getParam(
-                    'external_features', 'module'),
-                "list_functions":
-                SCF.serviceConfigFile(self.cfg).getParam(
-                    'external_features', 'functions').split(" "),
-                "force_standard_labels":
-                SCF.serviceConfigFile(self.cfg).getParam(
-                    'chain', 'force_standard_labels'),
-                "number_of_chunks":
-                self.number_of_chunks,
-                "chunk_size_mode":
-                self.chunk_size_mode,
-                "custom_write_mode":
-                SCF.serviceConfigFile(self.cfg).getParam(
-                    'external_features', "custom_write_mode")
-            }
-        else:
-            param_custom_features = {}
-        # Merge and update inv_dict with custom features parameters
-        input_dict = {**inv_dict, **param_custom_features}
-        # Create the parameter list
+
         parameters = []
-        for shape in list_shapefiles:
-            if self.custom_features:
-                # Create as job as number of chunks requiered
-                for target_chunk in range(self.number_of_chunks):
-                    # avoid overwriting parameters
-                    param_d = input_dict.copy()
-                    param_d["train_shape_dic"] = shape
-                    param_d["targeted_chunk"] = target_chunk
-                    parameters.append(param_d)
-            else:
-                param_d = input_dict.copy()
-                param_d["train_shape_dic"] = shape
-                parameters.append(param_d)
+        for tile in tiles:
+            sensors_params = SCF.iota2_parameters(
+                self.cfg).get_sensors_parameters(tile)
+
+            for i in range(self.number_of_chunks):
+                param_t = params.copy()
+                param_t["tile"] = tile
+                param_t["targeted_chunk"] = i
+                param_t["sensors_parameters"] = sensors_params
+                parameters.append(param_t)
         return parameters
 
     def step_execute(self):
@@ -162,7 +104,7 @@ class write_features_map(IOTA2Step.Step):
         ------
         lambda
         """
-        return lambda x: wfm.write_features_by_chunk()
+        return lambda x: wfm.write_features_by_chunk(**x)
 
     def step_outputs(self):
         """
