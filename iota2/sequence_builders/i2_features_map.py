@@ -17,10 +17,10 @@ import os
 from typing import Optional
 from collections import OrderedDict
 from iota2.Common import ServiceConfigFile as SCF
-from iota2.scheduling.i2_scheduler import i2_scheduler
+from iota2.sequence_builders.i2_sequence_builder import i2_builder
 
 
-class i2_features_map(i2_scheduler):
+class i2_features_map(i2_builder):
     """
     class use to describe steps sequence and variable to use at
     each step (config)
@@ -31,31 +31,15 @@ class i2_features_map(i2_scheduler):
                  hpc_working_directory: Optional[str] = "TMPDIR"):
         super().__init__(cfg, config_ressources, hpc_working_directory)
         # config object
-        #~ self.cfg = cfg
         self.cfg = cfg
 
         # working directory, HPC
-
         self.workingDirectory = os.getenv(hpc_working_directory)
 
         # steps definitions
         self.steps_group = OrderedDict()
-
         self.steps_group["init"] = OrderedDict()
         self.steps_group["sampling"] = OrderedDict()
-        self.steps_group["dimred"] = OrderedDict()
-        self.steps_group["learning"] = OrderedDict()
-        self.steps_group["classification"] = OrderedDict()
-        self.steps_group["mosaic"] = OrderedDict()
-        self.steps_group["validation"] = OrderedDict()
-        self.steps_group["regularisation"] = OrderedDict()
-        self.steps_group["crown"] = OrderedDict()
-        self.steps_group["mosaictiles"] = OrderedDict()
-        self.steps_group["vectorisation"] = OrderedDict()
-        self.steps_group["simplification"] = OrderedDict()
-        self.steps_group["smoothing"] = OrderedDict()
-        self.steps_group["clipvectors"] = OrderedDict()
-        self.steps_group["lcstatistics"] = OrderedDict()
 
         #build steps
         self.steps = self.build_steps(self.cfg, config_ressources)
@@ -70,13 +54,7 @@ class i2_features_map(i2_scheduler):
         """
         usage : return iota2_directories
         """
-        import os
-        directories = [
-            'classif', 'config_model', 'dataRegion', 'envelope',
-            'formattingVectors', 'metaData', 'samplesSelection', 'stats',
-            'cmd', 'dataAppVal', 'dimRed', 'final', 'learningSamples', 'model',
-            'shapeRegion', "features"
-        ]
+        directories = ['final', "features", "customF"]
 
         iota2_outputs_dir = SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'outputPath')
@@ -88,34 +66,26 @@ class i2_features_map(i2_scheduler):
         build steps
         """
 
-        import os
-        from iota2.MPI import ressourcesByStep as iota2Ressources
-        from iota2.Common import ServiceConfigFile as SCF
         from iota2.Steps.IOTA2Step import StepContainer
 
-        from iota2.Steps import (IOTA2DirTree, CommonMasks, PixelValidity,
-                                 Envelope, genRegionVector, VectorFormatting,
-                                 splitSamples, samplesMerge, statsSamplesModel,
-                                 samplingLearningPolygons, samplesByTiles,
-                                 samplesExtraction, sensorsPreprocess,
-                                 write_features_map, merge_features_maps)
-        # control variable
-        Sentinel1 = SCF.serviceConfigFile(cfg).getParam('chain', 'S1Path')
-        shapeRegion = SCF.serviceConfigFile(cfg).getParam(
-            'chain', 'regionPath')
-        classif_mode = SCF.serviceConfigFile(cfg).getParam(
-            'argClassification', 'classifMode')
+        from iota2.Steps import features_maps_dir_tree
+        from iota2.Steps import CommonMasks
+        from iota2.Steps import PixelValidity
+        from iota2.Steps import sensorsPreprocess
+        from iota2.Steps import write_features_map
+        from iota2.Steps import merge_features_maps
 
         # will contains all IOTA² steps
         s_container = StepContainer()
 
         # class instance
-        step_build_tree = IOTA2DirTree.IOTA2DirTree(cfg, config_ressources)
-        step_PreProcess = sensorsPreprocess.sensorsPreprocess(
+        step_build_tree = features_maps_dir_tree.features_maps_dir_tree(
+            cfg, config_ressources)
+        step_preprocess = sensorsPreprocess.sensorsPreprocess(
             cfg, config_ressources, self.workingDirectory)
-        step_CommonMasks = CommonMasks.CommonMasks(cfg, config_ressources,
+        step_commonmasks = CommonMasks.CommonMasks(cfg, config_ressources,
                                                    self.workingDirectory)
-        step_pixVal = PixelValidity.PixelValidity(cfg, config_ressources,
+        step_pixval = PixelValidity.PixelValidity(cfg, config_ressources,
                                                   self.workingDirectory)
         step_compute_features = write_features_map.write_features_map(
             cfg, config_ressources, self.workingDirectory)
@@ -124,9 +94,10 @@ class i2_features_map(i2_scheduler):
         # build chain
         # init steps
         s_container.append(step_build_tree, "init")
-        s_container.append(step_PreProcess, "init")
-        s_container.append(step_CommonMasks, "init")
-        s_container.append(step_pixVal, "init")
+        s_container.append(step_preprocess, "init")
+        s_container.append(step_commonmasks, "init")
+        s_container.append(step_pixval, "init")
 
         s_container.append(step_compute_features, "sampling")
+        s_container.append(step_merge_features, "sampling")
         return s_container

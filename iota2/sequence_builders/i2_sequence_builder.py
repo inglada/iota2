@@ -29,7 +29,6 @@ class i2_builder():
                  hpc_working_directory: Optional[str] = "TMPDIR"):
 
         # config object
-        #~ self.cfg = cfg
         self.cfg = cfg
 
         # working directory, HPC
@@ -121,22 +120,22 @@ class i2_builder():
         summarize += "\n"
         return summarize
 
-    def get_dir(self):
-        """
-        usage : return iota2_directories
-        """
-        import os
-        directories = [
-            'classif', 'config_model', 'dataRegion', 'envelope',
-            'formattingVectors', 'metaData', 'samplesSelection', 'stats',
-            'cmd', 'dataAppVal', 'dimRed', 'final', 'learningSamples', 'model',
-            'shapeRegion', "features"
-        ]
+    # def get_dir(self):
+    #     """
+    #     usage : return iota2_directories
+    #     """
+    #     import os
+    #     directories = [
+    #         'classif', 'config_model', 'dataRegion', 'envelope',
+    #         'formattingVectors', 'metaData', 'samplesSelection', 'stats',
+    #         'cmd', 'dataAppVal', 'dimRed', 'final', 'learningSamples', 'model',
+    #         'shapeRegion', "features"
+    #     ]
 
-        iota2_outputs_dir = SCF.serviceConfigFile(self.cfg).getParam(
-            'chain', 'outputPath')
+    #     iota2_outputs_dir = SCF.serviceConfigFile(self.cfg).getParam(
+    #         'chain', 'outputPath')
 
-        return [os.path.join(iota2_outputs_dir, d) for d in directories]
+    #     return [os.path.join(iota2_outputs_dir, d) for d in directories]
 
     def get_steps_number(self):
         start = SCF.serviceConfigFile(self.cfg).getParam('chain', 'firstStep')

@@ -327,9 +327,9 @@ if __name__ == "__main__":
     cfg.checkConfigParameters()
     builder = cfg.getParam("builder", "mode")
     if builder == "classification":
-        from iota2.scheduling.i2_classification import i2_classification as chain
+        from iota2.sequence_builders.i2_classification import i2_classification as chain
     elif builder == "features_map":
-        from iota2.scheduling.i2_features_map import i2_features_map as chain
+        from iota2.sequence_builders.i2_features_map import i2_features_map as chain
     else:
         raise NotImplementedError
 

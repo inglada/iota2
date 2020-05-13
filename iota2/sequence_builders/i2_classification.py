@@ -17,10 +17,10 @@ import os
 from typing import Optional
 from collections import OrderedDict
 from iota2.Common import ServiceConfigFile as SCF
-from iota2.scheduling.i2_scheduler import i2_scheduler
+from iota2.sequence_builders.i2_sequence_builder import i2_builder
 
 
-class i2_classification(i2_scheduler):
+class i2_classification(i2_builder):
     """
     class use to describe steps sequence and variable to use at
     each step (config)
@@ -30,13 +30,6 @@ class i2_classification(i2_scheduler):
                  config_ressources,
                  hpc_working_directory: Optional[str] = "TMPDIR"):
         super().__init__(cfg, config_ressources, hpc_working_directory)
-        # config object
-        #~ self.cfg = cfg
-        self.cfg = cfg
-
-        # working directory, HPC
-
-        self.workingDirectory = os.getenv(hpc_working_directory)
 
         # steps definitions
         self.steps_group = OrderedDict()
