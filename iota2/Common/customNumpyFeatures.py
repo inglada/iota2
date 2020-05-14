@@ -38,10 +38,8 @@ class data_container:
 
         # self.data = None  # empty attribute to address data
         self.data = None
-        print(f"ID de SELF data_container: {id(self)}")
 
         # Get the first tile, all the tiles must come from same sensor
-
         def compute_reflectances_indices_after_gapfilling(sensor, bands):
             _, dates = sensor.write_interpolation_dates_file(write=False)
             indices = []
@@ -107,20 +105,12 @@ class data_container:
             def get_band(indices=indices):
                 import numpy as np
                 current_self = self
-                # print(
-                #     f"********* id(self.data): {id(self.data)}, type(data) : {type(self.data)}, id(self) : {id(self)}, id(get_band) : {id(get_band)}"
-                # )
-                print(
-                    f"********* id(current_self.data): {id(current_self.data)}, type(data) : {type(current_self.data)}, id(current_self) : {id(current_self)}, id(get_band) : {id(get_band)}"
-                )
+
+                print(f"id(current_self.data): {id(current_self.data)}")
                 data = np.take(self.data, indices, axis=2)
                 return data
 
-            setattr(data_container, f"get_{sensor}_{band}", get_band)
-
-            # print(f"self {self}")
-            # print(f"dir(self) {dir(self)}")
-            # setattr(self.__class__, f"get_{sensor}_{band}", get_band)
+            setattr(self, f"get_{sensor}_{band}", get_band)
 
 
 class custom_numpy_features(data_container):
@@ -153,9 +143,6 @@ class custom_numpy_features(data_container):
         super(custom_numpy_features,
               self).__init__(tile_name, output_path, sensors_params,
                              working_dir)
-        print(
-            f"/////////////////// ID de SELF custom_numpy_features: {id(self)}"
-        )
 
         def check_import(module_path: str):
             """ This fonction check if the user provided module can be 
@@ -175,7 +162,7 @@ class custom_numpy_features(data_container):
             self.fun_name_list = list_functions
             for fun_name in self.fun_name_list:
                 func = getattr(mod, fun_name)
-                setattr(self, fun_name, types.MethodType(func, data_container))
+                setattr(self, fun_name, types.MethodType(func, self))
 
     def process(self, data):
         """ 
@@ -192,9 +179,7 @@ class custom_numpy_features(data_container):
             the labels corresponding to the features computed
         """
         import numpy as np
-        print(f"+++++++ ID de data AVANT MAJ: {id(self.data)}")
         self.data = data
-        print(f"+++++++ ID de data APRES MAJ: {id(self.data)}")
 
         new_labels = []
         try:
@@ -220,10 +205,8 @@ class custom_numpy_features(data_container):
                         f"custFeat_{i+1}_b{j+1}" for j in range(feat.shape[2])
                     ]
                 new_labels += labels
-                #     self.data = np.concatenate((self.data, feat), axis=2)
-                # return self.data, new_labels
-                stack = np.concatenate((self.data, feat), axis=2)
-            return stack, new_labels
+                self.data = np.concatenate((self.data, feat), axis=2)
+            return self.data, new_labels
 
         except Exception as err:
             print(f"Error during custom_features computation")
@@ -272,11 +255,6 @@ def compute_custom_features(tile: str,
         if not os.path.exists(opath):
             os.mkdir(opath)
         output_name = os.path.join(opath, f"{tile}_chunk_{targeted_chunk}.tif")
-    # print(f"------> avant le pipeline : {cust.data} <------")
-    print(
-        f"------> ID AVANT le pipeline : {id(cust.data)} <------ targeted_chunk : {targeted_chunk}"
-    )
-    # print(f"+++++++++++ id(cust)={id(cust)}")
 
     (feat_array, new_labels, out_transform, _, _,
      otbimage) = insert_external_function_to_pipeline(
@@ -292,13 +270,7 @@ def compute_custom_features(tile: str,
          chunk_size_y=chunk_size_y,
          ram=128,
      )
-    # print(
-    #     f"------> apres le pipeline : {cust.data.shape} <------ targeted_chunk : {targeted_chunk}"
-    # )
-    # print(
-    #     f"------> ID apres le pipeline : {id(cust.data)} <------ targeted_chunk : {targeted_chunk}"
-    # )
-    # feat_array is an raster array with shape
+
     # [band, rows, cols] but otb requires [rows, cols, bands]
     crop_otbimage = convert_numpy_array_to_otb_image(otbimage, feat_array,
                                                      out_transform)
