@@ -742,7 +742,7 @@ the only purpose of this method is to instanciate the asked steps and by extensi
 .. code-block:: python
 
     class i2_builder():
-        """define step sequence to be launched""""
+        """define step sequence to be launched"""
         def __init__(self, first_step: int, last_step: int):
             self.first_step = first_step
             self.last_step = last_step
