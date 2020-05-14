@@ -32,7 +32,8 @@ this.cfg = None
 
 def clearConfig():
     if this.pathConf is not None:
-        # also in local function scope. no scope specifier like global is needed
+        # also in local function scope. no scope specifier
+        # like global is needed
         this.pathConf = None
         this.cfg = None
 
@@ -49,7 +50,7 @@ class serviceConfigFile:
         """
         self.pathConf = pathConf
         self.cfg = Config(open(pathConf))
-        #set default values
+        # set default values
         if iota_config:
             #init chain section
             chain_default = {
@@ -96,7 +97,8 @@ class serviceConfigFile:
                 "check_inputs": True,
                 "enable_autoContext": False,
                 "autoContext_iterations": 3,
-                "remove_tmp_files": False
+                "remove_tmp_files": False,
+                "force_standard_labels": False
             }
             self.init_section("chain", chain_default)
             #init coregistration section
@@ -320,6 +322,7 @@ class serviceConfigFile:
                 "blocksize": 2000,
                 "dozip": True,
                 "bingdal": None,
+                "chunk": 10,
                 "systemcall": False,
                 "chunk": 1,
                 "nomenclature": None,
@@ -331,10 +334,20 @@ class serviceConfigFile:
             }
 
             self.init_section("Simplification", simp_default)
+            custom_features = {
+                "module": None,
+                "functions": None,
+                "number_of_chunks": 50,
+                "chunk_size_x": 50,
+                "chunk_size_y": 50,
+                "chunk_size_mode": "split_number",
+                "custom_write_mode": False
+            }
+            self.init_section("external_features", custom_features)
 
     def init_section(self, sectionName, sectionDefault):
         """use to initialize a full configuration file section
-        
+
         Parameters
         ----------
         sectionName : string
@@ -371,6 +384,7 @@ class serviceConfigFile:
         """
         """
         import string
+
         avail_characters = string.ascii_letters
         first_character = os.path.basename(input_vector)[0]
         if first_character not in avail_characters:
@@ -413,9 +427,9 @@ class serviceConfigFile:
             tmpVar = getattr(objSection, variable)
 
             if not isinstance(tmpVar, varType):
-                message = "variable '" + str(variable) +\
-                "' has a wrong type\nActual: " + str(type(tmpVar)) +\
-                " expected: " + str(varType)
+                message = ("variable '" + str(variable) +
+                           "' has a wrong type\nActual: " + str(type(tmpVar)) +
+                           " expected: " + str(varType))
                 raise sErr.parameterError(section, message)
 
             if valeurs != "":
@@ -424,9 +438,9 @@ class serviceConfigFile:
                     if tmpVar == valeurs[index]:
                         ok = 1
                 if ok == 0:
-                    message = "bad value for '" + variable +\
-                    "' variable. Value accepted: " + str(valeurs) +\
-                    " Value read: " + str(tmpVar)
+                    message = ("bad value for '" + variable +
+                               "' variable. Value accepted: " + str(valeurs) +
+                               " Value read: " + str(tmpVar))
                     raise sErr.parameterError(section, message)
 
     def testDirectory(self, directory):
@@ -613,19 +627,59 @@ class serviceConfigFile:
 
         try:
             # test of variable
-            self.testVarConfigFile('chain', 'outputPath', str)
-            self.testVarConfigFile('chain', 'nomenclaturePath', str)
-            self.testVarConfigFile('chain', 'remove_outputPath', bool)
-            self.testVarConfigFile('chain', 'listTile', str)
-            self.testVarConfigFile('chain', 'L5Path_old', str)
-            self.testVarConfigFile('chain', 'L8Path', str)
-            self.testVarConfigFile('chain', 'S2Path', str)
-            self.testVarConfigFile('chain', 'S1Path', str)
+            self.testVarConfigFile("chain", "outputPath", str)
+            self.testVarConfigFile("chain", "nomenclaturePath", str)
+            self.testVarConfigFile("chain", "remove_outputPath", bool)
+            self.testVarConfigFile("chain", "listTile", str)
+            self.testVarConfigFile("chain", "L5Path_old", str)
+            self.testVarConfigFile("chain", "L8Path", str)
+            self.testVarConfigFile("chain", "S2Path", str)
+            self.testVarConfigFile("chain", "S1Path", str)
 
-            self.testVarConfigFile('chain', 'firstStep', str, ["init", "sampling", "dimred", "learning", "classification", "mosaic", \
-                                                               "validation", "regularisation", "crown", "mosaictiles", "vectorisation", "simplification", "smoothing", "clipvectors", "lcstatistics"])
-            self.testVarConfigFile('chain', 'lastStep', str, ["init", "sampling", "dimred", "learning", "classification", "mosaic", \
-                                                              "validation", "regularisation", "crown", "mosaictiles", "vectorisation", "simplification", "smoothing", "clipvectors", "lcstatistics"])
+            self.testVarConfigFile(
+                "chain",
+                "firstStep",
+                str,
+                [
+                    "init",
+                    "sampling",
+                    "dimred",
+                    "learning",
+                    "classification",
+                    "mosaic",
+                    "validation",
+                    "regularisation",
+                    "crown",
+                    "mosaictiles",
+                    "vectorisation",
+                    "simplification",
+                    "smoothing",
+                    "clipvectors",
+                    "lcstatistics",
+                ],
+            )
+            self.testVarConfigFile(
+                "chain",
+                "lastStep",
+                str,
+                [
+                    "init",
+                    "sampling",
+                    "dimred",
+                    "learning",
+                    "classification",
+                    "mosaic",
+                    "validation",
+                    "regularisation",
+                    "crown",
+                    "mosaictiles",
+                    "vectorisation",
+                    "simplification",
+                    "smoothing",
+                    "clipvectors",
+                    "lcstatistics",
+                ],
+            )
 
             if self.getParam("chain", "regionPath"):
                 check_region_vector(self.cfg)
@@ -731,9 +785,9 @@ class serviceConfigFile:
                                        int)
                 self.testVarConfigFile('Landsat5_old', 'keepBands', Sequence)
             if self.cfg.chain.L8Path != "None":
-                #L8 variable check
-                self.testVarConfigFile('Landsat8', 'temporalResolution', int)
-                self.testVarConfigFile('Landsat8', 'keepBands', Sequence)
+                # L8 variable check
+                self.testVarConfigFile("Landsat8", "temporalResolution", int)
+                self.testVarConfigFile("Landsat8", "keepBands", Sequence)
             if self.cfg.chain.L8Path_old != "None":
                 #L8 variable check
                 self.testVarConfigFile('Landsat8_old', 'temporalResolution',
@@ -741,9 +795,9 @@ class serviceConfigFile:
                 self.testVarConfigFile('Landsat8_old', 'keepBands', Sequence)
 
             if self.cfg.chain.S2Path != "None":
-                #S2 variable check
-                self.testVarConfigFile('Sentinel_2', 'temporalResolution', int)
-                self.testVarConfigFile('Sentinel_2', 'keepBands', Sequence)
+                # S2 variable check
+                self.testVarConfigFile("Sentinel_2", "temporalResolution", int)
+                self.testVarConfigFile("Sentinel_2", "keepBands", Sequence)
 
             if self.cfg.chain.random_seed != None:
                 self.testVarConfigFile('chain', 'random_seed', int)
@@ -755,7 +809,7 @@ class serviceConfigFile:
                 self.testDirectory(self.getParam("chain", "jobsPath"))
 
             try:
-                epsg = int(self.getParam('GlobChain', 'proj').split(":")[-1])
+                epsg = int(self.getParam("GlobChain", "proj").split(":")[-1])
             except ValueError:
                 raise ValueError(
                     "parameter GlobChain.proj not in the right format (proj:\"EPSG:2154\")"
@@ -933,8 +987,9 @@ class serviceConfigFile:
             :param value: value to set
         """
         if not hasattr(self.cfg, section):
-            raise Exception("Section is not in the configuration file: " +
-                            str(section))
+            raise Exception(
+                f"Section is not in the configuration file: {section}")
+
         objSection = getattr(self.cfg, section)
         if not hasattr(objSection, variable):
             setattr(objSection, variable, value)
@@ -953,8 +1008,8 @@ class serviceConfigFile:
 
         if not hasattr(self.cfg, section):
             # not an osoError class because it should NEVER happened
-            raise Exception("Section is not in the configuration file: " +
-                            str(section))
+            raise Exception(
+                f"Section is not in the configuration file: {section}")
 
         objSection = getattr(self.cfg, section)
 
@@ -967,6 +1022,54 @@ class serviceConfigFile:
             # It already exist !!
             # setParam instead !!
             self.setParam(section, variable, value)
+
+    def checkCustomFeature(self):
+        """
+        This function return True if the custom features field
+        is activate and all imports success
+        """
+        flag = False
+
+        def check_code_path(code_path):
+
+            if code_path is None:
+                return False
+            if code_path.lower() == "none":
+                return False
+            if len(code_path) < 1:
+                return False
+            if not os.path.isfile(code_path):
+                raise ValueError(f"Error: {code_path} is not a correct path")
+            return True
+
+        def check_import(module_path):
+            import importlib
+
+            spec = importlib.util.spec_from_file_location(
+                module_path.split(os.sep)[-1].split('.')[0], module_path)
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            return module
+
+        def check_function_in_module(module, list_functions):
+            for fun in list_functions:
+                try:
+                    getattr(module, fun)
+                except AttributeError:
+                    raise AttributeError(
+                        f"{module.__name__} has no function {fun}")
+
+        module_path = self.getParam("external_features", "module")
+        module_path_valid = check_code_path(module_path)
+        print(module_path_valid)
+        if module_path_valid:
+            module = check_import(module_path)
+            check_function_in_module(
+                module,
+                self.getParam("external_features", "functions").split(" "))
+
+            flag = True
+        return flag
 
 
 class iota2_parameters:

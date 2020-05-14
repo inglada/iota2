@@ -21,12 +21,11 @@ import sys
 import shutil
 import unittest
 import numpy as np
-
 from iota2.Tests.UnitTests.tests_utils.tests_utils_rasters import array_to_raster
 # if all tests pass, remove 'iota2_tests_directory' which contains all
 # sub-directory tests
 RM_IF_ALL_OK = True
-IOTA2DIR = os.environ.get('IOTA2DIR')
+IOTA2DIR = os.environ.get("IOTA2DIR")
 
 
 class Iota2TestsNumpyWorkflow(unittest.TestCase):
@@ -47,7 +46,6 @@ class Iota2TestsNumpyWorkflow(unittest.TestCase):
         if os.path.exists(cls.iota2_tests_directory):
             shutil.rmtree(cls.iota2_tests_directory)
         os.mkdir(cls.iota2_tests_directory)
-
         cls.ref_cross_validation = ["Best Parameters:"]
         cls.ref_scale = np.array([
             2.26379081, 1.88323221, 0.7982067, 0.60191847, 0.39085819,
@@ -159,18 +157,18 @@ class Iota2TestsNumpyWorkflow(unittest.TestCase):
         """
         from functools import partial
         from iota2.Common import rasterUtils as rasterU
-        from iota2.Tests.UnitTests import TestsUtils
+        import iota2.Tests.UnitTests.tests_utils.tests_utils_rasters as TUR
         from iota2.Common.OtbAppBank import CreateBandMathXApplication
 
         def custom_features(array):
             """
             """
-            return array + array
+            return array + array, []
 
         # First create some dummy data on disk
         dummy_raster_path = os.path.join(self.test_working_directory,
                                          "DUMMY.tif")
-        array_to_rasterize = TestsUtils.fun_array("iota2_binary")
+        array_to_rasterize = TUR.fun_array("iota2_binary")
         array_to_raster(array_to_rasterize, dummy_raster_path)
 
         # Get it in a otbApplication (simulating full iota2 features pipeline)
@@ -178,6 +176,8 @@ class Iota2TestsNumpyWorkflow(unittest.TestCase):
             "il": [dummy_raster_path],
             "exp": "im1b1;im1b1"
         })
+        band_math.Execute()
+
         # Then apply function
         function_partial = partial(custom_features)
 
@@ -185,15 +185,16 @@ class Iota2TestsNumpyWorkflow(unittest.TestCase):
 
         new_features_path = os.path.join(self.test_working_directory,
                                          "DUMMY_test.tif")
-        test_array, new_labels, _, _, _ = rasterU.apply_function(
-            otb_pipeline=band_math,
-            labels=labels_features_name,
-            working_dir=self.test_working_directory,
-            function=function_partial,
-            output_path=new_features_path,
-            chunck_size_x=5,
-            chunck_size_y=5,
-            ram=128)
+        (test_array, new_labels, _, _, _,
+         _) = rasterU.insert_external_function_to_pipeline(
+             otb_pipeline=band_math,
+             labels=labels_features_name,
+             working_dir=self.test_working_directory,
+             function=function_partial,
+             output_path=new_features_path,
+             chunk_size_x=5,
+             chunk_size_y=5,
+             ram=128)
         # asserts
 
         # check array' shape consistency
@@ -209,12 +210,10 @@ class Iota2TestsNumpyWorkflow(unittest.TestCase):
 
         # check if the input function is well applied
         pipeline_array = band_math.GetVectorImageAsNumpyArray("out")
-        self.assertTrue(
-            np.allclose(np.moveaxis(custom_features(pipeline_array), -1, 0),
-                        test_array))
+        ref_array, _ = custom_features(pipeline_array)
+        self.assertTrue(np.allclose(np.moveaxis(ref_array, -1, 0), test_array))
 
-        # purposely not implemented
-        self.assertTrue(new_labels is None)
+        self.assertTrue(new_labels is not None)
 
     def test_sk_cross_validation(self):
         """test cross validation
@@ -278,7 +277,7 @@ class Iota2TestsNumpyWorkflow(unittest.TestCase):
 
         self.assertTrue(os.path.exists(test_model_path))
 
-        with open(test_model_path, 'rb') as model_obj:
+        with open(test_model_path, "rb") as model_obj:
             model, scaler = pickle.load(model_obj)
 
         self.assertTrue(np.allclose(self.ref_scale, scaler.scale_))
@@ -302,17 +301,19 @@ class Iota2TestsNumpyWorkflow(unittest.TestCase):
             predicted_array = np.apply_along_axis(func1d=wrapper,
                                                   axis=-1,
                                                   arr=array)
-            return predicted_array.astype(dtype)
+            return predicted_array.astype(dtype), []
 
         # build data to learn RF model
         from sklearn.datasets import make_classification
 
-        X, y = make_classification(n_samples=1000,
-                                   n_features=2,
-                                   n_informative=2,
-                                   n_redundant=0,
-                                   random_state=0,
-                                   shuffle=True)
+        X, y = make_classification(
+            n_samples=1000,
+            n_features=2,
+            n_informative=2,
+            n_redundant=0,
+            random_state=0,
+            shuffle=True,
+        )
         # learning
         clf = RandomForestClassifier(n_estimators=100,
                                      max_depth=2,
@@ -334,14 +335,15 @@ class Iota2TestsNumpyWorkflow(unittest.TestCase):
         function_partial = partial(do_predict, model=clf)
         prediction_path = os.path.join(self.test_working_directory,
                                        "Classif_test.tif")
-        test_array, new_labels, _, _, _ = rasterU.apply_function(
-            otb_pipeline=band_math,
-            labels=[""],
-            working_dir=self.test_working_directory,
-            function=function_partial,
-            output_path=prediction_path,
-            chunck_size_x=5,
-            chunck_size_y=5,
-            ram=128)
+        (test_array, new_labels, _, _, _,
+         _) = rasterU.insert_external_function_to_pipeline(
+             otb_pipeline=band_math,
+             labels=[""],
+             working_dir=self.test_working_directory,
+             function=function_partial,
+             output_path=prediction_path,
+             chunk_size_x=5,
+             chunk_size_y=5,
+             ram=128)
         self.assertTrue(os.path.exists(prediction_path))
         self.assertTrue(test_array.shape == (1, 16, 86))

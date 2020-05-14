@@ -31,6 +31,7 @@ import otbApplication as otb
 from iota2.Common import FileUtils as fu
 from iota2.Sampling.VectorFormatting import split_vector_by_region
 from iota2.Common.OtbAppBank import executeApp
+from iota2.Common.customNumpyFeatures import compute_custom_features
 
 LOGGER = logging.getLogger(__name__)
 otb_app_type = TypeVar('otbApplication')
@@ -70,7 +71,6 @@ def get_vectors_to_sample(iota2_formatting_dir: str,
     return tiles_vectors_to_sample
 
 
-# def getPointsCoordInShape(inShape, gdalDriver)
 def get_points_coord_in_shape(in_shape: str, gdal_driver: str) -> List[Tuple]:
     """
 
@@ -103,6 +103,16 @@ def get_features_application(train_shape: str,
                              mode: Optional[str] = "usually",
                              only_mask_comm: Optional[bool] = False,
                              only_sensors_masks: Optional[bool] = False,
+                             custom_features: Optional[bool] = False,
+                             module_path: Optional[str] = None,
+                             list_functions: Optional[List[str]] = None,
+                             force_standard_labels: Optional[bool] = False,
+                             number_of_chunks: Optional[int] = 50,
+                             targeted_chunk: Optional[int] = None,
+                             chunk_size_mode: Optional[str] = "split_number",
+                             chunk_size_x: Optional[int] = None,
+                             chunk_size_y: Optional[int] = None,
+                             custom_write_mode: Optional[bool] = False,
                              logger: Optional[Logger] = LOGGER
                              ) -> Tuple[otb_app_type, List[otb_app_type]]:
     """
@@ -120,13 +130,12 @@ def get_features_application(train_shape: str,
         onlyMaskComm [bool] :  flag to stop the script after common Mask
                                computation
         onlySensorsMasks [bool] : compute only masks
-
+        customFeatures [bool] : compute custom features
     OUT:
         sampleExtr [SampleExtraction OTB's object]:
     """
     # const
     # seed_position = -1
-
     from iota2.Common import GenerateFeatures as genFeatures
     from iota2.Sensors.ProcessLauncher import commonMasks
 
@@ -141,13 +150,14 @@ def get_features_application(train_shape: str,
         except OSError:
             logger.warning(f"{working_directory_features} allready exists")
 
-    (all_features, feat_labels,
-     dep_features) = genFeatures.generateFeatures(working_directory_features,
-                                                  tile,
-                                                  sar_optical_post_fusion,
-                                                  output_path,
-                                                  sensors_parameters,
-                                                  mode=mode)
+    (all_features, feat_labels, dep_features) = genFeatures.generate_features(
+        working_directory_features,
+        tile,
+        sar_optical_post_fusion,
+        output_path,
+        sensors_parameters,
+        mode=mode,
+        force_standard_labels=force_standard_labels)
 
     if only_sensors_masks:
         # return AllRefl,AllMask,datesInterp,realDates
@@ -156,9 +166,9 @@ def get_features_application(train_shape: str,
 
     all_features.Execute()
     ref = fu.FileSearch_AND(c_mask_directory, True, "MaskCommunSL.tif")
+
     if not ref:
         commonMasks(tile, output_path, sensors_parameters)
-
     ref = fu.FileSearch_AND(c_mask_directory, True, "MaskCommunSL.tif")[0]
 
     if only_mask_comm:
@@ -167,16 +177,33 @@ def get_features_application(train_shape: str,
     sample_extr = otb.Registry.CreateApplication("SampleExtraction")
     sample_extr.SetParameterString("ram", str(0.7 * ram))
     sample_extr.SetParameterString("vec", train_shape)
-    sample_extr.SetParameterInputImage(
-        "in", all_features.GetParameterOutputImage("out"))
+    if not custom_features:
+        sample_extr.SetParameterInputImage(
+            "in", all_features.GetParameterOutputImage("out"))
+    else:
+        otbimage, feat_labels = compute_custom_features(
+            tile=tile,
+            output_path=output_path,
+            sensors_parameters=sensors_parameters,
+            module_path=module_path,
+            list_functions=list_functions,
+            otb_pipeline=all_features,
+            feat_labels=feat_labels,
+            path_wd=working_directory_features,
+            targeted_chunk=targeted_chunk,
+            number_of_chunks=number_of_chunks,
+            chunk_size_x=chunk_size_x,
+            chunk_size_y=chunk_size_y,
+            chunk_size_mode=chunk_size_mode,
+            write_mode=custom_write_mode)
+        sample_extr.ImportVectorImage("in", otbimage)
     sample_extr.SetParameterString("out", samples)
     sample_extr.SetParameterString("outfield", "list")
     sample_extr.SetParameterStringList("outfield.list.names", feat_labels)
     sample_extr.UpdateParameters()
     sample_extr.SetParameterStringList("field", [data_field.lower()])
 
-    all_dep = [all_features, dep_features]
-
+    all_dep = [all_features] + dep_features
     return sample_extr, all_dep
 
 
@@ -197,10 +224,21 @@ def generate_samples_simple(folder_sample: str,
                             folder_features: Optional[str] = None,
                             sample_sel=None,
                             mode: Optional[str] = "usually",
+                            custom_features: Optional[bool] = False,
+                            module_path: Optional[str] = None,
+                            list_functions: Optional[List[str]] = None,
+                            force_standard_labels: Optional[bool] = False,
+                            number_of_chunks: Optional[int] = 50,
+                            targeted_chunk: Optional[int] = None,
+                            chunk_size_x: Optional[int] = None,
+                            chunk_size_y: Optional[int] = None,
+                            chunk_size_mode: Optional[str] = "split_number",
+                            custom_write_mode: Optional[bool] = False,
                             logger: Optional[Logger] = LOGGER) -> None:
     """
     usage : from a strack of data generate samples containing points with
     features
+
 
     IN:
     folderSample [string] : output folder
@@ -220,20 +258,29 @@ def generate_samples_simple(folder_sample: str,
     samples [string] : vector shape containing points
     """
     from iota2.Sampling.SamplesSelection import prepare_selection
+
     tile = train_shape.split("/")[-1].split(".")[0].split("_")[0]
 
     if enable_cross_validation:
         runs = runs - 1
     sample_sel_directory = os.path.join(output_path, "samplesSelection")
 
-    samples = os.path.join(working_directory,
-                           train_shape).split("/")[-1].replace(
-                               ".shp", "_Samples.sqlite")
+    if custom_features:
+
+        samples = os.path.join(
+            working_directory,
+            train_shape.split("/")[-1].replace(
+                ".shp", f"_Samples_{targeted_chunk}.sqlite"))
+
+    else:
+        samples = os.path.join(
+            working_directory,
+            train_shape.split("/")[-1].replace(".shp", "_Samples.sqlite"))
     if mode == "SAR":
-        samples = os.path.join(working_directory,
-                               train_shape).split("/")[-1].replace(
-                                   ".shp", "_Samples_SAR.sqlite")
-    print(sample_sel)
+        samples = os.path.join(
+            working_directory,
+            train_shape.split("/")[-1].replace(".shp", "_Samples_SAR.sqlite"))
+
     if sample_sel:
         sample_selection = sample_sel
     else:
@@ -242,22 +289,40 @@ def generate_samples_simple(folder_sample: str,
                                              workingDirectory=None)
 
     sample_extr, dep_gapsample = get_features_application(
-        sample_selection, working_directory, samples, data_field, output_path,
-        sar_optical_post_fusion, sensors_parameters, ram, mode)
+        sample_selection,
+        working_directory,
+        samples,
+        data_field,
+        output_path,
+        sar_optical_post_fusion,
+        sensors_parameters,
+        ram,
+        mode,
+        custom_features=custom_features,
+        module_path=module_path,
+        list_functions=list_functions,
+        force_standard_labels=force_standard_labels,
+        number_of_chunks=number_of_chunks,
+        targeted_chunk=targeted_chunk,
+        chunk_size_mode=chunk_size_mode,
+        chunk_size_x=chunk_size_x,
+        chunk_size_y=chunk_size_y,
+        custom_write_mode=custom_write_mode)
 
     sample_extraction_output = os.path.join(
         folder_sample, os.path.basename(sample_extr.GetParameterValue("out")))
-
     if not os.path.exists(sample_extraction_output):
         logger.info("--------> Start Sample Extraction <--------")
         logger.info(f"RAM before features extraction :"
                     f" {fu.memory_usage_psutil()} MB")
         print("RAM before features extraction : "
               f"{fu.memory_usage_psutil()} MB")
+
         sample_extr.ExecuteAndWriteOutput()
         # multi_proc = mp.Process(target=executeApp, args=[sample_extr])
         # multi_proc.start()
         # multi_proc.join()
+
         print("RAM after features extraction :"
               f" {fu.memory_usage_psutil()} MB")
         logger.info("RAM after features extraction :"
@@ -276,7 +341,9 @@ def generate_samples_simple(folder_sample: str,
             driver="SQLite",
             proj_in=proj,
             proj_out=proj,
-            mode=mode)
+            mode=mode,
+            targeted_chunk=targeted_chunk)
+
         os.remove(sample_extr.GetParameterValue("out"))
 
     if path_wd:
@@ -345,6 +412,15 @@ def generate_samples_crop_mix(folder_sample: str,
                               mode: Optional[str] = "usually",
                               year_a: Optional[str] = '2017',
                               year_na: Optional[str] = '2016',
+                              custom_features: Optional[bool] = False,
+                              module_path: Optional[str] = None,
+                              list_functions: Optional[List[str]] = None,
+                              force_standard_labels: Optional[bool] = False,
+                              number_of_chunks: Optional[int] = 50,
+                              targeted_chunk: Optional[int] = None,
+                              chunk_size_mode: Optional[str] = "split_number",
+                              chunk_size_x: Optional[int] = None,
+                              chunk_size_y: Optional[int] = None,
                               logger=LOGGER) -> Union[None, List[str]]:
     """
     usage : from stracks A and B, generate samples containing points
@@ -378,6 +454,7 @@ def generate_samples_crop_mix(folder_sample: str,
     OUT:
     samples [string] : vector shape containing points
     """
+
     from iota2.Sampling.SamplesSelection import prepare_selection
     if os.path.exists(
             folder_sample + "/" +
@@ -400,6 +477,7 @@ def generate_samples_crop_mix(folder_sample: str,
     if sample_sel:
         sample_selection = sample_sel
     else:
+
         sample_selection = prepare_selection(sample_sel_directory,
                                              current_tile,
                                              workingDirectory=None)
@@ -426,12 +504,29 @@ def generate_samples_crop_mix(folder_sample: str,
             try:
                 os.mkdir(na_working_directory)
             except OSError:
+
                 logger.warning(f"{na_working_directory} allready exists")
 
         sample_extr_na_app, dep_gapsample_na = get_features_application(
-            nonannual_vector_sel, na_working_directory, sample_extr_na,
-            data_field, output_path, sar_optical_post_fusion, sensors_params,
-            ram, mode)
+            nonannual_vector_sel,
+            na_working_directory,
+            sample_extr_na,
+            data_field,
+            output_path,
+            sar_optical_post_fusion,
+            sensors_params,
+            ram,
+            mode,
+            custom_features=custom_features,
+            module_path=module_path,
+            list_functions=list_functions,
+            force_standard_labels=force_standard_labels,
+            number_of_chunks=number_of_chunks,
+            targeted_chunk=targeted_chunk,
+            chunk_size_mode=chunk_size_mode,
+            chunk_size_x=chunk_size_x,
+            chunk_size_y=chunk_size_y)
+
         sample_extr_na_app.ExecuteAndWriteOutput()
         # multi_proc = mp.Process(target=executeApp, args=[sample_extr_na_app])
         # multi_proc.start()
@@ -453,7 +548,17 @@ def generate_samples_crop_mix(folder_sample: str,
             output_path_annual,
             sar_optical_post_fusion,
             sensors_params,
-            mode=mode)
+            mode=mode,
+            custom_features=custom_features,
+            module_path=module_path,
+            list_functions=list_functions,
+            force_standard_labels=force_standard_labels,
+            number_of_chunks=number_of_chunks,
+            targeted_chunk=targeted_chunk,
+            chunk_size_mode=chunk_size_mode,
+            chunk_size_x=chunk_size_x,
+            chunk_size_y=chunk_size_y)
+
         sample_extr_a_app.ExecuteAndWriteOutput()
         # multi_proc = mp.Process(target=executeApp, args=[sample_extr_a_app])
         # multi_proc.start()
@@ -517,9 +622,14 @@ def generate_samples_crop_mix(folder_sample: str,
             sample_extr_a,
             os.path.join(working_directory, merge_name + ".sqlite"))
 
-    samples = os.path.join(
-        working_directory,
-        train_shape.split("/")[-1].replace(".shp", "_Samples.sqlite"))
+    if custom_features:
+        samples = os.path.join(working_directory,
+                               train_shape).split("/")[-1].replace(
+                                   ".shp", f"_Samples_{targeted_chunk}.sqlite")
+    else:
+        samples = os.path.join(
+            working_directory,
+            train_shape.split("/")[-1].replace(".shp", "_Samples.sqlite"))
 
     if nb_feat_nannu > 0:
         os.remove(sample_extr_na)
@@ -575,7 +685,8 @@ def generate_samples_crop_mix(folder_sample: str,
                                            runs=int(runs),
                                            driver="SQLite",
                                            proj_in=proj,
-                                           proj_out=proj)
+                                           proj_out=proj,
+                                           targeted_chunk=targeted_chunk)
 
     if test_mode:
         return split_vectors
@@ -714,31 +825,41 @@ def get_number_annual_sample(annu_repartition):
     return nb_feat_annu
 
 
-def generate_samples_classif_mix(folder_sample: str,
-                                 working_directory: str,
-                                 train_shape: str,
-                                 path_wd: str,
-                                 output_path: str,
-                                 annual_crop: List[Union[str, int]],
-                                 all_class: List[Union[str, int]],
-                                 data_field: str,
-                                 previous_classif_path: str,
-                                 proj: int,
-                                 runs: Union[str, int],
-                                 enable_cross_validation: bool,
-                                 region_field: str,
-                                 validity_threshold: int,
-                                 target_resolution: int,
-                                 sar_optical_post_fusion: bool,
-                                 sensors_parameters: sensors_params_type,
-                                 folder_features: Optional[str] = None,
-                                 ram: Optional[int] = 128,
-                                 w_mode: Optional[bool] = False,
-                                 test_mode: Optional[bool] = False,
-                                 test_shape_region: Optional[str] = None,
-                                 sample_sel: Optional[str] = None,
-                                 mode: Optional[str] = "usually",
-                                 logger: Optional[Logger] = LOGGER):
+def generate_samples_classif_mix(
+        folder_sample: str,
+        working_directory: str,
+        train_shape: str,
+        path_wd: str,
+        output_path: str,
+        annual_crop: List[Union[str, int]],
+        all_class: List[Union[str, int]],
+        data_field: str,
+        previous_classif_path: str,
+        proj: int,
+        runs: Union[str, int],
+        enable_cross_validation: bool,
+        region_field: str,
+        validity_threshold: int,
+        target_resolution: int,
+        sar_optical_post_fusion: bool,
+        sensors_parameters: sensors_params_type,
+        folder_features: Optional[str] = None,
+        ram: Optional[int] = 128,
+        w_mode: Optional[bool] = False,
+        test_mode: Optional[bool] = False,
+        test_shape_region: Optional[str] = None,
+        sample_sel: Optional[str] = None,
+        mode: Optional[str] = "usually",
+        custom_features: Optional[bool] = False,
+        module_path: Optional[str] = None,
+        list_functions: Optional[List[str]] = None,
+        force_standard_labels: Optional[bool] = False,
+        number_of_chunks: Optional[int] = 50,
+        targeted_chunk: Optional[int] = None,
+        chunk_size_mode: Optional[str] = "split_number",
+        chunk_size_x: Optional[int] = None,
+        chunk_size_y: Optional[int] = None,
+        logger: Optional[Logger] = LOGGER):
     """
     usage : from one classification, chose randomly annual sample merge
             with non annual sample and extract features.
@@ -809,8 +930,6 @@ def generate_samples_classif_mix(folder_sample: str,
                                  field=region_field,
                                  mode="unique",
                                  elemType="str")
-    print(sample_selection)
-    print(train_shape)
     # avoir la répartition des classes anuelles par seed et par region
     # -> pouvoir faire annu_repartition[11][R][S]
     annu_repartition = get_repartition(sample_selection, annual_crop,
@@ -880,13 +999,35 @@ def generate_samples_classif_mix(folder_sample: str,
     elif not (nb_feat_nannu > 0) and (nb_feat_annu > 0 and annual_points):
         # If not non annual samples are found then use all annual samples
         shutil.copy(annual_shape, sample_selection)
-    samples = os.path.join(
-        working_directory,
-        train_shape.split("/")[-1].replace(".shp", "_Samples.sqlite"))
+
+    if custom_features:
+        samples = os.path.join(working_directory,
+                               train_shape).split("/")[-1].replace(
+                                   ".shp", f"_Samples_{targeted_chunk}.sqlite")
+    else:
+        samples = os.path.join(
+            working_directory,
+            train_shape.split("/")[-1].replace(".shp", "_Samples.sqlite"))
 
     sample_extr, dep_tmp = get_features_application(
-        sample_selection, working_directory, samples, data_field, output_path,
-        sar_optical_post_fusion, sensors_parameters, ram, mode)
+        sample_selection,
+        working_directory,
+        samples,
+        data_field,
+        output_path,
+        sar_optical_post_fusion,
+        sensors_parameters,
+        ram,
+        mode,
+        custom_features=custom_features,
+        module_path=module_path,
+        list_functions=list_functions,
+        force_standard_labels=force_standard_labels,
+        number_of_chunks=number_of_chunks,
+        targeted_chunk=targeted_chunk,
+        chunk_size_mode=chunk_size_mode,
+        chunk_size_x=chunk_size_x,
+        chunk_size_y=chunk_size_y)
 
     sample_extr.ExecuteAndWriteOutput()
     # multi_proc = mp.Process(target=executeApp, args=[sample_extr])
@@ -899,7 +1040,8 @@ def generate_samples_classif_mix(folder_sample: str,
                                            runs=int(runs),
                                            driver="SQLite",
                                            proj_in="EPSG:" + str(proj),
-                                           proj_out="EPSG:" + str(proj))
+                                           proj_out="EPSG:" + str(proj),
+                                           targeted_chunk=targeted_chunk)
     if test_mode:
         split_vectors = None
 
@@ -960,6 +1102,16 @@ def generate_samples(train_shape_dic,
                      test_mode: Optional[bool] = False,
                      test_shape_region: Optional[str] = None,
                      sample_selection: Optional[str] = None,
+                     custom_features: Optional[bool] = False,
+                     module_path: Optional[str] = None,
+                     list_functions: Optional[List[str]] = None,
+                     force_standard_labels: Optional[bool] = False,
+                     number_of_chunks: Optional[int] = 50,
+                     chunk_size_mode: Optional[str] = "split_number",
+                     chunk_size_x: Optional[int] = None,
+                     chunk_size_y: Optional[int] = None,
+                     targeted_chunk: Optional[int] = None,
+                     custom_write_mode: Optional[bool] = False,
                      logger: Optional[Logger] = LOGGER):
     """
     usage : generation of vector shape of points with features
@@ -995,7 +1147,6 @@ def generate_samples(train_shape_dic,
     OUT:
     samples [string] : path to output vector shape
     """
-
     # mode must be "usally" or "SAR"
     mode = list(train_shape_dic.keys())[0]
     train_shape = train_shape_dic[mode]
@@ -1030,29 +1181,105 @@ def generate_samples(train_shape_dic,
 
     if crop_mix is False or auto_context_enable:
         samples = generate_samples_simple(
-            folder_sample, working_directory, train_shape, path_wd, data_field,
-            region_field, output_path, runs, proj, enable_cross_validation,
-            sensors_parameters, sar_optical_post_fusion, ram, w_mode,
-            folder_features, sample_selection, mode)
+            folder_sample,
+            working_directory,
+            train_shape,
+            path_wd,
+            data_field,
+            region_field,
+            output_path,
+            runs,
+            proj,
+            enable_cross_validation,
+            sensors_parameters,
+            sar_optical_post_fusion,
+            ram,
+            w_mode,
+            folder_features,
+            sample_selection,
+            mode,
+            custom_features=custom_features,
+            module_path=module_path,
+            list_functions=list_functions,
+            force_standard_labels=force_standard_labels,
+            number_of_chunks=number_of_chunks,
+            targeted_chunk=targeted_chunk,
+            chunk_size_mode=chunk_size_mode,
+            chunk_size_x=chunk_size_x,
+            chunk_size_y=chunk_size_y,
+            custom_write_mode=custom_write_mode)
 
     elif crop_mix is True and samples_classif_mix is False:
         samples = generate_samples_crop_mix(
-            folder_sample, working_directory, output_path, output_path_annual,
-            train_shape, path_wd, annual_crop, all_class, data_field,
-            folder_features, folder_annual_features, enable_cross_validation,
-            runs, region_field, proj, sar_optical_post_fusion,
-            sensors_parameters, ram, w_mode, test_mode, sample_selection, mode)
+            folder_sample,
+            working_directory,
+            output_path,
+            output_path_annual,
+            train_shape,
+            path_wd,
+            annual_crop,
+            all_class,
+            data_field,
+            folder_features,
+            folder_annual_features,
+            enable_cross_validation,
+            runs,
+            region_field,
+            proj,
+            sar_optical_post_fusion,
+            sensors_parameters,
+            ram,
+            w_mode,
+            test_mode,
+            sample_selection,
+            mode,
+            custom_features=custom_features,
+            module_path=module_path,
+            list_functions=list_functions,
+            force_standard_labels=force_standard_labels,
+            number_of_chunks=number_of_chunks,
+            targeted_chunk=targeted_chunk,
+            chunk_size_mode=chunk_size_mode,
+            chunk_size_x=chunk_size_x,
+            chunk_size_y=chunk_size_y)
 
     elif crop_mix is True and samples_classif_mix is True:
         if isinstance(proj, str):
             proj = int(proj.split(":")[-1])
         samples = generate_samples_classif_mix(
-            folder_sample, working_directory, train_shape, path_wd,
-            output_path, annual_crop, all_class, data_field,
-            previous_classif_path, proj, runs, enable_cross_validation,
-            region_field, validity_threshold, target_resolution,
-            sar_optical_post_fusion, sensors_parameters, folder_features, ram,
-            w_mode, test_mode, test_shape_region, sample_selection, mode)
+            folder_sample,
+            working_directory,
+            train_shape,
+            path_wd,
+            output_path,
+            annual_crop,
+            all_class,
+            data_field,
+            previous_classif_path,
+            proj,
+            runs,
+            enable_cross_validation,
+            region_field,
+            validity_threshold,
+            target_resolution,
+            sar_optical_post_fusion,
+            sensors_parameters,
+            folder_features,
+            ram,
+            w_mode,
+            test_mode,
+            test_shape_region,
+            sample_selection,
+            mode,
+            custom_features=custom_features,
+            module_path=module_path,
+            list_functions=list_functions,
+            force_standard_labels=force_standard_labels,
+            number_of_chunks=number_of_chunks,
+            targeted_chunk=targeted_chunk,
+            chunk_size_mode=chunk_size_mode,
+            chunk_size_x=chunk_size_x,
+            chunk_size_y=chunk_size_y)
     if test_mode:
         return samples
 

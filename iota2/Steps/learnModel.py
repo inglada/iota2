@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -136,7 +136,6 @@ class learnModel(IOTA2Step.Step):
                                         seed: int) -> Dict:
         """
         """
-
         task_params = {}
         if self.use_scikitlearn is True and self.enable_autoContext is True:
             raise ValueError(

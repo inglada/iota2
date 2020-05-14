@@ -64,7 +64,7 @@ class classiCmd(IOTA2Step.Step):
             must be a lambda function.
         """
         from iota2.Classification import ClassificationCmd as CC
-        step_function = lambda x: CC.launchClassification(
+        step_function = lambda x: CC.write_classification_command(
             os.path.join(self.output_path, "model"), self.cfg, self.
             output_path,
             SCF.serviceConfigFile(self.cfg).getParam('argTrain', 'classifier'),

@@ -67,10 +67,12 @@ def merge_sk_classifications(rasters_to_merge: Tuple[List[str], List[str]],
             os.remove(confidence)
 
 
-def do_predict(array: np.ndarray,
-               model: Union[SVC, RandomForestClassifier, ExtraTreesClassifier],
-               scaler: Optional[StandardScaler] = None,
-               dtype: Optional[str] = "float") -> np.ndarray:
+def do_predict(
+        array: np.ndarray,
+        model: Union[SVC, RandomForestClassifier, ExtraTreesClassifier],
+        scaler: Optional[StandardScaler] = None,
+        dtype: Optional[str] = "float",
+) -> np.ndarray:
     """perform scikit-learn prediction
 
     Parameters
@@ -105,16 +107,19 @@ def get_class(*args, **kwargs):
     """
     """
     import numpy as np
+
     return kwargs["labels"][np.argmax(args)]
 
 
 @time_it
-def proba_to_label(proba_map: np.ndarray,
-                   out_classif: str,
-                   labels: List[int],
-                   transform: Affine,
-                   epsg_code: int,
-                   mask_arr: Optional[np.ndarray] = None) -> np.ndarray:
+def proba_to_label(
+        proba_map: np.ndarray,
+        out_classif: str,
+        labels: List[int],
+        transform: Affine,
+        epsg_code: int,
+        mask_arr: Optional[np.ndarray] = None,
+) -> np.ndarray:
     """from the prediction probabilities, get the class' label
 
     Parameters
@@ -146,15 +151,17 @@ def proba_to_label(proba_map: np.ndarray,
         mask_arr = binarize(mask_arr)
         labels_map = labels_map * mask_arr
 
-    with rasterio.open(out_classif,
-                       "w",
-                       driver='GTiff',
-                       height=labels_map.shape[1],
-                       width=labels_map.shape[2],
-                       count=labels_map.shape[0],
-                       crs="EPSG:{}".format(epsg_code),
-                       transform=transform,
-                       dtype=labels_map.dtype) as dest:
+    with rasterio.open(
+            out_classif,
+            "w",
+            driver="GTiff",
+            height=labels_map.shape[1],
+            width=labels_map.shape[2],
+            count=labels_map.shape[0],
+            crs="EPSG:{}".format(epsg_code),
+            transform=transform,
+            dtype=labels_map.dtype,
+    ) as dest:
         dest.write(labels_map)
     return labels_map
 
@@ -184,19 +191,22 @@ def probabilities_to_max_proba(proba_map: np.ndarray,
     """
     import rasterio
     import numpy as np
+
     max_confidence_arr = np.amax(proba_map, axis=0)
     max_confidence_arr = np.expand_dims(max_confidence_arr, axis=0)
 
     if out_max_confidence:
-        with rasterio.open(out_max_confidence,
-                           "w",
-                           driver='GTiff',
-                           height=max_confidence_arr.shape[1],
-                           width=max_confidence_arr.shape[2],
-                           count=max_confidence_arr.shape[0],
-                           crs="EPSG:{}".format(epsg_code),
-                           transform=transform,
-                           dtype=max_confidence_arr.dtype) as dest:
+        with rasterio.open(
+                out_max_confidence,
+                "w",
+                driver="GTiff",
+                height=max_confidence_arr.shape[1],
+                width=max_confidence_arr.shape[2],
+                count=max_confidence_arr.shape[0],
+                crs="EPSG:{}".format(epsg_code),
+                transform=transform,
+                dtype=max_confidence_arr.dtype,
+        ) as dest:
             dest.write(max_confidence_arr)
     return max_confidence_arr
 
@@ -266,7 +276,7 @@ def predict(mask: str,
 
     from iota2.Common import rasterUtils as rasterU
     from iota2.Common import ServiceConfigFile as serviceConf
-    from iota2.Common.GenerateFeatures import generateFeatures
+    from iota2.Common.GenerateFeatures import generate_features
     from iota2.Common.FileUtils import findCurrentTileInString
 
     mode = "usually" if "SAR.txt" not in model else "SAR"
@@ -280,7 +290,7 @@ def predict(mask: str,
             _, out_proba_name = os.path.split(out_proba)
             out_proba = os.path.join(working_dir, out_proba_name)
 
-    with open(model, 'rb') as model_file:
+    with open(model, "rb") as model_file:
         model, scaler = pickle.load(model_file)
     # if hasattr(model, "n_jobs"):
     # model.n_jobs = -1
@@ -292,7 +302,7 @@ def predict(mask: str,
 
     function_partial = partial(do_predict, model=model, scaler=scaler)
     classification_dir = os.path.join(output_path, "classif")
-    feat_stack, feat_labels, _ = generateFeatures(
+    feat_stack, feat_labels, _ = generate_features(
         working_dir,
         tile_name,
         sar_optical_post_fusion=sar_optical_post_fusion,
@@ -306,19 +316,20 @@ def predict(mask: str,
     # ~ Then we have to compute the full probability vector to get the maximum
     # ~ confidence and generate the confidence map
 
-    predicted_proba, _, transform, epsg, masks = rasterU.apply_function(
-        feat_stack,
-        feat_labels,
-        working_dir,
-        function_partial,
-        out_proba,
-        mask=mask,
-        mask_value=0,
-        chunk_size_mode="split_number",
-        number_of_chunks=number_of_chunks,
-        targeted_chunk=targeted_chunk,
-        output_number_of_bands=len(model.classes_),
-        ram=ram)
+    (predicted_proba, _, transform, epsg,
+     masks) = rasterU.insert_external_function_to_pipeline(
+         feat_stack,
+         feat_labels,
+         working_dir,
+         function_partial,
+         out_proba,
+         mask=mask,
+         mask_value=0,
+         chunk_size_mode="split_number",
+         number_of_chunks=number_of_chunks,
+         targeted_chunk=targeted_chunk,
+         output_number_of_bands=len(model.classes_),
+         ram=ram)
     logger.info("predictions done")
     if len(masks) > 1:
         raise ValueError("Only one mask is expected")

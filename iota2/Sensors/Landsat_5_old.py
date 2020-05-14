@@ -256,7 +256,7 @@ class landsat_5_old():
                 input_date_file.write("\n".join(all_available_dates))
         return date_file, all_available_dates
 
-    def write_interpolation_dates_file(self):
+    def write_interpolation_dates_file(self, write=True):
         """
         TODO : mv to base-class
         """
@@ -272,6 +272,7 @@ class landsat_5_old():
         date_interp_min, date_interp_max = getDateLandsat(
             self.l5_old_data, self.all_tiles.split(" "))
         # force dates
+
         if not self.auto_date_flag:
             date_interp_min = self.date_interp_min_user
             date_interp_max = self.date_interp_max_user
@@ -280,7 +281,7 @@ class landsat_5_old():
             str(date).replace("-", "") for date in dateInterval(
                 date_interp_min, date_interp_max, self.temporal_res)
         ]
-        if not os.path.exists(interp_date_file):
+        if not os.path.exists(interp_date_file) and write:
             with open(interp_date_file, "w") as interpolation_date_file:
                 interpolation_date_file.write("\n".join(dates))
         return interp_date_file, dates
@@ -635,4 +636,5 @@ class landsat_5_old():
                 str(ram)
             })
             features_labels += fields_userfeat
+
         return (features_app, app_dep), features_labels

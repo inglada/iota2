@@ -24,5 +24,6 @@ Welcome to iota2's documentation !
    iota2's input parameters <IOTA2_parameters>
    Probability maps <probability_maps>
    About samples <iota2_samples_management>
+   Custom features <customFeatures>
 
 The source code for iota2 is hosted at https://framagit.org/iota2-project/iota2/

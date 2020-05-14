@@ -32,7 +32,8 @@ def split_vector_by_region(in_vect: str,
                            driver: Optional[str] = "ESRI shapefile",
                            proj_in: Optional[str] = "EPSG:2154",
                            proj_out: Optional[str] = "EPSG:2154",
-                           mode: Optional[str] = "usually") -> List[str]:
+                           mode: Optional[str] = "usually",
+                           targeted_chunk: Optional[int] = None) -> List[str]:
     """
     create new files by regions in input vector.
 
@@ -52,6 +53,8 @@ def split_vector_by_region(in_vect: str,
         output projection
     mode : string
         define if we split SAR sensor to the other
+    targeted_chunk: string
+        indicate if the chunk mode is on and then keep the chunk information
     Return
     ------
     list
@@ -69,7 +72,7 @@ def split_vector_by_region(in_vect: str,
     vec_name = os.path.split(in_vect)[-1]
     tile = vec_name.split("_")[tile_pos]
     extent = os.path.splitext(vec_name)[-1]
-
+    targeted_chunk = "" if targeted_chunk is None else f"{targeted_chunk}_"
     regions = fut.getFieldElement(in_vect,
                                   driverName=driver,
                                   field=region_field,
@@ -86,13 +89,16 @@ def split_vector_by_region(in_vect: str,
             if "seed_" not in elem
         ])
         for region in regions:
-            out_vec_name_learn = "_".join([
-                tile, "region", region, "seed" + str(seed), "Samples_learn_tmp"
-            ])
+            out_vec_name_learn = (f"{tile}_region_{region}_seed{seed}_"
+                                  f"{targeted_chunk}Samples_learn_tmp")
+            # "_".join([
+            #     tile, "region", region, "seed" + str(seed),
+            #     str(targeted_chunk), "Samples_learn_tmp"
+            # ])
             if mode != "usually":
                 out_vec_name_learn = "_".join([
-                    tile, "region", region, "seed" + str(seed), "Samples",
-                    "SAR", "learn_tmp"
+                    tile, "region", region, "seed" + str(seed),
+                    str(targeted_chunk), "Samples", "SAR", "learn_tmp"
                 ])
             output_vec_learn = os.path.join(output_dir,
                                             out_vec_name_learn + extent)

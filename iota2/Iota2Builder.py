@@ -527,7 +527,8 @@ class iota2():
             'Simplification', 'nomenclature')
         enable_autoContext = SCF.serviceConfigFile(cfg).getParam(
             'chain', 'enable_autoContext')
-
+        enable_custom_features = SCF.serviceConfigFile(
+            cfg).checkCustomFeature()
         # will contains all IOTA² steps
         s_container = StepContainer()
 
@@ -588,50 +589,49 @@ class iota2():
         s_container.append(
             partial(samplesExtraction.samplesExtraction, cfg,
                     config_ressources, self.workingDirectory), "sampling")
-        if enable_autoContext is False:
-            s_container.append(
-                partial(samplesByModels.samplesByModels, cfg,
-                        config_ressources), "sampling")
-            transfert_samples = False
-            if sampleManagement and sampleManagement.lower() != 'none':
-                transfert_samples = True
-                s_container.append(
-                    partial(copySamples.copySamples, cfg, config_ressources,
-                            self.workingDirectory), "sampling")
-            if sample_augmentation_flag:
-                s_container.append(
-                    partial(genSyntheticSamples.genSyntheticSamples, cfg,
-                            config_ressources, transfert_samples,
-                            self.workingDirectory), "sampling")
-            if dimred:
-                s_container.append(
-                    partial(samplesDimReduction.samplesDimReduction, cfg,
-                            config_ressources, transfert_samples
-                            and not sample_augmentation_flag,
-                            self.workingDirectory), "sampling")
-        else:
-            s_container.append(
-                partial(superPixSplit.superPixSplit, cfg, config_ressources,
-                        self.workingDirectory), "sampling")
-        # learning
-        s_container.append(
-            partial(learnModel.learnModel, cfg, config_ressources,
-                    self.workingDirectory), "learning")
+        # if enable_autoContext is False:
+        #     s_container.append(
+        #         partial(samplesByModels.samplesByModels, cfg,
+        #                 config_ressources), "sampling")
+        #     transfert_samples = False
+        #     if sampleManagement and sampleManagement.lower() != 'none':
+        #         transfert_samples = True
+        #         s_container.append(
+        #             partial(copySamples.copySamples, cfg, config_ressources,
+        #                     self.workingDirectory), "sampling")
+        #     if sample_augmentation_flag:
+        #         s_container.append(
+        #             partial(genSyntheticSamples.genSyntheticSamples, cfg,
+        #                     config_ressources, transfert_samples,
+        #                     self.workingDirectory), "sampling")
+        #     if dimred:
+        #         s_container.append(
+        #             partial(samplesDimReduction.samplesDimReduction, cfg,
+        #                     config_ressources, transfert_samples
+        #                     and not sample_augmentation_flag,
+        #                     self.workingDirectory), "sampling")
+        # else:
+        #     s_container.append(
+        #         partial(superPixSplit.superPixSplit, cfg, config_ressources,
+        #                 self.workingDirectory), "sampling")
+        # # learning
+        # s_container.append(
+        #     partial(learnModel.learnModel, cfg, config_ressources,
+        #             self.workingDirectory), "learning")
 
-        s_container.append(
-            partial(classification.classification, cfg, config_ressources,
-                    self.workingDirectory), "classification")
-        if use_scikitlearn:
-            s_container.append(
-                partial(skClassificationsMerge.ScikitClassificationsMerge, cfg,
-                        config_ressources, self.workingDirectory),
-                "classification")
-        if ds_sar_opt:
-            s_container.append(
-                confusionSAROptMerge.confusionSAROptMerge(
-                    cfg, config_ressources, self.workingDirectory),
-                "classification")
-            # s_container.append(step_confusion_sar_opt_fusion, "classification")
-            # s_container.append(step_sar_opt_fusion, "classification")
+        # s_container.append(
+        #     partial(classification.classification, cfg, config_ressources,
+        #             self.workingDirectory), "classification")
+        # if use_scikitlearn or enable_custom_features:
+        #     s_container.append(
+        #         partial(skClassificationsMerge.ScikitClassificationsMerge, cfg,
+        #                 config_ressources, self.workingDirectory),
+        #         "classification")
+
+        # if ds_sar_opt:
+        #     s_container.append(
+        #         confusionSAROptMerge.confusionSAROptMerge(
+        #             cfg, config_ressources, self.workingDirectory),
+        #         "classification")
 
         return s_container

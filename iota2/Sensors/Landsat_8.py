@@ -500,7 +500,7 @@ class landsat_8():
                 input_date_file.write("\n".join(all_available_dates))
         return date_file, all_available_dates
 
-    def write_interpolation_dates_file(self):
+    def write_interpolation_dates_file(self, write=True):
         """
         TODO : mv to base-class
         """
@@ -525,7 +525,7 @@ class landsat_8():
             str(date).replace("-", "") for date in dateInterval(
                 date_interp_min, date_interp_max, self.temporal_res)
         ]
-        if not os.path.exists(interp_date_file):
+        if not os.path.exists(interp_date_file) and write:
             with open(interp_date_file, "w") as interpolation_date_file:
                 interpolation_date_file.write("\n".join(dates))
         return interp_date_file, dates
@@ -819,6 +819,7 @@ class landsat_8():
         if self.hand_features_flag:
             features_app.Execute()
             app_dep.append(features_app)
+
             features_app = CreateConcatenateImagesApplication({
                 "il": [features_app, user_date_features],
                 "out":

@@ -124,7 +124,9 @@ def memory_usage_psutil(unit="MB"):
     return mem
 
 
-def parseClassifCmd(cmdPath):
+def parseClassifCmd(cmdPath,
+                    custom_features_flag: Optional[bool] = False,
+                    number_of_chunks: Optional[int] = None):
     """
     IN
     OUT
@@ -230,14 +232,42 @@ def parseClassifCmd(cmdPath):
             reduction_mode = cfg.getParam("dimRed", "reductionMode")
             data_field = cfg.getParam("chain", "dataField")
 
-            parameters.append([
+            custom_param_list = []
+            if custom_features_flag:
+                auto_context = {}
+                module_path = cfg.getParam("external_features", "module")
+                list_functions = cfg.getParam("external_features",
+                                              "functions").split(" ")
+                force_standard_labels = cfg.getParam("chain",
+                                                     "force_standard_labels")
+                chunk_size_mode = cfg.getParam("external_features",
+                                               "chunk_size_mode")
+                chunk_size_x = cfg.getParam("external_features",
+                                            "chunk_size_x")
+                chunk_size_y = cfg.getParam("external_features",
+                                            "chunk_size_y")
+                custom_param_list = [
+                    auto_context, force_standard_labels, True, module_path,
+                    list_functions, number_of_chunks, chunk_size_mode,
+                    chunk_size_x, chunk_size_y
+                ]
+
+            param_list_temp = ([
                 args.tempFolderSerie, args.mask, args.model, args.stats,
                 args.outputClassif, args.confmap, workingDirectory,
                 classifier_type, tile, proba_map_expected, dimred,
                 sar_optical_post_fusion, output_path, data_field,
                 write_features, reduction_mode, sensors_parameters,
                 args.pixType, args.MaximizeCPU, args.ram
-            ])
+            ] + custom_param_list)
+            if custom_features_flag:
+                param_list = [
+                    param_list_temp + [x] for x in range(number_of_chunks)
+                ]
+            else:
+                param_list = [param_list_temp[:]]
+
+            parameters += param_list
 
     return parameters
 

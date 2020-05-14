@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -17,8 +17,8 @@
 import argparse
 import os
 import logging
-from typing import List, Dict, Union
-
+from typing import List, Dict, Union, Optional
+from iota2.Common import FileUtils as fu
 SENSORS_PARAMS = Dict[str, Union[str, List[str], int]]
 
 LOGGER = logging.getLogger(__name__)
@@ -30,7 +30,7 @@ def str2bool(v):
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
     retour = True
-    if v.lower() in ('no', 'false', 'f', 'n', '0'):
+    if v.lower() in ("no", "false", "f", "n", "0"):
         retour = False
     return retour
 
@@ -115,10 +115,12 @@ class iota2Classification():
                  RAM=128,
                  auto_context={},
                  logger=LOGGER,
+                 custom_features_flag: Optional[bool] = False,
+                 targeted_chunk=None,
                  mode="usually"):
         """
         TODO :
-            remove the dependance from cfg which still needed to compute features (first, remove from generateFeatures)
+            remove the dependance from cfg which still needed to compute features (first, remove from generate_features)
             remove the 'mode' parameter
         """
         self.models_class = models_class
@@ -130,6 +132,9 @@ class iota2Classification():
         self.classifier_model = model
         self.auto_context = auto_context
         self.tile = tile
+        self.custom_features = custom_features_flag
+        # use this to remove one parameter
+        # self.custom_features = targeted_chunk is not None
 
         if isinstance(model, list):
             self.model_name = self.get_model_name(os.path.split(model[0])[0])
@@ -138,12 +143,14 @@ class iota2Classification():
             self.model_name = self.get_model_name(model)
             self.seed = self.get_model_seed(model)
         self.features_stack = features_stack
-        classification_name = "Classif_{}_model_{}_seed_{}.tif".format(
-            tile, self.model_name, self.seed)
-        confidence_name = "{}_model_{}_confidence_seed_{}.tif".format(
-            tile, self.model_name, self.seed)
-        proba_map_name = "PROBAMAP_{}_model_{}_seed_{}.tif".format(
-            tile, self.model_name, self.seed)
+        sub_name = ("" if targeted_chunk is None else
+                    f"_SUBREGION_{targeted_chunk}_")
+        classification_name = (f"Classif_{tile}_model_{self.model_name}"
+                               f"_seed_{self.seed}{sub_name}.tif")
+        confidence_name = (f"{tile}_model_{self.model_name}_"
+                           f"confidence_seed_{self.seed}{sub_name}.tif")
+        proba_map_name = (f"PROBAMAP_{tile}_model_"
+                          f"{self.model_name}_seed_{self.seed}{sub_name}.tif")
         if mode == "SAR":
             classification_name = classification_name.replace(
                 ".tif", "_SAR.tif")
@@ -223,6 +230,7 @@ class iota2Classification():
                 os.path.split(self.classification)[-1])
             self.confidence = os.path.join(self.working_directory,
                                            os.path.split(self.confidence)[-1])
+
         classifier_options = {
             "in": self.features_stack,
             "model": self.classifier_model,
@@ -231,6 +239,7 @@ class iota2Classification():
             "pixType": self.pixType,
             "out": "{}?&writegeom=false".format(self.classification)
         }
+
         if self.auto_context:
             tmp_dir = os.path.join(
                 self.output_directory,
@@ -240,7 +249,9 @@ class iota2Classification():
                 tmp_dir = os.path.join(
                     self.working_directory,
                     "tmp_model_{}_seed_{}_tile_{}".format(
-                        self.model_name, self.seed, self.tile))
+                        self.model_name, self.seed, self.tile),
+                )
+
             ensure_dir(tmp_dir)
             classifier_options = {
                 "in": self.features_stack,
@@ -275,9 +286,15 @@ class iota2Classification():
             classifier = CreateClassifyAutoContext(classifier_options)
         else:
             classifier = CreateImageClassifierApplication(classifier_options)
+            if self.custom_features:
+                classifier.ImportVectorImage("in", self.features_stack)
 
-        LOGGER.info("Compute Classification : {}".format(self.classification))
+        LOGGER.info(f"Compute Classification : {self.classification}")
+        LOGGER.info("RAM before classification : "
+                    f"{fu.memory_usage_psutil()} MB")
         classifier.ExecuteAndWriteOutput()
+        LOGGER.info("RAM after classification : "
+                    f"{fu.memory_usage_psutil()} MB")
         LOGGER.info("Classification : {} done".format(self.classification))
 
         if self.classif_mask:
@@ -336,12 +353,12 @@ class iota2Classification():
                 self.classification,
                 os.path.join(self.output_directory,
                              os.path.split(self.classification)[-1]))
-            #~ os.remove(self.classification)
+            # os.remove(self.classification)
             shutil.copy(
                 self.confidence,
                 os.path.join(self.output_directory,
                              os.path.split(self.confidence)[-1]))
-            #~ os.remove(self.confidence)
+            # os.remove(self.confidence)
             if self.proba_map_path:
                 shutil.copy(
                     self.proba_map_path,
@@ -491,12 +508,24 @@ def launchClassification(Classifmask,
                          pixType,
                          RAM=500,
                          auto_context={},
+                         force_standard_labels=None,
+                         custom_features: Optional[bool] = False,
+                         module_path: Optional[str] = None,
+                         list_functions: Optional[str] = None,
+                         number_of_chunks: Optional[int] = None,
+                         chunk_size_mode: Optional[str] = None,
+                         chunk_size_x: Optional[int] = None,
+                         chunk_size_y: Optional[int] = None,
+                         targeted_chunk: Optional[int] = None,
                          logger=LOGGER):
     """
+    targeted_chunk must always be the last parameter (before logger)
     """
     from iota2.Common import GenerateFeatures as genFeatures
     from iota2.Sampling import DimensionalityReduction as DR
     from iota2.Common.OtbAppBank import getInputParameterOutput
+    from iota2.Common.OtbAppBank import CreateExtractROIApplication
+    from iota2.Common.customNumpyFeatures import compute_custom_features
 
     output_directory = os.path.join(output_path, "classif")
 
@@ -521,14 +550,14 @@ def launchClassification(Classifmask,
     if "SAR.tif" in outputClassif:
         mode = "SAR"
 
-    AllFeatures, _, dep_features = genFeatures.generateFeatures(
+    AllFeatures, _, dep_features = genFeatures.generate_features(
         pathWd=wd,
         tile=tile,
         sar_optical_post_fusion=sar_optical_post_fusion,
         output_path=output_path,
         sensors_parameters=sensors_parameters,
-        mode=mode)
-
+        mode=mode,
+        force_standard_labels=force_standard_labels)
     feature_raster = AllFeatures.GetParameterValue(
         getInputParameterOutput(AllFeatures))
     if write_features:
@@ -537,11 +566,10 @@ def launchClassification(Classifmask,
         AllFeatures = feature_raster
     else:
         AllFeatures.Execute()
-
     ClassifInput = AllFeatures
 
     if dimred:
-        logger.debug("Classification model : {}".format(model))
+        logger.debug(f"Classification model : {model}")
         dimRedModelList = DR.get_dim_red_models_from_classification_model(
             model)
         logger.debug("Dim red models : {}".format(dimRedModelList))
@@ -552,7 +580,38 @@ def launchClassification(Classifmask,
             ClassifInput.ExecuteAndWriteOutput()
         else:
             ClassifInput.Execute()
-
+    remove_flag = False
+    if custom_features:
+        otbimage, _ = compute_custom_features(
+            tile=tile,
+            output_path=output_path,
+            sensors_parameters=sensors_parameters,
+            module_path=module_path,
+            list_functions=list_functions,
+            otb_pipeline=AllFeatures,
+            feat_labels=[],
+            path_wd=wd,
+            chunk_size_mode=chunk_size_mode,
+            targeted_chunk=targeted_chunk,
+            number_of_chunks=number_of_chunks,
+            chunk_size_x=chunk_size_x,
+            chunk_size_y=chunk_size_y)
+        ClassifInput = otbimage
+        if Classifmask:
+            chunked_mask = os.path.join(
+                wd, f"Chunk_{targeted_chunk}_classif_mask.tif")
+            roi_param = {
+                "in": Classifmask,
+                "out": chunked_mask,
+                "mode": "fit",
+                "mode.fit.im": otbimage,
+                "ram": RAM
+            }
+            roi_mask = CreateExtractROIApplication(roi_param)
+            roi_mask.ExecuteAndWriteOutput()
+            roi_mask = None
+            Classifmask = chunked_mask
+            remove_flag = True
     iota2_samples_dir = os.path.join(output_path, "learningSamples")
     models_class = get_class_by_models(
         iota2_samples_dir,
@@ -571,17 +630,20 @@ def launchClassification(Classifmask,
                                   stat_norm=stats,
                                   RAM=RAM,
                                   mode=mode,
+                                  custom_features_flag=custom_features,
+                                  targeted_chunk=targeted_chunk,
                                   auto_context=auto_context)
     classif.generate()
+    if remove_flag:
+        os.remove(chunked_mask)
 
 
 if __name__ == "__main__":
     from iota2.Common.FileUtils import str2bool
     from iota2.Common import ServiceConfigFile as SCF
     PARSER = argparse.ArgumentParser(
-        description=
-        "Performs a classification of the input image (compute in RAM) according to a model file, "
-    )
+        description=("Performs a classification of the input image "
+                     "(compute in RAM) according to a model file, "))
     PARSER.add_argument(
         "-in",
         dest="tempFolderSerie",
@@ -613,13 +675,13 @@ if __name__ == "__main__":
                         type=str2bool,
                         default=False,
                         required=False)
-    PARSER.add_argument(
-        "-sar_optical_post_fusion",
-        dest="sar_optical_post_fusion",
-        help="flag to enable sar and optical post-classification fusion",
-        type=str2bool,
-        default=False,
-        required=False)
+    PARSER.add_argument("-sar_optical_post_fusion",
+                        dest="sar_optical_post_fusion",
+                        help=("flag to enable sar and optical "
+                              "post-classification fusion"),
+                        type=str2bool,
+                        default=False,
+                        required=False)
     PARSER.add_argument("-reduction_mode",
                         dest="reduction_mode",
                         help="reduction mode",

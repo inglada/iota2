@@ -435,7 +435,7 @@ class sentinel_2_l3a():
 
         return s2_l3a_border, app_dep
 
-    def write_interpolation_dates_file(self):
+    def write_interpolation_dates_file(self, write=True):
         """
         TODO : mv to base-class
         """
@@ -452,6 +452,7 @@ class sentinel_2_l3a():
         date_interp_min, date_interp_max = getDateS2(self.s2_l3a_data,
                                                      self.all_tiles.split(" "))
         # force dates
+
         if not self.auto_date_flag:
             date_interp_min = self.date_interp_min_user
             date_interp_max = self.date_interp_max_user
@@ -459,7 +460,8 @@ class sentinel_2_l3a():
             str(date).replace("-", "") for date in dateInterval(
                 date_interp_min, date_interp_max, self.temporal_res)
         ]
-        if not os.path.exists(interp_date_file):
+        if not os.path.exists(interp_date_file) and write:
+
             with open(interp_date_file, "w") as interpolation_date_file:
                 interpolation_date_file.write("\n".join(dates))
         return interp_date_file, dates
@@ -631,8 +633,8 @@ class sentinel_2_l3a():
 
         time_series.Execute()
         masks.Execute()
-        time_series.ExecuteAndWriteOutput()
-        masks.ExecuteAndWriteOutput()
+        # time_series.ExecuteAndWriteOutput()
+        # masks.ExecuteAndWriteOutput()
         comp = len(
             self.stack_band_position) if not self.extracted_bands else len(
                 self.extracted_bands)
@@ -757,6 +759,7 @@ class sentinel_2_l3a():
         if self.hand_features_flag:
             features_app.Execute()
             app_dep.append(features_app)
+
             features_app = CreateConcatenateImagesApplication({
                 "il": [features_app, user_date_features],
                 "out":

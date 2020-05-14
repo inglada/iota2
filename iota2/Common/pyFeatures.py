@@ -17,7 +17,7 @@ from typing import Dict, Union, List
 from functools import partial
 import argparse
 
-from iota2.Common.GenerateFeatures import generateFeatures
+from iota2.Common.GenerateFeatures import generate_features
 from iota2.Common import IOTA2Directory
 from iota2.Common import rasterUtils
 
@@ -52,7 +52,7 @@ def compute_features(output_path: str,
         function to apply on iota²' stack
     """
     IOTA2Directory.generate_directories(output_path, check_inputs=False)
-    feat_stack, feat_labels, _ = generateFeatures(
+    feat_stack, feat_labels, _ = generate_features(
         working_dir,
         tile_name,
         sar_optical_post_fusion=False,
@@ -61,15 +61,16 @@ def compute_features(output_path: str,
 
     # Then compute new features
     function = partial(function, increment=1)
-    feat_stack_array, feat_labels = rasterUtils.apply_function(
-        feat_stack,
-        feat_labels,
-        working_dir,
-        function,
-        output_raster,
-        chunck_size_x=10,
-        chunck_size_y=10,
-        ram=128)
+    (feat_stack_array,
+     feat_labels) = rasterUtils.insert_external_function_to_pipeline(
+         feat_stack,
+         feat_labels,
+         working_dir,
+         function,
+         output_raster,
+         chunk_size_x=10,
+         chunk_size_y=10,
+         ram=128)
 
 
 if __name__ == "__main__":

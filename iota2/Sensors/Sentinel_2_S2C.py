@@ -478,7 +478,7 @@ class sentinel_2_s2c():
                            self.date_position].split("T")[0])
         return masks
 
-    def write_interpolation_dates_file(self):
+    def write_interpolation_dates_file(self, write=True):
         """
         TODO : mv to base-class
         """
@@ -503,7 +503,7 @@ class sentinel_2_s2c():
             str(date).replace("-", "") for date in dateInterval(
                 date_interp_min, date_interp_max, self.temporal_res)
         ]
-        if not os.path.exists(interp_date_file):
+        if not os.path.exists(interp_date_file) and write:
             with open(interp_date_file, "w") as interpolation_date_file:
                 interpolation_date_file.write("\n".join(dates))
         return interp_date_file, dates

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # =========================================================================
 #   Program:   iota2
@@ -21,11 +21,13 @@ from iota2.Common import FileUtils as fu
 from iota2.Common.Utils import run
 
 
-def launchClassification(model, path_cfg, output_path: str,
-                         classifier_name: str, classification_mode: str,
-                         nomenclature_path: str, stat, pathToRT, pathToImg,
-                         pathToRegion, fieldRegion, pathToCmdClassif, pathOut,
-                         RAM, pathWd):
+# def launchClassification(model, path_cfg, output_path: str,
+def write_classification_command(model, path_cfg, output_path: str,
+                                 classifier_name: str,
+                                 classification_mode: str,
+                                 nomenclature_path: str, stat, pathToRT,
+                                 pathToImg, pathToRegion, fieldRegion,
+                                 pathToCmdClassif, pathOut, RAM, pathWd):
     """
     Parameters
     ----------
@@ -58,7 +60,7 @@ def launchClassification(model, path_cfg, output_path: str,
         tiles = fu.getListTileFromModel(
             model, output_path + "/config_model/configModel.cfg")
         model_Mask = model
-        if re.search('model_.*f.*_', path.split("/")[-1]):
+        if re.search("model_.*f.*_", path.split("/")[-1]):
             model_Mask = path.split("/")[-1].split("_")[1].split("f")[0]
         seed = path.split("/")[-1].split("_")[-1].replace(".txt", "")
         suffix = ""
@@ -67,7 +69,7 @@ def launchClassification(model, path_cfg, output_path: str,
             suffix = "_SAR"
         tilesToEvaluate = tiles
 
-        #construction du string de sortie
+        # construction du string de sortie
         for tile in tilesToEvaluate:
             pathToFeat = fu.FileSearch_AND(pathToImg + "/" + tile + "/tmp/",
                                            True, "MaskCommunSL", ".tif")[0]
