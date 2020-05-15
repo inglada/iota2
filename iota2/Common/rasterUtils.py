@@ -25,14 +25,27 @@ from rasterio.merge import merge
 from rasterio.io import MemoryFile
 from rasterio.transform import Affine
 from iota2.Common.FileUtils import memory_usage_psutil
-
+from iota2.Common.Utils import run
 # Only for typing
 import otbApplication
 
 LOGGER = logging.getLogger(__name__)
 
 
-# def apply_function(
+def compress_raster(raster_in: str,
+                    raster_out: str,
+                    compress_mode: Optional[str] = "LZW") -> bool:
+    """ compress a raster thanks to gdal_translate
+    """
+    success = True
+    command = f"gdal_translate -co 'COMPRESS={compress_mode}' {raster_in} {raster_out}"
+    try:
+        run(command)
+    except Exception:
+        success = False
+    return success
+
+
 def insert_external_function_to_pipeline(
         otb_pipeline: otbApplication,
         labels: List[str],
