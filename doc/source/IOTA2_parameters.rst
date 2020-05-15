@@ -992,8 +992,8 @@ Globchain.proj
 *Notes*
     ground truth projection. Every raster data will be reprojected in this projection
 
-Use scikit-learn machine learning algorithms [NOT AVAILABLE]
-************************************************************
+Use scikit-learn machine learning algorithms
+********************************************
 
 scikit_models_parameters.model_type [NOT AVAILABLE]
 ===================================================
