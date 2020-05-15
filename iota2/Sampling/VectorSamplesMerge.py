@@ -138,7 +138,6 @@ def is_sar(path: str, sar_pos: Optional[int] = 5) -> bool:
     return os.path.basename(path).split("_")[sar_pos] == "SAR"
 
 
-#def vectorSamplesMerge(cfg, vectorList, logger=logger):
 def vector_samples_merge(vector_list: List[str],
                          output_path: str,
                          logger: Optional[Logger] = LOGGER) -> None:
@@ -170,6 +169,7 @@ def vector_samples_merge(vector_list: List[str],
     logger.info(f"Vectors to merge in {shape_out_name}")
     logger.info("\n".join(vector_list))
 
+    vector_list = list(filter(os.path.exists, vector_list))
     fu.mergeSQLite(shape_out_name,
                    os.path.join(output_path, "learningSamples"), vector_list)
 
