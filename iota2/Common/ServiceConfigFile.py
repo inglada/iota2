@@ -1061,7 +1061,6 @@ class serviceConfigFile:
 
         module_path = self.getParam("external_features", "module")
         module_path_valid = check_code_path(module_path)
-        print(module_path_valid)
         if module_path_valid:
             module = check_import(module_path)
             check_function_in_module(

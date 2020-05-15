@@ -120,3 +120,4 @@ Limitations:
 .. warning::
     Custom features can not be used with ``userFeatures`` sensors.
 	Indeed, it is mandatory to have the bands information to provide the ``get`` methods.
+	Also, ``Sentinel-1`` is not accessible in the custumFeatures. It will soon be integrated.

@@ -27,6 +27,7 @@ from osgeo.gdalconst import *
 
 from iota2.Common import FileUtils as fu
 from iota2.Common import CreateIndexedColorImage as color
+from iota2.Common.rasterUtils import compress_raster
 
 from iota2.Common.Utils import run
 
@@ -451,32 +452,44 @@ def classification_shaping(path_classif: str, runs: int, path_out: str,
         assemble_folder = path_test + "/final"
         if path_wd:
             assemble_folder = path_wd
+        classif_mosaic_tmp = "{}/Classif_Seed_{}_tmp.tif".format(
+            assemble_folder, seed)
+        classif_mosaic_compress = "{}/Classif_Seed_{}.tif".format(
+            assemble_folder, seed)
         fu.assembleTile_Merge(classification[seed],
                               spatial_resolution,
-                              "{}/Classif_Seed_{}.tif".format(
-                                  assemble_folder, seed),
+                              classif_mosaic_tmp,
                               "Byte" if pix_type == "uint8" else "Int16",
                               co={
                                   "COMPRESS": "LZW",
                                   "BIGTIFF": "YES"
                               })
+        compress_raster(classif_mosaic_tmp, classif_mosaic_compress)
+        os.remove(classif_mosaic_tmp)
         if path_wd:
             shutil.copy(path_wd + "/Classif_Seed_" + str(seed) + ".tif",
                         path_test + "/final")
             os.remove(path_wd + "/Classif_Seed_" + str(seed) + ".tif")
+
+        confidence_mosaic_tmp = assemble_folder + "/Confidence_Seed_" + str(
+            seed) + "_tmp.tif"
+        confidence_mosaic_compress = assemble_folder + "/Confidence_Seed_" + str(
+            seed) + ".tif"
         fu.assembleTile_Merge(confidence[seed],
                               spatial_resolution,
-                              assemble_folder + "/Confidence_Seed_" +
-                              str(seed) + ".tif",
+                              confidence_mosaic_tmp,
                               "Byte",
                               co={
                                   "COMPRESS": "LZW",
                                   "BIGTIFF": "YES"
                               })
+        compress_raster(confidence_mosaic_tmp, confidence_mosaic_compress)
+        os.remove(confidence_mosaic_tmp)
         if path_wd:
             shutil.copy(path_wd + "/Confidence_Seed_" + str(seed) + ".tif",
                         path_test + "/final")
             os.remove(path_wd + "/Confidence_Seed_" + str(seed) + ".tif")
+
         color.CreateIndexedColorImage(
             path_test + "/final/Classif_Seed_" + str(seed) + ".tif",
             color_path,
@@ -484,27 +497,36 @@ def classification_shaping(path_classif: str, runs: int, path_out: str,
             if pix_type == "uint8" else gdal.GDT_UInt16)
 
         if proba_map_flag:
-            proba_map_mosaic = os.path.join(
+            proba_map_mosaic_tmp = os.path.join(
+                assemble_folder, "ProbabilityMap_seed_{}_tmp.tif".format(seed))
+            proba_map_mosaic_compress = os.path.join(
                 assemble_folder, "ProbabilityMap_seed_{}.tif".format(seed))
             fu.assembleTile_Merge(proba_map[seed],
                                   spatial_resolution,
-                                  proba_map_mosaic,
+                                  proba_map_mosaic_tmp,
                                   "Int16",
                                   co={
                                       "COMPRESS": "LZW",
                                       "BIGTIFF": "YES"
                                   })
+            compress_raster(proba_map_mosaic_tmp, proba_map_mosaic_compress)
+            os.remove(proba_map_mosaic_tmp)
             if path_wd:
-                shutil.copy(proba_map_mosaic, path_test + "/final")
-                os.remove(proba_map_mosaic)
+                shutil.copy(proba_map_mosaic_compress, path_test + "/final")
+                os.remove(proba_map_mosaic_compress)
+
+    cloud_mosaic_tmp = assemble_folder + "/PixelsValidity_tmp.tif"
+    cloud_mosaic_compress = assemble_folder + "/PixelsValidity.tif"
     fu.assembleTile_Merge(cloud[0],
                           spatial_resolution,
-                          assemble_folder + "/PixelsValidity.tif",
+                          cloud_mosaic_tmp,
                           "Byte",
                           co={
                               "COMPRESS": "LZW",
                               "BIGTIFF": "YES"
                           })
+    compress_raster(cloud_mosaic_tmp, cloud_mosaic_compress)
+    os.remove(cloud_mosaic_tmp)
     if path_wd:
         shutil.copy(path_wd + "/PixelsValidity.tif", path_test + "/final")
         os.remove(path_wd + "/PixelsValidity.tif")
