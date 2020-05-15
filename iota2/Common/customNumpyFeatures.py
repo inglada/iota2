@@ -83,7 +83,7 @@ class data_container:
         list_sensors = []
         shift = 0
         for sensor in sensor_tile_container.get_enabled_sensors():
-            if sensor.name != "userFeatures":
+            if sensor.name != "userFeatures" and sensor.name != "Sentinel1":
                 spectral_bands = sensor.stack_band_position
                 spectral_indices = sensor.features_names_list
                 # tmp_indices = compute_indices_after_gapfilling(sensor, bands)
