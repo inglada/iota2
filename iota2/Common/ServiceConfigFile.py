@@ -902,6 +902,15 @@ class serviceConfigFile:
                 raise sErr.configError(
                     "these parameters are incompatible enable_autoContext : True and model_type"
                 )
+            if self.cfg.scikit_models_parameters.model_type is not None and self.checkCustomFeature(
+            ):
+                raise sErr.configError(
+                    "these parameters are incompatible external_features and scikit_models_parameters"
+                )
+            if self.checkCustomFeature and self.cfg.chain.enable_autoContext:
+                raise sErr.configError(
+                    "these parameters are incompatible external_features and enable_autoContext"
+                )
         # Error managed
         except sErr.configFileError:
             print("Error in the configuration file " + self.pathConf)
