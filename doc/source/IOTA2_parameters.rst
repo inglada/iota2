@@ -995,8 +995,8 @@ Globchain.proj
 Use scikit-learn machine learning algorithms
 ********************************************
 
-scikit_models_parameters.model_type [NOT AVAILABLE]
-===================================================
+scikit_models_parameters.model_type
+===================================
 *Description*
     machine learning algorthm's name
 *Type*
