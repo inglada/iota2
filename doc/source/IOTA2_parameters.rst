@@ -979,7 +979,7 @@ Globchain available parameters
 Globchain.autoDate
 ==================
 *Description*
-    enable the use of startDate and endDate for each sensors
+    activate/deactivate the use of startDate and endDate for each sensors
 *Type*
     bool
 *Default value*
@@ -988,6 +988,9 @@ Globchain.autoDate
     .. code-block:: python
 
         autoDate : True
+*Notes*
+    if True, then iota2 will automatically guess the first and the last interpolation date.
+    Else, startDate and endDate will be used (YYYYMMDD format)
 
 Globchain.proj
 ==============
