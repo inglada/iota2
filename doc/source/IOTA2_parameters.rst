@@ -976,6 +976,19 @@ Sensor.keepBands
 Globchain available parameters
 ******************************
 
+Globchain.autoDate
+==================
+*Description*
+    enable the use of startDate and endDate for each sensors
+*Type*
+    bool
+*Default value*
+    True
+*Example*
+    .. code-block:: python
+
+        autoDate : True
+
 Globchain.proj
 ==============
 *Description*
