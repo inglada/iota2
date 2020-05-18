@@ -33,7 +33,9 @@ class load_config_file(base_config_file):
             from iota2.sequence_builders.i2_features_map import i2_features_map as builder
         else:
             raise NotImplementedError
+
         builder.load_default_parameters(self.cfg)
 
     def init_config(self, params):
-        print(params)
+
+        print(self, params)

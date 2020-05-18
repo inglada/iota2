@@ -38,7 +38,7 @@ def clearConfig():
         this.cfg = None
 
 
-class serviceConfigFile:
+class base_config_file:
     """
     The class serviceConfigFile defines all methods to access to the
     configuration file and to check the variables.

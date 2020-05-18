@@ -18,6 +18,7 @@ from typing import Optional
 from collections import OrderedDict
 from iota2.Common import ServiceConfigFile as SCF
 from iota2.sequence_builders.i2_sequence_builder import i2_builder
+from iota2.configuration_files import default_config_parameters as dcp
 
 
 class i2_features_map(i2_builder):
@@ -36,6 +37,8 @@ class i2_features_map(i2_builder):
         # working directory, HPC
         self.workingDirectory = os.getenv(hpc_working_directory)
 
+        # default parameters
+        self.default_parameters = {}
         # steps definitions
         self.steps_group = OrderedDict()
         self.steps_group["init"] = OrderedDict()
@@ -101,3 +104,7 @@ class i2_features_map(i2_builder):
         s_container.append(step_compute_features, "sampling")
         s_container.append(step_merge_features, "sampling")
         return s_container
+
+    def load_default_parameters(self, open_config_file):
+        """ This method fill with default parameters the unseted ones"""
+        open_config_file.init_section('chain', dcp.init_chain_parameters())
