@@ -405,7 +405,7 @@ def get_chunks_boundaries(
             for j, start_x in enumerate(split_x[:-1]):
                 boundaries.append({
                     "startx": start_x,
-                    "sizex": split_x[i + 1] - start_x,
+                    "sizex": split_x[j + 1] - start_x,
                     "starty": start_y,
                     "sizey": split_y[i + 1] - start_y
                 })
