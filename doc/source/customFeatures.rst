@@ -120,3 +120,6 @@ Limitations:
 .. warning::
     Custom features can not be used with ``userFeatures`` sensors.
 	Indeed, it is mandatory to have the bands information to provide the ``get`` methods.
+	Also, ``Sentinel-1`` is not accessible in the custom features workflow.
+
+	Addtionnaly, scikit-learn models can not be use with this feature as well as the auto-context workflow.
