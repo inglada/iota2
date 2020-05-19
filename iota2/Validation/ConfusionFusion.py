@@ -357,7 +357,7 @@ def merge_confusions(csv_in, labels, csv_out):
     write_csv(conf_mat, labels, csv_out)
 
 
-def confusion_models_merge(csv_list):
+def confusion_models_merge(csv_list: List[str]):
     """
     """
     from iota2.Validation.ResultsUtils import parse_csv
