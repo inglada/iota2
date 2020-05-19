@@ -144,7 +144,7 @@ class iota2Classification():
             self.seed = self.get_model_seed(model)
         self.features_stack = features_stack
         sub_name = ("" if targeted_chunk is None else
-                    f"_SUBREGION_{targeted_chunk}_")
+                    f"_SUBREGION_{targeted_chunk}")
         classification_name = (f"Classif_{tile}_model_{self.model_name}"
                                f"_seed_{self.seed}{sub_name}.tif")
         confidence_name = (f"{tile}_model_{self.model_name}_"
