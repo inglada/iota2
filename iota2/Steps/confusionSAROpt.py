@@ -15,9 +15,10 @@
 # =========================================================================
 import os
 
-from Steps import IOTA2Step
-from Common import ServiceConfigFile as SCF
-from Cluster import get_RAM
+from iota2.Steps import IOTA2Step
+from iota2.Common import ServiceConfigFile as SCF
+from iota2.Cluster import get_RAM
+from iota2.Validation import GenConfusionMatrix as GCM
 
 
 class confusionSAROpt(IOTA2Step.Step):
@@ -34,6 +35,55 @@ class confusionSAROpt(IOTA2Step.Step):
         self.data_field = SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'dataField')
         self.sar_opt_conf_ram = 1024.0 * get_RAM(self.resources["ram"])
+        self.execution_mode = "cluster"
+        self.runs = SCF.serviceConfigFile(self.cfg).getParam('chain', 'runs')
+
+        self.suffix_list = ["usually"]
+        if SCF.serviceConfigFile(self.cfg).getParam(
+                'argTrain', 'dempster_shafer_SAR_Opt_fusion') is True:
+            self.suffix_list.append("SAR")
+
+        for suffix in self.suffix_list:
+            for model_name, model_meta in self.spatial_models_distribution.items(
+            ):
+                for seed in range(self.runs):
+                    for tile in model_meta["tiles"]:
+                        task_name = f"confusion_{tile}_model_{model_name}_seed_{seed}"
+                        ref_vector = os.path.join(
+                            self.output_path, "dataAppVal", "bymodels",
+                            f"{tile}_region_{model_name}_seed_{seed}_samples_val.shp"
+                        )
+                        classification = os.path.join(
+                            self.output_path, "classif",
+                            f"Classif_{tile}_model_{model_name}_seed_{seed}.tif"
+                        )
+                        if suffix == "SAR":
+                            task_name = f"{task_name}_SAR"
+                            classification = classification.replace(
+                                ".tif", "_SAR.tif")
+                        task = self.i2_task(task_name=task_name,
+                                            log_dir=self.log_step_dir,
+                                            execution_mode=self.execution_mode,
+                                            task_parameters={
+                                                "f":
+                                                GCM.confusion_sar_optical,
+                                                "ref_vector":
+                                                (ref_vector, classification),
+                                                "data_field":
+                                                self.data_field,
+                                                "ram":
+                                                self.sar_opt_conf_ram
+                                            },
+                                            task_resources=self.resources)
+                        self.add_task_to_i2_processing_graph(
+                            task,
+                            task_group="tile_tasks_model_mode",
+                            task_sub_group=
+                            f"{tile}_{model_name}_{seed}_{suffix}",
+                            task_dep_group="tile_tasks_model_mode",
+                            task_dep_sub_group=[
+                                f"{tile}_{model_name}_{seed}_{suffix}"
+                            ])
 
     @classmethod
     def step_description(cls):
@@ -44,30 +94,3 @@ class confusionSAROpt(IOTA2Step.Step):
             "Evaluate SAR vs optical classification's performance by tiles and models"
         )
         return description
-
-    def step_inputs(self):
-        """
-        Return
-        ------
-            the return could be and iterable or a callable
-        """
-        from Validation import GenConfusionMatrix as GCM
-        return GCM.confusion_sar_optical_parameter(self.output_path)
-
-    def step_execute(self):
-        """
-        Return
-        ------
-        lambda
-            the function to execute as a lambda function. The returned object
-            must be a lambda function.
-        """
-        from Validation import GenConfusionMatrix as GCM
-        step_function = lambda x: GCM.confusion_sar_optical(
-            x, self.data_field, self.sar_opt_conf_ram)
-        return step_function
-
-    def step_outputs(self):
-        """
-        """
-        pass
