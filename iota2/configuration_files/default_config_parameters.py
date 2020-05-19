@@ -94,7 +94,7 @@ def init_chain_parameters():
         "remove_tmp_files": False,
         "force_standard_labels": False
     }
-    return chain_default
+    return "chain", chain_default
 
 
 def init_corregistration_parameters():
@@ -117,7 +117,7 @@ def init_corregistration_parameters():
         "pattern": "None"
     }
 
-    return coregistration_default
+    return "coregistration", coregistration_default
 
 
 def init_sklearn_parameters():
@@ -131,7 +131,7 @@ def init_sklearn_parameters():
         "standardization": False,
         "cross_validation_parameters": dico_mapping_init({})
     }
-    return sklearn_default
+    return "scikit_models_parameters", sklearn_default
 
 
 def init_arg_train_parameters():
@@ -163,7 +163,7 @@ def init_arg_train_parameters():
         "validityThreshold": 1
     }
 
-    return arg_train_default
+    return "argTrain", arg_train_default
 
 
 def init_classification_parameters():
@@ -176,7 +176,7 @@ def init_classification_parameters():
         "enable_probability_map": False,
         "fusionOptions": "-nodatalabel 0 -method majorityvoting"
     }
-    return arg_classification_default
+    return "argClassification", arg_classification_default
 
 
 def init_glob_chain_parameters():
@@ -190,7 +190,7 @@ def init_glob_chain_parameters():
         "useAdditionalFeatures": False,
         "useGapFilling": True
     }
-    return glob_chain_default
+    return "globChain", glob_chain_default
 
 
 def init_i2_features_extraction_parameters():
@@ -204,7 +204,7 @@ def init_i2_features_extraction_parameters():
         "extractBands": False,
         "acorfeat": False
     }
-    return iota2_feature_extraction_default
+    return "iota2FeatureExtraction", iota2_feature_extraction_default
 
 
 def init_dim_reduction_parameters():
@@ -216,7 +216,7 @@ def init_dim_reduction_parameters():
         "targetDimension": 4,
         "reductionMode": "global"
     }
-    return dim_red_default
+    return "dimRed", dim_red_default
 
 
 def init_landsat8_parameters():
@@ -232,7 +232,7 @@ def init_landsat8_parameters():
         "keepBands":
         list_sequence_init(["B1", "B2", "B3", "B4", "B5", "B6", "B7"])
     }
-    return landsat8_default
+    return "Landsat8", landsat8_default
 
 
 def init_landsat8_old_parameters():
@@ -247,7 +247,7 @@ def init_landsat8_old_parameters():
         "keepBands":
         list_sequence_init(["B1", "B2", "B3", "B4", "B5", "B6", "B7"])
     }
-    return landsat8_old_default
+    return "Landsat8_old", landsat8_old_default
 
 
 def init_landsat5_old_parameters():
@@ -261,7 +261,7 @@ def init_landsat5_old_parameters():
         "endDate": "",
         "keepBands": list_sequence_init(["B1", "B2", "B3", "B4", "B5", "B6"])
     }
-    return landsat5_old_default
+    return "Landsat5_old", landsat5_old_default
 
 
 def init_sentinel2_parameters():
@@ -283,7 +283,7 @@ def init_sentinel2_parameters():
         list_sequence_init(
             ["B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11", "B12"])
     }
-    return sentinel_2_default
+    return "Sentinel_2", sentinel_2_default
 
 
 def init_sentinel2_s2c_parameters():
@@ -305,7 +305,7 @@ def init_sentinel2_s2c_parameters():
         list_sequence_init(
             ["B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11", "B12"])
     }
-    return sentinel_2_s2c_default
+    return "Sentinel_2_S2C", sentinel_2_s2c_default
 
 
 def init_sentinel2_l3a_parameters():
@@ -327,7 +327,7 @@ def init_sentinel2_l3a_parameters():
         list_sequence_init(
             ["B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11", "B12"])
     }
-    return sentinel_2_l3a_default
+    return "Sentinel_2_L3A", sentinel_2_l3a_default
 
 
 def init_userfeat_parameters():
@@ -335,7 +335,7 @@ def init_userfeat_parameters():
     Set all userFeat block parameters to default values
     """
     user_feat = {"arbo": "/*", "patterns": "ALT,ASP,SLP"}
-    return user_feat
+    return "userFeat", user_feat
 
 
 def init_simp_parameters():
@@ -377,7 +377,7 @@ def init_simp_parameters():
             3: "statsmaj"
         }
     }
-    return simp_default
+    return "Simplification", simp_default
 
 
 def init_external_features_parameters():
@@ -394,4 +394,4 @@ def init_external_features_parameters():
         "concat_mode": True,
         "output_name": None
     }
-    return external_features
+    return "external_features", external_features
