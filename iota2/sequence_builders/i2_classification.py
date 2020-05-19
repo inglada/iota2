@@ -18,6 +18,7 @@ from typing import Optional
 from collections import OrderedDict
 from iota2.Common import ServiceConfigFile as SCF
 from iota2.sequence_builders.i2_sequence_builder import i2_builder
+from iota2.Common import ServiceError as sErr
 
 
 class i2_classification(i2_builder):
@@ -407,3 +408,113 @@ class i2_classification(i2_builder):
         s_container.append(step_zonal_stats, "lcstatistics")
         s_container.append(step_prod_vectors, "lcstatistics")
         return s_container
+
+    def check_config_parameters(self):
+        config_content = SCF.serviceConfigFile(self.cfg)
+        try:
+            config_content.testVarConfigFile(
+                "chain",
+                "firstStep",
+                str,
+                [
+                    "init",
+                    "sampling",
+                    "dimred",
+                    "learning",
+                    "classification",
+                    "mosaic",
+                    "validation",
+                    "regularisation",
+                    "crown",
+                    "mosaictiles",
+                    "vectorisation",
+                    "simplification",
+                    "smoothing",
+                    "clipvectors",
+                    "lcstatistics",
+                ],
+            )
+            config_content.testVarConfigFile(
+                "chain",
+                "lastStep",
+                str,
+                [
+                    "init",
+                    "sampling",
+                    "dimred",
+                    "learning",
+                    "classification",
+                    "mosaic",
+                    "validation",
+                    "regularisation",
+                    "crown",
+                    "mosaictiles",
+                    "vectorisation",
+                    "simplification",
+                    "smoothing",
+                    "clipvectors",
+                    "lcstatistics",
+                ],
+            )
+        except sErr.configFileError:
+            print(f"Error in the configuration file {self.cfg}")
+            # verif que pas redondant avec sErr
+            print("Wrong step name for firstStep or lastStep")
+            raise
+
+    def check_compat_param(self):
+        config_content = SCF.serviceConfigFile(self.cfg)
+        # parameters compatibilities check
+        classier_probamap_avail = ["sharkrf"]
+        if (config_content.getParam("argClassification",
+                                    "enable_probability_map") is True
+                and config_content.getParam(
+                    "argTrain",
+                    "classifier").lower() not in classier_probamap_avail):
+            raise sErr.configError(
+                "'enable_probability_map:True' only available with the 'sharkrf' classifier"
+            )
+        if config_content.getParam("chain", "enableCrossValidation") is True:
+            raise sErr.configError(
+                "enableCrossValidation not available, please set it to False\n"
+            )
+        if config_content.getParam(
+                "chain", "regionPath"
+        ) is None and config_content.cfg.argClassification.classifMode == "fusion":
+            raise sErr.configError(
+                "you can't chose 'one_region' mode and ask a fusion of classifications\n"
+            )
+        if config_content.cfg.chain.merge_final_classifications and config_content.cfg.chain.runs == 1:
+            raise sErr.configError(
+                "these parameters are incompatible runs:1 and merge_final_classifications:True"
+            )
+        if config_content.cfg.chain.enableCrossValidation and config_content.cfg.chain.runs == 1:
+            raise sErr.configError(
+                "these parameters are incompatible runs:1 and enableCrossValidation:True"
+            )
+        if config_content.cfg.chain.enableCrossValidation and config_content.cfg.chain.splitGroundTruth is False:
+            raise sErr.configError(
+                "these parameters are incompatible splitGroundTruth:False and enableCrossValidation:True"
+            )
+        if config_content.cfg.chain.splitGroundTruth is False and config_content.cfg.chain.runs != 1:
+            raise sErr.configError(
+                "these parameters are incompatible splitGroundTruth:False and runs different from 1"
+            )
+        if config_content.cfg.chain.merge_final_classifications and config_content.cfg.chain.splitGroundTruth is False:
+            raise sErr.configError(
+                "these parameters are incompatible merge_final_classifications:True and splitGroundTruth:False"
+            )
+        if config_content.cfg.argTrain.dempster_shafer_SAR_Opt_fusion and 'None' in config_content.cfg.chain.S1Path:
+            raise sErr.configError(
+                "these parameters are incompatible dempster_shafer_SAR_Opt_fusion : True and S1Path : 'None'"
+            )
+        if config_content.cfg.argTrain.dempster_shafer_SAR_Opt_fusion and 'None' in config_content.cfg.chain.userFeatPath and 'None' in config_content.cfg.chain.L5Path_old and 'None' in config_content.cfg.chain.L8Path and 'None' in config_content.cfg.chain.L8Path_old and 'None' in config_content.cfg.chain.S2Path and 'None' in config_content.cfg.chain.S2_S2C_Path:
+            raise sErr.configError(
+                "to perform post-classification fusion, optical data must be used"
+            )
+        if config_content.cfg.scikit_models_parameters.model_type is not None and config_content.cfg.chain.enable_autoContext is True:
+            raise sErr.configError(
+                "these parameters are incompatible enable_autoContext : True and model_type"
+            )
+
+        return True
