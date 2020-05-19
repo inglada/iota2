@@ -29,7 +29,14 @@ class ScikitClassificationsMerge(IOTA2Step.Step):
               self).__init__(cfg, cfg_resources_file, resources_block_name)
 
         # step variables
-        self.number_of_chunks = classification.classification.scikit_tile_split
+        self.custom_features = ServiceConfigFile.serviceConfigFile(
+            self.cfg).checkCustomFeature()
+        if self.custom_features:
+            self.number_of_chunks = ServiceConfigFile.serviceConfigFile(
+                self.cfg).getParam('external_features', "number_of_chunks")
+        else:
+            self.number_of_chunks = classification.classification.scikit_tile_split
+
         self.execution_mode = "cluster"
         self.working_directory = working_directory
         self.output_path = ServiceConfigFile.serviceConfigFile(
@@ -58,7 +65,7 @@ class ScikitClassificationsMerge(IOTA2Step.Step):
                             model_name, seed, suffix, tile)
                         task = self.i2_task(
                             task_name=
-                            f"classif_confidence_{tile}_model_{model_name}_mosaic{suff}",
+                            f"classif_{tile}_model_{model_name}_mosaic{suff}",
                             log_dir=self.log_step_dir,
                             execution_mode=self.execution_mode,
                             task_parameters=task_parameters,
@@ -120,44 +127,3 @@ class ScikitClassificationsMerge(IOTA2Step.Step):
         """
         description = ("Merge tile's classification's part")
         return description
-
-    def step_inputs(self):
-        """
-        Return
-        ------
-            the return could be and iterable or a callable
-        """
-        from iota2.Classification.skClassifier import sk_classifications_to_merge
-        parameters = sk_classifications_to_merge(
-            os.path.join(self.output_path, "classif"))
-        # ~ in order to get only one task and iterate over raster to merge
-        parameters = [parameters]
-        return parameters
-
-    def step_execute(self):
-        """
-        Return
-        ------
-        lambda
-            the function to execute as a lambda function. The returned object
-            must be a lambda function.
-        """
-        from iota2.Classification.skClassifier import merge_sk_classifications
-        step_function = lambda x: merge_sk_classifications(
-            x, self.epsg_code, self.working_directory)
-        return step_function
-
-    def step_clean(self):
-        """
-        """
-        from iota2.Classification.skClassifier import sk_classifications_to_merge
-        rasters = sk_classifications_to_merge(
-            os.path.join(self.output_path, "classif"))
-        for rasters_already_merged in rasters:
-            for raster in rasters_already_merged["rasters_list"]:
-                os.remove(raster)
-
-    def step_outputs(self):
-        """
-        """
-        pass

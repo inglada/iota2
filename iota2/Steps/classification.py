@@ -36,6 +36,11 @@ class classification(IOTA2Step.Step):
                                              resources_block_name)
 
         # step variables
+        self.custom_features = SCF.serviceConfigFile(
+            self.cfg).checkCustomFeature()
+        if self.custom_features:
+            self.number_of_chunks = SCF.serviceConfigFile(self.cfg).getParam(
+                'external_features', "number_of_chunks")
         self.working_directory = workingDirectory
         self.autoContext_iterations = SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'autoContext_iterations')
@@ -74,8 +79,12 @@ class classification(IOTA2Step.Step):
                         target_model = f"model_{model_name}_seed_{seed}_{suffix}"
                         task_params = self.get_classification_params(
                             model_name, tile, seed, suffix)
-                        if self.enable_autoContext is False and self.use_scikitlearn is True:
-                            for chunk in range(self.scikit_tile_split):
+                        if self.enable_autoContext is False and (
+                                self.use_scikitlearn is True
+                                or self.custom_features):
+                            # TODO: mutualize between scikit and custom features
+                            chunk_number = self.scikit_tile_split if not self.custom_features else self.number_of_chunks
+                            for chunk in range(chunk_number):
                                 task_params = self.get_classification_params(
                                     model_name, tile, seed, suffix, chunk)
                                 task = self.i2_task(
@@ -84,7 +93,6 @@ class classification(IOTA2Step.Step):
                                     execution_mode=self.execution_mode,
                                     task_parameters=task_params,
                                     task_resources=self.resources)
-
                                 self.add_task_to_i2_processing_graph(
                                     task,
                                     task_group="tile_tasks_model",
@@ -99,7 +107,6 @@ class classification(IOTA2Step.Step):
                                 execution_mode=self.execution_mode,
                                 task_parameters=task_params,
                                 task_resources=self.resources)
-
                             self.add_task_to_i2_processing_graph(
                                 task,
                                 task_group="tile_tasks_model",
@@ -183,6 +190,23 @@ class classification(IOTA2Step.Step):
                 "auto_context":
                 False
             }
+            if self.custom_features:
+                param["custom_features"] = True
+                param["module_path"] = SCF.serviceConfigFile(
+                    self.cfg).getParam('external_features', 'module')
+                param["number_of_chunks"] = self.number_of_chunks
+                param["chunk_size_mode"] = SCF.serviceConfigFile(
+                    self.cfg).getParam('external_features', 'chunk_size_mode')
+                param["chunk_size_x"] = SCF.serviceConfigFile(
+                    self.cfg).getParam('external_features', 'chunk_size_x')
+                param["chunk_size_y"] = SCF.serviceConfigFile(
+                    self.cfg).getParam('external_features', 'chunk_size_y')
+                param["targeted_chunk"] = target_chunk
+                param["list_functions"] = SCF.serviceConfigFile(
+                    self.cfg).getParam("external_features",
+                                       "functions").split(" ")
+                param["force_standard_labels"] = SCF.serviceConfigFile(
+                    self.cfg).getParam('external_features', 'module')
 
         elif self.enable_autoContext is True and self.use_scikitlearn is False:
             param = {
