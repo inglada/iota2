@@ -23,7 +23,7 @@ If a parameter is given in a configuration file the default values is not used.
 from config import Sequence, Mapping
 
 
-def init_dico_mapping(my_dict):
+def dico_mapping_init(my_dict):
     """
     use to init a mapping object from a dict
     """
@@ -33,7 +33,7 @@ def init_dico_mapping(my_dict):
     return new_map
 
 
-def init_list_sequence(my_list):
+def list_sequence_init(my_list):
     """
     use to init a Sequence object from a list
     """
@@ -129,7 +129,7 @@ def init_sklearn_parameters():
         "cross_validation_folds": 5,
         "cross_validation_grouped": False,
         "standardization": False,
-        "cross_validation_parameters": init_dico_mapping({})
+        "cross_validation_parameters": dico_mapping_init({})
     }
     return sklearn_default
 
@@ -138,13 +138,13 @@ def init_arg_train_parameters():
     """
     Set all argTrain block parameters to default values
     """
-    sample_sel_default = init_dico_mapping({
+    sample_sel_default = dico_mapping_init({
         "sampler": "random",
         "strategy": "all"
     })
-    sample_augmentationg_default = init_dico_mapping({"activate": False})
-    annual_crop = init_list_sequence(["11", "12"])
-    a_crop_label_replacement = init_list_sequence(["10", "annualCrop"])
+    sample_augmentationg_default = dico_mapping_init({"activate": False})
+    annual_crop = list_sequence_init(["11", "12"])
+    a_crop_label_replacement = list_sequence_init(["10", "annualCrop"])
 
     arg_train_default = {
         "sampleSelection": sample_sel_default,
@@ -184,7 +184,7 @@ def init_glob_chain_parameters():
     Set all globChain block parameters to default values
     """
     glob_chain_default = {
-        "features": init_list_sequence(["NDVI", "NDWI", "Brightness"]),
+        "features": list_sequence_init(["NDVI", "NDWI", "Brightness"]),
         "autoDate": True,
         "writeOutputs": False,
         "useAdditionalFeatures": False,
@@ -230,7 +230,7 @@ def init_landsat8_parameters():
         "startDate": "",
         "endDate": "",
         "keepBands":
-        init_list_sequence(["B1", "B2", "B3", "B4", "B5", "B6", "B7"])
+        list_sequence_init(["B1", "B2", "B3", "B4", "B5", "B6", "B7"])
     }
     return landsat8_default
 
@@ -245,7 +245,7 @@ def init_landsat8_old_parameters():
         "startDate": "",
         "endDate": "",
         "keepBands":
-        init_list_sequence(["B1", "B2", "B3", "B4", "B5", "B6", "B7"])
+        list_sequence_init(["B1", "B2", "B3", "B4", "B5", "B6", "B7"])
     }
     return landsat8_old_default
 
@@ -259,7 +259,7 @@ def init_landsat5_old_parameters():
         "temporalResolution": 16,
         "startDate": "",
         "endDate": "",
-        "keepBands": init_list_sequence(["B1", "B2", "B3", "B4", "B5", "B6"])
+        "keepBands": list_sequence_init(["B1", "B2", "B3", "B4", "B5", "B6"])
     }
     return landsat5_old_default
 
@@ -280,7 +280,7 @@ def init_sentinel2_parameters():
         "endDate":
         "",
         "keepBands":
-        init_list_sequence(
+        list_sequence_init(
             ["B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11", "B12"])
     }
     return sentinel_2_default
@@ -302,7 +302,7 @@ def init_sentinel2_s2c_parameters():
         "endDate":
         "",
         "keepBands":
-        init_list_sequence(
+        list_sequence_init(
             ["B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11", "B12"])
     }
     return sentinel_2_s2c_default
@@ -324,7 +324,7 @@ def init_sentinel2_l3a_parameters():
         "endDate":
         "",
         "keepBands":
-        init_list_sequence(
+        list_sequence_init(
             ["B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11", "B12"])
     }
     return sentinel_2_l3a_default

@@ -74,22 +74,6 @@ class base_config_file:
         for key, value in list(sectionDefault.items()):
             self.addParam(sectionName, key, value)
 
-    def init_dicoMapping(self, myDict):
-        """use to init a mapping object from a dict
-        """
-        new_map = Mapping()
-        for key, value in list(myDict.items()):
-            new_map.addMapping(key, value, "")
-        return new_map
-
-    def init_listSequence(self, myList):
-        """use to init a Sequence object from a list
-        """
-        new_seq = Sequence()
-        for elem in myList:
-            new_seq.append(elem, "#comment")
-        return new_seq
-
     def __repr__(self):
         return "Configuration file : " + self.path_conf
 
