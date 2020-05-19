@@ -15,8 +15,9 @@
 # =========================================================================
 import os
 
-from Steps import IOTA2Step
-from Common import ServiceConfigFile as SCF
+from iota2.Steps import IOTA2Step
+from iota2.Common import ServiceConfigFile as SCF
+from iota2.Classification import Fusion as FUS
 
 
 class SAROptFusion(IOTA2Step.Step):
@@ -32,6 +33,52 @@ class SAROptFusion(IOTA2Step.Step):
             'chain', 'outputPath')
         self.enable_proba_map = SCF.serviceConfigFile(self.cfg).getParam(
             'argClassification', 'enable_probability_map')
+        self.runs = SCF.serviceConfigFile(self.cfg).getParam('chain', 'runs')
+        self.execution_mode = "cluster"
+
+        for model_name, model_meta in self.spatial_models_distribution.items():
+            for seed in range(self.runs):
+                for tile in model_meta["tiles"]:
+                    task = self.i2_task(
+                        task_name=
+                        f"fusion_Optical_SAR_{tile}_model_{model_name}_seed_{seed}",
+                        log_dir=self.log_step_dir,
+                        execution_mode=self.execution_mode,
+                        task_parameters={
+                            "f": FUS.dempster_shafer_fusion,
+                            "iota2_dir": self.output_path,
+                            "fusion_dic": {
+                                "sar_classif":
+                                os.path.join(
+                                    self.output_path, "classif",
+                                    f"Classif_{tile}_model_{model_name}_seed_{seed}_SAR.tif"
+                                ),
+                                "opt_classif":
+                                os.path.join(
+                                    self.output_path, "classif",
+                                    f"Classif_{tile}_model_{model_name}_seed_{seed}.tif"
+                                ),
+                                "sar_model":
+                                os.path.join(
+                                    self.output_path, "dataAppVal", "bymodels",
+                                    f"model_{model_name}_seed_{seed}_SAR.csv"),
+                                "opt_model":
+                                os.path.join(
+                                    self.output_path, "dataAppVal", "bymodels",
+                                    f"model_{model_name}_seed_{seed}.csv")
+                            },
+                            "proba_map_flag": self.enable_proba_map
+                        },
+                        task_resources=self.resources)
+                    self.add_task_to_i2_processing_graph(
+                        task,
+                        task_group="tile_tasks_model",
+                        task_sub_group=f"model_{model_name}_seed_{seed}",
+                        task_dep_group="region_tasks",
+                        task_dep_sub_group=[
+                            f"model_{model_name}_seed_{seed}_usually",
+                            f"model_{model_name}_seed_{seed}_SAR"
+                        ])
 
     @classmethod
     def step_description(cls):
@@ -40,33 +87,3 @@ class SAROptFusion(IOTA2Step.Step):
         """
         description = ("SAR and optical post-classifications fusion")
         return description
-
-    def step_inputs(self):
-        """
-        Return
-        ------
-            the return could be and iterable or a callable
-        """
-        from Classification import Fusion as FUS
-        return FUS.dempster_shafer_fusion_parameters(self.output_path)
-
-    def step_execute(self):
-        """
-        Return
-        ------
-        lambda
-            the function to execute as a lambda function. The returned object
-            must be a lambda function.
-        """
-        from Classification import Fusion as FUS
-        step_function = lambda x: FUS.dempster_shafer_fusion(
-            self.output_path,
-            x,
-            proba_map_flag=self.enable_proba_map,
-            workingDirectory=self.workingDirectory)
-        return step_function
-
-    def step_outputs(self):
-        """
-        """
-        pass
