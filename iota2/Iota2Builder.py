@@ -628,10 +628,17 @@ class iota2():
                         config_ressources, self.workingDirectory),
                 "classification")
 
-        # if ds_sar_opt:
-        #     s_container.append(
-        #         confusionSAROptMerge.confusionSAROptMerge(
-        #             cfg, config_ressources, self.workingDirectory),
-        #         "classification")
+        if ds_sar_opt:
+            s_container.append(
+                partial(confusionSAROpt.confusionSAROpt, cfg,
+                        config_ressources, self.workingDirectory),
+                "classification")
 
+            s_container.append(
+                partial(confusionSAROptMerge.confusionSAROptMerge, cfg,
+                        config_ressources, self.workingDirectory),
+                "classification")
+            s_container.append(
+                partial(SAROptFusion.SAROptFusion, cfg, config_ressources,
+                        self.workingDirectory), "classification")
         return s_container
