@@ -382,7 +382,7 @@ def get_chunks_boundaries(
                 })
 
     elif chunk_size_mode == "split_number":
-        chunk_size_x = size_x
+
         if number_of_chunks > size_x + size_y:
             raise ValueError(
                 f"Error: number of chunks ({number_of_chunks})"
@@ -405,7 +405,7 @@ def get_chunks_boundaries(
             for j, start_x in enumerate(split_x[:-1]):
                 boundaries.append({
                     "startx": start_x,
-                    "sizex": chunk_size_x,
+                    "sizex": split_x[j + 1] - start_x,
                     "starty": start_y,
                     "sizey": split_y[i + 1] - start_y
                 })

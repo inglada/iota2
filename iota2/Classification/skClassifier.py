@@ -100,7 +100,7 @@ def do_predict(
 
     predicted_array = predicted_array.reshape(array.shape[0], array.shape[1],
                                               predicted_array.shape[-1])
-    return predicted_array.astype(dtype)
+    return predicted_array.astype(dtype), []
 
 
 def get_class(*args, **kwargs):
@@ -316,8 +316,8 @@ def predict(mask: str,
     # ~ Then we have to compute the full probability vector to get the maximum
     # ~ confidence and generate the confidence map
 
-    (predicted_proba, _, transform, epsg,
-     masks) = rasterU.insert_external_function_to_pipeline(
+    (predicted_proba, _, transform, epsg, masks,
+     otb_img) = rasterU.insert_external_function_to_pipeline(
          feat_stack,
          feat_labels,
          working_dir,

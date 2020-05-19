@@ -976,6 +976,22 @@ Sensor.keepBands
 Globchain available parameters
 ******************************
 
+Globchain.autoDate
+==================
+*Description*
+    activate/deactivate the use of startDate and endDate for each sensors
+*Type*
+    bool
+*Default value*
+    True
+*Example*
+    .. code-block:: python
+
+        autoDate : True
+*Notes*
+    if True, then iota2 will automatically guess the first and the last interpolation date.
+    Else, startDate and endDate will be used (YYYYMMDD format)
+
 Globchain.proj
 ==============
 *Description*
@@ -992,11 +1008,11 @@ Globchain.proj
 *Notes*
     ground truth projection. Every raster data will be reprojected in this projection
 
-Use scikit-learn machine learning algorithms [NOT AVAILABLE]
-************************************************************
+Use scikit-learn machine learning algorithms
+********************************************
 
-scikit_models_parameters.model_type [NOT AVAILABLE]
-===================================================
+scikit_models_parameters.model_type
+===================================
 *Description*
     machine learning algorthm's name
 *Type*
