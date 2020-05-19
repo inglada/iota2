@@ -95,9 +95,9 @@ class classification(IOTA2Step.Step):
                                     task_resources=self.resources)
                                 self.add_task_to_i2_processing_graph(
                                     task,
-                                    task_group="tile_tasks_model",
+                                    task_group="tile_tasks_model_mode",
                                     task_sub_group=
-                                    f"{tile}_{model_name}_{seed}_{chunk}",
+                                    f"{tile}_{model_name}_{seed}_{suffix}_{chunk}",
                                     task_dep_group="region_tasks",
                                     task_dep_sub_group=[target_model])
                         else:
@@ -109,8 +109,9 @@ class classification(IOTA2Step.Step):
                                 task_resources=self.resources)
                             self.add_task_to_i2_processing_graph(
                                 task,
-                                task_group="tile_tasks_model",
-                                task_sub_group=f"{tile}_{model_name}_{seed}",
+                                task_group="tile_tasks_model_mode",
+                                task_sub_group=
+                                f"{tile}_{model_name}_{seed}_{suffix}",
                                 task_dep_group="region_tasks",
                                 task_dep_sub_group=[target_model])
 
