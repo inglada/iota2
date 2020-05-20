@@ -16,7 +16,9 @@
 import os
 
 from iota2.Steps import IOTA2Step
+from iota2.Classification import Fusion as FUS
 from iota2.Common import ServiceConfigFile as SCF
+from iota2.Common import FileUtils as fu
 
 
 class classificationsFusion(IOTA2Step.Step):
@@ -30,6 +32,71 @@ class classificationsFusion(IOTA2Step.Step):
         self.workingDirectory = workingDirectory
         self.output_path = SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'outputPath')
+        self.runs = SCF.serviceConfigFile(self.cfg).getParam('chain', 'runs')
+        self.execution_mode = "cluster"
+        self.dempster_shafer_SAR_Opt_fusion = SCF.serviceConfigFile(
+            self.cfg).getParam('argTrain', 'dempster_shafer_SAR_Opt_fusion')
+        pix_type = fu.getOutputPixType(
+            SCF.serviceConfigFile(self.cfg).getParam('chain',
+                                                     'nomenclaturePath'))
+        for model_name, model_meta in self.spatial_models_distribution_no_sub_splits.items(
+        ):
+            for seed in range(self.runs):
+                for tile in model_meta["tiles"]:
+                    classif_to_merge = [
+                        os.path.join(
+                            self.output_path, "classif",
+                            f"Classif_{tile}_model_{model_name}f{submodel_num + 1}_seed_{seed}.tif"
+                        ) for submodel_num in range(model_meta["nb_sub_model"])
+                    ]
+
+                    if self.dempster_shafer_SAR_Opt_fusion:
+                        classif_to_merge = [
+                            elem.replace(".tif", "_DS.tif")
+                            for elem in classif_to_merge
+                        ]
+                    task = self.i2_task(
+                        task_name=
+                        f"classification_fusion_{tile}_model_{model_name}_seed_{seed}",
+                        log_dir=self.log_step_dir,
+                        execution_mode=self.execution_mode,
+                        task_parameters={
+                            "f":
+                            FUS.fusion,
+                            "in_classif":
+                            classif_to_merge,
+                            "fusion_options":
+                            SCF.serviceConfigFile(self.cfg).getParam(
+                                'argClassification', 'fusionOptions'),
+                            "out_classif":
+                            os.path.join(
+                                self.output_path, "classif",
+                                f"{tile}_FUSION_model_{model_name}_seed_{seed}.tif"
+                            ),
+                            "out_pix_type":
+                            pix_type
+                        },
+                        task_resources=self.resources)
+                    if model_meta["nb_sub_model"] > 1:
+                        task_dep_group = "tile_tasks_model_mode"
+                        task_dep_sub_group = [
+                            f"{tile}_{model_name}f{sub_model+1}_{seed}_usually"
+                            for sub_model in range(model_meta["nb_sub_model"])
+                        ]
+
+                        if self.dempster_shafer_SAR_Opt_fusion:
+                            task_dep_group = "tile_tasks_model"
+                            task_dep_sub_group = [
+                                f"{tile}_model_{model_name}f{sub_model+1}_seed_{seed}"
+                                for sub_model in range(
+                                    model_meta["nb_sub_model"])
+                            ]
+                        self.add_task_to_i2_processing_graph(
+                            task,
+                            task_group="tile_tasks_model",
+                            task_sub_group=f"{tile}_{model_name}_{seed}",
+                            task_dep_group=task_dep_group,
+                            task_dep_sub_group=task_dep_sub_group)
 
     @classmethod
     def step_description(cls):
@@ -38,41 +105,3 @@ class classificationsFusion(IOTA2Step.Step):
         """
         description = ("Fusion of classifications")
         return description
-
-    def step_inputs(self):
-        """
-        Return
-        ------
-            the return could be and iterable or a callable
-        """
-        from iota2.Classification import Fusion as FUS
-        return FUS.fusion(
-            os.path.join(self.output_path, "classif"),
-            SCF.serviceConfigFile(self.cfg).getParam('chain', 'runs'),
-            SCF.serviceConfigFile(self.cfg).getParam('chain',
-                                                     'listTile').split(" "),
-            SCF.serviceConfigFile(self.cfg).getParam('argClassification',
-                                                     'fusionOptions'),
-            SCF.serviceConfigFile(self.cfg).getParam('chain',
-                                                     'nomenclaturePath'),
-            SCF.serviceConfigFile(self.cfg).getParam('chain', 'regionPath'),
-            SCF.serviceConfigFile(self.cfg).getParam(
-                'argTrain', 'dempster_shafer_SAR_Opt_fusion'), None)
-
-    def step_execute(self):
-        """
-        Return
-        ------
-        lambda
-            the function to execute as a lambda function. The returned object
-            must be a lambda function.
-        """
-        from iota2.MPI import launch_tasks as tLauncher
-        bash_launcher_function = tLauncher.launchBashCmd
-        step_function = lambda x: bash_launcher_function(x)
-        return step_function
-
-    def step_outputs(self):
-        """
-        """
-        pass
