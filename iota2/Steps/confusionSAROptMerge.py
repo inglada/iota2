@@ -62,11 +62,12 @@ class confusionSAROptMerge(IOTA2Step.Step):
                         task_group="region_tasks",
                         task_sub_group=
                         f"model_{model_name}_seed_{seed}_{suffix}",
-                        task_dep_group="tile_tasks_model_mode",
-                        task_dep_sub_group=[
-                            f"{tile}_{model_name}_{seed}_{suffix}"
-                            for tile in model_meta["tiles"]
-                        ])
+                        task_dep_dico={
+                            "tile_tasks_model_mode": [
+                                f"{tile}_{model_name}_{seed}_{suffix}"
+                                for tile in model_meta["tiles"]
+                            ]
+                        })
 
     def get_csv_files(self, suffix, model_name, tiles, seed):
         csv_files = []
