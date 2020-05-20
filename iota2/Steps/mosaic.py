@@ -17,6 +17,7 @@ import os
 
 from iota2.Steps import IOTA2Step
 from iota2.Common import ServiceConfigFile as SCF
+from iota2.Validation import ClassificationShaping as CS
 
 
 class mosaic(IOTA2Step.Step):
@@ -38,6 +39,79 @@ class mosaic(IOTA2Step.Step):
         self.fieldEnv = "FID"
         self.color_table = SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'colorTable')
+        self.execution_mode = "cluster"
+        ds_sar_opt = SCF.serviceConfigFile(cfg).getParam(
+            'argTrain', 'dempster_shafer_SAR_Opt_fusion')
+        classif_mode = SCF.serviceConfigFile(cfg).getParam(
+            'argClassification', 'classifMode')
+        shape_region = SCF.serviceConfigFile(cfg).getParam(
+            'chain', 'regionPath')
+        task = self.i2_task(task_name=f"mosaic",
+                            log_dir=self.log_step_dir,
+                            execution_mode=self.execution_mode,
+                            task_parameters={
+                                "f":
+                                CS.classification_shaping,
+                                "path_classif":
+                                os.path.join(self.output_path, "classif"),
+                                "runs":
+                                self.runs,
+                                "path_out":
+                                os.path.join(self.output_path, "final"),
+                                "path_wd":
+                                self.workingDirectory,
+                                "classif_mode":
+                                SCF.serviceConfigFile(self.cfg).getParam(
+                                    "argClassification", "classifMode"),
+                                "path_test":
+                                self.output_path,
+                                "ds_sar_opt":
+                                ds_sar_opt,
+                                "proj":
+                                int(
+                                    SCF.serviceConfigFile(self.cfg).getParam(
+                                        'GlobChain', 'proj').split(":")[-1]),
+                                "nomenclature_path":
+                                SCF.serviceConfigFile(self.cfg).getParam(
+                                    "chain", "nomenclaturePath"),
+                                "output_statistics":
+                                SCF.serviceConfigFile(self.cfg).getParam(
+                                    'chain', 'outputStatistics'),
+                                "spatial_resolution":
+                                SCF.serviceConfigFile(self.cfg).getParam(
+                                    "chain", "spatialResolution"),
+                                "proba_map_flag":
+                                SCF.serviceConfigFile(self.cfg).getParam(
+                                    "argClassification",
+                                    "enable_probability_map"),
+                                "region_shape":
+                                SCF.serviceConfigFile(self.cfg).getParam(
+                                    'chain', 'regionPath'),
+                                "color_path":
+                                self.color_table
+                            },
+                            task_resources=self.resources)
+
+        dep_group = "tile_tasks_model_mode"
+        if ds_sar_opt or (classif_mode == "fusion" and shape_region):
+            dep_group = "tile_tasks_model"
+
+        dependencies = []
+        for model_name, model_meta in self.spatial_models_distribution_no_sub_splits.items(
+        ):
+            for seed in range(self.runs):
+                for tile in model_meta["tiles"]:
+                    if dep_group == "tile_tasks_model_mode":
+                        dependencies.append(
+                            f"{tile}_{model_name}_{seed}_usually")
+                    else:
+                        dependencies.append(f"{tile}_{model_name}_{seed}")
+
+        self.add_task_to_i2_processing_graph(task,
+                                             task_group="mosaic",
+                                             task_sub_group=f"mosaic",
+                                             task_dep_group=dep_group,
+                                             task_dep_sub_group=dependencies)
 
     @classmethod
     def step_description(cls):

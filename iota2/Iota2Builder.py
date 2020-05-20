@@ -653,6 +653,8 @@ class iota2():
                 "classification")
 
         # mosaic step
-        # s_container.append(step_mosaic, "mosaic")
+        s_container.append(
+            partial(mosaic.mosaic, cfg, config_ressources,
+                    self.workingDirectory), "mosaic")
 
         return s_container
