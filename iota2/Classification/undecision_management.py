@@ -22,6 +22,7 @@ import shutil
 from typing import List, Optional, Tuple
 from iota2.Common import FileUtils as fu
 from iota2.Common.Utils import run
+from iota2.Learning import TrainingCmd
 
 
 def get_model_in_classif(item: str) -> str:
@@ -276,7 +277,6 @@ def get_nb_split_shape(model: str, config_model_path: str) -> int:
     return max(fold)
 
 
-# def noData(pathTest, pathFusion, fieldRegion, pathToImg, pathToRegion, N, cfg,
 def undecision_management(path_test: str,
                           path_fusion: str,
                           field_region: str,
@@ -307,10 +307,18 @@ def undecision_management(path_test: str,
     pix_type: string
     user_feat_pattern: string
     ds_sar_opt: bool
+
     Return
     ------
     None
     """
+
+    path_to_model_config = os.path.join(path_test, "config_model",
+                                        "configModel.cfg")
+    config_model_rep = TrainingCmd.config_model(path_test, field_region)
+    if not os.path.exists(path_to_model_config):
+        with open(path_to_model_config, "w") as config_file:
+            config_file.write(config_model_rep)
 
     stack_ind = fu.get_feat_stack_name(list_indices, user_feat_path,
                                        user_feat_pattern)
