@@ -1,6 +1,9 @@
 import numpy as np
 
 
+# ############################################################################
+# S2 tests utilities functions
+# ############################################################################
 def get_identity(self):
     # print("get identity")
     # print(self.get_B2())
@@ -54,7 +57,6 @@ def get_ndsi(self):
 
 
 def get_cari(self):
-    import numpy as np
     a = ((self.get_Sentinel2_B5() - self.get_Sentinel2_B3()) /
          150) * 670 + self.get_Sentinel2_B4() + (self.get_Sentinel2_B3() - (
              (self.get_Sentinel2_B5() - self.get_Sentinel2_B3()) / 150) * 550)
@@ -94,6 +96,11 @@ def get_soi(self):
     return coef, labels
 
 
+# ############################################################################
+# DHI INDEX
+# ############################################################################
+
+
 def get_cumulative_productivity(self):
     print("cumul")
     coef = np.sum(self.get_Sentinel2_NDVI(), axis=2)
@@ -114,4 +121,69 @@ def get_seasonal_variation(self):
             (np.mean(self.get_Sentinel2_NDVI(), axis=2) + 1E-6))
 
     labels = ["var_prod"]
+    return coef, labels
+
+
+# ###########################################################################
+# Functions for testing all sensors
+# ###########################################################################
+
+
+def test_index_sum_l5_old(self):
+    coef = self.get_Landsat5Old_B2() + self.get_Landsat5Old_B4()
+    labels = []
+    return np.sum(coef, axis=2), labels
+
+
+def test_index_l5_old(self):
+    coef = self.get_Landsat5Old_B2() + self.get_Landsat5Old_B4()
+    labels = []
+    return coef, labels
+
+
+def test_index_sum_l8_old(self):
+    coef = self.get_Landsat8Old_B2() + self.get_Landsat8Old_B4()
+    labels = []
+    return np.sum(coef, axis=2), labels
+
+
+def test_index_l8_old(self):
+    coef = self.get_Landsat8Old_B2() + self.get_Landsat8Old_B4()
+    labels = []
+    return coef, labels
+
+
+def test_index_sum_l8(self):
+    coef = self.get_Landsat8_B2() + self.get_Landsat8_B4()
+    labels = []
+    return np.sum(coef, axis=2), labels
+
+
+def test_index_l8(self):
+    coef = self.get_Landsat8_B2() + self.get_Landsat8_B4()
+    labels = []
+    return coef, labels
+
+
+def test_index_sum_s2_s2c(self):
+    coef = self.get_Sentinel2S2C_B2() + self.get_Sentinel2S2C_B4()
+    labels = []
+    return np.sum(coef, axis=2), labels
+
+
+def test_index_s2_s2c(self):
+    coef = self.get_Sentinel2S2C_B2() + self.get_Sentinel2S2C_B4()
+    labels = []
+    return coef, labels
+
+
+def test_index_sum_s2_l3a(self):
+    coef = self.get_Sentinel2L3A_B2() + self.get_Sentinel2L3A_B4()
+    labels = []
+    return np.sum(coef, axis=2), labels
+
+
+def test_index_s2_l3a(self):
+    coef = self.get_Sentinel2L3A_B2() + self.get_Sentinel2L3A_B4()
+    labels = []
     return coef, labels
