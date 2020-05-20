@@ -19,6 +19,7 @@ import shutil
 import logging
 from typing import List
 from iota2.Common import FileUtils as fu
+from iota2.Common.Utils import run
 
 LOGGER = logging.getLogger(__name__)
 
@@ -584,90 +585,10 @@ def dempster_shafer_fusion(iota2_dir,
     return sar_opt_fus, confidence_fus, proba_map_fus, ds_choice
 
 
-def fusion(pathClassif: str, N: int, allTiles: List[str], fusionOptions: str,
-           nomenclature_path: str, region_vec: str, ds_sar_opt: bool,
-           pathWd: str) -> List[str]:
-    """generate otb fusion commands by parsing the iota2 classifications
-    directory
-
-    Parameters
-    ----------
-    pathClassif: str
-        path to the iota2 classification directory
-    N: int
-        number of random seeds to split learnging / validation
-        samples
-    allTiles: list
-        list of tiles to consider
-    fusionOptions: str
-        fusion options of FusionOfClassifications otb application
-    nomenclature_path: str
-        nomenclature file
-    region_vec: str
-        region shapeFile database
-    ds_sar_opt: bool
-        flag to inform if the sar optical post classification
-        workflow is enable
-    pathWd: str
-        working directory path
-
-    Return
-    ------
-    list
-        list of commands as strings
+def fusion(in_classif: List[str], fusion_options: str, out_classif: str,
+           out_pix_type: str):
     """
-
-    pathWd = None
-    pix_type = fu.getOutputPixType(nomenclature_path)
-
-    classification_suffix_pattern = ""
-    if ds_sar_opt:
-        classification_suffix_pattern = "_DS"
-    if region_vec:
-        all_classif = fu.fileSearchRegEx(pathClassif +
-                                         "/Classif_*_model_*f*_seed_*" +
-                                         classification_suffix_pattern +
-                                         ".tif")
-        allTiles = []
-        models = []
-        for classif in all_classif:
-            mod = classif.split("/")[-1].split("_")[3].split("f")[0]
-            tile = classif.split("/")[-1].split("_")[1]
-            if mod not in models:
-                models.append(mod)
-            if tile not in allTiles:
-                allTiles.append(tile)
-    all_cmd = []
-    for seed in range(N):
-        for tile in allTiles:
-            directory_out = pathClassif
-            if pathWd != None:
-                directory_out = "$TMPDIR"
-            if region_vec is None:
-                classifPath = fu.FileSearch_AND(
-                    pathClassif, True, "Classif_" + tile, "seed_" + str(seed) +
-                    classification_suffix_pattern + ".tif")
-                allPathFusion = " ".join(classifPath)
-                cmd = "otbcli_FusionOfClassifications -il " + allPathFusion + " " + fusionOptions + " -out " + directory_out + "/" + tile + "_FUSION_seed_" + str(
-                    seed) + ".tif"
-                all_cmd.append(cmd)
-            else:
-                for mod in models:
-                    classifPath = fu.fileSearchRegEx(
-                        pathClassif + "/Classif_" + tile + "_model_" + mod +
-                        "f*_seed_" + str(seed) +
-                        classification_suffix_pattern + ".tif")
-                    if len(classifPath) != 0:
-                        allPathFusion = " ".join(classifPath)
-                        cmd = "otbcli_FusionOfClassifications -il " + allPathFusion + " " + fusionOptions + " -out " + directory_out + "/" + tile + "_FUSION_model_" + mod + "_seed_" + str(
-                            seed) + ".tif " + pix_type
-                        all_cmd.append(cmd)
-
-    tmp = pathClassif.split("/")
-    if pathClassif[-1] == "/":
-        del tmp[-1]
-    tmp[-1] = "cmd/fusion"
-    path_to_cmd_fusion = "/".join(tmp)
-    fu.writeCmds(path_to_cmd_fusion + "/fusion.txt", all_cmd)
-
-    return all_cmd
+    """
+    in_classif = " ".join(in_classif)
+    cmd = f"otbcli_FusionOfClassifications -il {in_classif} {fusion_options} -out {out_classif} {out_pix_type}"
+    run(cmd)
