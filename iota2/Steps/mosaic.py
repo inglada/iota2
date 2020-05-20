@@ -92,26 +92,29 @@ class mosaic(IOTA2Step.Step):
                             },
                             task_resources=self.resources)
 
-        dep_group = "tile_tasks_model_mode"
-        if ds_sar_opt or (classif_mode == "fusion" and shape_region):
-            dep_group = "tile_tasks_model"
-
-        dependencies = []
+        dependencies = {}
         for model_name, model_meta in self.spatial_models_distribution_no_sub_splits.items(
         ):
             for seed in range(self.runs):
+                model_subdivisions = model_meta["nb_sub_model"]
+                dep_group = "tile_tasks_model"
+                if model_subdivisions == 1:
+                    dep_group = "tile_tasks_model_mode"
+                if ds_sar_opt:
+                    dep_group = "tile_tasks_model"
+                if not dep_group in dependencies:
+                    dependencies[dep_group] = []
                 for tile in model_meta["tiles"]:
                     if dep_group == "tile_tasks_model_mode":
-                        dependencies.append(
+                        dependencies[dep_group].append(
                             f"{tile}_{model_name}_{seed}_usually")
                     else:
-                        dependencies.append(f"{tile}_{model_name}_{seed}")
-
-        self.add_task_to_i2_processing_graph(
-            task,
-            task_group="mosaic",
-            task_sub_group=f"mosaic",
-            task_dep_dico={dep_group: dependencies})
+                        dependencies[dep_group].append(
+                            f"{tile}_{model_name}_{seed}")
+        self.add_task_to_i2_processing_graph(task,
+                                             task_group="mosaic",
+                                             task_sub_group=f"mosaic",
+                                             task_dep_dico=dependencies)
 
     @classmethod
     def step_description(cls):

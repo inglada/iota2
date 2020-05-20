@@ -87,9 +87,8 @@ class classificationsFusion(IOTA2Step.Step):
                         if self.dempster_shafer_SAR_Opt_fusion:
                             task_dep_group = "tile_tasks_model"
                             task_dep_sub_group = [
-                                f"{tile}_model_{model_name}f{sub_model+1}_seed_{seed}"
-                                for sub_model in range(
-                                    model_meta["nb_sub_model"])
+                                f"{tile}_{model_name}f{sub_model+1}_{seed}" for
+                                sub_model in range(model_meta["nb_sub_model"])
                             ]
                         self.add_task_to_i2_processing_graph(
                             task,

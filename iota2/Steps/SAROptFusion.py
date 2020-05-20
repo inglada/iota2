@@ -73,7 +73,7 @@ class SAROptFusion(IOTA2Step.Step):
                     self.add_task_to_i2_processing_graph(
                         task,
                         task_group="tile_tasks_model",
-                        task_sub_group=f"{tile}_model_{model_name}_seed_{seed}",
+                        task_sub_group=f"{tile}_{model_name}_{seed}",
                         task_dep_dico={
                             "region_tasks": [
                                 f"model_{model_name}_seed_{seed}_usually",

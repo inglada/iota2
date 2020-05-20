@@ -460,14 +460,28 @@ class iota2():
         # }
 
         self.tiles = ["T31TCJ"]
+        # self.model_spatial_distrib = {
+        #     '1f1': {
+        #         'tiles': ["T31TCJ"]
+        #     },
+        #     '1f2': {
+        #         'tiles': ["T31TCJ"]
+        #     },
+        #     '1f3': {
+        #         'tiles': ["T31TCJ"]
+        #     },
+        #     '2f1': {
+        #         'tiles': ['T31TCJ']
+        #     },
+        #     '2f2': {
+        #         'tiles': ['T31TCJ']
+        #     },
+        #     '2f3': {
+        #         'tiles': ['T31TCJ']
+        #     }
+        # }
         self.model_spatial_distrib = {
-            '1f1': {
-                'tiles': ["T31TCJ"]
-            },
-            '1f2': {
-                'tiles': ["T31TCJ"]
-            },
-            '1f3': {
+            '1': {
                 'tiles': ["T31TCJ"]
             },
             '2f1': {
