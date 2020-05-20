@@ -647,7 +647,10 @@ class iota2():
                 partial(classificationsFusion.classificationsFusion, cfg,
                         config_ressources, self.workingDirectory),
                 "classification")
-        #     s_container.append(step_manage_fus_indecision, "classification")
+            s_container.append(
+                partial(fusionsIndecisions.fusionsIndecisions, cfg,
+                        config_ressources, self.workingDirectory),
+                "classification")
 
         # mosaic step
         # s_container.append(step_mosaic, "mosaic")
