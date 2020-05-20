@@ -515,8 +515,9 @@ def merge_rasters(
         merged array, rasterio output transform
     """
     from iota2.Common.FileUtils import assembleTile_Merge
-
-    assembleTile_Merge(rasters, 10, output_path, ot="Int16", co=None)
+    from iota2.Common.FileUtils import getRasterResolution
+    res_x, _ = getRasterResolution(rasters[0])
+    assembleTile_Merge(rasters, res_x, output_path, ot="Int16", co=None)
     # ~ rasters_datasets = [rasterio.open(raster) for raster in rasters]
     # ~ out_arr, out_trans = merge(rasters_datasets)
     # ~ if output_path:
