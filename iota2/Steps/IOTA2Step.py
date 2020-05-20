@@ -20,6 +20,7 @@ from functools import wraps
 from typing import Dict, Optional
 from dask.distributed import Client
 from dask_jobqueue import PBSCluster
+from typing import List
 
 LOGGER = logging.getLogger(__name__)
 
@@ -353,7 +354,7 @@ class Step(object):
             task_group: str,
             task_sub_group: Optional[str] = None,
             task_dep_group: Optional[str] = None,
-            task_dep_sub_group: Optional[str] = None) -> None:
+            task_dep_sub_group: Optional[List[str]] = None) -> None:
         """
         """
         new_task = None
