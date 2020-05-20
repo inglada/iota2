@@ -119,10 +119,11 @@ class Coregistration(IOTA2Step.Step):
                     sensors_parameters.get_sensors_parameters(tile)
                 },
                 task_resources=self.resources)
-            self.add_task_to_i2_processing_graph(task,
-                                                 task_group="tile_tasks",
-                                                 task_sub_group=tile,
-                                                 task_dep_group="first_task")
+            self.add_task_to_i2_processing_graph(
+                task,
+                task_group="tile_tasks",
+                task_sub_group=tile,
+                task_dep_dico={"first_task": []})
 
     @classmethod
     def step_description(cls):

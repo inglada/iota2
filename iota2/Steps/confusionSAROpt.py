@@ -80,10 +80,10 @@ class confusionSAROpt(IOTA2Step.Step):
                             task_group="tile_tasks_model_mode",
                             task_sub_group=
                             f"{tile}_{model_name}_{seed}_{suffix}",
-                            task_dep_group="tile_tasks_model_mode",
-                            task_dep_sub_group=[
-                                f"{tile}_{model_name}_{seed}_{suffix}"
-                            ])
+                            task_dep_dico={
+                                "tile_tasks_model_mode":
+                                [f"{tile}_{model_name}_{seed}_{suffix}"]
+                            })
 
     @classmethod
     def step_description(cls):

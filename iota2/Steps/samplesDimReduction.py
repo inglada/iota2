@@ -79,14 +79,14 @@ class samplesDimReduction(IOTA2Step.Step):
                             self.reductionMode
                         },
                         task_resources=self.resources)
+                    dep_key = "region_tasks" if not seed_granularity else "seed_tasks"
+                    dep_values = [target_model
+                                  ] if not seed_granularity else [seed]
                     self.add_task_to_i2_processing_graph(
                         task,
                         task_group="region_tasks",
                         task_sub_group=f"{target_model}",
-                        task_dep_group="region_tasks"
-                        if not seed_granularity else "seed_tasks",
-                        task_dep_sub_group=[target_model]
-                        if not seed_granularity else [seed])
+                        task_dep_dico={dep_key: dep_values})
 
     @classmethod
     def step_description(cls):

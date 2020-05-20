@@ -75,14 +75,14 @@ class samplesByTiles(IOTA2Step.Step):
                                     self.workingDirectory
                                 },
                                 task_resources=self.resources)
+            dep_key = "tile_tasks_model" if enable_autocontext else "region_tasks"
+            dep_values = tiles_model_distribution[
+                tile] if enable_autocontext else model_distribution[tile]
             self.add_task_to_i2_processing_graph(
                 task,
                 task_group="tile_tasks",
                 task_sub_group=tile,
-                task_dep_group="tile_tasks_model"
-                if enable_autocontext else "region_tasks",
-                task_dep_sub_group=tiles_model_distribution[tile]
-                if enable_autocontext else model_distribution[tile])
+                task_dep_dico={dep_key: dep_values})
 
     @classmethod
     def step_description(cls):

@@ -90,8 +90,10 @@ class fusionsIndecisions(IOTA2Step.Step):
                             task,
                             task_group="tile_tasks_model",
                             task_sub_group=f"{tile}_{model_name}_{seed}",
-                            task_dep_group="tile_tasks_model",
-                            task_dep_sub_group=[f"{tile}_{model_name}_{seed}"])
+                            task_dep_dico={
+                                "tile_tasks_model":
+                                [f"{tile}_{model_name}_{seed}"]
+                            })
 
     @classmethod
     def step_description(cls):

@@ -65,11 +65,11 @@ class splitSamples(IOTA2Step.Step):
                 self.workingDirectory
             },
             task_resources=self.resources)
-        self.add_task_to_i2_processing_graph(task,
-                                             task_group="vector",
-                                             task_sub_group="vector",
-                                             task_dep_group="tile_tasks",
-                                             task_dep_sub_group=self.tiles)
+        self.add_task_to_i2_processing_graph(
+            task,
+            task_group="vector",
+            task_sub_group="vector",
+            task_dep_dico={"tile_tasks": self.tiles})
 
     @classmethod
     def step_description(cls):

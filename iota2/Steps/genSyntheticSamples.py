@@ -78,14 +78,14 @@ class genSyntheticSamples(IOTA2Step.Step):
                             "workingDirectory": self.working_directory
                         },
                         task_resources=self.resources)
+                    dep_key = "seed_tasks" if transfert_samples else "region_tasks"
+                    dep_values = [seed
+                                  ] if transfert_samples else [target_model]
                     self.add_task_to_i2_processing_graph(
                         task,
                         task_group="region_tasks",
                         task_sub_group=f"{target_model}",
-                        task_dep_group="seed_tasks"
-                        if transfert_samples else "region_tasks",
-                        task_dep_sub_group=[seed]
-                        if transfert_samples else [target_model])
+                        task_dep_dico={dep_key: dep_values})
 
     @classmethod
     def step_description(cls):

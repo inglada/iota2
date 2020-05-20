@@ -78,8 +78,7 @@ class copySamples(IOTA2Step.Step):
                 task,
                 task_group="seed_tasks",
                 task_sub_group=seed,
-                task_dep_group="region_tasks",
-                task_dep_sub_group=models_by_seeds[seed]["dep"])
+                task_dep_dico={"region_tasks": models_by_seeds[seed]["dep"]})
 
     @classmethod
     def step_description(cls):

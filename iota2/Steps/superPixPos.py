@@ -108,8 +108,7 @@ class superPixPos(IOTA2Step.Step):
                         task,
                         task_group="tile_tasks_model",
                         task_sub_group=f"{tile}_{model_name}_{seed}",
-                        task_dep_group="region_tasks",
-                        task_dep_sub_group=[target_model])
+                        task_dep_dico={"region_tasks": [target_model]})
 
     @classmethod
     def step_description(cls):

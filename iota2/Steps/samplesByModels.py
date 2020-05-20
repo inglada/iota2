@@ -73,8 +73,7 @@ class samplesByModels(IOTA2Step.Step):
                         task,
                         task_group="region_tasks",
                         task_sub_group=f"{target_model}",
-                        task_dep_group="tile_tasks",
-                        task_dep_sub_group=dependencies)
+                        task_dep_dico={"tile_tasks": dependencies})
 
     def expected_files_to_merge(self) -> Dict[str, List[str]]:
         """

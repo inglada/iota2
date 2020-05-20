@@ -74,11 +74,12 @@ class SAROptFusion(IOTA2Step.Step):
                         task,
                         task_group="tile_tasks_model",
                         task_sub_group=f"{tile}_model_{model_name}_seed_{seed}",
-                        task_dep_group="region_tasks",
-                        task_dep_sub_group=[
-                            f"model_{model_name}_seed_{seed}_usually",
-                            f"model_{model_name}_seed_{seed}_SAR"
-                        ])
+                        task_dep_dico={
+                            "region_tasks": [
+                                f"model_{model_name}_seed_{seed}_usually",
+                                f"model_{model_name}_seed_{seed}_SAR"
+                            ]
+                        })
 
     @classmethod
     def step_description(cls):

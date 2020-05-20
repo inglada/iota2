@@ -618,7 +618,7 @@ class iota2():
         s_container.append(
             partial(learnModel.learnModel, cfg, config_ressources,
                     self.workingDirectory), "learning")
-
+        # classifications
         s_container.append(
             partial(classification.classification, cfg, config_ressources,
                     self.workingDirectory), "classification")
@@ -633,7 +633,6 @@ class iota2():
                 partial(confusionSAROpt.confusionSAROpt, cfg,
                         config_ressources, self.workingDirectory),
                 "classification")
-
             s_container.append(
                 partial(confusionSAROptMerge.confusionSAROptMerge, cfg,
                         config_ressources, self.workingDirectory),

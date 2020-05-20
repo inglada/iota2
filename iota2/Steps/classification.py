@@ -26,7 +26,7 @@ from iota2.Classification.ImageClassifier import autoContext_launch_classif
 
 class classification(IOTA2Step.Step):
     # ~ TODO : find a smarted way to determine the attribute self.scikit_tile_split
-    scikit_tile_split = 50
+    scikit_tile_split = 5
 
     def __init__(self, cfg, cfg_resources_file, workingDirectory=None):
         # heritage init
@@ -98,8 +98,9 @@ class classification(IOTA2Step.Step):
                                     task_group="tile_tasks_model_mode",
                                     task_sub_group=
                                     f"{tile}_{model_name}_{seed}_{suffix}_{chunk}",
-                                    task_dep_group="region_tasks",
-                                    task_dep_sub_group=[target_model])
+                                    task_dep_dico={
+                                        "region_tasks": [target_model]
+                                    })
                         else:
                             task = self.i2_task(
                                 task_name=task_name,
@@ -112,8 +113,7 @@ class classification(IOTA2Step.Step):
                                 task_group="tile_tasks_model_mode",
                                 task_sub_group=
                                 f"{tile}_{model_name}_{seed}_{suffix}",
-                                task_dep_group="region_tasks",
-                                task_dep_sub_group=[target_model])
+                                task_dep_dico={"region_tasks": [target_model]})
 
     def get_classification_params(self,
                                   region_name: str,

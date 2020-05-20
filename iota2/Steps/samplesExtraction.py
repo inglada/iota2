@@ -172,8 +172,7 @@ class samplesExtraction(IOTA2Step.Step):
                         task,
                         task_group="tile_tasks",
                         task_sub_group=f"{tile}_{suffix}",
-                        task_dep_group="tile_tasks",
-                        task_dep_sub_group=[tile])
+                        task_dep_dico={"tile_tasks": [tile]})
 
     @classmethod
     def step_description(cls):

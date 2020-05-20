@@ -80,8 +80,7 @@ class superPixSplit(IOTA2Step.Step):
                             task_group="tile_tasks_model",
                             task_sub_group=
                             f"{tile}_{model_name}_seed_{seed}_{suffix}",
-                            task_dep_group="tile_tasks",
-                            task_dep_sub_group=[f"{tile}_{suffix}"])
+                            task_dep_dico={"tile_tasks": [f"{tile}_{suffix}"]})
 
     @classmethod
     def step_description(cls):

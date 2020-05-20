@@ -118,18 +118,18 @@ class learnModel(IOTA2Step.Step):
                                         execution_mode=self.execution_mode,
                                         task_parameters=task_params,
                                         task_resources=self.resources)
+                    dep_key = "region_tasks" if self.enable_autoContext is False else "tile_tasks_model"
+                    dep_values = [
+                        target_model
+                    ] if self.enable_autoContext is False else [
+                        f"{tile}_{model_name}_seed_{seed}_{suffix}"
+                        for tile in model_meta["tiles"]
+                    ]
                     self.add_task_to_i2_processing_graph(
                         task,
                         task_group="region_tasks",
                         task_sub_group=f"{target_model}",
-                        task_dep_group="region_tasks"
-                        if self.enable_autoContext is False else
-                        "tile_tasks_model",
-                        task_dep_sub_group=[target_model]
-                        if self.enable_autoContext is False else [
-                            f"{tile}_{model_name}_seed_{seed}_{suffix}"
-                            for tile in model_meta["tiles"]
-                        ])
+                        task_dep_dico={dep_key: dep_values})
 
     def get_learning_i2_task_parameters(self, vector_file: str,
                                         output_model: str, model_name: str,

@@ -69,13 +69,14 @@ class samplesMerge(IOTA2Step.Step):
                         self.working_directory
                     },
                     task_resources=self.resources)
+
+                dep_key = "vector" if huge_models else "tile_tasks"
+                dep_values = ["vector"] if huge_models else model_meta["tiles"]
                 self.add_task_to_i2_processing_graph(
                     task,
                     task_group="region_tasks",
                     task_sub_group=target_model,
-                    task_dep_group="vector" if huge_models else "tile_tasks",
-                    task_dep_sub_group=["vector"]
-                    if huge_models else model_meta["tiles"])
+                    task_dep_dico={dep_key: dep_values})
 
     @classmethod
     def step_description(cls):

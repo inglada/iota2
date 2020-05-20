@@ -80,11 +80,12 @@ class samplingLearningPolygons(IOTA2Step.Step):
                     task,
                     task_group="region_tasks",
                     task_sub_group=target_model,
-                    task_dep_group="tile_tasks_model",
-                    task_dep_sub_group=[
-                        f"{tile}_{model_name}_{seed}"
-                        for tile in model_meta["tiles"]
-                    ])
+                    task_dep_dico={
+                        "tile_tasks_model": [
+                            f"{tile}_{model_name}_{seed}"
+                            for tile in model_meta["tiles"]
+                        ]
+                    })
 
     @classmethod
     def step_description(cls):

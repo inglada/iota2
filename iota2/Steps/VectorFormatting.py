@@ -97,11 +97,11 @@ class VectorFormatting(IOTA2Step.Step):
                     "working_directory": self.working_directory
                 },
                 task_resources=self.resources)
-            self.add_task_to_i2_processing_graph(task,
-                                                 task_group="tile_tasks",
-                                                 task_sub_group=tile,
-                                                 task_dep_group="vector",
-                                                 task_dep_sub_group=["vector"])
+            self.add_task_to_i2_processing_graph(
+                task,
+                task_group="tile_tasks",
+                task_sub_group=tile,
+                task_dep_dico={"vector": ["vector"]})
 
     @classmethod
     def step_description(cls):

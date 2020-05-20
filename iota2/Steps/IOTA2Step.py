@@ -17,10 +17,9 @@ import os
 import dask
 import logging
 from functools import wraps
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 from dask.distributed import Client
 from dask_jobqueue import PBSCluster
-from typing import List
 
 LOGGER = logging.getLogger(__name__)
 
@@ -353,8 +352,7 @@ class Step(object):
             task,
             task_group: str,
             task_sub_group: Optional[str] = None,
-            task_dep_group: Optional[str] = None,
-            task_dep_sub_group: Optional[List[str]] = None) -> None:
+            task_dep_dico: Optional[Dict[str, List[str]]] = None) -> None:
         """
         """
         new_task = None
@@ -379,9 +377,11 @@ class Step(object):
             self.tasks_graph_figure["first_task"] = new_task_figure
         else:
             # second step case, then the dependency is the "first_task"
-            if task_dep_sub_group is None:
+            dep_granularity_names = list(task_dep_dico.keys())
+            if len(dep_granularity_names) == 1 and task_dep_dico[
+                    dep_granularity_names[0]] == []:
                 new_task = dask.delayed(self.task_launcher)(
-                    self.tasks_graph[task_dep_group],
+                    self.tasks_graph[dep_granularity_names[0]],
                     log_err=task.log_err,
                     log_out=task.log_out,
                     scheduler_type=task.execution_mode,
@@ -390,14 +390,22 @@ class Step(object):
                     task_kwargs=task.parameters)
                 new_task_figure = dask.delayed(
                     change_name(task.task_name)(self.trace_graph))(
-                        self.tasks_graph_figure[task_dep_group])
+                        self.tasks_graph_figure[dep_granularity_names[0]])
 
             elif len(self.step_container) != 1:
+                dep_list = []
+                dep_list_figure = []
+                for dep_granularity_name, dep_tasks_names in task_dep_dico.items(
+                ):
+                    for dep_task in dep_tasks_names:
+                        dep_list.append(
+                            self.tasks_graph[dep_granularity_name][dep_task])
+                        dep_list_figure.append(
+                            self.tasks_graph_figure[dep_granularity_name]
+                            [dep_task])
+
                 new_task = dask.delayed(self.task_launcher)(
-                    *[
-                        self.tasks_graph[task_dep_group][dep]
-                        for dep in task_dep_sub_group
-                    ],
+                    *dep_list,
                     log_err=task.log_err,
                     log_out=task.log_out,
                     scheduler_type=task.execution_mode,
@@ -405,10 +413,8 @@ class Step(object):
                     resources=task.resources,
                     task_kwargs=task.parameters)
                 new_task_figure = dask.delayed(
-                    change_name(task.task_name)(self.trace_graph))(*[
-                        self.tasks_graph_figure[task_dep_group][dep]
-                        for dep in task_dep_sub_group
-                    ])
+                    change_name(task.task_name)(
+                        self.trace_graph))(*dep_list_figure)
             else:
                 new_task = dask.delayed(self.task_launcher)(
                     log_err=task.log_err,

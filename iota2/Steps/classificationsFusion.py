@@ -95,8 +95,7 @@ class classificationsFusion(IOTA2Step.Step):
                             task,
                             task_group="tile_tasks_model",
                             task_sub_group=f"{tile}_{model_name}_{seed}",
-                            task_dep_group=task_dep_group,
-                            task_dep_sub_group=task_dep_sub_group)
+                            task_dep_dico={task_dep_group: task_dep_sub_group})
 
     @classmethod
     def step_description(cls):

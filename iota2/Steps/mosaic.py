@@ -107,11 +107,11 @@ class mosaic(IOTA2Step.Step):
                     else:
                         dependencies.append(f"{tile}_{model_name}_{seed}")
 
-        self.add_task_to_i2_processing_graph(task,
-                                             task_group="mosaic",
-                                             task_sub_group=f"mosaic",
-                                             task_dep_group=dep_group,
-                                             task_dep_sub_group=dependencies)
+        self.add_task_to_i2_processing_graph(
+            task,
+            task_group="mosaic",
+            task_sub_group=f"mosaic",
+            task_dep_dico={dep_group: dependencies})
 
     @classmethod
     def step_description(cls):

@@ -76,11 +76,12 @@ class ScikitClassificationsMerge(IOTA2Step.Step):
                             task_group="tile_tasks_model_mode",
                             task_sub_group=
                             f"{tile}_{model_name}_{seed}_{suffix}",
-                            task_dep_group="tile_tasks_model_mode",
-                            task_dep_sub_group=[
-                                f"{tile}_{model_name}_{seed}_{suffix}_{chunk}"
-                                for chunk in range(self.number_of_chunks)
-                            ])
+                            task_dep_dico={
+                                "tile_tasks_model_mode": [
+                                    f"{tile}_{model_name}_{seed}_{suffix}_{chunk}"
+                                    for chunk in range(self.number_of_chunks)
+                                ]
+                            })
 
     def get_param(self, model_name: str, seed: int, suffix: str,
                   tile_name: str) -> Tuple[List[str], str]:
