@@ -460,27 +460,27 @@ class iota2():
         # }
 
         self.tiles = ["T31TCJ"]
-        # self.model_spatial_distrib = {
-        #     '1f1': {
-        #         'tiles': ["T31TCJ"]
-        #     },
-        #     '1f2': {
-        #         'tiles': ["T31TCJ"]
-        #     },
-        #     '1f3': {
-        #         'tiles': ["T31TCJ"]
-        #     },
-        #     '2f1': {
-        #         'tiles': ['T31TCJ']
-        #     },
-        #     '2f2': {
-        #         'tiles': ['T31TCJ']
-        #     },
-        #     '2f3': {
-        #         'tiles': ['T31TCJ']
-        #     }
-        # }
-        self.model_spatial_distrib = {'1': {'tiles': ["T31TCJ"]}}
+        self.model_spatial_distrib = {
+            '1f1': {
+                'tiles': ["T31TCJ"]
+            },
+            '1f2': {
+                'tiles': ["T31TCJ"]
+            },
+            '1f3': {
+                'tiles': ["T31TCJ"]
+            },
+            '2f1': {
+                'tiles': ['T31TCJ']
+            },
+            '2f2': {
+                'tiles': ['T31TCJ']
+            },
+            '2f3': {
+                'tiles': ['T31TCJ']
+            }
+        }
+        # self.model_spatial_distrib = {'1': {'tiles': ["T31TCJ"]}}
 
         Step.set_models_spatial_information(self.tiles,
                                             self.model_spatial_distrib)
@@ -641,4 +641,15 @@ class iota2():
             s_container.append(
                 partial(SAROptFusion.SAROptFusion, cfg, config_ressources,
                         self.workingDirectory), "classification")
+
+        if classif_mode == "fusion" and shapeRegion:
+            s_container.append(
+                partial(classificationsFusion.classificationsFusion, cfg,
+                        config_ressources, self.workingDirectory),
+                "classification")
+        #     s_container.append(step_manage_fus_indecision, "classification")
+
+        # mosaic step
+        # s_container.append(step_mosaic, "mosaic")
+
         return s_container
