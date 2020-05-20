@@ -194,6 +194,20 @@ class Step(object):
         cls.tiles = tiles
         cls.spatial_models_distribution = spatial_models_distribution
 
+        cls.spatial_models_distribution_no_sub_splits = {}
+        for model_name, model_meta in spatial_models_distribution.items():
+            model = model_name
+            if "f" in model_name:
+                model = model_name.split("f")[0]
+
+            if model not in cls.spatial_models_distribution_no_sub_splits:
+                cls.spatial_models_distribution_no_sub_splits[
+                    model] = model_meta
+                cls.spatial_models_distribution_no_sub_splits[model][
+                    "nb_sub_model"] = 0
+            cls.spatial_models_distribution_no_sub_splits[model][
+                "nb_sub_model"] += 1
+
     @classmethod
     def get_exec_graph(cls):
         """
