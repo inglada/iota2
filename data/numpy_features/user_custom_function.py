@@ -166,13 +166,13 @@ def test_index_l8(self):
 
 
 def test_index_sum_s2_s2c(self):
-    coef = self.get_Sentinel2S2C_B2() + self.get_Sentinel2S2C_B4()
+    coef = self.get_Sentinel2S2C_B02() + self.get_Sentinel2S2C_B04()
     labels = []
     return np.sum(coef, axis=2), labels
 
 
 def test_index_s2_s2c(self):
-    coef = self.get_Sentinel2S2C_B2() + self.get_Sentinel2S2C_B4()
+    coef = self.get_Sentinel2S2C_B02() + self.get_Sentinel2S2C_B04()
     labels = []
     return coef, labels
 

@@ -327,7 +327,7 @@ class iota_tests_runs_case(unittest.TestCase):
 
         # Launch the chain
         TUI.iota2_test_launcher(config_test)
-        self.assertTrue(False)
+
         self.assertTrue(
             FileSearch_AND(os.path.join(running_output_path, "final"), True,
                            "Classif_Seed_0_ColorIndexed.tif"))
