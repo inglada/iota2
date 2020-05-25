@@ -28,110 +28,6 @@ from iota2.Common.Utils import run
 LOGGER = logging.getLogger(__name__)
 
 
-def create_dummy_rasters(missing_tiles: List[str], runs: int,
-                         output_path: str) -> None:
-    """
-    Parameters
-    ----------
-    missing_tiles: list(string)
-    runs: int
-    output_path: string
-    Return
-    ------
-    None
-    Notes
-    -----
-    use when mode is 'one_region' but there is no validations / learning
-    samples into a specific tile
-    """
-
-    classifications_dir = os.path.join(output_path, "classif")
-    final_dir = os.path.join(output_path, "final", "TMP")
-
-    for tile in missing_tiles:
-        classif_tile = fu.FileSearch_AND(classifications_dir, True,
-                                         "Classif_" + str(tile))[0]
-        for seed in range(runs):
-            dummy_raster_name = tile + "_seed_" + str(seed) + "_CompRef.tif"
-            dummy_raster = final_dir + "/" + dummy_raster_name
-            dummy_raster_cmd = (f"gdal_merge.py -ot Byte -n 0 -createonly -o "
-                                f"{ dummy_raster} {classif_tile}")
-            run(dummy_raster_cmd)
-
-
-def compare_ref(shape_ref: str, shape_learn: str, classif: str, diff: str,
-                working_directory: str, path_wd: str, data_field: str,
-                spatial_res: int):
-    """
-    Parameters
-    ----------
-    shape_ref: string
-    shape_learn: string
-    classif: string
-    diff: string
-    working_directory: string
-    path_wd: string
-    data_field: string
-    spatial_res: string
-    Return
-    ------
-    string
-    """
-    min_x, max_x, min_y, max_y = fu.getRasterExtent(classif)
-    shape_raster_val = working_directory + os.sep + shape_ref.split(
-        "/")[-1].replace(".sqlite", ".tif")
-    shape_raster_learn = working_directory + os.sep + shape_learn.split(
-        "/")[-1].replace(".sqlite", ".tif")
-
-    # Rasterise val
-    shape_ref_table_name = os.path.splitext(
-        os.path.split(shape_ref)[-1])[0].lower()
-    cmd = (f"gdal_rasterize -l {shape_ref_table_name} -a {data_field} -init 0 "
-           f"-tr {spatial_res} {spatial_res} {shape_ref} {shape_raster_val} "
-           f"-te {min_x} {min_y} {max_x} {max_y}")
-    run(cmd)
-    # Rasterise learn
-    shape_learn_table_name = os.path.splitext(
-        os.path.split(shape_learn)[-1])[0].lower()
-    cmd = (
-        f"gdal_rasterize -l {shape_learn_table_name} -a {data_field} -init "
-        f"0 -tr {spatial_res} {spatial_res} {shape_learn} {shape_raster_learn}"
-        f" -te {min_x} {min_y} {max_x} {max_y}")
-    run(cmd)
-
-    # diff val
-    diff_val = working_directory + "/" + diff.split("/")[-1].replace(
-        ".tif", "_val.tif")
-    # reference identique -> 2  | reference != -> 1 | pas de reference -> 0
-    cmd_val = (f'otbcli_BandMath -il {shape_raster_val} {classif} -out '
-               f'{diff_val} uint8 -exp "im1b1==0?0:im1b1==im2b1?2:1"')
-    run(cmd_val)
-    os.remove(shape_raster_val)
-
-    # diff learn
-    diff_learn = working_directory + "/" + diff.split("/")[-1].replace(
-        ".tif", "_learn.tif")
-    # reference identique -> 4  | reference != -> 3 | pas de reference -> 0
-    cmd_learn = (f'otbcli_BandMath -il {shape_raster_learn} {classif} -out '
-                 f'{diff_learn} uint8 -exp "im1b1==0?0:im1b1==im2b1?4:3"')
-    run(cmd_learn)
-    os.remove(shape_raster_learn)
-
-    # sum diff val + learn
-    diff_tmp = working_directory + "/" + diff.split("/")[-1]
-    cmd_sum = (f'otbcli_BandMath -il {diff_val} {diff_learn} -out {diff_tmp}'
-               f' uint8 -exp "im1b1+im2b1"')
-    run(cmd_sum)
-    os.remove(diff_val)
-    os.remove(diff_learn)
-
-    if path_wd and not os.path.exists(diff):
-        shutil.copy(diff_tmp, diff)
-        os.remove(diff_tmp)
-
-    return diff
-
-
 def gen_conf_matrix(path_classif: str, path_valid: str, runs: int,
                     data_field: str, path_to_cmd_confusion: str, path_wd: str,
                     path_test: str, spatial_res: int, list_tiles: List[str],
@@ -181,9 +77,6 @@ def gen_conf_matrix(path_classif: str, path_valid: str, runs: int,
             val_tile = fu.FileSearch_AND(
                 path_valid, True, tile,
                 "_seed_" + str(seed_val) + "_val.sqlite")[0]
-            learn_tile = fu.FileSearch_AND(
-                path_valid, True, tile,
-                "_seed_" + str(seed) + "_learn.sqlite")[0]
             path_directory = path_tmp
             cmd = (f'otbcli_ComputeConfusionMatrix -in {path_classif}/"'
                    f'"Classif_Seed_{seed}.tif -out {path_directory}/'
@@ -191,35 +84,8 @@ def gen_conf_matrix(path_classif: str, path_valid: str, runs: int,
                    f' -ref.vector.field {data_field.lower()} -ref vector '
                    f'-ref.vector.in {val_tile}')
             all_cmd.append(cmd)
-            classif = path_tmp + "/" + tile + "_seed_" + str(seed) + ".tif"
-            diff = path_tmp + "/" + tile + "_seed_" + str(
-                seed) + "_CompRef.tif"
-
-            compare_ref(val_tile, learn_tile, classif, diff, working_directory,
-                        path_wd, data_field, spatial_res)
 
     fu.writeCmds(path_to_cmd_confusion + "/confusion.txt", all_cmd)
-
-    if enable_cross_validation:
-        runs = runs - 1
-    for seed in range(runs):
-        all_diff = fu.FileSearch_AND(path_tmp, True,
-                                     f"_seed_{seed}_CompRef.tif")
-        diff_seed = os.path.join(path_test, "final", f"diff_seed_{seed}.tif")
-        if path_wd:
-            diff_seed = os.path.join(working_directory,
-                                     f"diff_seed_{seed}.tif")
-        fu.assembleTile_Merge(all_diff, spatial_res, diff_seed, ot="Byte")
-        if path_wd:
-            shutil.copy(
-                working_directory + f"/diff_seed_{seed}.tif",
-                os.path.join(path_test, "final", f"diff_seed_{seed}.tif"))
-
-    # Create dummy rasters if necessary
-    tile_asked = list_tiles.split()
-    missing_tiles = [elem for elem in tile_asked if elem not in all_tiles]
-    create_dummy_rasters(missing_tiles, runs, path_test)
-
     return all_cmd
 
 

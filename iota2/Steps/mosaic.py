@@ -42,55 +42,55 @@ class mosaic(IOTA2Step.Step):
         self.execution_mode = "cluster"
         ds_sar_opt = SCF.serviceConfigFile(cfg).getParam(
             'argTrain', 'dempster_shafer_SAR_Opt_fusion')
-        classif_mode = SCF.serviceConfigFile(cfg).getParam(
-            'argClassification', 'classifMode')
-        shape_region = SCF.serviceConfigFile(cfg).getParam(
-            'chain', 'regionPath')
-        task = self.i2_task(task_name=f"mosaic",
-                            log_dir=self.log_step_dir,
-                            execution_mode=self.execution_mode,
-                            task_parameters={
-                                "f":
-                                CS.classification_shaping,
-                                "path_classif":
-                                os.path.join(self.output_path, "classif"),
-                                "runs":
-                                self.runs,
-                                "path_out":
-                                os.path.join(self.output_path, "final"),
-                                "path_wd":
-                                self.workingDirectory,
-                                "classif_mode":
-                                SCF.serviceConfigFile(self.cfg).getParam(
-                                    "argClassification", "classifMode"),
-                                "path_test":
-                                self.output_path,
-                                "ds_sar_opt":
-                                ds_sar_opt,
-                                "proj":
-                                int(
-                                    SCF.serviceConfigFile(self.cfg).getParam(
-                                        'GlobChain', 'proj').split(":")[-1]),
-                                "nomenclature_path":
-                                SCF.serviceConfigFile(self.cfg).getParam(
-                                    "chain", "nomenclaturePath"),
-                                "output_statistics":
-                                SCF.serviceConfigFile(self.cfg).getParam(
-                                    'chain', 'outputStatistics'),
-                                "spatial_resolution":
-                                SCF.serviceConfigFile(self.cfg).getParam(
-                                    "chain", "spatialResolution"),
-                                "proba_map_flag":
-                                SCF.serviceConfigFile(self.cfg).getParam(
-                                    "argClassification",
-                                    "enable_probability_map"),
-                                "region_shape":
-                                SCF.serviceConfigFile(self.cfg).getParam(
-                                    'chain', 'regionPath'),
-                                "color_path":
-                                self.color_table
-                            },
-                            task_resources=self.resources)
+        task = self.i2_task(
+            task_name=f"mosaic",
+            log_dir=self.log_step_dir,
+            execution_mode=self.execution_mode,
+            task_parameters={
+                "f":
+                CS.classification_shaping,
+                "path_classif":
+                os.path.join(self.output_path, "classif"),
+                "runs":
+                self.runs,
+                "path_out":
+                os.path.join(self.output_path, "final"),
+                "path_wd":
+                self.workingDirectory,
+                "classif_mode":
+                SCF.serviceConfigFile(self.cfg).getParam(
+                    "argClassification", "classifMode"),
+                "path_test":
+                self.output_path,
+                "ds_sar_opt":
+                ds_sar_opt,
+                "proj":
+                int(
+                    SCF.serviceConfigFile(self.cfg).getParam(
+                        'GlobChain', 'proj').split(":")[-1]),
+                "nomenclature_path":
+                SCF.serviceConfigFile(self.cfg).getParam(
+                    "chain", "nomenclaturePath"),
+                "output_statistics":
+                SCF.serviceConfigFile(self.cfg).getParam(
+                    'chain', 'outputStatistics'),
+                "spatial_resolution":
+                SCF.serviceConfigFile(self.cfg).getParam(
+                    "chain", "spatialResolution"),
+                "proba_map_flag":
+                SCF.serviceConfigFile(self.cfg).getParam(
+                    "argClassification", "enable_probability_map"),
+                "region_shape":
+                SCF.serviceConfigFile(self.cfg).getParam(
+                    'chain', 'regionPath'),
+                "color_path":
+                self.color_table,
+                "data_field":
+                SCF.serviceConfigFile(self.cfg).getParam('chain', 'dataField'),
+                "tiles_from_cfg":
+                SCF.serviceConfigFile(self.cfg).getParam('chain', 'listTile')
+            },
+            task_resources=self.resources)
 
         dependencies = {}
         for model_name, model_meta in self.spatial_models_distribution_no_sub_splits.items(
@@ -123,49 +123,3 @@ class mosaic(IOTA2Step.Step):
         """
         description = ("Mosaic")
         return description
-
-    def step_inputs(self):
-        """
-        Return
-        ------
-            the return could be and iterable or a callable
-        """
-        return [os.path.join(self.output_path, "classif")]
-
-    def step_execute(self):
-        """
-        Return
-        ------
-        lambda
-            the function to execute as a lambda function. The returned object
-            must be a lambda function.
-        """
-        from iota2.Validation import ClassificationShaping as CS
-        region_path = SCF.serviceConfigFile(self.cfg).getParam(
-            'chain', 'regionPath')
-        classif_mode = SCF.serviceConfigFile(self.cfg).getParam(
-            "argClassification", "classifMode")
-        ds_fusion_sar_opt = SCF.serviceConfigFile(self.cfg).getParam(
-            "argTrain", "dempster_shafer_SAR_Opt_fusion")
-        proj = int(
-            SCF.serviceConfigFile(self.cfg).getParam('GlobChain',
-                                                     'proj').split(":")[-1])
-        nomenclature_path = SCF.serviceConfigFile(self.cfg).getParam(
-            "chain", "nomenclaturePath")
-        enable_proba_map = SCF.serviceConfigFile(self.cfg).getParam(
-            "argClassification", "enable_probability_map")
-        spatial_res = SCF.serviceConfigFile(self.cfg).getParam(
-            "chain", "spatialResolution")
-        output_statistics = SCF.serviceConfigFile(self.cfg).getParam(
-            'chain', 'outputStatistics')
-        step_function = lambda x: CS.classification_shaping(
-            x, self.runs, os.path.join(self.output_path, "final"), self.
-            workingDirectory, classif_mode, self.output_path,
-            ds_fusion_sar_opt, proj, nomenclature_path, output_statistics,
-            spatial_res, enable_proba_map, region_path, self.color_table)
-        return step_function
-
-    def step_outputs(self):
-        """
-        """
-        pass

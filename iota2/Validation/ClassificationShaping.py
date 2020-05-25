@@ -34,6 +34,148 @@ from iota2.Common.Utils import run
 LOGGER = logging.getLogger(__name__)
 
 
+def generate_diff_map(runs, all_tiles, path_wd, data_field, spatial_resolution,
+                      path_test):
+    """produce a map of well/bad classified learning/validation pixels
+    """
+    for seed in range(runs):
+        for tile in all_tiles:
+            val_tile = fu.FileSearch_AND(os.path.join(path_test, "dataAppVal"),
+                                         True, tile, "_seed_" + str(seed) +
+                                         "_val.sqlite")[0]
+            learn_tile = fu.FileSearch_AND(
+                os.path.join(path_test, "dataAppVal"), True, tile,
+                "_seed_" + str(seed) + "_learn.sqlite")[0]
+            classif = os.path.join(path_test, "final", "TMP",
+                                   f"{tile}_seed_{seed}.tif")
+            diff = os.path.join(path_test, "final", "TMP",
+                                f"{tile}_seed_{seed}_CompRef.tif")
+            working_directory = os.path.join(path_test, "final", "TMP")
+            if path_wd:
+                working_directory = path_wd
+            compare_ref(val_tile, learn_tile, classif, diff, working_directory,
+                        path_wd, data_field, spatial_resolution)
+
+        all_diff = fu.FileSearch_AND(os.path.join(path_test, "final", "TMP"),
+                                     True, f"_seed_{seed}_CompRef.tif")
+        diff_seed = os.path.join(path_test, "final", f"diff_seed_{seed}.tif")
+        if path_wd:
+            diff_seed = os.path.join(working_directory,
+                                     f"diff_seed_{seed}.tif")
+        fu.assembleTile_Merge(all_diff,
+                              spatial_resolution,
+                              diff_seed,
+                              ot="Byte")
+        if path_wd:
+            shutil.copy(
+                working_directory + f"/diff_seed_{seed}.tif",
+                os.path.join(path_test, "final", f"diff_seed_{seed}.tif"))
+
+
+def compare_ref(shape_ref: str, shape_learn: str, classif: str, diff: str,
+                working_directory: str, path_wd: str, data_field: str,
+                spatial_res: int):
+    """
+    Parameters
+    ----------
+    shape_ref: string
+    shape_learn: string
+    classif: string
+    diff: string
+    working_directory: string
+    path_wd: string
+    data_field: string
+    spatial_res: string
+    Return
+    ------
+    string
+    """
+    min_x, max_x, min_y, max_y = fu.getRasterExtent(classif)
+    shape_raster_val = working_directory + os.sep + shape_ref.split(
+        "/")[-1].replace(".sqlite", ".tif")
+    shape_raster_learn = working_directory + os.sep + shape_learn.split(
+        "/")[-1].replace(".sqlite", ".tif")
+
+    # Rasterise val
+    shape_ref_table_name = os.path.splitext(
+        os.path.split(shape_ref)[-1])[0].lower()
+    cmd = (f"gdal_rasterize -l {shape_ref_table_name} -a {data_field} -init 0 "
+           f"-tr {spatial_res} {spatial_res} {shape_ref} {shape_raster_val} "
+           f"-te {min_x} {min_y} {max_x} {max_y}")
+    run(cmd)
+    # Rasterise learn
+    shape_learn_table_name = os.path.splitext(
+        os.path.split(shape_learn)[-1])[0].lower()
+    cmd = (
+        f"gdal_rasterize -l {shape_learn_table_name} -a {data_field} -init "
+        f"0 -tr {spatial_res} {spatial_res} {shape_learn} {shape_raster_learn}"
+        f" -te {min_x} {min_y} {max_x} {max_y}")
+    run(cmd)
+
+    # diff val
+    diff_val = working_directory + "/" + diff.split("/")[-1].replace(
+        ".tif", "_val.tif")
+    # reference identique -> 2  | reference != -> 1 | pas de reference -> 0
+    cmd_val = (f'otbcli_BandMath -il {shape_raster_val} {classif} -out '
+               f'{diff_val} uint8 -exp "im1b1==0?0:im1b1==im2b1?2:1"')
+    run(cmd_val)
+    os.remove(shape_raster_val)
+
+    # diff learn
+    diff_learn = working_directory + "/" + diff.split("/")[-1].replace(
+        ".tif", "_learn.tif")
+    # reference identique -> 4  | reference != -> 3 | pas de reference -> 0
+    cmd_learn = (f'otbcli_BandMath -il {shape_raster_learn} {classif} -out '
+                 f'{diff_learn} uint8 -exp "im1b1==0?0:im1b1==im2b1?4:3"')
+    run(cmd_learn)
+    os.remove(shape_raster_learn)
+
+    # sum diff val + learn
+    diff_tmp = working_directory + "/" + diff.split("/")[-1]
+    cmd_sum = (f'otbcli_BandMath -il {diff_val} {diff_learn} -out {diff_tmp}'
+               f' uint8 -exp "im1b1+im2b1"')
+    run(cmd_sum)
+    os.remove(diff_val)
+    os.remove(diff_learn)
+
+    if path_wd and not os.path.exists(diff):
+        shutil.copy(diff_tmp, diff)
+        os.remove(diff_tmp)
+
+    return diff
+
+
+def create_dummy_rasters(missing_tiles: List[str], runs: int,
+                         output_path: str) -> None:
+    """
+    Parameters
+    ----------
+    missing_tiles: list(string)
+    runs: int
+    output_path: string
+    Return
+    ------
+    None
+    Notes
+    -----
+    use when mode is 'one_region' but there is no validations / learning
+    samples into a specific tile
+    """
+
+    classifications_dir = os.path.join(output_path, "classif")
+    final_dir = os.path.join(output_path, "final", "TMP")
+
+    for tile in missing_tiles:
+        classif_tile = fu.FileSearch_AND(classifications_dir, True,
+                                         "Classif_" + str(tile))[0]
+        for seed in range(runs):
+            dummy_raster_name = tile + "_seed_" + str(seed) + "_CompRef.tif"
+            dummy_raster = final_dir + "/" + dummy_raster_name
+            dummy_raster_cmd = (f"gdal_merge.py -ot Byte -n 0 -createonly -o "
+                                f"{ dummy_raster} {classif_tile}")
+            run(dummy_raster_cmd)
+
+
 def BuildNbVoteCmd(classifTile, VoteMap):
 
     exp = []
@@ -295,7 +437,8 @@ def classification_shaping(path_classif: str, runs: int, path_out: str,
                            ds_sar_opt: bool, proj: int, nomenclature_path: str,
                            output_statistics: bool, spatial_resolution: float,
                            proba_map_flag: bool, region_shape: str,
-                           color_path: str) -> None:
+                           color_path: str, data_field: str,
+                           tiles_from_cfg: List[str]) -> None:
     """function use to mosaic rasters and to produce final maps
 
     path_classif: str
@@ -327,6 +470,10 @@ def classification_shaping(path_classif: str, runs: int, path_out: str,
         region shapeFile path
     color_path: str
         color table file
+    data_field : str
+        data field in the ground truth database
+    tiles_from_cfg : list
+        list of tiles asked in the iota2 configuration file
     """
 
     if path_wd is None:
@@ -531,6 +678,11 @@ def classification_shaping(path_classif: str, runs: int, path_out: str,
         shutil.copy(path_wd + "/PixelsValidity.tif", path_test + "/final")
         os.remove(path_wd + "/PixelsValidity.tif")
 
+    generate_diff_map(runs, all_tiles, path_wd, data_field, spatial_resolution,
+                      path_test)
+    missing_tiles = [elem for elem in all_tiles if elem not in tiles_from_cfg]
+    create_dummy_rasters(missing_tiles, runs, path_test)
+
 
 if __name__ == "__main__":
     from iota2.Common.FileUtils import str2bool
@@ -609,6 +761,17 @@ if __name__ == "__main__":
                         help="color table file",
                         type=str,
                         required=True)
+    PARSER.add_argument("-data_field",
+                        dest="data_field",
+                        help="data field in ground truth database",
+                        type=str,
+                        required=True)
+    PARSER.add_argument("-tiles_from_cfg",
+                        dest="tiles_from_cfg",
+                        help="every expected tiles",
+                        type=str,
+                        nargs="+",
+                        required=True)
     ARGS = PARSER.parse_args()
 
     classification_shaping(path_classif=ARGS.path_classif,
@@ -624,4 +787,6 @@ if __name__ == "__main__":
                            spatial_resolution=ARGS.spatial_resolution,
                            proba_map_flag=ARGS.proba_map_flag,
                            region_shape=ARGS.region_shape,
-                           color_path=ARGS.color_path)
+                           color_path=ARGS.color_path,
+                           data_field=ARGS.data_field,
+                           tiles_from_cfg=ARGS.tiles_from_cfg)
