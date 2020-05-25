@@ -192,7 +192,8 @@ This time the execution and arguments are respected. To completely understand th
         delayed_return = dask.delayed(some_function)(A, 2)
         delayed_return_value = delayed_return.compute()
 
-	In this example, `A` is a dependency of `some_function`. Therefore, `A` will be executed before the call to some_function. ``It is this behaviour that allows the dependencies to be expressed in iota².``
+		
+    In this example, `A` is a dependency of `some_function`. Therefore, `A` will be executed before the call to some_function. ``It is this behaviour that allows the dependencies to be expressed in iota².``
 
 This behaviour enables us to submit parallel tasks
 
@@ -421,8 +422,8 @@ Activate and deactivate steps
 
 In a processing chain composed of several steps it can sometimes be interesting for users to select a step interval to rerun. Several use cases can lead the user to make this choice: replaying a processing chain in case of errors, some steps are not necessary because already done outside iota² (learning a model, generating a database, ...) or the user wants to rerun a step but with different parameters. Iota² must be able to offer this kind of service which is very appreciated by users, but also by step developers.
 
-Problem illustration, apply on the previous example
-===================================================
+Problem illustration, thanks to the previous example
+====================================================
 
 In the previous example, the task sequence graph is rigid, in the sense that if a step (the group of learning tasks and/or classification) is removed, no more execution will be possible: the dependency tree is broken. The goal here is to find a generic way to express a step sequence that will work regardless of the steps that are removed from the execution graph.
 A first trivial solution will be exposed, its limitations will show that it is necessary to move towards a more complex and generic solution which is the one implemented in iota².
@@ -612,7 +613,7 @@ Base class dedicated to steps
 
 This class allows the possibility to define dependencies between tasks and to have different resources per tasks.
 Indeed, with the use the ``task_launcher()`` function which has exactly the same definition as the examples above.
-Also, dependencies between tasks are managed thanks to the "add_task_to_i2_processing_graph()`.
+Also, dependencies between tasks are managed thanks to the `add_task_to_i2_processing_graph()`.
 This function relies on the class attribute "tasks_graph" which, like "dependencies" in the example 2_, 
 allows to save the dependencies between tasks and thus build a dependency graph using dask.
 
