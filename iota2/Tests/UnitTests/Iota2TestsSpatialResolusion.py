@@ -178,22 +178,32 @@ class iota_spatial_res_runs_case(unittest.TestCase):
         import iota2.Tests.UnitTests.tests_utils.tests_utils_rasters as TUR
         import iota2.Tests.UnitTests.tests_utils.tests_utils_iota2 as TUI
         # prepare inputs data
-        tile_name = "T31TCJ"
+        tile_name = "T32TLR"
         running_output_path = os.path.join(self.test_working_directory,
                                            "test_results")
         config_test = os.path.join(self.test_working_directory,
-                                   "i2_config_s2_l2a.cfg")
-        shutil.copy(self.config_ref, config_test)
+                                   "i2_config_spot6.cfg")
+        shutil.copy(
+            os.path.join(IOTA2DIR, "data", "spot_6_data", "config_thrs.cfg"),
+            config_test)
         cfg_test = Config(open(config_test))
         cfg_test.chain.outputPath = running_output_path
-        cfg_test.chain.userFeat = os.path.join(IOTA2DIR, "data")
-        cfg_test.chain.userFeat.pattern = "/*"
-        cfg_test.chain.dataField = "code"
+        cfg_test.chain.userFeatPath = os.path.join(IOTA2DIR, "data",
+                                                   "spot_6_data", "images")
+        cfg_test.userFeat.arbo = "/*"
+        cfg_test.userFeat.patterns = "spot6_sub"
+        cfg_test.chain.dataField = "coden2"
         cfg_test.chain.listTile = tile_name
-        cfg_test.chain.groundTruth = self.ground_truth_path
-        cfg_test.chain.nomenclaturePath = self.nomenclature_path
-        cfg_test.chain.colorTable = self.color_path
-        cfg_test.chain.spatialResolution = 30
+        cfg_test.chain.groundTruth = os.path.join(IOTA2DIR, "data",
+                                                  "spot_6_data",
+                                                  "fake_samples.shp")
+        cfg_test.chain.nomenclaturePath = os.path.join(IOTA2DIR, "data",
+                                                       "spot_6_data",
+                                                       "Nomenclature_thrs")
+        cfg_test.chain.colorTable = os.path.join(IOTA2DIR, "data",
+                                                 "spot_6_data",
+                                                 "colorFile_thrs")
+        cfg_test.chain.spatialResolution = 1.5
         cfg_test.save(open(config_test, 'w'))
 
         # Launch the chain

@@ -694,7 +694,7 @@ class serviceConfigFile:
             self.testVarConfigFile('chain', 'splitGroundTruth', bool)
             self.testVarConfigFile('chain', 'outputStatistics', bool)
             self.testVarConfigFile('chain', 'cloud_threshold', int)
-            self.testVarConfigFile('chain', 'spatialResolution', int)
+            # self.testVarConfigFile('chain', 'spatialResolution', int)
             self.testVarConfigFile('chain', 'colorTable', str)
             self.testVarConfigFile('chain', 'mode_outside_RegionSplit', float)
             self.testVarConfigFile('chain', 'merge_final_classifications',
