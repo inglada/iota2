@@ -138,6 +138,7 @@ def init_arg_train_parameters():
     """
     Set all argTrain block parameters to default values
     """
+    print("in init")
     sample_sel_default = dico_mapping_init({
         "sampler": "random",
         "strategy": "all"
@@ -162,7 +163,7 @@ def init_arg_train_parameters():
         "annualClassesExtractionSource": "None",
         "validityThreshold": 1
     }
-
+    print(arg_train_default)
     return "argTrain", arg_train_default
 
 

@@ -275,6 +275,7 @@ def remove_tmp_files(cfg, current_step, chain):
 if __name__ == "__main__":
 
     from iota2.Common import ServiceConfigFile as SCF
+    from iota2.configuration_files import read_config_file as rcf
     from iota2.Common import DebugUtils as du
     parser = argparse.ArgumentParser(description="This function allow you to"
                                      "launch iota2 processing chain"
@@ -323,8 +324,11 @@ if __name__ == "__main__":
                         type=int,
                         default=None)
     args = parser.parse_args()
-    cfg = SCF.serviceConfigFile(args.configPath)
-    cfg.checkConfigParameters()
+    cfg = rcf.read_config_file(args.configPath)
+    # cfg = SCF.serviceConfigFile(args.configPath)
+    # cfg.checkConfigParameters()
+    print("cfg : ", "\n " * 2)
+    input(cfg.getParam("builder", "mode"))
     builder = cfg.getParam("builder", "mode")
     if builder == "classification":
         from iota2.sequence_builders.i2_classification import i2_classification as chain
