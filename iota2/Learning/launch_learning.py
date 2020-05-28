@@ -94,7 +94,7 @@ def learn_otb_model(samples_file: str, output_model: str, data_field: str,
     # TODO : if nb features > 999 convert to sqlite to geojson
     features = " ".join(getFeatures_labels(samples_file))
 
-    cmd = f"otbcli_TrainVectorClassifier -classifier {classifier} {classifier_options} -io.vd {samples_file} -io.out {output_model} -cfield {data_field} -feat {features}"
+    cmd = f"otbcli_TrainVectorClassifier -classifier {classifier} {classifier_options} -io.vd {samples_file} -io.out {output_model} -cfield {data_field.lower()} -feat {features}"
     if classifier.lower() == "svm" or classifier.lower() == "libsvm":
         learning_stats_file = os.path.join(
             i2_running_dir, "stats",
