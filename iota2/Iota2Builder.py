@@ -156,8 +156,8 @@ class iota2():
         self.cfg = cfg
         self.workingDirectory = os.getenv(hpc_working_directory)
 
-        # self.model_spatial_distrib, self.tiles = self.get_run_spatial_informations(
-        # )
+        self.model_spatial_distrib, self.tiles = self.get_run_spatial_informations(
+        )
 
         # steps definitions
         self.steps_group = OrderedDict()
@@ -300,19 +300,19 @@ class iota2():
                     highlight = "[{}]".format(running_sym)
                 summarize += "\t {} Step {}: {}".format(
                     highlight, key, self.steps_group[group][key])
-                if show_resources:
-                    cpu = self.steps[step_position].resources["cpu"]
-                    ram = self.steps[step_position].resources["ram"]
-                    walltime = self.steps[step_position].resources["walltime"]
-                    resource_block_name = self.steps[step_position].resources[
-                        "resource_block_name"]
-                    resource_block_found = self.steps[step_position].resources[
-                        "resource_block_found"]
-                    log_identifier = self.steps[step_position].step_name
-                    resource_miss = "" if resource_block_found else " -> MISSING"
-                    summarize += "\n\t\t\tresources block name : {}{}\n\t\t\tcpu : {}\n\t\t\tram : {}\n\t\t\twalltime : {}\n\t\t\tlog identifier : {}".format(
-                        resource_block_name, resource_miss, cpu, ram, walltime,
-                        log_identifier)
+                # if show_resources:
+                #     cpu = self.steps[step_position].resources["cpu"]
+                #     ram = self.steps[step_position].resources["ram"]
+                #     walltime = self.steps[step_position].resources["walltime"]
+                #     resource_block_name = self.steps[step_position].resources[
+                #         "resource_block_name"]
+                #     resource_block_found = self.steps[step_position].resources[
+                #         "resource_block_found"]
+                #     log_identifier = self.steps[step_position].step_name
+                #     resource_miss = "" if resource_block_found else " -> MISSING"
+                #     summarize += "\n\t\t\tresources block name : {}{}\n\t\t\tcpu : {}\n\t\t\tram : {}\n\t\t\twalltime : {}\n\t\t\tlog identifier : {}".format(
+                #         resource_block_name, resource_miss, cpu, ram, walltime,
+                #         log_identifier)
                 summarize += "\n"
                 step_position += 1
         summarize += "\n"
@@ -370,7 +370,6 @@ class iota2():
         build steps
         """
 
-        import os
         from iota2.Steps.IOTA2Step import StepContainer
         from iota2.Steps.IOTA2Step import Step
 
@@ -391,115 +390,9 @@ class iota2():
             clipVectors, zonalStatistics, prodVectors, slicSegmentation,
             superPixPos, superPixSplit, skClassificationsMerge)
 
-        # self.model_spatial_distrib = {
-        #     '6': {
-        #         'tiles': [
-        #             'T30TXP', 'T30TXR', 'T30TYP', 'T31TCH', 'T31TCJ', 'T31TDH',
-        #             'T31TDJ', 'T31TEH', 'T31TEJ', 'T31TEK', 'T31TFJ', 'T31TFK',
-        #             'T31TFL', 'T31TGH', 'T31TGJ', 'T31TGK', 'T32TLP', 'T32TLQ'
-        #         ],
-        #         'nb_sub_models':
-        #         None
-        #     },
-        #     '4': {
-        #         'tiles': [
-        #             'T30TXN', 'T30TXP', 'T30TXQ', 'T30TXR', 'T30TYN', 'T30TYP',
-        #             'T30TYQ', 'T31TCH', 'T31TCJ', 'T31TCK', 'T31TDH', 'T31TDJ',
-        #             'T31TDK', 'T31TEK', 'T31TFK', 'T31TFL', 'T31TGK', 'T31TGL',
-        #             'T32TLQ', 'T32TLR'
-        #         ],
-        #         'nb_sub_models':
-        #         None
-        #     },
-        #     '5': {
-        #         'tiles': [
-        #             'T30TXN', 'T30TXP', 'T30TXQ', 'T30TXR', 'T30TYQ', 'T31TGK',
-        #             'T32TLQ'
-        #         ],
-        #         'nb_sub_models':
-        #         None
-        #     },
-        #     '2': {
-        #         'tiles': [
-        #             'T30TXN', 'T30TXP', 'T30TYN', 'T30TYP', 'T31TCH', 'T31TDH',
-        #             'T31TDJ', 'T31TDK', 'T31TEJ', 'T31TEK', 'T31TFK', 'T31TFL',
-        #             'T31TGJ', 'T31TGK', 'T31TGL', 'T32TLP', 'T32TLQ', 'T32TLR'
-        #         ],
-        #         'nb_sub_models':
-        #         None
-        #     },
-        #     '1': {
-        #         'tiles': [
-        #             'T30TXN', 'T30TYN', 'T31TCH', 'T31TDH', 'T31TDJ', 'T31TDK',
-        #             'T31TEJ', 'T31TEK', 'T31TFK', 'T31TFL', 'T31TGJ', 'T31TGK',
-        #             'T31TGL', 'T32TLP', 'T32TLQ', 'T32TLR'
-        #         ],
-        #         'nb_sub_models':
-        #         None
-        #     },
-        #     '7': {
-        #         'tiles': [
-        #             'T30TYP', 'T30TYQ', 'T31TCH', 'T31TCJ', 'T31TCK', 'T31TDH',
-        #             'T31TDJ', 'T31TDK', 'T31TFK', 'T31TFL'
-        #         ],
-        #         'nb_sub_models':
-        #         None
-        #     },
-        #     '8': {
-        #         'tiles': [
-        #             'T31TDH', 'T31TDJ', 'T31TEH', 'T31TEJ', 'T31TEK', 'T31TFH',
-        #             'T31TFJ', 'T31TFK', 'T31TGH', 'T31TGJ', 'T32TLP'
-        #         ],
-        #         'nb_sub_models':
-        #         None
-        #     },
-        #     '3': {
-        #         'tiles': ['T31TFL'],
-        #         'nb_sub_models': None
-        #     }
-        # }
-
-        self.tiles = ["T31TCJ"]
-        # self.model_spatial_distrib = {
-        #     '1f1': {
-        #         'tiles': ["T31TCJ"]
-        #     },
-        #     '1f2': {
-        #         'tiles': ["T31TCJ"]
-        #     },
-        #     '1f3': {
-        #         'tiles': ["T31TCJ"]
-        #     },
-        #     '2f1': {
-        #         'tiles': ['T31TCJ']
-        #     },
-        #     '2f2': {
-        #         'tiles': ['T31TCJ']
-        #     },
-        #     '2f3': {
-        #         'tiles': ['T31TCJ']
-        #     }
-        # }
-        self.model_spatial_distrib = {
-            '1': {
-                'tiles': ["T31TCJ"]
-            },
-            '2f1': {
-                'tiles': ['T31TCJ']
-            },
-            '2f2': {
-                'tiles': ['T31TCJ']
-            },
-            '2f3': {
-                'tiles': ['T31TCJ']
-            }
-        }
-        # self.model_spatial_distrib = {'1': {'tiles': ["T31TCJ"]}}
-
         Step.set_models_spatial_information(self.tiles,
                                             self.model_spatial_distrib)
         # control variable
-        Sentinel1 = SCF.serviceConfigFile(cfg).getParam('chain', 'S1Path')
         shapeRegion = SCF.serviceConfigFile(cfg).getParam(
             'chain', 'regionPath')
         classif_mode = SCF.serviceConfigFile(cfg).getParam(
@@ -511,19 +404,13 @@ class iota2():
                                                 'sampleAugmentation'))
         sample_augmentation_flag = sample_augmentation["activate"]
         dimred = SCF.serviceConfigFile(cfg).getParam('dimRed', 'dimRed')
-        classifier = SCF.serviceConfigFile(cfg).getParam(
-            'argTrain', 'classifier')
         ds_sar_opt = SCF.serviceConfigFile(cfg).getParam(
             'argTrain', 'dempster_shafer_SAR_Opt_fusion')
         keep_runs_results = SCF.serviceConfigFile(cfg).getParam(
             'chain', 'keep_runs_results')
         merge_final_classifications = SCF.serviceConfigFile(cfg).getParam(
             'chain', 'merge_final_classifications')
-        ground_truth = SCF.serviceConfigFile(cfg).getParam(
-            'chain', 'groundTruth')
         runs = SCF.serviceConfigFile(cfg).getParam('chain', 'runs')
-        outStat = SCF.serviceConfigFile(cfg).getParam('chain',
-                                                      'outputStatistics')
         VHR = SCF.serviceConfigFile(cfg).getParam('coregistration', 'VHRPath')
         gridsize = SCF.serviceConfigFile(cfg).getParam('Simplification',
                                                        'gridsize')
@@ -533,12 +420,8 @@ class iota2():
             'Simplification', 'rssize')
         inland = SCF.serviceConfigFile(self.cfg).getParam(
             'Simplification', 'inland')
-        iota2_outputs_dir = SCF.serviceConfigFile(self.cfg).getParam(
-            'chain', 'outputPath')
         use_scikitlearn = SCF.serviceConfigFile(self.cfg).getParam(
             'scikit_models_parameters', 'model_type') is not None
-        nomenclature = SCF.serviceConfigFile(self.cfg).getParam(
-            'Simplification', 'nomenclature')
         enable_autoContext = SCF.serviceConfigFile(cfg).getParam(
             'chain', 'enable_autoContext')
         enable_custom_features = SCF.serviceConfigFile(
@@ -669,5 +552,23 @@ class iota2():
         s_container.append(
             partial(mosaic.mosaic, cfg, config_ressources,
                     self.workingDirectory), "mosaic")
+        # validation steps
+        s_container.append(
+            partial(confusionCmd.confusionCmd, cfg, config_ressources,
+                    self.workingDirectory), "validation")
+        if keep_runs_results:
+            s_container.append(
+                partial(confusionsMerge.confusionsMerge, cfg,
+                        config_ressources, self.workingDirectory),
+                "validation")
+            s_container.append(
+                partial(reportGeneration.reportGeneration, cfg,
+                        config_ressources, self.workingDirectory),
+                "validation")
+        if merge_final_classifications and runs > 1:
+            s_container.append(
+                partial(mergeSeedClassifications.mergeSeedClassifications, cfg,
+                        config_ressources, self.workingDirectory),
+                "validation")
 
         return s_container
