@@ -36,7 +36,7 @@ from osgeo.gdalconst import *
 #~ import otbApplication as otb
 from iota2.Common.Utils import run
 from iota2.Common.Utils import remove_in_string_list
-from typing import Optional, List
+from typing import Optional, List, Tuple
 
 
 def is_writable_directory(directory_path):
@@ -805,7 +805,11 @@ def getRasterResolution(rasterIn):
     return spacingX, spacingY
 
 
-def assembleTile_Merge(AllRaster, spatialResolution, out, ot="Int16", co=None):
+def assembleTile_Merge(AllRaster: List[str],
+                       spatialResolution: Tuple[float, float],
+                       out: str,
+                       ot="Int16",
+                       co=None):
     """
     usage : function use to mosaic rasters
 
@@ -832,8 +836,11 @@ def assembleTile_Merge(AllRaster, spatialResolution, out, ot="Int16", co=None):
     if os.path.exists(out):
         os.remove(out)
 
-    cmd = "gdal_merge.py {} -ps {} -{} -o {} -ot {} -n 0 {}".format(
-        gdal_co, spatialResolution, spatialResolution, out, ot, AllRaster)
+    spx = float(spatialResolution[0])
+    spy = -abs(float(spatialResolution[1]))
+
+    cmd = "gdal_merge.py {} -ps {} {} -o {} -ot {} -n 0 {}".format(
+        gdal_co, spx, spy, out, ot, AllRaster)
     run(cmd)
 
 

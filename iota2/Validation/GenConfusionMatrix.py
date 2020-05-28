@@ -86,16 +86,17 @@ def compare_ref(shape_ref: str, shape_learn: str, classif: str, diff: str,
     # Rasterise val
     shape_ref_table_name = os.path.splitext(
         os.path.split(shape_ref)[-1])[0].lower()
-    cmd = (f"gdal_rasterize -l {shape_ref_table_name} -a {data_field} -init 0 "
-           f"-tr {spatial_res} {spatial_res} {shape_ref} {shape_raster_val} "
-           f"-te {min_x} {min_y} {max_x} {max_y}")
+    cmd = (
+        f"gdal_rasterize -l {shape_ref_table_name} -a {data_field} -init 0 "
+        f"-tr {spatial_res[0]} {spatial_res[1]} {shape_ref} {shape_raster_val} "
+        f"-te {min_x} {min_y} {max_x} {max_y}")
     run(cmd)
     # Rasterise learn
     shape_learn_table_name = os.path.splitext(
         os.path.split(shape_learn)[-1])[0].lower()
     cmd = (
         f"gdal_rasterize -l {shape_learn_table_name} -a {data_field} -init "
-        f"0 -tr {spatial_res} {spatial_res} {shape_learn} {shape_raster_learn}"
+        f"0 -tr {spatial_res[0]} {spatial_res[1]} {shape_learn} {shape_raster_learn}"
         f" -te {min_x} {min_y} {max_x} {max_y}")
     run(cmd)
 
@@ -152,10 +153,6 @@ def gen_conf_matrix(path_classif: str, path_valid: str, runs: int,
     all_cmd = []
     path_tmp = os.path.join(path_classif, "TMP")
 
-    # path_Test = cfg.getParam('chain', 'outputPath')
-    # spatial_Res = cfg.getParam('chain', 'spatialResolution')
-    # enable_Cross_Validation = cfg.getParam('chain', 'enableCrossValidation')
-
     working_directory = os.path.join(path_classif, "TMP")
     if path_wd:
         working_directory = path_wd
@@ -168,6 +165,11 @@ def gen_conf_matrix(path_classif: str, path_valid: str, runs: int,
             all_tiles.index(current_tile)
         except ValueError:
             all_tiles.append(current_tile)
+
+    if not spatial_res:
+        res_x, res_y = fu.getRasterResolution(
+            os.path.join(path_classif, f"Classif_Seed_0.tif"))
+        spatial_res = (res_x, res_y)
 
     for seed in range(runs):
         # recherche de tout les shapeFiles par seed, par tuiles pour
@@ -209,7 +211,9 @@ def gen_conf_matrix(path_classif: str, path_valid: str, runs: int,
         if path_wd:
             diff_seed = os.path.join(working_directory,
                                      f"diff_seed_{seed}.tif")
-        fu.assembleTile_Merge(all_diff, spatial_res, diff_seed, ot="Byte")
+        fu.assembleTile_Merge(all_diff, (spatial_res[0], spatial_res[1]),
+                              diff_seed,
+                              ot="Byte")
         if path_wd:
             shutil.copy(
                 working_directory + f"/diff_seed_{seed}.tif",
