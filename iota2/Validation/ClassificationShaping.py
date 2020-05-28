@@ -40,9 +40,12 @@ def generate_diff_map(runs, all_tiles, path_wd, data_field, spatial_resolution,
     """
     for seed in range(runs):
         for tile in all_tiles:
-            val_tile = fu.FileSearch_AND(os.path.join(path_test, "dataAppVal"),
-                                         True, tile, "_seed_" + str(seed) +
-                                         "_val.sqlite")[0]
+            val_tiles = fu.FileSearch_AND(
+                os.path.join(path_test, "dataAppVal"), True, tile,
+                "_seed_" + str(seed) + "_val.sqlite")
+            if not val_tiles:
+                continue
+            val_tile = val_tiles[0]
             learn_tile = fu.FileSearch_AND(
                 os.path.join(path_test, "dataAppVal"), True, tile,
                 "_seed_" + str(seed) + "_learn.sqlite")[0]
