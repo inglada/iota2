@@ -43,6 +43,22 @@ chain.check_inputs
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+chain.spatialResolution
+=======================
+*Description*
+    output's spatial resolution.
+*Type*
+    list
+*Default value*
+    by default, iota² will use the original sensor's spatial resolution
+*Example*
+    spatialResolution : [10, 10]
+
+*Notes*
+    The first element of the list is the w-e spatial resolution and the second element is the n-s spatial resolution, both of them must have positive values. This parameter is use to resample the whole sensor data-set. Consequenlty, if some stacks must be written on disk this parameter is taking into account to write them.
+	
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 chain.remove_outputPath
 =======================
 *Description*
