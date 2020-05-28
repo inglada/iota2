@@ -22,71 +22,50 @@ from logging import Logger
 from typing import List, Tuple, Optional
 
 from iota2.Common import FileUtils as fu
+from iota2.Common import OtbAppBank
 
 from iota2.Common.Utils import run
 
 LOGGER = logging.getLogger(__name__)
 
 
-def gen_conf_matrix(path_classif: str, path_valid: str, runs: int,
-                    data_field: str, path_to_cmd_confusion: str, path_wd: str,
-                    path_test: str, spatial_res: int, list_tiles: List[str],
-                    enable_cross_validation: bool) -> List[str]:
-    """
+def gen_conf_matrix(in_classif: str, out_csv: str, data_field: str,
+                    ref_vector: str, ram: float) -> None:
+    """generate an otb confusion matrix
+
     Parameters
     ----------
-    path_classif: string
-    path_valid: string
-    runs: int
-    data_field: string
-    path_to_cmd_confusion: string
-    path_wd: string
-    Return
-    ------
-    list(string)
+    in_classif : string
+        input classification file
+    out_csv : string
+        output csv file
+    data_field : string
+        data field in the ground truth database
+    ref_vector : string
+        reference vector file (containing polygons)
+    ram : float
+        available ram in Mo
     """
-    all_cmd = []
-    path_tmp = os.path.join(path_classif, "TMP")
-
-    # path_Test = cfg.getParam('chain', 'outputPath')
-    # spatial_Res = cfg.getParam('chain', 'spatialResolution')
-    # enable_Cross_Validation = cfg.getParam('chain', 'enableCrossValidation')
-
-    working_directory = os.path.join(path_classif, "TMP")
-    if path_wd:
-        working_directory = path_wd
-
-    all_tiles = []
-    validation_files = fu.FileSearch_AND(path_valid, True, "_val.sqlite")
-    for valid in validation_files:
-        current_tile = valid.split("/")[-1].split("_")[0]
-        try:
-            all_tiles.index(current_tile)
-        except ValueError:
-            all_tiles.append(current_tile)
-
-    for seed in range(runs):
-        # recherche de tout les shapeFiles par seed, par tuiles pour
-        # les fusionner
-        for tile in all_tiles:
-            seed_val = seed
-            if enable_cross_validation:
-                seed_val = runs - 1
-            if enable_cross_validation and seed == runs - 1:
-                continue
-            val_tile = fu.FileSearch_AND(
-                path_valid, True, tile,
-                "_seed_" + str(seed_val) + "_val.sqlite")[0]
-            path_directory = path_tmp
-            cmd = (f'otbcli_ComputeConfusionMatrix -in {path_classif}/"'
-                   f'"Classif_Seed_{seed}.tif -out {path_directory}/'
-                   f'{tile}_seed_{seed}.csv'
-                   f' -ref.vector.field {data_field.lower()} -ref vector '
-                   f'-ref.vector.in {val_tile}')
-            all_cmd.append(cmd)
-
-    fu.writeCmds(path_to_cmd_confusion + "/confusion.txt", all_cmd)
-    return all_cmd
+    if os.path.exists(ref_vector):
+        confusion_app = OtbAppBank.CreateConfusionMatrix({
+            "in":
+            in_classif,
+            "out":
+            out_csv,
+            "ref":
+            "vector",
+            "ref.vector.field":
+            data_field.lower(),
+            "ref.vector.in":
+            ref_vector,
+            "ram":
+            ram
+        })
+        confusion_app.ExecuteAndWriteOutput()
+    else:
+        LOGGER.warning(
+            f"{ref_vector} does not exists, maybe there is no validation samples available in the tile"
+        )
 
 
 def confusion_sar_optical_parameter(iota2_dir: str,
