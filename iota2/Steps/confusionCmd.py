@@ -15,8 +15,10 @@
 # =========================================================================
 import os
 
-from Steps import IOTA2Step
-from Common import ServiceConfigFile as SCF
+from iota2.Steps import IOTA2Step
+from iota2.Common import ServiceConfigFile as SCF
+from iota2.Validation import GenConfusionMatrix as GCM
+from iota2.Cluster import get_RAM
 
 
 class confusionCmd(IOTA2Step.Step):
@@ -33,45 +35,41 @@ class confusionCmd(IOTA2Step.Step):
         self.runs = SCF.serviceConfigFile(self.cfg).getParam('chain', 'runs')
         self.data_field = SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'dataField')
+        self.execution_mode = "cluster"
+        for seed in range(self.runs):
+            for tile in self.tiles:
+                task = self.i2_task(
+                    task_name=f"confusion_{tile}_seed_{seed}",
+                    log_dir=self.log_step_dir,
+                    execution_mode=self.execution_mode,
+                    task_parameters={
+                        "f":
+                        GCM.gen_conf_matrix,
+                        "in_classif":
+                        os.path.join(self.output_path, "final",
+                                     f"Classif_Seed_{seed}.tif"),
+                        "out_csv":
+                        os.path.join(self.output_path, "final", "TMP",
+                                     f"{tile}_seed_{seed}.csv"),
+                        "data_field":
+                        self.data_field,
+                        "ref_vector":
+                        os.path.join(self.output_path, "dataAppVal",
+                                     f"{tile}_seed_{seed}_val.sqlite"),
+                        "ram":
+                        1024.0 * get_RAM(self.resources["ram"])
+                    },
+                    task_resources=self.resources)
+                self.add_task_to_i2_processing_graph(
+                    task,
+                    task_group="tile_tasks_seed",
+                    task_sub_group=f"{tile}_{seed}",
+                    task_dep_dico={"mosaic": ["mosaic"]})
 
     @classmethod
     def step_description(cls):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Prepare confusion matrix commands")
+        description = ("generate confusion matrix by tiles")
         return description
-
-    def step_inputs(self):
-        """
-        Return
-        ------
-            the return could be and iterable or a callable
-        """
-        return [os.path.join(self.output_path, "final")]
-
-    def step_execute(self):
-        """
-        Return
-        ------
-        lambda
-            the function to execute as a lambda function. The returned object
-            must be a lambda function.
-        """
-        from iota2.Validation import GenConfusionMatrix as GCM
-        step_function = lambda x: GCM.gen_conf_matrix(
-            x, os.path.join(self.output_path, "dataAppVal"), self.runs, self.
-            data_field, os.path.join(self.output_path, "cmd", "confusion"
-                                     ), self.workingDirectory,
-            SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath'),
-            SCF.serviceConfigFile(self.cfg).getParam('chain',
-                                                     'spatialResolution'),
-            SCF.serviceConfigFile(self.cfg).getParam('chain', 'listTile'),
-            SCF.serviceConfigFile(self.cfg).getParam('chain',
-                                                     'enableCrossValidation'))
-        return step_function
-
-    def step_outputs(self):
-        """
-        """
-        pass
