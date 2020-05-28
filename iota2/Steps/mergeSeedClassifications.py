@@ -15,8 +15,10 @@
 # =========================================================================
 import os
 
-from Steps import IOTA2Step
-from Common import ServiceConfigFile as SCF
+from iota2.Steps import IOTA2Step
+from iota2.Common import ServiceConfigFile as SCF
+from iota2.Classification import MergeFinalClassifications as mergeCl
+from iota2.Common import FileUtils as fut
 
 
 class mergeSeedClassifications(IOTA2Step.Step):
@@ -52,6 +54,40 @@ class mergeSeedClassifications(IOTA2Step.Step):
         self.merge_final_classifications_method = SCF.serviceConfigFile(
             cfg).getParam('chain', 'merge_final_classifications_method')
 
+        self.execution_mode = "cluster"
+        pixType = fut.getOutputPixType(self.nomenclature)
+        validation_shape = None
+        if self.fusionClaAllSamplesVal is True:
+            validation_shape = self.ground_truth
+
+        task = self.i2_task(task_name=f"final_report",
+                            log_dir=self.log_step_dir,
+                            execution_mode=self.execution_mode,
+                            task_parameters={
+                                "f": mergeCl.mergeFinalClassifications,
+                                "iota2_dir": self.output_path,
+                                "dataField": self.data_field,
+                                "nom_path": self.nomenclature,
+                                "colorFile": self.color_table,
+                                "runs": self.runs,
+                                "pixType": pixType,
+                                "method":
+                                self.merge_final_classifications_method,
+                                "undecidedlabel": self.undecidedlabel,
+                                "dempstershafer_mob": self.dempstershafer_mob,
+                                "keep_runs_results": self.keep_runs_results,
+                                "enableCrossValidation":
+                                self.enableCrossValidation,
+                                "validationShape": validation_shape,
+                                "workingDirectory": self.workingDirectory
+                            },
+                            task_resources=self.resources)
+        self.add_task_to_i2_processing_graph(
+            task,
+            task_group="merge_final_classifications",
+            task_sub_group="merge_final_classifications",
+            task_dep_dico={"final_report": ["final_report"]})
+
     @classmethod
     def step_description(cls):
         """
@@ -59,39 +95,3 @@ class mergeSeedClassifications(IOTA2Step.Step):
         """
         description = ("Merge final classifications")
         return description
-
-    def step_inputs(self):
-        """
-        Return
-        ------
-            the return could be and iterable or a callable
-        """
-        return [self.output_path]
-
-    def step_execute(self):
-        """
-        Return
-        ------
-        lambda
-            the function to execute as a lambda function. The returned object
-            must be a lambda function.
-        """
-        from Common import FileUtils as fut
-        from Classification import MergeFinalClassifications as mergeCl
-
-        pixType = fut.getOutputPixType(self.nomenclature)
-        validation_shape = None
-        if self.fusionClaAllSamplesVal is True:
-            validation_shape = self.ground_truth
-        step_function = lambda x: mergeCl.mergeFinalClassifications(
-            x, self.data_field, self.nomenclature, self.color_table, self.runs,
-            pixType, self.merge_final_classifications_method, self.
-            undecidedlabel, self.dempstershafer_mob, self.keep_runs_results,
-            self.enableCrossValidation, validation_shape, self.workingDirectory
-        )
-        return step_function
-
-    def step_outputs(self):
-        """
-        """
-        pass
