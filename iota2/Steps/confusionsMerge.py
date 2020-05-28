@@ -17,6 +17,7 @@ import os
 
 from iota2.Steps import IOTA2Step
 from iota2.Common import ServiceConfigFile as SCF
+from iota2.Validation import ConfusionFusion
 
 
 class confusionsMerge(IOTA2Step.Step):
@@ -34,6 +35,50 @@ class confusionsMerge(IOTA2Step.Step):
             'chain', 'dataField')
         self.ground_truth = SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'groundTruth')
+        self.runs = SCF.serviceConfigFile(self.cfg).getParam('chain', 'runs')
+        self.execution_mode = "cluster"
+
+        task = self.i2_task(task_name=f"merge_confusions",
+                            log_dir=self.log_step_dir,
+                            execution_mode=self.execution_mode,
+                            task_parameters={
+                                "f":
+                                ConfusionFusion.confusion_fusion,
+                                "input_vector":
+                                self.ground_truth,
+                                "data_field":
+                                self.data_field,
+                                "csv_out":
+                                os.path.join(self.output_path, "final", "TMP"),
+                                "txt_out":
+                                os.path.join(self.output_path, "final", "TMP"),
+                                "csv_path":
+                                os.path.join(self.output_path, "final", "TMP"),
+                                "runs":
+                                SCF.serviceConfigFile(self.cfg).getParam(
+                                    'chain', 'runs'),
+                                "crop_mix":
+                                SCF.serviceConfigFile(self.cfg).getParam(
+                                    'argTrain', 'cropMix'),
+                                "annual_crop":
+                                SCF.serviceConfigFile(self.cfg).getParam(
+                                    'argTrain', 'annualCrop'),
+                                "annual_crop_label_replacement":
+                                (SCF.serviceConfigFile(self.cfg).getParam(
+                                    'argTrain',
+                                    'ACropLabelReplacement').data)[0]
+                            },
+                            task_resources=self.resources)
+        self.add_task_to_i2_processing_graph(
+            task,
+            task_group="confusion_merge",
+            task_sub_group="confusion_merge",
+            task_dep_dico={
+                "tile_tasks_seed": [
+                    f"{tile}_{seed}" for seed in range(self.runs)
+                    for tile in self.tiles
+                ]
+            })
 
     @classmethod
     def step_description(cls):
@@ -42,36 +87,3 @@ class confusionsMerge(IOTA2Step.Step):
         """
         description = ("Merge all confusions")
         return description
-
-    def step_inputs(self):
-        """
-        Return
-        ------
-            the return could be and iterable or a callable
-        """
-        return [self.ground_truth]
-
-    def step_execute(self):
-        """
-        Return
-        ------
-        lambda
-            the function to execute as a lambda function. The returned object
-            must be a lambda function.
-        """
-        from iota2.Validation import ConfusionFusion as confFus
-        step_function = lambda x: confFus.confusion_fusion(
-            x, self.data_field, os.path.join(self.output_path, "final", "TMP"),
-            os.path.join(self.output_path, "final", "TMP"),
-            os.path.join(self.output_path, "final", "TMP"),
-            SCF.serviceConfigFile(self.cfg).getParam('chain', 'runs'),
-            SCF.serviceConfigFile(self.cfg).getParam('argTrain', 'cropMix'),
-            SCF.serviceConfigFile(self.cfg).getParam('argTrain', 'annualCrop'),
-            (SCF.serviceConfigFile(self.cfg).getParam(
-                'argTrain', 'ACropLabelReplacement').data)[0])
-        return step_function
-
-    def step_outputs(self):
-        """
-        """
-        pass
