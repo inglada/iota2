@@ -1151,6 +1151,8 @@ def generate_samples(train_shape_dic,
     mode = list(train_shape_dic.keys())[0]
     train_shape = train_shape_dic[mode]
 
+    if not os.path.exists(train_shape):
+        return None
     all_class = fu.getFieldElement(train_shape,
                                    "ESRI Shapefile",
                                    data_field,
