@@ -15,6 +15,9 @@
 # =========================================================================
 import os
 import dask
+
+dask.config.set({"distributed.comm.timeouts.tcp": "50s"})
+
 import logging
 from functools import wraps
 from typing import Dict, Optional, List
@@ -282,7 +285,7 @@ class Step(object):
             f_kwargs = task_kwargs
 
             # here we launch the fonction with all the arguments of kwargs
-            scheduler_type = "local"
+            # scheduler_type = "local"
             if scheduler_type == "cluster":
 
                 env_vars = [
@@ -299,6 +302,7 @@ class Step(object):
                     extras.append(f"-e {log_err}")
                 if log_out is not None:
                     extras.append(f"-o {log_out}")
+                logging.captureWarnings(True)
                 cluster = PBSCluster(n_workers=1,
                                      cores=resources["cpu"],
                                      memory=resources["ram"],
@@ -307,6 +311,7 @@ class Step(object):
                                      interface='ib0',
                                      silence_logs="error",
                                      processes=1,
+                                     nanny=True,
                                      job_extra=extras,
                                      local_directory='$TMPDIR')
 
@@ -320,9 +325,16 @@ class Step(object):
                     f_kwargs, working_dir)
                 sub_results = client.submit(func, **f_kwargs)
                 sub_results.result()
-                cluster.close()
-                client.close()
-                # time.sleep(5)
+
+                # cluster.close()
+                try:
+                    client.shutdown()
+                    client.close()
+                except AssertionError as error:
+                    time.sleep(5)
+                    print(f"ERROR = {error}")
+                    client.shutdown()
+                    client.close()
                 # wait and see : restart if fail ? differents strategies
                 # of relaunch can be implemented here...
             elif scheduler_type == "local":
@@ -470,3 +482,7 @@ class Step(object):
     @classmethod
     def step_description(cls):
         return "quick step description"
+
+
+if __name__ == "__main__":
+    pass
