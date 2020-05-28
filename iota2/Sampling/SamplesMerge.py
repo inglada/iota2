@@ -145,8 +145,13 @@ def samples_merge(region_tiles_seed: Tuple[str], output_path: str,
     vector_region = []
     vector_region_val = []
     for tile in tiles:
-        vector_tile = fut.FileSearch_AND(formatting_vec_dir, True, tile,
-                                         ".shp")[0]
+        vector_tiles = fut.FileSearch_AND(formatting_vec_dir, True, tile,
+                                          ".shp")
+        if vector_tiles:
+            vector_tile = vector_tiles[0]
+        else:
+            continue
+
         poi_name = f"{tile}_region_{region}_seed_{seed}_samples.shp"
         poi_learn = os.path.join(work_dir, poi_name)
         poi_val = None
