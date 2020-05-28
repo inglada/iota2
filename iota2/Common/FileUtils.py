@@ -1175,18 +1175,19 @@ def mergeSQLite(outname, opath, files):
     filefusion = opath + "/" + outname + ".sqlite"
     if os.path.exists(filefusion):
         os.remove(filefusion)
-    if len(files) > 1:
-        first = files[0]
-        cmd = 'ogr2ogr -f SQLite ' + filefusion + ' ' + first
-        run(cmd)
+    if files:
         if len(files) > 1:
-            for f in range(1, len(files)):
-                fusion = 'ogr2ogr -f SQLite -update -append ' + filefusion + ' ' + files[
-                    f]
-                print(fusion)
-                run(fusion)
-    else:
-        shutil.copy(files[0], filefusion)
+            first = files[0]
+            cmd = 'ogr2ogr -f SQLite ' + filefusion + ' ' + first
+            run(cmd)
+            if len(files) > 1:
+                for f in range(1, len(files)):
+                    fusion = 'ogr2ogr -f SQLite -update -append ' + filefusion + ' ' + files[
+                        f]
+                    print(fusion)
+                    run(fusion)
+        else:
+            shutil.copy(files[0], filefusion)
 
 
 def mergeSqlite(vectorList, outputVector):
@@ -1243,25 +1244,26 @@ def mergeVectors(outname, opath, files, ext="shp", out_Tbl_name=None):
     outType = ''
     if ext == 'sqlite':
         outType = ' -f SQLite '
-    file1 = files[0]
-    nbfiles = len(files)
-    filefusion = opath + "/" + outname + "." + ext
-    if not os.path.exists(filefusion):
+    if files:
+        file1 = files[0]
+        nbfiles = len(files)
+        filefusion = opath + "/" + outname + "." + ext
+        if not os.path.exists(filefusion):
 
-        table_name = outname
-        if out_Tbl_name:
-            table_name = out_Tbl_name
-        fusion = 'ogr2ogr ' + filefusion + ' ' + file1 + ' ' + outType + ' -nln ' + table_name
-        run(fusion)
-
-        done.append(file1)
-        for f in range(1, nbfiles):
-            fusion = 'ogr2ogr -update -append ' + filefusion + ' ' + files[
-                f] + ' -nln ' + table_name + ' ' + outType
+            table_name = outname
+            if out_Tbl_name:
+                table_name = out_Tbl_name
+            fusion = 'ogr2ogr ' + filefusion + ' ' + file1 + ' ' + outType + ' -nln ' + table_name
             run(fusion)
-            done.append(files[f])
 
-    return filefusion
+            done.append(file1)
+            for f in range(1, nbfiles):
+                fusion = 'ogr2ogr -update -append ' + filefusion + ' ' + files[
+                    f] + ' -nln ' + table_name + ' ' + outType
+                run(fusion)
+                done.append(files[f])
+
+        return filefusion
 
 
 def getRasterExtent(raster_in):
