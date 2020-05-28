@@ -409,6 +409,7 @@ class i2_classification(i2_builder):
         s_container.append(step_zonal_stats, "lcstatistics")
         s_container.append(step_prod_vectors, "lcstatistics")
         # Check if paramters are coherent
+        self.check_mandatory_section()
         self.check_config_parameters()
         self.check_compat_param()
         return s_container
@@ -457,6 +458,16 @@ class i2_classification(i2_builder):
             # verif que pas redondant avec sErr
             # print("Wrong step name for firstStep or lastStep")
             raise
+
+    def check_mandatory_section(self):
+        config_cont = rcf.read_config_file(self.cfg)
+
+        list_readed_section = config_cont.backlog_params["readed"]
+        if config_cont.cfg.scikit_models_parameters.model_type is None:
+            if "argTrain" not in list_readed_section:
+                raise sErr.configError(
+                    f"'argTrain' is empty in file {self.cfg}"
+                    " Choosing a classifier is mandatory")
 
     def check_compat_param(self):
         config_content = rcf.read_config_file(self.cfg)

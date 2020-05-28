@@ -19,7 +19,7 @@ import sys
 from typing import Dict, Union, List
 from osgeo import ogr
 from inspect import getmembers, isfunction
-from config import Config, Sequence, Mapping, Container
+from config import Config, Sequence, Mapping
 from iota2.Common.FileUtils import FileSearch_AND, getRasterNbands, get_iota2_project_dir
 from iota2.Common import ServiceError as sErr
 from iota2.configuration_files import default_config_parameters as dcp
@@ -28,8 +28,8 @@ from iota2.configuration_files import check_config_parameters as ccp
 this = sys.modules[__name__]
 
 # declaration of path_conf and cfg variables
-this.path_conf = None
-this.cfg = None
+# this.path_conf = None
+# this.cfg = None
 
 
 def clearConfig():
@@ -52,6 +52,10 @@ class read_config_file:
         """
         self.path_conf = path_conf
         self.cfg = Config(open(path_conf))
+        # create dictionnary of sections readed
+        self.backlog_params = {}
+        self.backlog_params["readed"] = []
+        self.backlog_params["default"] = []
         # set default values
         builder = {
             "mode": "classification",
@@ -71,6 +75,10 @@ class read_config_file:
 
         for fun in function_list:
             block_name, default_params = fun[1]()
+            if self.is_section_available(block_name):
+                self.backlog_params["readed"].append(block_name)
+            else:
+                self.backlog_params["default"].append(block_name)
             self.init_section(block_name, default_params)
 
     def check_params(self):
@@ -122,6 +130,13 @@ class read_config_file:
         :return: list of available section
         """
         return [section for section in list(self.cfg.keys())]
+
+    def is_section_available(self, section):
+        """
+        """
+        if not hasattr(self.cfg, section):
+            return False
+        return True
 
     def getSection(self, section):
         """

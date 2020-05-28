@@ -436,6 +436,7 @@ def check_chain_parameters(cfg, path_conf):
 
 
 def check_arg_train_parameters(cfg, path_conf):
+
     try:
         test_var_config_file(cfg, 'argTrain', 'classifier', str)
         test_var_config_file(cfg, 'argTrain', 'options', str)
