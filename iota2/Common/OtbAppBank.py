@@ -145,6 +145,56 @@ def CreateClassificationMapRegularization(OtbParameters):
     return map_reg
 
 
+def CreateConfusionMatrix(otb_parameters):
+    """binding to ComputeConfusionMatrix OTB's application
+
+    Parameter
+    ---------
+
+    otb_parameters [dic]
+        dictionnary with otb's parameter keys
+
+    Return
+    ------
+    class 'otbApplication.Application'
+        ComputeConfusionMatrix application ready to be ExecuteAndWriteOutput()
+    """
+    conf_mat_app = otb.Registry.CreateApplication("ComputeConfusionMatrix")
+    # mandatory parameters
+    if not "in" in otb_parameters:
+        raise ValueError("the parameter 'in' is missing")
+    if not "out" in otb_parameters:
+        raise ValueError("the parameter 'out' is missing")
+    conf_mat_app.SetParameterString("in", str(otb_parameters["in"]))
+    conf_mat_app.SetParameterString("out", str(otb_parameters["out"]))
+    if "format" in otb_parameters:
+        conf_mat_app.SetParameterString("format",
+                                        str(otb_parameters["format"]))
+    if "ref" in otb_parameters:
+        conf_mat_app.SetParameterString("ref", str(otb_parameters["ref"]))
+    if "ref.raster.in" in otb_parameters:
+        conf_mat_app.SetParameterString("ref.raster.in",
+                                        str(otb_parameters["ref.raster.in"]))
+    if "ref.raster.nodata" in otb_parameters:
+        conf_mat_app.SetParameterString(
+            "ref.raster.nodata", str(otb_parameters["ref.raster.nodata"]))
+    if "ref.vector.in" in otb_parameters:
+        conf_mat_app.SetParameterString("ref.vector.in",
+                                        str(otb_parameters["ref.vector.in"]))
+    if "ref.vector.field" in otb_parameters:
+        conf_mat_app.SetParameterString(
+            "ref.vector.field", str(otb_parameters["ref.vector.field"]))
+    if "ref.vector.nodata" in otb_parameters:
+        conf_mat_app.SetParameterString(
+            "ref.vector.nodata", str(otb_parameters["ref.vector.nodata"]))
+    if "nodatalabel" in otb_parameters:
+        conf_mat_app.SetParameterString("nodatalabel",
+                                        str(otb_parameters["nodatalabel"]))
+    if "ram" in otb_parameters:
+        conf_mat_app.SetParameterString("ram", str(otb_parameters["ram"]))
+    return conf_mat_app
+
+
 def CreateClassifyAutoContext(OtbParameters):
     """binding to ClassifyAutoContext OTB's application
 
