@@ -1061,12 +1061,11 @@ class iota_test_classification_shaping(unittest.TestCase):
                         features_ref_test + "/D0005H0003")
 
         N = 1
-        fieldEnv = "FID"
         COLORTABLE = cfg.getParam('chain', 'colorTable')
         CS.classification_shaping(self.pathClassif, N, self.classifFinal, None,
                                   "separate", self.pathOut, False, 2154,
                                   cfg.getParam("chain", "nomenclaturePath"),
-                                  False, 30, False,
+                                  False, [30, 30], False,
                                   cfg.getParam("chain",
                                                "regionPath"), COLORTABLE)
 
@@ -1164,8 +1163,7 @@ class iota_test_gen_conf_matrix(unittest.TestCase):
 
         GCM.gen_conf_matrix(self.Final, self.pathAppVal, runs, data_field,
                             self.cmdPath + "/confusion", None, self.pathOut,
-                            int(cfg.getParam('chain', 'spatialResolution')),
-                            cfg.getParam('chain', 'listTile'),
+                            [30, 30], cfg.getParam('chain', 'listTile'),
                             cfg.getParam('chain', 'enableCrossValidation'))
 
         # file comparison to ref file

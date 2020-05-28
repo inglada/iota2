@@ -21,7 +21,6 @@ from iota2.Common import FileUtils as fu
 from iota2.Common.Utils import run
 
 
-# def launchClassification(model, path_cfg, output_path: str,
 def write_classification_command(model, path_cfg, output_path: str,
                                  classifier_name: str,
                                  classification_mode: str,
@@ -80,7 +79,6 @@ def write_classification_command(model, path_cfg, output_path: str,
                 tile, model, seed, suffix)
             CmdConfidenceMap = " -confmap " + os.path.join(
                 pathOut, confidenceMap_name)
-
             if not os.path.exists(maskFiles + "/" + maskTif):
                 pathToMaskCommun = pathToImg + "/" + tile + "/tmp/" + "MaskCommunSL" + ".shp"
                 #cas cluster

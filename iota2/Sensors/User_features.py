@@ -61,6 +61,7 @@ class user_features():
                                                       tile_name)
         self.ref_image = os.path.join(i2_output_path, "features", tile_name,
                                       "tmp", ref_image_name)
+        self.working_resolution = kwargs["working_resolution"]
 
     def footprint(self, ram=128, data_value=1):
         """get footprint
@@ -86,14 +87,17 @@ class user_features():
             self.ref_image, base_ref))
         ensure_dir(os.path.dirname(self.ref_image), raise_exe=False)
         base_ref_projection = getRasterProjectionEPSG(base_ref)
-        base_ref_res_x, _ = getRasterResolution(base_ref)
+        base_ref_res_x, base_ref_res_y = getRasterResolution(base_ref)
+        if self.working_resolution:
+            base_ref_res_x = self.working_resolution[0]
+            base_ref_res_y = self.working_resolution[1]
         if not os.path.exists(self.ref_image):
             Warp(self.ref_image,
                  base_ref,
                  multithread=True,
                  format="GTiff",
                  xRes=base_ref_res_x,
-                 yRes=base_ref_res_x,
+                 yRes=base_ref_res_y,
                  outputType=GDT_Byte,
                  srcSRS="EPSG:{}".format(base_ref_projection),
                  dstSRS="EPSG:{}".format(self.target_proj))
@@ -189,19 +193,25 @@ class user_features():
         })
         base_ref = user_features_found[0]
         base_ref_projection = getRasterProjectionEPSG(base_ref)
+        base_ref_res_x, base_ref_res_y = getRasterResolution(base_ref)
+        if self.working_resolution:
+            base_ref_res_x = self.working_resolution[0]
+            base_ref_res_y = self.working_resolution[1]
         if not os.path.exists(self.ref_image):
-            base_ref_res_x, _ = getRasterResolution(base_ref)
             Warp(self.ref_image,
                  base_ref,
                  multithread=True,
                  format="GTiff",
                  xRes=base_ref_res_x,
-                 yRes=base_ref_res_x,
+                 yRes=base_ref_res_y,
                  outputType=GDT_Byte,
                  srcSRS="EPSG:{}".format(base_ref_projection),
                  dstSRS="EPSG:{}".format(self.target_proj))
         app_dep = []
-        if int(base_ref_projection) != (self.target_proj):
+
+        same_res = getRasterResolution(base_ref) == (base_ref_res_x,
+                                                     base_ref_res_y)
+        if int(base_ref_projection) != (self.target_proj) or not same_res:
             user_feat_stack.Execute()
             app_dep.append(user_feat_stack)
             user_feat_stack, _ = CreateSuperimposeApplication({

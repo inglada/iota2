@@ -91,15 +91,17 @@ def split_vector_by_region(in_vect: str,
         for region in regions:
             out_vec_name_learn = (f"{tile}_region_{region}_seed{seed}_"
                                   f"{targeted_chunk}Samples_learn_tmp")
-            # "_".join([
-            #     tile, "region", region, "seed" + str(seed),
-            #     str(targeted_chunk), "Samples_learn_tmp"
-            # ])
             if mode != "usually":
-                out_vec_name_learn = "_".join([
-                    tile, "region", region, "seed" + str(seed),
-                    str(targeted_chunk), "Samples", "SAR", "learn_tmp"
-                ])
+                if targeted_chunk:
+                    out_vec_name_learn = "_".join([
+                        tile, "region", region, "seed" + str(seed),
+                        str(targeted_chunk), "Samples", "SAR", "learn_tmp"
+                    ])
+                else:
+                    out_vec_name_learn = "_".join([
+                        tile, "region", region, "seed" + str(seed), "Samples",
+                        "SAR", "learn_tmp"
+                    ])
             output_vec_learn = os.path.join(output_dir,
                                             out_vec_name_learn + extent)
             seed_clause_learn = f"seed_{seed}='{learn_flag}'"

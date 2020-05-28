@@ -210,7 +210,7 @@ def mergeTileRaster(path, clipfile, fieldclip, valueclip, tiles, tilesfolder,
 
             if len(tomerge) != 0:
                 sx, sy = fut.getRasterResolution(tomerge[0])
-                fut.assembleTile_Merge(tomerge, sx, outraster, "Byte")
+                fut.assembleTile_Merge(tomerge, (sx, sy), outraster, "Byte")
 
                 logger.info('Raster mosaic "%s" done for zone %s' %
                             (outraster, str(valueclip)))

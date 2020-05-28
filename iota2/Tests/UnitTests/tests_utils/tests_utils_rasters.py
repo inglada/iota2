@@ -200,14 +200,18 @@ def fun_array(fun: str):
                      1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
                      1, 1, 1, 1, 1, 1, 1, 1, 1, 1
                  ]]
-    array = np.array(array)
+        array = np.array(array)
+
+    elif fun == "ones":
+        array = np.ones((86, 16))
     return array
 
 
 def generate_fake_s2_data(root_directory: str,
                           tile_name: str,
                           dates: List[str],
-                          res: Optional[float] = 30.0):
+                          res: Optional[float] = 30.0,
+                          array_name: Optional[str] = "iota2_binary"):
     """
     Parameters
     ----------
@@ -217,6 +221,10 @@ def generate_fake_s2_data(root_directory: str,
         THEIA tile name (ex:T31TCJ)
     dates : list
         list of strings reprensentig dates format : YYYYMMDD
+    res : float
+        raster's resolution
+    array_name : string
+        pattern to build rasters
     """
 
     tile_dir = os.path.join(root_directory, tile_name)
@@ -229,7 +237,7 @@ def generate_fake_s2_data(root_directory: str,
 
     origin_x = 566377
     origin_y = 6284029
-    array_name = "iota2_binary"
+
     for date in dates:
         date_dir = os.path.join(tile_dir,
                                 ("SENTINEL2B_{}-000000-"
@@ -358,7 +366,8 @@ def generate_fake_s2_s2c_data(
 def generate_fake_l8_data(root_directory: str,
                           tile_name: str,
                           dates: List[str],
-                          res: Optional[float] = 30.0):
+                          res: Optional[float] = 30.0,
+                          array_name: Optional[str] = "iota2_binary"):
     """
     Parameters
     ----------
@@ -368,6 +377,10 @@ def generate_fake_l8_data(root_directory: str,
         THEIA tile name (ex:T31TCJ)
     dates : list
         list of strings reprensentig dates format : YYYYMMDD
+    res : float
+        raster's resolution
+    array_name : string
+        pattern to build rasters
     """
 
     tile_dir = os.path.join(root_directory, tile_name)
@@ -378,7 +391,7 @@ def generate_fake_l8_data(root_directory: str,
 
     origin_x = 566377
     origin_y = 6284029
-    array_name = "iota2_binary"
+
     for date in dates:
         date_dir = os.path.join(tile_dir,
                                 ("LANDSAT8-OLITIRS-XS_{}-000000-"
@@ -465,7 +478,8 @@ def generate_fake_user_features_data(root_directory: str, tile_name: str,
 def generate_fake_s2_l3a_data(root_directory: str,
                               tile_name: str,
                               dates: List[str],
-                              res: Optional[float] = 30.0):
+                              res: Optional[float] = 30.0,
+                              array_name: Optional[str] = "iota2_binary"):
     """
     Parameters
     ----------
@@ -475,6 +489,10 @@ def generate_fake_s2_l3a_data(root_directory: str,
         THEIA tile name (ex:T31TCJ)
     dates : list
         list of strings reprensentig dates format : YYYYMMDD
+    res : float
+        raster's resolution
+    array_name : string
+        pattern to build rasters
     """
 
     tile_dir = os.path.join(root_directory, tile_name)
@@ -487,7 +505,7 @@ def generate_fake_s2_l3a_data(root_directory: str,
 
     origin_x = 566377
     origin_y = 6284029
-    array_name = "iota2_binary"
+
     for date in dates:
         date_dir = os.path.join(tile_dir,
                                 ("SENTINEL2X_{}-000000-"
@@ -539,7 +557,8 @@ def generate_fake_s2_l3a_data(root_directory: str,
 def generate_fake_l5_old_data(root_directory: str,
                               tile_name: str,
                               dates: List[str],
-                              res: Optional[float] = 30.0):
+                              res: Optional[float] = 30.0,
+                              array_name: Optional[str] = "iota2_binary"):
     """
     Parameters
     ----------
@@ -549,6 +568,10 @@ def generate_fake_l5_old_data(root_directory: str,
         THEIA tile name (ex:T31TCJ)
     dates : list
         list of strings reprensentig dates format : YYYYMMDD
+    res : float
+        raster's resolution
+    array_name : string
+        pattern to build rasters
     """
 
     tile_dir = os.path.join(root_directory, tile_name)
@@ -559,7 +582,7 @@ def generate_fake_l5_old_data(root_directory: str,
 
     origin_x = 566377
     origin_y = 6284029
-    array_name = "iota2_binary"
+
     for date in dates:
         date_dir = os.path.join(tile_dir,
                                 (f"LANDSAT5_TM_XS_{date}_N2A_{tile_name}"))
@@ -607,7 +630,8 @@ def generate_fake_l5_old_data(root_directory: str,
 def generate_fake_l8_old_data(root_directory: str,
                               tile_name: str,
                               dates: List[str],
-                              res: Optional[float] = 30.0):
+                              res: Optional[float] = 30.0,
+                              array_name: Optional[str] = "iota2_binary"):
     """
     Parameters
     ----------
@@ -617,6 +641,10 @@ def generate_fake_l8_old_data(root_directory: str,
         THEIA tile name (ex:T31TCJ)
     dates : list
         list of strings reprensentig dates format : YYYYMMDD
+    res : float
+        raster's resolution
+    array_name : string
+        pattern to build rasters
     """
 
     tile_dir = os.path.join(root_directory, tile_name)
@@ -627,7 +655,7 @@ def generate_fake_l8_old_data(root_directory: str,
 
     origin_x = 566377
     origin_y = 6284029
-    array_name = "iota2_binary"
+
     for date in dates:
         date_dir = os.path.join(
             tile_dir, (f"LANDSAT8_OLITIRS_XS_{date}_N2A_{tile_name}"))

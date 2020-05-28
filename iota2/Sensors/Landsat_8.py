@@ -139,6 +139,7 @@ class landsat_8():
         self.input_dates = f"{self.__class__.name}_{tile_name}_input_dates.txt"
         self.interpolated_dates = (f"{self.__class__.name}_{tile_name}"
                                    "_interpolation_dates.txt")
+        self.working_resolution = kwargs["working_resolution"]
 
     def get_date_from_name(self, product_name):
         """
@@ -221,6 +222,8 @@ class landsat_8():
         from iota2.Common.OtbAppBank import CreateConcatenateImagesApplication
         from iota2.Common.OtbAppBank import CreateSuperimposeApplication
         from iota2.Common.OtbAppBank import executeApp
+        from iota2.Common.FileUtils import getRasterResolution
+
         # manage directories
         date_stack_name = self.build_stack_date_name(date_dir)
         logger.debug(f"preprocessing {date_dir}")
@@ -250,6 +253,10 @@ class landsat_8():
         base_ref = date_bands[0]
         ensure_dir(os.path.dirname(self.ref_image), raise_exe=False)
         base_ref_projection = getRasterProjectionEPSG(base_ref)
+        base_ref_res_x, base_ref_res_y = getRasterResolution(base_ref)
+        if self.working_resolution:
+            base_ref_res_x = self.working_resolution[0]
+            base_ref_res_y = self.working_resolution[1]
 
         if not os.path.exists(self.ref_image):
             logger.info(
@@ -258,8 +265,8 @@ class landsat_8():
                  base_ref,
                  multithread=True,
                  format="GTiff",
-                 xRes=self.native_res,
-                 yRes=self.native_res,
+                 xRes=base_ref_res_x,
+                 yRes=base_ref_res_y,
                  outputType=GDT_Byte,
                  srcSRS="EPSG:{}".format(base_ref_projection),
                  dstSRS="EPSG:{}".format(self.target_proj))
@@ -290,11 +297,16 @@ class landsat_8():
                 out_stack_processing
             })
             same_proj = False
+            same_res = True
             if os.path.exists(out_stack):
                 same_proj = int(getRasterProjectionEPSG(out_stack)) == int(
                     self.target_proj)
-
-            if not os.path.exists(out_stack) or same_proj is False:
+                same_res = tuple(map(
+                    abs,
+                    getRasterResolution(out_stack))) == (base_ref_res_x,
+                                                         abs(base_ref_res_y))
+            if not os.path.exists(
+                    out_stack) or same_proj is False or not same_res:
                 # ~ date_stack.ExecuteAndWriteOutput()
                 multi_proc = mp.Process(target=executeApp, args=[date_stack])
                 multi_proc.start()
@@ -322,6 +334,8 @@ class landsat_8():
         from iota2.Common.OtbAppBank import CreateSuperimposeApplication
         from iota2.Common.FileUtils import getRasterProjectionEPSG
         from iota2.Common.OtbAppBank import executeApp
+        from iota2.Common.FileUtils import getRasterResolution
+
         # TODO : throw Exception if no masks are found
         date_mask = []
         for mask_name, _ in list(self.masks_rules.items()):
@@ -371,11 +385,14 @@ class landsat_8():
 
         if self.write_dates_stack:
             same_proj = False
+            same_res = True
             if os.path.exists(out_mask):
                 same_proj = int(getRasterProjectionEPSG(out_mask)) == int(
                     self.target_proj)
-
-            if not os.path.exists(out_mask) or same_proj is False:
+                same_res = getRasterResolution(
+                    out_mask) == getRasterResolution(self.ref_image)
+            if not os.path.exists(
+                    out_mask) or same_proj is False or not same_res:
                 # ~ superimp.ExecuteAndWriteOutput()
                 multi_proc = mp.Process(target=executeApp, args=[superimp])
                 multi_proc.start()

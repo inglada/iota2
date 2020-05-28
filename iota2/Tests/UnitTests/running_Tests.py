@@ -265,7 +265,7 @@ class iota_tests_runs_case(unittest.TestCase):
         cfg_test.chain.groundTruth = self.ground_truth_path
         cfg_test.chain.nomenclaturePath = self.nomenclature_path
         cfg_test.chain.colorTable = self.color_path
-        cfg_test.chain.spatialResolution = 30
+        cfg_test.chain.spatialResolution = [30, 30]
         cfg_test.save(open(config_test, 'w'))
 
         # Launch the chain
@@ -322,7 +322,7 @@ class iota_tests_runs_case(unittest.TestCase):
         cfg_test.chain.groundTruth = self.ground_truth_path
         cfg_test.chain.nomenclaturePath = self.nomenclature_path
         cfg_test.chain.colorTable = self.color_path
-        cfg_test.chain.spatialResolution = 30
+        cfg_test.chain.spatialResolution = [30, 30]
         cfg_test.save(open(config_test, 'w'))
 
         # Launch the chain
@@ -379,7 +379,7 @@ class iota_tests_runs_case(unittest.TestCase):
         cfg_test.chain.groundTruth = self.ground_truth_path
         cfg_test.chain.nomenclaturePath = self.nomenclature_path
         cfg_test.chain.colorTable = self.color_path
-        cfg_test.chain.spatialResolution = 30
+        cfg_test.chain.spatialResolution = [30, 30]
         cfg_test.save(open(config_test, 'w'))
 
         # Launch the chain
@@ -539,7 +539,8 @@ class iota_tests_runs_case(unittest.TestCase):
         TUR.generate_fake_s2_data(fake_s2_theia_dir,
                                   tile_name,
                                   ["20200101", "20200112", "20200127"],
-                                  res=10.0)
+                                  res=10.0,
+                                  array_name="ones")
         config_test = os.path.join(self.test_working_directory,
                                    "i2_config_s2_l2a_scikit_learn.cfg")
         shutil.copy(self.config_ref_scikit, config_test)
@@ -592,3 +593,326 @@ class iota_tests_runs_case(unittest.TestCase):
         self.assertTrue(FileSearch_AND(
             os.path.join(running_output_path, "final"), True, "RESULTS.txt"),
                         msg="RESULTS.txt")
+
+    def test_s2_s2c_custom_features_run(self):
+        """
+        Tests iota2's run using s2 (S2C format)
+        and custom features
+        """
+        from config import Config
+        from iota2.Common.FileUtils import FileSearch_AND
+        import iota2.Tests.UnitTests.tests_utils.tests_utils_rasters as TUR
+        import iota2.Tests.UnitTests.tests_utils.tests_utils_iota2 as TUI
+        # prepare inputs data
+        tile_name = "T31TCJ"
+        running_output_path = os.path.join(self.test_working_directory,
+                                           "test_results_cust_s2s2c")
+        mtd_files = [
+            os.path.join(IOTA2DIR, "data", "MTD_MSIL2A_20190501.xml"),
+            os.path.join(IOTA2DIR, "data", "MTD_MSIL2A_20190506.xml")
+        ]
+        fake_s2_s2c_dir = os.path.join(self.test_working_directory,
+                                       "s2_s2c_data")
+
+        TUR.generate_fake_s2_s2c_data(
+            fake_s2_s2c_dir,
+            tile_name,
+            mtd_files,
+            res=10.0,
+            fake_raster=TUR.fun_array("iota2_binary"),
+            fake_scene_classification=1 + TUR.fun_array("iota2_binary") * 2,
+            origin_x=566377.0,
+            origin_y=6284029.0,
+            epsg_code=2154)
+
+        config_test = os.path.join(self.test_working_directory,
+                                   "i2_config_s2_s2c.cfg")
+        shutil.copy(self.config_ref, config_test)
+        cfg_test = Config(open(config_test))
+        cfg_test.chain.outputPath = running_output_path
+        cfg_test.chain.S2_S2C_Path = fake_s2_s2c_dir
+        cfg_test.chain.dataField = "code"
+        cfg_test.chain.listTile = tile_name
+        cfg_test.chain.groundTruth = self.ground_truth_path
+        cfg_test.chain.nomenclaturePath = self.nomenclature_path
+        cfg_test.chain.colorTable = self.color_path
+        cfg_test.external_features.module = os.path.join(
+            IOTA2DIR, "data", "numpy_features", "user_custom_function.py")
+        cfg_test.external_features.functions = ("test_index_s2_s2c "
+                                                "test_index_sum_s2_s2c")
+        cfg_test.external_features.number_of_chunks = 1
+        cfg_test.save(open(config_test, 'w'))
+
+        # Launch the chain
+        TUI.iota2_test_launcher(config_test)
+        self.assertTrue(
+            FileSearch_AND(os.path.join(running_output_path, "final"), True,
+                           "Classif_Seed_0_ColorIndexed.tif"))
+        self.assertTrue(
+            FileSearch_AND(os.path.join(running_output_path, "final"), True,
+                           "Classif_Seed_0.tif"))
+        self.assertTrue(
+            FileSearch_AND(os.path.join(running_output_path, "final"), True,
+                           "Confidence_Seed_0.tif"))
+        self.assertTrue(
+            FileSearch_AND(os.path.join(running_output_path, "final"), True,
+                           "Confusion_Matrix_Classif_Seed_0.png"))
+        self.assertTrue(
+            FileSearch_AND(os.path.join(running_output_path, "final"), True,
+                           "diff_seed_0.tif"))
+        self.assertTrue(
+            FileSearch_AND(os.path.join(running_output_path, "final"), True,
+                           "PixelsValidity.tif"))
+        self.assertTrue(
+            FileSearch_AND(os.path.join(running_output_path, "final"), True,
+                           "RESULTS.txt"))
+
+    def test_l5_old_custom_features_run(self):
+        """
+        Tests iota2's run using Landsat5 (old format)
+        and custom features
+        """
+        from config import Config
+        from iota2.Common.FileUtils import FileSearch_AND
+        import iota2.Tests.UnitTests.tests_utils.tests_utils_rasters as TUR
+        import iota2.Tests.UnitTests.tests_utils.tests_utils_iota2 as TUI
+        # prepare inputs data
+        tile_name = "D0005H0002"
+        running_output_path = os.path.join(self.test_working_directory,
+                                           "test_results")
+        fake_l5_old_dir = os.path.join(self.test_working_directory,
+                                       "l5_old_data")
+        TUR.generate_fake_l5_old_data(fake_l5_old_dir,
+                                      tile_name,
+                                      ["20200101", "20200112", "20200127"],
+                                      res=30.0)
+        config_test = os.path.join(self.test_working_directory,
+                                   "i2_config_l5_old.cfg")
+
+        shutil.copy(self.config_ref, config_test)
+        cfg_test = Config(open(config_test))
+        cfg_test.chain.outputPath = running_output_path
+        cfg_test.chain.L5Path_old = fake_l5_old_dir
+        cfg_test.chain.dataField = "code"
+        cfg_test.chain.listTile = tile_name
+        cfg_test.chain.groundTruth = self.ground_truth_path
+        cfg_test.chain.nomenclaturePath = self.nomenclature_path
+        cfg_test.chain.colorTable = self.color_path
+        cfg_test.external_features.module = os.path.join(
+            IOTA2DIR, "data", "numpy_features", "user_custom_function.py")
+        cfg_test.external_features.functions = ("test_index_l5_old "
+                                                "test_index_sum_l5_old")
+        cfg_test.chain.spatialResolution = [30, 30]
+        cfg_test.external_features.number_of_chunks = 1
+        cfg_test.save(open(config_test, 'w'))
+
+        # Launch the chain
+        TUI.iota2_test_launcher(config_test)
+        self.assertTrue(
+            FileSearch_AND(os.path.join(running_output_path, "final"), True,
+                           "Classif_Seed_0_ColorIndexed.tif"))
+        self.assertTrue(
+            FileSearch_AND(os.path.join(running_output_path, "final"), True,
+                           "Classif_Seed_0.tif"))
+        self.assertTrue(
+            FileSearch_AND(os.path.join(running_output_path, "final"), True,
+                           "Confidence_Seed_0.tif"))
+        self.assertTrue(
+            FileSearch_AND(os.path.join(running_output_path, "final"), True,
+                           "Confusion_Matrix_Classif_Seed_0.png"))
+        self.assertTrue(
+            FileSearch_AND(os.path.join(running_output_path, "final"), True,
+                           "diff_seed_0.tif"))
+        self.assertTrue(
+            FileSearch_AND(os.path.join(running_output_path, "final"), True,
+                           "PixelsValidity.tif"))
+        self.assertTrue(
+            FileSearch_AND(os.path.join(running_output_path, "final"), True,
+                           "RESULTS.txt"))
+
+    def test_l8_old_custom_features_run(self):
+        """
+        Tests iota2's run using s2 (theia format) 
+        and custom features
+        """
+        from config import Config
+        from iota2.Common.FileUtils import FileSearch_AND
+        import iota2.Tests.UnitTests.tests_utils.tests_utils_rasters as TUR
+        import iota2.Tests.UnitTests.tests_utils.tests_utils_iota2 as TUI
+        # prepare inputs data
+        tile_name = "D0005H0002"
+        running_output_path = os.path.join(self.test_working_directory,
+                                           "test_results")
+        fake_l8_old_dir = os.path.join(self.test_working_directory,
+                                       "l8_old_data")
+        TUR.generate_fake_l8_old_data(fake_l8_old_dir,
+                                      tile_name,
+                                      ["20200101", "20200112", "20200127"],
+                                      res=30.0)
+        config_test = os.path.join(self.test_working_directory,
+                                   "i2_config_l8_old.cfg")
+
+        shutil.copy(self.config_ref, config_test)
+        cfg_test = Config(open(config_test))
+        cfg_test.chain.outputPath = running_output_path
+        cfg_test.chain.L8Path_old = fake_l8_old_dir
+        cfg_test.chain.dataField = "code"
+        cfg_test.chain.listTile = tile_name
+        cfg_test.chain.groundTruth = self.ground_truth_path
+        cfg_test.chain.nomenclaturePath = self.nomenclature_path
+        cfg_test.chain.colorTable = self.color_path
+        cfg_test.external_features.module = os.path.join(
+            IOTA2DIR, "data", "numpy_features", "user_custom_function.py")
+        cfg_test.external_features.functions = ("test_index_l8_old"
+                                                " test_index_sum_l8_old")
+        cfg_test.chain.spatialResolution = [30, 30]
+        cfg_test.external_features.number_of_chunks = 2
+        cfg_test.save(open(config_test, 'w'))
+
+        # Launch the chain
+        TUI.iota2_test_launcher(config_test)
+        self.assertTrue(
+            FileSearch_AND(os.path.join(running_output_path, "final"), True,
+                           "Classif_Seed_0_ColorIndexed.tif"))
+        self.assertTrue(
+            FileSearch_AND(os.path.join(running_output_path, "final"), True,
+                           "Classif_Seed_0.tif"))
+        self.assertTrue(
+            FileSearch_AND(os.path.join(running_output_path, "final"), True,
+                           "Confidence_Seed_0.tif"))
+        self.assertTrue(
+            FileSearch_AND(os.path.join(running_output_path, "final"), True,
+                           "Confusion_Matrix_Classif_Seed_0.png"))
+        self.assertTrue(
+            FileSearch_AND(os.path.join(running_output_path, "final"), True,
+                           "diff_seed_0.tif"))
+        self.assertTrue(
+            FileSearch_AND(os.path.join(running_output_path, "final"), True,
+                           "PixelsValidity.tif"))
+        self.assertTrue(
+            FileSearch_AND(os.path.join(running_output_path, "final"), True,
+                           "RESULTS.txt"))
+
+    def test_l8_custom_features_run(self):
+        """
+        Tests iota2's run using Landsat8 (theia format)
+        and custom features
+        """
+        from config import Config
+        from iota2.Common.FileUtils import FileSearch_AND
+        import iota2.Tests.UnitTests.tests_utils.tests_utils_rasters as TUR
+        import iota2.Tests.UnitTests.tests_utils.tests_utils_iota2 as TUI
+        # prepare inputs data
+        tile_name = "T31TCJ"
+        running_output_path = os.path.join(self.test_working_directory,
+                                           "test_results")
+        fake_l8_theia_dir = os.path.join(self.test_working_directory,
+                                         "l8_data")
+        TUR.generate_fake_l8_data(fake_l8_theia_dir,
+                                  tile_name,
+                                  ["20200101", "20200112", "20200127"],
+                                  res=30.0)
+        config_test = os.path.join(self.test_working_directory,
+                                   "i2_config_l8.cfg")
+
+        shutil.copy(self.config_ref, config_test)
+        cfg_test = Config(open(config_test))
+        cfg_test.chain.outputPath = running_output_path
+        cfg_test.chain.L8Path = fake_l8_theia_dir
+        cfg_test.chain.dataField = "code"
+        cfg_test.chain.listTile = tile_name
+        cfg_test.chain.groundTruth = self.ground_truth_path
+        cfg_test.chain.nomenclaturePath = self.nomenclature_path
+        cfg_test.chain.colorTable = self.color_path
+        cfg_test.external_features.module = os.path.join(
+            IOTA2DIR, "data", "numpy_features", "user_custom_function.py")
+        cfg_test.external_features.functions = (
+            "test_index_l8 test_index_sum_l8")
+        cfg_test.chain.spatialResolution = [30, 30]
+        cfg_test.external_features.number_of_chunks = 1
+        cfg_test.save(open(config_test, 'w'))
+
+        # Launch the chain
+        TUI.iota2_test_launcher(config_test)
+        self.assertTrue(
+            FileSearch_AND(os.path.join(running_output_path, "final"), True,
+                           "Classif_Seed_0_ColorIndexed.tif"))
+        self.assertTrue(
+            FileSearch_AND(os.path.join(running_output_path, "final"), True,
+                           "Classif_Seed_0.tif"))
+        self.assertTrue(
+            FileSearch_AND(os.path.join(running_output_path, "final"), True,
+                           "Confidence_Seed_0.tif"))
+        self.assertTrue(
+            FileSearch_AND(os.path.join(running_output_path, "final"), True,
+                           "Confusion_Matrix_Classif_Seed_0.png"))
+        self.assertTrue(
+            FileSearch_AND(os.path.join(running_output_path, "final"), True,
+                           "diff_seed_0.tif"))
+        self.assertTrue(
+            FileSearch_AND(os.path.join(running_output_path, "final"), True,
+                           "PixelsValidity.tif"))
+        self.assertTrue(
+            FileSearch_AND(os.path.join(running_output_path, "final"), True,
+                           "RESULTS.txt"))
+
+    def test_s2_l3a_custom_features_run(self):
+        """
+        Tests iota2's run using s2 (L3A format) 
+        and custom features
+        """
+        from config import Config
+        from iota2.Common.FileUtils import FileSearch_AND
+        import iota2.Tests.UnitTests.tests_utils.tests_utils_rasters as TUR
+        import iota2.Tests.UnitTests.tests_utils.tests_utils_iota2 as TUI
+        # prepare inputs data
+        tile_name = "T31TCJ"
+        running_output_path = os.path.join(self.test_working_directory,
+                                           "test_results")
+        fake_s2_l3a_dir = os.path.join(self.test_working_directory, "s2_data")
+        TUR.generate_fake_s2_l3a_data(fake_s2_l3a_dir,
+                                      tile_name,
+                                      ["20200101", "20200112", "20200127"],
+                                      res=10.0)
+        config_test = os.path.join(self.test_working_directory,
+                                   "i2_config_s2_l3a.cfg")
+
+        shutil.copy(self.config_ref, config_test)
+        cfg_test = Config(open(config_test))
+        cfg_test.chain.outputPath = running_output_path
+        cfg_test.chain.S2_L3A_Path = fake_s2_l3a_dir
+        cfg_test.chain.dataField = "code"
+        cfg_test.chain.listTile = tile_name
+        cfg_test.chain.groundTruth = self.ground_truth_path
+        cfg_test.chain.nomenclaturePath = self.nomenclature_path
+        cfg_test.chain.colorTable = self.color_path
+        cfg_test.external_features.module = os.path.join(
+            IOTA2DIR, "data", "numpy_features", "user_custom_function.py")
+        cfg_test.external_features.functions = ("test_index_s2_l3a "
+                                                "test_index_sum_s2_l3a")
+        cfg_test.external_features.number_of_chunks = 1
+        cfg_test.save(open(config_test, 'w'))
+
+        # Launch the chain
+        TUI.iota2_test_launcher(config_test)
+        self.assertTrue(
+            FileSearch_AND(os.path.join(running_output_path, "final"), True,
+                           "Classif_Seed_0_ColorIndexed.tif"))
+        self.assertTrue(
+            FileSearch_AND(os.path.join(running_output_path, "final"), True,
+                           "Classif_Seed_0.tif"))
+        self.assertTrue(
+            FileSearch_AND(os.path.join(running_output_path, "final"), True,
+                           "Confidence_Seed_0.tif"))
+        self.assertTrue(
+            FileSearch_AND(os.path.join(running_output_path, "final"), True,
+                           "Confusion_Matrix_Classif_Seed_0.png"))
+        self.assertTrue(
+            FileSearch_AND(os.path.join(running_output_path, "final"), True,
+                           "diff_seed_0.tif"))
+        self.assertTrue(
+            FileSearch_AND(os.path.join(running_output_path, "final"), True,
+                           "PixelsValidity.tif"))
+        self.assertTrue(
+            FileSearch_AND(os.path.join(running_output_path, "final"), True,
+                           "RESULTS.txt"))

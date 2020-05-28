@@ -222,7 +222,8 @@ class iota2_test_sensors_test(unittest.TestCase):
             "rel_refl": False,
             "keep_dupl": True,
             "vhr_path": "none",
-            "acorfeat": False
+            "acorfeat": False,
+            "working_resolution": None
         }
 
         s2_sensor = sentinel_2(**args)
@@ -277,7 +278,8 @@ class iota2_test_sensors_test(unittest.TestCase):
             "rel_refl": False,
             "keep_dupl": True,
             "vhr_path": "none",
-            "acorfeat": False
+            "acorfeat": False,
+            "working_resolution": None
         }
 
         s2_sensor = sentinel_2_s2c(**args)
@@ -324,7 +326,8 @@ class iota2_test_sensors_test(unittest.TestCase):
             "rel_refl": False,
             "keep_dupl": True,
             "vhr_path": "none",
-            "acorfeat": False
+            "acorfeat": False,
+            "working_resolution": None
         }
 
         l8_sensor = landsat_8(**args)
@@ -372,7 +375,8 @@ class iota2_test_sensors_test(unittest.TestCase):
             "keep_dupl": True,
             "vhr_path": "none",
             "acorfeat": False,
-            "patterns": patterns
+            "patterns": patterns,
+            "working_resolution": None
         }
         user_feat_sensor = user_features(**args)
         (user_feat_stack, _), features_labels = user_feat_sensor.get_features()
@@ -417,7 +421,8 @@ class iota2_test_sensors_test(unittest.TestCase):
             "rel_refl": False,
             "keep_dupl": True,
             "vhr_path": "none",
-            "acorfeat": False
+            "acorfeat": False,
+            "working_resolution": None
         }
 
         s2_l3a_sensor = sentinel_2_l3a(**args)
@@ -464,7 +469,8 @@ class iota2_test_sensors_test(unittest.TestCase):
             "rel_refl": False,
             "keep_dupl": True,
             "vhr_path": "none",
-            "acorfeat": False
+            "acorfeat": False,
+            "working_resolution": None
         }
 
         l8_sensor = landsat_8_old(**args)
@@ -511,7 +517,8 @@ class iota2_test_sensors_test(unittest.TestCase):
             "rel_refl": False,
             "keep_dupl": True,
             "vhr_path": "none",
-            "acorfeat": False
+            "acorfeat": False,
+            "working_resolution": None
         }
 
         l5_sensor = landsat_5_old(**args)
@@ -556,7 +563,8 @@ class iota2_test_sensors_test(unittest.TestCase):
                 "rel_refl": False,
                 "keep_dupl": True,
                 "vhr_path": "none",
-                "acorfeat": False
+                "acorfeat": False,
+                "working_resolution": None
             },
             "Sentinel_2_S2C": {
                 "tile_name": "T31TCJ",
@@ -581,7 +589,8 @@ class iota2_test_sensors_test(unittest.TestCase):
                 "rel_refl": False,
                 "keep_dupl": True,
                 "vhr_path": "none",
-                "acorfeat": False
+                "acorfeat": False,
+                "working_resolution": None
             },
             "Landsat8": {
                 "tile_name": "T31TCJ",
@@ -606,7 +615,8 @@ class iota2_test_sensors_test(unittest.TestCase):
                 "rel_refl": False,
                 "keep_dupl": True,
                 "vhr_path": "none",
-                "acorfeat": False
+                "acorfeat": False,
+                "working_resolution": None
             },
             "Sentinel_2_L3A": {
                 "tile_name": "T31TCJ",
@@ -631,7 +641,8 @@ class iota2_test_sensors_test(unittest.TestCase):
                 "rel_refl": False,
                 "keep_dupl": True,
                 "vhr_path": "none",
-                "acorfeat": False
+                "acorfeat": False,
+                "working_resolution": None
             },
             "Landsat5_old": {
                 "tile_name": "T31TCJ",
@@ -656,7 +667,8 @@ class iota2_test_sensors_test(unittest.TestCase):
                 "rel_refl": False,
                 "keep_dupl": True,
                 "vhr_path": "none",
-                "acorfeat": False
+                "acorfeat": False,
+                "working_resolution": None
             },
             "Landsat8_old": {
                 "tile_name": "T31TCJ",
@@ -681,7 +693,8 @@ class iota2_test_sensors_test(unittest.TestCase):
                 "rel_refl": False,
                 "keep_dupl": True,
                 "vhr_path": "none",
-                "acorfeat": False
+                "acorfeat": False,
+                "working_resolution": None
             }
         }
         sensors = sensors_container(tile_name, self.test_working_directory,

@@ -98,7 +98,8 @@ class serviceConfigFile:
                 "enable_autoContext": False,
                 "autoContext_iterations": 3,
                 "remove_tmp_files": False,
-                "force_standard_labels": False
+                "force_standard_labels": False,
+                "spatialResolution": self.init_listSequence([])
             }
             self.init_section("chain", chain_default)
             #init coregistration section
@@ -635,6 +636,7 @@ class serviceConfigFile:
         try:
             # test of variable
             self.testVarConfigFile("chain", "outputPath", str)
+            self.testVarConfigFile("chain", "spatialResolution", Sequence)
             self.testVarConfigFile("chain", "nomenclaturePath", str)
             self.testVarConfigFile("chain", "remove_outputPath", bool)
             self.testVarConfigFile("chain", "listTile", str)
@@ -701,7 +703,7 @@ class serviceConfigFile:
             self.testVarConfigFile('chain', 'splitGroundTruth', bool)
             self.testVarConfigFile('chain', 'outputStatistics', bool)
             self.testVarConfigFile('chain', 'cloud_threshold', int)
-            self.testVarConfigFile('chain', 'spatialResolution', int)
+            # self.testVarConfigFile('chain', 'spatialResolution', int)
             self.testVarConfigFile('chain', 'colorTable', str)
             self.testVarConfigFile('chain', 'mode_outside_RegionSplit', float)
             self.testVarConfigFile('chain', 'merge_final_classifications',
@@ -1125,6 +1127,8 @@ class iota2_parameters:
             "Sentinel_2", "Sentinel_2_S2C", "Sentinel_2_L3A", "Sentinel_1",
             "Landsat8", "Landsat8_old", "Landsat5_old", "userFeat"
         ]
+        self.working_resolution = self.__config.getParam(
+            'chain', 'spatialResolution')
 
     def get_sensors_parameters(
             self, tile_name: str
@@ -1208,5 +1212,6 @@ class iota2_parameters:
         sensor_dict["vhr_path"] = self.vhr_path
         sensor_dict["acorfeat"] = self.acorfeat
         sensor_dict["patterns"] = self.user_patterns
+        sensor_dict["working_resolution"] = self.working_resolution
 
         return sensor_dict

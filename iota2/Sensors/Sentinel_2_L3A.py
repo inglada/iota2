@@ -17,14 +17,6 @@
 The Sentinel_2_L3A class
 """
 import logging
-# import multiprocessing as mp
-# from config import Config
-
-# import glob
-# import os
-
-# from collections import OrderedDict
-# from Common.OtbAppBank import executeApp
 
 LOGGER = logging.getLogger(__name__)
 
@@ -139,6 +131,7 @@ class sentinel_2_l3a():
                                    f"{self.output_preprocess_directory}")
         else:
             self.output_preprocess_directory = self.tile_directory
+        self.working_resolution = kwargs["working_resolution"]
 
     def get_available_dates(self):
         """
@@ -219,6 +212,8 @@ class sentinel_2_l3a():
         from iota2.Common.OtbAppBank import CreateConcatenateImagesApplication
         from iota2.Common.OtbAppBank import CreateSuperimposeApplication
         from iota2.Common.OtbAppBank import executeApp
+        from iota2.Common.FileUtils import getRasterResolution
+
         # manage directories
         date_stack_name = self.build_stack_date_name(date_dir)
         logger.debug(f"preprocessing {date_dir}")
@@ -249,13 +244,17 @@ class sentinel_2_l3a():
                     f" from {base_ref}")
         ensure_dir(os.path.dirname(self.ref_image), raise_exe=False)
         base_ref_projection = getRasterProjectionEPSG(base_ref)
+        base_ref_res_x, base_ref_res_y = getRasterResolution(base_ref)
+        if self.working_resolution:
+            base_ref_res_x = self.working_resolution[0]
+            base_ref_res_y = self.working_resolution[1]
         if not os.path.exists(self.ref_image):
             Warp(self.ref_image,
                  base_ref,
                  multithread=True,
                  format="GTiff",
-                 xRes=10,
-                 yRes=10,
+                 xRes=base_ref_res_x,
+                 yRes=base_ref_res_y,
                  outputType=GDT_Byte,
                  srcSRS=f"EPSG:{base_ref_projection}",
                  dstSRS=f"EPSG:{self.target_proj}")
@@ -286,11 +285,15 @@ class sentinel_2_l3a():
                 out_stack_processing
             })
             same_proj = False
+            same_res = True
             if os.path.exists(out_stack):
                 same_proj = int(getRasterProjectionEPSG(out_stack)) == int(
                     self.target_proj)
+                same_res = getRasterProjectionEPSG(
+                    out_stack) == getRasterProjectionEPSG(self.ref_image)
 
-            if not os.path.exists(out_stack) or same_proj is False:
+            if not os.path.exists(
+                    out_stack) or same_proj is False or not same_res:
                 # date_stack.ExecuteAndWriteOutput()
                 multi_proc = mp.Process(target=executeApp, args=[date_stack])
                 multi_proc.start()
@@ -319,6 +322,8 @@ class sentinel_2_l3a():
         from iota2.Common.OtbAppBank import CreateBandMathApplication
         from iota2.Common.FileUtils import getRasterProjectionEPSG
         from iota2.Common.OtbAppBank import executeApp
+        from iota2.Common.FileUtils import getRasterResolution
+
         # TODO : throw Exception if no masks are found
         date_mask = glob.glob(
             os.path.join(
@@ -363,14 +368,20 @@ class sentinel_2_l3a():
 
         # reproject if needed
         mask_projection = getRasterProjectionEPSG(out_mask)
-        if int(self.target_proj) != int(mask_projection):
+        out_mask_res_x, out_mask_res_y = getRasterResolution(out_mask)
+        if self.working_resolution:
+            out_mask_res_x = self.working_resolution[0]
+            out_mask_res_y = self.working_resolution[1]
+        same_res = getRasterResolution(out_mask) == getRasterResolution(
+            self.ref_image)
+        if int(self.target_proj) != int(mask_projection) or not same_res:
             logger.info(f"Reprojecting {out_mask}")
             Warp(out_mask_processing,
                  out_mask,
                  multithread=True,
                  format="GTiff",
-                 xRes=10,
-                 yRes=10,
+                 xRes=out_mask_res_x,
+                 yRes=out_mask_res_y,
                  srcSRS=f"EPSG:{mask_projection}",
                  dstSRS=f"EPSG:{self.target_proj}",
                  options=["INIT_DEST=0"])

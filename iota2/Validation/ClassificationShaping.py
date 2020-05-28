@@ -28,6 +28,7 @@ from osgeo.gdalconst import *
 from iota2.Common import FileUtils as fu
 from iota2.Common import CreateIndexedColorImage as color
 from iota2.Common.rasterUtils import compress_raster
+from iota2.Common.FileUtils import getRasterResolution
 
 from iota2.Common.Utils import run
 
@@ -293,7 +294,8 @@ def genGlobalConfidence(N, pathWd, spatialRes, proj, pathTest, classifMode,
 def classification_shaping(path_classif: str, runs: int, path_out: str,
                            path_wd: str, classif_mode: str, path_test: str,
                            ds_sar_opt: bool, proj: int, nomenclature_path: str,
-                           output_statistics: bool, spatial_resolution: float,
+                           output_statistics: bool,
+                           spatial_resolution: List[float],
                            proba_map_flag: bool, region_shape: str,
                            color_path: str) -> None:
     """function use to mosaic rasters and to produce final maps
@@ -328,7 +330,6 @@ def classification_shaping(path_classif: str, runs: int, path_out: str,
     color_path: str
         color table file
     """
-
     if path_wd is None:
         tmp = path_out + "/TMP"
         if not os.path.exists(path_out + "/TMP"):
@@ -448,6 +449,14 @@ def classification_shaping(path_classif: str, runs: int, path_out: str,
     if path_wd is not None:
         run("cp -a " + tmp + "/* " + path_out + "/TMP")
 
+    if spatial_resolution:
+        res_x = spatial_resolution[0]
+        res_y = spatial_resolution[1]
+    else:
+        # use a classification as ref image
+        res_x, res_y = getRasterResolution(classification[seed][0])
+        res_y = -res_y
+    target_spatial_resolution = (res_x, res_y)
     for seed in range(runs):
         assemble_folder = path_test + "/final"
         if path_wd:
@@ -457,7 +466,7 @@ def classification_shaping(path_classif: str, runs: int, path_out: str,
         classif_mosaic_compress = "{}/Classif_Seed_{}.tif".format(
             assemble_folder, seed)
         fu.assembleTile_Merge(classification[seed],
-                              spatial_resolution,
+                              target_spatial_resolution,
                               classif_mosaic_tmp,
                               "Byte" if pix_type == "uint8" else "Int16",
                               co={
@@ -476,7 +485,7 @@ def classification_shaping(path_classif: str, runs: int, path_out: str,
         confidence_mosaic_compress = assemble_folder + "/Confidence_Seed_" + str(
             seed) + ".tif"
         fu.assembleTile_Merge(confidence[seed],
-                              spatial_resolution,
+                              target_spatial_resolution,
                               confidence_mosaic_tmp,
                               "Byte",
                               co={
@@ -502,7 +511,7 @@ def classification_shaping(path_classif: str, runs: int, path_out: str,
             proba_map_mosaic_compress = os.path.join(
                 assemble_folder, "ProbabilityMap_seed_{}.tif".format(seed))
             fu.assembleTile_Merge(proba_map[seed],
-                                  spatial_resolution,
+                                  target_spatial_resolution,
                                   proba_map_mosaic_tmp,
                                   "Int16",
                                   co={
@@ -518,7 +527,7 @@ def classification_shaping(path_classif: str, runs: int, path_out: str,
     cloud_mosaic_tmp = assemble_folder + "/PixelsValidity_tmp.tif"
     cloud_mosaic_compress = assemble_folder + "/PixelsValidity.tif"
     fu.assembleTile_Merge(cloud[0],
-                          spatial_resolution,
+                          target_spatial_resolution,
                           cloud_mosaic_tmp,
                           "Byte",
                           co={
