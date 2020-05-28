@@ -15,11 +15,128 @@
 # =========================================================================
 """ 
 This module contains all functions for testing known configuration parameters
+
+These test must concern only typing
+
+They can be overloaded by providing custom check.
 """
+import os
+from config import Config, Sequence, Mapping
 from iota2.Common import ServiceError as sErr
+from iota2.Common.FileUtils import get_iota2_project_dir
+# #########################################################################
+# Tools
+# #########################################################################
 
 
-def check_sampleAugmentation():
+def test_var_config_file(cfg,
+                         section,
+                         variable,
+                         varType,
+                         valeurs="",
+                         valDefaut=""):
+    """
+        This function check if variable is in obj
+        and if it has varType type.
+        Optionnaly it can check if variable has values in valeurs
+        Exit the code if any error are detected
+        :param section: section name of the obj where to find
+        :param variable: string name of the variable
+        :param varType: type type of the variable for verification
+        :param valeurs: string list of the possible value of variable
+        :param valDefaut: value by default if variable is not in the configuration file
+    """
+
+    if not hasattr(cfg, section):
+        raise sErr.configFileError("Section '" + str(section) +
+                                   "' is not in the configuration file")
+
+    objSection = getattr(cfg, section)
+
+    if not hasattr(objSection, variable):
+        if valDefaut != "":
+            setattr(objSection, variable, valDefaut)
+        else:
+            raise sErr.parameterError(
+                section, "mandatory variable '" + str(variable) +
+                "' is missing in the configuration file")
+    else:
+        tmpVar = getattr(objSection, variable)
+
+        if not isinstance(tmpVar, varType):
+            message = ("variable '" + str(variable) +
+                       "' has a wrong type\nActual: " + str(type(tmpVar)) +
+                       " expected: " + str(varType))
+            raise sErr.parameterError(section, message)
+
+        if valeurs != "":
+            ok = 0
+            for index in range(len(valeurs)):
+                if tmpVar == valeurs[index]:
+                    ok = 1
+            if ok == 0:
+                message = ("bad value for '" + variable +
+                           "' variable. Value accepted: " + str(valeurs) +
+                           " Value read: " + str(tmpVar))
+                raise sErr.parameterError(section, message)
+
+
+def get_param(cfg, section, variable):
+    """
+        Return the value of variable in the section from config
+        file define in the init phase of the class.
+        :param section: string name of the section
+        :param variable: string name of the variable
+        :return: the value of variable
+    """
+
+    if not hasattr(cfg, section):
+        # not an osoError class because it should NEVER happened
+        raise Exception("Section is not in the configuration file: " +
+                        str(section))
+
+    objSection = getattr(cfg, section)
+    if not hasattr(objSection, variable):
+        # not an osoError class because it should NEVER happened
+        raise Exception("Variable is not in the configuration file: " +
+                        str(variable))
+
+    tmpVar = getattr(objSection, variable)
+
+    return tmpVar
+
+
+def test_ifexists(path):
+    if not os.path.exists(path):
+        raise sErr.dirError(path)
+
+
+def test_shape_name(input_vector):
+    """
+    """
+    import string
+
+    avail_characters = string.ascii_letters
+    first_character = os.path.basename(input_vector)[0]
+    if first_character not in avail_characters:
+        raise sErr.configError(
+            "the file '{}' is containing a non-ascii letter at first "
+            "position in it's name : {}".format(input_vector, first_character))
+
+    ext = input_vector.split(".")[-1]
+    # If required test if gdal can open this file
+    allowed_format = ["shp", "sqlite"]
+    if not ext in allowed_format:
+        raise sErr.configError(f"{input_vector} is not in right format."
+                               f"\nAllowed format are {allowed_format}")
+
+
+# #############################################################################
+# Check functions
+# #############################################################################
+
+
+def check_sampleAugmentation(cfg, path_conf):
     """
     """
     def check_parameters(sampleAug):
@@ -78,11 +195,20 @@ def check_sampleAugmentation():
                     raise sErr.configError(
                         "target_models must constains strings")
 
-    sampleAug = dict(self.cfg.argTrain.sampleAugmentation)
-    check_parameters(sampleAug)
+    try:
+        sampleAug = dict(cfg.argTrain.sampleAugmentation)
+        check_parameters(sampleAug)
+    # Error managed
+    except sErr.configFileError:
+        print("Error in the configuration file " + path_conf)
+        raise
+    # Warning error not managed !
+    except Exception:
+        print("Something wrong happened in serviceConfigFile !")
+        raise
 
 
-def check_sampleSelection():
+def check_sample_selection(cfg, path_conf):
     """
     """
     def check_parameters(sampleSel):
@@ -149,56 +275,57 @@ def check_sampleSelection():
             if not isinstance(target_model, int):
                 raise sErr.configError("target_model must an integer")
 
-    sampleSel = dict(self.cfg.argTrain.sampleSelection)
-    check_parameters(sampleSel)
-    if "per_model" in sampleSel:
-        for model in sampleSel["per_model"]:
-            check_parameters(dict(model))
+    try:
+        sampleSel = dict(cfg.argTrain.sampleSelection)
+        check_parameters(sampleSel)
+        if "per_model" in sampleSel:
+            for model in sampleSel["per_model"]:
+                check_parameters(dict(model))
+    # Error managed
+    except sErr.configFileError:
+        print("Error in the configuration file " + path_conf)
+        raise
+    # Warning error not managed !
+    except Exception:
+        print("Something wrong happened in serviceConfigFile !")
+        raise
 
 
-def check_region_vector(cfg):
-    """
-    """
-    region_path = cfg.chain.regionPath
-    self.testShapeName(region_path)
-    if not region_path:
-        raise sErr.configError("chain.regionPath must be set")
-
-    region_field = cfg.chain.regionField
-    if not region_path:
-        raise sErr.configError("chain.regionField must be set")
-
-    driver = ogr.GetDriverByName("ESRI Shapefile")
-    dataSource = driver.Open(region_path, 0)
-    if dataSource is None:
-        raise Exception("Could not open " + region_path)
-    layer = dataSource.GetLayer()
-    field_index = layer.FindFieldIndex(region_field, False)
-    layerDefinition = layer.GetLayerDefn()
-    fieldTypeCode = layerDefinition.GetFieldDefn(field_index).GetType()
-    fieldType = layerDefinition.GetFieldDefn(field_index).GetFieldTypeName(
-        fieldTypeCode)
-    if fieldType != "String":
-        raise sErr.configError("the region field must be a string")
+def check_arg_classification_parameters(cfg, path_conf):
+    try:
+        test_var_config_file(cfg, 'argClassification', 'classifMode', str,
+                             ["separate", "fusion"])
+        test_var_config_file(cfg, 'argClassification',
+                             'enable_probability_map', bool)
+        test_var_config_file(cfg, 'argClassification', 'noLabelManagement',
+                             str, ["maxConfidence", "learningPriority"])
+    # Error managed
+    except sErr.configFileError:
+        print("Error in the configuration file " + path_conf)
+        raise
+    # Warning error not managed !
+    except Exception:
+        print("Something wrong happened in serviceConfigFile !")
+        raise
 
 
 def all_sameBands(items):
     return all(bands == items[0][1] for path, bands in items)
 
 
-def check_chain_parameters(self):
+def check_chain_parameters(cfg, path_conf):
     try:
         # test of variable
-        self.testVarConfigFile("chain", "outputPath", str)
-        self.testVarConfigFile("chain", "nomenclaturePath", str)
-        self.testVarConfigFile("chain", "remove_outputPath", bool)
-        self.testVarConfigFile("chain", "listTile", str)
-        self.testVarConfigFile("chain", "L5Path_old", str)
-        self.testVarConfigFile("chain", "L8Path", str)
-        self.testVarConfigFile("chain", "S2Path", str)
-        self.testVarConfigFile("chain", "S1Path", str)
+        test_var_config_file(cfg, "chain", "outputPath", str)
+        test_var_config_file(cfg, "chain", "nomenclaturePath", str)
+        test_var_config_file(cfg, "chain", "remove_outputPath", bool)
+        test_var_config_file(cfg, "chain", "listTile", str)
+        test_var_config_file(cfg, "chain", "L5Path_old", str)
+        test_var_config_file(cfg, "chain", "L8Path", str)
+        test_var_config_file(cfg, "chain", "S2Path", str)
+        test_var_config_file(cfg, "chain", "S1Path", str)
 
-        # self.testVarConfigFile(
+        # test_var_config_file(cfg,
         #     "chain",
         #     "firstStep",
         #     str,
@@ -220,7 +347,7 @@ def check_chain_parameters(self):
         #         "lcstatistics",
         #     ],
         # )
-        # self.testVarConfigFile(
+        # test_var_config_file(cfg,
         #     "chain",
         #     "lastStep",
         #     str,
@@ -242,224 +369,65 @@ def check_chain_parameters(self):
         #         "lcstatistics",
         #     ],
         # )
+        if get_param(cfg, "chain", "regionPath"):
+            check_region_vector(cfg)
+        test_var_config_file(cfg, 'chain', 'regionField', str)
+        test_var_config_file(cfg, 'chain', 'check_inputs', bool)
+        test_var_config_file(cfg, 'chain', 'model', str)
+        test_var_config_file(cfg, 'chain', 'enableCrossValidation', bool)
+        test_var_config_file(cfg, 'chain', 'groundTruth', str)
+        test_var_config_file(cfg, 'chain', 'dataField', str)
+        test_var_config_file(cfg, 'chain', 'runs', int)
+        test_var_config_file(cfg, 'chain', 'ratio', float)
+        test_var_config_file(cfg, 'chain', 'splitGroundTruth', bool)
+        test_var_config_file(cfg, 'chain', 'outputStatistics', bool)
+        test_var_config_file(cfg, 'chain', 'cloud_threshold', int)
+        test_var_config_file(cfg, 'chain', 'spatialResolution', int)
+        test_var_config_file(cfg, 'chain', 'colorTable', str)
+        test_var_config_file(cfg, 'chain', 'mode_outside_RegionSplit', float)
+        test_var_config_file(cfg, 'chain', 'merge_final_classifications', bool)
+        test_var_config_file(cfg, 'chain', 'enable_autoContext', bool)
+        test_var_config_file(cfg, 'chain', 'autoContext_iterations', int)
+        if get_param(cfg, "chain", "merge_final_classifications"):
+            test_var_config_file(cfg, 'chain',
+                                 'merge_final_classifications_undecidedlabel',
+                                 int)
+            test_var_config_file(cfg, 'chain',
+                                 'merge_final_classifications_ratio', float)
+            test_var_config_file(cfg, 'chain',
+                                 'merge_final_classifications_method', str,
+                                 ["majorityvoting", "dempstershafer"])
+            test_var_config_file(cfg, 'chain', 'dempstershafer_mob', str,
+                                 ["precision", "recall", "accuracy", "kappa"])
+            test_var_config_file(cfg, 'chain', 'keep_runs_results', bool)
+            test_var_config_file(cfg, 'chain',
+                                 'fusionOfClassificationAllSamplesValidation',
+                                 bool)
+        test_var_config_file(cfg, 'chain', 'remove_tmp_files', bool)
 
-        if self.getParam("chain", "regionPath"):
-            check_region_vector(self.cfg)
-        self.testVarConfigFile('chain', 'regionField', str)
-        self.testVarConfigFile('chain', 'check_inputs', bool)
-        self.testVarConfigFile('chain', 'model', str)
-        self.testVarConfigFile('chain', 'enableCrossValidation', bool)
-        self.testVarConfigFile('chain', 'groundTruth', str)
-        self.testVarConfigFile('chain', 'dataField', str)
-        self.testVarConfigFile('chain', 'runs', int)
-        self.testVarConfigFile('chain', 'ratio', float)
-        self.testVarConfigFile('chain', 'splitGroundTruth', bool)
-        self.testVarConfigFile('chain', 'outputStatistics', bool)
-        self.testVarConfigFile('chain', 'cloud_threshold', int)
-        self.testVarConfigFile('chain', 'spatialResolution', int)
-        self.testVarConfigFile('chain', 'colorTable', str)
-        self.testVarConfigFile('chain', 'mode_outside_RegionSplit', float)
-        self.testVarConfigFile('chain', 'merge_final_classifications', bool)
-        self.testVarConfigFile('chain', 'enable_autoContext', bool)
-        self.testVarConfigFile('chain', 'autoContext_iterations', int)
-        if self.getParam("chain", "merge_final_classifications"):
-            self.testVarConfigFile(
-                'chain', 'merge_final_classifications_undecidedlabel', int)
-            self.testVarConfigFile('chain',
-                                   'merge_final_classifications_ratio', float)
-            self.testVarConfigFile('chain',
-                                   'merge_final_classifications_method', str,
-                                   ["majorityvoting", "dempstershafer"])
-            self.testVarConfigFile(
-                'chain', 'dempstershafer_mob', str,
-                ["precision", "recall", "accuracy", "kappa"])
-            self.testVarConfigFile('chain', 'keep_runs_results', bool)
-            self.testVarConfigFile(
-                'chain', 'fusionOfClassificationAllSamplesValidation', bool)
-        self.testVarConfigFile('chain', 'remove_tmp_files', bool)
+        test_var_config_file(cfg, 'chain', 'remove_tmp_files', bool)
 
-        self.testVarConfigFile('chain', 'remove_tmp_files', bool)
+        test_var_config_file(cfg, 'chain', 'remove_tmp_files', bool)
+        if cfg.chain.random_seed is not None:
+            test_var_config_file(cfg, 'chain', 'random_seed', int)
 
-        self.testVarConfigFile('chain', 'remove_tmp_files', bool)
-
-    # Error managed
-    except sErr.configFileError:
-        print("Error in the configuration file " + self.pathConf)
-        raise
-    # Warning error not managed !
-    except Exception:
-        print("Something wrong happened in serviceConfigFile !")
-        raise
-
-
-def check_arg_train_parameters():
-    try:
-        self.testVarConfigFile('argTrain', 'classifier', str)
-        self.testVarConfigFile('argTrain', 'options', str)
-        self.testVarConfigFile('argTrain', 'cropMix', bool)
-        self.testVarConfigFile('argTrain', 'prevFeatures', str)
-        self.testVarConfigFile('argTrain', 'outputPrevFeatures', str)
-        self.testVarConfigFile('argTrain', 'annualCrop', Sequence)
-        self.testVarConfigFile('argTrain', 'ACropLabelReplacement', Sequence)
-
-        self.testVarConfigFile('argTrain', 'sampleSelection', Mapping)
-        self.testVarConfigFile('argTrain', 'samplesClassifMix', bool)
-        self.testVarConfigFile('argTrain', 'validityThreshold', int)
-    # Error managed
-    except sErr.configFileError:
-        print("Error in the configuration file " + self.pathConf)
-        raise
-    # Warning error not managed !
-    except Exception:
-        print("Something wrong happened in serviceConfigFile !")
-        raise
-
-
-def check_arg_classification_parameters():
-    try:
-        check_sampleSelection()
-        check_sampleAugmentation()
-
-        self.testVarConfigFile('argClassification', 'classifMode', str,
-                               ["separate", "fusion"])
-        self.testVarConfigFile('argClassification', 'enable_probability_map',
-                               bool)
-        self.testVarConfigFile('argClassification', 'noLabelManagement', str,
-                               ["maxConfidence", "learningPriority"])
-    # Error managed
-    except sErr.configFileError:
-        print("Error in the configuration file " + self.pathConf)
-        raise
-    # Warning error not managed !
-    except Exception:
-        print("Something wrong happened in serviceConfigFile !")
-        raise
-
-
-def check_glob_chain_parameters():
-    try:
-        self.testVarConfigFile('GlobChain', 'proj', str)
-        self.testVarConfigFile('GlobChain', 'features', Sequence)
-        self.testVarConfigFile('GlobChain', 'autoDate', bool)
-        self.testVarConfigFile('GlobChain', 'writeOutputs', bool)
-        self.testVarConfigFile('GlobChain', 'useAdditionalFeatures', bool)
-        self.testVarConfigFile('GlobChain', 'useGapFilling', bool)
-    # Error managed
-    except sErr.configFileError:
-        print("Error in the configuration file " + self.pathConf)
-        raise
-    # Warning error not managed !
-    except Exception:
-        print("Something wrong happened in serviceConfigFile !")
-        raise
-
-
-def check_i2_feature_extraction_parameters():
-    try:
-        self.testVarConfigFile('iota2FeatureExtraction', 'copyinput', bool)
-        self.testVarConfigFile('iota2FeatureExtraction', 'relrefl', bool)
-        self.testVarConfigFile('iota2FeatureExtraction', 'keepduplicates',
-                               bool)
-        self.testVarConfigFile('iota2FeatureExtraction', 'extractBands', bool)
-        self.testVarConfigFile('iota2FeatureExtraction', 'acorfeat', bool)
-    # Error managed
-    except sErr.configFileError:
-        print("Error in the configuration file " + self.pathConf)
-        raise
-    # Warning error not managed !
-    except Exception:
-        print("Something wrong happened in serviceConfigFile !")
-        raise
-
-
-def check_dim_red_parameters():
-    try:
-        self.testVarConfigFile('dimRed', 'dimRed', bool)
-        self.testVarConfigFile('dimRed', 'targetDimension', int)
-        self.testVarConfigFile('dimRed', 'reductionMode', str)
-
-        if self.cfg.scikit_models_parameters.model_type is not None:
-            self.testVarConfigFile('scikit_models_parameters', 'model_type',
-                                   str)
-            self.testVarConfigFile('scikit_models_parameters',
-                                   'cross_validation_folds', int)
-            self.testVarConfigFile('scikit_models_parameters',
-                                   'cross_validation_grouped', bool)
-            self.testVarConfigFile('scikit_models_parameters',
-                                   'standardization', bool)
-            self.testVarConfigFile('scikit_models_parameters',
-                                   'cross_validation_parameters', Mapping)
-
-        if self.cfg.chain.L5Path_old != "None":
-            #L5 variable check
-            self.testVarConfigFile('Landsat5_old', 'temporalResolution', int)
-            self.testVarConfigFile('Landsat5_old', 'keepBands', Sequence)
-        if self.cfg.chain.L8Path != "None":
-            # L8 variable check
-            self.testVarConfigFile("Landsat8", "temporalResolution", int)
-            self.testVarConfigFile("Landsat8", "keepBands", Sequence)
-        if self.cfg.chain.L8Path_old != "None":
-            #L8 variable check
-            self.testVarConfigFile('Landsat8_old', 'temporalResolution', int)
-            self.testVarConfigFile('Landsat8_old', 'keepBands', Sequence)
-
-        if self.cfg.chain.S2Path != "None":
-            # S2 variable check
-            self.testVarConfigFile("Sentinel_2", "temporalResolution", int)
-            self.testVarConfigFile("Sentinel_2", "keepBands", Sequence)
-
-        if self.cfg.chain.random_seed != None:
-            self.testVarConfigFile('chain', 'random_seed', int)
-
-        nbTile = len(self.cfg.chain.listTile.split(" "))
+        nbTile = len(cfg.chain.listTile.split(" "))
 
         # directory tests
-        if self.getParam("chain", "jobsPath"):
-            self.testDirectory(self.getParam("chain", "jobsPath"))
+        if get_param(cfg, "chain", "jobsPath"):
+            test_ifexists(get_param(cfg, "chain", "jobsPath"))
+        test_ifexists(os.path.join(get_iota2_project_dir(), "iota2"))
+        test_ifexists(cfg.chain.nomenclaturePath)
+        test_ifexists(cfg.chain.groundTruth)
+        test_ifexists(cfg.chain.colorTable)
+        if cfg.chain.S2_output_path:
+            test_ifexists(cfg.chain.S2_output_path)
+        if cfg.chain.S2_S2C_output_path:
+            test_ifexists(cfg.chain.S2_S2C_output_path)
 
-        try:
-            epsg = int(self.getParam("GlobChain", "proj").split(":")[-1])
-        except ValueError:
-            raise ValueError(
-                "parameter GlobChain.proj not in the right format (proj:\"EPSG:2154\")"
-            )
-
-        self.testDirectory(os.path.join(get_iota2_project_dir(), "iota2"))
-        self.testDirectory(self.cfg.chain.nomenclaturePath)
-        self.testDirectory(self.cfg.chain.groundTruth)
-        self.testDirectory(self.cfg.chain.colorTable)
-        if self.cfg.chain.S2_output_path:
-            self.testDirectory(self.cfg.chain.S2_output_path)
-        if self.cfg.chain.S2_S2C_output_path:
-            self.testDirectory(self.cfg.chain.S2_S2C_output_path)
-        # test of groundTruth file
-        Field_FType = []
-
-        dataSource = ogr.Open(self.cfg.chain.groundTruth)
-        self.testShapeName(self.cfg.chain.groundTruth)
-        daLayer = dataSource.GetLayer(0)
-        layerDefinition = daLayer.GetLayerDefn()
-        for i in range(layerDefinition.GetFieldCount()):
-            fieldName = layerDefinition.GetFieldDefn(i).GetName()
-            fieldTypeCode = layerDefinition.GetFieldDefn(i).GetType()
-            fieldType = layerDefinition.GetFieldDefn(i).GetFieldTypeName(
-                fieldTypeCode)
-            Field_FType.append((fieldName, fieldType))
-        flag = 0
-        for currentField, fieldType in Field_FType:
-            if currentField == self.cfg.chain.dataField:
-                flag = 1
-                if "Integer" not in fieldType:
-                    raise sErr.fileError("the data's field " + currentField +
-                                         " must be an integer in " +
-                                         self.cfg.chain.groundTruth)
-        if flag == 0:
-            raise sErr.fileError("field name '" + self.cfg.chain.dataField +
-                                 "' doesn't exist in " +
-                                 self.cfg.chain.groundTruth)
     # Error managed
     except sErr.configFileError:
-        print("Error in the configuration file " + self.pathConf)
+        print("Error in the configuration file " + path_conf)
         raise
     # Warning error not managed !
     except Exception:
@@ -467,56 +435,308 @@ def check_dim_red_parameters():
         raise
 
 
-def check_compat_param():
+def check_arg_train_parameters(cfg, path_conf):
+    try:
+        test_var_config_file(cfg, 'argTrain', 'classifier', str)
+        test_var_config_file(cfg, 'argTrain', 'options', str)
+        test_var_config_file(cfg, 'argTrain', 'cropMix', bool)
+        test_var_config_file(cfg, 'argTrain', 'prevFeatures', str)
+        test_var_config_file(cfg, 'argTrain', 'outputPrevFeatures', str)
+        test_var_config_file(cfg, 'argTrain', 'annualCrop', Sequence)
+        test_var_config_file(cfg, 'argTrain', 'ACropLabelReplacement',
+                             Sequence)
+
+        test_var_config_file(cfg, 'argTrain', 'sampleSelection', Mapping)
+        test_var_config_file(cfg, 'argTrain', 'samplesClassifMix', bool)
+        test_var_config_file(cfg, 'argTrain', 'validityThreshold', int)
+    # Error managed
+    except sErr.configFileError:
+        print("Error in the configuration file " + path_conf)
+        raise
+    # Warning error not managed !
+    except Exception:
+        print("Something wrong happened in serviceConfigFile !")
+        raise
+
+
+def check_glob_chain_parameters(cfg, path_conf):
+    try:
+        test_var_config_file(cfg, 'GlobChain', 'proj', str)
+        test_var_config_file(cfg, 'GlobChain', 'features', Sequence)
+        test_var_config_file(cfg, 'GlobChain', 'autoDate', bool)
+        test_var_config_file(cfg, 'GlobChain', 'writeOutputs', bool)
+        test_var_config_file(cfg, 'GlobChain', 'useAdditionalFeatures', bool)
+        test_var_config_file(cfg, 'GlobChain', 'useGapFilling', bool)
+
+    # Error managed
+    except sErr.configFileError:
+        print("Error in the configuration file " + path_conf)
+        raise
+    # Warning error not managed !
+    except Exception:
+        print("Something wrong happened in serviceConfigFile !")
+        raise
+    try:
+        epsg = int(get_param(cfg, "GlobChain", "proj").split(":")[-1])
+    except ValueError:
+        raise ValueError(
+            "parameter GlobChain.proj not in the right format (proj:\"EPSG:2154\")"
+        )
+
+
+def check_i2_feature_extraction_parameters(cfg, path_conf):
+    try:
+        test_var_config_file(cfg, 'iota2FeatureExtraction', 'copyinput', bool)
+        test_var_config_file(cfg, 'iota2FeatureExtraction', 'relrefl', bool)
+        test_var_config_file(cfg, 'iota2FeatureExtraction', 'keepduplicates',
+                             bool)
+        test_var_config_file(cfg, 'iota2FeatureExtraction', 'extractBands',
+                             bool)
+        test_var_config_file(cfg, 'iota2FeatureExtraction', 'acorfeat', bool)
+    # Error managed
+    except sErr.configFileError:
+        print("Error in the configuration file " + path_conf)
+        raise
+    # Warning error not managed !
+    except Exception:
+        print("Something wrong happened in serviceConfigFile !")
+        raise
+
+
+def check_dim_red_parameters(cfg, path_conf):
+    try:
+        test_var_config_file(cfg, 'dimRed', 'dimRed', bool)
+        test_var_config_file(cfg, 'dimRed', 'targetDimension', int)
+        test_var_config_file(cfg, 'dimRed', 'reductionMode', str)
+    # Error managed
+    except sErr.configFileError:
+        print("Error in the configuration file " + path_conf)
+        raise
+    # Warning error not managed !
+    except Exception:
+        print("Something wrong happened in serviceConfigFile !")
+        raise
+
+
+def check_scikit_models_parameters(cfg, path_conf):
+    try:
+
+        if cfg.scikit_models_parameters.model_type is not None:
+            test_var_config_file(cfg, 'scikit_models_parameters', 'model_type',
+                                 str)
+            test_var_config_file(cfg, 'scikit_models_parameters',
+                                 'cross_validation_folds', int)
+            test_var_config_file(cfg, 'scikit_models_parameters',
+                                 'cross_validation_grouped', bool)
+            test_var_config_file(cfg, 'scikit_models_parameters',
+                                 'standardization', bool)
+            test_var_config_file(cfg, 'scikit_models_parameters',
+                                 'cross_validation_parameters', Mapping)
+    # Error managed
+    except sErr.configFileError:
+        print("Error in the configuration file " + path_conf)
+        raise
+    # Warning error not managed !
+    except Exception:
+        print("Something wrong happened in serviceConfigFile !")
+        raise
+
+
+def check_sensors(cfg, path_conf):
+    try:
+
+        if cfg.chain.L5Path_old != "None":
+            #L5 variable check
+            test_var_config_file(cfg, 'Landsat5_old', 'temporalResolution',
+                                 int)
+            test_var_config_file(cfg, 'Landsat5_old', 'keepBands', Sequence)
+        if cfg.chain.L8Path != "None":
+            # L8 variable check
+            test_var_config_file(cfg, "Landsat8", "temporalResolution", int)
+            test_var_config_file(cfg, "Landsat8", "keepBands", Sequence)
+        if cfg.chain.L8Path_old != "None":
+            #L8 variable check
+            test_var_config_file(cfg, 'Landsat8_old', 'temporalResolution',
+                                 int)
+            test_var_config_file(cfg, 'Landsat8_old', 'keepBands', Sequence)
+
+        if cfg.chain.S2Path != "None":
+            # S2 variable check
+            test_var_config_file(cfg, "Sentinel_2", "temporalResolution", int)
+            test_var_config_file(cfg, "Sentinel_2", "keepBands", Sequence)
+    # Error managed
+    except sErr.configFileError:
+        print("Error in the configuration file " + path_conf)
+        raise
+    # Warning error not managed !
+    except Exception:
+        print("Something wrong happened in serviceConfigFile !")
+        raise
+
+
+def check_custom_feature(cfg, path_conf):
+    """
+    This function return True if the custom features field
+    is activate and all imports success
+    """
+    flag = False
+
+    def check_code_path(code_path):
+
+        if code_path is None:
+            return False
+        if code_path.lower() == "none":
+            return False
+        if len(code_path) < 1:
+            return False
+        if not os.path.isfile(code_path):
+            raise ValueError(f"Error: {code_path} is not a correct path")
+        return True
+
+    def check_import(module_path):
+        import importlib
+
+        spec = importlib.util.spec_from_file_location(
+            module_path.split(os.sep)[-1].split('.')[0], module_path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
+
+    def check_function_in_module(module, list_functions):
+        for fun in list_functions:
+            try:
+                getattr(module, fun)
+            except AttributeError:
+                raise AttributeError(
+                    f"{module.__name__} has no function {fun}")
+
+    module_path = get_param(cfg, "external_features", "module")
+    module_path_valid = check_code_path(module_path)
+    if module_path_valid:
+        module = check_import(module_path)
+        check_function_in_module(
+            module,
+            get_param(cfg, "external_features", "functions").split(" "))
+
+        flag = True
+    return flag
+
+
+def v_check_compat_param(cfg):
 
     # parameters compatibilities check
     classier_probamap_avail = ["sharkrf"]
-    if (self.getParam("argClassification", "enable_probability_map") is True
-            and self.getParam(
-                "argTrain",
+    if (get_param(cfg, "argClassification", "enable_probability_map") is True
+            and get_param(
+                cfg, "argTrain",
                 "classifier").lower() not in classier_probamap_avail):
         raise sErr.configError(
             "'enable_probability_map:True' only available with the 'sharkrf' classifier"
         )
-    if self.getParam("chain", "enableCrossValidation") is True:
+    if get_param(cfg, "chain", "enableCrossValidation") is True:
         raise sErr.configError(
             "enableCrossValidation not available, please set it to False\n")
-    if self.getParam(
-            "chain", "regionPath"
-    ) is None and self.cfg.argClassification.classifMode == "fusion":
+    if get_param(cfg, "chain", "regionPath"
+                 ) is None and cfg.argClassification.classifMode == "fusion":
         raise sErr.configError(
             "you can't chose 'one_region' mode and ask a fusion of classifications\n"
         )
-    if self.cfg.chain.merge_final_classifications and self.cfg.chain.runs == 1:
+    if cfg.chain.merge_final_classifications and cfg.chain.runs == 1:
         raise sErr.configError(
             "these parameters are incompatible runs:1 and merge_final_classifications:True"
         )
-    if self.cfg.chain.enableCrossValidation and self.cfg.chain.runs == 1:
+    if cfg.chain.enableCrossValidation and cfg.chain.runs == 1:
         raise sErr.configError(
             "these parameters are incompatible runs:1 and enableCrossValidation:True"
         )
-    if self.cfg.chain.enableCrossValidation and self.cfg.chain.splitGroundTruth is False:
+    if cfg.chain.enableCrossValidation and cfg.chain.splitGroundTruth is False:
         raise sErr.configError(
             "these parameters are incompatible splitGroundTruth:False and enableCrossValidation:True"
         )
-    if self.cfg.chain.splitGroundTruth is False and self.cfg.chain.runs != 1:
+    if cfg.chain.splitGroundTruth is False and cfg.chain.runs != 1:
         raise sErr.configError(
             "these parameters are incompatible splitGroundTruth:False and runs different from 1"
         )
-    if self.cfg.chain.merge_final_classifications and self.cfg.chain.splitGroundTruth is False:
+    if cfg.chain.merge_final_classifications and cfg.chain.splitGroundTruth is False:
         raise sErr.configError(
             "these parameters are incompatible merge_final_classifications:True and splitGroundTruth:False"
         )
-    if self.cfg.argTrain.dempster_shafer_SAR_Opt_fusion and 'None' in self.cfg.chain.S1Path:
+    if cfg.argTrain.dempster_shafer_SAR_Opt_fusion and 'None' in cfg.chain.S1Path:
         raise sErr.configError(
             "these parameters are incompatible dempster_shafer_SAR_Opt_fusion : True and S1Path : 'None'"
         )
-    if self.cfg.argTrain.dempster_shafer_SAR_Opt_fusion and 'None' in self.cfg.chain.userFeatPath and 'None' in self.cfg.chain.L5Path_old and 'None' in self.cfg.chain.L8Path and 'None' in self.cfg.chain.L8Path_old and 'None' in self.cfg.chain.S2Path and 'None' in self.cfg.chain.S2_S2C_Path:
+    if cfg.argTrain.dempster_shafer_SAR_Opt_fusion and 'None' in cfg.chain.userFeatPath and 'None' in cfg.chain.L5Path_old and 'None' in cfg.chain.L8Path and 'None' in cfg.chain.L8Path_old and 'None' in cfg.chain.S2Path and 'None' in cfg.chain.S2_S2C_Path:
         raise sErr.configError(
             "to perform post-classification fusion, optical data must be used")
-    if self.cfg.scikit_models_parameters.model_type is not None and self.cfg.chain.enable_autoContext is True:
+    if cfg.scikit_models_parameters.model_type is not None and cfg.chain.enable_autoContext is True:
         raise sErr.configError(
             "these parameters are incompatible enable_autoContext : True and model_type"
         )
 
     return True
+
+
+# #############################################################################
+# Functions usable by builders for input checking
+# #############################################################################
+
+
+def region_vector_field_as_string(cfg):
+    """
+    This function raise an error if region field is not a string
+    """
+    import ogr
+    region_path = cfg.chain.regionPath
+    if region_path is None:
+        return True
+    test_shape_name(region_path)
+    if not region_path:
+        raise sErr.configError("chain.regionPath must be set")
+
+    region_field = cfg.chain.regionField
+    if not region_path:
+        raise sErr.configError("chain.regionField must be set")
+
+    driver = ogr.GetDriverByName("ESRI Shapefile")
+    dataSource = driver.Open(region_path, 0)
+    if dataSource is None:
+        raise Exception("Could not open " + region_path)
+    layer = dataSource.GetLayer()
+    field_index = layer.FindFieldIndex(region_field, False)
+    layerDefinition = layer.GetLayerDefn()
+    fieldTypeCode = layerDefinition.GetFieldDefn(field_index).GetType()
+    fieldType = layerDefinition.GetFieldDefn(field_index).GetFieldTypeName(
+        fieldTypeCode)
+    if fieldType != "String":
+        raise sErr.configError("the region field must be a string")
+
+
+def is_field_in_vector_data(vector_file, data_field, expected_type="Integer"):
+    """
+    This function open a shapefile and search the data_field.
+    If data_field is found the function check that is well in the expected type
+    """
+    import ogr
+    # test of groundTruth file
+    field_ftype = []
+
+    data_source = ogr.Open(vector_file)
+    test_shape_name(vector_file)
+    da_layer = data_source.GetLayer(0)
+    layer_definition = da_layer.GetLayerDefn()
+    for i in range(layer_definition.GetFieldCount()):
+        field_name = layer_definition.GetFieldDefn(i).GetName()
+        field_type_code = layer_definition.GetFieldDefn(i).GetType()
+        field_type = layer_definition.GetFieldDefn(i).GetFieldTypeName(
+            field_type_code)
+        field_ftype.append((field_name, field_type))
+    flag = 0
+    for current_field, field_type in field_ftype:
+        if current_field == data_field:
+            flag = 1
+            if expected_type not in field_type:
+                raise sErr.fileError(f"the data's field {current_field}"
+                                     f" must be an integer in {vector_file}")
+    if flag == 0:
+        raise sErr.fileError(f"field name '{data_field}'"
+                             f"' doesn't exist in {vector_file}")

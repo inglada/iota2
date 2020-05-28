@@ -327,8 +327,6 @@ if __name__ == "__main__":
     cfg = rcf.read_config_file(args.configPath)
     # cfg = SCF.serviceConfigFile(args.configPath)
     # cfg.checkConfigParameters()
-    print("cfg : ", "\n " * 2)
-    input(cfg.getParam("builder", "mode"))
     builder = cfg.getParam("builder", "mode")
     if builder == "classification":
         from iota2.sequence_builders.i2_classification import i2_classification as chain

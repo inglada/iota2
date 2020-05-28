@@ -18,23 +18,25 @@ import os
 import sys
 from typing import Dict, Union, List
 from osgeo import ogr
+from inspect import getmembers, isfunction
 from config import Config, Sequence, Mapping, Container
 from iota2.Common.FileUtils import FileSearch_AND, getRasterNbands, get_iota2_project_dir
 from iota2.Common import ServiceError as sErr
 from iota2.configuration_files import default_config_parameters as dcp
+from iota2.configuration_files import check_config_parameters as ccp
 # this is a pointer to the module object instance itself.
 this = sys.modules[__name__]
 
-# declaration of pathConf and cfg variables
-this.pathConf = None
+# declaration of path_conf and cfg variables
+this.path_conf = None
 this.cfg = None
 
 
 def clearConfig():
-    if this.pathConf is not None:
+    if this.path_conf is not None:
         # also in local function scope. no scope specifier
         # like global is needed
-        this.pathConf = None
+        this.path_conf = None
         this.cfg = None
 
 
@@ -43,13 +45,13 @@ class read_config_file:
     The class serviceConfigFile defines all methods to access to the
     configuration file and to check the variables.
     """
-    def __init__(self, pathConf, iota_config=True):
+    def __init__(self, path_conf):
         """
             Init class serviceConfigFile
-            :param pathConf: string path of the config file
+            :param path_conf: string path of the config file
         """
-        self.pathConf = pathConf
-        self.cfg = Config(open(pathConf))
+        self.path_conf = path_conf
+        self.cfg = Config(open(path_conf))
         # set default values
         builder = {
             "mode": "classification",
@@ -57,255 +59,57 @@ class read_config_file:
             "custom_builder_class": None
         }
         self.init_section("builder", builder)
+        self.load_params()
+        self.check_params()
 
-        if iota_config:
-            #init chain section
-            block, params = dcp.init_chain_parameters()
-            self.init_section(block, params)
-            #init coregistration section
-            coregistration_default = {
-                "VHRPath": "None",
-                "dateVHR": "None",
-                "dateSrc": "None",
-                "bandRef": 1,
-                "bandSrc": 3,
-                "resample": True,
-                "step": 256,
-                "minstep": 16,
-                "minsiftpoints": 40,
-                "iterate": True,
-                "prec": 3,
-                "mode": 2,
-                "pattern": "None"
-            }
-            self.init_section("coregistration", coregistration_default)
+    def load_params(self):
 
-            sklearn_default = {
-                "model_type": None,
-                "cross_validation_folds": 5,
-                "cross_validation_grouped": False,
-                "standardization": False,
-                "cross_validation_parameters": self.init_dicoMapping({})
-            }
-            self.init_section("scikit_models_parameters", sklearn_default)
+        # block, params = dcp.init_chain_parameters()
+        # self.init_section(block, params)
+        # print("load chain")
+        # print(self.cfg.chain.outputStatistics)
+        # get all init function in default config parameters
+        function_list = [
+            fun for fun in getmembers(dcp) if isfunction(fun[1])
+            and fun[0].startswith("init") and fun[0].endswith("parameters")
+        ]
+        # fun = function_list[0]
+        # block, default_params = fun[1]()
+        # print(block)
+        # self.init_section(block, default_params)
+        # print("prev feat", self.cfg.argTrain.prevFeatures)
+        # # input(function_list)
+        # fun = function_list[6]
+        # block, default_params = fun[1]()
+        # print("bef: ", default_params)
+        # default_params["features"] = self.init_listSequence(
+        #     ["NDVI", "NDWI", "Brightness"])
+        # print("aft: ", default_params)
+        # print(block)
+        # self.init_section(block, default_params)
 
-            #init argTrain section
-            sampleSel_default = self.init_dicoMapping({
-                "sampler": "random",
-                "strategy": "all"
-            })
-            sampleAugmentationg_default = self.init_dicoMapping(
-                {"activate": False})
-            annualCrop = self.init_listSequence(["11", "12"])
-            ACropLabelReplacement = self.init_listSequence(
-                ["10", "annualCrop"])
+        for fun in function_list:
+            block_name, default_params = fun[1]()
+            # input(block_name)
+            # input(default_params)
+            # print("load def fun : ", block_name, " ", fun)
+            self.init_section(block_name, default_params)
+            # if 'globChain' == block_name:
+            #     print(self.cfg.GlobChain.features)
+        # print("outstats", self.cfg.chain.outputStatistics)
+        # print("vhr", self.cfg.coregistration.VHRPath)
+        # print("gap", self.cfg.GlobChain.useGapFilling)
+        # print("gap", self.cfg.GlobChain.features)
+        # print("l8", self.cfg.Landsat8.temporalResolution)
+        # print("l8", self.cfg.Landsat8.keepBands)
 
-            argTrain_default = {
-                "sampleSelection": sampleSel_default,
-                "sampleAugmentation": sampleAugmentationg_default,
-                "sampleManagement": None,
-                "dempster_shafer_SAR_Opt_fusion": False,
-                "cropMix": False,
-                "prevFeatures": "None",
-                "outputPrevFeatures": "None",
-                "annualCrop": annualCrop,
-                "ACropLabelReplacement": ACropLabelReplacement,
-                "samplesClassifMix": False,
-                "classifier": "rf",
-                "options": " -classifier.rf.min 5 -classifier.rf.max 25 ",
-                "annualClassesExtractionSource": "None",
-                "validityThreshold": 1
-            }
-            if self.cfg.scikit_models_parameters.model_type is None:
-                del argTrain_default["classifier"]
-                del argTrain_default["options"]
-
-            self.init_section("argTrain", argTrain_default)
-            #init argClassification section
-            argClassification_default = {
-                "noLabelManagement": "maxConfidence",
-                "enable_probability_map": False,
-                "fusionOptions": "-nodatalabel 0 -method majorityvoting"
-            }
-            self.init_section("argClassification", argClassification_default)
-            #init GlobChain section
-            GlobChain_default = {
-                "features":
-                self.init_listSequence(["NDVI", "NDWI", "Brightness"]),
-                "autoDate": True,
-                "writeOutputs": False,
-                "useAdditionalFeatures": False,
-                "useGapFilling": True
-            }
-            self.init_section("GlobChain", GlobChain_default)
-            #init iota2FeatureExtraction reduction
-            iota2FeatureExtraction_default = {
-                "copyinput": True,
-                "relrefl": False,
-                "keepduplicates": True,
-                "extractBands": False,
-                "acorfeat": False
-            }
-            self.init_section("iota2FeatureExtraction",
-                              iota2FeatureExtraction_default)
-            #init dimensionality reduction
-            dimRed_default = {
-                "dimRed": False,
-                "targetDimension": 4,
-                "reductionMode": "global"
-            }
-            self.init_section("dimRed", dimRed_default)
-            #init sensors parameters
-            Landsat8_default = {
-                "additionalFeatures":
-                "",
-                "temporalResolution":
-                16,
-                "write_reproject_resampled_input_dates_stack":
-                True,
-                "startDate":
-                "",
-                "endDate":
-                "",
-                "keepBands":
-                self.init_listSequence(
-                    ["B1", "B2", "B3", "B4", "B5", "B6", "B7"])
-            }
-            Landsat8_old_default = {
-                "additionalFeatures":
-                "",
-                "temporalResolution":
-                16,
-                "startDate":
-                "",
-                "endDate":
-                "",
-                "keepBands":
-                self.init_listSequence(
-                    ["B1", "B2", "B3", "B4", "B5", "B6", "B7"])
-            }
-            Landsat5_old_default = {
-                "additionalFeatures":
-                "",
-                "temporalResolution":
-                16,
-                "startDate":
-                "",
-                "endDate":
-                "",
-                "keepBands":
-                self.init_listSequence(["B1", "B2", "B3", "B4", "B5", "B6"])
-            }
-            Sentinel_2_default = {
-                "additionalFeatures":
-                "",
-                "temporalResolution":
-                10,
-                "write_reproject_resampled_input_dates_stack":
-                True,
-                "startDate":
-                "",
-                "endDate":
-                "",
-                "keepBands":
-                self.init_listSequence([
-                    "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11",
-                    "B12"
-                ])
-            }
-            Sentinel_2_S2C_default = {
-                "additionalFeatures":
-                "",
-                "temporalResolution":
-                10,
-                "write_reproject_resampled_input_dates_stack":
-                True,
-                "startDate":
-                "",
-                "endDate":
-                "",
-                "keepBands":
-                self.init_listSequence([
-                    "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11",
-                    "B12"
-                ])
-            }
-            Sentinel_2_L3A_default = {
-                "additionalFeatures":
-                "",
-                "temporalResolution":
-                10,
-                "write_reproject_resampled_input_dates_stack":
-                True,
-                "startDate":
-                "",
-                "endDate":
-                "",
-                "keepBands":
-                self.init_listSequence([
-                    "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11",
-                    "B12"
-                ])
-            }
-
-            userFeat = {"arbo": "/*", "patterns": "ALT,ASP,SLP"}
-
-            self.init_section("Landsat5_old", Landsat5_old_default)
-            self.init_section("Landsat8", Landsat8_default)
-            self.init_section("Landsat8_old", Landsat8_old_default)
-            self.init_section("Sentinel_2", Sentinel_2_default)
-            self.init_section("Sentinel_2_S2C", Sentinel_2_S2C_default)
-            self.init_section("Sentinel_2_L3A", Sentinel_2_L3A_default)
-            self.init_section("userFeat", userFeat)
-
-            simp_default = {
-                "classification": None,
-                "confidence": None,
-                "validity": None,
-                "seed": None,
-                "umc1": None,
-                "umc2": None,
-                "inland": None,
-                "rssize": 20,
-                "lib64bit": None,
-                "gridsize": None,
-                "grasslib":
-                "/work/OT/theia/oso/OTB/GRASS/grass7.2.1svn-x86_64-pc-linux-gnu-13_03_2017",
-                "douglas": 10,
-                "hermite": 10,
-                "mmu": 1000,
-                "angle": True,
-                "clipfile": None,
-                "clipfield": None,
-                "clipvalue": None,
-                "outprefix": "dept",
-                "lcfield": "Class",
-                "blocksize": 2000,
-                "dozip": True,
-                "bingdal": None,
-                "chunk": 10,
-                "systemcall": False,
-                "chunk": 1,
-                "nomenclature": None,
-                "statslist": {
-                    1: "rate",
-                    2: "statsmaj",
-                    3: "statsmaj"
-                }
-            }
-
-            self.init_section("Simplification", simp_default)
-            custom_features = {
-                "module": None,
-                "functions": None,
-                "number_of_chunks": 50,
-                "chunk_size_x": 50,
-                "chunk_size_y": 50,
-                "chunk_size_mode": "split_number",
-                "concat_mode": True,
-                "output_name": None
-            }
-            self.init_section("external_features", custom_features)
+    def check_params(self):
+        function_list = [
+            fun for fun in getmembers(ccp)
+            if isfunction(fun[1]) and fun[0].startswith("check")
+        ]
+        for fun in function_list:
+            fun[1](self.cfg, self.path_conf)
 
     def init_section(self, sectionName, sectionDefault):
         """use to initialize a full configuration file section
@@ -340,549 +144,7 @@ class read_config_file:
         return new_seq
 
     def __repr__(self):
-        return "Configuration file : " + self.pathConf
-
-    def testShapeName(self, input_vector):
-        """
-        """
-        import string
-
-        avail_characters = string.ascii_letters
-        first_character = os.path.basename(input_vector)[0]
-        if first_character not in avail_characters:
-            raise sErr.configError(
-                "the file '{}' is containing a non-ascii letter at first position in it's name : {}"
-                .format(input_vector, first_character))
-
-    def testVarConfigFile(self,
-                          section,
-                          variable,
-                          varType,
-                          valeurs="",
-                          valDefaut=""):
-        """
-            This function check if variable is in obj
-            and if it has varType type.
-            Optionnaly it can check if variable has values in valeurs
-            Exit the code if any error are detected
-            :param section: section name of the obj where to find
-            :param variable: string name of the variable
-            :param varType: type type of the variable for verification
-            :param valeurs: string list of the possible value of variable
-            :param valDefaut: value by default if variable is not in the configuration file
-        """
-
-        if not hasattr(self.cfg, section):
-            raise sErr.configFileError("Section '" + str(section) +
-                                       "' is not in the configuration file")
-
-        objSection = getattr(self.cfg, section)
-
-        if not hasattr(objSection, variable):
-            if valDefaut != "":
-                setattr(objSection, variable, valDefaut)
-            else:
-                raise sErr.parameterError(
-                    section, "mandatory variable '" + str(variable) +
-                    "' is missing in the configuration file")
-        else:
-            tmpVar = getattr(objSection, variable)
-
-            if not isinstance(tmpVar, varType):
-                message = ("variable '" + str(variable) +
-                           "' has a wrong type\nActual: " + str(type(tmpVar)) +
-                           " expected: " + str(varType))
-                raise sErr.parameterError(section, message)
-
-            if valeurs != "":
-                ok = 0
-                for index in range(len(valeurs)):
-                    if tmpVar == valeurs[index]:
-                        ok = 1
-                if ok == 0:
-                    message = ("bad value for '" + variable +
-                               "' variable. Value accepted: " + str(valeurs) +
-                               " Value read: " + str(tmpVar))
-                    raise sErr.parameterError(section, message)
-
-    def testDirectory(self, directory):
-        if not os.path.exists(directory):
-            raise sErr.dirError(directory)
-
-    def checkConfigParameters(self):
-        """
-            check parameters coherence
-            :return: true if ok
-        """
-        def check_sampleAugmentation():
-            """
-            """
-            def check_parameters(sampleAug):
-
-                not_allowed_p = [
-                    "in", "out", "field", "layer", "label", "seed", "inxml",
-                    "progress", "help"
-                ]
-                for p in not_allowed_p:
-                    if p in sampleAug:
-                        raise sErr.configError(
-                            "'{}' parameter must not be set in argTrain.sampleAugmentation"
-                            .format(p))
-
-                if "strategy" in sampleAug:
-                    strategy = sampleAug["strategy"]
-                    if strategy not in ["replicate", "jitter", "smote"]:
-                        raise sErr.configError(
-                            "augmentation strategy must be 'replicate', 'jitter' or 'smote'"
-                        )
-                if "strategy.jitter.stdFactor" in sampleAug:
-                    jitter = sampleAug["strategy.jitter.stdFactor"]
-                    if not isinstance(jitter, int):
-                        raise sErr.configError(
-                            "strategy.jitter.stdFactor must an integer")
-                if "strategy.smote.neighbors" in sampleAug:
-                    byclass = sampleAug["strategy.smote.neighbors"]
-                    if not isinstance(byclass, int):
-                        raise sErr.configError(
-                            "strategy.smote.neighbors must be an integer")
-                if "samples.strategy" in sampleAug:
-                    samples_strategy = sampleAug["samples.strategy"]
-                    if samples_strategy not in [
-                            "minNumber", "balance", "byClass"
-                    ]:
-                        raise sErr.configError(
-                            "augmentation strategy must be 'minNumber', 'balance' or 'byClass'"
-                        )
-                if "samples.strategy.minNumber" in sampleAug:
-                    minNumber = sampleAug["samples.strategy.minNumber"]
-                    if not isinstance(minNumber, int):
-                        raise sErr.configError(
-                            "samples.strategy.minNumber must an integer")
-                if "samples.strategy.byClass" in sampleAug:
-                    byClass = sampleAug["samples.strategy.byClass"]
-                    if not isinstance(byClass, str):
-                        raise sErr.configError(
-                            "samples.strategy.byClass must be a string")
-                if "activate" in sampleAug:
-                    activate = sampleAug["activate"]
-                    if not isinstance(activate, bool):
-                        raise sErr.configError("activate must be a bool")
-                if "target_models" in sampleAug:
-                    TargetModels = sampleAug["target_models"]
-                    if not isinstance(TargetModels, Sequence):
-                        raise sErr.configError("target_models must a list")
-                    if not isinstance(TargetModels[0], str):
-                        raise sErr.configError(
-                            "target_models must constains strings")
-
-            sampleAug = dict(self.cfg.argTrain.sampleAugmentation)
-            check_parameters(sampleAug)
-
-        def check_sampleSelection():
-            """
-            """
-            def check_parameters(sampleSel):
-
-                not_allowed_p = [
-                    "outrates", "in", "mask", "vec", "out", "instats", "field",
-                    "layer", "rand", "inxml"
-                ]
-                strats = [
-                    "byclass", "constant", "percent", "total", "smallest",
-                    "all"
-                ]
-                for p in not_allowed_p:
-                    if p in sampleSel:
-                        raise sErr.configError(
-                            "'{}' parameter must not be set in argTrain.sampleSelection"
-                            .format(p))
-
-                if "sampler" in sampleSel:
-                    sampler = sampleSel["sampler"]
-                    if sampler not in ["periodic", "random"]:
-                        raise sErr.configError(
-                            "sampler must be 'periodic' or 'random'")
-                if "sampler.periodic.jitter" in sampleSel:
-                    jitter = sampleSel["sampler.periodic.jitter"]
-                    if not isinstance(jitter, int):
-                        raise sErr.configError("jitter must an integer")
-                if "strategy" in sampleSel:
-                    strategy = sampleSel["strategy"]
-                    if strategy not in strats:
-                        raise sErr.configError("strategy must be {}".format(
-                            ' or '.join(
-                                ["'{}'".format(elem) for elem in strats])))
-                if "strategy.byclass.in" in sampleSel:
-                    byclass = sampleSel["strategy.byclass.in"]
-                    if not isinstance(byclass, str):
-                        raise sErr.configError(
-                            "strategy.byclass.in must a string")
-                if "strategy.constant.nb" in sampleSel:
-                    constant = sampleSel["strategy.constant.nb"]
-                    if not isinstance(constant, int):
-                        raise sErr.configError(
-                            "strategy.constant.nb must an integer")
-                if "strategy.percent.p" in sampleSel:
-                    percent = sampleSel["strategy.percent.p"]
-                    if not isinstance(percent, float):
-                        raise sErr.configError(
-                            "strategy.percent.p must a float")
-                if "strategy.total.v" in sampleSel:
-                    total = sampleSel["strategy.total.v"]
-                    if not isinstance(total, int):
-                        raise sErr.configError(
-                            "strategy.total.v must an integer")
-                if "elev.dem" in sampleSel:
-                    dem = sampleSel["elev.dem"]
-                    if not isinstance(dem, str):
-                        raise sErr.configError("elev.dem must a string")
-                if "elev.geoid" in sampleSel:
-                    geoid = sampleSel["elev.geoid"]
-                    if not isinstance(geoid, str):
-                        raise sErr.configError("elev.geoid must a string")
-                if "elev.default" in sampleSel:
-                    default = sampleSel["elev.default"]
-                    if not isinstance(default, float):
-                        raise sErr.configError("elev.default must a float")
-                if "ram" in sampleSel:
-                    ram = sampleSel["ram"]
-                    if not isinstance(ram, int):
-                        raise sErr.configError("ram must a int")
-                if "target_model" in sampleSel:
-                    target_model = sampleSel["target_model"]
-                    if not isinstance(target_model, int):
-                        raise sErr.configError("target_model must an integer")
-
-            sampleSel = dict(self.cfg.argTrain.sampleSelection)
-            check_parameters(sampleSel)
-            if "per_model" in sampleSel:
-                for model in sampleSel["per_model"]:
-                    check_parameters(dict(model))
-
-        def check_region_vector(cfg):
-            """
-            """
-            region_path = cfg.chain.regionPath
-            self.testShapeName(region_path)
-            if not region_path:
-                raise sErr.configError("chain.regionPath must be set")
-
-            region_field = cfg.chain.regionField
-            if not region_path:
-                raise sErr.configError("chain.regionField must be set")
-
-            driver = ogr.GetDriverByName("ESRI Shapefile")
-            dataSource = driver.Open(region_path, 0)
-            if dataSource is None:
-                raise Exception("Could not open " + region_path)
-            layer = dataSource.GetLayer()
-            field_index = layer.FindFieldIndex(region_field, False)
-            layerDefinition = layer.GetLayerDefn()
-            fieldTypeCode = layerDefinition.GetFieldDefn(field_index).GetType()
-            fieldType = layerDefinition.GetFieldDefn(
-                field_index).GetFieldTypeName(fieldTypeCode)
-            if fieldType != "String":
-                raise sErr.configError("the region field must be a string")
-
-        def all_sameBands(items):
-            return all(bands == items[0][1] for path, bands in items)
-
-        try:
-            # test of variable
-            self.testVarConfigFile("chain", "outputPath", str)
-            self.testVarConfigFile("chain", "nomenclaturePath", str)
-            self.testVarConfigFile("chain", "remove_outputPath", bool)
-            self.testVarConfigFile("chain", "listTile", str)
-            self.testVarConfigFile("chain", "L5Path_old", str)
-            self.testVarConfigFile("chain", "L8Path", str)
-            self.testVarConfigFile("chain", "S2Path", str)
-            self.testVarConfigFile("chain", "S1Path", str)
-
-            self.testVarConfigFile(
-                "chain",
-                "firstStep",
-                str,
-                [
-                    "init",
-                    "sampling",
-                    "dimred",
-                    "learning",
-                    "classification",
-                    "mosaic",
-                    "validation",
-                    "regularisation",
-                    "crown",
-                    "mosaictiles",
-                    "vectorisation",
-                    "simplification",
-                    "smoothing",
-                    "clipvectors",
-                    "lcstatistics",
-                ],
-            )
-            self.testVarConfigFile(
-                "chain",
-                "lastStep",
-                str,
-                [
-                    "init",
-                    "sampling",
-                    "dimred",
-                    "learning",
-                    "classification",
-                    "mosaic",
-                    "validation",
-                    "regularisation",
-                    "crown",
-                    "mosaictiles",
-                    "vectorisation",
-                    "simplification",
-                    "smoothing",
-                    "clipvectors",
-                    "lcstatistics",
-                ],
-            )
-
-            if self.getParam("chain", "regionPath"):
-                check_region_vector(self.cfg)
-            self.testVarConfigFile('chain', 'regionField', str)
-            self.testVarConfigFile('chain', 'check_inputs', bool)
-            self.testVarConfigFile('chain', 'model', str)
-            self.testVarConfigFile('chain', 'enableCrossValidation', bool)
-            self.testVarConfigFile('chain', 'groundTruth', str)
-            self.testVarConfigFile('chain', 'dataField', str)
-            self.testVarConfigFile('chain', 'runs', int)
-            self.testVarConfigFile('chain', 'ratio', float)
-            self.testVarConfigFile('chain', 'splitGroundTruth', bool)
-            self.testVarConfigFile('chain', 'outputStatistics', bool)
-            self.testVarConfigFile('chain', 'cloud_threshold', int)
-            self.testVarConfigFile('chain', 'spatialResolution', int)
-            self.testVarConfigFile('chain', 'colorTable', str)
-            self.testVarConfigFile('chain', 'mode_outside_RegionSplit', float)
-            self.testVarConfigFile('chain', 'merge_final_classifications',
-                                   bool)
-            self.testVarConfigFile('chain', 'enable_autoContext', bool)
-            self.testVarConfigFile('chain', 'autoContext_iterations', int)
-            if self.getParam("chain", "merge_final_classifications"):
-                self.testVarConfigFile(
-                    'chain', 'merge_final_classifications_undecidedlabel', int)
-                self.testVarConfigFile('chain',
-                                       'merge_final_classifications_ratio',
-                                       float)
-                self.testVarConfigFile('chain',
-                                       'merge_final_classifications_method',
-                                       str,
-                                       ["majorityvoting", "dempstershafer"])
-                self.testVarConfigFile(
-                    'chain', 'dempstershafer_mob', str,
-                    ["precision", "recall", "accuracy", "kappa"])
-                self.testVarConfigFile('chain', 'keep_runs_results', bool)
-                self.testVarConfigFile(
-                    'chain', 'fusionOfClassificationAllSamplesValidation',
-                    bool)
-
-            self.testVarConfigFile('argTrain', 'classifier', str)
-            self.testVarConfigFile('argTrain', 'options', str)
-            self.testVarConfigFile('argTrain', 'cropMix', bool)
-            self.testVarConfigFile('argTrain', 'prevFeatures', str)
-            self.testVarConfigFile('argTrain', 'outputPrevFeatures', str)
-            self.testVarConfigFile('argTrain', 'annualCrop', Sequence)
-            self.testVarConfigFile('argTrain', 'ACropLabelReplacement',
-                                   Sequence)
-
-            self.testVarConfigFile('argTrain', 'sampleSelection', Mapping)
-            self.testVarConfigFile('argTrain', 'samplesClassifMix', bool)
-            self.testVarConfigFile('argTrain', 'validityThreshold', int)
-
-            check_sampleSelection()
-            check_sampleAugmentation()
-
-            self.testVarConfigFile('argClassification', 'classifMode', str,
-                                   ["separate", "fusion"])
-            self.testVarConfigFile('argClassification',
-                                   'enable_probability_map', bool)
-            self.testVarConfigFile('argClassification', 'noLabelManagement',
-                                   str, ["maxConfidence", "learningPriority"])
-
-            self.testVarConfigFile('GlobChain', 'proj', str)
-            self.testVarConfigFile('GlobChain', 'features', Sequence)
-            self.testVarConfigFile('GlobChain', 'autoDate', bool)
-            self.testVarConfigFile('GlobChain', 'writeOutputs', bool)
-            self.testVarConfigFile('GlobChain', 'useAdditionalFeatures', bool)
-            self.testVarConfigFile('GlobChain', 'useGapFilling', bool)
-
-            self.testVarConfigFile('iota2FeatureExtraction', 'copyinput', bool)
-            self.testVarConfigFile('iota2FeatureExtraction', 'relrefl', bool)
-            self.testVarConfigFile('iota2FeatureExtraction', 'keepduplicates',
-                                   bool)
-            self.testVarConfigFile('iota2FeatureExtraction', 'extractBands',
-                                   bool)
-            self.testVarConfigFile('iota2FeatureExtraction', 'acorfeat', bool)
-
-            self.testVarConfigFile('dimRed', 'dimRed', bool)
-            self.testVarConfigFile('dimRed', 'targetDimension', int)
-            self.testVarConfigFile('dimRed', 'reductionMode', str)
-
-            self.testVarConfigFile('chain', 'remove_tmp_files', bool)
-
-            self.testVarConfigFile('chain', 'remove_tmp_files', bool)
-
-            self.testVarConfigFile('chain', 'remove_tmp_files', bool)
-
-            if self.cfg.scikit_models_parameters.model_type is not None:
-                self.testVarConfigFile('scikit_models_parameters',
-                                       'model_type', str)
-                self.testVarConfigFile('scikit_models_parameters',
-                                       'cross_validation_folds', int)
-                self.testVarConfigFile('scikit_models_parameters',
-                                       'cross_validation_grouped', bool)
-                self.testVarConfigFile('scikit_models_parameters',
-                                       'standardization', bool)
-                self.testVarConfigFile('scikit_models_parameters',
-                                       'cross_validation_parameters', Mapping)
-
-            if self.cfg.chain.L5Path_old != "None":
-                #L5 variable check
-                self.testVarConfigFile('Landsat5_old', 'temporalResolution',
-                                       int)
-                self.testVarConfigFile('Landsat5_old', 'keepBands', Sequence)
-            if self.cfg.chain.L8Path != "None":
-                # L8 variable check
-                self.testVarConfigFile("Landsat8", "temporalResolution", int)
-                self.testVarConfigFile("Landsat8", "keepBands", Sequence)
-            if self.cfg.chain.L8Path_old != "None":
-                #L8 variable check
-                self.testVarConfigFile('Landsat8_old', 'temporalResolution',
-                                       int)
-                self.testVarConfigFile('Landsat8_old', 'keepBands', Sequence)
-
-            if self.cfg.chain.S2Path != "None":
-                # S2 variable check
-                self.testVarConfigFile("Sentinel_2", "temporalResolution", int)
-                self.testVarConfigFile("Sentinel_2", "keepBands", Sequence)
-
-            if self.cfg.chain.random_seed != None:
-                self.testVarConfigFile('chain', 'random_seed', int)
-
-            nbTile = len(self.cfg.chain.listTile.split(" "))
-
-            # directory tests
-            if self.getParam("chain", "jobsPath"):
-                self.testDirectory(self.getParam("chain", "jobsPath"))
-
-            try:
-                epsg = int(self.getParam("GlobChain", "proj").split(":")[-1])
-            except ValueError:
-                raise ValueError(
-                    "parameter GlobChain.proj not in the right format (proj:\"EPSG:2154\")"
-                )
-
-            self.testDirectory(os.path.join(get_iota2_project_dir(), "iota2"))
-            self.testDirectory(self.cfg.chain.nomenclaturePath)
-            self.testDirectory(self.cfg.chain.groundTruth)
-            self.testDirectory(self.cfg.chain.colorTable)
-            if self.cfg.chain.S2_output_path:
-                self.testDirectory(self.cfg.chain.S2_output_path)
-            if self.cfg.chain.S2_S2C_output_path:
-                self.testDirectory(self.cfg.chain.S2_S2C_output_path)
-            # test of groundTruth file
-            Field_FType = []
-
-            dataSource = ogr.Open(self.cfg.chain.groundTruth)
-            self.testShapeName(self.cfg.chain.groundTruth)
-            daLayer = dataSource.GetLayer(0)
-            layerDefinition = daLayer.GetLayerDefn()
-            for i in range(layerDefinition.GetFieldCount()):
-                fieldName = layerDefinition.GetFieldDefn(i).GetName()
-                fieldTypeCode = layerDefinition.GetFieldDefn(i).GetType()
-                fieldType = layerDefinition.GetFieldDefn(i).GetFieldTypeName(
-                    fieldTypeCode)
-                Field_FType.append((fieldName, fieldType))
-            flag = 0
-            for currentField, fieldType in Field_FType:
-                if currentField == self.cfg.chain.dataField:
-                    flag = 1
-                    if "Integer" not in fieldType:
-                        raise sErr.fileError("the data's field " +
-                                             currentField +
-                                             " must be an integer in " +
-                                             self.cfg.chain.groundTruth)
-            if flag == 0:
-                raise sErr.fileError("field name '" +
-                                     self.cfg.chain.dataField +
-                                     "' doesn't exist in " +
-                                     self.cfg.chain.groundTruth)
-
-            # parameters compatibilities check
-            classier_probamap_avail = ["sharkrf"]
-            if (self.getParam("argClassification", "enable_probability_map") is
-                    True and self.getParam(
-                        "argTrain",
-                        "classifier").lower() not in classier_probamap_avail):
-                raise sErr.configError(
-                    "'enable_probability_map:True' only available with the 'sharkrf' classifier"
-                )
-            if self.getParam("chain", "enableCrossValidation") is True:
-                raise sErr.configError(
-                    "enableCrossValidation not available, please set it to False\n"
-                )
-            if self.getParam(
-                    "chain", "regionPath"
-            ) is None and self.cfg.argClassification.classifMode == "fusion":
-                raise sErr.configError(
-                    "you can't chose 'one_region' mode and ask a fusion of classifications\n"
-                )
-            if self.cfg.chain.merge_final_classifications and self.cfg.chain.runs == 1:
-                raise sErr.configError(
-                    "these parameters are incompatible runs:1 and merge_final_classifications:True"
-                )
-            if self.cfg.chain.enableCrossValidation and self.cfg.chain.runs == 1:
-                raise sErr.configError(
-                    "these parameters are incompatible runs:1 and enableCrossValidation:True"
-                )
-            if self.cfg.chain.enableCrossValidation and self.cfg.chain.splitGroundTruth is False:
-                raise sErr.configError(
-                    "these parameters are incompatible splitGroundTruth:False and enableCrossValidation:True"
-                )
-            if self.cfg.chain.splitGroundTruth is False and self.cfg.chain.runs != 1:
-                raise sErr.configError(
-                    "these parameters are incompatible splitGroundTruth:False and runs different from 1"
-                )
-            if self.cfg.chain.merge_final_classifications and self.cfg.chain.splitGroundTruth is False:
-                raise sErr.configError(
-                    "these parameters are incompatible merge_final_classifications:True and splitGroundTruth:False"
-                )
-            if self.cfg.argTrain.dempster_shafer_SAR_Opt_fusion and 'None' in self.cfg.chain.S1Path:
-                raise sErr.configError(
-                    "these parameters are incompatible dempster_shafer_SAR_Opt_fusion : True and S1Path : 'None'"
-                )
-            if self.cfg.argTrain.dempster_shafer_SAR_Opt_fusion and 'None' in self.cfg.chain.userFeatPath and 'None' in self.cfg.chain.L5Path_old and 'None' in self.cfg.chain.L8Path and 'None' in self.cfg.chain.L8Path_old and 'None' in self.cfg.chain.S2Path and 'None' in self.cfg.chain.S2_S2C_Path:
-                raise sErr.configError(
-                    "to perform post-classification fusion, optical data must be used"
-                )
-            if self.cfg.scikit_models_parameters.model_type is not None and self.cfg.chain.enable_autoContext is True:
-                raise sErr.configError(
-                    "these parameters are incompatible enable_autoContext : True and model_type"
-                )
-            if self.cfg.scikit_models_parameters.model_type is not None and self.checkCustomFeature(
-            ):
-                raise sErr.configError(
-                    "these parameters are incompatible external_features and scikit_models_parameters"
-                )
-            if self.checkCustomFeature and self.cfg.chain.enable_autoContext:
-                raise sErr.configError(
-                    "these parameters are incompatible external_features and enable_autoContext"
-                )
-        # Error managed
-        except sErr.configFileError:
-            print("Error in the configuration file " + self.pathConf)
-            raise
-        # Warning error not managed !
-        except Exception:
-            print("Something wrong happened in serviceConfigFile !")
-            raise
-
-        return True
+        return "Configuration file : " + self.path_conf
 
     def getAvailableSections(self):
         """
@@ -994,52 +256,294 @@ class read_config_file:
             # setParam instead !!
             self.setParam(section, variable, value)
 
-    def checkCustomFeature(self):
-        """
-        This function return True if the custom features field
-        is activate and all imports success
-        """
-        flag = False
+    def load_params2(self):
+        """For debug"""
+        chain_default = {
+            "outputStatistics": False,
+            "L5Path_old": "None",
+            "L5_old_output_path": None,
+            "L8Path": "None",
+            "L8_output_path": None,
+            "L8Path_old": "None",
+            "L8_old_output_path": None,
+            "S2Path": "None",
+            "S2_output_path": None,
+            "S2_S2C_Path": "None",
+            "S2_S2C_output_path": None,
+            "S2_L3A_Path": "None",
+            "S2_L3A_output_path": None,
+            "S1Path": "None",
+            "userFeatPath": "None",
+            "jobsPath": None,
+            "runs": 1,
+            "enableCrossValidation": False,
+            "model": "None",
+            "cloud_threshold": 0,
+            "splitGroundTruth": True,
+            "ratio": 0.5,
+            "random_seed": None,
+            "firstStep": "init",
+            "lastStep": "validation",
+            "logFileLevel": "INFO",
+            "mode_outside_RegionSplit": 0.1,
+            "logFile": "iota2LogFile.log",
+            "logConsoleLevel": "INFO",
+            "regionPath": None,
+            "regionField": "region",
+            "logConsole": True,
+            "enableConsole": False,
+            "merge_final_classifications": False,
+            "merge_final_classifications_method": "majorityvoting",
+            "merge_final_classifications_undecidedlabel": 255,
+            "fusionOfClassificationAllSamplesValidation": False,
+            "dempstershafer_mob": "precision",
+            "merge_final_classifications_ratio": 0.1,
+            "keep_runs_results": True,
+            "check_inputs": True,
+            "enable_autoContext": False,
+            "autoContext_iterations": 3,
+            "remove_tmp_files": False,
+            "force_standard_labels": False
+        }
+        self.init_section("chain", chain_default)
+        #init coregistration section
+        coregistration_default = {
+            "VHRPath": "None",
+            "dateVHR": "None",
+            "dateSrc": "None",
+            "bandRef": 1,
+            "bandSrc": 3,
+            "resample": True,
+            "step": 256,
+            "minstep": 16,
+            "minsiftpoints": 40,
+            "iterate": True,
+            "prec": 3,
+            "mode": 2,
+            "pattern": "None"
+        }
+        self.init_section("coregistration", coregistration_default)
 
-        def check_code_path(code_path):
+        sklearn_default = {
+            "model_type": None,
+            "cross_validation_folds": 5,
+            "cross_validation_grouped": False,
+            "standardization": False,
+            "cross_validation_parameters": self.init_dicoMapping({})
+        }
+        self.init_section("scikit_models_parameters", sklearn_default)
 
-            if code_path is None:
-                return False
-            if code_path.lower() == "none":
-                return False
-            if len(code_path) < 1:
-                return False
-            if not os.path.isfile(code_path):
-                raise ValueError(f"Error: {code_path} is not a correct path")
-            return True
+        #init argTrain section
+        sampleSel_default = self.init_dicoMapping({
+            "sampler": "random",
+            "strategy": "all"
+        })
+        sampleAugmentationg_default = self.init_dicoMapping(
+            {"activate": False})
+        annualCrop = self.init_listSequence(["11", "12"])
+        ACropLabelReplacement = self.init_listSequence(["10", "annualCrop"])
 
-        def check_import(module_path):
-            import importlib
+        argTrain_default = {
+            "sampleSelection": sampleSel_default,
+            "sampleAugmentation": sampleAugmentationg_default,
+            "sampleManagement": None,
+            "dempster_shafer_SAR_Opt_fusion": False,
+            "cropMix": False,
+            "prevFeatures": "None",
+            "outputPrevFeatures": "None",
+            "annualCrop": annualCrop,
+            "ACropLabelReplacement": ACropLabelReplacement,
+            "samplesClassifMix": False,
+            "classifier": "rf",
+            "options": " -classifier.rf.min 5 -classifier.rf.max 25 ",
+            "annualClassesExtractionSource": "None",
+            "validityThreshold": 1
+        }
+        if self.cfg.scikit_models_parameters.model_type is None:
+            del argTrain_default["classifier"]
+            del argTrain_default["options"]
 
-            spec = importlib.util.spec_from_file_location(
-                module_path.split(os.sep)[-1].split('.')[0], module_path)
-            module = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(module)
-            return module
+        self.init_section("argTrain", argTrain_default)
+        #init argClassification section
+        argClassification_default = {
+            "noLabelManagement": "maxConfidence",
+            "enable_probability_map": False,
+            "fusionOptions": "-nodatalabel 0 -method majorityvoting"
+        }
+        self.init_section("argClassification", argClassification_default)
+        #init GlobChain section
+        GlobChain_default = {
+            "features": self.init_listSequence(["NDVI", "NDWI", "Brightness"]),
+            "autoDate": True,
+            "writeOutputs": False,
+            "useAdditionalFeatures": False,
+            "useGapFilling": True
+        }
+        self.init_section("GlobChain", GlobChain_default)
+        #init iota2FeatureExtraction reduction
+        iota2FeatureExtraction_default = {
+            "copyinput": True,
+            "relrefl": False,
+            "keepduplicates": True,
+            "extractBands": False,
+            "acorfeat": False
+        }
+        self.init_section("iota2FeatureExtraction",
+                          iota2FeatureExtraction_default)
+        #init dimensionality reduction
+        dimRed_default = {
+            "dimRed": False,
+            "targetDimension": 4,
+            "reductionMode": "global"
+        }
+        self.init_section("dimRed", dimRed_default)
+        #init sensors parameters
+        Landsat8_default = {
+            "additionalFeatures":
+            "",
+            "temporalResolution":
+            16,
+            "write_reproject_resampled_input_dates_stack":
+            True,
+            "startDate":
+            "",
+            "endDate":
+            "",
+            "keepBands":
+            self.init_listSequence(["B1", "B2", "B3", "B4", "B5", "B6", "B7"])
+        }
+        Landsat8_old_default = {
+            "additionalFeatures":
+            "",
+            "temporalResolution":
+            16,
+            "startDate":
+            "",
+            "endDate":
+            "",
+            "keepBands":
+            self.init_listSequence(["B1", "B2", "B3", "B4", "B5", "B6", "B7"])
+        }
+        Landsat5_old_default = {
+            "additionalFeatures":
+            "",
+            "temporalResolution":
+            16,
+            "startDate":
+            "",
+            "endDate":
+            "",
+            "keepBands":
+            self.init_listSequence(["B1", "B2", "B3", "B4", "B5", "B6"])
+        }
+        Sentinel_2_default = {
+            "additionalFeatures":
+            "",
+            "temporalResolution":
+            10,
+            "write_reproject_resampled_input_dates_stack":
+            True,
+            "startDate":
+            "",
+            "endDate":
+            "",
+            "keepBands":
+            self.init_listSequence([
+                "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11", "B12"
+            ])
+        }
+        Sentinel_2_S2C_default = {
+            "additionalFeatures":
+            "",
+            "temporalResolution":
+            10,
+            "write_reproject_resampled_input_dates_stack":
+            True,
+            "startDate":
+            "",
+            "endDate":
+            "",
+            "keepBands":
+            self.init_listSequence([
+                "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11", "B12"
+            ])
+        }
+        Sentinel_2_L3A_default = {
+            "additionalFeatures":
+            "",
+            "temporalResolution":
+            10,
+            "write_reproject_resampled_input_dates_stack":
+            True,
+            "startDate":
+            "",
+            "endDate":
+            "",
+            "keepBands":
+            self.init_listSequence([
+                "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11", "B12"
+            ])
+        }
 
-        def check_function_in_module(module, list_functions):
-            for fun in list_functions:
-                try:
-                    getattr(module, fun)
-                except AttributeError:
-                    raise AttributeError(
-                        f"{module.__name__} has no function {fun}")
+        userFeat = {"arbo": "/*", "patterns": "ALT,ASP,SLP"}
 
-        module_path = self.getParam("external_features", "module")
-        module_path_valid = check_code_path(module_path)
-        if module_path_valid:
-            module = check_import(module_path)
-            check_function_in_module(
-                module,
-                self.getParam("external_features", "functions").split(" "))
+        self.init_section("Landsat5_old", Landsat5_old_default)
+        self.init_section("Landsat8", Landsat8_default)
+        self.init_section("Landsat8_old", Landsat8_old_default)
+        self.init_section("Sentinel_2", Sentinel_2_default)
+        self.init_section("Sentinel_2_S2C", Sentinel_2_S2C_default)
+        self.init_section("Sentinel_2_L3A", Sentinel_2_L3A_default)
+        self.init_section("userFeat", userFeat)
 
-            flag = True
-        return flag
+        simp_default = {
+            "classification": None,
+            "confidence": None,
+            "validity": None,
+            "seed": None,
+            "umc1": None,
+            "umc2": None,
+            "inland": None,
+            "rssize": 20,
+            "lib64bit": None,
+            "gridsize": None,
+            "grasslib":
+            "/work/OT/theia/oso/OTB/GRASS/grass7.2.1svn-x86_64-pc-linux-gnu-13_03_2017",
+            "douglas": 10,
+            "hermite": 10,
+            "mmu": 1000,
+            "angle": True,
+            "clipfile": None,
+            "clipfield": None,
+            "clipvalue": None,
+            "outprefix": "dept",
+            "lcfield": "Class",
+            "blocksize": 2000,
+            "dozip": True,
+            "bingdal": None,
+            "chunk": 10,
+            "systemcall": False,
+            "chunk": 1,
+            "nomenclature": None,
+            "statslist": {
+                1: "rate",
+                2: "statsmaj",
+                3: "statsmaj"
+            }
+        }
+
+        self.init_section("Simplification", simp_default)
+        custom_features = {
+            "module": None,
+            "functions": None,
+            "number_of_chunks": 50,
+            "chunk_size_x": 50,
+            "chunk_size_y": 50,
+            "chunk_size_mode": "split_number",
+            "concat_mode": True,
+            "output_name": None
+        }
+        self.init_section("external_features", custom_features)
+        return 0
 
 
 class iota2_parameters:

@@ -191,7 +191,7 @@ def init_glob_chain_parameters():
         "useAdditionalFeatures": False,
         "useGapFilling": True
     }
-    return "globChain", glob_chain_default
+    return "GlobChain", glob_chain_default
 
 
 def init_i2_features_extraction_parameters():
