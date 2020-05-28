@@ -335,7 +335,7 @@ if __name__ == "__main__":
     else:
         raise NotImplementedError
 
-    chain_to_process = chain(cfg.pathConf, args.config_ressources)
+    chain_to_process = chain(cfg.path_conf, args.config_ressources)
     if os.path.exists(chain_to_process.iota2_pickle):
         chain_to_process = chain_to_process.load_chain()
 

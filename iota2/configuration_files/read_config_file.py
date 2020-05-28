@@ -64,44 +64,14 @@ class read_config_file:
 
     def load_params(self):
 
-        # block, params = dcp.init_chain_parameters()
-        # self.init_section(block, params)
-        # print("load chain")
-        # print(self.cfg.chain.outputStatistics)
-        # get all init function in default config parameters
         function_list = [
             fun for fun in getmembers(dcp) if isfunction(fun[1])
             and fun[0].startswith("init") and fun[0].endswith("parameters")
         ]
-        # fun = function_list[0]
-        # block, default_params = fun[1]()
-        # print(block)
-        # self.init_section(block, default_params)
-        # print("prev feat", self.cfg.argTrain.prevFeatures)
-        # # input(function_list)
-        # fun = function_list[6]
-        # block, default_params = fun[1]()
-        # print("bef: ", default_params)
-        # default_params["features"] = self.init_listSequence(
-        #     ["NDVI", "NDWI", "Brightness"])
-        # print("aft: ", default_params)
-        # print(block)
-        # self.init_section(block, default_params)
 
         for fun in function_list:
             block_name, default_params = fun[1]()
-            # input(block_name)
-            # input(default_params)
-            # print("load def fun : ", block_name, " ", fun)
             self.init_section(block_name, default_params)
-            # if 'globChain' == block_name:
-            #     print(self.cfg.GlobChain.features)
-        # print("outstats", self.cfg.chain.outputStatistics)
-        # print("vhr", self.cfg.coregistration.VHRPath)
-        # print("gap", self.cfg.GlobChain.useGapFilling)
-        # print("gap", self.cfg.GlobChain.features)
-        # print("l8", self.cfg.Landsat8.temporalResolution)
-        # print("l8", self.cfg.Landsat8.keepBands)
 
     def check_params(self):
         function_list = [
@@ -584,6 +554,8 @@ class iota2_parameters:
             "Sentinel_2", "Sentinel_2_S2C", "Sentinel_2_L3A", "Sentinel_1",
             "Landsat8", "Landsat8_old", "Landsat5_old", "userFeat"
         ]
+        self.working_resolution = self.__config.getParam(
+            'chain', 'spatialResolution')
 
     def get_sensors_parameters(
             self, tile_name: str
@@ -667,7 +639,7 @@ class iota2_parameters:
         sensor_dict["vhr_path"] = self.vhr_path
         sensor_dict["acorfeat"] = self.acorfeat
         sensor_dict["patterns"] = self.user_patterns
-
+        sensor_dict["working_resolution"] = self.working_resolution
         return sensor_dict
 
 

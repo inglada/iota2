@@ -16,7 +16,9 @@
 import os
 from typing import Optional
 from collections import OrderedDict
-from iota2.Common import ServiceConfigFile as SCF
+#from iota2.Common import ServiceConfigFile as SCF
+from iota2.configuration_files import read_config_file as rcf
+from iota2.configuration_files import check_config_parameters as ccp
 from iota2.sequence_builders.i2_sequence_builder import i2_builder
 from iota2.Common import ServiceError as sErr
 
@@ -57,7 +59,7 @@ class i2_classification(i2_builder):
 
         # pickle's path
         self.iota2_pickle = os.path.join(
-            SCF.serviceConfigFile(self.cfg).getParam("chain", "outputPath"),
+            rcf.read_config_file(self.cfg).getParam("chain", "outputPath"),
             "logs", "iota2.txt")
 
     def get_dir(self):
@@ -72,7 +74,7 @@ class i2_classification(i2_builder):
             'shapeRegion', "features"
         ]
 
-        iota2_outputs_dir = SCF.serviceConfigFile(self.cfg).getParam(
+        iota2_outputs_dir = rcf.read_config_file(self.cfg).getParam(
             'chain', 'outputPath')
 
         return [os.path.join(iota2_outputs_dir, d) for d in directories]
@@ -104,47 +106,46 @@ class i2_classification(i2_builder):
             clipVectors, zonalStatistics, prodVectors, slicSegmentation,
             superPixPos, superPixSplit, skClassificationsMerge)
         # control variable
-        Sentinel1 = SCF.serviceConfigFile(cfg).getParam('chain', 'S1Path')
-        shapeRegion = SCF.serviceConfigFile(cfg).getParam(
-            'chain', 'regionPath')
-        classif_mode = SCF.serviceConfigFile(cfg).getParam(
+        Sentinel1 = rcf.read_config_file(cfg).getParam('chain', 'S1Path')
+        shapeRegion = rcf.read_config_file(cfg).getParam('chain', 'regionPath')
+        classif_mode = rcf.read_config_file(cfg).getParam(
             'argClassification', 'classifMode')
-        sampleManagement = SCF.serviceConfigFile(cfg).getParam(
+        sampleManagement = rcf.read_config_file(cfg).getParam(
             'argTrain', 'sampleManagement')
         sample_augmentation = dict(
-            SCF.serviceConfigFile(cfg).getParam('argTrain',
-                                                'sampleAugmentation'))
+            rcf.read_config_file(cfg).getParam('argTrain',
+                                               'sampleAugmentation'))
         sample_augmentation_flag = sample_augmentation["activate"]
-        dimred = SCF.serviceConfigFile(cfg).getParam('dimRed', 'dimRed')
-        classifier = SCF.serviceConfigFile(cfg).getParam(
+        dimred = rcf.read_config_file(cfg).getParam('dimRed', 'dimRed')
+        classifier = rcf.read_config_file(cfg).getParam(
             'argTrain', 'classifier')
-        ds_sar_opt = SCF.serviceConfigFile(cfg).getParam(
+        ds_sar_opt = rcf.read_config_file(cfg).getParam(
             'argTrain', 'dempster_shafer_SAR_Opt_fusion')
-        keep_runs_results = SCF.serviceConfigFile(cfg).getParam(
+        keep_runs_results = rcf.read_config_file(cfg).getParam(
             'chain', 'keep_runs_results')
-        merge_final_classifications = SCF.serviceConfigFile(cfg).getParam(
+        merge_final_classifications = rcf.read_config_file(cfg).getParam(
             'chain', 'merge_final_classifications')
-        ground_truth = SCF.serviceConfigFile(cfg).getParam(
+        ground_truth = rcf.read_config_file(cfg).getParam(
             'chain', 'groundTruth')
-        runs = SCF.serviceConfigFile(cfg).getParam('chain', 'runs')
-        outStat = SCF.serviceConfigFile(cfg).getParam('chain',
-                                                      'outputStatistics')
-        VHR = SCF.serviceConfigFile(cfg).getParam('coregistration', 'VHRPath')
-        gridsize = SCF.serviceConfigFile(cfg).getParam('Simplification',
-                                                       'gridsize')
-        umc1 = SCF.serviceConfigFile(cfg).getParam('Simplification', 'umc1')
-        umc2 = SCF.serviceConfigFile(cfg).getParam('Simplification', 'umc2')
-        rssize = SCF.serviceConfigFile(self.cfg).getParam(
+        runs = rcf.read_config_file(cfg).getParam('chain', 'runs')
+        outStat = rcf.read_config_file(cfg).getParam('chain',
+                                                     'outputStatistics')
+        VHR = rcf.read_config_file(cfg).getParam('coregistration', 'VHRPath')
+        gridsize = rcf.read_config_file(cfg).getParam('Simplification',
+                                                      'gridsize')
+        umc1 = rcf.read_config_file(cfg).getParam('Simplification', 'umc1')
+        umc2 = rcf.read_config_file(cfg).getParam('Simplification', 'umc2')
+        rssize = rcf.read_config_file(self.cfg).getParam(
             'Simplification', 'rssize')
-        inland = SCF.serviceConfigFile(self.cfg).getParam(
+        inland = rcf.read_config_file(self.cfg).getParam(
             'Simplification', 'inland')
-        iota2_outputs_dir = SCF.serviceConfigFile(self.cfg).getParam(
+        iota2_outputs_dir = rcf.read_config_file(self.cfg).getParam(
             'chain', 'outputPath')
-        use_scikitlearn = SCF.serviceConfigFile(self.cfg).getParam(
+        use_scikitlearn = rcf.read_config_file(self.cfg).getParam(
             'scikit_models_parameters', 'model_type') is not None
-        nomenclature = SCF.serviceConfigFile(self.cfg).getParam(
+        nomenclature = rcf.read_config_file(self.cfg).getParam(
             'Simplification', 'nomenclature')
-        enable_autoContext = SCF.serviceConfigFile(cfg).getParam(
+        enable_autoContext = rcf.read_config_file(cfg).getParam(
             'chain', 'enable_autoContext')
 
         # will contains all IOTA² steps
@@ -407,63 +408,58 @@ class i2_classification(i2_builder):
             s_container.append(step_clip_vectors, "clipvectors")
         s_container.append(step_zonal_stats, "lcstatistics")
         s_container.append(step_prod_vectors, "lcstatistics")
+        # Check if paramters are coherent
+        self.check_config_parameters()
+        self.check_compat_param()
         return s_container
 
     def check_config_parameters(self):
-        config_content = SCF.serviceConfigFile(self.cfg)
+        config_content = rcf.read_config_file(self.cfg)
         try:
-            config_content.testVarConfigFile(
-                "chain",
-                "firstStep",
-                str,
-                [
-                    "init",
-                    "sampling",
-                    "dimred",
-                    "learning",
-                    "classification",
-                    "mosaic",
-                    "validation",
-                    "regularisation",
-                    "crown",
-                    "mosaictiles",
-                    "vectorisation",
-                    "simplification",
-                    "smoothing",
-                    "clipvectors",
-                    "lcstatistics",
-                ],
-            )
-            config_content.testVarConfigFile(
-                "chain",
-                "lastStep",
-                str,
-                [
-                    "init",
-                    "sampling",
-                    "dimred",
-                    "learning",
-                    "classification",
-                    "mosaic",
-                    "validation",
-                    "regularisation",
-                    "crown",
-                    "mosaictiles",
-                    "vectorisation",
-                    "simplification",
-                    "smoothing",
-                    "clipvectors",
-                    "lcstatistics",
-                ],
-            )
+            ccp.test_var_config_file(config_content.cfg, "chain", "firstStep",
+                                     str, [
+                                         "init",
+                                         "sampling",
+                                         "dimred",
+                                         "learning",
+                                         "classification",
+                                         "mosaic",
+                                         "validation",
+                                         "regularisation",
+                                         "crown",
+                                         "mosaictiles",
+                                         "vectorisation",
+                                         "simplification",
+                                         "smoothing",
+                                         "clipvectors",
+                                         "lcstatistics",
+                                     ])
+            ccp.test_var_config_file(config_content.cfg, "chain", "lastStep",
+                                     str, [
+                                         "init",
+                                         "sampling",
+                                         "dimred",
+                                         "learning",
+                                         "classification",
+                                         "mosaic",
+                                         "validation",
+                                         "regularisation",
+                                         "crown",
+                                         "mosaictiles",
+                                         "vectorisation",
+                                         "simplification",
+                                         "smoothing",
+                                         "clipvectors",
+                                         "lcstatistics",
+                                     ])
         except sErr.configFileError:
-            print(f"Error in the configuration file {self.cfg}")
+            # print(f"Error in the configuration file {self.cfg}")
             # verif que pas redondant avec sErr
-            print("Wrong step name for firstStep or lastStep")
+            # print("Wrong step name for firstStep or lastStep")
             raise
 
     def check_compat_param(self):
-        config_content = SCF.serviceConfigFile(self.cfg)
+        config_content = rcf.read_config_file(self.cfg)
         # parameters compatibilities check
         classier_probamap_avail = ["sharkrf"]
         if (config_content.getParam("argClassification",

@@ -92,7 +92,8 @@ def init_chain_parameters():
         "enable_autoContext": False,
         "autoContext_iterations": 3,
         "remove_tmp_files": False,
-        "force_standard_labels": False
+        "force_standard_labels": False,
+        "spatialResolution": list_sequence_init([])
     }
     return "chain", chain_default
 

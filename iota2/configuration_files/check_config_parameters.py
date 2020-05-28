@@ -382,7 +382,7 @@ def check_chain_parameters(cfg, path_conf):
         test_var_config_file(cfg, 'chain', 'splitGroundTruth', bool)
         test_var_config_file(cfg, 'chain', 'outputStatistics', bool)
         test_var_config_file(cfg, 'chain', 'cloud_threshold', int)
-        test_var_config_file(cfg, 'chain', 'spatialResolution', int)
+        test_var_config_file(cfg, 'chain', 'spatialResolution', Sequence)
         test_var_config_file(cfg, 'chain', 'colorTable', str)
         test_var_config_file(cfg, 'chain', 'mode_outside_RegionSplit', float)
         test_var_config_file(cfg, 'chain', 'merge_final_classifications', bool)
