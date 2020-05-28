@@ -57,10 +57,11 @@ def prepare_selection(sample_sel_directory: str,
                      ext="sqlite",
                      out_Tbl_name="output")
     if workingDirectory:
-        shutil.copy(
-            output_selection_merge,
-            os.path.join(sample_sel_directory,
-                         merge_selection_name + ".sqlite"))
+        if os.path.exists(output_selection_merge):
+            shutil.copy(
+                output_selection_merge,
+                os.path.join(sample_sel_directory,
+                             merge_selection_name + ".sqlite"))
 
     return os.path.join(sample_sel_directory, merge_selection_name + ".sqlite")
 
