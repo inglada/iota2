@@ -142,7 +142,7 @@ class iota_spatial_res_runs_case(unittest.TestCase):
         cfg_test.chain.groundTruth = self.ground_truth_path
         cfg_test.chain.nomenclaturePath = self.nomenclature_path
         cfg_test.chain.colorTable = self.color_path
-        cfg_test.chain.spatialResolution = 30
+        cfg_test.chain.spatialResolution = [30, 30]
         cfg_test.save(open(config_test, 'w'))
 
         # Launch the chain
@@ -203,7 +203,7 @@ class iota_spatial_res_runs_case(unittest.TestCase):
         cfg_test.chain.colorTable = os.path.join(IOTA2DIR, "data",
                                                  "spot_6_data",
                                                  "colorFile_thrs")
-        cfg_test.chain.spatialResolution = 1.5
+        cfg_test.chain.spatialResolution = [1.5, 1.5]
         cfg_test.save(open(config_test, 'w'))
 
         # Launch the chain

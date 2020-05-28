@@ -265,7 +265,7 @@ class iota_tests_runs_case(unittest.TestCase):
         cfg_test.chain.groundTruth = self.ground_truth_path
         cfg_test.chain.nomenclaturePath = self.nomenclature_path
         cfg_test.chain.colorTable = self.color_path
-        cfg_test.chain.spatialResolution = 30
+        cfg_test.chain.spatialResolution = [30, 30]
         cfg_test.save(open(config_test, 'w'))
 
         # Launch the chain
@@ -322,7 +322,7 @@ class iota_tests_runs_case(unittest.TestCase):
         cfg_test.chain.groundTruth = self.ground_truth_path
         cfg_test.chain.nomenclaturePath = self.nomenclature_path
         cfg_test.chain.colorTable = self.color_path
-        cfg_test.chain.spatialResolution = 30
+        cfg_test.chain.spatialResolution = [30, 30]
         cfg_test.save(open(config_test, 'w'))
 
         # Launch the chain
@@ -379,7 +379,7 @@ class iota_tests_runs_case(unittest.TestCase):
         cfg_test.chain.groundTruth = self.ground_truth_path
         cfg_test.chain.nomenclaturePath = self.nomenclature_path
         cfg_test.chain.colorTable = self.color_path
-        cfg_test.chain.spatialResolution = 30
+        cfg_test.chain.spatialResolution = [30, 30]
         cfg_test.save(open(config_test, 'w'))
 
         # Launch the chain
@@ -539,7 +539,8 @@ class iota_tests_runs_case(unittest.TestCase):
         TUR.generate_fake_s2_data(fake_s2_theia_dir,
                                   tile_name,
                                   ["20200101", "20200112", "20200127"],
-                                  res=10.0)
+                                  res=10.0,
+                                  array_name="ones")
         config_test = os.path.join(self.test_working_directory,
                                    "i2_config_s2_l2a_scikit_learn.cfg")
         shutil.copy(self.config_ref_scikit, config_test)
@@ -701,7 +702,7 @@ class iota_tests_runs_case(unittest.TestCase):
             IOTA2DIR, "data", "numpy_features", "user_custom_function.py")
         cfg_test.external_features.functions = ("test_index_l5_old "
                                                 "test_index_sum_l5_old")
-        cfg_test.chain.spatialResolution = 30
+        cfg_test.chain.spatialResolution = [30, 30]
         cfg_test.external_features.number_of_chunks = 1
         cfg_test.save(open(config_test, 'w'))
 
@@ -764,7 +765,7 @@ class iota_tests_runs_case(unittest.TestCase):
             IOTA2DIR, "data", "numpy_features", "user_custom_function.py")
         cfg_test.external_features.functions = ("test_index_l8_old"
                                                 " test_index_sum_l8_old")
-        cfg_test.chain.spatialResolution = 30
+        cfg_test.chain.spatialResolution = [30, 30]
         cfg_test.external_features.number_of_chunks = 2
         cfg_test.save(open(config_test, 'w'))
 
@@ -827,7 +828,7 @@ class iota_tests_runs_case(unittest.TestCase):
             IOTA2DIR, "data", "numpy_features", "user_custom_function.py")
         cfg_test.external_features.functions = (
             "test_index_l8 test_index_sum_l8")
-        cfg_test.chain.spatialResolution = 30
+        cfg_test.chain.spatialResolution = [30, 30]
         cfg_test.external_features.number_of_chunks = 1
         cfg_test.save(open(config_test, 'w'))
 
