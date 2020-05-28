@@ -15,8 +15,9 @@
 # =========================================================================
 import os
 
-from Steps import IOTA2Step
-from Common import ServiceConfigFile as SCF
+from iota2.Steps import IOTA2Step
+from iota2.Common import ServiceConfigFile as SCF
+from iota2.Validation import GenResults as GR
 
 
 class reportGeneration(IOTA2Step.Step):
@@ -33,6 +34,24 @@ class reportGeneration(IOTA2Step.Step):
         self.nomenclature = SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'nomenclaturePath')
 
+        self.execution_mode = "cluster"
+
+        task = self.i2_task(task_name=f"final_report",
+                            log_dir=self.log_step_dir,
+                            execution_mode=self.execution_mode,
+                            task_parameters={
+                                "f": GR.genResults,
+                                "pathRes":
+                                os.path.join(self.output_path, "final"),
+                                "pathNom": self.nomenclature
+                            },
+                            task_resources=self.resources)
+        self.add_task_to_i2_processing_graph(
+            task,
+            task_group="final_report",
+            task_sub_group="final_report",
+            task_dep_dico={"confusion_merge": ["confusion_merge"]})
+
     @classmethod
     def step_description(cls):
         """
@@ -40,28 +59,3 @@ class reportGeneration(IOTA2Step.Step):
         """
         description = ("Generate final report")
         return description
-
-    def step_inputs(self):
-        """
-        Return
-        ------
-            the return could be and iterable or a callable
-        """
-        return [os.path.join(self.output_path, "final")]
-
-    def step_execute(self):
-        """
-        Return
-        ------
-        lambda
-            the function to execute as a lambda function. The returned object
-            must be a lambda function.
-        """
-        from Validation import GenResults as GR
-        step_function = lambda x: GR.genResults(x, self.nomenclature)
-        return step_function
-
-    def step_outputs(self):
-        """
-        """
-        pass
