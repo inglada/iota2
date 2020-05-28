@@ -18,12 +18,6 @@ This is the sentinel 2 sen2cor class definition
 """
 import logging
 
-# import multiprocessing as mp
-# import os
-
-# from collections import OrderedDict
-# from iota2.Common.OtbAppBank import executeApp
-
 LOGGER = logging.getLogger(__name__)
 
 # in order to avoid issue 'No handlers could be found for logger...'
@@ -79,12 +73,6 @@ class sentinel_2_s2c():
         self.features_dir = os.path.join(self.i2_output_path, "features",
                                          tile_name)
         self.write_outputs_flag = write_outputs_flag
-        # extract_bands = extract_bands
-        # extract_bands_flag = self.cfg_iota2.getParam("iota2FeatureExtraction"
-        # ,
-        #                                             "extractBands")
-        # output_target_dir = self.cfg_iota2.getParam("chain",
-        #                                             "S2_S2C_output_path")
 
         if output_target_dir:
             self.output_preprocess_directory = os.path.join(
@@ -145,6 +133,7 @@ class sentinel_2_s2c():
         self.interpolated_dates = "{}_{}_interpolation_dates.txt".format(
             self.__class__.name, tile_name)
         self.vhr_path = vhr_path
+        self.working_resolution = kwargs["working_resolution"]
 
     def sort_dates_directories(self, dates_directories):
         """
@@ -209,6 +198,8 @@ class sentinel_2_s2c():
         from iota2.Common.OtbAppBank import CreateConcatenateImagesApplication
         from iota2.Common.OtbAppBank import CreateSuperimposeApplication
         from iota2.Common.OtbAppBank import executeApp
+        from iota2.Common.FileUtils import getRasterResolution
+
         # manage directories
         date_stack_name = self.build_date_name(date_dir, self.suffix)
         logger.debug(f"preprocessing {date_dir}")
@@ -242,13 +233,18 @@ class sentinel_2_s2c():
                     f" from {base_ref}")
         ensure_dir(os.path.dirname(self.ref_image), raise_exe=False)
         base_ref_projection = getRasterProjectionEPSG(base_ref)
+        base_ref_res_x, base_ref_res_y = getRasterResolution(base_ref)
+        if self.working_resolution:
+            base_ref_res_x = self.working_resolution[0]
+            base_ref_res_y = self.working_resolution[1]
+
         if not os.path.exists(self.ref_image):
             Warp(self.ref_image,
                  base_ref,
                  multithread=True,
                  format="GTiff",
-                 xRes=10,
-                 yRes=10,
+                 xRes=base_ref_res_x,
+                 yRes=base_ref_res_y,
                  outputType=GDT_Byte,
                  srcSRS="EPSG:{}".format(base_ref_projection),
                  dstSRS="EPSG:{}".format(self.target_proj))
@@ -278,11 +274,14 @@ class sentinel_2_s2c():
                 out_stack_processing
             })
             same_proj = False
+            same_res = True
             if os.path.exists(out_stack):
                 same_proj = int(getRasterProjectionEPSG(out_stack)) == int(
                     self.target_proj)
-
-            if not os.path.exists(out_stack) or same_proj is False:
+                same_res = getRasterResolution(
+                    out_stack) == getRasterResolution(self.ref_image)
+            if not os.path.exists(
+                    out_stack) or same_proj is False or not same_res:
                 # date_stack.ExecuteAndWriteOutput()
                 multi_proc = mp.Process(target=executeApp, args=[date_stack])
                 multi_proc.start()
@@ -348,11 +347,15 @@ class sentinel_2_s2c():
         })
         if self.write_dates_stack:
             same_proj = False
+            same_res = True
             if os.path.exists(out_mask):
                 same_proj = int(getRasterProjectionEPSG(out_mask)) == int(
                     self.target_proj)
+                same_res = getRasterProjectionEPSG(
+                    out_mask) == getRasterProjectionEPSG(self.ref_image)
 
-            if not os.path.exists(out_mask) or same_proj is False:
+            if not os.path.exists(
+                    out_mask) or same_proj is False or not same_res:
                 # superimp.ExecuteAndWriteOutput()
                 multi_proc = mp.Process(target=executeApp, args=[superimp])
                 multi_proc.start()

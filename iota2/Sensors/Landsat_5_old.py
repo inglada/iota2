@@ -131,6 +131,7 @@ class landsat_5_old():
         self.input_dates = f"{self.__class__.name}_{tile_name}_input_dates.txt"
         self.interpolated_dates = (f"{self.__class__.name}_{tile_name}_"
                                    "interpolation_dates.txt")
+        self.working_resolution = kwargs["working_resolution"]
 
     def get_date_from_name(self, product_name):
         """
@@ -156,9 +157,14 @@ class landsat_5_old():
         from osgeo.gdalconst import GDT_Byte
         from iota2.Common.FileUtils import ensure_dir
         from iota2.Common.FileUtils import getRasterProjectionEPSG
+        from iota2.Common.FileUtils import getRasterResolution
 
         ensure_dir(os.path.dirname(self.ref_image), raise_exe=False)
         base_ref_projection = getRasterProjectionEPSG(base_ref)
+        base_ref_res_x, base_ref_res_y = getRasterResolution(base_ref)
+        if self.working_resolution:
+            base_ref_res_x = self.working_resolution[0]
+            base_ref_res_y = self.working_resolution[1]
 
         if not os.path.exists(self.ref_image):
             logger.info(f"reference image generation {self.ref_image} "
@@ -167,8 +173,8 @@ class landsat_5_old():
                  base_ref,
                  multithread=True,
                  format="GTiff",
-                 xRes=self.native_res,
-                 yRes=self.native_res,
+                 xRes=base_ref_res_x,
+                 yRes=base_ref_res_y,
                  outputType=GDT_Byte,
                  srcSRS="EPSG:{}".format(base_ref_projection),
                  dstSRS="EPSG:{}".format(self.target_proj))
@@ -302,6 +308,7 @@ class landsat_5_old():
         from iota2.Common.FileUtils import ensure_dir
         from iota2.Common.FileUtils import getRasterProjectionEPSG
         from iota2.Common.FileUtils import FileSearch_AND
+        from iota2.Common.FileUtils import getRasterResolution
 
         # needed to travel throught iota2's library
         app_dep = []
@@ -347,13 +354,17 @@ class landsat_5_old():
                  dates_time_series, dates_in, len(self.stack_band_position),
                  self.extracted_bands, ram)
         origin_proj = getRasterProjectionEPSG(date_data[0])
-        if int(origin_proj) != int(self.target_proj):
+
+        same_res = getRasterResolution(date_data[0]) == getRasterResolution(
+            self.ref_image)
+
+        if int(origin_proj) != int(self.target_proj) or not same_res:
             dates_time_series.Execute()
             app_dep.append(dates_time_series)
             self.generate_raster_ref(date_data[0])
             dates_time_series, _ = CreateSuperimposeApplication({
                 "inr": self.ref_image,
-                "inm": self.masks_rules,
+                "inm": dates_time_series,
                 "out": times_series_raster,
                 "ram": str(ram)
             })
@@ -405,6 +416,7 @@ class landsat_5_old():
         from iota2.Common.OtbAppBank import CreateBandMathApplication
         from iota2.Common.FileUtils import ensure_dir
         from iota2.Common.FileUtils import getRasterProjectionEPSG
+        from iota2.Common.FileUtils import getRasterResolution
 
         time_series_dir = os.path.join(self.features_dir, "tmp")
         ensure_dir(time_series_dir, raise_exe=False)
@@ -465,7 +477,9 @@ class landsat_5_old():
         })
 
         origin_proj = getRasterProjectionEPSG(sat_mask)
-        if int(origin_proj) != int(self.target_proj):
+        same_res = getRasterResolution(sat_mask) == getRasterResolution(
+            self.ref_image)
+        if int(origin_proj) != int(self.target_proj) or not same_res:
             dates_time_series_mask.Execute()
             app_dep.append(dates_time_series_mask)
             self.generate_raster_ref(sat_mask)
