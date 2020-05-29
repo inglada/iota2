@@ -21,7 +21,7 @@ from typing import List
 from functools import wraps
 from timeit import default_timer as timer
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("distributed.worker")
 
 
 class remove_in_string_list(object):
@@ -44,6 +44,7 @@ class remove_in_string_list(object):
                 if pattern_found is False:
                     results_filtered.append(elem)
             return results_filtered
+
         return wrapped_f
 
 
@@ -59,8 +60,8 @@ class time_it(object):
         results = self.f(*args, **kwargs)
         end = time.time()
         self.time_elapse = end - start
-        print("ELAPSED time during the call of {} : {} [sec]".format(self.f.__name__,
-                                                                     self.time_elapse))
+        print("ELAPSED time during the call of {} : {} [sec]".format(
+            self.f.__name__, self.time_elapse))
         return results
 
 
@@ -69,7 +70,11 @@ def run(cmd, desc=None, env=os.environ, logger=logger):
     # Create subprocess
     start = timer()
     logger.debug("run command : " + cmd)
-    p = subprocess.Popen(cmd, env=env, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    p = subprocess.Popen(cmd,
+                         env=env,
+                         shell=True,
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.STDOUT)
 
     # Get output as strings
     out, err = p.communicate()
@@ -85,13 +90,13 @@ def run(cmd, desc=None, env=os.environ, logger=logger):
 
     # Log error code
     if rc != 0:
-        logger.error("Command {}  exited with non-zero return code {}".format(cmd, rc))
+        logger.error("Command {}  exited with non-zero return code {}".format(
+            cmd, rc))
         exception_msg = "Launch command fail : {} {}".format(cmd, out)
         raise Exception(exception_msg)
 
 
 class Opath(object):
-
     def __init__(self, opath, create=True, logger=logger):
         """
         Take the output path from main argument line and define and create the output folders

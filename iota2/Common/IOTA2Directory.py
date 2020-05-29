@@ -16,9 +16,12 @@
 """Generate iota² output tree"""
 import os
 import shutil
+import logging
 from typing import Optional, List
 
 from iota2.Common.verifyInputs import check_iota2_inputs
+
+LOGGER = logging.getLogger("distributed.worker")
 
 
 def generate_directories(root: str,
@@ -65,7 +68,6 @@ def generate_directories(root: str,
     if check_inputs:
         check_iota2_inputs(root, ground_truth, region_shape, data_field,
                            region_field, epsg, sensor_path, tiles)
-
     ensure_dir(root)
 
     if os.path.exists(root + "/samplesSelection"):

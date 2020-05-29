@@ -13,6 +13,9 @@
 #   PURPOSE.  See the above copyright notices for more information.
 #
 # =========================================================================
+import logging
+
+LOGGER = logging.getLogger("distributed.worker")
 
 
 def preprocess(tile_name,
@@ -73,8 +76,6 @@ def commonMasks(tile_name,
     from iota2.Common.Utils import run
     from iota2.Common.FileUtils import ensure_dir
 
-    # running_parameters = iota2_parameters(config_path)
-    # sensors_parameters = running_parameters.get_sensors_parameters(tile_name)
     remote_sensor_container = sensors_container(tile_name, working_directory,
                                                 output_path,
                                                 **sensors_parameters)

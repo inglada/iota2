@@ -18,15 +18,7 @@ Sentinel-2 class definition
 """
 import logging
 
-# import multiprocessing as mp
-
-# import glob
-# import os
-
-# from collections import OrderedDict
-# from iota2.Common.OtbAppBank import executeApp
-
-LOGGER = logging.getLogger(__name__)
+LOGGER = logging.getLogger("distributed.worker")
 
 # in order to avoid issue 'No handlers could be found for logger...'
 LOGGER.addHandler(logging.NullHandler())
