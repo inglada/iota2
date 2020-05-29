@@ -155,6 +155,9 @@ class iota2():
 
         self.cfg = cfg
         self.workingDirectory = os.getenv(hpc_working_directory)
+        output_i2_directory = SCF.serviceConfigFile(self.cfg).getParam(
+            'chain', 'outputPath')
+        self.tasks_status_directory = output_i2_directory
 
         self.model_spatial_distrib, self.tiles = self.get_run_spatial_informations(
         )
@@ -181,11 +184,6 @@ class iota2():
         #build steps
         self.steps = self.build_steps(self.cfg, config_ressources)
         self.sort_step()
-
-        # pickle's path
-        self.iota2_pickle = os.path.join(
-            SCF.serviceConfigFile(self.cfg).getParam("chain", "outputPath"),
-            "logs", "iota2.txt")
 
     def get_run_spatial_informations(self):
         """

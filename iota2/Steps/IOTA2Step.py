@@ -14,17 +14,20 @@
 #
 # =========================================================================
 import os
+import sys
 import dask
 
 dask.config.set({"distributed.comm.timeouts.tcp": "50s"})
-
+import time
 import logging
 from functools import wraps
 from typing import Dict, Optional, List
 from dask.distributed import Client
 from dask_jobqueue import PBSCluster
 
-LOGGER = logging.getLogger(__name__)
+LOGGER = logging.getLogger("distributed.worker")
+
+from iota2.Common.FileUtils import ensure_dir
 
 
 class StepContainer(object):
@@ -137,6 +140,7 @@ class Step(object):
 
     tiles = []
     spatial_models_distribution = {}
+    tasks_status_directory = None
 
     # will contains every steps
     step_container = []
@@ -183,6 +187,7 @@ class Step(object):
         self.step_tasks = []
         self.step_tasks_figure = []
         self.step_container.append(self)
+        
 
     # def __getstate__(self):
     #     # do not pickle step_tasks_figure attribute
@@ -191,6 +196,10 @@ class Step(object):
     #         for k, v in self.__dict__.items() if k != "step_tasks_figure"
     #     }
 
+    @classmethod
+    def set_tasks_status_directory(cls, directory_path):
+        cls.tasks_status_directory = directory_path
+        
     @classmethod
     def set_models_spatial_information(cls, tiles,
                                        spatial_models_distribution):
@@ -244,8 +253,22 @@ class Step(object):
                 tasks_dict[key_dep] = task_name
         return tasks_dict
 
+    def init_log(self):
+        """function use to init logging in every workers
+        """
+        logFormatter = logging.Formatter(
+            "%(asctime)s [%(name)s] [%(levelname)s] - %(message)s")
+        rootLogger = logging.getLogger("distributed.worker")
+        rootLogger.setLevel(20)
+        consoleHandler = logging.StreamHandler(sys.stdout)
+        consoleHandler.setFormatter(logFormatter)
+        consoleHandler.setLevel(20)
+        rootLogger.addHandler(consoleHandler)
+
+    def save_task_status(self):
+        
     def task_launcher(self,
-                      *args,
+                      *dependencies,
                       log_err: Optional[str] = None,
                       log_out: Optional[str] = None,
                       scheduler_type: Optional[str] = "local",
@@ -270,8 +293,11 @@ class Step(object):
         kwargs : dict
            dictionary containing the function to launch with its parameters
         """
-        import time
-        from iota2.Common.FileUtils import ensure_dir
+
+        dependencies_complete = all(dependencies)
+        if dependencies and not dependencies_complete:
+            return False
+
         kwargs = kwargs.copy()
         task_kwargs = kwargs.get("task_kwargs", None)
 
@@ -285,7 +311,6 @@ class Step(object):
             f_kwargs = task_kwargs
 
             # here we launch the fonction with all the arguments of kwargs
-            # scheduler_type = "local"
             if scheduler_type == "cluster":
 
                 env_vars = [
@@ -311,12 +336,14 @@ class Step(object):
                                      interface='ib0',
                                      silence_logs="error",
                                      processes=1,
-                                     nanny=True,
+                                     nanny=False,
                                      job_extra=extras,
                                      local_directory='$TMPDIR')
 
                 client = Client(cluster)
                 client.wait_for_workers(1)
+                client.register_worker_callbacks(self.init_log)
+
                 for _, worker_meta in client.scheduler_info()["workers"].items(
                 ):
                     working_dir = os.path.split(
@@ -324,26 +351,32 @@ class Step(object):
                 f_kwargs = self.set_working_dir_parameter(
                     f_kwargs, working_dir)
                 sub_results = client.submit(func, **f_kwargs)
-                sub_results.result()
-
-                # cluster.close()
+                # sub_results.result()
                 try:
-                    client.shutdown()
-                    client.close()
-                except AssertionError as error:
-                    time.sleep(5)
-                    print(f"ERROR = {error}")
-                    client.shutdown()
-                    client.close()
+                    # sub_results = client.submit(func, **f_kwargs)
+                    sub_results.result()
+                    task_complete = True
+                except Exception as e:
+                    task_complete = False
+                    print(f"Exception : {e}")
+
+                client.shutdown()
+                client.close()
+
                 # wait and see : restart if fail ? differents strategies
                 # of relaunch can be implemented here...
             elif scheduler_type == "local":
-                func(**f_kwargs)
-        else:
-            LOGGER.warning("WARNING : the variable 'task_kwargs' is missing")
+                try:
+                    func(**f_kwargs)
+                    task_complete = True
+                except Exception as e:
+                    task_complete = False
+                    print(f"Exception : {e}")
+
+        return task_complete
 
     def trace_graph(self, *args, **kwargs) -> None:
-        """
+        """purposely empty
         """
     def set_working_dir_parameter(self, t_kwargs: Dict,
                                   worker_working_dir: str) -> Dict:
