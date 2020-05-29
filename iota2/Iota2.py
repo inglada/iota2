@@ -14,8 +14,12 @@
 #
 # =========================================================================
 import argparse
+import dask
+import time
 from dask.distributed import Client
 from dask.distributed import LocalCluster
+
+dask.config.set({"distributed.comm.timeouts.tcp": "50s"})
 
 from iota2 import Iota2Builder as chain
 
@@ -41,7 +45,8 @@ def run(args):
         chain_to_process.print_step_summarize(
             args.start, args.end, args.config_ressources is not None))
 
-    cluster = LocalCluster(n_workers=1)
+    # we don't want a nanny, then processes=False
+    cluster = LocalCluster(n_workers=1, processes=False)
     client = Client(cluster)
 
     print(f"dashboard available at : {client.dashboard_link}")
@@ -49,7 +54,14 @@ def run(args):
     # final_graph.compute()
     if not args.only_summary:
         res = client.submit(final_graph.compute)
-        res.result()
+        i2_status = res.status
+        while i2_status == "pending":
+            time.sleep(2)
+            i2_status = res.status
+            if i2_status in ("finished", "error"):
+                break
+
+        # res.result()
 
 
 if __name__ == "__main__":
@@ -102,7 +114,3 @@ if __name__ == "__main__":
                         default=None)
     args = parser.parse_args()
     run(args)
-    # launch chain
-    # if not args.only_summary:
-    #     res = client.submit(final_graph.compute)
-    #     res.result()
