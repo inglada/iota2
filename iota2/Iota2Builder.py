@@ -388,6 +388,7 @@ class iota2():
             clipVectors, zonalStatistics, prodVectors, slicSegmentation,
             superPixPos, superPixSplit, skClassificationsMerge)
 
+        Step.set_tasks_status_directory(self.tasks_status_directory)
         Step.set_models_spatial_information(self.tiles,
                                             self.model_spatial_distrib)
         # control variable
