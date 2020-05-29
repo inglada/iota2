@@ -22,7 +22,7 @@ import os
 import shutil
 from typing import List, Optional
 
-LOGGER = logging.getLogger(__name__)
+LOGGER = logging.getLogger("distributed.worker")
 
 
 def split_vector_by_region(in_vect: str,
@@ -560,6 +560,11 @@ def vector_formatting(
     from iota2.VectorTools import ChangeNameField
     from iota2.Sampling import SplitInSubSets as subset
     from iota2.VectorTools.AddField import addField
+
+    if tile_name == "T31TDJ":
+        print("ATTENTION ERREUR !")
+        erreur = 1.0 / 0.0
+
     # const
     tile_field = "tile_o"
     formatting_directory = os.path.join(output_path, "formattingVectors")
