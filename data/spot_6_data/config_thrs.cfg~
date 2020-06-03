@@ -1,0 +1,70 @@
+
+################################################################################################
+#                                           Chain
+################################################################################################
+chain:
+{
+    outputPath:'None'
+    remove_outputPath:True
+    
+    nomenclaturePath:'None'
+    #regionPath:'/work/OT/theia/oso/CarHAB/dataPOC/vanoise/AOA_PNV.shp'
+    #regionField:'region'
+    
+    #merge_final_classifications:True
+    #merge_final_classifications_method: "dempstershafer"
+    #merge_final_classifications_undecidedlabel: 255
+    #fusionOfClassificationAllSamplesValidation:False
+    #dempstershafer_mob: "precision"
+    #merge_final_classifications_ratio: 0.1
+    #keep_runs_results: True
+    
+    listTile:'T32TLR' # Tuiles à classer
+    userFeatPath:'None'
+    groundTruth:'None' 
+    dataField:'coden2' # Champ qui définit les différentes classes en type "Entier"
+    runs:1 # nombre de runs (intervalle de confiance)
+    ratio:0.7 # Séparation des polygones d'apprentissage et de validation
+    cloud_threshold:1 # seuil limite d'échantillonnage
+    spatialResolution:1.5 # Résolution spatiale de la carte de classification en sortie
+    colorTable:'/datalocal/tmp/testthrs/colorFile_thrs' 
+    
+    firstStep: init
+    lastStep:validation#init,sampling,learning,classification,mosaic,validation
+    logFileLevel:DEBUG
+}
+################################################################################################
+#                                           training
+################################################################################################
+argTrain:
+{
+    sampleSelection : { "sampler":"random",
+                        "strategy":"percent", #percent
+                        "strategy.percent.p":0.1, 
+                       "ram":4000
+                       }
+    classifier :'sharkrf'
+    options :'-classifier.sharkrf.nodesize 5 -classifier.sharkrf.nbtrees 100 '
+    sampleAugmentation : {"activate":False}    
+}
+################################################################################################
+#                                        classifications
+################################################################################################
+argClassification: 
+{
+    classifMode :'separate'
+    fusionOptions :'-nodatalabel 0 -method majorityvoting' # Paramètres de l'application otbcli_FusionOfClassifications
+}
+GlobChain:
+{
+    proj : "EPSG:2154"
+    useGapFilling:False
+}
+################################################################################################
+#                                           sensors
+################################################################################################
+ userFeat:
+{
+    arbo:"/*"
+    patterns:"spot6"
+} 
