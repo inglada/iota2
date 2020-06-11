@@ -18,8 +18,8 @@ import os
 import logging
 import shutil
 
-from Common import OtbAppBank
-from Common import FileUtils as fut
+from iota2.Common import OtbAppBank
+from iota2.Common import FileUtils as fut
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +54,8 @@ def GetDataAugmentationSyntheticParameters(IOTA2_dir):
         a list of sqlite files containing samples
     """
     IOTA2_dir_learningSamples = os.path.join(IOTA2_dir, "learningSamples")
-    return fut.FileSearch_AND(IOTA2_dir_learningSamples, True, ".sqlite")
+    return fut.FileSearch_AND(IOTA2_dir_learningSamples, True,
+                              "Samples_region", ".sqlite")
 
 
 def GetDataAugmentationByCopyParameters(iota2_dir_samples):
