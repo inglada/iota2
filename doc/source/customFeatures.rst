@@ -1,8 +1,8 @@
-Custom Features
-===============
+External Features
+=================
 
-What is the custom features module ?
-------------------------------------
+What is the external features module ?
+--------------------------------------
 
 This module proposes to use user-provided code to compute additional features which will be used for training and prediction.
 
@@ -15,13 +15,13 @@ The main idea is to extract the pixel values as a numpy array, so it is easy to 
 
 How use it ?
 ------------
-The custom features module requires only one python file, containing one or more functions.
+The external features module requires only one python file, containing one or more functions.
 
 The user must provide, using the configuration file, the path to this file, it's name, and the list of functions to be computed.
 
 It is necessary to add the section ``Features`` to your configuration file.
 
-To activate the custom features mode, there are two mandatory parameters:
+To activate the external features mode, there are two mandatory parameters:
 
 ``module``
     the full path to the file containing source code. A ".py" extension is mandatory
@@ -40,13 +40,13 @@ There are three optional parameters, initialized by default:
 
 Once this field is correctly filled, iota2 can be run as usual.
 
-Coding custom features functions:
---------------------------------
-Before explaining how custom features must be coded, some explainations about the available tools.
+Coding external features functions:
+-----------------------------------
+Before explaining how external features must be coded, some explainations about the available tools.
 
-iota2 provides two classes used for custom features:
+iota2 provides two classes used for external features:
 
-``custom_numpy_features``
+``external_numpy_features``
     the high level class, used in the iota2 processing. This class uses the configuration file parameters to apply the user provided functions. For a standard use, the class has no interest for the user.
 
 ``data_container``
@@ -87,7 +87,7 @@ A simple way to know which ``get`` functions are available, is to create a data 
 
 Example:
 --------
-A full example for using custom features, using Sentinel2.
+A full example for using external features, using Sentinel2.
 
 First, create a python file, named ``my_module.py`` containing one function:
 
@@ -102,12 +102,12 @@ First, create a python file, named ``my_module.py`` containing one function:
             labels = [f"soi_{i+1}" for i in range(coef.shape[2])]
             return coef, labels
 
-In the configuration file, add the following block to enable custom feature mode
+In the configuration file, add the following block to enable external feature mode
 
 .. code-block:: python
 		
 	...
-    Features:
+    external_features:
     {
         module:"path/to/module/my_module.py"
         functions:"get_soi"
@@ -118,8 +118,8 @@ In the configuration file, add the following block to enable custom feature mode
 Limitations:
 ------------
 .. warning::
-    Custom features can not be used with ``userFeatures`` sensors.
+    External features can not be used with ``userFeatures`` sensors.
 	Indeed, it is mandatory to have the bands information to provide the ``get`` methods.
-	Also, ``Sentinel-1`` is not accessible in the custom features workflow.
+	Also, ``Sentinel-1`` is not accessible in the external features workflow.
 
 	Addtionnaly, scikit-learn models can not be use with this feature as well as the auto-context workflow.
