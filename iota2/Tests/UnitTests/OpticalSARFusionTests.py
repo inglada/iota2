@@ -139,7 +139,7 @@ class iota_testOpticalSARFusion(unittest.TestCase):
                              self._resultForDoCleanups)
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
-        ok = not error and not failure
+        ok = not (error or failure)
 
         self.all_tests_ok.append(ok)
         if ok:

@@ -44,8 +44,7 @@ class Regularization(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("regularisation of classification raster")
-        return description
+        return "regularisation of classification raster"
 
     def step_inputs(self):
         """
@@ -55,7 +54,7 @@ class Regularization(IOTA2Step.Step):
         """
 
         from simplification import manageRegularization as mr
-        
+
         rastclass = self.rastclass
         if not os.path.exists(os.path.join(self.outtmpdir, 'regul1.tif')):
             if rastclass is None:
@@ -68,12 +67,10 @@ class Regularization(IOTA2Step.Step):
                         rastclass = os.path.join(self.outputPath, 'final', 'Classif_Seed_0.tif')
         else:
             rastclass = os.path.join(self.outtmpdir, 'regul1.tif')
-                    
+
         rules = mr.getMaskRegularisation(self.nomenclature)
 
-        scenarios = [[rastclass, rule] for rule in rules]
-
-        return scenarios
+        return [[rastclass, rule] for rule in rules]
 
     def step_execute(self):
         """

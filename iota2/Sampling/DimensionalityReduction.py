@@ -66,7 +66,7 @@ def get_available_features(input_sample_file_name: str,
     """
     # getAllFieldsInShape
     feature_list = fu.get_all_fields_in_shape(input_sample_file_name, 'SQLite')
-    features = dict()
+    features = {}
 
     meta_data_fields = []
     for feat in feature_list:
@@ -75,17 +75,7 @@ def get_available_features(input_sample_file_name: str,
             fi_lv = sensor
             se_lv = band
             th_lv = date
-            if first_level == 'global':
-                pass
-            if first_level == 'sensor':
-                fi_lv = sensor
-                if second_level == 'band':
-                    se_lv = band
-                    th_lv = date
-                else:
-                    se_lv = date
-                    th_lv = band
-            elif first_level == 'band':
+            if first_level == 'band':
                 fi_lv = band
                 if second_level == 'date':
                     se_lv = date
@@ -101,10 +91,18 @@ def get_available_features(input_sample_file_name: str,
                 else:
                     se_lv = sensor
                     th_lv = band
+            elif first_level == 'sensor':
+                fi_lv = sensor
+                if second_level == 'band':
+                    se_lv = band
+                    th_lv = date
+                else:
+                    se_lv = date
+                    th_lv = band
             if fi_lv not in list(features.keys()):
-                features[fi_lv] = dict()
+                features[fi_lv] = {}
             if se_lv not in list(features[fi_lv].keys()):
-                features[fi_lv][se_lv] = list()
+                features[fi_lv][se_lv] = []
             features[fi_lv][se_lv].append(th_lv)
         except:
             if feat not in meta_data_fields:
@@ -153,31 +151,20 @@ def build_features_lists(input_sample_file_name: str,
      meta_data_fields) = get_available_features(input_sample_file_name,
                                                 'global')
 
-    feat_list = list()
-    if reduction_mode == 'global':
+    feat_list = []
+    if reduction_mode == 'band':
+        (feat_dict, dummy) = get_available_features(input_sample_file_name,
+                                                    'band', 'sensor')
+        for band in sorted(feat_dict.keys()):
+            tmpfeat_list = []
+            for sensor in sorted(feat_dict[band].keys()):
+                tmpfeat_list += [
+                    "%s_%s_%s" % (sensor, band, date)
+                    for date in feat_dict[band][sensor]
+                ]
+            feat_list.append(tmpfeat_list)
+    elif reduction_mode == 'global':
         feat_list.append(all_features)
-    elif reduction_mode == 'sensor_date':
-        (feat_dict, dummy) = get_available_features(input_sample_file_name,
-                                                    'date', 'sensor')
-        for date in sorted(feat_dict.keys()):
-            tmpfeat_list = list()
-            for sensor in sorted(feat_dict[date].keys()):
-                tmpfeat_list += [
-                    "%s_%s_%s" % (sensor, band, date)
-                    for band in feat_dict[date][sensor]
-                ]
-            feat_list.append(tmpfeat_list)
-    elif reduction_mode == 'date':
-        (feat_dict, dummy) = get_available_features(input_sample_file_name,
-                                                    'date', 'sensor')
-        for date in sorted(feat_dict.keys()):
-            tmpfeat_list = list()
-            for sensor in sorted(feat_dict[date].keys()):
-                tmpfeat_list += [
-                    "%s_%s_%s" % (sensor, band, date)
-                    for band in feat_dict[date][sensor]
-                ]
-            feat_list.append(tmpfeat_list)
     elif reduction_mode == 'sensor_band':
         (feat_dict, dummy) = get_available_features(input_sample_file_name,
                                                     'sensor', 'band')
@@ -187,29 +174,20 @@ def build_features_lists(input_sample_file_name: str,
                     "%s_%s_%s" % (sensor, band, date)
                     for date in feat_dict[sensor][band]
                 ])
-    elif reduction_mode == 'band':
+    elif reduction_mode in ['sensor_date', 'date']:
         (feat_dict, dummy) = get_available_features(input_sample_file_name,
-                                                    'band', 'sensor')
-        for band in sorted(feat_dict.keys()):
-            tmpfeat_list = list()
-            for sensor in sorted(feat_dict[band].keys()):
+                                                    'date', 'sensor')
+        for date in sorted(feat_dict.keys()):
+            tmpfeat_list = []
+            for sensor in sorted(feat_dict[date].keys()):
                 tmpfeat_list += [
                     "%s_%s_%s" % (sensor, band, date)
-                    for date in feat_dict[band][sensor]
+                    for band in feat_dict[date][sensor]
                 ]
             feat_list.append(tmpfeat_list)
-    elif reduction_mode == 'sensor_date':
-        (feat_dict, dummy) = get_available_features(input_sample_file_name,
-                                                    'sensor', 'date')
-        for sensor in sorted(feat_dict.keys()):
-            for date in sorted(feat_dict[sensor].keys()):
-                feat_list.append([
-                    "%s_%s_%s" % (sensor, band, date)
-                    for band in feat_dict[sensor][date]
-                ])
     else:
         raise RuntimeError("Unknown reduction mode")
-    if len(feat_list) == 0:
+    if not feat_list:
         raise Exception("Did not find any valid features in " +
                         input_sample_file_name)
     return (feat_list, meta_data_fields)
@@ -406,8 +384,8 @@ def sample_file_pca_reduction(input_sample_file_name: str,
         'reduced_' + str(pc_number) for pc_number in range(target_dimension)
     ]
 
-    files_to_remove = list()
-    reduced_file_list = list()
+    files_to_remove = []
+    reduced_file_list = []
     fl_counter = 0
 
     basename = os.path.basename(input_sample_file_name)[:-(len('sqlite') + 1)]
@@ -548,7 +526,7 @@ def build_io_sample_file_lists(output_dir: str) -> List[str]:
     """
     sample_file_dir = os.path.join(output_dir, "learningSamples")
     reduced_samples_dir = os.path.join(output_dir, "dimRed", "reduced")
-    result = list()
+    result = []
     for input_sample_file in glob.glob(sample_file_dir + '/*sqlite'):
         basename = os.path.basename(input_sample_file)[:-(len('sqlite') + 1)]
         output_sample_file = os.path.join(reduced_samples_dir,
@@ -622,7 +600,7 @@ def build_channel_groups(reduction_mode: str,
     number_of_meta_data_fields = len(meta_data_fields)
     feature_list = fu.get_all_fields_in_shape(
         input_sample_file_name, 'SQLite')[number_of_meta_data_fields:]
-    channel_groups = list()
+    channel_groups = []
     for feat_g in feature_groups:
         # Channels start at 1 for ExtractROI
         logger.debug(f"Feature group {feat_g}")
@@ -648,8 +626,8 @@ def apply_dimensionality_reduction_to_feature_stack(
 
     """
     # Build the feature list
-    extract_rois = list()
-    dim_reds = list()
+    extract_rois = []
+    dim_reds = []
     channel_groups = build_channel_groups(reduction_mode, output_path)
 
     if isinstance(image_stack, otb.Application):

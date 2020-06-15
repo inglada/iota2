@@ -15,7 +15,7 @@ def totalArea(shapefile, sizepix):
             geom = feat.GetGeometryRef()
             area = geom.GetArea()
             size = (area / int(sizepix))
-            sizeT = sizeT + size
+            sizeT += size
     return sizeT
 
 

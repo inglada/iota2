@@ -44,8 +44,7 @@ class mergeSeedClassifications(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Merge final classifications")
-        return description
+        return "Merge final classifications"
 
     def step_inputs(self):
         """
@@ -70,20 +69,21 @@ class mergeSeedClassifications(IOTA2Step.Step):
         validation_shape = None
         if self.fusionClaAllSamplesVal is True:
             validation_shape = self.ground_truth
-        step_function = lambda x: mergeCl.mergeFinalClassifications(x,
-                                                                    self.data_field,
-                                                                    self.nomenclature,
-                                                                    self.color_table,
-                                                                    self.runs,
-                                                                    pixType,
-                                                                    self.merge_final_classifications_method,
-                                                                    self.undecidedlabel,
-                                                                    self.dempstershafer_mob,
-                                                                    self.keep_runs_results,
-                                                                    self.enableCrossValidation,
-                                                                    validation_shape,
-                                                                    self.workingDirectory)
-        return step_function
+        return lambda x: mergeCl.mergeFinalClassifications(
+            x,
+            self.data_field,
+            self.nomenclature,
+            self.color_table,
+            self.runs,
+            pixType,
+            self.merge_final_classifications_method,
+            self.undecidedlabel,
+            self.dempstershafer_mob,
+            self.keep_runs_results,
+            self.enableCrossValidation,
+            validation_shape,
+            self.workingDirectory,
+        )
 
     def step_outputs(self):
         """

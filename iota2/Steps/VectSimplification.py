@@ -39,8 +39,7 @@ class simplification(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Vectorisation and simplification of classification")
-        return description
+        return "Vectorisation and simplification of classification"
 
     def step_inputs(self):
         """
@@ -67,7 +66,7 @@ class simplification(IOTA2Step.Step):
             tmpdir = self.workingDirectory
         outfilevectsimp = os.path.join(self.outputPath, 'final', 'simplification',
                                        'classif.shp')
-        step_function = lambda x: vas.simplification(tmpdir,
+        return lambda x: vas.simplification(tmpdir,
                                                      x,
                                                      self.grasslib,
                                                      outfilevectsimp,
@@ -75,7 +74,6 @@ class simplification(IOTA2Step.Step):
                                                      self.hermite,
                                                      self.mmu,
                                                      self.angle)
-        return step_function
 
     def step_outputs(self):
         """

@@ -40,8 +40,7 @@ class samplesMerge(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("merge samples by models")
-        return description
+        return "merge samples by models"
 
     def step_inputs(self):
         """
@@ -61,7 +60,7 @@ class samplesMerge(IOTA2Step.Step):
             the function to execute as a lambda function. The returned object
             must be a lambda function.
         """
-        step_function = lambda x: samples_merge.samples_merge(
+        return lambda x: samples_merge.samples_merge(
             x,
             SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath'),
             SCF.serviceConfigFile(self.cfg).getParam('chain', 'regionField'),
@@ -71,7 +70,6 @@ class samplesMerge(IOTA2Step.Step):
             SCF.serviceConfigFile(self.cfg).getParam(
                 'argTrain', 'dempster_shafer_SAR_Opt_fusion'), self.
             workingDirectory)
-        return step_function
 
     def step_outputs(self):
         """

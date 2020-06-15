@@ -73,10 +73,7 @@ class S1FileManager(object):
       import time
       if self.pepsdownload==True:
          if self.ROIbyTiles is not None:
-            if "ALL" in self.ROIbyTiles:
-               tilesList=self.tilesList
-            else:
-               tilesList=self.ROIbyTiles
+            tilesList = self.tilesList if "ALL" in self.ROIbyTiles else self.ROIbyTiles
             latmin=[]
             latmax=[]
             lonmin=[]
@@ -168,22 +165,15 @@ class S1FileManager(object):
       dataSource = driver.Open(self.mgrs_shapeFile, 0)
       layer = dataSource.GetLayer()
 
-      for currentTile in layer:
-         if currentTile.GetField('NAME')==tileNameField:
-            return True
-            break
-      return False
+      return any(currentTile.GetField('NAME')==tileNameField for currentTile in layer)
 
    def getS1IntersectByTile(self,tileNameField):
       intersectRaster=[]
       driver = ogr.GetDriverByName("ESRI Shapefile")
       dataSource = driver.Open(self.mgrs_shapeFile, 0)
       layer = dataSource.GetLayer()
-      found = False
-      for currentTile in layer:
-         if currentTile.GetField('NAME')==tileNameField:
-            found = True
-            break
+      found = any(
+          currentTile.GetField('NAME') == tileNameField for currentTile in layer)
       if not found:
          print("Tile "+str(tileNameField)+" does not exist")
          return intersectRaster
@@ -252,9 +242,8 @@ class S1FileManager(object):
       try:
          with open(os.path.join(self.outputPreProcess,"ProcessedFilenames.txt"), "r") as f:
             #return f.read().splitlines()
-            return[] 
+            return[]
       except:
-         pass
          return []
 
    def getRasterList(self):

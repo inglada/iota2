@@ -75,16 +75,15 @@ def multipoly2poly(inshape,
     if do_correction:
         out_ds = driver.CreateDataSource(outshape)
         out_lyr = out_ds.CreateLayer('poly', srsObj, geom_type=ogr.wkbPolygon)
-        for i in range(0, len(field_name_list)):
+        for i in range(len(field_name_list)):
             fieldDefn = inLayerDefn.GetFieldDefn(i)
             fieldName = fieldDefn.GetName()
             if fieldName not in field_name_list:
                 continue
             out_lyr.CreateField(fieldDefn)
 
-    multipoly = manageMultiPoly2Poly(in_lyr, out_lyr, field_name_list,
+    return manageMultiPoly2Poly(in_lyr, out_lyr, field_name_list,
                                      do_correction)
-    return multipoly
 
 
 if __name__ == "__main__":

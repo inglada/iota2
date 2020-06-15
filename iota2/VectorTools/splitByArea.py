@@ -43,9 +43,10 @@ def splitByArea(Areas, folds):
             outputfolds[cpt].append(Areas[ind])
         offset += folds
 
-    totares = []
-    for idx, fold in enumerate(outputfolds):
-        totares.append((idx + 1, sum([x[1] for x in fold])))
+    totares = [
+        (idx + 1, sum(x[1] for x in fold))
+        for idx, fold in enumerate(outputfolds)
+    ]
 
     return outputfolds, totares
 
@@ -57,7 +58,7 @@ def getFidArea(shapefile, classf=""):
     layer = datasource.GetLayer()
 
     fieldlist = vf.getFields(layer)
-    if classf != "" and classf is not None:
+    if not (classf == "" or classf is None):
         try:
             fieldlist.index(classf)
         except:
@@ -86,7 +87,7 @@ def getFidArea(shapefile, classf=""):
 
 def getFeaturesFolds(features, folds):
 
-    classes = set([y for x, y, z in features])
+    classes = {y for x, y, z in features}
     statsclasses = []
     for classval in classes:
         areas = [(x, z) for x, y, z in features if y == classval]
@@ -140,7 +141,7 @@ def extractFeatureFromShape(shapefile, folds, classf="", outpath=""):
                         "subfile %s has been produced with an total area of %s"
                         % (outshape, statsclass[2][idx][1]))
 
-    listfolds = set([x[0] for x in tomerge])
+    listfolds = {x[0] for x in tomerge}
     listfilesbyfold = [[x, [y[1] for y in tomerge if y[0] == x]]
                        for x in listfolds]
     for listfiles in listfilesbyfold:

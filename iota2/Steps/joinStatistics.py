@@ -37,8 +37,7 @@ class joinStatistics(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Join shapefile and statistics")
-        return description
+        return "Join shapefile and statistics"
 
     def step_inputs(self):
         """
@@ -67,11 +66,10 @@ class joinStatistics(IOTA2Step.Step):
                                   'tmp')
         outfilevecttojoin = os.path.join(self.outputPath, 'final', 'simplification',
                                          'vectors', '%s_.shp'%(self.outprefix))
-        step_function = lambda x: cs.computeStats(outfilevecttojoin,
+        return lambda x: cs.computeStats(outfilevecttojoin,
                                                   x,
                                                   tmpdir,
                                                   self.dozip)
-        return step_function
 
     def step_outputs(self):
         """

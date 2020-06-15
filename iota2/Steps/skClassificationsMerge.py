@@ -35,8 +35,7 @@ class ScikitClassificationsMerge(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Merge tile's classification's part")
-        return description
+        return "Merge tile's classification's part"
 
     def step_inputs(self):
         """
@@ -59,12 +58,11 @@ class ScikitClassificationsMerge(IOTA2Step.Step):
             must be a lambda function.
         """
         from iota2.Classification.skClassifier import merge_sk_classifications
-        
+
         from iota2.Common.rasterUtils import merge_rasters
-        step_function = lambda x: merge_sk_classifications(x,
+        return lambda x: merge_sk_classifications(x,
                                                            self.epsg_code,
                                                            self.working_directory)
-        return step_function
 
     def step_clean(self):
         """

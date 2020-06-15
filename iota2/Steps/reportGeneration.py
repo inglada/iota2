@@ -34,8 +34,7 @@ class reportGeneration(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Generate final report")
-        return description
+        return "Generate final report"
 
     def step_inputs(self):
         """
@@ -54,9 +53,8 @@ class reportGeneration(IOTA2Step.Step):
             must be a lambda function.
         """
         from Validation import GenResults as GR
-        step_function = lambda x: GR.genResults(x,
+        return lambda x: GR.genResults(x,
                                                 self.nomenclature)
-        return step_function
 
     def step_outputs(self):
         """

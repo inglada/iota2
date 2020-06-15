@@ -39,8 +39,7 @@ class confusionsMerge(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Merge all confusions")
-        return description
+        return "Merge all confusions"
 
     def step_inputs(self):
         """
@@ -59,7 +58,7 @@ class confusionsMerge(IOTA2Step.Step):
             must be a lambda function.
         """
         from iota2.Validation import ConfusionFusion as confFus
-        step_function = lambda x: confFus.confusion_fusion(
+        return lambda x: confFus.confusion_fusion(
             x, self.data_field, os.path.join(self.output_path, "final", "TMP"),
             os.path.join(self.output_path, "final", "TMP"),
             os.path.join(self.output_path, "final", "TMP"),
@@ -68,7 +67,6 @@ class confusionsMerge(IOTA2Step.Step):
             SCF.serviceConfigFile(self.cfg).getParam('argTrain', 'annualCrop'),
             (SCF.serviceConfigFile(self.cfg).getParam(
                 'argTrain', 'ACropLabelReplacement').data)[0])
-        return step_function
 
     def step_outputs(self):
         """

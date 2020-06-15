@@ -33,8 +33,7 @@ class VectorFormatting(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Prepare samples")
-        return description
+        return "Prepare samples"
 
     def step_inputs(self):
         """
@@ -42,9 +41,8 @@ class VectorFormatting(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
-        tiles = SCF.serviceConfigFile(self.cfg).getParam('chain',
+        return SCF.serviceConfigFile(self.cfg).getParam('chain',
                                                          'listTile').split(" ")
-        return tiles
 
     def step_execute(self):
         """
@@ -90,14 +88,13 @@ class VectorFormatting(IOTA2Step.Step):
             'chain', 'merge_final_classifications')
         merge_final_classifications_ratio = SCF.serviceConfigFile(
             self.cfg).getParam('chain', 'merge_final_classifications_ratio')
-        step_function = lambda x: VF.vector_formatting(
+        return lambda x: VF.vector_formatting(
             x, output_path, ground_truth_vec, data_field, cloud_threshold,
             ratio, random_seed, enable_cross_validation,
             enable_split_ground_truth, fusion_merge_all_validation, runs, epsg,
             region_field, merge_final_classifications,
             merge_final_classifications_ratio, region_vec, self.
             working_directory)
-        return step_function
 
     def step_outputs(self):
         """

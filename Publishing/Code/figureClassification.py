@@ -20,7 +20,7 @@ def getStringBetween(string,ch1,ch2):
 				if string[j]==ch2:
 					break
 				else:
-					out = out+string[j]
+					out += string[j]
 			break
 	return out
 

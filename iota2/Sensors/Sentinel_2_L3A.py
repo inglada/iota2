@@ -144,11 +144,10 @@ class sentinel_2_l3a():
         if self.vhr_path.lower() != "none":
             pattern = f"{self.suffix}_COREG.tif"
 
-        stacks = sorted(FileSearch_AND(self.output_preprocess_directory, True,
+        return sorted(FileSearch_AND(self.output_preprocess_directory, True,
                                        pattern),
                         key=lambda x: os.path.basename(x).split("_")[
                             self.date_position].split("-")[0])
-        return stacks
 
     def sort_dates_directories(self, dates_directories):
         """
@@ -169,11 +168,10 @@ class sentinel_2_l3a():
         pattern = f"{self.suffix_mask}.tif"
         if self.vhr_path.lower() != "none":
             pattern = f"{self.suffix_mask}_COREG.tif"
-        masks = sorted(FileSearch_AND(self.output_preprocess_directory, True,
+        return sorted(FileSearch_AND(self.output_preprocess_directory, True,
                                       pattern),
                        key=lambda x: os.path.basename(x).split("_")[
                            self.date_position].split("-")[0])
-        return masks
 
     def build_stack_date_name(self, date_dir):
         """
@@ -292,8 +290,7 @@ class sentinel_2_l3a():
                 same_res = getRasterProjectionEPSG(
                     out_stack) == getRasterProjectionEPSG(self.ref_image)
 
-            if not os.path.exists(
-                    out_stack) or same_proj is False or not same_res:
+            if not (os.path.exists(out_stack) and same_proj and same_res):
                 # date_stack.ExecuteAndWriteOutput()
                 multi_proc = mp.Process(target=executeApp, args=[date_stack])
                 multi_proc.start()

@@ -14,14 +14,14 @@ def ListValues(shp):
     fields = vf.getFields(shp)
     print("The name of the fields are: " + ' - '.join(fields))
     field = input("Field to list values: ")
-    if not field in fields:
+    if field not in fields:
         print('This field does not exist. Verify!')
         sys.exit(1)
     ds = vf.openToRead(shp)
     layer = ds.GetLayer()
     values = []
     for feat in layer:
-        if not feat.GetField(field) in values:
+        if feat.GetField(field) not in values:
             values.append(feat.GetField(field))
     return values
 

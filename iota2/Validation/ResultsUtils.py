@@ -117,31 +117,29 @@ def get_coeff(matrix):
     nan = -1000
     classes_labels = list(matrix.keys())
 
-    oacc_nom = sum([matrix[class_name][class_name] for class_name in list(matrix.keys())])
-    nb_samples = sum([matrix[ref_class_name][prod_class_name] for ref_class_name in list(matrix.keys()) for prod_class_name in list(matrix.keys())])
+    oacc_nom = sum(
+        matrix[class_name][class_name] for class_name in list(matrix.keys())
+    )
+
+    nb_samples = sum(
+        matrix[ref_class_name][prod_class_name]
+        for ref_class_name in list(matrix.keys())
+        for prod_class_name in list(matrix.keys())
+    )
+
 
     # compute overall accuracy
-    if nb_samples != 0.0:
-        oacc = float(oacc_nom) / float(nb_samples)
-    else:
-        oacc = nan
-
+    oacc = float(oacc_nom) / float(nb_samples) if nb_samples != 0.0 else nan
     p_dic = collections.OrderedDict()
     r_dic = collections.OrderedDict()
     f_dic = collections.OrderedDict()
     lucky_rate = 0.
     for classe_name in classes_labels:
         oacc_class = matrix[classe_name][classe_name]
-        p_denom = sum([matrix[ref][classe_name] for ref in classes_labels])
-        r_denom = sum([matrix[classe_name][ref] for ref in classes_labels])
-        if float(p_denom) != 0.0:
-            p_class = float(oacc_class) / float(p_denom)
-        else:
-            p_class = nan
-        if float(r_denom) != 0.0:
-            r_class = float(oacc_class) / float(r_denom)
-        else:
-            r_class = nan
+        p_denom = sum(matrix[ref][classe_name] for ref in classes_labels)
+        r_denom = sum(matrix[classe_name][ref] for ref in classes_labels)
+        p_class = float(oacc_class) / float(p_denom) if float(p_denom) != 0.0 else nan
+        r_class = float(oacc_class) / float(r_denom) if float(r_denom) != 0.0 else nan
         if float(p_class + r_class) != 0.0:
             f_class = float(2.0 * p_class * r_class) / float(p_class + r_class)
         else:
@@ -153,8 +151,8 @@ def get_coeff(matrix):
         lucky_rate += p_denom * r_denom
 
     k_denom = float((nb_samples * nb_samples) - lucky_rate)
-    k_nom = float((oacc * nb_samples * nb_samples) - lucky_rate)
     if k_denom != 0.0:
+        k_nom = float((oacc * nb_samples * nb_samples) - lucky_rate)
         kappa = k_nom / k_denom
     else:
         kappa = nan
@@ -207,9 +205,7 @@ def get_rgb_pre(pre_val, coeff_cmap):
     """
     rgb_list = []
     for raw in pre_val:
-        raw_rgb = []
-        for val in raw:
-            raw_rgb.append(coeff_cmap(val))
+        raw_rgb = [coeff_cmap(val) for val in raw]
         rgb_list.append(raw_rgb)
     return rgb_list
 
@@ -545,7 +541,7 @@ def gen_confusion_matrix_fig(csv_in, out_png, nomenclature_path,
     if undecidedlabel:
         conf_mat_dic = remove_undecidedlabel(conf_mat_dic, undecidedlabel)
 
-    
+
     labels_ref = list(conf_mat_dic.keys())
     labels_prod = [lab for lab in list(conf_mat_dic[list(conf_mat_dic.keys())[0]].keys())]
     all_labels = labels_ref + labels_prod
@@ -555,14 +551,13 @@ def gen_confusion_matrix_fig(csv_in, out_png, nomenclature_path,
     # re-odrer classes
     if class_order:
         # check if input's labels correspond to labels detected in csv file
-        check_in_order = all([label_in in all_labels for label_in in class_order])
-        check_in_csv = all([label_csv in class_order for label_csv in all_labels])
-        if not check_in_order or not check_in_csv:
-            if not merge_class:
-                if not check_in_order:
-                    raise Exception("'class_order' parameter contains classes not in input csv file")
-                elif not check_in_csv:
-                    raise Exception("missing classes in 'class_order' parameter")
+        check_in_order = all(label_in in all_labels for label_in in class_order)
+        check_in_csv = all(label_csv in class_order for label_csv in all_labels)
+        if (not check_in_order or not check_in_csv) and not merge_class:
+            if not check_in_order:
+                raise Exception("'class_order' parameter contains classes not in input csv file")
+            else:
+                raise Exception("missing classes in 'class_order' parameter")
         conf_mat_dic_order = collections.OrderedDict()
         for class_number_ref in class_order:
             conf_mat_dic_prod = collections.OrderedDict()
@@ -598,7 +593,7 @@ def get_max_labels(conf_mat_dic, nom_dict):
     labels_prod = [nom_dict[lab] for lab in list(conf_mat_dic[list(conf_mat_dic.keys())[0]].keys())]
 
     labels = set(labels_prod + labels_ref)
-    return max([len(lab) for lab in labels]), labels_prod, labels_ref
+    return max(len(lab) for lab in labels), labels_prod, labels_ref
 
 def get_conf_max(conf_mat_dic, nom_dict):
     """
@@ -779,10 +774,10 @@ def stats_report(csv_in, nomenclature_path, out_report, undecidedlabel=None):
     confusion_max = get_conf_max(conf_mat_dic, nom_dict)
 
     coeff_summarize_lab = ["Classes", "Precision mean", "Rappel mean", "F-score mean", "Confusion max"]
-    label_size_max = max([len(c_title) for c_title in coeff_summarize_lab])
-    label_size_max_p = max([len(coeff) for lab, coeff in list(p_mean.items())])
-    label_size_max_r = max([len(coeff) for lab, coeff in list(r_mean.items())])
-    label_size_max_f = max([len(coeff) for lab, coeff in list(f_mean.items())])
+    label_size_max = max(len(c_title) for c_title in coeff_summarize_lab)
+    label_size_max_p = max(len(coeff) for lab, coeff in list(p_mean.items()))
+    label_size_max_r = max(len(coeff) for lab, coeff in list(r_mean.items()))
+    label_size_max_f = max(len(coeff) for lab, coeff in list(f_mean.items()))
     label_size_max = max([label_size_max, label_size_max_p, label_size_max_r, label_size_max_f, size_max])
 
     with open(out_report, "w") as res_file:

@@ -38,8 +38,7 @@ class statsSamplesModel(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Generate samples statistics by models")
-        return description
+        return "Generate samples statistics by models"
 
     def step_inputs(self):
         """
@@ -59,9 +58,8 @@ class statsSamplesModel(IOTA2Step.Step):
             must be a lambda function.
         """
 
-        step_function = lambda x: SamplesStat.samples_stats(
+        return lambda x: SamplesStat.samples_stats(
             x, self.output_path, self.data_field, self.workingDirectory)
-        return step_function
 
     def step_outputs(self):
         """

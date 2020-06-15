@@ -88,7 +88,7 @@ class iota_testSamplesAugmentation(unittest.TestCase):
                              self._resultForDoCleanups)
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
-        ok = not error and not failure
+        ok = not (error or failure)
 
         self.all_tests_ok.append(ok)
         if ok:
@@ -142,6 +142,5 @@ class iota_testSamplesAugmentation(unittest.TestCase):
         samples_number = self.class_count[max(
             self.class_count, key=lambda key: self.class_count[key])]
         self.assertTrue(
-            all([
-                samples_number == v for k, v in list(class_count_test.items())
-            ]))
+            all(samples_number == v for k, v in list(class_count_test.items()))
+        )

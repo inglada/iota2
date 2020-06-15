@@ -113,7 +113,7 @@ class iota2_tests_split_samples(unittest.TestCase):
 
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
-        ok_test = not error and not failure
+        ok_test = not (error or failure)
 
         self.all_tests_ok.append(ok_test)
         if ok_test:
@@ -147,10 +147,12 @@ class iota2_tests_split_samples(unittest.TestCase):
         self.assertEqual(self.shapes_region, os.path.abspath(shapes_region[0]))
 
         regions = list(
-            set([
+            {
                 os.path.split(shape)[-1].split("_")[regions_pos]
                 for shape in shapes_region
-            ]))
+            }
+        )
+
         # We check we have the correct value
         self.assertEqual(self.regions, regions[0])
 

@@ -18,7 +18,7 @@ def DeleteDupGeom(infile):
     ds = vf.openToWrite(infile)
     lyr = ds.GetLayer()
     features = vf.getNbFeat(infile)
-    geoms = dict()
+    geoms = {}
     newshp = vf.copyShp(infile, "nodoublegeom")
     for feat in lyr:
         ge = feat.GetGeometryRef()
@@ -26,7 +26,7 @@ def DeleteDupGeom(infile):
         if ge is not None:
             geoms[f] = ge.ExportToWkt()
 
-    inverted = dict()
+    inverted = {}
     for (k, v) in list(geoms.items()):
         if v[0] not in inverted:
             inverted[v] = k

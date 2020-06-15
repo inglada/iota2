@@ -113,7 +113,7 @@ class iota_test_vector_splits(unittest.TestCase):
 
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
-        ok = not error and not failure
+        ok = not (error or failure)
 
         self.all_tests_ok.append(ok)
         if ok:

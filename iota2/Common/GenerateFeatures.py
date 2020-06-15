@@ -63,7 +63,7 @@ def generate_features(pathWd: str,
     feat_labels = []
     dep = []
     feat_app = []
-    if mode == "usually" and sar_optical_post_fusion is False:
+    if mode == "usually" and not sar_optical_post_fusion:
         sensors_features = sensor_tile_container.get_sensors_features(
             available_ram=1000)
         for _, ((sensor_features, sensor_features_dep),
@@ -71,7 +71,7 @@ def generate_features(pathWd: str,
             sensor_features.Execute()
             feat_app.append(sensor_features)
             dep.append(sensor_features_dep)
-            feat_labels = feat_labels + features_labels
+            feat_labels += features_labels
     elif mode == "usually" and sar_optical_post_fusion is True:
         sensor_tile_container.remove_sensor("Sentinel1")
         sensors_features = sensor_tile_container.get_sensors_features(
@@ -81,7 +81,7 @@ def generate_features(pathWd: str,
             sensor_features.Execute()
             feat_app.append(sensor_features)
             dep.append(sensor_features_dep)
-            feat_labels = feat_labels + features_labels
+            feat_labels += features_labels
     elif mode == "SAR":
         sensor = sensor_tile_container.get_sensor("Sentinel1")
         (sensor_features,

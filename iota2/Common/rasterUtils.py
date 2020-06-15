@@ -190,13 +190,17 @@ def get_rasterio_datasets(
         it works only with 3D arrays
     """
     all_data_sets = []
-    expected_arr_shapes = set(
-        [arr[0].shape for arr in array_proj if isinstance(arr[0], np.ndarray)])
+    expected_arr_shapes = {
+        arr[0].shape for arr in array_proj if isinstance(arr[0], np.ndarray)
+    }
+
     if not expected_arr_shapes:
         expected_arr_shapes = [force_output_shape]
     expected_arr_shape = list(expected_arr_shapes)[0]
-    expected_arr_types = set(
-        [arr[0].dtype for arr in array_proj if isinstance(arr[0], np.ndarray)])
+    expected_arr_types = {
+        arr[0].dtype for arr in array_proj if isinstance(arr[0], np.ndarray)
+    }
+
     if not expected_arr_types:
         expected_arr_types = [force_output_type]
     expected_arr_type = list(expected_arr_types)[0]
@@ -297,7 +301,7 @@ def process_function(
         origin_x - xres / 2.0, xres, 0, origin_y - yres / 2.0, 0, yres
     ]
     new_labels = []
-    if roi_to_ignore is False:
+    if not roi_to_ignore:
 
         output_arr, new_labels = function(otbimage["array"])
 

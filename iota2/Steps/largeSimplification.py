@@ -53,9 +53,7 @@ class largeSimplification(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = (
-            "Douglas-Peucker simplification (Serialisation strategy)")
-        return description
+        return "Douglas-Peucker simplification (Serialisation strategy)"
 
     def step_inputs(self):
         """
@@ -91,15 +89,13 @@ class largeSimplification(IOTA2Step.Step):
         if self.workingDirectory:
             tmpdir = self.workingDirectory
 
-        step_function = lambda x: vas.generalizeVector(tmpdir,
+        return lambda x: vas.generalizeVector(tmpdir,
                                                        self.grasslib,
                                                        x[0],
                                                        self.douglas,
                                                        "douglas",
                                                        out=x[1],
                                                        epsg=self.epsg)
-
-        return step_function
 
     def step_outputs(self):
         """

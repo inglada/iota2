@@ -36,12 +36,8 @@ class remove_in_string_list(object):
             results = f(*args)
             results_filtered = []
             for elem in results:
-                pattern_found = False
-                for pattern in self.pattern_list:
-                    if pattern in elem:
-                        pattern_found = True
-                        break
-                if pattern_found is False:
+                pattern_found = any(pattern in elem for pattern in self.pattern_list)
+                if not pattern_found:
                     results_filtered.append(elem)
             return results_filtered
         return wrapped_f

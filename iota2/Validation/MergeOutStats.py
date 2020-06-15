@@ -101,9 +101,9 @@ def sum_in_list(histo_list: List[List[int]]):
     """
     """
     histo_sum = [0] * len(histo_list[0])
-    for i in range(len(histo_list)):  #current Tile
-        for j in range(len(histo_list[i])):  #current bin
-            histo_sum[j] += histo_list[i][j]
+    for histo in histo_list:  #current Tile
+        for j in range(len(histo)):  #current bin
+            histo_sum[j] += histo[j]
     return histo_sum
 
 

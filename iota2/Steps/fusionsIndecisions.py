@@ -58,8 +58,7 @@ class fusionsIndecisions(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Manage indecisions in classification's fusion")
-        return description
+        return "Manage indecisions in classification's fusion"
 
     def step_inputs(self):
         """

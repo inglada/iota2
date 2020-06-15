@@ -112,7 +112,7 @@ def sk_classifications_to_merge(iota2_classif_directory: str
             ((model, seed, tile_name, suffix), confidence))
     confidences_to_merge = sortByFirstElem(confidences_to_merge)
 
-    if not len(classif_to_merge) == len(confidences_to_merge):
+    if len(classif_to_merge) != len(confidences_to_merge):
         raise ValueError(
             "number of classification to merge : {} is different than number of confidence to merge : {}"
             .format(len(classif_to_merge), len(confidences_to_merge)))

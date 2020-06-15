@@ -11,13 +11,12 @@ def addFieldPerimeter(filein):
     layer = source.GetLayer()
     layer_defn = layer.GetLayerDefn()
     field_names = [layer_defn.GetFieldDefn(i).GetName() for i in range(layer_defn.GetFieldCount())]
-    if 'Perimeter' in field_names or 'perimeter' in field_names:
-        if 'Perimeter' in field_names:
-            i = field_names.index('Perimeter')
-            layer.DeleteField(i)
-        if 'perimeter' in field_names:
-            i = field_names.index('perimeter')
-            layer.DeleteField(i)
+    if 'Perimeter' in field_names:
+        i = field_names.index('Perimeter')
+        layer.DeleteField(i)
+    if 'perimeter' in field_names:
+        i = field_names.index('perimeter')
+        layer.DeleteField(i)
     new_field1 = ogr.FieldDefn('Perimeter', ogr.OFTReal)
     layer.CreateField(new_field1)
 

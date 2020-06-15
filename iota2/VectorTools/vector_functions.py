@@ -245,7 +245,7 @@ def random_shp_points(shapefile, nbpoints, opath, driver="ESRI Shapefile"):
         FID.append(f.GetFID())
     pointsToSelect = random.sample(FID, nbpoints)
     expr = ""
-    for p in range(0, len(pointsToSelect) - 1):
+    for p in range(len(pointsToSelect) - 1):
         expr = "FID = " + str(pointsToSelect[p]) + " OR " + expr
     expr = expr + " FID = " + str(pointsToSelect[-1])
     layer.SetAttributeFilter(expr)
@@ -325,9 +325,7 @@ def getFirstLayer(shp):
     ds = openToRead(shp)
     lyr = ds.GetLayer()
     layer = ds.GetLayerByIndex(0)
-    layerName = layer.GetName()
-
-    return layerName
+    return layer.GetName()
 
 
 #--------------------------------------------------------------------
@@ -345,7 +343,7 @@ def ListValueFields(shp, field):
 
     values = []
     for feat in lyr:
-        if not feat.GetField(field) in values:
+        if feat.GetField(field) not in values:
             values.append(feat.GetField(field))
 
     return sorted(values)
@@ -394,7 +392,7 @@ def copyShp(shp, keyname):
                                          srsObj,
                                          geom_type=getGeomType(shp))
     # Add input Layer Fields to the output Layer if it is the one we want
-    for i in range(0, inLayerDefn.GetFieldCount()):
+    for i in range(inLayerDefn.GetFieldCount()):
         fieldDefn = inLayerDefn.GetFieldDefn(i)
         fieldName = fieldDefn.GetName()
         if fieldName not in field_name_target:
@@ -567,8 +565,11 @@ def deleteInvalidGeom(shp):
                 simple = geom.IsSimple()
                 if valid == False:
                     fidl.append(fid)
-    listFid = []
-    if len(fidl) != 0:
+    if not fidl:
+        print("All geometries are valid. No file created")
+
+    else:
+        listFid = []
         for f in fidl:
             listFid.append("FID!=" + str(f))
         chain = []
@@ -580,9 +581,6 @@ def deleteInvalidGeom(shp):
         layer.SetAttributeFilter(fchain)
         CreateNewLayer(layer, "valide_entities.shp")
         print("New file: valide_entities.shp was created")
-    else:
-        print("All geometries are valid. No file created")
-
     return 0
 
 
@@ -646,9 +644,6 @@ def checkValidGeom(shp, outformat="ESRI shapefile", display=True):
         ds.ExecuteSQL('REPACK %s' % (layer.GetName()))
     elif outformat == "SQlite":
         ds = layer = None
-    else:
-        pass
-
     return shp, count, corr
 
 
@@ -750,7 +745,8 @@ def checkIntersect(shp, distance, fieldin):
     outShp = copyShp(shp, 'nointersct')
     layerDef = layer.GetLayerDefn()
     fields = getFields(shp)
-    for i in range(0, nbfeat):
+    intersection = False
+    for i in range(nbfeat):
         print(i)
         feat1 = layer.GetFeature(i)
         geom1 = feat1.GetGeometryRef()
@@ -764,10 +760,9 @@ def checkIntersect(shp, distance, fieldin):
         layer.SetSpatialFilterRect(float(minX), float(minY), float(maxX),
                                    float(maxY))
         nbfeat2 = layer.GetFeatureCount()
-        intersection = False
         listFID = []
         listID = []
-        for j in range(0, nbfeat2):
+        for j in range(nbfeat2):
             feat2 = layer.GetFeature(j)
             #print feat1.GetFID()
             #print feat2.GetFID()
@@ -777,7 +772,7 @@ def checkIntersect(shp, distance, fieldin):
                 listFID.append(feat2.GetFID())
                 listID.append(feat2.GetField('id'))
 
-        if len(listFID) == 0:
+        if not listFID:
             outds = openToRead(outShp)
             outlayer = outds.GetLayer()
             if VerifyGeom(geom1, outlayer) == False:
@@ -836,17 +831,17 @@ def checkIntersect2(shp, fieldin, fieldinID):
     outShp = copyShp(shp, 'nointersct')
     layerDef = layer.GetLayerDefn()
     fields = getFields(shp)
-    for i in range(0, nbfeat):
+    intersection = False
+    for i in range(nbfeat):
         print(i)
         feat1 = layer.GetFeature(i)
         geom1 = feat1.GetGeometryRef()
         centroid = geom1.Centroid()
         layer.SetSpatialFilter(geom1)
         nbfeat2 = layer.GetFeatureCount()
-        intersection = False
         listFID = []
         listID = []
-        for j in range(0, nbfeat2):
+        for j in range(nbfeat2):
             feat2 = layer.GetFeature(j)
             #print feat1.GetFID()
             #print feat2.GetFID()
@@ -855,7 +850,7 @@ def checkIntersect2(shp, fieldin, fieldinID):
             if geom1.Intersects(geom2) == True and not geom1.Equal(geom2):
                 listFID.append(feat2.GetFID())
                 listID.append(feat2.GetField(fieldinID))
-        if len(listFID) == 0:
+        if not listFID:
             outds = openToRead(outShp)
             outlayer = outds.GetLayer()
             if VerifyGeom(geom1, outlayer) is False:
@@ -914,7 +909,9 @@ def checkIntersect3(shp, fieldin, fieldinID):
     layerDef = layer.GetLayerDefn()
     fields = getFields(shp)
     listFID = []
-    for i in range(0, nbfeat):
+    intersection = False
+    listID = []
+    for i in range(nbfeat):
         feat1 = layer.GetFeature(i)
         geom1 = feat1.GetGeometryRef()
         centroid = geom1.Centroid()
@@ -922,8 +919,6 @@ def checkIntersect3(shp, fieldin, fieldinID):
         layer2.SetSpatialFilter(None)
         layer2.SetSpatialFilter(geom1)
         nbfeat2 = layer2.GetFeatureCount()
-        intersection = False
-        listID = []
         for feat2 in layer2:
             geom2 = feat2.GetGeometryRef()
             if geom1.Intersects(geom2) == True and not geom1.Equal(geom2):
@@ -931,27 +926,18 @@ def checkIntersect3(shp, fieldin, fieldinID):
                 if feat1.GetFieldAsString(fieldin) == feat2.GetFieldAsString(
                         fieldin):
                     newgeom = Union(geom1, geom2)
-                    newgeom2 = ogr.CreateGeometryFromWkb(newgeom.wkb)
-                    newFeature = ogr.Feature(layerDef)
-                    newFeature.SetGeometry(newgeom2)
-                    geom1 = newFeature.GetGeometryRef()
-                    for field in fields:
-                        newFeature.SetField(field, feat1.GetField(field))
-                    layer.CreateFeature(newFeature)
-                    layer.SetFeature(newFeature)
                 else:
                     newgeom = Difference(geom1, geom2)
-                    newgeom2 = ogr.CreateGeometryFromWkb(newgeom.wkb)
-                    newFeature = ogr.Feature(layerDef)
-                    newFeature.SetGeometry(newgeom2)
-                    geom1 = newFeature.GetGeometryRef()
-                    for field in fields:
-                        newFeature.SetField(field, feat1.GetField(field))
-                    layer.CreateFeature(newFeature)
-                    layer.SetFeature(newFeature)
-
-    for fid in range(0, len(listFID)):
-        layer.DeleteFeature(listFID[fid])
+                newgeom2 = ogr.CreateGeometryFromWkb(newgeom.wkb)
+                newFeature = ogr.Feature(layerDef)
+                newFeature.SetGeometry(newgeom2)
+                geom1 = newFeature.GetGeometryRef()
+                for field in fields:
+                    newFeature.SetField(field, feat1.GetField(field))
+                layer.CreateFeature(newFeature)
+                layer.SetFeature(newFeature)
+    for item in listFID:
+        layer.DeleteFeature(item)
 
     ds.ExecuteSQL('REPACK ' + layer.GetName())
 
@@ -963,9 +949,8 @@ def VerifyGeom(geom, layer):
     verif = False
     for feat in layer:
         geom2 = feat.GetGeometryRef()
-        if geom and geom2:
-            if geom.Equal(geom2):
-                verif = True
+        if geom and geom2 and geom.Equal(geom2):
+            verif = True
 
     return verif
 
@@ -1042,8 +1027,8 @@ def CheckDoubleGeomTwofilesCopy(shp1, shp2, field):
     ds2 = openToRead(shp2)
     lyr2 = ds2.GetLayer()
     newshp = copyShp(shp1, "commonshape")
-    dict1 = dict()
-    dict2 = dict()
+    dict1 = {}
+    dict2 = {}
     dict3 = dict()
     for feat in lyr1:
         values = []
@@ -1081,14 +1066,14 @@ def getFieldNames(shp_in):
 			(Other solution(?):
 				ogrinfo -so shp_in short_shp_in
 	"""
-    list_field_names = []
     driver = ogr.GetDriverByName("ESRI Shapefile")
     dataSource = driver.Open(shp_in, 0)
     layer = dataSource.GetLayer()
     layerDefn = layer.GetLayerDefn()
-    for i in range(layerDefn.GetFieldCount()):
-        list_field_names.append(layerDefn.GetFieldDefn(i).GetName())
-    return list_field_names
+    return [
+        layerDefn.GetFieldDefn(i).GetName()
+        for i in range(layerDefn.GetFieldCount())
+    ]
 
 
 #--------------------------------------------------------------------

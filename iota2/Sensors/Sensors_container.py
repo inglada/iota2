@@ -74,12 +74,11 @@ class sensors_container():
         list
             list of manageable sensors' name
         """
-        available_sensors_name = [
+        return [
             landsat_5_old.name, landsat_8.name, landsat_8_old.name,
             sentinel_1.name, sentinel_2.name, sentinel_2_s2c.name,
             sentinel_2_l3a.name, user_features.name
         ]
-        return available_sensors_name
 
     def print_enabled_sensors_name(self):
         """define which sensors will be used
@@ -132,10 +131,12 @@ class sensors_container():
             If no sensors are found
             return None
         """
-        sensor_found = []
-        for sensor in self.enabled_sensors:
-            if sensor_name == sensor.__class__.name:
-                sensor_found.append(sensor)
+        sensor_found = [
+            sensor
+            for sensor in self.enabled_sensors
+            if sensor_name == sensor.__class__.name
+        ]
+
         if len(sensor_found) > 1:
             raise Exception(
                 "Too many sensors found with the name {}".format(sensor_name))
@@ -299,11 +300,10 @@ class sensors_container():
         list
             list of tuple containing (sensor's name, otbApplication)
         """
-        sensors_footprint = []
-        for sensor in self.enabled_sensors:
-            sensors_footprint.append(
-                (sensor.__class__.name, sensor.footprint(available_ram)))
-        return sensors_footprint
+        return [
+            (sensor.__class__.name, sensor.footprint(available_ram))
+            for sensor in self.enabled_sensors
+        ]
 
     def get_common_sensors_footprint(self, available_ram=128):
         """get common sensor's footprint
@@ -361,13 +361,11 @@ class sensors_container():
                              labels)
             where labels are sorted feature's name
         """
-        sensors_time_series = []
-        for sensor in self.enabled_sensors:
-            if "get_time_series" in dir(sensor):
-                sensors_time_series.append(
-                    (sensor.__class__.name,
-                     sensor.get_time_series(available_ram)))
-        return sensors_time_series
+        return [
+            (sensor.__class__.name, sensor.get_time_series(available_ram))
+            for sensor in self.enabled_sensors
+            if "get_time_series" in dir(sensor)
+        ]
 
     def get_sensors_time_series_masks(self, available_ram=128):
         """get time series masks to each enabled sensors
@@ -383,13 +381,11 @@ class sensors_container():
             list of tuple : (sensor's name, (otbApplication, dependencies,
                                              number of masks))
         """
-        sensors_time_series_masks = []
-        for sensor in self.enabled_sensors:
-            if "get_time_series_masks" in dir(sensor):
-                sensors_time_series_masks.append(
-                    (sensor.__class__.name,
-                     sensor.get_time_series_masks(available_ram)))
-        return sensors_time_series_masks
+        return [
+            (sensor.__class__.name, sensor.get_time_series_masks(available_ram))
+            for sensor in self.enabled_sensors
+            if "get_time_series_masks" in dir(sensor)
+        ]
 
     def get_sensors_time_series_gapfilling(self, available_ram=128):
         """get time series gapfilled to each enabled sensors
@@ -406,13 +402,14 @@ class sensors_container():
                                               labels))
             where labels are sorted feature's name
         """
-        sensors_time_series = []
-        for sensor in self.enabled_sensors:
-            if "get_time_series_gapfilling" in dir(sensor):
-                sensors_time_series.append(
-                    (sensor.__class__.name,
-                     sensor.get_time_series_gapfilling(available_ram)))
-        return sensors_time_series
+        return [
+            (
+                sensor.__class__.name,
+                sensor.get_time_series_gapfilling(available_ram),
+            )
+            for sensor in self.enabled_sensors
+            if "get_time_series_gapfilling" in dir(sensor)
+        ]
 
     def get_sensors_features(self, available_ram=128):
         """get features to each enabled sensors
@@ -429,8 +426,7 @@ class sensors_container():
                                               labels))
             where labels are sorted feature's name
         """
-        sensors_features = []
-        for sensor in self.enabled_sensors:
-            sensors_features.append(
-                (sensor.__class__.name, sensor.get_features(available_ram)))
-        return sensors_features
+        return [
+            (sensor.__class__.name, sensor.get_features(available_ram))
+            for sensor in self.enabled_sensors
+        ]

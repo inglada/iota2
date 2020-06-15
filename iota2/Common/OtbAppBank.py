@@ -2271,8 +2271,7 @@ def computeUserFeatures(stack, Dates, nbComponent, expressions):
         print computeExpressionDates(expr,nbDate,nbComp)
         >> ['(im1b1+im1b2)/(im1b3+im1b10+im1b1)', '(im1b11+im1b12)/(im1b13+im1b20+im1b11)', '(im1b21+im1b22)/(im1b23+im1b30+im1b21)']
         """
-        allBands = set(
-            [currentDec for currentDec in re.findall(r'[b]\d+', expr)])
+        allBands = set(re.findall(r'[b]\d+', expr))
         expressionValid = checkBands(allBands, nbComp)
         if not expressionValid:
             raise Exception("User features expression : '" + expr +
@@ -2374,7 +2373,7 @@ def writeInputDateFile(InDateFile, OutDateFile):
     with open(InDateFile, "r") as f_InDateFile:
         for line in f_InDateFile:
             date = (line.rstrip()).split("t")[0]
-            if not date in all_dates:
+            if date not in all_dates:
                 all_dates.append(date)
     outInputDates = "\n".join(all_dates)
 
@@ -2587,13 +2586,10 @@ def generateSARFeat_dates(sar_expressions, SAR_dict, output_raster=None):
         ]
     if ASC and DES:
         DES_features_exp_tmp = [elem for elem in DES_features_exp]
-        DES_features_exp = []
-        for feature_dates in DES_features_exp_tmp:
-
-            DES_features_exp.append([
+        DES_features_exp = [[
                 feature_date.replace("im1", "im3").replace("im2", "im4")
                 for feature_date in feature_dates
-            ])
+            ] for feature_dates in DES_features_exp_tmp]
         input_features = [
             SAR_dict["asc"]["vv"]["App"], SAR_dict["asc"]["vh"]["App"],
             SAR_dict["des"]["vv"]["App"], SAR_dict["des"]["vh"]["App"]
@@ -2793,12 +2789,12 @@ def computeSARfeatures(sarConfig,
                 SAR_mode, SAR_pol, date))
 
     userSAR_features = None
-    if not "none" in [elem.lower() for elem in hand_features_expr]:
+    if "none" not in [elem.lower() for elem in hand_features_expr]:
         userSAR_features, userSAR_features_lab = generateSARFeat_dates(
             hand_features_expr, SAR_gapfil)
         userSAR_features.Execute()
         SARFeatures.append(userSAR_features)
-        fields_names = fields_names + userSAR_features_lab
+        fields_names += userSAR_features_lab
 
     stackSARFeatures = CreateConcatenateImagesApplication({
         "il": SARFeatures,

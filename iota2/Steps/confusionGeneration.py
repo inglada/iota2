@@ -33,8 +33,7 @@ class confusionGeneration(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Generate confusions matrix by tiles")
-        return description
+        return "Generate confusions matrix by tiles"
 
     def step_inputs(self):
         """
@@ -55,8 +54,7 @@ class confusionGeneration(IOTA2Step.Step):
         """
         from MPI import launch_tasks as tLauncher
         bashLauncherFunction = tLauncher.launchBashCmd
-        step_function = lambda x: bashLauncherFunction(x)
-        return step_function
+        return lambda x: bashLauncherFunction(x)
 
     def step_outputs(self):
         """

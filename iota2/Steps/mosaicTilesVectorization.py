@@ -78,8 +78,7 @@ class mosaicTilesVectorization(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Mosaic raster tiles for serialisation strategy)")
-        return description
+        return "Mosaic raster tiles for serialisation strategy)"
 
     def step_inputs(self):
         """
@@ -105,10 +104,9 @@ class mosaicTilesVectorization(IOTA2Step.Step):
         if self.workingDirectory:
             self.tmpdir = self.workingDirectory
 
-        step_function = lambda x: mtr.mergeTileRaster(
+        return lambda x: mtr.mergeTileRaster(
             self.tmpdir, self.clipfile, self.clipfield, x, self.outfilegrid,
             self.outserial, "FID", "tile_", self.outmos)
-        return step_function
 
     def step_outputs(self):
         """

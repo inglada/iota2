@@ -43,8 +43,7 @@ class mosaic(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Mosaic")
-        return description
+        return "Mosaic"
 
     def step_inputs(self):
         """
@@ -80,12 +79,11 @@ class mosaic(IOTA2Step.Step):
             "chain", "spatialResolution")
         output_statistics = SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'outputStatistics')
-        step_function = lambda x: CS.classification_shaping(
+        return lambda x: CS.classification_shaping(
             x, self.runs, os.path.join(self.output_path, "final"), self.
             workingDirectory, classif_mode, self.output_path,
             ds_fusion_sar_opt, proj, nomenclature_path, output_statistics,
             spatial_res, enable_proba_map, region_path, self.color_table)
-        return step_function
 
     def step_outputs(self):
         """

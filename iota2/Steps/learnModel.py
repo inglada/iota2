@@ -55,8 +55,7 @@ class learnModel(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = "Learn model"
-        return description
+        return "Learn model"
 
     def step_inputs(self):
         """

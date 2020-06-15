@@ -25,7 +25,7 @@ class StepContainer(object):
 
     def append(self, step, step_group=""):
 
-        if not step in self.container:
+        if step not in self.container:
             self.container.append(step)
             step.step_group = step_group
         else:
@@ -40,8 +40,7 @@ class StepContainer(object):
         """
         The __contains__ method is based on step's name
         """
-        return any(
-            [step.step_name == step_ask.step_name for step in self.container])
+        return any(step.step_name == step_ask.step_name for step in self.container)
 
     def __setitem__(self, index, val):
         self.container[index] = val
@@ -165,40 +164,42 @@ class Step(object):
         """
         mandatory_type = {"cfg": "str"}
         for attribute, value in list(self.__dict__.items()):
-            if attribute in mandatory_type:
-                if value.__class__.__name__ != str(mandatory_type[attribute]):
-                    raise Exception(
-                        "in {} class, attribute '{}' must be of type : {} not {}"
-                        .format(self.__class__.__name__, attribute,
-                                mandatory_type[attribute],
-                                value.__class__.__name__))
+            if attribute in mandatory_type and value.__class__.__name__ != str(
+                mandatory_type[attribute]
+            ):
+                raise Exception(
+                    "in {} class, attribute '{}' must be of type : {} not {}"
+                    .format(self.__class__.__name__, attribute,
+                            mandatory_type[attribute],
+                            value.__class__.__name__))
 
     def check_mandatory_methods(self):
         """
         This method check if sub-class redefine mandatory methods
         """
 
-        if not self.__class__.__name__ == "Step":
-            # step_execute
-            if self.step_execute.__code__ is Step.step_execute.__code__:
-                err_mess = "'step_execute' method as to be define in : {} class ".format(
-                    self.__class__)
-                raise Exception(err_mess)
-            else:
-                # check step_execute output type
-                self.step_execute = return_decorator(self.step_execute)
+        if self.__class__.__name__ == "Step":
+            return
+        # step_execute
+        if self.step_execute.__code__ is Step.step_execute.__code__:
+            err_mess = "'step_execute' method as to be define in : {} class ".format(
+                self.__class__)
+            raise Exception(err_mess)
+        else:
+            # check step_execute output type
+            self.step_execute = return_decorator(self.step_execute)
 
-            # step_outputs
-            if self.step_outputs.__code__ is Step.step_outputs.__code__:
-                err_mess = "'step_outputs' method as to be define in : {} class ".format(
-                    self.__class__)
-                raise Exception(err_mess)
+        # step_outputs
+        if self.step_outputs.__code__ is Step.step_outputs.__code__:
+            err_mess = "'step_outputs' method as to be define in : {} class ".format(
+                self.__class__)
+            raise Exception(err_mess)
 
-            # step_inputs
-            if self.step_inputs.__code__ is Step.step_inputs.__code__:
-                err_mess = "'step_inputs' method as to be define in : {} class ".format(
-                    self.__class__)
-                raise Exception(err_mess)
+        # step_inputs
+        if self.step_inputs.__code__ is Step.step_inputs.__code__:
+            err_mess = "'step_inputs' method as to be define in : {} class ".format(
+                self.__class__)
+            raise Exception(err_mess)
 
     def __str__(self):
         return "{}".format(self.step_name)

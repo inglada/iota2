@@ -39,69 +39,65 @@ def shpPercentageSelection(infile, field, percentage, opath):
          listid.sort()
       listToChoice = random.sample(listid, int(polbysel))
       for fid in listToChoice:
-         listallid.append(fid)  
+         listallid.append(fid)
    listallid.sort()
    ch = ""
-   listFid = []
-   for fid in listallid:
-      listFid.append("FID="+str(fid))
+   listFid = ["FID="+str(fid) for fid in listallid]
    listToCh = []
    for Fid in listFid:
       listToCh.append(Fid)
       listToCh.append(' OR ')
    listToCh.pop()
-   per = string.replace(str(percentage),'.','p') 
+   per = string.replace(str(percentage),'.','p')
    finalCh =  ''.join(listToCh)
    layer.SetAttributeFilter(finalCh)
- 
+
    outShapefile = opath+"/"+namefile[-1]+"-"+str(per)+"perc.shp"
    CreateNewLayer(layer, outShapefile)
 
    return outShapefile
 
 def CreateNewLayer(layer, outShapefile):
-      inLayerDefn = layer.GetLayerDefn()
-      field_name_target = []
-      for i in range(inLayerDefn.GetFieldCount()):
-         field =  inLayerDefn.GetFieldDefn(i).GetName()
-         field_name_target.append(field)
-         outDriver = ogr.GetDriverByName("ESRI Shapefile")
-      if os.path.exists(outShapefile):
-        outDriver.DeleteDataSource(outShapefile)
-      outDataSource = outDriver.CreateDataSource(outShapefile)
-      out_lyr_name = os.path.splitext( os.path.split( outShapefile )[1] )[0]
-      srsObj = layer.GetSpatialRef()
-      outLayer = outDataSource.CreateLayer( out_lyr_name, srsObj, geom_type=ogr.wkbMultiPolygon )
-      # Add input Layer Fields to the output Layer if it is the one we want
-      inLayerDefn = layer.GetLayerDefn()
-      for i in range(0, inLayerDefn.GetFieldCount()):
-         fieldDefn = inLayerDefn.GetFieldDefn(i)
+   inLayerDefn = layer.GetLayerDefn()
+   field_name_target = []
+   for i in range(inLayerDefn.GetFieldCount()):
+      field =  inLayerDefn.GetFieldDefn(i).GetName()
+      field_name_target.append(field)
+      outDriver = ogr.GetDriverByName("ESRI Shapefile")
+   if os.path.exists(outShapefile):
+     outDriver.DeleteDataSource(outShapefile)
+   outDataSource = outDriver.CreateDataSource(outShapefile)
+   out_lyr_name = os.path.splitext( os.path.split( outShapefile )[1] )[0]
+   srsObj = layer.GetSpatialRef()
+   outLayer = outDataSource.CreateLayer( out_lyr_name, srsObj, geom_type=ogr.wkbMultiPolygon )
+   # Add input Layer Fields to the output Layer if it is the one we want
+   inLayerDefn = layer.GetLayerDefn()
+   for i in range(inLayerDefn.GetFieldCount()):
+      fieldDefn = inLayerDefn.GetFieldDefn(i)
+      fieldName = fieldDefn.GetName()
+      if fieldName not in field_name_target:
+          continue
+      outLayer.CreateField(fieldDefn)
+     # Get the output Layer's Feature Definition
+   outLayerDefn = outLayer.GetLayerDefn()
+     # Add features to the ouput Layer
+   for inFeature in layer:
+      # Create output Feature
+      outFeature = ogr.Feature(outLayerDefn)
+        # Add field values from input Layer
+      for i in range(outLayerDefn.GetFieldCount()):
+         fieldDefn = outLayerDefn.GetFieldDefn(i)
          fieldName = fieldDefn.GetName()
          if fieldName not in field_name_target:
              continue
-         outLayer.CreateField(fieldDefn)
-     # Get the output Layer's Feature Definition
-      outLayerDefn = outLayer.GetLayerDefn()
 
-     # Add features to the ouput Layer
-      for inFeature in layer:
-      # Create output Feature
-         outFeature = ogr.Feature(outLayerDefn)
-
-        # Add field values from input Layer
-         for i in range(0, outLayerDefn.GetFieldCount()):
-            fieldDefn = outLayerDefn.GetFieldDefn(i)
-            fieldName = fieldDefn.GetName()
-            if fieldName not in field_name_target:
-                continue
-
-            outFeature.SetField(outLayerDefn.GetFieldDefn(i).GetNameRef(),
-                inFeature.GetField(i))
+         outFeature.SetField(outLayerDefn.GetFieldDefn(i).GetNameRef(),
+             inFeature.GetField(i))
         # Set geometry as centroid
-         geom = inFeature.GetGeometryRef()
-         outFeature.SetGeometry(geom.Clone())
+      geom = inFeature.GetGeometryRef()
+      outFeature.SetGeometry(geom.Clone())
         # Add new feature to output Layer
-         outLayer.CreateFeature(outFeature)
+      outLayer.CreateFeature(outFeature)
 
 if __name__=='__main__':
 	usage= 'usage: <infile> <field> <percentage> <opath>'

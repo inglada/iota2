@@ -104,12 +104,10 @@ def getFieldValues(lyr, feature):
 
     fieldList = vf.getFields(lyr)
 
-    listFieldValues = []
-    for idfield in range(feature.GetFieldCount()):
-        listFieldValues.append(
-            (idfield, fieldList[idfield], feature.GetField(idfield)))
-
-    return listFieldValues
+    return [
+        (idfield, fieldList[idfield], feature.GetField(idfield))
+        for idfield in range(feature.GetFieldCount())
+    ]
 
 
 # --------------------------------------------------------------
@@ -133,22 +131,22 @@ def diffBetweenLayers(layer1,
         valuesfields1 = getFieldValues(layer1, feature1)
         layer2.ResetReading()
         geom1 = feature1.GetGeometryRef()
-        if geom1 == None:
+        if geom1 is None:
             continue
         feature2 = layer2.GetNextFeature()
         newgeom = geom1
         while feature2:
             geom2 = feature2.GetGeometryRef()
-            if geom2 == None:
+            if geom2 is None:
                 continue
-            if newgeom == None:
+            if newgeom is None:
                 continue
 
             if geom1.Intersects(geom2) == 1:
-                if operation == "intersection":
-                    newgeom = newgeom.Intersection(geom2)
-                elif operation == "difference":
+                if operation == "difference":
                     newgeom = newgeom.Difference(geom2)
+                elif operation == "intersection":
+                    newgeom = newgeom.Intersection(geom2)
                 elif operation == "union":
                     newgeom = newgeom.Union(geom2)
 
@@ -200,22 +198,22 @@ def diffBetweenLayersSpeedUp(layer2,
     print("Index creation...")
     index = rtree.index.Index(interleaved=False)
 
-    for fid1 in range(0, layer1.GetFeatureCount()):
+    for fid1 in range(layer1.GetFeatureCount()):
         feat1 = layer1.GetFeature(fid1)
         geom1 = feat1.GetGeometryRef()
-        if geom1 == None:
+        if geom1 is None:
             continue
         xmin, xmax, ymin, ymax = geom1.GetEnvelope()
         index.insert(fid1, (xmin, xmax, ymin, ymax))
         feat1.Destroy()
     # -- Search for all features in layer1 that intersect each feature in layer2
     print("Research...")
-    for fid2 in range(0, layer2.GetFeatureCount()):
+    for fid2 in range(layer2.GetFeatureCount()):
 
         feat2 = layer2.GetFeature(fid2)
         valuesfields2 = getFieldValues(layer2, feat2)
         geom2 = feat2.GetGeometryRef()
-        if geom2 == None:
+        if geom2 is None:
             continue
         newgeom = geom2
         xmin, xmax, ymin, ymax = geom2.GetEnvelope()
@@ -224,27 +222,27 @@ def diffBetweenLayersSpeedUp(layer2,
             feat1 = layer1.GetFeature(fid1)
             valuesfields1 = getFieldValues(layer1, feat1)
             geom1 = feat1.GetGeometryRef()
-            if geom1 == None:
+            if geom1 is None:
                 continue
             if field_name is not None and field_name != "":
                 if (geom2.Intersects(geom1)) and (feat1.GetField(field_name) !=
                                                   feat2.GetField(field_name)):
-                    if newgeom == None:
+                    if newgeom is None:
                         continue
-                    if operation == "intersection":
-                        newgeom = newgeom.Intersection(geom1)
-                    elif operation == "difference":
+                    if operation == "difference":
                         newgeom = newgeom.Difference(geom1)
+                    elif operation == "intersection":
+                        newgeom = newgeom.Intersection(geom1)
                     elif operation == "union":
                         newgeom = newgeom.Union(geom1)
             else:
-                if (geom2.Intersects(geom1)):
-                    if newgeom == None:
+                if geom2.Intersects(geom1):
+                    if newgeom is None:
                         continue
-                    if operation == "intersection":
-                        newgeom = newgeom.Intersection(geom1)
-                    elif operation == "difference":
+                    if operation == "difference":
                         newgeom = newgeom.Difference(geom1)
+                    elif operation == "intersection":
+                        newgeom = newgeom.Intersection(geom1)
                     elif operation == "union":
                         newgeom = newgeom.Union(geom1)
 
@@ -253,7 +251,7 @@ def diffBetweenLayersSpeedUp(layer2,
         valuesfields = [(x, y, z) for x, y, z in valuesfields1 if y in [tok[2] for tok in listfieldstokeep]] + \
                        [(x, y, z) for x, y, z in valuesfields2 if y in [tok[2] for tok in listfieldstokeep]]
 
-        if newgeom == None:
+        if newgeom is None:
             continue
         if newgeom.GetGeometryName() == 'MULTIPOLYGON':
             for geom_part in newgeom:

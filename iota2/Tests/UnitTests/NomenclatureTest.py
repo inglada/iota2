@@ -82,9 +82,7 @@ class iota_NomenclatureTest(unittest.TestCase):
 
         if os.path.exists(self.wd):
             shutil.rmtree(self.wd, ignore_errors=True)
-            os.mkdir(self.wd)
-        else:
-            os.mkdir(self.wd)
+        os.mkdir(self.wd)
 
     def list2reason(self, exc_list):
         if exc_list and exc_list[-1][0] is self:
@@ -100,7 +98,7 @@ class iota_NomenclatureTest(unittest.TestCase):
                              self._resultForDoCleanups)
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
-        ok = not error and not failure
+        ok = not (error or failure)
 
         self.all_tests_ok.append(ok)
         if ok:

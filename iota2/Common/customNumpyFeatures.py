@@ -105,8 +105,7 @@ class data_container:
 
             def get_band(indices=indices):
                 import numpy as np
-                data = np.take(self.data, indices, axis=2)
-                return data
+                return np.take(self.data, indices, axis=2)
 
             setattr(data_container, f"get_{sensor}_{band}", get_band)
 

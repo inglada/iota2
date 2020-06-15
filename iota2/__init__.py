@@ -2,5 +2,5 @@ import sys
 import os
 
 iota2dir, _ = os.path.split(__file__)
-if not iota2dir in sys.path :
+if iota2dir not in sys.path:
     sys.path.append(iota2dir)

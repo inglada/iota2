@@ -83,9 +83,7 @@ class zonalStatistics(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = (
-            "Compute statistics for each polygon of the classification")
-        return description
+        return "Compute statistics for each polygon of the classification"
 
     def step_inputs(self):
         """
@@ -100,10 +98,8 @@ class zonalStatistics(IOTA2Step.Step):
         tmpdir = os.path.join(self.outputPath, 'final', 'simplification',
                               'tmp')
 
-        params = zs.splitVectorFeatures(self.outfilesvectpath, tmpdir,
+        return zs.splitVectorFeatures(self.outfilesvectpath, tmpdir,
                                         self.chunk)
-
-        return params
 
     def step_execute(self):
         """
@@ -120,7 +116,7 @@ class zonalStatistics(IOTA2Step.Step):
         if self.workingDirectory:
             tmpdir = self.workingDirectory
 
-        step_function = lambda x: zs.zonalstats(
+        return lambda x: zs.zonalstats(
             tmpdir, [self.rastclass, self.rastconf, self.rastval],
             x[0:2],
             x[2],
@@ -128,8 +124,6 @@ class zonalStatistics(IOTA2Step.Step):
             classes=self.nomenclature,
             gdalpath=self.bingdal,
             systemcall=self.systemcall)
-
-        return step_function
 
     def step_outputs(self):
         """

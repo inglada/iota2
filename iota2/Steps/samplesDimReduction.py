@@ -39,8 +39,7 @@ class samplesDimReduction(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Dimensionality reduction")
-        return description
+        return "Dimensionality reduction"
 
     def step_inputs(self):
         """
@@ -60,9 +59,8 @@ class samplesDimReduction(IOTA2Step.Step):
             must be a lambda function.
         """
         from iota2.Sampling import DimensionalityReduction as DR
-        step_function = lambda x: DR.sample_dimensionality_reduction(
+        return lambda x: DR.sample_dimensionality_reduction(
             x, self.output_path, self.targetDimension, self.reductionMode)
-        return step_function
 
     def step_outputs(self):
         """

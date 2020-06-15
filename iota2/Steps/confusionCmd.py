@@ -38,8 +38,7 @@ class confusionCmd(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Prepare confusion matrix commands")
-        return description
+        return "Prepare confusion matrix commands"
 
     def step_inputs(self):
         """
@@ -58,7 +57,7 @@ class confusionCmd(IOTA2Step.Step):
             must be a lambda function.
         """
         from iota2.Validation import GenConfusionMatrix as GCM
-        step_function = lambda x: GCM.gen_conf_matrix(
+        return lambda x: GCM.gen_conf_matrix(
             x, os.path.join(self.output_path, "dataAppVal"), self.runs, self.
             data_field, os.path.join(self.output_path, "cmd", "confusion"
                                      ), self.workingDirectory,
@@ -68,7 +67,6 @@ class confusionCmd(IOTA2Step.Step):
             SCF.serviceConfigFile(self.cfg).getParam('chain', 'listTile'),
             SCF.serviceConfigFile(self.cfg).getParam('chain',
                                                      'enableCrossValidation'))
-        return step_function
 
     def step_outputs(self):
         """

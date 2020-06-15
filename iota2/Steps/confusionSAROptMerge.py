@@ -38,8 +38,7 @@ class confusionSAROptMerge(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Fusion of confusion matrix")
-        return description
+        return "Fusion of confusion matrix"
 
     def step_inputs(self):
         """
@@ -59,8 +58,7 @@ class confusionSAROptMerge(IOTA2Step.Step):
             must be a lambda function.
         """
         from iota2.Validation import ConfusionFusion as confFus
-        step_function = lambda x: confFus.confusion_models_merge(x)
-        return step_function
+        return lambda x: confFus.confusion_models_merge(x)
 
     def step_outputs(self):
         """

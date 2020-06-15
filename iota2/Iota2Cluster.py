@@ -94,8 +94,7 @@ def get_qsub_cmd(cfg, config_ressources=None, parallel_mode="MPI"):
     with open(iota2_main, "w") as iota2_f:
         iota2_f.write(pbs)
 
-    qsub = ("qsub {0}").format(iota2_main)
-    return qsub
+    return ("qsub {0}").format(iota2_main)
 
 
 def launchChain(cfg, config_ressources=None, parallel_mode="MPI", only_summary=False):

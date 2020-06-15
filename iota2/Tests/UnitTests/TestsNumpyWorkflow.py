@@ -144,7 +144,7 @@ class Iota2TestsNumpyWorkflow(unittest.TestCase):
                              self._resultForDoCleanups)
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
-        ok = not error and not failure
+        ok = not (error or failure)
 
         self.all_tests_ok.append(ok)
         if ok:
@@ -246,10 +246,11 @@ class Iota2TestsNumpyWorkflow(unittest.TestCase):
         with open(test_cross_val_results, "r") as cross_val_f:
             test_cross_val = [line.rstrip() for line in cross_val_f]
 
-        test_cv_val = all([
+        test_cv_val = all(
             val_to_find in test_cross_val
             for val_to_find in self.ref_cross_validation
-        ])
+        )
+
         self.assertTrue(test_cv_val, msg="cross validation failed")
 
     def test_sk_standardization(self):

@@ -37,8 +37,7 @@ class samplingLearningPolygons(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Select pixels in learning polygons by models")
-        return description
+        return "Select pixels in learning polygons by models"
 
     def sort_by_seed(self, item):
         """
@@ -81,10 +80,9 @@ class samplingLearningPolygons(IOTA2Step.Step):
             SCF.serviceConfigFile(self.cfg).getParam('argTrain',
                                                      'sampleSelection'))
         masks_name = "MaskCommunSL.tif"
-        step_function = lambda x: SamplesSelection.samples_selection(
+        return lambda x: SamplesSelection.samples_selection(
             x, self.workingDirectory, output_path, runs, epsg, masks_name,
             parameters, data_field, random_seed)
-        return step_function
 
     def step_outputs(self):
         """

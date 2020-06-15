@@ -177,10 +177,7 @@ def getAllDatasByDate(currentTile, rasterPatterns, masksPatterns, arboRaster, ar
     return allRasters, allDates
 
 def checkMaskFromRaster(raster, maskPatterns):
-    for currentPattern in maskPatterns:
-        if currentPattern in raster:
-            return True
-    return False
+    return any(currentPattern in raster for currentPattern in maskPatterns)
 
 def launchFit(sensorName, cmdPath, workingDirectory, outDirectory, outGridPath, outputGrid_tileNameField, outPixRes, outputProjection, interpolator, inputGrid_tileNameField, inputGRID, arboMask, masksInitValues, masksPatterns, arboRaster, rasterInitValue, rasterPatterns, TileFolder):
 

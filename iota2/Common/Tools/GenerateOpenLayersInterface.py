@@ -25,7 +25,7 @@ def getStringBetween(string, ch1, ch2):
                 if string[j] == ch2:
                     break
                 else:
-                    out = out+string[j]
+                    out += string[j]
             break
     return out
 #---------------------------------------------------------------------------------------------------------------------------------
@@ -35,10 +35,10 @@ def generate(listClassif, colorFile, pathOut, urlserveur):
 
     #Recherche du nom le plus long pour une classif
     Size = len("List of Classifications")
-    for i in range(len(listClassif)):
-        if len(listClassif[i][0]) > Size:
-            Size = int(len(listClassif[i][0]))
-    Size = 0.95*Size
+    for item in listClassif:
+        if len(item[0]) > Size:
+            Size = int(len(item[0]))
+    Size *= 0.95
     #loop over classifications and their results
     for classifName, results in listClassif:
         #Read classification's results
@@ -196,13 +196,24 @@ font-weight: bold;\n\
                     lineData.append((ClassNum, ClassName, redVal, greenVal, blueVal))
 
         color.close()
-        for i in range(len(lineData)):
-            if lineData[i][1] != "autres":
-                htmlFile.write('\n\
+        for lineDatum in lineData:
+            if lineDatum[1] != "autres":
+                htmlFile.write(
+                    '\n\
 					<tr>\n\
 					<td class="org-left"><FONT style="BACKGROUND-COLOR: rgb(%d,%d,%d)"> %s: %s</FONT></td>\n\
 					<td class="org-right">%f</td>\n\
-					</tr>'%(lineData[i][2], lineData[i][3], lineData[i][4], lineData[i][0], lineData[i][1], lineData[i][5]))
+					</tr>'
+                    % (
+                        lineDatum[2],
+                        lineDatum[3],
+                        lineDatum[4],
+                        lineDatum[0],
+                        lineDatum[1],
+                        lineDatum[5],
+                    )
+                )
+
             else:
                 """
 				#pour respecter ce qui est dans le fichier de couleurs

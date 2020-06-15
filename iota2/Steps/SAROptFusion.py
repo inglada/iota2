@@ -35,8 +35,7 @@ class SAROptFusion(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("SAR and optical post-classifications fusion")
-        return description
+        return "SAR and optical post-classifications fusion"
 
     def step_inputs(self):
         """
@@ -56,11 +55,12 @@ class SAROptFusion(IOTA2Step.Step):
             must be a lambda function.
         """
         from Classification import Fusion as FUS
-        step_function = lambda x: FUS.dempster_shafer_fusion(self.output_path,
-                                                             x,
-                                                             proba_map_flag=self.enable_proba_map,
-                                                             workingDirectory=self.workingDirectory)
-        return step_function
+        return lambda x: FUS.dempster_shafer_fusion(
+            self.output_path,
+            x,
+            proba_map_flag=self.enable_proba_map,
+            workingDirectory=self.workingDirectory,
+        )
 
     def step_outputs(self):
         """

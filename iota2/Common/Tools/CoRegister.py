@@ -69,15 +69,14 @@ def get_s2_tile_coverage(ifile: str) -> float:
     res_tab = []
     number_of_entry = len(detector_list[0])
     number_of_values = len(detector_list[0][0])
-    for i in range(0, number_of_entry):
-        for j in range(0, number_of_values):
+    for i in range(number_of_entry):
+        for j in range(number_of_values):
             res = 0
             for array in detector_list:
                 if res == 0 and array[i][j] != 'NaN':
                     res = 1
             res_tab.append(res)
-    coverage_percent = float(sum(res_tab)) / float(len(res_tab))
-    return coverage_percent
+    return float(sum(res_tab)) / float(len(res_tab))
 
 
 def get_s2_tile_cloud_cover(ifile: str) -> float:

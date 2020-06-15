@@ -43,13 +43,9 @@ def getRasterExtent(raster_in):
     """
 
     retour = []
-    if not os.path.isfile(raster_in):
-        pass
-    else:
+    if os.path.isfile(raster_in):
         raster = gdal.Open(raster_in, GA_ReadOnly)
-        if raster is None:
-            pass
-        else:
+        if raster is not None:
             geotransform = raster.GetGeoTransform()
             originX = geotransform[0]
             originY = geotransform[3]

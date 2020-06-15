@@ -85,7 +85,7 @@ class iota_testCoRegistration(unittest.TestCase):
                              self._resultForDoCleanups)
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
-        ok = not error and not failure
+        ok = not (error or failure)
 
         self.all_tests_ok.append(ok)
         if ok:
@@ -104,7 +104,7 @@ class iota_testCoRegistration(unittest.TestCase):
                                           os.path.join(self.datadir, "T38KPE"),
                                           'S2')
         ]
-        self.assertTrue(all([ex == out for ex, out in zip(expected, output)]))
+        self.assertTrue(all(ex == out for ex, out in zip(expected, output)))
 
     def test_launch_CoRegister(self):
         """

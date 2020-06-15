@@ -12,16 +12,16 @@ import argparse
 def FileByClass(vectorlayer, field, value, opath):
 #def FileByClass(vectorlayer, expression, opath):
 
-    if not isinstance(vectorlayer, osgeo.ogr.Layer):
-        ds = vf.openToRead(vectorlayer)
-        lyr = ds.GetLayer()
-    else:
+    if isinstance(vectorlayer, osgeo.ogr.Layer):
         lyr = vectorlayer
 
+    else:
+        ds = vf.openToRead(vectorlayer)
+        lyr = ds.GetLayer()
     if os.path.splitext(opath)[1] != ".shp":
         print("ESRI Shapefile required for output, output name will be replaced to {}.shp".format(os.path.splitext(opath)[0]))
         opath = os.path.splitext(opath)[0] + '.shp'
-        
+
     lyr_dfn = lyr.GetLayerDefn()
     inLayerDefn = lyr.GetLayerDefn()
     field_name_list = []
@@ -37,23 +37,22 @@ def FileByClass(vectorlayer, field, value, opath):
         fieldTypeCode = inLayerDefn.GetFieldDefn(i).GetType()
         fieldType = inLayerDefn.GetFieldDefn(i).GetFieldTypeName(fieldTypeCode)
         values = vf.ListValueFields(vectorlayer, field)
-        if fieldType != "String":
-            for v in values:
+        for v in values:
+            if fieldType == "String":
+                if v in value:
+                    lyr.SetAttributeFilter(field + "=\'" + v + "\'")
+                    print(opath)
+                    vf.CreateNewLayer(lyr, opath)
+                    lyr.SetAttributeFilter(None)
+                else:
+                    print("the value {} does not exist, vector file not created".format(v))
+            else:
                 if isinstance(value, float) or isinstance(value, int) or isinstance(value, str): 
                     value = [float(value)]
                 else:
                     value = list(map(float, value))
                 if float(v) in value:
                     lyr.SetAttributeFilter(field + "=" + str(v))
-                    vf.CreateNewLayer(lyr, opath)
-                    lyr.SetAttributeFilter(None)
-                else:
-                    print("the value {} does not exist, vector file not created".format(v))
-        else:
-            for v in values:
-                if v in value:
-                    lyr.SetAttributeFilter(field + "=\'" + v + "\'")
-                    print(opath)
                     vf.CreateNewLayer(lyr, opath)
                     lyr.SetAttributeFilter(None)
                 else:

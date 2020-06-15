@@ -68,10 +68,9 @@ def get_models(formatting_vector_directory: str, region_field: str,
         region_tile_dic[region] = list(set(region_tiles))
 
     all_regions_in_run = sorted(all_regions_in_run)
-    regions_tiles_seed = [(region, region_tile_dic[region], run)
+    return [(region, region_tile_dic[region], run)
                           for run in range(runs)
                           for region in all_regions_in_run]
-    return regions_tiles_seed
 
 
 def extract_poi(tile_vector: str,
@@ -98,7 +97,6 @@ def extract_poi(tile_vector: str,
     """
     from iota2.Common.Utils import run
     learn_flag = "learn"
-    validation_flag = "validation"
     seed_field = "seed_{}".format(seed)
     cmd = (f"ogr2ogr -where \"{region_field}='{region}' AND {seed_field}"
            f"='{learn_flag}'\" {poi} {tile_vector}")
@@ -106,6 +104,7 @@ def extract_poi(tile_vector: str,
     if poi_val:
         if force_seed_field:
             seed_field = force_seed_field
+        validation_flag = "validation"
         cmd = (f"ogr2ogr -where \"{region_field}='{region}' AND {seed_field}="
                f"'{validation_flag}'\" {poi_val} {tile_vector}")
         run(cmd)

@@ -35,8 +35,7 @@ class genRegionVector(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Generate a region vector")
-        return description
+        return "Generate a region vector"
 
     def step_inputs(self):
         """
@@ -62,10 +61,9 @@ class genRegionVector(IOTA2Step.Step):
         field_Region = SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'regionField')
 
-        step_function = lambda x: area.generate_region_shape(
+        return lambda x: area.generate_region_shape(
             pathEnvelope, x, field_Region, self.outputPath, self.
             workingDirectory)
-        return step_function
 
     def step_outputs(self):
         """

@@ -47,9 +47,10 @@ def extraction(vectorFill, vectorSource, field, field_val, driversFill,
         FIDColumn = "FID"
 
     FIDMAX = [
-        max([feat.GetFID() for feat in currentLayerToFill])
+        max(feat.GetFID() for feat in currentLayerToFill)
         for currentLayerToFill in layerFill
     ]
+
 
     listFieldSource = fu.get_all_fields_in_shape(vectorSource, driversSource)
 
@@ -85,12 +86,8 @@ def extraction(vectorFill, vectorSource, field, field_val, driversFill,
                 dstfeature.SetGeometry(geom)
                 dstfeature.SetFID(newfid + 1)
                 newfid += 1
-                indIn = 0
-                while indIn < len(listFieldSource):
-                    dstfeature.SetField(
-                        listFieldSource[indIn],
-                        feature.GetField(listFieldSource[indIn]))
-                    indIn += 1
+                for item in listFieldSource:
+                    dstfeature.SetField(item, feature.GetField(item))
                 layerToFill.CreateFeature(dstfeature)
 
                 dstfeature.Destroy()

@@ -26,20 +26,20 @@ def deleteDuplicateGeometriesSqlite(shapefile, outformat = "ESRI shapefile",
         (output_shape, duplicates_features_number) where duplicates_features_number
         is the number of duplicated features
     """
-    if outformat != "SQlite":
+    if outformat == "SQlite":
+        outsqlite = shapefile
+
+    else:
         tmpnamelyr = "tmp" + os.path.splitext(os.path.basename(shapefile))[0]
         tmpname = "%s.sqlite"%(tmpnamelyr)
         outsqlite = os.path.join(os.path.dirname(shapefile), tmpname)
         os.system("ogr2ogr -f SQLite %s %s -nln tmp"%(outsqlite, shapefile))
-    else:
-        outsqlite = shapefile
-
     conn = lite.connect(outsqlite)
     cursor = conn.cursor()
 
     cursor.execute("select count(*) from tmp")
     nbfeat0 = cursor.fetchall()
-    
+
     cursor.execute("create temporary table to_del (ogc_fid int, geom blob);")
     cursor.execute("insert into to_del(ogc_fid, geom) select min(ogc_fid), GEOMETRY from tmp group by GEOMETRY having count(*) > 1;")
     cursor.execute("delete from tmp where exists(select * from to_del where to_del.geom = tmp.GEOMETRY and to_del.ogc_fid <> tmp.ogc_fid);")
@@ -56,22 +56,21 @@ def deleteDuplicateGeometriesSqlite(shapefile, outformat = "ESRI shapefile",
             os.system("rm %s"%(shapefile))
 
         shapefile = output_file if output_file is not None else shapefile
-        
+
         if output_file is None and outformat != "SQlite":
             os.system("ogr2ogr -f 'ESRI Shapefile' %s %s"%(shapefile, outsqlite))
 
-        if nb_dupplicates != 0:
-            if quiet_mode is False:
+        if quiet_mode is False:
+            if nb_dupplicates != 0:
                 print("Analyse of duplicated features done. %s duplicates found and deleted"%(nb_dupplicates))
-        else:
-            if quiet_mode is False:
+            else:
                 print("Analyse of duplicated features done. No duplicates found")
-            
+
         cursor = conn = None
-        
+
     if outformat != "SQlite":
         os.remove(outsqlite)
-        
+
     return shapefile, nb_dupplicates
 
 if __name__ == "__main__":

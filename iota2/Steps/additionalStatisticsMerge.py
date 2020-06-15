@@ -35,8 +35,7 @@ class additionalStatisticsMerge(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Merge additional statistics")
-        return description
+        return "Merge additional statistics"
 
     def step_inputs(self):
         """
@@ -55,8 +54,7 @@ class additionalStatisticsMerge(IOTA2Step.Step):
             must be a lambda function.
         """
         from iota2.Validation import MergeOutStats as MOutS
-        step_function = lambda x: MOutS.merge_output_statistics(x, self.runs)
-        return step_function
+        return lambda x: MOutS.merge_output_statistics(x, self.runs)
 
     def step_outputs(self):
         """

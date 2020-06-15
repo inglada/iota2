@@ -186,7 +186,7 @@ def checkSameFile(files, patterns=["res_ref", "res_test"]):
             for line in f1:
                 line_tmp = line
                 for patt in patterns:
-                    if patt in line:
+                    if patt in line_tmp:
                         line_tmp = line.replace(patt, replacedBy)
                 with open(file_tmp, "a") as f2:
                     f2.write(line_tmp)
@@ -212,10 +212,8 @@ def checkSameEnvelope(EvRef, EvTest):
     miX_ref, miY_ref, maX_ref, maY_ref = fu.getShapeExtent(EvRef)
     miX_test, miY_test, maX_test, maY_test = fu.getShapeExtent(EvTest)
 
-    if ((miX_ref == miX_test) and (miY_test == miY_ref)
-            and (maX_ref == maX_test) and (maY_ref == maY_test)):
-        return True
-    return False
+    return ((miX_ref == miX_test) and (miY_test == miY_ref)
+            and (maX_ref == maX_test) and (maY_ref == maY_test))
 
 
 def prepareAnnualFeatures(workingDirectory, referenceDirectory, pattern):

@@ -52,19 +52,19 @@ def FileSearch_fast(PathToFolder, AllPath, *names):
     """
     out = []
     for path, dirs, files in os.walk(PathToFolder):
-        for i in range(len(files)):
+        for file in files:
             flag = 0
             for name in names:
-                if files[i].count(name) != 0 and files[i].count(".aux.xml") == 0:
+                if file.count(name) != 0 and file.count(".aux.xml") == 0:
                     flag += 1
             if flag == len(names):
                 #if not AllPath:
                 #    return files[i].split(".")[0]
                 #else:
                 #    return path+'/'+files[i]
-                retour = files[i].split(".")[0]
+                retour = file.split(".")[0]
                 if AllPath:
-                    retour = path+'/'+files[i]
+                    retour = path+'/' + file
                 return retour
 
 def getRasterOrigin(raster_in):
@@ -94,8 +94,7 @@ def priorityOrigin(item):
     return(-item[2], item[1])#upper left priority
 
 def sortTiles(paths):
-    paths_sort = sorted(paths, key=priorityOrigin)
-    return paths_sort
+    return sorted(paths, key=priorityOrigin)
 
 def getTileSameDate(folder):
     buf = []
@@ -104,8 +103,7 @@ def getTileSameDate(folder):
         date = currentContent.split("_")[2].split("-")[0]
         buf.append((date, folder+"/"+currentContent))
     buf = fu.sortByFirstElem(buf)
-    out = [currentList for date, currentList in buf if len(currentList) > 1]
-    return out
+    return [currentList for date, currentList in buf if len(currentList) > 1]
 
 def addLineToFile(inputFile, line):
     svgFile = open(inputFile, "a")

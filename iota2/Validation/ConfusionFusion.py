@@ -44,10 +44,10 @@ def compute_kappa(confusion_matrix: np.ndarray) -> float:
 
     ## the lucky rate.
     lucky_rate = 0.
-    for i in range(0, confusion_matrix.shape[0]):
+    for i in range(confusion_matrix.shape[0]):
         sum_ij = 0.
         sum_ji = 0.
-        for j in range(0, confusion_matrix.shape[0]):
+        for j in range(confusion_matrix.shape[0]):
             sum_ij += confusion_matrix[i][j]
             sum_ji += confusion_matrix[j][i]
         lucky_rate += sum_ij * sum_ji
@@ -87,10 +87,7 @@ def compute_precision_by_class(confusion_matrix: np.ndarray,
             denom += confusion_matrix[j][i]
             if i == j:
                 nom = confusion_matrix[j][i]
-        if denom != 0:
-            current_pre = float(nom) / float(denom)
-        else:
-            current_pre = 0.
+        current_pre = float(nom) / float(denom) if denom != 0 else 0.
         precision.append((all_class[i], current_pre))
     return precision
 
@@ -117,10 +114,7 @@ def compute_recall_by_class(confusion_matrix: np.ndarray,
             denom += confusion_matrix[i][j]
             if i == j:
                 nom = confusion_matrix[i][j]
-        if denom != 0:
-            current_recall = float(nom) / float(denom)
-        else:
-            current_recall = 0.
+        current_recall = float(nom) / float(denom) if denom != 0 else 0.
         recall.append((all_class[i], current_recall))
     return recall
 
@@ -148,16 +142,16 @@ def write_csv(confusion_matrix: np.ndarray, all_class: List[int],
         if i < len(all_class) - 1:
             all_c = all_c + str(all_class[i]) + ","
         else:
-            all_c = all_c + str(all_class[i])
+            all_c += str(all_class[i])
     csv_file = open(path_out, "w")
     csv_file.write("#Reference labels (rows):" + all_c + "\n")
     csv_file.write("#Produced labels (columns):" + all_c + "\n")
-    for i in range(len(confusion_matrix)):
-        for j in range(len(confusion_matrix[i])):
-            if j < len(confusion_matrix[i]) - 1:
-                csv_file.write(str(confusion_matrix[i][j]) + ",")
+    for item in confusion_matrix:
+        for j in range(len(item)):
+            if j < len(item) - 1:
+                csv_file.write(str(item[j]) + ",")
             else:
-                csv_file.write(str(confusion_matrix[i][j]) + "\n")
+                csv_file.write(str(item[j]) + "\n")
     csv_file.close()
 
 
@@ -292,14 +286,14 @@ def replace_annual_crop_in_conf_mat(confusion_matrix: np.ndarray,
     matrix.insert(index_ac, tmp_y)
 
     #replace produced labels in confusion matrix
-    for y in range(len(matrix)):
+    for item in matrix:
         tmp_x = []
         buff = 0
         for x in range(len(matrix[0])):
             if x not in all_index:
-                tmp_x.append(matrix[y][x])
+                tmp_x.append(item[x])
             else:
-                buff += matrix[y][x]
+                buff += item[x]
         tmp_x.insert(index_ac, buff)
         out_matrix.append(tmp_x)
     return np.asarray(out_matrix), all_class_ac
@@ -334,8 +328,7 @@ def confusion_models_merge_parameters(iota2_dir: str):
         key_param = (csv_model, csv_seed, csv_mode)
 
         model_group.append((key_param, csv))
-    groups_param = [param for key, param in fu.sortByFirstElem(model_group)]
-    return groups_param
+    return [param for key, param in fu.sortByFirstElem(model_group)]
 
 
 def merge_confusions(csv_in, labels, csv_out):
@@ -382,7 +375,7 @@ def confusion_models_merge(csv_list):
             for lab in list(conf_mat_dic[list(conf_mat_dic.keys())[0]].keys())
         ]
         all_labels = labels_ref + labels_prod
-        labels = labels + all_labels
+        labels += all_labels
 
     labels = sorted(list(set(labels)))
     merge_confusions(csv_list, labels, output_merged_csv)
@@ -437,19 +430,12 @@ def confusion_fusion(input_vector: str, data_field: str, csv_out: str,
             conf_mat, all_class = replace_annual_crop_in_conf_mat(
                 conf_mat, all_class, annual_crop,
                 annual_crop_label_replacement)
-            write_csv(conf_mat, all_class,
-                      csv_out + "/Classif_Seed_" + str(seed) + ".csv")
-        else:
-            write_csv(conf_mat, all_class,
-                      csv_out + "/Classif_Seed_" + str(seed) + ".csv")
-
+        write_csv(conf_mat, all_class,
+                  csv_out + "/Classif_Seed_" + str(seed) + ".csv")
         nbr_good = conf_mat.trace()
         nbr_sample = conf_mat.sum()
 
-        if nbr_sample > 1:
-            overall_acc = float(nbr_good) / float(nbr_sample)
-        else:
-            overall_acc = 0.0
+        overall_acc = float(nbr_good) / float(nbr_sample) if nbr_sample > 1 else 0.0
         kappa = compute_kappa(conf_mat)
         precision = compute_precision_by_class(conf_mat, all_class)
         recall = compute_recall_by_class(conf_mat, all_class)

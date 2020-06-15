@@ -82,7 +82,7 @@ def createRegionsByTiles(shapeRegion, field_Region, pathToEnv, pathOut, pathWd,
         - pathWd : path to working directory (not mandatory, due to cluster's architecture default = None)
     """
     pathName = pathWd
-    if pathWd == None:
+    if pathWd is None:
         #sequential case
         pathName = pathOut
 
@@ -96,7 +96,7 @@ def createRegionsByTiles(shapeRegion, field_Region, pathToEnv, pathOut, pathWd,
             logger_.info("Extract %s in %s", shp, tile)
             pathToClip = fu.ClipVectorData(shp, tile, pathName)
             AllClip.append(pathToClip)
-        
+
     if pathWd:
         for clip in AllClip:
             cmd = "cp "+clip.replace(".shp", "*")+" "+pathOut

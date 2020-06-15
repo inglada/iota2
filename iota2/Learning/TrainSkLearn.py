@@ -299,13 +299,12 @@ def sk_learn(dataset_path: str,
 
     clf = model_name_to_function(sk_model_name)
 
-    if cv_parameters:
-        if not can_perform_cv(cv_parameters, clf):
-            fail_msg = ("ERROR : impossible to cross validate the model `{}` "
-                        "with the parameters {}".format(sk_model_name,
-                                                        list(cv_parameters.keys())))
-            logger.error(fail_msg)
-            raise ValueError(fail_msg)
+    if cv_parameters and not can_perform_cv(cv_parameters, clf):
+        fail_msg = ("ERROR : impossible to cross validate the model `{}` "
+                    "with the parameters {}".format(sk_model_name,
+                                                    list(cv_parameters.keys())))
+        logger.error(fail_msg)
+        raise ValueError(fail_msg)
 
     clf = clf(**kwargs)
     force_proba(clf)

@@ -32,10 +32,7 @@ class splitSamples(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = (
-            "split learning polygons and Validation polygons in sub-sample if necessary"
-        )
-        return description
+        return "split learning polygons and Validation polygons in sub-sample if necessary"
 
     def step_inputs(self):
         """
@@ -56,7 +53,7 @@ class splitSamples(IOTA2Step.Step):
         from iota2.Sampling import SplitSamples as splitS
         from iota2.Common import ServiceConfigFile as SCF
 
-        step_function = lambda x: splitS.split_samples(
+        return lambda x: splitS.split_samples(
             SCF.serviceConfigFile(x).getParam("chain", "outputPath"),
             SCF.serviceConfigFile(x).getParam("chain", "dataField"),
             SCF.serviceConfigFile(x).getParam("chain", "enableCrossValidation"
@@ -69,7 +66,6 @@ class splitSamples(IOTA2Step.Step):
             SCF.serviceConfigFile(x).getParam("chain", "runs"),
             SCF.serviceConfigFile(x).getParam("GlobChain", "proj"), self.
             workingDirectory)
-        return step_function
 
     def step_outputs(self):
         """

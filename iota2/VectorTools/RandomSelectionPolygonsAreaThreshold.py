@@ -74,13 +74,13 @@ def get_randomPolyAreaThresh(wd,
         f = open(nolistid, 'r')
         nolistidstr = f.readline()
         nolistidtab = nolistidstr.split(',')
-        nofid = set([int(y) for y in nolistidtab])
+        nofid = {int(y) for y in nolistidtab}
         listidtokeep = set(list(listiddic.keys())).difference(nofid)
         listidfinal = [(x, listiddic[x]) for x in list(listidtokeep)]
-        #listidfinal = [x for x in listid if x[0] in listidtokeep]
-        #print listid
-        #listid = [x for x in listid if x[0] not in [int(y) for y in nolistidtab]]
-        #print listid
+            #listidfinal = [x for x in listid if x[0] in listidtokeep]
+            #print listid
+            #listid = [x for x in listid if x[0] not in [int(y) for y in nolistidtab]]
+            #print listid
     else:
         listidfinal = list(listiddic.items())
 
@@ -101,7 +101,6 @@ def get_randomPolyAreaThresh(wd,
         f.write(strCondglob)
         f.close()
 
-    sqlite3_query_limit = 1000.0
     if outShapefile is not None:
         lyrtmpsqlite = os.path.splitext(os.path.basename(shapefile))[0]
         tmpsqlite = os.path.join(wd, "tmp" + lyrtmpsqlite + '.sqlite')
@@ -111,6 +110,7 @@ def get_randomPolyAreaThresh(wd,
         conn = db.connect(tmpsqlite)
         cursor = conn.cursor()
 
+        sqlite3_query_limit = 1000.0
         nb_sub_split_SQLITE = int(
             math.ceil(len(listToChoice) / sqlite3_query_limit))
         sub_FID_sqlite = fut.splitList(listToChoice, nb_sub_split_SQLITE)

@@ -435,8 +435,8 @@ class serviceConfigFile:
 
             if valeurs != "":
                 ok = 0
-                for index in range(len(valeurs)):
-                    if tmpVar == valeurs[index]:
+                for valeur in valeurs:
+                    if tmpVar == valeur:
                         ok = 1
                 if ok == 0:
                     message = ("bad value for '" + variable +
@@ -607,9 +607,6 @@ class serviceConfigFile:
                 raise sErr.configError("chain.regionPath must be set")
 
             region_field = cfg.chain.regionField
-            if not region_path:
-                raise sErr.configError("chain.regionField must be set")
-
             driver = ogr.GetDriverByName("ESRI Shapefile")
             dataSource = driver.Open(region_path, 0)
             if dataSource is None:
@@ -960,9 +957,7 @@ class serviceConfigFile:
             raise Exception("Variable is not in the configuration file: " +
                             str(variable))
 
-        tmpVar = getattr(objSection, variable)
-
-        return tmpVar
+        return getattr(objSection, variable)
 
     def setParam(self, section, variable, value):
         """

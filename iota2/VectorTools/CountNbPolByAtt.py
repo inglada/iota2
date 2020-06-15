@@ -46,9 +46,8 @@ def countByAtt(shpfile, field, storecsv="", val=None):
     if "POLYGON" in vf.getGeomTypeFromFeat(shpfile):
         for feat in layer:
             geom = feat.GetGeometryRef()
-            if geom:
-                if not math.isnan(geom.GetArea()):
-                    totalarea += geom.GetArea()
+            if geom and not math.isnan(geom.GetArea()):
+                totalarea += geom.GetArea()
 
     stats = []
     for cl in classes:
@@ -74,7 +73,6 @@ def countByAtt(shpfile, field, storecsv="", val=None):
                 print("Class # %s: %s features" % (str(cl), str(featureCount)))
                 stats.append([cl, featureCount])
 
-            layer.ResetReading()
         else:
             layer.SetAttributeFilter(field + " = " + str(cl))
             featureCount = layer.GetFeatureCount()
@@ -97,8 +95,7 @@ def countByAtt(shpfile, field, storecsv="", val=None):
 
                 stats.append([cl, featureCount])
 
-            layer.ResetReading()
-
+        layer.ResetReading()
     if storecsv != "" and storecsv is not None:
         with open(storecsv, "w") as f:
             writer = csv.writer(f)

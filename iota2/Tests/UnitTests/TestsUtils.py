@@ -24,28 +24,6 @@ def add_empty_geom(db_path, driver_name: Optional[str] = "ESRI Shapefile"):
     """
     raise Exception("add_empty_geom does not work")
 
-    import osgeo.ogr as ogr
-
-    driver = ogr.GetDriverByName(driver_name)
-    data_src = driver.Open(db_path, 1)
-    layer_src = data_src.GetLayer()
-
-    field_name = layer_src.GetLayerDefn().GetFieldDefn(0).GetName()
-    field_type = layer_src.GetLayerDefn().GetFieldDefn(0).GetTypeName()
-
-    new_feature = ogr.Feature(layer_src.GetLayerDefn())
-    empty_geom = ogr.Geometry(type=ogr.wkbPolygon)
-    print(empty_geom.IsEmpty())
-
-    if "Interger" in field_type:
-        new_feature.SetField(field_name, 1)
-    else:
-        new_feature.SetField(field_name, "1")
-    new_feature.SetGeometry(empty_geom)
-    layer_src.CreateFeature(new_feature)
-    layer_src.SyncToDisk()
-    new_feature = layer_src = data_src = None
-
 
 def compare_vector_raster(in_vec: str, vec_field: str, field_values: List[int],
                           in_img: str) -> List[int]:
@@ -69,10 +47,10 @@ def compare_vector_raster(in_vec: str, vec_field: str, field_values: List[int],
     vec_array = rasterization.GetImageAsNumpyArray("out")
     y_coords, x_coords = np.where(np.isin(vec_array, field_values))
     classif_array = rasterToArray(in_img)
-    values = []
-    for y_coord, x_coord in zip(y_coords, x_coords):
-        values.append(classif_array[y_coord][x_coord])
-    return values
+    return [
+        classif_array[y_coord][x_coord]
+        for y_coord, x_coord in zip(y_coords, x_coords)
+    ]
 
 
 def test_raster_unique_value(raster_path, value, band_num=-1):
@@ -193,7 +171,7 @@ def compute_brightness_from_vector(input_vector):
     """
     import math
     brightness = None
-    brightness = math.sqrt(sum([val**2 for val in input_vector]))
+    brightness = math.sqrt(sum(val**2 for val in input_vector))
     return brightness
 
 
@@ -347,18 +325,26 @@ def cmp_xml_stat_files(xml_1, xml_2):
     tree_2 = ET.parse(xml_2)
     root_2 = tree_2.getroot()
 
-    xml_1_stats["samplesPerClass"] = set([(samplesPerClass.attrib["key"],
-                                           samplesPerClass.attrib["value"])
-                                          for samplesPerClass in root_1[0]])
-    xml_1_stats["samplesPerVector"] = set([(samplesPerClass.attrib["key"],
-                                            samplesPerClass.attrib["value"])
-                                           for samplesPerClass in root_1[1]])
+    xml_1_stats["samplesPerClass"] = {
+        (samplesPerClass.attrib["key"], samplesPerClass.attrib["value"])
+        for samplesPerClass in root_1[0]
+    }
 
-    xml_2_stats["samplesPerClass"] = set([(samplesPerClass.attrib["key"],
-                                           samplesPerClass.attrib["value"])
-                                          for samplesPerClass in root_2[0]])
-    xml_2_stats["samplesPerVector"] = set([(samplesPerClass.attrib["key"],
-                                            samplesPerClass.attrib["value"])
-                                           for samplesPerClass in root_2[1]])
+    xml_1_stats["samplesPerVector"] = {
+        (samplesPerClass.attrib["key"], samplesPerClass.attrib["value"])
+        for samplesPerClass in root_1[1]
+    }
+
+
+    xml_2_stats["samplesPerClass"] = {
+        (samplesPerClass.attrib["key"], samplesPerClass.attrib["value"])
+        for samplesPerClass in root_2[0]
+    }
+
+    xml_2_stats["samplesPerVector"] = {
+        (samplesPerClass.attrib["key"], samplesPerClass.attrib["value"])
+        for samplesPerClass in root_2[1]
+    }
+
 
     return xml_1_stats == xml_2_stats

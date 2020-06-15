@@ -113,9 +113,7 @@ def genIntersectionShape(vector1, vector2, vector_out):
     out_lyr.CreateFeature(feature)
     feature = data_source = None
 
-    if intersection_geom.GetArea() != 0:
-        return True
-    return False
+    return intersection_geom.GetArea() != 0
 
 def upperLeft(item):
     """

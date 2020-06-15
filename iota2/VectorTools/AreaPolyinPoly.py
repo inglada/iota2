@@ -33,7 +33,7 @@ def AreaPoly(shp1, shp2):
         print(feat.GetFID())
         for feat2 in lyr2:
             geom2 = feat2.GetGeometryRef()
-            area2 = area2 + geom2.GetArea()
+            area2 += geom2.GetArea()
         areaP = (area2 / area1) * 100
         lyr.SetFeature(feat)
         feat.SetField(field, areaP)

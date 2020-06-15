@@ -309,7 +309,7 @@ class sentinel_1():
         sar_features_expr = None
         if config.has_option("Features", "expression"):
             sar_features_expr_cfg = config.get("Features", "expression")
-            if not "none" in sar_features_expr_cfg.lower():
+            if "none" not in sar_features_expr_cfg.lower():
                 sar_features_expr = sar_features_expr_cfg.split(",")
 
         dependancies = [dependancies]

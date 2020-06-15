@@ -36,8 +36,7 @@ class CommonMasks(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Generate a common masks for each sensors")
-        return description
+        return "Generate a common masks for each sensors"
 
     def step_inputs(self):
         """
@@ -46,9 +45,8 @@ class CommonMasks(IOTA2Step.Step):
             the return could be and iterable or a callable
         """
         from iota2.Common import ServiceConfigFile as SCF
-        tiles = SCF.serviceConfigFile(self.cfg).getParam('chain',
+        return SCF.serviceConfigFile(self.cfg).getParam('chain',
                                                          'listTile').split(" ")
-        return tiles
 
     def step_execute(self):
         """
@@ -61,10 +59,9 @@ class CommonMasks(IOTA2Step.Step):
         from Sensors import ProcessLauncher
         from iota2.Common import ServiceConfigFile as SCF
         sensors_params = SCF.iota2_parameters(self.cfg)
-        step_function = lambda x: ProcessLauncher.commonMasks(
+        return lambda x: ProcessLauncher.commonMasks(
             x, self.output_path, sensors_params.get_sensors_parameters(x), self
             .workingDirectory, self.RAM)
-        return step_function
 
     def step_outputs(self):
         """

@@ -35,8 +35,7 @@ class samplesByModels(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Merge samples dedicated to the same model")
-        return description
+        return "Merge samples dedicated to the same model"
 
     def step_inputs(self):
         """
@@ -55,10 +54,9 @@ class samplesByModels(IOTA2Step.Step):
             the function to execute as a lambda function. The returned object
             must be a lambda function.
         """
-        step_function = lambda x: VSM.vector_samples_merge(
+        return lambda x: VSM.vector_samples_merge(
             x,
             SCF.serviceConfigFile(self.cfg).getParam("chain", "outputPath"))
-        return step_function
 
     def step_outputs(self):
         """

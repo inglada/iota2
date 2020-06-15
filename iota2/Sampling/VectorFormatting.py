@@ -384,8 +384,7 @@ def built_where_sql_exp(sample_id_to_extract: List[int], clause: str):
     list_fid = [
         f"fid {clause} ({','.join(chunk)})" for chunk in sample_id_to_extract
     ]
-    sql_exp = " OR ".join(list_fid)
-    return sql_exp
+    return " OR ".join(list_fid)
 
 
 def extract_maj_vote_samples(vec_in: str,
@@ -646,11 +645,11 @@ def vector_formatting(
     # to the polygon number
     ChangeNameField.changeName(output, "t2_ogc_fid", "originfid")
 
-    if merge_final_classifications and fusion_merge_all_validation is False:
+    if merge_final_classifications and not fusion_merge_all_validation:
         maj_vote_sample_tile_name = "{}_majvote.sqlite".format(tile_name)
         maj_vote_sample_tile = os.path.join(wd_maj_vote,
                                             maj_vote_sample_tile_name)
-        if enable_cross_validation is False:
+        if not enable_cross_validation:
             extract_maj_vote_samples(output,
                                      maj_vote_sample_tile,
                                      merge_final_classifications_ratio,
@@ -689,23 +688,26 @@ def vector_formatting(
                                   cross_valid=enable_cross_validation,
                                   split_ground_truth=enable_split_ground_truth)
     if working_directory:
-        if output_driver == "SQLite":
-            shutil.copy(output, os.path.join(output_path, "formattingVectors"))
-            os.remove(output)
-
-        elif output_driver == "ESRI Shapefile":
+        if output_driver == "ESRI Shapefile":
             fut.cpShapeFile(output.replace(".shp", ""),
                             os.path.join(output_path, "formattingVectors"),
                             [".prj", ".shp", ".dbf", ".shx"], True)
             fut.removeShape(output.replace(".shp", ""),
                             [".prj", ".shp", ".dbf", ".shx"])
 
+        elif output_driver == "SQLite":
+            shutil.copy(output, os.path.join(output_path, "formattingVectors"))
+            os.remove(output)
+
         for current_split in output_splits:
             shutil.copy(current_split, os.path.join(output_path, "dataAppVal"))
             os.remove(current_split)
 
-        if (merge_final_classifications and enable_cross_validation is False
-                and fusion_merge_all_validation is False):
+        if (
+            merge_final_classifications
+            and not enable_cross_validation
+            and not fusion_merge_all_validation
+        ):
             shutil.copy(
                 maj_vote_sample_tile,
                 os.path.join(final_directory, "merge_final_classifications"))

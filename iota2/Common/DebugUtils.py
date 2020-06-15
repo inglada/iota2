@@ -11,10 +11,7 @@ class DisplayablePath(object):
         self.path = Path(str(path))
         self.parent = parent_path
         self.is_last = is_last
-        if self.parent:
-            self.depth = self.parent.depth + 1
-        else:
-            self.depth = 0
+        self.depth = self.parent.depth + 1 if self.parent else 0
 
     @classmethod
     def make_tree(cls, root, parent=None, is_last=False, criteria=None):
@@ -24,9 +21,8 @@ class DisplayablePath(object):
         displayable_root = cls(root, parent, is_last)
         yield displayable_root
 
-        children = sorted(list(path for path in root.iterdir()
-                               if criteria(path)),
-                          key=lambda s: str(s).lower())
+        children = sorted([path for path in root.iterdir()
+                                   if criteria(path)], key=lambda s: str(s).lower())
         count = 1
         for path in children:
             is_last = count == len(children)
@@ -123,17 +119,16 @@ def get_cont_path_from_config(configfile):
     for key in block_chain.keys():
         if 'path' in key.lower():
             path_to_draw = cfg.getParam("chain", key)
-            if isinstance(path_to_draw, str):
-                if os.path.isdir(path_to_draw):
-                    chain_log = "=" * 79 + "\n"
-                    chain_log += " " * int(
-                        (79 - len(key)) / 2) + "{}".format(key)
-                    chain_log += " " * int((79 - len(key)) / 2) + "\n"
-                    chain_log += "=" * 79 + "\n"
-                    out_cont = DisplayablePath.make_tree(Path(path_to_draw))
-                    for path in out_cont:
-                        chain_log += path.displayable() + "\n"
-                    glob_str += chain_log + "\n" * 3
+            if isinstance(path_to_draw, str) and os.path.isdir(path_to_draw):
+                chain_log = "=" * 79 + "\n"
+                chain_log += " " * int(
+                    (79 - len(key)) / 2) + "{}".format(key)
+                chain_log += " " * int((79 - len(key)) / 2) + "\n"
+                chain_log += "=" * 79 + "\n"
+                out_cont = DisplayablePath.make_tree(Path(path_to_draw))
+                for path in out_cont:
+                    chain_log += path.displayable() + "\n"
+                glob_str += chain_log + "\n" * 3
     return glob_str
 
 
@@ -145,18 +140,19 @@ def get_cont_file_from_config(configfile):
     glob_str = ""
     for key in block_chain.keys():
         file_to_read = cfg.getParam("chain", key)
-        if isinstance(file_to_read, str):
-            if (os.path.isfile(file_to_read)
-                    and ('txt' in file_to_read or 'csv' in file_to_read)):
-                chain_log = "=" * 79 + "\n"
-                chain_log += " " * int((79 - len(key)) / 2) + "{}".format(key)
-                chain_log += " " * int((79 - len(key)) / 2) + "\n"
-                chain_log += "=" * 79 + "\n"
-                cont = "Unable to read file" + file_to_read
-                with open(file_to_read, "r") as contfile:
-                    cont = contfile.read()
-                chain_log += cont
-                glob_str += chain_log + "\n" * 3
+        if isinstance(file_to_read, str) and (
+            os.path.isfile(file_to_read)
+            and ('txt' in file_to_read or 'csv' in file_to_read)
+        ):
+            chain_log = "=" * 79 + "\n"
+            chain_log += " " * int((79 - len(key)) / 2) + "{}".format(key)
+            chain_log += " " * int((79 - len(key)) / 2) + "\n"
+            chain_log += "=" * 79 + "\n"
+            cont = "Unable to read file" + file_to_read
+            with open(file_to_read, "r") as contfile:
+                cont = contfile.read()
+            chain_log += cont
+            glob_str += chain_log + "\n" * 3
     return glob_str
 
 

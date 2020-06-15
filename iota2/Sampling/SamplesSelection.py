@@ -354,10 +354,10 @@ def update_flags(vec_in, runs, flag_val="XXXX", table_name="output"):
     """
     import sqlite3 as lite
 
-    current_seed = int(
-        os.path.splitext(os.path.basename(vec_in))[0].split("_")[-2])
-
     if runs > 1:
+        current_seed = int(
+            os.path.splitext(os.path.basename(vec_in))[0].split("_")[-2])
+
         update_seed = ",".join([
             "seed_{} = '{}'".format(run, flag_val) for run in range(runs)
             if run != current_seed

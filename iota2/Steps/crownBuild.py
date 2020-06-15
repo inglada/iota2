@@ -36,8 +36,7 @@ class crownBuild(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Build crown raster for serialization process")
-        return description
+        return "Build crown raster for serialization process"
 
     def step_inputs(self):
         """
@@ -63,13 +62,12 @@ class crownBuild(IOTA2Step.Step):
                                   'tiles')
         outpathtile = os.path.join(self.outputPath, 'final', 'simplification',
                                    'tiles')
-        step_function = lambda x: bcr.manageBlocks(tiles_list,
+        return lambda x: bcr.manageBlocks(tiles_list,
                                                    x,
                                                    self.blocksize,
                                                    tmpdir,
                                                    outpathtile,
                                                    self.RAM)
-        return step_function
 
     def step_outputs(self):
         """

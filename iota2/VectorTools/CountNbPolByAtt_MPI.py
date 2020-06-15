@@ -71,19 +71,17 @@ def mpi_schedule_job_array(csvstore, job_array, mpi_service=MPIService()):
         if mpi_service.rank == 0:
             # master
             results = []
-            nb_completed_tasks = 0
             nb_tasks = len(param_array)
             for i in range(1, mpi_service.size):
                 if len(param_array) > 0:
                     task_param = param_array.pop(0)
                     mpi_service.comm.send([job, task_param], dest=i, tag=0)
-            while nb_completed_tasks < nb_tasks:
+            for _ in range(nb_tasks):
                 [slave_rank,
                  [start, end,
                   result]] = mpi_service.comm.recv(source=MPI.ANY_SOURCE,
                                                    tag=0)
                 results += result
-                nb_completed_tasks += 1
                 if len(param_array) > 0:
                     task_param = param_array.pop(0)
                     mpi_service.comm.send([job, task_param],
@@ -158,35 +156,22 @@ def countByAtt(params):
         totalarea += geom.GetArea()
 
     stats = []
+    area = 0
     if fieldTypeCode == 4:
         layer.SetAttributeFilter(field + " = \'" + str(classe) + "\'")
-        featureCount = layer.GetFeatureCount()
-        area = 0
-        for feat in layer:
-            geom = feat.GetGeometryRef()
-            area += geom.GetArea()
-        partcl = area / totalarea * 100
-        print("Class # %s: %s features and a total area of %s (rate : %s)"%(str(classe), \
-                                                                            str(featureCount),\
-                                                                            str(area), \
-                                                                            str(round(partcl,4))))
-        stats.append([classe, featureCount, area, partcl])
-        layer.ResetReading()
     else:
         layer.SetAttributeFilter(field + " = " + str(classe))
-        featureCount = layer.GetFeatureCount()
-        area = 0
-        for feat in layer:
-            geom = feat.GetGeometryRef()
-            area += geom.GetArea()
-        partcl = area / totalarea * 100
-        print("Class # %s: %s features and a total area of %s (rate : %s)"%(str(classe), \
-                                                                            str(featureCount),\
-                                                                            str(area),\
-                                                                            str(round(partcl,4))))
-        stats.append([classe, featureCount, area, partcl])
-        layer.ResetReading()
-
+    featureCount = layer.GetFeatureCount()
+    for feat in layer:
+        geom = feat.GetGeometryRef()
+        area += geom.GetArea()
+    partcl = area / totalarea * 100
+    print("Class # %s: %s features and a total area of %s (rate : %s)"%(str(classe), \
+                                                                        str(featureCount),\
+                                                                        str(area), \
+                                                                        str(round(partcl,4))))
+    stats.append([classe, featureCount, area, partcl])
+    layer.ResetReading()
     return stats
 
 

@@ -35,8 +35,7 @@ class classificationsFusion(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Fusion of classifications")
-        return description
+        return "Fusion of classifications"
 
     def step_inputs(self):
         """
@@ -68,8 +67,7 @@ class classificationsFusion(IOTA2Step.Step):
         """
         from iota2.MPI import launch_tasks as tLauncher
         bash_launcher_function = tLauncher.launchBashCmd
-        step_function = lambda x: bash_launcher_function(x)
-        return step_function
+        return lambda x: bash_launcher_function(x)
 
     def step_outputs(self):
         """

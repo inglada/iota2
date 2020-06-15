@@ -85,7 +85,7 @@ class iota2_tests_merge_output_statistics(unittest.TestCase):
 
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
-        ok_test = not error and not failure
+        ok_test = not (error or failure)
 
         self.all_tests_ok.append(ok_test)
         if ok_test:

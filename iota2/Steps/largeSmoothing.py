@@ -55,8 +55,7 @@ class largeSmoothing(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Hermite smoothing (Serialisation strategy)")
-        return description
+        return "Hermite smoothing (Serialisation strategy)"
 
     def step_inputs(self):
         """
@@ -93,7 +92,7 @@ class largeSmoothing(IOTA2Step.Step):
         if self.workingDirectory:
             tmpdir = self.workingDirectory
 
-        step_function = lambda x: vas.generalizeVector(tmpdir,
+        return lambda x: vas.generalizeVector(tmpdir,
                                                        self.grasslib,
                                                        x[0],
                                                        self.hermite,
@@ -101,8 +100,6 @@ class largeSmoothing(IOTA2Step.Step):
                                                        self.mmu,
                                                        out=x[1],
                                                        epsg=self.epsg)
-
-        return step_function
 
     def step_outputs(self):
         """

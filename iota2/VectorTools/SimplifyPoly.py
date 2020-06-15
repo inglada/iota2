@@ -17,7 +17,7 @@ def simplify(infile, outfile, tolerance):
         dataset = ogr.Open(outfile, 1)
         lyr = dataset.GetLayer(0)
         cpt = 0
-        for i in range(0, lyr.GetFeatureCount()):
+        for i in range(lyr.GetFeatureCount()):
             feat = lyr.DeleteFeature(i)
             geom = feat.GetGeometryRef()
             if geom.Simplify(

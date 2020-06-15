@@ -126,13 +126,9 @@ def concat_classifs_one_tile(seed: str,
     ------
     string
     """
-    classif_fusion = []
-
-    for model in model_tile:
-        classif_fusion.append(
-            os.path.join(
+    classif_fusion = [os.path.join(
                 path_test, "classif", f"Classif_{current_tile}_model_"
-                f"{model}_seed_{seed}.tif"))
+                f"{model}_seed_{seed}.tif") for model in model_tile]
 
     if len(classif_fusion) == 1:
         cmd = f"cp {classif_fusion[0]} {concat_out}"
@@ -352,7 +348,7 @@ def undecision_management(path_test: str,
         for i in range(n_fold):
             model_tile.append(f"{model_tile_tmp} f{i + 1}")
 
-    if len(model_tile) == 0 or no_label_management == "maxConfidence":
+    if not model_tile or no_label_management == "maxConfidence":
         seed = os.path.split(path_fusion)[-1].split("_")[-1].split(".")[0]
         img_confidence = fu.FileSearch_AND(
             path_test + "/classif", True,
@@ -388,7 +384,7 @@ def undecision_management(path_test: str,
         if path_wd is not None:
             run(f"cp {img_data} {os.path.join(path_test, 'classif')}")
 
-    elif len(model_tile) != 0 and no_label_management == "learningPriority":
+    elif no_label_management == "learningPriority":
         # Concaténation des classifications pour une tuile (qui a ou non
         # plusieurs régions) et Concaténation des masques de régions pour
         # une tuile (qui a ou non plusieurs régions)
@@ -416,10 +412,7 @@ def undecision_management(path_test: str,
             out_concat_mask = (f"{os.path.join(path_test, 'classif')}"
                                f"{current_tile}_MASK_model_"
                                f"{model_tile[0].split('f')[0]}.tif")
-            classif_fusion_mask = []
-            for i in range(n_fold):
-                classif_fusion_mask.append(classif_fusion_mask_tmp[0])
-
+            classif_fusion_mask = [classif_fusion_mask_tmp[0] for _ in range(n_fold)]
         path_to_region_mask_concat = concat_region_one_tile(
             path_test, classif_fusion_mask, path_wd, out_concat_mask)
 

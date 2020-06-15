@@ -28,7 +28,6 @@ def get_randomPoly(dataSource, field, classes, ratio):
     listValid = []
 
     for cl in classes:
-        listid = []
         layer = dataSource.GetLayer()
         layer.SetAttributeFilter(field + " = " + str(cl))
         featureCount = float(layer.GetFeatureCount())
@@ -42,6 +41,7 @@ def get_randomPoly(dataSource, field, classes, ratio):
             #polbysel = round(featureCount/2.0)
             if polbysel <= 1:
                 polbysel = 1
+                listid = []
                 for feat in layer:
                     _id = feat.GetFID()
                     listid.append(_id)
@@ -78,10 +78,10 @@ def RandomInSitu(vectorFile, field, nbdraws, opath, name, ratio, pathWd):
 
     AllTrain = []
     AllValid = []
-    for tirage in range(0, nbtirage):
+    ch = ""
+    for tirage in range(nbtirage):
         listallid, listValid = get_randomPoly(dataSource, field, classes,
                                               ratio)
-        ch = ""
         listFid = []
         for fid in listallid:
             listFid.append("FID=" + str(fid))
@@ -96,7 +96,7 @@ def RandomInSitu(vectorFile, field, nbdraws, opath, name, ratio, pathWd):
         layer.SetAttributeFilter(chA)
         learningShape = opath + "/" + name + "_seed" + str(
             tirage) + "_learn.shp"
-        if pathWd == None:
+        if pathWd is None:
             outShapefile = opath + "/" + name + "_seed" + str(
                 tirage) + "_learn.shp"
             vf.CreateNewLayer(layer, outShapefile)
@@ -127,7 +127,7 @@ def RandomInSitu(vectorFile, field, nbdraws, opath, name, ratio, pathWd):
         layer.SetAttributeFilter(chV)
         validationShape = opath + "/" + name + "_seed" + str(
             tirage) + "_val.shp"
-        if pathWd == None:
+        if pathWd is None:
             outShapefile2 = opath + "/" + name + "_seed" + str(
                 tirage) + "_val.shp"
             vf.CreateNewLayer(layer, outShapefile2)
@@ -151,8 +151,6 @@ def RandomInSituByTile(shapefile, dataField, N, pathOut, ratio, pathWd):
     dataSource = ogr.Open(shapefile)
     daLayer = dataSource.GetLayer(0)
     layerDefinition = daLayer.GetLayerDefn()
-    ratio = float(ratio)
-
     driver = ogr.GetDriverByName('ESRI Shapefile')
     dataSource = driver.Open(shapefile, 0)
     # Check to see if shapefile is found.
@@ -162,6 +160,8 @@ def RandomInSituByTile(shapefile, dataField, N, pathOut, ratio, pathWd):
         layer = dataSource.GetLayer()
         featureCount = layer.GetFeatureCount()
         if featureCount != 0:
+            ratio = float(ratio)
+
             AllTrain, AllValid = RandomInSitu(shapefile, dataField, N, pathOut,
                                               name, ratio, pathWd)
 

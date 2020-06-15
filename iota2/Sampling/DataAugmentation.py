@@ -232,8 +232,7 @@ def get_projection(vectorFile, driverName="SQLite"):
     vector = driver.Open(vectorFile)
     layer = vector.GetLayer()
     spatialRef = layer.GetSpatialRef()
-    ProjectionCode = spatialRef.GetAttrValue("AUTHORITY", 1)
-    return ProjectionCode
+    return spatialRef.GetAttrValue("AUTHORITY", 1)
 
 
 def GetRegionFromSampleName(samples):
@@ -568,7 +567,7 @@ def DoCopy(source_samples,
         sample[PRIM_KEY_index] = destination_rows + ID_offset + 1
         val = []
         for elem in sample:
-            if isinstance(elem, str) or isinstance(elem, str):
+            if isinstance(elem, str):
                 val.append("\"{}\"".format(elem))
             else:
                 val.append(str(elem))
@@ -632,7 +631,7 @@ def DataAugmentationByCopy(dataField,
     for src_model, dst_model, class_name, extract_quantity in extraction_rules:
         source_samples = getSamplesFromModelName(src_model, samplesSet)
         dst_samples = getSamplesFromModelName(dst_model, samplesSet)
-        if not source_samples or not dst_samples:
+        if not (source_samples and dst_samples):
             continue
         if source_samples == dst_samples:
             continue

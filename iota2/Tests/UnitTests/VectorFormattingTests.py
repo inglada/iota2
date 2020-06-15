@@ -102,7 +102,7 @@ class iota_testVectorFormatting(unittest.TestCase):
                              self._resultForDoCleanups)
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
-        ok = not error and not failure
+        ok = not (error or failure)
 
         self.all_tests_ok.append(ok)
         if ok:
@@ -281,10 +281,10 @@ class iota_testVectorFormatting(unittest.TestCase):
                                                       elemType="str")
         by_class_extract_vector = Counter(features_extract_vector)
 
-        buff = []
-        for class_name, class_count in list(by_class_origin.items()):
-            buff.append(by_class_in_vector[class_name] == extraction_ratio *
-                        class_count)
+        buff = [
+            by_class_in_vector[class_name] == extraction_ratio * class_count
+            for class_name, class_count in list(by_class_origin.items())
+        ]
 
         self.assertTrue(all(buff), msg="extraction of samples failed")
 

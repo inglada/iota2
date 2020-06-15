@@ -46,8 +46,7 @@ class SecondStep(IOTA2Step.Step):
         """
         will create 4 new files
         """
-        names = ["test_dummy_{}.txt".format(i + 1) for i in range(4)]
-        return names
+        return ["test_dummy_{}.txt".format(i + 1) for i in range(4)]
 
     def step_execute(self):
         """
@@ -57,8 +56,7 @@ class SecondStep(IOTA2Step.Step):
             the function to execute as a lambda function. The returned object
             must be a lambda function.
         """
-        step_function = lambda x: write_something(self.output_dir, x)
-        return step_function
+        return lambda x: write_something(self.output_dir, x)
 
     def step_outputs(self):
         from Common import FileUtils

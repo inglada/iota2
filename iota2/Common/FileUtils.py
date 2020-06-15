@@ -55,8 +55,7 @@ def get_iota2_project_dir():
     """
     parent = os.path.abspath(
         os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
-    iota2dir = os.path.abspath(os.path.join(parent, os.pardir))
-    return iota2dir
+    return os.path.abspath(os.path.join(parent, os.pardir))
 
 
 def ensure_dir(dirname, raise_exe=True):
@@ -67,9 +66,8 @@ def ensure_dir(dirname, raise_exe=True):
     try:
         os.makedirs(dirname)
     except OSError as e:
-        if e.errno != errno.EEXIST:
-            if raise_exe:
-                raise
+        if e.errno != errno.EEXIST and raise_exe:
+            raise
 
 
 def getOutputPixType(nomencalture_path):
@@ -98,7 +96,7 @@ def getOutputPixType(nomencalture_path):
 
     if label <= dico_format["uint8"]:
         output_format = "uint8"
-    elif label > dico_format["uint8"] and label < dico_format["uint16"]:
+    elif label < dico_format["uint16"]:
         output_format = "uint16"
     elif label_max > dico_format["uint16"]:
         raise Exception("label must inferior of 65536")
@@ -115,13 +113,12 @@ def WriteNewFile(newFile, fileContent):
 def memory_usage_psutil(unit="MB"):
     # return the memory usage in MB
     import resource
-    if unit == "MB":
-        coeff = 1000.0
-    elif unit == "GB":
+    if unit == "GB":
         coeff = 1000.0 * 1000.0
-    mem = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / coeff
+    elif unit == "MB":
+        coeff = 1000.0
     #print 'Memory usage: %s (MB)' % (mem)
-    return mem
+    return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / coeff
 
 
 def parseClassifCmd(cmdPath,
@@ -308,21 +305,23 @@ def updateDirectory(src, dst):
 
     content = os.listdir(src)
     for currentContent in content:
-        if os.path.isfile(src + "/" + currentContent):
-            if not os.path.exists(dst + "/" + currentContent):
-                shutil.copy(src + "/" + currentContent,
-                            dst + "/" + currentContent)
-        if os.path.isdir(src + "/" + currentContent):
-            if not os.path.exists(dst + "/" + currentContent):
-                try:
-                    shutil.copytree(src + "/" + currentContent,
-                                    dst + "/" + currentContent)
-                # python >2.5
-                except OSError as exc:
-                    if exc.errno == errno.ENOTDIR:
-                        shutil.copy(src, dst)
-                    else:
-                        raise
+        if os.path.isfile(src + "/" + currentContent) and not os.path.exists(
+            dst + "/" + currentContent
+        ):
+            shutil.copy(src + "/" + currentContent,
+                        dst + "/" + currentContent)
+        if os.path.isdir(src + "/" + currentContent) and not os.path.exists(
+            dst + "/" + currentContent
+        ):
+            try:
+                shutil.copytree(src + "/" + currentContent,
+                                dst + "/" + currentContent)
+            # python >2.5
+            except OSError as exc:
+                if exc.errno == errno.ENOTDIR:
+                    shutil.copy(src, dst)
+                else:
+                    raise
 
 
 def copyanything(src, dst):
@@ -345,15 +344,17 @@ def getDateLandsat(pathLandsat, tiles, sensor="Landsat8"):
     for tile in tiles:
         #~ folder = os.listdir(pathLandsat + "/" + sensor + "_" + tile)
         folder = os.listdir(pathLandsat + "/" + tile)
-        for i in range(len(folder)):
-            if folder[i].count(".tgz") == 0 and folder[i].count(
-                    ".jpg") == 0 and folder[i].count(".xml") == 0:
+        for item_ in folder:
+            if (
+                item_.count(".tgz") == 0
+                and item_.count(".jpg") == 0
+                and item_.count(".xml") == 0
+            ):
                 #~ contenu = os.listdir(pathLandsat + "/" + sensor + "_" + tile + "/" + folder[i])
-                contenu = os.listdir(pathLandsat + "/" + tile + "/" +
-                                     folder[i])
-                for i in range(len(contenu)):
-                    if contenu[i].count(".TIF") != 0:
-                        Date = int(contenu[i].split("_")[3])
+                contenu = os.listdir(pathLandsat + "/" + tile + "/" + item_)
+                for item in contenu:
+                    if item.count(".TIF") != 0:
+                        Date = int(item.split("_")[3])
                         if Date > dateMax:
                             dateMax = Date
                         if Date < dateMin:
@@ -380,10 +381,13 @@ def getDateS2(pathS2, tiles):
     dateMax = 0
     for tile in tiles:
         folder = os.listdir(pathS2 + "/" + tile)
-        for i in range(len(folder)):
-            if folder[i].count(".tgz") == 0 and folder[i].count(
-                    ".jpg") == 0 and folder[i].count(".xml") == 0:
-                Date = int(folder[i].split("_")[datePos].split("-")[0])
+        for item in folder:
+            if (
+                item.count(".tgz") == 0
+                and item.count(".jpg") == 0
+                and item.count(".xml") == 0
+            ):
+                Date = int(item.split("_")[datePos].split("-")[0])
                 if Date > dateMax:
                     dateMax = Date
                 if Date < dateMin:
@@ -400,10 +404,13 @@ def getDateS2_S2C(pathS2, tiles):
     dateMax = 0
     for tile in tiles:
         folder = os.listdir(pathS2 + "/" + tile)
-        for i in range(len(folder)):
-            if folder[i].count(".tgz") == 0 and folder[i].count(
-                    ".jpg") == 0 and folder[i].count(".xml") == 0:
-                Date = int(folder[i].split("_")[datePos].split("T")[0])
+        for item in folder:
+            if (
+                item.count(".tgz") == 0
+                and item.count(".jpg") == 0
+                and item.count(".xml") == 0
+            ):
+                Date = int(item.split("_")[datePos].split("T")[0])
                 if Date > dateMax:
                     dateMax = Date
                 if Date < dateMin:
@@ -483,10 +490,7 @@ def splitList(InList, nbSplit):
         size = len(ys) // n
         leftovers = ys[size * n:]
         for c in range(n):
-            if leftovers:
-                extra = [leftovers.pop()]
-            else:
-                extra = []
+            extra = [leftovers.pop()] if leftovers else []
             yield ys[c * size:(c + 1) * size] + extra
 
     splitList = list(chunk(InList, nbSplit))
@@ -901,11 +905,7 @@ def getNbDateInTile(dateInFile, display=True, raw_dates=False):
             except ValueError:
                 raise Exception("unvalid date in : " + dateInFile + " -> '" +
                                 str(vardate) + "'")
-    if raw_dates:
-        output = allDates
-    else:
-        output = i + 1
-    return output
+    return allDates if raw_dates else i + 1
 
 
 def getGroundSpacing(pathToFeat, ImgInfo):
@@ -947,8 +947,7 @@ def getRasterProjectionEPSG(FileName):
     SourceDS = gdal.Open(FileName, GA_ReadOnly)
     Projection = osr.SpatialReference()
     Projection.ImportFromWkt(SourceDS.GetProjectionRef())
-    ProjectionCode = Projection.GetAttrValue("AUTHORITY", 1)
-    return ProjectionCode
+    return Projection.GetAttrValue("AUTHORITY", 1)
 
 
 def getRasterNbands(raster):
@@ -993,8 +992,8 @@ def testVarConfigFile(obj, variable, varType, valeurs=""):
 
     if valeurs != "":
         ok = 0
-        for index in range(len(valeurs)):
-            if tmpVar == valeurs[index]:
+        for valeur in valeurs:
+            if tmpVar == valeur:
                 ok = 1
         if ok == 0:
             raise Exception("Bad value for " + variable +
@@ -1130,7 +1129,7 @@ def CreateNewLayer(layer, outShapefile, AllFields):
                                          geom_type=ogr.wkbMultiPolygon)
     # Add input Layer Fields to the output Layer if it is the one we want
     inLayerDefn = layer.GetLayerDefn()
-    for i in range(0, inLayerDefn.GetFieldCount()):
+    for i in range(inLayerDefn.GetFieldCount()):
         fieldDefn = inLayerDefn.GetFieldDefn(i)
         fieldName = fieldDefn.GetName()
         if fieldName not in AllFields:
@@ -1145,7 +1144,7 @@ def CreateNewLayer(layer, outShapefile, AllFields):
         outFeature = ogr.Feature(outLayerDefn)
 
         # Add field values from input Layer
-        for i in range(0, outLayerDefn.GetFieldCount()):
+        for i in range(outLayerDefn.GetFieldCount()):
             fieldDefn = outLayerDefn.GetFieldDefn(i)
             fieldName = fieldDefn.GetName()
             if fieldName not in AllFields:
@@ -1215,9 +1214,8 @@ def mergeSqlite(vectorList, outputVector):
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
         res = cursor.fetchall()
         res = [x[0] for x in res]
-        if len(res) > 0:
-            if table in res:
-                cursor.execute("DROP TABLE %s;" % (table))
+        if res and table in res:
+            cursor.execute("DROP TABLE %s;" % (table))
         conn.commit()
         cursor = conn = None
 
@@ -1309,10 +1307,8 @@ def getRasterExtent(raster_in):
 def matchGrid(coordinate, grid):
     """
     """
-    interval_list = []
     pix_coordinate = None
-    for cpt, value in enumerate(grid[:-1]):
-        interval_list.append((value, grid[cpt + 1]))
+    interval_list = [(value, grid[cpt + 1]) for cpt, value in enumerate(grid[:-1])]
     for index, (inf, sup) in enumerate(interval_list):
         if (coordinate > inf and coordinate < sup) or (coordinate < inf
                                                        and coordinate > sup):
@@ -1383,9 +1379,9 @@ def gen_confusionMatrix(csv_f, AllClass):
     confMat = [[0] * NbClasses] * NbClasses
     confMat = np.asarray(confMat)
     row = 0
+    #in order to manage the case "this reference label was never classified"
+    flag = 0
     for classRef in AllClass:
-        #in order to manage the case "this reference label was never classified"
-        flag = 0
         for classRef_csv in csv_f:
             if classRef_csv[0] == classRef:
                 col = 0
@@ -1397,8 +1393,8 @@ def gen_confusionMatrix(csv_f, AllClass):
                     col += 1
                 #row +=1
         row += 1
-        #if flag == 0:
-        #   row+=1
+            #if flag == 0:
+            #   row+=1
 
     return confMat
 
@@ -1520,7 +1516,7 @@ def erodeOrDilateShapeFile(infile, outfile, buffdist):
 
         ds = ogr.Open(outfile, 1)
         lyr = ds.GetLayer(0)
-        for i in range(0, lyr.GetFeatureCount()):
+        for i in range(lyr.GetFeatureCount()):
             feat = lyr.GetFeature(i)
             lyr.DeleteFeature(i)
             geom = feat.GetGeometryRef()
@@ -1634,7 +1630,7 @@ def get_feat_stack_name(list_indices: List[str],
     else:
         return_list_feat = False
 
-    if return_list_feat is True:
+    if return_list_feat:
         stack_ind = f"SL_MultiTempGapF_{list_feat}_{user_feat_pattern}_.tif"
     return stack_ind
 
@@ -1692,16 +1688,16 @@ def FileSearch_AND(PathToFolder, AllPath, *names):
     """
     out = []
     for path, dirs, files in os.walk(PathToFolder, followlinks=True):
-        for i in range(len(files)):
+        for file in files:
             flag = 0
             for name in names:
-                if files[i].count(name) != 0:
+                if file.count(name) != 0:
                     flag += 1
             if flag == len(names):
                 if not AllPath:
-                    out.append(files[i].split(".")[0])
+                    out.append(file.split(".")[0])
                 else:
-                    pathOut = path + '/' + files[i]
+                    pathOut = path + '/' + file
                     out.append(pathOut)
     return out
 
@@ -1717,8 +1713,6 @@ def renameShapefile(inpath, filename, old_suffix, new_suffix, outpath=None):
         "/" + filename + new_suffix + ".dbf")
     run("cp " + inpath + "/" + filename + old_suffix + ".prj " + outpath +
         "/" + filename + new_suffix + ".prj")
-    return outpath + "/" + filename + new_suffix + ".shp"
-
     return outpath + "/" + filename + new_suffix + ".shp"
 
 

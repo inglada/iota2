@@ -16,8 +16,8 @@ def CheckDoubleGeomTwofilesCopy(shp1, shp2, field1, field2):
     ds2 = vf.openToRead(shp2)
     lyr2 = ds2.GetLayer()
     newshp = vf.copyShp(shp1, "commonshape")
-    dict1 = dict()
-    dict2 = dict()
+    dict1 = {}
+    dict2 = {}
     dict3 = dict()
     for feat in lyr1:
         values = []

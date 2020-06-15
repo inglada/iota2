@@ -35,7 +35,7 @@ def DifferenceFiles(shp1, shp2):
         intersection = False
         listFID = []
         copy = False
-        for i in range(0, nbfeat2):
+        for i in range(nbfeat2):
             ds3 = vf.openToRead(outShp)
             lyr3 = ds3.GetLayer()
             lyr3.SetSpatialFilterRect(float(minX), float(minY), float(maxX),
@@ -72,6 +72,9 @@ def DifferenceFiles(shp1, shp2):
     lyr2 = ds2.GetLayer()
     ds3 = vf.openToWrite(outShp)
     lyr3 = ds3.GetLayer()
+    intersection = False
+    listFID = []
+    copy = False
     for feat in lyr3:
         geom1 = feat.GetGeometryRef()
         centroid = geom1.Centroid()
@@ -84,10 +87,7 @@ def DifferenceFiles(shp1, shp2):
         lyr2.SetSpatialFilterRect(float(minX), float(minY), float(maxX),
                                   float(maxY))
         nbfeat2 = lyr2.GetFeatureCount()
-        intersection = False
-        listFID = []
-        copy = False
-        for i in range(0, nbfeat2):
+        for i in range(nbfeat2):
             f2 = lyr2.GetFeature(i)
             geom2 = f2.GetGeometryRef()
             if geom1.Intersect(geom2) == True:

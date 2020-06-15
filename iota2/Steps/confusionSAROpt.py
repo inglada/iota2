@@ -35,8 +35,7 @@ class confusionSAROpt(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Evaluate SAR vs optical classification's performance by tiles and models")
-        return description
+        return "Evaluate SAR vs optical classification's performance by tiles and models"
 
     def step_inputs(self):
         """
@@ -56,10 +55,9 @@ class confusionSAROpt(IOTA2Step.Step):
             must be a lambda function.
         """
         from Validation import GenConfusionMatrix as GCM
-        step_function = lambda x: GCM.confusion_sar_optical(x,
+        return lambda x: GCM.confusion_sar_optical(x,
                                                             self.data_field,
                                                             self.sar_opt_conf_ram)
-        return step_function
 
     def step_outputs(self):
         """

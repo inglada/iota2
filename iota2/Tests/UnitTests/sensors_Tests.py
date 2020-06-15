@@ -183,7 +183,7 @@ class iota2_test_sensors_test(unittest.TestCase):
                              self._resultForDoCleanups)
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
-        test_ok = not error and not failure
+        test_ok = not (error or failure)
 
         self.all_tests_ok.append(test_ok)
         if test_ok:

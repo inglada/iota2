@@ -35,8 +35,7 @@ class genSyntheticSamples(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Generate synthetic samples")
-        return description
+        return "Generate synthetic samples"
 
     def step_inputs(self):
         """
@@ -56,12 +55,13 @@ class genSyntheticSamples(IOTA2Step.Step):
             must be a lambda function.
         """
         from Sampling import DataAugmentation
-        step_function = lambda x: DataAugmentation.DataAugmentationSynthetic(x,
-                                                                             self.ground_truth,
-                                                                             self.data_field.lower(),
-                                                                             self.sample_augmentation,
-                                                                             self.workingDirectory)
-        return step_function
+        return lambda x: DataAugmentation.DataAugmentationSynthetic(
+            x,
+            self.ground_truth,
+            self.data_field.lower(),
+            self.sample_augmentation,
+            self.workingDirectory,
+        )
 
     def step_outputs(self):
         """

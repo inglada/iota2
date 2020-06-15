@@ -43,13 +43,13 @@ def intersection(file1, file2, outfile):
 
     # gestion des champs du premier layer
     inLayerDefn = layer1.GetLayerDefn()
-    for i in range(0, inLayerDefn.GetFieldCount()):
+    for i in range(inLayerDefn.GetFieldCount()):
         fieldDefn = inLayerDefn.GetFieldDefn(i)
         outLayer.CreateField(fieldDefn)
 
     # gestion des champs du second layer
     inLayerDefn = layer2.GetLayerDefn()
-    for i in range(0, inLayerDefn.GetFieldCount()):
+    for i in range(inLayerDefn.GetFieldCount()):
         fieldDefn = inLayerDefn.GetFieldDefn(i)
         outLayer.CreateField(fieldDefn)
 

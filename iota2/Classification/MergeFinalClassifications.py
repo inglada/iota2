@@ -105,15 +105,13 @@ def mergeFinalClassifications(iota2_dir, dataField, nom_path, colorFile,
     from Common import CreateIndexedColorImage as color
 
     fusion_name = "Classifications_fusion.tif"
-    new_results_seed_file = "RESULTS_seeds.txt"
-    fusion_vec_name = "fusion_validation"#without extension
     confusion_matrix_name = "fusionConfusion.png"
 
-    if not method in ["majorityvoting", "dempstershafer"]:
+    if method not in ["majorityvoting", "dempstershafer"]:
         err_msg = "the fusion method must be 'majorityvoting' or 'dempstershafer'"
         logger.error(err_msg)
         raise Exception(err_msg)
-    if not dempstershafer_mob in ["precision", "recall", "accuracy", "kappa"]:
+    if dempstershafer_mob not in ["precision", "recall", "accuracy", "kappa"]:
         err_msg = "the dempstershafer MoB must be 'precision' or 'recall' or 'accuracy' or 'kappa'"
         logger.error(err_msg)
         raise Exception(err_msg)
@@ -143,7 +141,7 @@ def mergeFinalClassifications(iota2_dir, dataField, nom_path, colorFile,
                                                        colorFile,
                                                        co_option=["COMPRESS=LZW"],
                                                        output_pix_type=gdal.GDT_Byte if pixType=="uint8" else gdal.GDT_UInt16)
-    
+
     confusion_matrix = os.path.join(iota2_dir_final, "merge_final_classifications", "confusion_mat_maj_vote.csv")
     if enableCrossValidation is False:
         vector_val = fut.FileSearch_AND(os.path.join(iota2_dir_final, "merge_final_classifications"), True, "_majvote.sqlite")
@@ -152,6 +150,7 @@ def mergeFinalClassifications(iota2_dir, dataField, nom_path, colorFile,
     if validationShape:
         validation_vector = validationShape
     else:
+        fusion_vec_name = "fusion_validation"#without extension
         fut.mergeSQLite(fusion_vec_name, wd_merge, vector_val)
         validation_vector = os.path.join(wd_merge, fusion_vec_name + ".sqlite")
 
@@ -171,6 +170,7 @@ def mergeFinalClassifications(iota2_dir, dataField, nom_path, colorFile,
 
     if keep_runs_results:
         seed_results = fut.FileSearch_AND(iota2_dir_final, True, "RESULTS.txt")[0]
+        new_results_seed_file = "RESULTS_seeds.txt"
         shutil.copy(seed_results, os.path.join(iota2_dir_final, new_results_seed_file))
 
     maj_vote_report = os.path.join(iota2_dir_final, "RESULTS.txt")

@@ -42,8 +42,7 @@ class Grid(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Generation of grid for serialisation")
-        return description
+        return "Generation of grid for serialisation"
 
     def step_inputs(self):
         """
@@ -67,9 +66,8 @@ class Grid(IOTA2Step.Step):
 
         outfilegrid = os.path.join(self.outputPath, 'final', 'simplification',
                                    'grid.shp')
-        step_function = lambda x: gridg.grid_generate(
+        return lambda x: gridg.grid_generate(
             outfilegrid, self.gridsize, int(self.epsg.split(':')[1]), x)
-        return step_function
 
     def step_outputs(self):
         """

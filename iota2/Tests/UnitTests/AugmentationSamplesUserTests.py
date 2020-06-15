@@ -91,7 +91,7 @@ class iota_testSamplesAugmentationUser(unittest.TestCase):
                              self._resultForDoCleanups)
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
-        ok_val = not error and not failure
+        ok_val = not (error or failure)
 
         self.all_tests_ok.append(ok_val)
         if ok_val:
@@ -115,7 +115,7 @@ class iota_testSamplesAugmentationUser(unittest.TestCase):
             DataAugmentation.countClassInSQLite(self.vector_2, "CODE", "51")
         ]
 
-        self.assertTrue(all([ex == co for ex, co in zip(expected, count)]))
+        self.assertTrue(all(ex == co for ex, co in zip(expected, count)))
 
     def test_parse_csv(self):
         """ TEST
@@ -135,7 +135,7 @@ class iota_testSamplesAugmentationUser(unittest.TestCase):
             DataAugmentation.countClassInSQLite(self.vector, "CODE", "42"),
             DataAugmentation.countClassInSQLite(self.vector, "CODE", "51")
         ]
-        self.assertTrue(all([ex == co for ex, co in zip(expected, count)]))
+        self.assertTrue(all(ex == co for ex, co in zip(expected, count)))
 
 
 if __name__ == '__main__':

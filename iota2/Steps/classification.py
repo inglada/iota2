@@ -55,8 +55,7 @@ class classification(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = "Generate classifications"
-        return description
+        return "Generate classifications"
 
     def step_inputs(self):
         """

@@ -42,8 +42,7 @@ class classiCmd(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Generate classification commands")
-        return description
+        return "Generate classification commands"
 
     def step_inputs(self):
         """
@@ -63,7 +62,7 @@ class classiCmd(IOTA2Step.Step):
             must be a lambda function.
         """
         from iota2.Classification import ClassificationCmd as CC
-        step_function = lambda x: CC.write_classification_command(
+        return lambda x: CC.write_classification_command(
             os.path.join(self.output_path, "model"), self.cfg, self.
             output_path,
             SCF.serviceConfigFile(self.cfg).getParam('argTrain', 'classifier'),
@@ -77,7 +76,6 @@ class classiCmd(IOTA2Step.Step):
             os.path.join(self.output_path, "cmd", "cla"),
             os.path.join(self.output_path, "classif"
                          ), self.ram_classification, self.workingDirectory)
-        return step_function
 
     def step_outputs(self):
         """

@@ -76,9 +76,8 @@ def tile_vectors_to_models(iota2_learning_samples_dir: str) -> List[str]:
     vectors_sar = fu.FileSearch_AND(iota2_learning_samples_dir, True,
                                     "Samples_SAR_learn.sqlite")
 
-    vect_to_model = split_vectors_by_regions(
+    return split_vectors_by_regions(
         vectors) + split_vectors_by_regions(vectors_sar)
-    return vect_to_model
 
 
 def check_duplicates(sqlite_file: str,

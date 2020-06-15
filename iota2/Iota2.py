@@ -244,12 +244,10 @@ def start_workers(mpi_service):
                                   dest=0,
                                   tag=0)
     else:
-        nb_started_workers = 0
-        while nb_started_workers < mpi_service.size - 1:
+        for _ in range(mpi_service.size - 1):
             rank = mpi_service.comm.recv(source=MPI.ANY_SOURCE, tag=0)
             print("Worker process with rank {}/{} started".format(
                 rank, mpi_service.size - 1))
-            nb_started_workers += 1
 
 
 def remove_tmp_files(cfg, current_step, chain):
@@ -263,9 +261,7 @@ def remove_tmp_files(cfg, current_step, chain):
 
     last_step = chain.get_steps_number()[-1]
     directories = chain.get_dir()
-    dirs_to_rm = [
-        d for d in directories if not os.path.split(d)[-1] in keep_dir
-    ]
+    dirs_to_rm = [d for d in directories if os.path.split(d)[-1] not in keep_dir]
 
     if current_step == last_step:
         for dir_to_rm in dirs_to_rm:
@@ -375,10 +371,7 @@ if __name__ == "__main__":
         ensure_dir(root)
         params = steps[step - 1].step_inputs()
         param_array = []
-        if callable(params):
-            param_array = params()
-        else:
-            param_array = [param for param in params]
+        param_array = params() if callable(params) else [param for param in params]
         for group in list(chain_to_process.steps_group.keys()):
             if step in list(chain_to_process.steps_group[group].keys()):
                 print("Running step {}: {} ({} tasks)".format(
@@ -386,10 +379,7 @@ if __name__ == "__main__":
                     len(param_array)))
                 break
 
-        if args.parameters:
-            params = args.parameters
-        else:
-            params = param_array
+        params = args.parameters if args.parameters else param_array
         #~ if steps[step-1].previous_step:
         #~ print "Etape précédente : {}".format(steps[step-1].previous_step.step_status)
         steps[step - 1].step_status = "running"

@@ -296,16 +296,16 @@ def write_PBS_JA(job_directory, log_directory, task_name, step_to_compute,
     return pbs_path, log_err
 
 def check_errors(log_path):
-    """
+        """
     IN
     log_path [string] : path to output log
     """
 
-    err_flag = False
-    if not os.path.exists(log_path):
-        return log_path + " does not exists"
+        err_flag = False
+        if not os.path.exists(log_path):
+            return log_path + " does not exists"
 
-    """
+        """
     #RegEx to find errors patterns
     regEx_logErr = re.compile("parameter : '.*' : failed")
     errors = []
@@ -315,12 +315,12 @@ def check_errors(log_path):
             if error_find:
                 errors.append([error for error in error_find])
     """
-    err_pattern = ["Traceback", "PBS: job killed:", ": fail", "Segmentation fault", "OpenCV Error", "Killed"]
-    with open(log_path, "r") as log_err:
-        for line in log_err:
-            for err_patt in err_pattern:
-                if err_patt in line:
-                    return line
+        with open(log_path, "r") as log_err:
+                err_pattern = ["Traceback", "PBS: job killed:", ": fail", "Segmentation fault", "OpenCV Error", "Killed"]
+                for line in log_err:
+                    for err_patt in err_pattern:
+                        if err_patt in line:
+                            return line
 
 def check_errors_JA(log_dir, task_name):
     """

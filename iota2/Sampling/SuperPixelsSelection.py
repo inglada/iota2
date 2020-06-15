@@ -341,14 +341,13 @@ def super_pixels_coordinates(input_vector: str,
     _, _, projection, transform = readRaster(segmented_raster)
     x_min, spacing_x, _, y_max, _, spacing_y = transform
 
-    coords = SP_geo_coordinates_with_value(coordinates=(y_coordinates,
+    return SP_geo_coordinates_with_value(coordinates=(y_coordinates,
                                                         x_coordinates),
                                            SP_array=slic_array,
                                            x_origin=x_min,
                                            y_origin=y_max,
                                            x_size=spacing_x,
                                            y_size=spacing_y)
-    return coords
 
 
 def add_SP_to_ref(reference: str,

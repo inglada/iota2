@@ -55,7 +55,7 @@ def compareDates(datesFile, dates):
     if os.path.exists(datesFile):
         with open(datesFile, "r") as f_dates:
             old_dates = [line.rstrip() for line in f_dates]
-    new_dates = [date for date in dates if not date in old_dates]
+    new_dates = [date for date in dates if date not in old_dates]
     new_dates.sort()
 
     return new_dates

@@ -34,8 +34,7 @@ class copySamples(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Copy samples between models according to user request")
-        return description
+        return "Copy samples between models according to user request"
 
     def step_inputs(self):
         """
@@ -55,10 +54,9 @@ class copySamples(IOTA2Step.Step):
             must be a lambda function.
         """
         from Sampling import DataAugmentation
-        step_function = lambda x: DataAugmentation.DataAugmentationByCopy(self.dataField.lower(),
-                                                                          self.sampleManagement,
-                                                                          x, self.workingDirectory)
-        return step_function
+        return lambda x: DataAugmentation.DataAugmentationByCopy(
+            self.dataField.lower(), self.sampleManagement, x, self.workingDirectory
+        )
 
     def step_outputs(self):
         """

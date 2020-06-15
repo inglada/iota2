@@ -24,8 +24,6 @@ def conFieldRecode(shapefile, fieldin, fieldout, valin, valout):
                 fieldin),
             "You must choose one of these existing fields : {}".format(
                 ' / '.join(fieldList)))
-        sys.exit(-1)
-
     # Field type
     inLayerDefn = lyr.GetLayerDefn()
     fieldTypeCode = inLayerDefn.GetFieldDefn(indfield).GetType()
@@ -44,33 +42,21 @@ def conFieldRecode(shapefile, fieldin, fieldout, valin, valout):
             print(("Error while creating field '{}'".format(fieldout)))
             sys.exit(-1)
 
-    if fieldType != "String":
-        lyr.SetAttributeFilter(fieldin + "=" + str(valin))
-        if lyr.GetFeatureCount() != 0:
-            try:
-                changeValueField(lyr, fieldout, valout)
-                print("Field '{}' populated with {} value".format(
-                    fieldout, valout))
-            except:
-                print("Error while populate field '{}'".format(fieldout))
-                sys.exit(-1)
-        else:
-            print("The value '{}' does not exist for the field '{}'".format(
-                valin, fieldin))
-    else:
+    if fieldType == "String":
         lyr.SetAttributeFilter(fieldin + "=\'" + str(valin) + "\'")
-        if lyr.GetFeatureCount() != 0:
-            try:
-                changeValueField(lyr, fieldout, valout)
-                print("Field '{}' populated with {} value".format(
-                    fieldout, valout))
-            except:
-                print("Error while populate field '{}'".format(fieldout))
-                sys.exit(-1)
-        else:
-            print("The value '{}' does not exist for the field '{}'".format(
-                valin, fieldin))
-
+    else:
+        lyr.SetAttributeFilter(fieldin + "=" + str(valin))
+    if lyr.GetFeatureCount() == 0:
+        print("The value '{}' does not exist for the field '{}'".format(
+            valin, fieldin))
+    else:
+        try:
+            changeValueField(lyr, fieldout, valout)
+            print("Field '{}' populated with {} value".format(
+                fieldout, valout))
+        except:
+            print("Error while populate field '{}'".format(fieldout))
+            sys.exit(-1)
     ds.Destroy()
 
 

@@ -48,8 +48,7 @@ class ThirdStep(IOTA2Step.Step):
             the function to execute as a lambda function. The returned object
             must be a lambda function.
         """
-        step_function = lambda x: awesome_function(x, "TUILE")
-        return step_function
+        return lambda x: awesome_function(x, "TUILE")
 
     def step_outputs(self):
         print ("no outputs")

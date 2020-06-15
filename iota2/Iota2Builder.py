@@ -164,8 +164,7 @@ class iota2():
         steps = []
         for key in list(self.steps_group.keys())[start_ind:end_ind + 1]:
             steps.append(self.steps_group[key])
-        step_to_compute = [step for step_group in steps for step in step_group]
-        return step_to_compute
+        return [step for step_group in steps for step in step_group]
 
     def build_steps(self, cfg, config_ressources=None):
         """
@@ -344,7 +343,7 @@ class iota2():
         # init steps
         s_container.append(step_build_tree, "init")
         s_container.append(step_PreProcess, "init")
-        if not "none" in VHR.lower():
+        if "none" not in VHR.lower():
             s_container.append(step_coregistration, "init")
         s_container.append(step_CommonMasks, "init")
         s_container.append(step_pixVal, "init")
@@ -485,17 +484,11 @@ class iota2():
             s_container.append(step_crown_build, "crown")
             # mosaic step
             s_container.append(step_mosaic_tiles, "mosaictiles")
-            # vectorization step
-            s_container.append(step_large_vecto, "vectorisation")
-            s_container.append(step_large_simp, "simplification")
-            s_container.append(step_large_smoothing, "smoothing")
-            s_container.append(step_clip_vectors, "clipvectors")
-        else:
-            # vectorization step
-            s_container.append(step_large_vecto, "vectorisation")
-            s_container.append(step_large_simp, "simplification")
-            s_container.append(step_large_smoothing, "smoothing")
-            s_container.append(step_clip_vectors, "clipvectors")
+        # vectorization step
+        s_container.append(step_large_vecto, "vectorisation")
+        s_container.append(step_large_simp, "simplification")
+        s_container.append(step_large_smoothing, "smoothing")
+        s_container.append(step_clip_vectors, "clipvectors")
         s_container.append(step_zonal_stats, "lcstatistics")
         s_container.append(step_prod_vectors, "lcstatistics")
         return s_container

@@ -37,13 +37,18 @@ LOGGER = logging.getLogger(__name__)
 
 def BuildNbVoteCmd(classifTile, VoteMap):
 
-    exp = []
-    for i in range(len(classifTile)):
-        exp.append("(im" + str(i + 1) + "b1!=0?1:0)")
+    exp = ["(im" + str(i + 1) + "b1!=0?1:0)" for i in range(len(classifTile))]
     expVote = "+".join(exp)
     imgs = ' '.join(classifTile)
-    cmd = 'otbcli_BandMath -il ' + imgs + ' -out ' + VoteMap + ' -exp "' + expVote + '"'
-    return cmd
+    return (
+        'otbcli_BandMath -il '
+        + imgs
+        + ' -out '
+        + VoteMap
+        + ' -exp "'
+        + expVote
+        + '"'
+    )
 
 
 def BuildConfidenceCmd(finalTile,
@@ -58,11 +63,9 @@ def BuildConfidenceCmd(finalTile,
             "number of confidence map and classifcation map must be the same")
 
     N = len(classifTile)
-    exp = []
-    for i in range(len(classifTile)):
-        exp.append("(im" + str(i + 2) + "b1==0?0:im1b1!=im" + str(i + 2) +
+    exp = ["(im" + str(i + 2) + "b1==0?0:im1b1!=im" + str(i + 2) +
                    "b1?1-im" + str(i + 2 + N) + "b1:im" + str(i + 2 + N) +
-                   "b1)")
+                   "b1)" for i in range(len(classifTile))]
     #expConfidence="im1b1==0?0:("+"+".join(exp)+")/im"+str(2+2*N)+"b1"
     expConfidence = "im1b1==0?0:(" + "+".join(exp) + ")/" + str(
         len(classifTile))
@@ -70,10 +73,21 @@ def BuildConfidenceCmd(finalTile,
     All = classifTile + confidence
     All = " ".join(All)
 
-    cmd = 'otbcli_BandMath -ram 5120 -il ' + finalTile + ' ' + All + ' -out ' + OutPutConfidence + ' ' + pixType + ' -exp "' + str(
-        fact) + '*(' + expConfidence + ')"'
-
-    return cmd
+    return (
+        'otbcli_BandMath -ram 5120 -il '
+        + finalTile
+        + ' '
+        + All
+        + ' -out '
+        + OutPutConfidence
+        + ' '
+        + pixType
+        + ' -exp "'
+        + str(fact)
+        + '*('
+        + expConfidence
+        + ')"'
+    )
 
 
 def removeInListByRegEx(InputList, RegEx):
@@ -339,11 +353,8 @@ def classification_shaping(path_classif: str, runs: int, path_out: str,
         if not os.path.exists(path_out + "/TMP"):
             os.mkdir(path_out + "/TMP")
 
-    all_tiles = list(
-        set([
-            classif.split("_")[1] for classif in fu.FileSearch_AND(
-                path_test + "/classif", False, "Classif", ".tif")
-        ]))
+    all_tiles = list({classif.split("_")[1] for classif in fu.FileSearch_AND(
+                    path_test + "/classif", False, "Classif", ".tif")})
 
     pix_type = fu.getOutputPixType(nomenclature_path)
     features_path = os.path.join(path_test, "features")

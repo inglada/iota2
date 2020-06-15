@@ -36,8 +36,7 @@ class samplesByTiles(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Split pixels selected to learn models by tiles")
-        return description
+        return "Split pixels selected to learn models by tiles"
 
     def step_inputs(self):
         """
@@ -55,7 +54,7 @@ class samplesByTiles(IOTA2Step.Step):
         for sampled_vector in sampled_vectors:
             tile_name = os.path.splitext(os.path.basename(
                 sampled_vector))[0].split("_")[self.tile_name_pos]
-            if not tile_name in tiles and tile_name != "samples":
+            if tile_name not in tiles and tile_name != "samples":
                 tiles.append(tile_name)
         tiles = sorted(tiles)
         return tiles
@@ -69,10 +68,9 @@ class samplesByTiles(IOTA2Step.Step):
             must be a lambda function.
         """
         from iota2.Sampling import SamplesSelection
-        step_function = lambda x: SamplesSelection.prepare_selection(
+        return lambda x: SamplesSelection.prepare_selection(
             os.path.join(self.output_path, "samplesSelection"), x, self.
             workingDirectory)
-        return step_function
 
     def step_outputs(self):
         """

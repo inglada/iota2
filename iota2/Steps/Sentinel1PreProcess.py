@@ -33,8 +33,7 @@ class Sentinel1PreProcess(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Sentinel-1 pre-processing")
-        return description
+        return "Sentinel-1 pre-processing"
 
     def step_inputs(self):
         """
@@ -43,8 +42,7 @@ class Sentinel1PreProcess(IOTA2Step.Step):
             the return could be and iterable or a callable
         """
         from Common import ServiceConfigFile as SCF
-        tiles = SCF.serviceConfigFile(self.cfg).getParam('chain', 'listTile').split(" ")
-        return tiles
+        return SCF.serviceConfigFile(self.cfg).getParam('chain', 'listTile').split(" ")
 
     def step_execute(self):
         """
@@ -55,8 +53,7 @@ class Sentinel1PreProcess(IOTA2Step.Step):
             must be a lambda function.
         """
         from Sensors.SAR import S1Processor as SAR
-        step_function = lambda x: SAR.S1PreProcess(self.Sentinel1, x, self.workingDirectory)
-        return step_function
+        return lambda x: SAR.S1PreProcess(self.Sentinel1, x, self.workingDirectory)
 
     def step_outputs(self):
         """

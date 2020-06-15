@@ -130,9 +130,9 @@ def get_CrossValId(layer, dataField, classes, seeds, regionField, regions):
 
     id_sets = [[] for i in range(seeds)]
     layer.ResetReading()
+    listid = []
     for region in regions:
         for cl in classes:
-            listid = []
             layer.SetAttributeFilter(None)
             attrib_filter = "{}={} AND {}='{}'".format(dataField, cl,
                                                        regionField, region)

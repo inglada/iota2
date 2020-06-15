@@ -106,7 +106,7 @@ class iota_spatial_res_runs_case(unittest.TestCase):
         self._feedErrorsToResult(result, self._outcome.errors)
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
-        ok_test = not error and not failure
+        ok_test = not (error or failure)
 
         self.all_tests_ok.append(ok_test)
         if ok_test:

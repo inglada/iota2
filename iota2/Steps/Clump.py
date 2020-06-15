@@ -35,8 +35,7 @@ class Clump(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Clump of regularized classification raster")
-        return description
+        return "Clump of regularized classification raster"
 
     def step_inputs(self):
         """
@@ -67,13 +66,12 @@ class Clump(IOTA2Step.Step):
             tmpdir = self.workingDirectory
         use64bit = True if self.lib64bit is not None else False
 
-        step_function = lambda x: clump.clumpAndStackClassif(tmpdir,
+        return lambda x: clump.clumpAndStackClassif(tmpdir,
                                                              x,
                                                              outfileclp,
                                                              str(self.RAM),
                                                              use64bit,
                                                              self.lib64bit)
-        return step_function
 
     def step_outputs(self):
         """

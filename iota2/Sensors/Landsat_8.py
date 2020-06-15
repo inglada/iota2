@@ -166,14 +166,13 @@ class landsat_8():
         import os
         from iota2.Common.FileUtils import FileSearch_AND
 
-        stacks = sorted(
+        return sorted(
             FileSearch_AND(self.output_preprocess_directory, True,
                            "{}.tif".format(self.suffix)),
             key=lambda x: int(
                 os.path.basename(x).split("_")[self.date_position].split("-")[
                     0]),
         )
-        return stacks
 
     def get_available_dates_masks(self):
         """
@@ -182,12 +181,11 @@ class landsat_8():
         import os
         from iota2.Common.FileUtils import FileSearch_AND
 
-        masks = sorted(FileSearch_AND(self.output_preprocess_directory, True,
+        return sorted(FileSearch_AND(self.output_preprocess_directory, True,
                                       f"{self.masks_date_suffix}.tif"),
                        key=lambda x: int(
                            os.path.basename(x).split("_")[self.date_position].
                            split("-")[0]))
-        return masks
 
     def build_stack_date_name(self, date_dir):
         """
@@ -305,8 +303,7 @@ class landsat_8():
                     abs,
                     getRasterResolution(out_stack))) == (base_ref_res_x,
                                                          abs(base_ref_res_y))
-            if not os.path.exists(
-                    out_stack) or same_proj is False or not same_res:
+            if not (os.path.exists(out_stack) and same_proj and same_res):
                 # ~ date_stack.ExecuteAndWriteOutput()
                 multi_proc = mp.Process(target=executeApp, args=[date_stack])
                 multi_proc.start()
@@ -391,8 +388,7 @@ class landsat_8():
                     self.target_proj)
                 same_res = getRasterResolution(
                     out_mask) == getRasterResolution(self.ref_image)
-            if not os.path.exists(
-                    out_mask) or same_proj is False or not same_res:
+            if not (os.path.exists(out_mask) and same_proj and same_res):
                 # ~ superimp.ExecuteAndWriteOutput()
                 multi_proc = mp.Process(target=executeApp, args=[superimp])
                 multi_proc.start()

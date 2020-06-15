@@ -40,7 +40,9 @@ def RandomInSitu(vectorFile, field, nbdraws, opath, perc_learn):
         if cl not in classes:
             classes.append(cl)
 
-    for tirage in range(0, nbtirage):
+    #print listallid
+    ch = ""
+    for _ in range(nbtirage):
         listallid = []
         for cl in classes:
             listid = []
@@ -63,12 +65,7 @@ def RandomInSitu(vectorFile, field, nbdraws, opath, perc_learn):
                 listallid.append(fid)
             #print _id
         listallid.sort()
-        #print listallid
-        ch = ""
-        listFid = []
-        for fid in listallid:
-            listFid.append("FID=" + str(fid))
-
+        listFid = ["FID=" + str(fid) for fid in listallid]
     #print listFid
     resultA = []
     for e in listFid:
@@ -82,16 +79,9 @@ def RandomInSitu(vectorFile, field, nbdraws, opath, perc_learn):
         tirage) + "_learn.shp"
     vf.CreateNewLayer(layer, outShapefile)
 
-    listValid = []
-    for i in allFID:
-        if i not in listallid:
-            listValid.append(i)
-
+    listValid = [i for i in allFID if i not in listallid]
     chV = ""
-    listFidV = []
-    for fid in listValid:
-        listFidV.append("FID=" + str(fid))
-
+    listFidV = ["FID=" + str(fid) for fid in listValid]
     resultV = []
     for e in listFidV:
         resultV.append(e)

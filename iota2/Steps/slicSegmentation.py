@@ -35,10 +35,9 @@ class slicSegmentation(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Compute SLIC segmentation by tile")
         #~ About SLIC segmentation implementation :
         #~     https://ieeexplore.ieee.org/document/8606448
-        return description
+        return "Compute SLIC segmentation by tile"
 
     def step_inputs(self):
         """
@@ -46,9 +45,8 @@ class slicSegmentation(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
-        tiles = SCF.serviceConfigFile(self.cfg).getParam('chain',
+        return SCF.serviceConfigFile(self.cfg).getParam('chain',
                                                          'listTile').split(" ")
-        return tiles
 
     def step_execute(self):
         """
@@ -63,12 +61,11 @@ class slicSegmentation(IOTA2Step.Step):
 
         running_parameters = iota2_parameters(self.cfg)
 
-        step_function = lambda x: segmentation.slicSegmentation(
+        return lambda x: segmentation.slicSegmentation(
             x,
             SCF.serviceConfigFile(self.cfg).getParam('chain', 'outputPath'),
             running_parameters.get_sensors_parameters(x), self.RAM, self.
             workingDirectory)
-        return step_function
 
     def step_outputs(self):
         """

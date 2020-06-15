@@ -53,9 +53,7 @@ class largeVectorization(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = (
-            "Vectorisation of classification (Serialisation strategy)")
-        return description
+        return "Vectorisation of classification (Serialisation strategy)"
 
     def step_inputs(self):
         """
@@ -92,9 +90,8 @@ class largeVectorization(IOTA2Step.Step):
         if self.workingDirectory:
             tmpdir = self.workingDirectory
 
-        step_function = lambda x: vas.topologicalPolygonize(
+        return lambda x: vas.topologicalPolygonize(
             tmpdir, self.grasslib, x[0], self.angle, x[1], epsg=self.epsg)
-        return step_function
 
     def step_outputs(self):
         """

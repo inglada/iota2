@@ -45,9 +45,7 @@ def traitEchantillons(shapefile,
     vf.copyShapefile(shapefile, newshapefile)
 
     # Table to store intermediate files paths
-    intermediate = []
-
-    intermediate.append(newshapefile)
+    intermediate = [newshapefile]
 
     if csvfile != 1:
         # manage nomenclature (field CODE)
@@ -235,23 +233,16 @@ if __name__ == "__main__":
                 )
                 sys.exit(-1)
             else:
-                if args.buffer is not None:
-                    if int(args.buffer) >= 0:
-                        print(args.buffer)
-                        print("Buffer distance must be negative")
-                        sys.exit(-1)
-                    else:
-                        traitEchantillons(args.shapefile, args.output,
-                                          args.tmppath, args.areapix,
-                                          args.pixthresh, args.notmp,
-                                          args.ofield, args.buffer,
-                                          args.simplify, args.csv,
-                                          args.delimiter, args.ifield)
+                if args.buffer is not None and int(args.buffer) >= 0:
+                    print(args.buffer)
+                    print("Buffer distance must be negative")
+                    sys.exit(-1)
                 else:
                     traitEchantillons(args.shapefile, args.output,
                                       args.tmppath, args.areapix,
-                                      args.pixthresh, args.notmp, args.ofield,
-                                      args.buffer, args.simplify, args.csv,
+                                      args.pixthresh, args.notmp,
+                                      args.ofield, args.buffer,
+                                      args.simplify, args.csv,
                                       args.delimiter, args.ifield)
         else:
             traitEchantillons(args.shapefile, args.output, args.tmppath,

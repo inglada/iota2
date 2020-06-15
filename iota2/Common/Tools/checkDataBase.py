@@ -112,7 +112,7 @@ def check_region_shape(input_vector,
 
     # check vector's projection
     vector_projection = get_vector_proj(input_vector)
-    if not int(epsg) == int(vector_projection):
+    if int(epsg) != int(vector_projection):
         error_msg = "{} projection ({}) incorrect".format(
             input_vector, vector_projection)
         errors.append(ServiceError.invalidProjection(error_msg))
@@ -125,12 +125,12 @@ def check_region_shape(input_vector,
         errors.append(ServiceError.namingConvention(error_msg))
 
     # check field
-    if not field in input_vector_fields:
+    if field not in input_vector_fields:
         errors.append(ServiceError.missingField(input_vector, field))
 
     # check field's type
     label_field_type = getFieldType(input_vector, field)
-    if not label_field_type is str:
+    if label_field_type is not str:
         errors.append(ServiceError.fieldType(input_vector, field, str))
 
     # geometries checks
@@ -219,7 +219,7 @@ def check_ground_truth(input_vector,
     errors = []
     # check vector's projection
     vector_projection = get_vector_proj(input_vector)
-    if not int(epsg) == int(vector_projection):
+    if int(epsg) != int(vector_projection):
         error_msg = "{} projection ({}) incorrect".format(
             input_vector, vector_projection)
         errors.append(ServiceError.invalidProjection(error_msg))
@@ -231,12 +231,12 @@ def check_ground_truth(input_vector,
         errors.append(ServiceError.namingConvention(error_msg))
 
     # check field
-    if not data_field in input_vector_fields:
+    if data_field not in input_vector_fields:
         errors.append(ServiceError.missingField(input_vector, data_field))
     else:
         # check field's type
         label_field_type = getFieldType(input_vector, data_field)
-        if not label_field_type is int:
+        if label_field_type is not int:
             errors.append(ServiceError.fieldType(input_vector, data_field,
                                                  int))
 
@@ -326,7 +326,7 @@ if __name__ == "__main__":
         os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
     iota2_scripts_dir = os.path.abspath(os.path.join(parent, os.pardir))
 
-    if not iota2_scripts_dir in sys.path:
+    if iota2_scripts_dir not in sys.path:
         sys.path.append(iota2_scripts_dir)
 
     description = (

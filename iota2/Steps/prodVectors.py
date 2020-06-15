@@ -39,9 +39,7 @@ class prodVectors(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = (
-            "Merge statistics and format output vectors for OSO production")
-        return description
+        return "Merge statistics and format output vectors for OSO production"
 
     def step_inputs(self):
         """
@@ -68,10 +66,8 @@ class prodVectors(IOTA2Step.Step):
 
         outpath = os.path.join(self.outputPath, 'final', 'vectors')
 
-        step_function = lambda x: zs.mergeSubVector(
+        return lambda x: zs.mergeSubVector(
             x, outpath, self.nomenclature, oso=True, outbase="departement_")
-
-        return step_function
 
     def step_outputs(self):
         """

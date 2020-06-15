@@ -149,17 +149,14 @@ def addClassAHF(filein, convex=0.7, compa=0.4, elong=2.5):
         if feat.GetField('Convexity') <= convex:
             if feat.GetField('Compacity') < compa:
                 feat.SetField('ClassAHF', 'Haie')
-                layer.SetFeature(feat)
             else:
                 feat.SetField('ClassAHF', 'Foret')
-                layer.SetFeature(feat)
         else:
             if feat.GetField('Elongation') > elong:
                 feat.SetField('ClassAHF', 'Haie')
-                layer.SetFeature(feat)
             else:
                 feat.SetField('ClassAHF', 'AutreAHF')
-                layer.SetFeature(feat)
+        layer.SetFeature(feat)
     source.Destroy()
     layer = None
 
@@ -260,9 +257,9 @@ def foret_non_foret(chemin,
         for nonforet in NFL:
             fID = nonforet.GetFID()
             gnonforet = nonforet.GetGeometryRef()
-            if gnonforet.Distance(gforet) == 0 and (
-                    nonforet.GetField('ClassAHF') == 'Foret'
-                    or nonforet.GetField('ClassAHF') == 'AutreAHF'):
+            if gnonforet.Distance(gforet) == 0 and nonforet.GetField(
+                'ClassAHF'
+            ) in ['Foret', 'AutreAHF']:
                 NFL.DeleteFeature(fID)
         NFL.ResetReading()
     F.Destroy()

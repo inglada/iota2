@@ -280,8 +280,7 @@ class sentinel_2_s2c():
                     self.target_proj)
                 same_res = getRasterResolution(
                     out_stack) == getRasterResolution(self.ref_image)
-            if not os.path.exists(
-                    out_stack) or same_proj is False or not same_res:
+            if not (os.path.exists(out_stack) and same_proj and same_res):
                 # date_stack.ExecuteAndWriteOutput()
                 multi_proc = mp.Process(target=executeApp, args=[date_stack])
                 multi_proc.start()
@@ -354,8 +353,7 @@ class sentinel_2_s2c():
                 same_res = getRasterProjectionEPSG(
                     out_mask) == getRasterProjectionEPSG(self.ref_image)
 
-            if not os.path.exists(
-                    out_mask) or same_proj is False or not same_res:
+            if not (os.path.exists(out_mask) and same_proj and same_res):
                 # superimp.ExecuteAndWriteOutput()
                 multi_proc = mp.Process(target=executeApp, args=[superimp])
                 multi_proc.start()
@@ -457,10 +455,9 @@ class sentinel_2_s2c():
         if self.vhr_path.lower() != "none":
             pattern = "{}_COREG.tif".format(self.suffix)
 
-        stacks = sorted(FileSearch_AND(target_folder, True, pattern),
+        return sorted(FileSearch_AND(target_folder, True, pattern),
                         key=lambda x: os.path.basename(x).split("_")[
                             self.date_position].split("T")[0])
-        return stacks
 
     def get_available_dates_masks(self):
         """
@@ -476,10 +473,9 @@ class sentinel_2_s2c():
         if self.vhr_path.lower() != "none":
             pattern = "{}_COREG.tif".format(self.masks_date_suffix)
 
-        masks = sorted(FileSearch_AND(target_folder, True, pattern),
+        return sorted(FileSearch_AND(target_folder, True, pattern),
                        key=lambda x: os.path.basename(x).split("_")[
                            self.date_position].split("T")[0])
-        return masks
 
     def write_interpolation_dates_file(self, write=True):
         """

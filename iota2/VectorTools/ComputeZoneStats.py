@@ -118,7 +118,7 @@ def loop_zonal_stats(input_zone_polygon, input_value_raster):
         if feat.GetGeometryRef():
             statValue = zonal_stats(feat, input_zone_polygon, input_value_raster)
             FinalStat = FinalStat+statValue
-    for i in range(0,len(FinalStat)):
+    for i in range(len(FinalStat)):
         if FinalStat[i] != 0:
             statDict[i] = FinalStat[i]
     return statDict

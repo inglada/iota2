@@ -76,8 +76,7 @@ class superPixPos(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Add superPixels positions to reference data")
-        return description
+        return "Add superPixels positions to reference data"
 
     def step_inputs(self):
         """
@@ -98,11 +97,10 @@ class superPixPos(IOTA2Step.Step):
         """
         from Sampling.SuperPixelsSelection import merge_ref_super_pix
 
-        step_function = lambda x: merge_ref_super_pix(
+        return lambda x: merge_ref_super_pix(
             x, self.data_field, self.superPix_field, self.
             superPix_belong_field, self.region_field, self.
             sampling_labels_from_raster, self.workingDirectory, self.ram)
-        return step_function
 
     def step_outputs(self):
         """

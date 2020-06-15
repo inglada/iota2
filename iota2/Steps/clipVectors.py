@@ -53,9 +53,7 @@ class clipVectors(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = (
-            "Clip vector files for each feature of clipfile parameters")
-        return description
+        return "Clip vector files for each feature of clipfile parameters"
 
     def step_inputs(self):
         """
@@ -102,15 +100,13 @@ class clipVectors(IOTA2Step.Step):
         if self.workdir:
             tmpdir = self.workdir
 
-        step_function = lambda x: vas.clipVectorfile(tmpdir,
+        return lambda x: vas.clipVectorfile(tmpdir,
                                                      x[0],
                                                      self.clipfile,
                                                      self.clipfield,
                                                      x[1],
                                                      prefix=self.outprefix,
                                                      outpath=self.outfilevect)
-
-        return step_function
 
     def step_outputs(self):
         """

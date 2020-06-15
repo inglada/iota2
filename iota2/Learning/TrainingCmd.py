@@ -130,7 +130,7 @@ def buildTrainCmd_points(r, paths, classif, options, dataField, out, stat,
     if "svm" in classif.lower():
         cmd = cmd + " -io.stats " + stat
         proba_option = "-classifier.libsvm.prob True"
-        if not proba_option in options:
+        if proba_option not in options:
             cmd = "{} {}".format(cmd, proba_option)
     return cmd
 
@@ -262,8 +262,7 @@ def launch_training(classifier_name: str, classifier_options: str,
         seed = os.path.split(sample)[-1].split("_")[pos_seed_sample].split(
             "seed")[-1]
         out_stats = None
-        if classifier_name.lower() == "svm" or classifier_name.lower(
-        ) == "libsvm":
+        if classifier_name.lower() in ["svm", "libsvm"]:
             out_stats = os.path.join(
                 output_path, "stats",
                 "Model_{}_seed_{}.xml".format(model, seed))

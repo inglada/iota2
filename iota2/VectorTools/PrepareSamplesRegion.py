@@ -65,10 +65,7 @@ def get_sources(cfg):
 
         if key not in list(sources.keys()):
             sources[key] = []
-            sources[key].append(classe)
-        else:
-            sources[key].append(classe)
-
+        sources[key].append(classe)
     return sources
 
 
@@ -106,35 +103,37 @@ def manageFieldShapefile(shapefile, value, areapix):
 
 def gestionFields(cfg, classe, source, ss_source):
 
+    if source not in cfg.Nomenclature[classe].Source:
+        return
+
+    if isinstance(cfg.Nomenclature[classe].Source, config.Sequence):
+        indSource = list(cfg.Nomenclature[classe].Source).index(source)
+    else:
+        if source in cfg and isinstance(
+            cfg.Nomenclature[classe][source], config.Sequence
+        ):
+            indSource = list(
+                cfg.Nomenclature[classe][source]).index(ss_source)
+
     chpValue = []
-    if source in cfg.Nomenclature[classe].Source:
-        if isinstance(cfg.Nomenclature[classe].Source, config.Sequence):
-            indSource = list(cfg.Nomenclature[classe].Source).index(source)
+    if isinstance(cfg.Nomenclature[classe].Champs, config.Sequence):
+        chp = cfg.Nomenclature[classe].Champs[indSource]
+        if isinstance(chp, config.Sequence):
+            for i in range(len(chp)):
+                chpValue.append([
+                    chp[i],
+                    cfg.Nomenclature[classe].CodesSource[indSource][i]
+                ])
         else:
-            if source in cfg:
-                if isinstance(cfg.Nomenclature[classe][source],
-                              config.Sequence):
-                    indSource = list(
-                        cfg.Nomenclature[classe][source]).index(ss_source)
+            chpValue.append(
+                [chp, cfg.Nomenclature[classe].CodesSource[indSource]])
+    else:
+        chpValue.append([
+            cfg.Nomenclature[classe].Champs,
+            cfg.Nomenclature[classe].CodesSource
+        ])
 
-        if isinstance(cfg.Nomenclature[classe].Champs, config.Sequence):
-            chp = cfg.Nomenclature[classe].Champs[indSource]
-            if isinstance(chp, config.Sequence):
-                for i in range(len(chp)):
-                    chpValue.append([
-                        chp[i],
-                        cfg.Nomenclature[classe].CodesSource[indSource][i]
-                    ])
-            else:
-                chpValue.append(
-                    [chp, cfg.Nomenclature[classe].CodesSource[indSource]])
-        else:
-            chpValue.append([
-                cfg.Nomenclature[classe].Champs,
-                cfg.Nomenclature[classe].CodesSource
-            ])
-
-        return chpValue
+    return chpValue
 
 
 def gestionSources(cfg, classe, source):
@@ -185,10 +184,10 @@ def gestionSources(cfg, classe, source):
 def gestionTraitementsClasse(cfg, layer, outfile, classe, ss_classe, source, res, area_thresh, pix_thresh, \
                              chp = None, value = None, buff = None):
 
-    if ss_classe not in cfg.parameters.maskLineaire:
-        if chp is not None:
-            FileByClass.FileByClass(layer, chp, value, outfile)
+    if chp is not None:
+        FileByClass.FileByClass(layer, chp, value, outfile)
 
+    if ss_classe not in cfg.parameters.maskLineaire:
         if os.path.exists(outfile):
 
             manageFieldShapefile(outfile, cfg.Nomenclature[classe].Code,
@@ -255,9 +254,6 @@ def gestionTraitementsClasse(cfg, layer, outfile, classe, ss_classe, source, res
             return None
 
     else:
-        if chp is not None:
-            FileByClass.FileByClass(layer, chp, value, outfile)
-
         # Gestion du buffer linéaire
         ds = vf.openToRead(layer)
         lyr = ds.GetLayer()
@@ -479,32 +475,25 @@ def gestionFichierFinal(samples_shapefile_source, outfile_area, ouputPath,
                 outpathfinal = '/'.join([
                     ouputPath, 'final'
                 ]) + '/' + source + '_' + classe + '.shp'
-                vf.copyShapefile(outfile_area, outpathfinal)
-                manageListSources(samples_shapefile_source, outpathfinal,
-                                  source)
             else:
                 outpathfinal = '/'.join([
                     ouputPath, 'final'
                 ]) + '/' + os.path.basename(outfile_area)
-                vf.copyShapefile(outfile_area, outpathfinal)
-                manageListSources(samples_shapefile_source, outpathfinal,
-                                  source)
+            vf.copyShapefile(outfile_area, outpathfinal)
+            manageListSources(samples_shapefile_source, outpathfinal,
+                              source)
         else:
             for fileout in outfile_area:
                 if 'mask' not in fileout:
                     outpathfinal = '/'.join([
                         ouputPath, 'final'
                     ]) + '/' + source + '_' + classe + '.shp'
-                    vf.copyShapefile(fileout, outpathfinal)
-                    manageListSources(samples_shapefile_source, outpathfinal,
-                                      source)
                 else:
                     outpathfinal = '/'.join(
                         [ouputPath, 'final']) + '/' + os.path.basename(fileout)
-                    vf.copyShapefile(fileout, outpathfinal)
-                    manageListSources(samples_shapefile_source, outpathfinal,
-                                      source)
-
+                vf.copyShapefile(fileout, outpathfinal)
+                manageListSources(samples_shapefile_source, outpathfinal,
+                                  source)
     return samples_shapefile_source
 
 

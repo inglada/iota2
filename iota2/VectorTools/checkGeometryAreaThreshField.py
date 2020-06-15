@@ -73,10 +73,7 @@ def checkGeometryAreaThreshField(shapefile,
     fieldList = vf.getFields(shapefileNoDupspoly)
     if 'ID' in fieldList:
         DeleteField.deleteField(shapefileNoDupspoly, 'ID')
-        AddFieldID.addFieldID(shapefileNoDupspoly)
-    else:
-        AddFieldID.addFieldID(shapefileNoDupspoly)
-
+    AddFieldID.addFieldID(shapefileNoDupspoly)
     # Filter by Area
     try:
         SelectBySize.selectBySize(shapefileNoDupspoly, 'Area', pix_thresh,

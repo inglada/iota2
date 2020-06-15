@@ -37,11 +37,9 @@ class Tile(object):
         self.path = path
         if not testMode:
             self.x = float(gtif.GetGeoTransform()[0])
-        else:
-            self.x = 0.0
-        if not testMode:
             self.y = float(gtif.GetGeoTransform()[3])
         else:
+            self.x = 0.0
             self.y = 0.0
         self.name = name
         self.envelope = "None"
@@ -227,9 +225,7 @@ def IsIntersect(shp1, shp2):
         geom2 = feature2.GetGeometryRef()
 
     intersection = geom1.Intersection(geom2)
-    if intersection.GetArea() != 0:
-        return True
-    return False
+    return intersection.GetArea() != 0
 
 
 def getShapeExtent(shape):
@@ -275,7 +271,7 @@ def erodeInter(currentTile, NextTile, intersection, buff, proj):
 def diag(currentTile, NextTile):
     xo, yo = currentTile.getOrigin()
     xn, yn = NextTile.getOrigin()
-    if not (yo == yn and xo != xn) and not (yo != yn and xo == xn):
+    if (yo != yn or xo == xn) and (yo == yn or xo != xn):
         return True
 
 

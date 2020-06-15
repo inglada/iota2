@@ -188,7 +188,7 @@ def get_regions_area(vectors: List[str], regions: List[str],
             cursor.execute(sql_clause)
             res = cursor.fetchall()
 
-            dico_region_area[current_region] += sum([area[0] for area in res])
+            dico_region_area[current_region] += sum(area[0] for area in res)
 
             if vector not in dico_region_tile[current_region]:
                 dico_region_tile[current_region].append(sqlite_vector)
@@ -440,10 +440,12 @@ def split_samples(output_path: str,
     # get All possible regions by parsing shapeFile's name
     shapes_region = fut.FileSearch_AND(shape_region_dir, True, ".shp")
     regions = list(
-        set([
+        {
             os.path.split(shape)[-1].split("_")[regions_pos]
             for shape in shapes_region
-        ]))
+        }
+    )
+
 
     # compute region's area
     areas, regions_tiles, data_to_rm = get_regions_area(

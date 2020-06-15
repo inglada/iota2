@@ -28,17 +28,19 @@ def updateDirectory(src, dst):
 
     content = os.listdir(src)
     for currentContent in content:
-        if os.path.isfile(src+"/"+currentContent):
-            if not os.path.exists(dst+"/"+currentContent):
-                shutil.copy(src+"/"+currentContent,dst+"/"+currentContent)
-        if os.path.isdir(src+"/"+currentContent):
-            if not os.path.exists(dst+"/"+currentContent):
-                try:
-                    shutil.copytree(src+"/"+currentContent, dst+"/"+currentContent)
-                except OSError as exc: # python >2.5
-                    if exc.errno == errno.ENOTDIR:
-                        shutil.copy(src, dst)
-                    else: raise
+        if os.path.isfile(src + "/" + currentContent) and not os.path.exists(
+            dst + "/" + currentContent
+        ):
+            shutil.copy(src+"/"+currentContent,dst+"/"+currentContent)
+        if os.path.isdir(src + "/" + currentContent) and not os.path.exists(
+            dst + "/" + currentContent
+        ):
+            try:
+                shutil.copytree(src+"/"+currentContent, dst+"/"+currentContent)
+            except OSError as exc: # python >2.5
+                if exc.errno == errno.ENOTDIR:
+                    shutil.copy(src, dst)
+                else: raise
 
 
 def filterLayer(AllLayers,file_JS):

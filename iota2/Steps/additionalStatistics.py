@@ -36,10 +36,7 @@ class additionalStatistics(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = (
-            "Generate additional statistics by tiles about ouput classifications"
-        )
-        return description
+        return "Generate additional statistics by tiles about ouput classifications"
 
     def step_inputs(self):
         """
@@ -58,9 +55,8 @@ class additionalStatistics(IOTA2Step.Step):
             must be a lambda function.
         """
         from iota2.Validation import OutStats as OutS
-        step_function = lambda x: OutS.out_statistics(self.output_path, x, self
+        return lambda x: OutS.out_statistics(self.output_path, x, self
                                                       .runs)
-        return step_function
 
     def step_outputs(self):
         """

@@ -109,15 +109,10 @@ class iota_test_zonal_stats(unittest.TestCase):
 
         if os.path.exists(self.wd):
             shutil.rmtree(self.wd, ignore_errors=True)
-            os.mkdir(self.wd)
-        else:
-            os.mkdir(self.wd)
-
+        os.mkdir(self.wd)
         if os.path.exists(self.out):
             shutil.rmtree(self.out, ignore_errors=True)
-            os.mkdir(self.out)
-        else:
-            os.mkdir(self.out)
+        os.mkdir(self.out)
 
     def list2reason(self, exc_list):
         if exc_list and exc_list[-1][0] is self:
@@ -133,7 +128,7 @@ class iota_test_zonal_stats(unittest.TestCase):
                              self._resultForDoCleanups)
         error = self.list2reason(result.errors)
         failure = self.list2reason(result.failures)
-        ok_test = not error and not failure
+        ok_test = not (error or failure)
 
         self.all_tests_ok.append(ok_test)
         if ok_test:

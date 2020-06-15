@@ -42,8 +42,7 @@ class superPixSplit(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Generate two data sets, one dedicated to superpixels one to reference data")
-        return description
+        return "Generate two data sets, one dedicated to superpixels one to reference data"
 
     def step_inputs(self):
         """
@@ -63,10 +62,11 @@ class superPixSplit(IOTA2Step.Step):
             must be a lambda function.
         """
         from Sampling.SplitSamples import split_superpixels_and_reference
-        step_function = lambda x: split_superpixels_and_reference(x,
-                                                                  superpix_column=self.is_superPix_field,
-                                                                  working_dir=self.workingDirectory)
-        return step_function
+        return lambda x: split_superpixels_and_reference(
+            x,
+            superpix_column=self.is_superPix_field,
+            working_dir=self.workingDirectory,
+        )
 
     def step_outputs(self):
         """

@@ -36,8 +36,7 @@ class PixelValidity(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Compute validity raster by tile")
-        return description
+        return "Compute validity raster by tile"
 
     def step_inputs(self):
         """
@@ -45,9 +44,8 @@ class PixelValidity(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
-        tiles = SCF.serviceConfigFile(self.cfg).getParam('chain',
+        return SCF.serviceConfigFile(self.cfg).getParam('chain',
                                                          'listTile').split(" ")
-        return tiles
 
     def step_execute(self):
         """
@@ -61,11 +59,10 @@ class PixelValidity(IOTA2Step.Step):
 
         cloud_threshold = SCF.serviceConfigFile(self.cfg).getParam(
             'chain', 'cloud_threshold')
-        step_function = lambda x: ProcessLauncher.validity(
+        return lambda x: ProcessLauncher.validity(
             x, self.cfg, self.output_path, "CloudThreshold_{}.shp".format(
                 cloud_threshold), cloud_threshold, self.working_directory, self
             .ram)
-        return step_function
 
     def step_outputs(self):
         """

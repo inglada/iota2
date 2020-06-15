@@ -130,6 +130,7 @@ def genAnnualShapePoints(coord, gdalDriver, workingDirectory, rasterResolution,
     vector_regions = []
     add = 0
 
+    layerName = "output"#layerName
     for current_seed in range(runs):
 
         for currentMask in masks:
@@ -186,7 +187,6 @@ def genAnnualShapePoints(coord, gdalDriver, workingDirectory, rasterResolution,
             srs = osr.SpatialReference()
             srs.ImportFromEPSG(projection)
 
-            layerName = "output"#layerName
             layerOUT = data_source.CreateLayer(layerName, srs, ogr.wkbPoint)
 
             add_origin_fields(inlearningShape, layerOUT, region_field_name, runs)
@@ -243,10 +243,7 @@ def genAnnualShapePoints(coord, gdalDriver, workingDirectory, rasterResolution,
     for vec in vector_regions:
         os.remove(vec)
 
-    if add == 0:
-        return False
-    else:
-        return True
+    return add != 0
 
 if __name__ == "__main__":
 

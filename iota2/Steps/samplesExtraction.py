@@ -48,8 +48,7 @@ class samplesExtraction(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Extract pixels values by tiles")
-        return description
+        return "Extract pixels values by tiles"
 
     def step_inputs(self):
         # found all shapes

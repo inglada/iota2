@@ -36,8 +36,7 @@ class crownSearch(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Search crown entities for serialization process")
-        return description
+        return "Search crown entities for serialization process"
 
     def step_inputs(self):
         """
@@ -68,8 +67,8 @@ class crownSearch(IOTA2Step.Step):
         outfilegrid = os.path.join(self.outputPath, 'final', 'simplification',
                                    'grid.shp')
         outseria = os.path.join(self.outputPath, 'final', 'simplification',
-                                'tiles') 
-        step_function = lambda x: sct.searchCrownTile(tmpdir,
+                                'tiles')
+        return lambda x: sct.searchCrownTile(tmpdir,
                                                       outfileclp,
                                                       inclump,
                                                       self.RAM,
@@ -77,7 +76,6 @@ class crownSearch(IOTA2Step.Step):
                                                       outseria,
                                                       self.CPU,
                                                       x)
-        return step_function
 
     def step_outputs(self):
         """

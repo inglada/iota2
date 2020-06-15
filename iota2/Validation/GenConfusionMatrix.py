@@ -203,7 +203,7 @@ def gen_conf_matrix(path_classif: str, path_valid: str, runs: int,
     fu.writeCmds(path_to_cmd_confusion + "/confusion.txt", all_cmd)
 
     if enable_cross_validation:
-        runs = runs - 1
+        runs -= 1
     for seed in range(runs):
         all_diff = fu.FileSearch_AND(path_tmp, True,
                                      f"_seed_{seed}_CompRef.tif")
@@ -288,7 +288,7 @@ def confusion_sar_optical_parameter(iota2_dir: str,
                 ref_vector = sub_param
             elif "SAR.tif" in sub_param:
                 classif_sar = sub_param
-            elif ".tif" in sub_param and "SAR.tif" not in sub_param:
+            elif ".tif" in sub_param:
                 classif_opt = sub_param
         output_parameters.append((ref_vector, classif_opt))
         output_parameters.append((ref_vector, classif_sar))

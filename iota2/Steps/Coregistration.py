@@ -36,8 +36,7 @@ class Coregistration(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Time series coregistration on a VHR reference")
-        return description
+        return "Time series coregistration on a VHR reference"
 
     def step_inputs(self):
         """
@@ -45,9 +44,8 @@ class Coregistration(IOTA2Step.Step):
         ------
             the return could be and iterable or a callable
         """
-        tiles = SCF.serviceConfigFile(self.cfg).getParam('chain',
+        return SCF.serviceConfigFile(self.cfg).getParam('chain',
                                                          'listTile').split(" ")
-        return tiles
 
     def step_execute(self):
         """

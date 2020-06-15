@@ -266,9 +266,7 @@ def generate_fake_s2_data(root_directory: str,
             array = fun_array(array_name)
             random_array = []
             for y_coordinate in array:
-                y_tmp = []
-                for pix_val in y_coordinate:
-                    y_tmp.append(pix_val * random.random() * 1000)
+                y_tmp = [pix_val * random.random() * 1000 for pix_val in y_coordinate]
                 random_array.append(y_tmp)
 
             array_to_raster(np.array(random_array),
@@ -348,10 +346,7 @@ def generate_fake_s2_s2c_data(
                 pix_size = 20
             if '60m.jp2' in prod:
                 pix_size = 60
-            if "_SCL_" in prod:
-                array_raster = fake_scene_classification
-            else:
-                array_raster = fake_raster
+            array_raster = fake_scene_classification if "_SCL_" in prod else fake_raster
             # output_driver has to be 'GTiff' even if S2ST are jp2
             array_to_raster(array_raster,
                             prod,
@@ -420,9 +415,7 @@ def generate_fake_l8_data(root_directory: str,
             array = fun_array(array_name)
             random_array = []
             for val in array:
-                val_tmp = []
-                for pix_val in val:
-                    val_tmp.append(pix_val * random.random() * 1000)
+                val_tmp = [pix_val * random.random() * 1000 for pix_val in val]
                 random_array.append(val_tmp)
 
             array_to_raster(np.array(random_array),
@@ -465,9 +458,7 @@ def generate_fake_user_features_data(root_directory: str, tile_name: str,
         user_features_path = os.path.join(tile_dir, f"{pattern}.tif")
         random_array = []
         for val in array:
-            val_tmp = []
-            for pix_val in val:
-                val_tmp.append(pix_val * random.random() * 1000)
+            val_tmp = [pix_val * random.random() * 1000 for pix_val in val]
             random_array.append(val_tmp)
         array_to_raster(np.array(random_array),
                         user_features_path,
@@ -534,9 +525,7 @@ def generate_fake_s2_l3a_data(root_directory: str,
             array = fun_array(array_name)
             random_array = []
             for val in array:
-                val_tmp = []
-                for pix_val in val:
-                    val_tmp.append(pix_val * random.random() * 1000)
+                val_tmp = [pix_val * random.random() * 1000 for pix_val in val]
                 random_array.append(val_tmp)
 
             array_to_raster(np.array(random_array),
@@ -607,9 +596,7 @@ def generate_fake_l5_old_data(root_directory: str,
             array = fun_array(array_name)
             random_array = []
             for val in array:
-                val_tmp = []
-                for pix_val in val:
-                    val_tmp.append(pix_val * random.random() * 1000)
+                val_tmp = [pix_val * random.random() * 1000 for pix_val in val]
                 random_array.append(val_tmp)
 
             array_to_raster(np.array(random_array),
@@ -681,9 +668,7 @@ def generate_fake_l8_old_data(root_directory: str,
             array = fun_array(array_name)
             random_array = []
             for val in array:
-                val_tmp = []
-                for pix_val in val:
-                    val_tmp.append(pix_val * random.random() * 1000)
+                val_tmp = [pix_val * random.random() * 1000 for pix_val in val]
                 random_array.append(val_tmp)
 
             array_to_raster(np.array(random_array),

@@ -261,7 +261,7 @@ def generate_samples_simple(folder_sample: str,
     tile = train_shape.split("/")[-1].split(".")[0].split("_")[0]
 
     if enable_cross_validation:
-        runs = runs - 1
+        runs -= 1
     sample_sel_directory = os.path.join(output_path, "samplesSelection")
 
     if custom_features:
@@ -461,7 +461,7 @@ def generate_samples_crop_mix(folder_sample: str,
     data_field = data_field.lower()
 
     if enable_cross_validation:
-        runs = runs - 1
+        runs -= 1
 
     sample_sel_directory = os.path.join(output_path, "samplesSelection")
     current_tile = (os.path.splitext(os.path.basename(train_shape))[0])
@@ -568,11 +568,14 @@ def generate_samples_crop_mix(folder_sample: str,
     if os.path.exists(sample_extr_na):
         non_annual_fields = fu.get_all_fields_in_shape(sample_extr_na,
                                                        "SQLite")
-    if os.path.exists(sample_extr_na) and os.path.exists(sample_extr_a):
-        if len(annual_fields) != len(non_annual_fields):
-            raise Exception(
-                "annual data's fields and non annual data's fields can"
-                "not fitted")
+    if (
+        os.path.exists(sample_extr_na)
+        and os.path.exists(sample_extr_a)
+        and len(annual_fields) != len(non_annual_fields)
+    ):
+        raise Exception(
+            "annual data's fields and non annual data's fields can"
+            "not fitted")
 
     if os.path.exists(sample_extr_a):
         driver = ogr.GetDriverByName("SQLite")
@@ -608,11 +611,11 @@ def generate_samples_crop_mix(folder_sample: str,
     if (nb_feat_nannu > 0) and (nb_feat_annu > 0):
         fu.mergeSQLite(merge_name, working_directory,
                        [sample_extr_na, sample_extr_a])
-    elif nb_feat_nannu > 0 and not nb_feat_annu > 0:
+    elif nb_feat_nannu > 0:
         shutil.copyfile(
             sample_extr_na,
             os.path.join(working_directory, merge_name + ".sqlite"))
-    elif not (nb_feat_nannu > 0) and (nb_feat_annu > 0):
+    elif nb_feat_annu > 0:
         shutil.copyfile(
             sample_extr_a,
             os.path.join(working_directory, merge_name + ".sqlite"))
@@ -988,10 +991,10 @@ def generate_samples_classif_mix(
         fu.mergeSQLite(merge_name, working_directory,
                        [non_annual_shape, annual_shape])
 
-    elif (nb_feat_nannu > 0) and not (nb_feat_annu > 0 and annual_points):
+    elif nb_feat_nannu > 0:
         # If not annual samples can be added then annual classes are ignored
         shutil.copy(non_annual_shape, sample_selection)
-    elif not (nb_feat_nannu > 0) and (nb_feat_annu > 0 and annual_points):
+    elif nb_feat_annu > 0 and annual_points:
         # If not non annual samples are found then use all annual samples
         shutil.copy(annual_shape, sample_selection)
 
@@ -1174,7 +1177,7 @@ def generate_samples(train_shape_dic,
     if path_wd:
         working_directory = path_wd
 
-    if crop_mix is False or auto_context_enable:
+    if not crop_mix or auto_context_enable:
         samples = generate_samples_simple(
             folder_sample,
             working_directory,

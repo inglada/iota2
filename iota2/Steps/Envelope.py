@@ -38,8 +38,7 @@ class Envelope(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Generate tile's envelope")
-        return description
+        return "Generate tile's envelope"
 
     def step_inputs(self):
         """
@@ -61,9 +60,8 @@ class Envelope(IOTA2Step.Step):
 
         tiles = SCF.serviceConfigFile(self.cfg).getParam('chain',
                                                          'listTile').split(" ")
-        step_function = lambda x: env.generate_shape_tile(
+        return lambda x: env.generate_shape_tile(
             tiles, self.workingDirectory, x, self.proj)
-        return step_function
 
     def step_outputs(self):
         """

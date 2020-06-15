@@ -37,8 +37,7 @@ class sensorsPreprocess(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Sensors pre-processing")
-        return description
+        return "Sensors pre-processing"
 
     def step_inputs(self):
         """
@@ -47,9 +46,8 @@ class sensorsPreprocess(IOTA2Step.Step):
             the return could be and iterable or a callable
         """
         from iota2.Common import ServiceConfigFile as SCF
-        tiles = SCF.serviceConfigFile(self.cfg).getParam('chain',
+        return SCF.serviceConfigFile(self.cfg).getParam('chain',
                                                          'listTile').split(" ")
-        return tiles
 
     def step_execute(self):
         """
@@ -60,9 +58,8 @@ class sensorsPreprocess(IOTA2Step.Step):
             must be a lambda function.
         """
         from iota2.Sensors import ProcessLauncher
-        step_function = lambda x: ProcessLauncher.preprocess(
+        return lambda x: ProcessLauncher.preprocess(
             x, self.cfg, self.output_path, self.workingDirectory, self.RAM)
-        return step_function
 
     def step_outputs(self):
         """

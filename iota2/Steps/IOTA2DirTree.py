@@ -31,8 +31,7 @@ class IOTA2DirTree(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Construct IOTA² output directories")
-        return description
+        return "Construct IOTA² output directories"
 
     def step_inputs(self):
         """
@@ -69,7 +68,7 @@ class IOTA2DirTree(IOTA2Step.Step):
                                                   **sensors_parameters)
 
         sensor_path = sensor_tile_container.get_enabled_sensors_path()[0]
-        step_function = lambda x: IOTA2_dir.generate_directories(
+        return lambda x: IOTA2_dir.generate_directories(
             x, check_inputs,
             SCF.serviceConfigFile(self.cfg).getParam(
                 'chain', 'merge_final_classifications'),
@@ -80,7 +79,6 @@ class IOTA2DirTree(IOTA2Step.Step):
             int(
                 SCF.serviceConfigFile(self.cfg).getParam('GlobChain', 'proj').
                 split(":")[-1]), sensor_path, tiles)
-        return step_function
 
     def step_outputs(self):
         from iota2.Common import ServiceConfigFile as SCF

@@ -43,8 +43,7 @@ class mergeRegularization(IOTA2Step.Step):
         """
         function use to print a short description of the step's purpose
         """
-        description = ("Majority regularisation of adaptive-regularized raster")
-        return description
+        return "Majority regularisation of adaptive-regularized raster"
 
     def step_inputs(self):
         """
@@ -73,20 +72,14 @@ class mergeRegularization(IOTA2Step.Step):
         if tmpdir is None:
             tmpdir = os.path.join(self.outputPath, 'final', 'simplification', 'tmp')
 
-        if not self.output:
-            output = os.path.join(tmpdir, 'regul1.tif')
-        else:
-            output = self.output
-            
-        step_function = lambda x: mr.mergeRegularization(tmpdir,
+        output = os.path.join(tmpdir, 'regul1.tif') if not self.output else self.output
+        return lambda x: mr.mergeRegularization(tmpdir,
                                                          x,
                                                          self.umc,
                                                          output,
                                                          str(self.RAM),
                                                          self.resample,
                                                          self.water)
-        
-        return step_function
 
     def step_outputs(self):
         """
